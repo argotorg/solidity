@@ -38,6 +38,8 @@
 
 #include <functional>
 #include <utility>
+#include <numeric>
+#include <set>
 
 using namespace solidity;
 using namespace solidity::frontend;
