@@ -4255,15 +4255,7 @@ MemberList::MemberMap MagicType::nativeMembers(ASTNode const*) const
 		return {};
 	case Kind::MetaType:
 	{
-		solAssert(
-			m_typeArgument && (
-					m_typeArgument->category() == Type::Category::Contract ||
-					m_typeArgument->category() == Type::Category::Integer ||
-					m_typeArgument->category() == Type::Category::Enum
-			),
-			"Only enums, contracts or integer types supported for now"
-		);
-
+		solAssert(m_typeArgument != nullptr, "");
 		if (m_typeArgument->category() == Type::Category::Contract)
 		{
 			ContractDefinition const& contract = dynamic_cast<ContractType const&>(*m_typeArgument).contractDefinition();
@@ -4300,6 +4292,10 @@ MemberList::MemberMap MagicType::nativeMembers(ASTNode const*) const
 				{"min", enumTypePointer},
 				{"max", enumTypePointer},
 			});
+		}
+		else
+		{
+			solAssert(false, "Only enums, contracts, structs or integer types supported for now");
 		}
 	}
 	}
