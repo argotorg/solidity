@@ -411,7 +411,7 @@ std::vector<std::pair<ASTPointer<IdentifierPath>, std::optional<Token>>> UsingFo
 	return ranges::zip_view(m_functionsOrLibrary, m_operators) | ranges::to<std::vector>;
 }
 
-void StructDefinition::insertEncodedSubtypes(std::set<std::string>& subtypes) const
+void StructDefinition::insertEip712EncodedSubtypes(std::set<std::string>& subtypes) const
 {
 	for (size_t i = 0; i < m_members.size(); i++)
 	{
@@ -421,13 +421,13 @@ void StructDefinition::insertEncodedSubtypes(std::set<std::string>& subtypes) co
 			StructDefinition const* structDef = dynamic_cast<StructDefinition const*>(declaration);
 			solAssert(structDef != nullptr);
 
-			subtypes.insert(structDef->encodeTypeWithoutSubtypes());
-			structDef->insertEncodedSubtypes(subtypes);
+			subtypes.insert(structDef->eip712EncodeTypeWithoutSubtypes());
+			structDef->insertEip712EncodedSubtypes(subtypes);
 		}
 	}
 }
 
-std::string StructDefinition::encodeTypeWithoutSubtypes() const
+std::string StructDefinition::eip712EncodeTypeWithoutSubtypes() const
 {
 	std::string str = name() + "(";
 	for (size_t i = 0; i < m_members.size(); i++)
@@ -438,17 +438,17 @@ std::string StructDefinition::encodeTypeWithoutSubtypes() const
 	return str + ")";
 }
 
-std::string StructDefinition::encodeType() const
+std::string StructDefinition::eip712EncodeType() const
 {
 	// std::set enables duplicates elimination and ordered enumeration
 	std::set<std::string> subtypes;
-	insertEncodedSubtypes(subtypes);
-	return std::accumulate(subtypes.begin(), subtypes.end(), encodeTypeWithoutSubtypes());
+	insertEip712EncodedSubtypes(subtypes);
+	return std::accumulate(subtypes.begin(), subtypes.end(), eip712EncodeTypeWithoutSubtypes());
 }
 
 util::h256 StructDefinition::typehash() const
 {
-	return util::keccak256(encodeType());
+	return util::keccak256(eip712EncodeType());
 }
 
 Type const* StructDefinition::type() const
