@@ -4255,7 +4255,7 @@ MemberList::MemberMap MagicType::nativeMembers(ASTNode const*) const
 		return {};
 	case Kind::MetaType:
 	{
-		solAssert(m_typeArgument != nullptr, "");
+		solAssert(!m_typeArgument, "");
 		if (m_typeArgument->category() == Type::Category::Contract)
 		{
 			ContractDefinition const& contract = dynamic_cast<ContractType const&>(*m_typeArgument).contractDefinition();
