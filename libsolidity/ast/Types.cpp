@@ -1910,6 +1910,23 @@ std::string ArrayType::canonicalName() const
 	return ret;
 }
 
+string ArrayType::eip712TypeName() const
+{
+	string ret;
+	if (isString())
+		ret = "string";
+	else if (isByteArrayOrString())
+		ret = "bytes";
+	else
+	{
+		ret = baseType()->eip712TypeName() + "[";
+		if (!isDynamicallySized())
+			ret += length().str();
+		ret += "]";
+	}
+	return ret;
+}
+
 std::string ArrayType::signatureInExternalFunction(bool _structsByName) const
 {
 	if (isByteArrayOrString())
@@ -2546,6 +2563,11 @@ std::string StructType::signatureInExternalFunction(bool _structsByName) const
 std::string StructType::canonicalName() const
 {
 	return *m_struct.annotation().canonicalName;
+}
+
+string StructType::eip712TypeName() const
+{
+	return this->typeDefinition()->name();
 }
 
 FunctionTypePointer StructType::constructorType() const
