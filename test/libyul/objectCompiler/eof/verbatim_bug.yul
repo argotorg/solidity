@@ -44,8 +44,6 @@ object "a" {
 //     /* "source":133:225   */
 //   eq
 //   rjumpi{tag_1}
-//     /* "source":108:406   */
-// tag_2:
 //     /* "source":238:263   */
 //   dup1
 //     /* "source":243:247   */
@@ -53,8 +51,6 @@ object "a" {
 //     /* "source":238:263   */
 //   eq
 //   rjumpi{tag_3}
-//     /* "source":108:406   */
-// tag_4:
 //     /* "source":276:368   */
 //   dup1
 //     /* "source":281:285   */
@@ -62,8 +58,6 @@ object "a" {
 //     /* "source":276:368   */
 //   eq
 //   rjumpi{tag_5}
-//     /* "source":108:406   */
-// tag_6:
 //     /* "source":386:390   */
 //   0x03
 //     /* "source":381:406   */
