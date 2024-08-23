@@ -121,6 +121,8 @@ std::pair<std::string, std::string> AssemblyItem::nameAndData(langutil::EVMVersi
 		return {"PUSH data", toStringInHex(data())};
 	case VerbatimBytecode:
 		return {"VERBATIM", util::toHex(verbatimData())};
+	case DataLoadN:
+		return {"DATALOADN", util::toString(data())};
 	case AuxDataLoadN:
 		return {"AUXDATALOADN", util::toString(data())};
 	case UndefinedItem:
@@ -188,6 +190,7 @@ size_t AssemblyItem::bytesRequired(size_t _addressLength, langutil::EVMVersion _
 		return std::get<2>(*m_verbatimBytecode).size();
 	case RelativeJump:
 	case ConditionalRelativeJump:
+	case DataLoadN:
 	case AuxDataLoadN:
 	case JumpF:
 	case CallF:
@@ -260,6 +263,7 @@ size_t AssemblyItem::returnValues() const
 		return 0;
 	case VerbatimBytecode:
 		return std::get<1>(*m_verbatimBytecode);
+	case DataLoadN:
 	case AuxDataLoadN:
 		return 1;
 	case JumpF:
@@ -298,6 +302,7 @@ bool AssemblyItem::canBeFunctional() const
 	case PushLibraryAddress:
 	case PushDeployTimeAddress:
 	case PushImmutable:
+	case DataLoadN:
 	case AuxDataLoadN:
 		return true;
 	case Tag:
@@ -406,6 +411,9 @@ std::string AssemblyItem::toAssemblyText(Assembly const& _assembly) const
 		assertThrow(data() <= std::numeric_limits<size_t>::max(), AssemblyException, "Invalid auxdataloadn argument.");
 		text = "auxdataloadn{" +  std::to_string(static_cast<size_t>(data())) + "}";
 		break;
+	case DataLoadN:
+		text = "dataloadn{" +  util::toHex(toCompactBigEndian(data(), 1)) + "}";
+		break;
 	case EOFCreate:
 		text = "eofcreate{" +  std::to_string(static_cast<size_t>(data())) + "}";
 		break;
@@ -508,6 +516,9 @@ std::ostream& solidity::evmasm::operator<<(std::ostream& _out, AssemblyItem cons
 		break;
 	case VerbatimBytecode:
 		_out << " Verbatim " << util::toHex(_item.verbatimData());
+		break;
+	case DataLoadN:
+		_out << " DataLoadN " << util::toString(_item.data());
 		break;
 	case AuxDataLoadN:
 		_out << " AuxDataLoadN " << util::toString(_item.data());

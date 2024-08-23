@@ -52,6 +52,9 @@ enum AssemblyItemType
 	PushImmutable, ///< Push the currently unknown value of an immutable variable. The actual value will be filled in by the constructor.
 	AssignImmutable, ///< Assigns the current value on the stack to an immutable variable. Only valid during creation code.
 
+	/// Loads 32 bytes from static data of EOF data section.
+	/// More details here: https://github.com/ipsilon/eof/blob/main/spec/eof.md#data-section-lifecycle
+	DataLoadN,
 	/// Loads 32 bytes from static auxiliary data of EOF data section. The offset does *not* have to be always from the beginning
 	/// of the data EOF section. More details here: https://github.com/ipsilon/eof/blob/main/spec/eof.md#data-section-lifecycle
 	AuxDataLoadN,
@@ -200,6 +203,7 @@ public:
 			m_type == ReturnContract ||
 			m_type == RelativeJump ||
 			m_type == ConditionalRelativeJump ||
+			m_type == DataLoadN ||
 			m_type == CallF ||
 			m_type == JumpF ||
 			m_type == RetF ||

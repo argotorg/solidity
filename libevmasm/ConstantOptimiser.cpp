@@ -31,7 +31,8 @@ unsigned ConstantOptimisationMethod::optimiseConstants(
 	bool _isCreation,
 	size_t _runs,
 	langutil::EVMVersion _evmVersion,
-	Assembly& _assembly
+	Assembly& _assembly,
+	std::optional<uint8_t> _eofVersion
 )
 {
 	// TODO: design the optimiser in a way this is not needed
@@ -55,6 +56,7 @@ unsigned ConstantOptimisationMethod::optimiseConstants(
 			params.isCreation = _isCreation;
 			params.runs = _runs;
 			params.evmVersion = _evmVersion;
+			params.eofVersion = _eofVersion;
 			LiteralMethod lit(params, item.data());
 			bigint literalGas = lit.gasNeeded();
 			CodeCopyMethod copy(params, item.data());
@@ -161,73 +163,92 @@ AssemblyItems CodeCopyMethod::execute(Assembly& _assembly) const
 {
 	bytes data = toBigEndian(m_value);
 	assertThrow(data.size() == 32, OptimizerException, "Invalid number encoding.");
-	AssemblyItem newPushData = _assembly.newData(data);
-	return copyRoutine(&newPushData);
+
+	if (m_params.eofVersion.has_value())
+		return AssemblyItems {_assembly.newDataLoadN(data)};
+	else
+	{
+		AssemblyItem newPushData = _assembly.newData(data);
+		return copyRoutine(&newPushData);
+	}
 }
 
-AssemblyItems CodeCopyMethod::copyRoutine(AssemblyItem* _pushData) const
+AssemblyItems CodeCopyMethod::copyRoutine(AssemblyItem* _dataItem) const
 {
-	if (_pushData)
-		assertThrow(_pushData->type() == PushData, OptimizerException, "Invalid Assembly Item.");
-
-	AssemblyItem dataUsed = _pushData ? *_pushData : AssemblyItem(PushData, u256(1) << 16);
-
-	// PUSH0 is cheaper than PUSHn/DUP/SWAP.
-	if (m_params.evmVersion.hasPush0())
+	if (m_params.eofVersion.has_value())
 	{
-		// This costs ~29 gas.
+		// This case is used only for gas calculation.
+		solAssert(_dataItem == nullptr);
 		AssemblyItems copyRoutine{
-			// back up memory
-			// mload(0)
-			u256(0),
-			Instruction::MLOAD,
-
-			// codecopy(0, <offset>, 32)
-			u256(32),
-			dataUsed,
-			u256(0),
-			Instruction::CODECOPY,
-
-			// mload(0)
-			u256(0),
-			Instruction::MLOAD,
-
-			// restore original memory
-			// mstore(0, x)
-			Instruction::SWAP1,
-			u256(0),
-			Instruction::MSTORE
+			AssemblyItem(DataLoadN, Instruction::DATALOADN, u256(1) << 16)
 		};
 		return copyRoutine;
 	}
 	else
 	{
-		// This costs ~33 gas.
-		AssemblyItems copyRoutine{
-			// constant to be reused 3+ times
-			u256(0),
+		AssemblyItem* _pushData = _dataItem;
+		if (_pushData)
+			assertThrow(_pushData->type() == PushData, OptimizerException, "Invalid Assembly Item.");
 
-			// back up memory
-			// mload(0)
-			Instruction::DUP1,
-			Instruction::MLOAD,
+		AssemblyItem dataUsed = _pushData ? *_pushData : AssemblyItem(PushData, u256(1) << 16);
 
-			// codecopy(0, <offset>, 32)
-			u256(32),
-			dataUsed,
-			Instruction::DUP4,
-			Instruction::CODECOPY,
+		// PUSH0 is cheaper than PUSHn/DUP/SWAP.
+		if (m_params.evmVersion.hasPush0())
+		{
+			// This costs ~29 gas.
+			AssemblyItems copyRoutine{
+				// back up memory
+				// mload(0)
+				u256(0),
+				Instruction::MLOAD,
 
-			// mload(0)
-			Instruction::DUP2,
-			Instruction::MLOAD,
+				// codecopy(0, <offset>, 32)
+				u256(32),
+				dataUsed,
+				u256(0),
+				Instruction::CODECOPY,
 
-			// restore original memory
-			// mstore(0, x)
-			Instruction::SWAP2,
-			Instruction::MSTORE
-		};
-		return copyRoutine;
+				// mload(0)
+				u256(0),
+				Instruction::MLOAD,
+
+				// restore original memory
+				// mstore(0, x)
+				Instruction::SWAP1,
+				u256(0),
+				Instruction::MSTORE
+			};
+			return copyRoutine;
+		}
+		else
+		{
+			// This costs ~33 gas.
+			AssemblyItems copyRoutine{
+				// constant to be reused 3+ times
+				u256(0),
+
+				// back up memory
+				// mload(0)
+				Instruction::DUP1,
+				Instruction::MLOAD,
+
+				// codecopy(0, <offset>, 32)
+				u256(32),
+				dataUsed,
+				Instruction::DUP4,
+				Instruction::CODECOPY,
+
+				// mload(0)
+				Instruction::DUP2,
+				Instruction::MLOAD,
+
+				// restore original memory
+				// mstore(0, x)
+				Instruction::SWAP2,
+				Instruction::MSTORE
+			};
+			return copyRoutine;
+		}
 	}
 }
 

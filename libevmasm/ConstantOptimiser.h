@@ -51,7 +51,8 @@ public:
 		bool _isCreation,
 		size_t _runs,
 		langutil::EVMVersion _evmVersion,
-		Assembly& _assembly
+		Assembly& _assembly,
+		std::optional<uint8_t> _eofVersion
 	);
 
 protected:
@@ -63,6 +64,7 @@ protected:
 		size_t runs; ///< Estimated number of calls per opcode oven the lifetime of the contract.
 		size_t multiplicity; ///< Number of times the constant appears in the code.
 		langutil::EVMVersion evmVersion; ///< Version of the EVM
+		std::optional<uint8_t> eofVersion; ///< Version of EOF. Legacy EVM if not set.
 	};
 
 	explicit ConstantOptimisationMethod(Params const& _params, u256 const& _value):

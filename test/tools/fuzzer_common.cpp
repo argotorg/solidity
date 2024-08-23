@@ -193,7 +193,9 @@ void FuzzerUtil::testConstantOptimizer(std::string const& _input, bool _quiet)
 				isCreation,
 				runs,
 				langutil::EVMVersion{},
-				tmp
+				tmp,
+				// TODO: Support EOF fuzzing
+				std::nullopt
 			);
 		}
 	}

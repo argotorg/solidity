@@ -940,13 +940,13 @@ std::map<u256, u256> const& Assembly::optimiseInternal(
 		}
 	}
 
-	// TODO: investigate for EOF
-	if (_settings.runConstantOptimiser && !m_eofVersion.has_value())
+	if (_settings.runConstantOptimiser)
 		ConstantOptimisationMethod::optimiseConstants(
 			isCreation(),
 			isCreation() ? 1 : _settings.expectedExecutionsPerDeployment,
 			m_evmVersion,
-			*this
+			*this,
+			m_eofVersion
 		);
 
 	m_tagReplacements = std::move(tagReplacements);
@@ -1601,7 +1601,8 @@ LinkerObject const& Assembly::assembleEOF() const
 	ret.bytecode = headerBytecode;
 
 	m_tagPositionsInBytecode = std::vector<size_t>(m_usedTags, std::numeric_limits<size_t>::max());
-	std::map<size_t, uint16_t> dataSectionRef;
+	std::map<size_t, uint16_t> staticAuxDataSectionRef;
+	std::map<h256, std::vector<size_t>> predeployDataSectionRef;
 	std::map<size_t, size_t> tagRef;
 
 	for (auto&& [codeSectionIndex, codeSection]: m_codeSections | ranges::views::enumerate)
@@ -1677,12 +1678,19 @@ LinkerObject const& Assembly::assembleEOF() const
 			case Tag:
 				ret.bytecode += assembleTag(item, ret.bytecode.size(), false);
 				break;
+			case DataLoadN:
+			{
+				ret.bytecode += assembleOperation(item);
+				predeployDataSectionRef[item.data()].push_back(ret.bytecode.size());
+				appendBigEndianUint16(ret.bytecode, 0u);
+				break;
+			}
 			case AuxDataLoadN:
 			{
 				// In findMaxAuxDataLoadNOffset we already verified that unsigned data value fits 2 bytes
 				solAssert(item.data() <= std::numeric_limits<uint16_t>::max(), "Invalid auxdataloadn position.");
 				ret.bytecode.push_back(uint8_t(Instruction::DATALOADN));
-				dataSectionRef[ret.bytecode.size()] = static_cast<uint16_t>(item.data());
+				staticAuxDataSectionRef[ret.bytecode.size()] = static_cast<uint16_t>(item.data());
 				appendBigEndianUint16(ret.bytecode, item.data());
 				break;
 			}
@@ -1765,7 +1773,14 @@ LinkerObject const& Assembly::assembleEOF() const
 	auto const dataStart = ret.bytecode.size();
 
 	for (auto const& dataItem: m_data)
+	{
+		for (auto const pos: predeployDataSectionRef[dataItem.first])
+		{
+			solAssert(dataItem.second.size() == 32);
+			setBigEndianUint16(ret.bytecode, pos, ret.bytecode.size() - dataStart);
+		}
 		ret.bytecode += dataItem.second;
+	}
 
 	ret.bytecode += m_auxiliaryData;
 
@@ -1784,7 +1799,7 @@ LinkerObject const& Assembly::assembleEOF() const
 
 	// If some data was already added to data section we need to update data section refs accordingly
 	if (preDeployDataSectionSize > 0)
-		for (auto [refPosition, staticAuxDataOffset] : dataSectionRef)
+		for (auto [refPosition, staticAuxDataOffset] : staticAuxDataSectionRef)
 		{
 			// staticAuxDataOffset + preDeployDataSectionSize value is already verified to fit 2 bytes because
 			// staticAuxDataOffset < staticAuxDataSize

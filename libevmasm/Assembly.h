@@ -88,6 +88,7 @@ public:
 	AssemblyItem newPushLibraryAddress(std::string const& _identifier);
 	AssemblyItem newPushImmutable(std::string const& _identifier);
 	AssemblyItem newImmutableAssignment(std::string const& _identifier);
+	AssemblyItem newDataLoadN(bytes const& _data) { util::h256 h(util::keccak256(util::asString(_data))); m_data[h] = _data; return AssemblyItem(DataLoadN, Instruction::DATALOADN, h); }
 	AssemblyItem newAuxDataLoadN(size_t offset) const;
 	AssemblyItem newSwapN(size_t _depth) const;
 	AssemblyItem newDupN(size_t _depth) const;
