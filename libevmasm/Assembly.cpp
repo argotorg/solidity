@@ -832,8 +832,8 @@ std::map<u256, u256> const& Assembly::optimiseInternal(
 				m_evmVersion
 			}.optimise();
 		}
-		// TODO: verify this for EOF.
-		if (_settings.runJumpdestRemover && !m_eofVersion.has_value())
+
+		if (_settings.runJumpdestRemover)
 		{
 			for (auto& codeSection: m_codeSections)
 			{
