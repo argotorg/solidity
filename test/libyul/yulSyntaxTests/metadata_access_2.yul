@@ -9,5 +9,7 @@ object "A" {
   data "1" "XYZ"
   data ".mightbereservedinthefuture" "TRS"
 }
+// ====
+// bytecodeFormat: legacy
 // ----
 // TypeError 3517: (90-119): Unknown data object ".mightbereservedinthefuture".

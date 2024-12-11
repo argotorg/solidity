@@ -5,6 +5,7 @@
 }
 // ====
 // dialect: evm
+// bytecodeFormat: legacy
 // ----
 // TypeError 5859: (22-23): Function expects string literal.
 // TypeError 5859: (89-93): Function expects string literal.

@@ -8,4 +8,6 @@ object "A" {
     code {}
   }
 }
+// ====
+// bytecodeFormat: legacy
 // ----

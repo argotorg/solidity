@@ -3,4 +3,6 @@
     case "1" {}
     case "2" {}
 }
+// ====
+// bytecodeFormat: legacy
 // ----

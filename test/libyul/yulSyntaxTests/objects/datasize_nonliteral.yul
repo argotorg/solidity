@@ -6,5 +6,7 @@ object "A" {
 
   data "B" hex"00"
 }
+// ====
+// bytecodeFormat: legacy
 // ----
 // TypeError 9114: (47-55): Function expects direct literals as arguments.
