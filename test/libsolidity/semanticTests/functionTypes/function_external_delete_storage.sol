@@ -19,6 +19,8 @@ contract C {
         delete x;
     }
 }
+// ====
+// bytecodeFormat: legacy
 // ----
 // x() -> 0
 // y() -> 0

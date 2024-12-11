@@ -57,6 +57,8 @@ contract C {
 
     }
 }
+// ====
+// bytecodeFormat: legacy
 // ----
 // constructor()
 // gas legacy: 66989

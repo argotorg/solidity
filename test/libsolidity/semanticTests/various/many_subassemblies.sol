@@ -28,6 +28,8 @@ contract D {
         new C10();
     }
 }
+// ====
+// bytecodeFormat: legacy
 // ----
 // run() ->
 // gas irOptimized: 374934

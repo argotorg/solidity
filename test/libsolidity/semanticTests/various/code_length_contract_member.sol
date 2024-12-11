@@ -11,5 +11,7 @@ contract C {
         return (s.code.length, s.another.length, address(this).code.length > 50);
     }
 }
+// ====
+// bytecodeFormat: legacy
 // ----
 // f() -> 0x20, 0x20, true

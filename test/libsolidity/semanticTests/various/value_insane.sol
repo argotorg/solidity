@@ -16,6 +16,8 @@ contract test {
         return h.getBalance{value: amount + 3, gas: 1000}();
     }
 }
+// ====
+// bytecodeFormat: legacy
 // ----
 // constructor(), 20 wei ->
 // gas irOptimized: 114527

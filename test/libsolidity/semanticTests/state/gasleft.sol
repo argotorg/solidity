@@ -3,6 +3,8 @@ contract C {
         return gasleft() > 0;
     }
 }
+// ====
+// bytecodeFormat: legacy
 // ----
 // f() -> true
 // f() -> true

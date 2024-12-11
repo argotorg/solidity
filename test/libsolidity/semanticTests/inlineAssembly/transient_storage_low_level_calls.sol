@@ -63,6 +63,7 @@ contract C {
 }
 // ====
 // EVMVersion: >=cancun
+// bytecodeFormat: legacy
 // ----
 // testDelegateCall() -> true
 // testCall() -> true

@@ -14,6 +14,8 @@ contract C {
         return true;
     }
 }
+// ====
+// bytecodeFormat: legacy
 // ----
 // f() -> true
 // g() -> true
