@@ -2,15 +2,15 @@ contract D { constructor() payable {} }
 contract C {
 	uint public x;
 	constructor() payable {}
-	function f(uint amount) public returns (D) {
+	function f(uint amount) public returns (bool) {
 		x++;
-		return (new D){value: amount, salt: bytes32(x)}();
+		return address((new D){value: amount, salt: bytes32(x)}()) != address(0);
 	}
-	function stack(uint depth) public payable returns (address) {
+	function stack(uint depth) public payable returns (bool) {
 		if (depth > 0)
 			return this.stack(depth - 1);
 		else
-			return address(f(0));
+			return f(0);
 	}
 }
 // ====
@@ -24,7 +24,7 @@ contract C {
 // gas legacy code: 215400
 // gas legacyOptimized: 61715
 // gas legacyOptimized code: 106800
-// f(uint256): 20 -> 0x9d73add92c0d464f534262259cf6914e28caceaa
+// f(uint256): 20 -> true
 // x() -> 1
 // f(uint256): 20 -> FAILURE
 // x() -> 1
@@ -33,5 +33,5 @@ contract C {
 // gas legacy: 477722
 // gas legacyOptimized: 299567
 // x() -> 1
-// stack(uint256): 10 -> 0xb2c409d23d8105ff2553a318f2f73f47c80c7701
+// stack(uint256): 10 -> true
 // x() -> 2

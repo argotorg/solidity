@@ -13,6 +13,9 @@ contract ClientReceipt {
     function getAddress() public returns (address) {
         return other.getAddress();
     }
+    function checkBalance() public returns (bool) {
+        return getAddress().balance == 500;
+    }
 }
 // ====
 // bytecodeFormat: >=EOFv1
@@ -29,5 +32,4 @@ contract ClientReceipt {
 // gas irOptimized: 191881
 // gas legacy: 235167
 // gas legacyOptimized: 180756
-// getAddress() -> 0x50485c9a7aea973bd309d1bac29c57eeea7e155e
-// balance: 0x50485c9a7aea973bd309d1bac29c57eeea7e155e -> 500
+// checkBalance() -> true

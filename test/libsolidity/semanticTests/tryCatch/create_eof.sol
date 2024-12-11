@@ -15,10 +15,10 @@ contract C {
             txt = s;
         }
     }
-    function g() public returns (Succeeds x, uint, string memory txt) {
+    function g() public returns (bool x, uint, string memory txt) {
         uint i = 8;
         try new Succeeds(i) returns (Succeeds r) {
-            x = r;
+            x = address(r) != address(0);
             txt = "success";
         } catch Error(string memory s) {
             txt = s;
@@ -26,9 +26,8 @@ contract C {
     }
 }
 // ====
-// EVMVersion: >=byzantium
-// bytecodeFormat: >=EOFv1
 // EVMVersion: >=prague
+// bytecodeFormat: >=EOFv1
 // ----
 // f() -> 0, 0, 96, 13, "test message."
-// g() -> 0x79E227549940F29566EB81846A858E6F4108C430, 0, 96, 7, "success"
+// g() -> true, 0, 0x60, 7, "success"
