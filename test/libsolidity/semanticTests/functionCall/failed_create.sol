@@ -15,6 +15,7 @@ contract C {
 }
 // ====
 // EVMVersion: >=byzantium
+// bytecodeFormat: legacy
 // ----
 // constructor(), 20 wei
 // gas irOptimized: 61548

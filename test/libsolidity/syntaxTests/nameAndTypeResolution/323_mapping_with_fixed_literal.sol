@@ -4,5 +4,7 @@ contract test {
         fixedString[0.5] = "Half";
     }
 }
+// ====
+// bytecodeFormat: legacy
 // ----
 // UnimplementedFeatureError 1834: (0-130): Not yet implemented - FixedPointType.

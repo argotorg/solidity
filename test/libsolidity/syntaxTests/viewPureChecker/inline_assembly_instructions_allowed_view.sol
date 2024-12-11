@@ -84,6 +84,7 @@ contract C {
 }
 // ====
 // EVMVersion: >=paris
+// bytecodeFormat: legacy
 // ----
 // Warning 5740: (94-1733): Unreachable code.
 // Warning 5740: (1746-1758): Unreachable code.

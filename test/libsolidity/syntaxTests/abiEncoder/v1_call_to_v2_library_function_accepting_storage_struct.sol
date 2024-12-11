@@ -19,4 +19,6 @@ contract Test {
         L.get(item);
     }
 }
+// ====
+// bytecodeFormat: legacy
 // ----

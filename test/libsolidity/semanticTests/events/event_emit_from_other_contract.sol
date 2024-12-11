@@ -13,6 +13,8 @@ contract C {
         d.deposit(_id);
     }
 }
+// ====
+// bytecodeFormat: legacy
 // ----
 // constructor() ->
 // gas irOptimized: 113970

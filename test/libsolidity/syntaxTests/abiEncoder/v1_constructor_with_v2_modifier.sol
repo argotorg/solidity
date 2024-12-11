@@ -32,4 +32,6 @@ import "B";
 contract D is C {
     constructor() validate B() validate C() validate {}
 }
+// ====
+// bytecodeFormat: legacy
 // ----

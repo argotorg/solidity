@@ -11,5 +11,7 @@ contract D {
     return test();
   }
 }
+// ====
+// bytecodeFormat: legacy
 // ----
 // f() -> true

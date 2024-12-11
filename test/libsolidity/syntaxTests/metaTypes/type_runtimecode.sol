@@ -6,4 +6,6 @@ contract C {
         return type(A).runtimeCode;
     }
 }
+// ====
+// bytecodeFormat: legacy
 // ----

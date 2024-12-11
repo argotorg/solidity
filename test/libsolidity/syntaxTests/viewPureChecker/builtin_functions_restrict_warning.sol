@@ -16,6 +16,8 @@ contract C {
         x; y; z;
     }
 }
+// ====
+// bytecodeFormat: legacy
 // ----
 // Warning 2018: (17-288): Function state mutability can be restricted to pure
 // Warning 2018: (293-559): Function state mutability can be restricted to pure

@@ -13,4 +13,6 @@ pragma abicoder v1;
 import "A";
 
 contract D is C {}
+// ====
+// bytecodeFormat: legacy
 // ----

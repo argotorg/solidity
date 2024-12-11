@@ -15,6 +15,8 @@ contract C {
         }
     }
 }
+// ====
+// bytecodeFormat: legacy
 // ----
 // SyntaxError 6553: (47-362): The msize instruction cannot be used when the Yul optimizer is activated because it can change its semantics. Either disable the Yul optimizer or do not use the instruction.
 // DeclarationError 4619: (70-78): Function "datasize" not found.

@@ -27,4 +27,6 @@ contract C is B {
         _;
     }
 }
+// ====
+// bytecodeFormat: legacy
 // ----

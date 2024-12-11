@@ -37,5 +37,7 @@ contract C {
             x < 2 * type(A).creationCode.length;
     }
 }
+// ====
+// bytecodeFormat: legacy
 // ----
 // test() -> true

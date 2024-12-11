@@ -36,6 +36,7 @@ contract C {
 
 // ====
 // compileViaYul: true
+// bytecodeFormat: legacy
 // ----
 // a() -> FAILURE, hex"92bbf6e8"
 // b() -> FAILURE, hex"47e26897", hex"0000000000000000000000000000000000000000000000000000000000000001"

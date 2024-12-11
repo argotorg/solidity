@@ -13,4 +13,6 @@ contract D {
         return a + b;
     }
 }
+// ====
+// bytecodeFormat: legacy
 // ----

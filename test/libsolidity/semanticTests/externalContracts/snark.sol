@@ -289,6 +289,7 @@ contract Test {
 //
 // ====
 // EVMVersion: >=constantinople
+// bytecodeFormat: legacy
 // ----
 // library: Pairing
 // f() -> true

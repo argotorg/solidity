@@ -4,5 +4,7 @@ contract C {
     fixed a3 = 0 / 0.123;
     fixed a4 = 0 / -0.123;
 }
+// ====
+// bytecodeFormat: legacy
 // ----
 // UnimplementedFeatureError 1834: (0-150): Not yet implemented - FixedPointType.

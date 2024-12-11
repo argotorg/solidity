@@ -7,5 +7,7 @@ contract A {
         a; b; c; d;
     }
 }
+// ====
+// bytecodeFormat: legacy
 // ----
 // UnimplementedFeatureError 1834: (0-289): Not yet implemented - FixedPointType.

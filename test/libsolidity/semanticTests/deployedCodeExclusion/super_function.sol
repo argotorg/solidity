@@ -31,5 +31,7 @@ contract C is S {
         return x < data.length;
     }
 }
+// ====
+// bytecodeFormat: legacy
 // ----
 // test() -> true

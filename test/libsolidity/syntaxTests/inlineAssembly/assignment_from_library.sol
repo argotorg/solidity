@@ -8,4 +8,6 @@ contract C {
     }
   }
 }
+// ====
+// bytecodeFormat: legacy
 // ----

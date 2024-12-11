@@ -20,6 +20,8 @@ contract C {
         return 1 + c;
     }
 }
+// ====
+// bytecodeFormat: legacy
 // ----
 // constructor(), 1 ether ->
 // gas irOptimized: 88853

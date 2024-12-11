@@ -5,5 +5,7 @@ contract test {
         a; b;
     }
 }
+// ====
+// bytecodeFormat: legacy
 // ----
 // UnimplementedFeatureError 1834: (0-126): Not yet implemented - FixedPointType.

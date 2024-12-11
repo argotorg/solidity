@@ -10,6 +10,8 @@ contract C {
     function bal() external returns (uint) { return address(this).balance; }
     receive() external payable {}
 }
+// ====
+// bytecodeFormat: legacy
 // ----
 // (), 1 ether
 // call() -> 1, 2, 2, 2

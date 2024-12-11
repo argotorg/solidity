@@ -92,6 +92,7 @@ contract C {
 // EVMVersion: >=constantinople
 // ====
 // compileViaYul: true
+// bytecodeFormat: legacy
 // ----
 // (): 0 -> 0
 // (): 1 -> 544

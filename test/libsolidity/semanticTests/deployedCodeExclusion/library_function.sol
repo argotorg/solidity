@@ -30,5 +30,7 @@ contract C {
         return x < data.length;
     }
 }
+// ====
+// bytecodeFormat: legacy
 // ----
 // test() -> true

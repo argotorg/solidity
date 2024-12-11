@@ -7,4 +7,6 @@ contract Test {
         return type(A).creationCode;
     }
 }
+// ====
+// bytecodeFormat: legacy
 // ----

@@ -25,4 +25,6 @@ contract C is B {
         validate()
     {}
 }
+// ====
+// bytecodeFormat: legacy
 // ----

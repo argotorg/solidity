@@ -52,4 +52,6 @@ struct Data {
 contract X {
     function get() public view returns (Data memory) {}
 }
+// ====
+// bytecodeFormat: legacy
 // ----
