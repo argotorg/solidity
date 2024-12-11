@@ -16,8 +16,8 @@ object "a" {
 }
 // ====
 // EVMVersion: >=shanghai
+// bytecodeFormat: >=EOFv1
 // optimizationPreset: full
-// bytecodeFormat: legacy
 // ----
 // Assembly:
 //     /* "source":58:59   */
@@ -42,6 +42,6 @@ object "a" {
 //         /* "source":101:155   */
 //       stop
 // }
-// Bytecode: 5f80355500fe
-// Opcodes: PUSH0 DUP1 CALLDATALOAD SSTORE STOP INVALID
+// Bytecode: ef0001010004020001000504000000008000025f80355500
+// Opcodes: 0xEF STOP ADD ADD STOP DIV MUL STOP ADD STOP SDIV DIV STOP STOP STOP STOP DUP1 STOP MUL PUSH0 DUP1 CALLDATALOAD SSTORE STOP
 // SourceMappings: 58:1:0:-:0;41:15;;34:26;22:46

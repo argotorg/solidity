@@ -4,6 +4,7 @@ object "a" {
 }
 // ====
 // EVMVersion: >=shanghai
+// bytecodeFormat: legacy
 // ----
 // Assembly:
 //     /* "source":36:49   */

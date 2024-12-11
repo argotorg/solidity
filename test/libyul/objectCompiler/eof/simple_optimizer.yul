@@ -6,8 +6,8 @@
 }
 // ====
 // EVMVersion: >=shanghai
+// bytecodeFormat: >=EOFv1
 // optimizationPreset: full
-// bytecodeFormat: legacy
 // ----
 // Assembly:
 //     /* "source":63:64   */
@@ -19,6 +19,6 @@
 //   sstore
 //     /* "source":27:73   */
 //   stop
-// Bytecode: 5f80355500
-// Opcodes: PUSH0 DUP1 CALLDATALOAD SSTORE STOP
+// Bytecode: ef0001010004020001000504000000008000025f80355500
+// Opcodes: 0xEF STOP ADD ADD STOP DIV MUL STOP ADD STOP SDIV DIV STOP STOP STOP STOP DUP1 STOP MUL PUSH0 DUP1 CALLDATALOAD SSTORE STOP
 // SourceMappings: 63:1:0:-:0;46:15;;39:26;27:46

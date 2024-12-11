@@ -9,6 +9,7 @@ object "a" {
 }
 // ====
 // EVMVersion: >=shanghai
+// bytecodeFormat: legacy
 // ----
 // Assembly:
 //     /* "source":143:185   */

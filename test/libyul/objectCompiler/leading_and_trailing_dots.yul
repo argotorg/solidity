@@ -14,6 +14,7 @@
 }
 // ====
 // EVMVersion: >=shanghai
+// bytecodeFormat: legacy
 // ----
 // Assembly:
 //     /* "source":53:54   */
