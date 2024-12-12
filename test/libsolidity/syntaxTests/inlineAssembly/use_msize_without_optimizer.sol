@@ -7,4 +7,5 @@ contract C {
 }
 // ====
 // optimize-yul: false
+// bytecodeFormat: legacy
 // ----
