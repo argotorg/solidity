@@ -230,6 +230,7 @@
 }
 // ====
 // EVMVersion: >=istanbul
+// bytecodeFormat: legacy
 // ----
 // step: fullSuite
 //

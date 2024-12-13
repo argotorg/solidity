@@ -7,6 +7,8 @@
     sstore(a, inv)
   }
 }
+// ====
+// bytecodeFormat: legacy
 // ----
 // step: loopInvariantCodeMotion
 //

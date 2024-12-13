@@ -3,6 +3,8 @@
 	let a := div(create(0, 0, 0), 0)
 	mstore(0, a)
 }
+// ====
+// bytecodeFormat: legacy
 // ----
 // step: fullSimplify
 //

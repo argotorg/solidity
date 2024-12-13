@@ -12,6 +12,8 @@
     a := add(x, 1)
   }
 }
+// ====
+// bytecodeFormat: legacy
 // ----
 // step: loopInvariantCodeMotion
 //

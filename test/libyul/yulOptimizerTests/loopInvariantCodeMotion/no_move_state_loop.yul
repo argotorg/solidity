@@ -8,6 +8,8 @@
     let q := g()
   }
 }
+// ====
+// bytecodeFormat: legacy
 // ----
 // step: loopInvariantCodeMotion
 //

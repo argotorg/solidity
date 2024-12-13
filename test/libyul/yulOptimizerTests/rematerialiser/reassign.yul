@@ -6,6 +6,8 @@
     let d := add(b, c)
     pop(a) pop(b) pop(c) pop(d)
 }
+// ====
+// bytecodeFormat: legacy
 // ----
 // step: rematerialiser
 //

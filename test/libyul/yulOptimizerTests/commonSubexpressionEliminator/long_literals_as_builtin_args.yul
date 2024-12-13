@@ -10,6 +10,8 @@ object "AccessControlDefaultAdminRules4233_14" {
     data "AccessControlDefaultAdminRules4233_14_deployed" "AccessControlDefaultAdminRules4233_14_deployed"
 
 }
+// ====
+// bytecodeFormat: legacy
 // ----
 // step: commonSubexpressionEliminator
 //

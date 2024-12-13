@@ -11,6 +11,8 @@
     let z := f()
   }
 }
+// ====
+// bytecodeFormat: legacy
 // ----
 // step: loopInvariantCodeMotion
 //

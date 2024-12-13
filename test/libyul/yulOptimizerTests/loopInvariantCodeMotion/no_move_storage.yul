@@ -25,6 +25,8 @@
   }
 
 }
+// ====
+// bytecodeFormat: legacy
 // ----
 // step: loopInvariantCodeMotion
 //

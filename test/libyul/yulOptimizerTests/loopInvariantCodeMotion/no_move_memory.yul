@@ -14,6 +14,8 @@
     mstore(a, inv)
   }
 }
+// ====
+// bytecodeFormat: legacy
 // ----
 // step: loopInvariantCodeMotion
 //

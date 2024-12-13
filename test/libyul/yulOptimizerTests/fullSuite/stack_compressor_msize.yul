@@ -35,6 +35,7 @@
 }
 // ====
 // EVMVersion: >homestead
+// bytecodeFormat: legacy
 // ----
 // step: fullSuite
 //

@@ -28,6 +28,7 @@
 }
 // ====
 // EVMVersion: >=byzantium
+// bytecodeFormat: legacy
 // ----
 // step: equalStoreEliminator
 //

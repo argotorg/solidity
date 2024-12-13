@@ -7,6 +7,8 @@
     let b := and(0xffffffffffffffffffffffffffffffffffffffff, create(0, 0, 0x20))
     sstore(a, b)
 }
+// ====
+// bytecodeFormat: legacy
 // ----
 // step: expressionSimplifier
 //

@@ -14,6 +14,8 @@
 
     function g() {}
 }
+// ====
+// bytecodeFormat: legacy
 // ----
 // step: loadResolver
 //

@@ -11,6 +11,8 @@
     let q := sload(g())
   }
 }
+// ====
+// bytecodeFormat: legacy
 // ----
 // step: loopInvariantCodeMotion
 //

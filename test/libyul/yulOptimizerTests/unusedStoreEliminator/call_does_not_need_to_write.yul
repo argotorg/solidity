@@ -12,6 +12,8 @@
   sstore(0, mload(0))
 }
 
+// ====
+// bytecodeFormat: legacy
 // ----
 // step: unusedStoreEliminator
 //

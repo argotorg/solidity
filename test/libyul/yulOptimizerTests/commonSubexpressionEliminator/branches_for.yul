@@ -6,6 +6,8 @@
 	}
 	mstore(1, codesize())
 }
+// ====
+// bytecodeFormat: legacy
 // ----
 // step: commonSubexpressionEliminator
 //

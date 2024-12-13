@@ -4,6 +4,8 @@
 	a := mul(a, 2)
 	let b := a
 }
+// ====
+// bytecodeFormat: legacy
 // ----
 // step: rematerialiser
 //

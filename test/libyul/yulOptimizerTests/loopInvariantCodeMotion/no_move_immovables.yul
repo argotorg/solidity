@@ -9,6 +9,8 @@
     let e := sload(g())
   }
 }
+// ====
+// bytecodeFormat: legacy
 // ----
 // step: loopInvariantCodeMotion
 //
