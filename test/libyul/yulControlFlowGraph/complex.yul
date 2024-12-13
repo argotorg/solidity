@@ -43,6 +43,8 @@
     }
     pop(f(1,2))
 }
+// ====
+// bytecodeFormat: legacy
 // ----
 // digraph CFG {
 // nodesep=0.7;
