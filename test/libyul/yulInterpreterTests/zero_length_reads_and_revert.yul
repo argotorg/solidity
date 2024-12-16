@@ -18,6 +18,7 @@
 }
 // ====
 // EVMVersion: >=constantinople
+// bytecodeFormat: legacy
 // ----
 // Trace:
 //   RETURNDATACOPY(0, 1, 0)
