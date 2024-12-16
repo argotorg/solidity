@@ -20,6 +20,8 @@
     // This calla of g() is unreachable too as the one in h() but we wanna cover both cases.
     g()
 }
+// ====
+// bytecodeFormat: legacy
 // ----
 // digraph CFG {
 // nodesep=0.7;
