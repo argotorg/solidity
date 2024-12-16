@@ -24,6 +24,7 @@
 
 #include <boost/test/unit_test.hpp>
 
+using namespace solidity::test;
 
 namespace solidity::frontend::test
 {
@@ -42,7 +43,8 @@ class SolidityCompilerFixture: protected AnalysisFramework
 
 BOOST_FIXTURE_TEST_SUITE(SolidityCompiler, SolidityCompilerFixture)
 
-BOOST_AUTO_TEST_CASE(does_not_include_creation_time_only_internal_functions)
+// TODO: Implement EOF counterpart
+BOOST_AUTO_TEST_CASE(does_not_include_creation_time_only_internal_functions, *boost::unit_test::precondition(nonEOF()))
 {
 	char const* sourceCode = R"(
 		contract C {

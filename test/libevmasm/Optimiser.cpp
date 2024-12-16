@@ -41,6 +41,7 @@
 
 using namespace solidity::langutil;
 using namespace solidity::evmasm;
+using namespace solidity::test;
 
 namespace solidity::frontend::test
 {
@@ -1329,7 +1330,7 @@ BOOST_AUTO_TEST_CASE(jumpdest_removal)
 	);
 }
 
-BOOST_AUTO_TEST_CASE(jumpdest_removal_subassemblies)
+BOOST_AUTO_TEST_CASE(jumpdest_removal_subassemblies, *boost::unit_test::precondition(nonEOF()))
 {
 	// This tests that tags from subassemblies are not removed
 	// if they are referenced by a super-assembly. Furthermore,
@@ -1346,7 +1347,7 @@ BOOST_AUTO_TEST_CASE(jumpdest_removal_subassemblies)
 	settings.evmVersion = solidity::test::CommonOptions::get().evmVersion();
 	settings.expectedExecutionsPerDeployment = OptimiserSettings{}.expectedExecutionsPerDeployment;
 
-	Assembly main{settings.evmVersion, false, solidity::test::CommonOptions::get().eofVersion(), {}};
+	Assembly main{settings.evmVersion, false, std::nullopt, {}};
 	AssemblyPointer sub = std::make_shared<Assembly>(settings.evmVersion, true, solidity::test::CommonOptions::get().eofVersion(), std::string{});
 
 	sub->append(u256(1));

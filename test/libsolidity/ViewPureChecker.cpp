@@ -28,6 +28,7 @@
 #include <tuple>
 
 using namespace solidity::langutil;
+using namespace solidity::test;
 
 namespace solidity::frontend::test
 {
@@ -133,7 +134,7 @@ BOOST_AUTO_TEST_CASE(address_staticcall)
 }
 
 
-BOOST_AUTO_TEST_CASE(assembly_staticcall)
+BOOST_AUTO_TEST_CASE(assembly_staticcall, *boost::unit_test::precondition(nonEOF()))
 {
 	std::string text = R"(
 		contract C {

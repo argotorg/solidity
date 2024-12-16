@@ -44,6 +44,7 @@
 
 using namespace solidity::langutil;
 using namespace solidity::yul;
+using namespace solidity::test;
 
 namespace solidity::frontend::test
 {
@@ -294,7 +295,8 @@ BOOST_AUTO_TEST_CASE(designated_invalid_instruction)
 	BOOST_CHECK(successAssemble("{ invalid() }"));
 }
 
-BOOST_AUTO_TEST_CASE(inline_assembly_shadowed_instruction_declaration)
+// TODO: Implement EOF counterpart
+BOOST_AUTO_TEST_CASE(inline_assembly_shadowed_instruction_declaration, *boost::unit_test::precondition(nonEOF()))
 {
 	CHECK_ASSEMBLE_ERROR("{ let gas := 1 }", ParserError, "Cannot use builtin");
 }
@@ -333,14 +335,14 @@ BOOST_AUTO_TEST_CASE(returndatacopy)
 	BOOST_CHECK(successAssemble("{ returndatacopy(0, 32, 64) }"));
 }
 
-BOOST_AUTO_TEST_CASE(staticcall)
+BOOST_AUTO_TEST_CASE(staticcall, *boost::unit_test::precondition(nonEOF()))
 {
 	if (!solidity::test::CommonOptions::get().evmVersion().hasStaticCall())
 		return;
 	BOOST_CHECK(successAssemble("{ pop(staticcall(10000, 0x123, 64, 0x10, 128, 0x10)) }"));
 }
 
-BOOST_AUTO_TEST_CASE(create2)
+BOOST_AUTO_TEST_CASE(create2, *boost::unit_test::precondition(nonEOF()))
 {
 	if (!solidity::test::CommonOptions::get().evmVersion().hasCreate2())
 		return;

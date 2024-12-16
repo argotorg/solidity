@@ -37,6 +37,7 @@
 
 using namespace solidity::langutil;
 using namespace solidity::evmasm;
+using namespace solidity::test;
 using namespace std::string_literals;
 
 namespace solidity::frontend::test
@@ -54,7 +55,7 @@ namespace
 
 BOOST_AUTO_TEST_SUITE(Assembler)
 
-BOOST_AUTO_TEST_CASE(all_assembly_items)
+BOOST_AUTO_TEST_CASE(all_assembly_items, *boost::unit_test::precondition(nonEOF()))
 {
 	std::map<std::string, unsigned> indices = {
 		{ "root.asm", 0 },
@@ -216,7 +217,8 @@ BOOST_AUTO_TEST_CASE(all_assembly_items)
 	BOOST_CHECK_EQUAL(util::jsonCompactPrint(_assembly.assemblyJSON(indices)), util::jsonCompactPrint(jsonValue));
 }
 
-BOOST_AUTO_TEST_CASE(immutables_and_its_source_maps)
+// TODO: Implement EOF counterpart
+BOOST_AUTO_TEST_CASE(immutables_and_its_source_maps, *boost::unit_test::precondition(nonEOF()))
 {
 	EVMVersion evmVersion = solidity::test::CommonOptions::get().evmVersion();
 	// Tests for 1, 2, 3 number of immutables.
@@ -301,7 +303,8 @@ BOOST_AUTO_TEST_CASE(immutables_and_its_source_maps)
 	}
 }
 
-BOOST_AUTO_TEST_CASE(immutable)
+// TODO: Implement EOF counterpart
+BOOST_AUTO_TEST_CASE(immutable, *boost::unit_test::precondition(nonEOF()))
 {
 	std::map<std::string, unsigned> indices = {
 		{ "root.asm", 0 },
