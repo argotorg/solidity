@@ -735,7 +735,36 @@ bool AsmAnalyzer::validateInstructions(evmasm::Instruction _instr, SourceLocatio
 	// The errors below are meant to be issued when processing an undeclared identifier matching a builtin name
 	// present on the default EVM version but not on the currently selected one,
 	// since the other `validateInstructions()` overload uses the default EVM version.
-	if (_instr == evmasm::Instruction::RETURNDATACOPY && !m_evmVersion.supportsReturndata())
+	if (m_eofVersion.has_value() && (
+			_instr == evmasm::Instruction::CALL ||
+			_instr == evmasm::Instruction::CALLCODE ||
+			_instr == evmasm::Instruction::DELEGATECALL ||
+			_instr == evmasm::Instruction::STATICCALL ||
+			_instr == evmasm::Instruction::SELFDESTRUCT ||
+			_instr == evmasm::Instruction::JUMP ||
+			_instr == evmasm::Instruction::JUMPI ||
+			_instr == evmasm::Instruction::PC ||
+			_instr == evmasm::Instruction::CREATE ||
+			_instr == evmasm::Instruction::CREATE2 ||
+			_instr == evmasm::Instruction::CODESIZE ||
+			_instr == evmasm::Instruction::CODECOPY ||
+			_instr == evmasm::Instruction::EXTCODESIZE ||
+			_instr == evmasm::Instruction::EXTCODECOPY ||
+			_instr == evmasm::Instruction::EXTCODEHASH ||
+			_instr == evmasm::Instruction::GAS
+			))
+	{
+		m_errorReporter.typeError(
+			9132_error,
+			_location,
+			fmt::format(
+				"The \"{instruction}\" instruction is {kind} VMs (you are currently compiling to EOF).",
+				fmt::arg("instruction", boost::to_lower_copy(instructionInfo(_instr, m_evmVersion).name)),
+				fmt::arg("kind", "only available in legacy bytecode")
+					)
+		);
+	}
+	else if (_instr == evmasm::Instruction::RETURNDATACOPY && !m_evmVersion.supportsReturndata())
 		errorForVM(7756_error, "only available for Byzantium-compatible");
 	else if (_instr == evmasm::Instruction::RETURNDATASIZE && !m_evmVersion.supportsReturndata())
 		errorForVM(4778_error, "only available for Byzantium-compatible");
@@ -785,35 +814,6 @@ bool AsmAnalyzer::validateInstructions(evmasm::Instruction _instr, SourceLocatio
 			fmt::format(
 				"The \"{}\" instruction is only available on EOF.",
 				fmt::arg("instruction", boost::to_lower_copy(instructionInfo(_instr, m_evmVersion).name))
-			)
-		);
-	}
-	else if (m_eofVersion.has_value() && (
-		_instr == evmasm::Instruction::CALL ||
-		_instr == evmasm::Instruction::CALLCODE ||
-		_instr == evmasm::Instruction::DELEGATECALL ||
-		_instr == evmasm::Instruction::STATICCALL ||
-		_instr == evmasm::Instruction::SELFDESTRUCT ||
-		_instr == evmasm::Instruction::JUMP ||
-		_instr == evmasm::Instruction::JUMPI ||
-		_instr == evmasm::Instruction::PC ||
-		_instr == evmasm::Instruction::CREATE ||
-		_instr == evmasm::Instruction::CREATE2 ||
-		_instr == evmasm::Instruction::CODESIZE ||
-		_instr == evmasm::Instruction::CODECOPY ||
-		_instr == evmasm::Instruction::EXTCODESIZE ||
-		_instr == evmasm::Instruction::EXTCODECOPY ||
-		_instr == evmasm::Instruction::EXTCODEHASH ||
-		_instr == evmasm::Instruction::GAS
-	))
-	{
-		m_errorReporter.typeError(
-			9132_error,
-			_location,
-			fmt::format(
-				"The \"{instruction}\" instruction is {kind} VMs (you are currently compiling to EOF).",
-				fmt::arg("instruction", boost::to_lower_copy(instructionInfo(_instr, m_evmVersion).name)),
-				fmt::arg("kind", "only available in legacy bytecode")
 			)
 		);
 	}
