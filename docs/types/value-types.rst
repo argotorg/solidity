@@ -28,7 +28,7 @@ Operators:
 *  ``==`` (equality)
 *  ``!=`` (inequality)
 
-The operators ``||`` and ``&&`` apply the common short-circuiting rules. This means that in the expression ``f(x) || g(y)``, if ``f(x)`` evaluates to ``true``, ``g(y)`` will not be evaluated even if it may have side-effects.
+The operators `||` (logical OR) and `&&` (logical AND) leverage powerful short-circuiting rules that can dramatically affect performance and outcomes. In the expression `f(x) || g(y)`, if `f(x)` evaluates to **true**, the evaluation of `g(y)` is completely bypassed—**even if `g(y)` has critical side-effects**. This behavior not only optimizes execution but also safeguards against unintended consequences from functions that might alter state or perform costly operations. Understanding this can be pivotal in writing efficient and reliable Solidity code.
 
 .. index:: ! uint, ! int, ! integer
 .. _integers:
