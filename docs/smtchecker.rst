@@ -800,7 +800,7 @@ but it is also lightweight and should be able to quickly find small local bugs.
 Constrained Horn Clauses (CHC)
 ------------------------------
 
-A contract's Control Flow Graph (CFG) is modelled as a system of
+A contract's Control Flow Graph (CFG) is modeled as a system of
 Horn clauses, where the life cycle of the contract is represented by a loop
 that can visit every public/external function non-deterministically. This way,
 the behavior of the entire contract over an unbounded number of transactions
@@ -979,7 +979,7 @@ not mean loss of proving power.
     }
 
 In the example above, the SMTChecker is not expressive enough to actually
-compute ``ecrecover``, but by modelling the function calls as uninterpreted
+compute ``ecrecover``, but by modeling the function calls as uninterpreted
 functions we know that the return value is the same when called on equivalent
 parameters. This is enough to prove that the assertion above is always true.
 
