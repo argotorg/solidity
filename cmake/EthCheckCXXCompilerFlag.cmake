@@ -1,4 +1,4 @@
-include(CheckCXXCompilerFlag)
+include(CheckCXXCompilerFlag)а
 
 # Adds CXX compiler flag if the flag is supported by the compiler.
 #
