@@ -21,8 +21,10 @@
 #
 # (c) 2016-2021 solidity contributors.
 #------------------------------------------------------------------------------
-FROM gcr.io/oss-fuzz-base/base-clang:latest as base
-LABEL version="8"
+# FIXME: Workaround for Boost 1.83.0 build failure when using Clang 18 (default since https://github.com/google/oss-fuzz/pull/11714)
+# See: https://github.com/google/oss-fuzz/blob/5a9322260c4c66e7eb3e5d922b9fee6621ffd8da/projects/solidity/Dockerfile#L17C1-L18C139
+FROM gcr.io/oss-fuzz-base/base-builder@sha256:19782f7fe8092843368894dbc471ce9b30dd6a2813946071a36e8b05f5b1e27e AS base
+LABEL version="9"
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -44,6 +46,7 @@ RUN apt-get update; \
 		openjdk-8-jdk \
 		pkg-config \
 		python3-pip \
+		python3-dev \
 		software-properties-common \
 		sudo \
 		texinfo \
@@ -59,32 +62,25 @@ RUN apt-get update; \
 		pygments-lexer-solidity \
 		pylint \
 		requests \
-		tabulate \
-		z3-solver;
-
-# Install cmake 3.21.2 (minimum requirement is cmake 3.10)
-RUN wget https://github.com/Kitware/CMake/releases/download/v3.21.2/cmake-3.21.2-Linux-x86_64.sh; \
-    test "$(sha256sum cmake-3.21.2-Linux-x86_64.sh)" = "3310362c6fe4d4b2dc00823835f3d4a7171bbd73deb7d059738494761f1c908c  cmake-3.21.2-Linux-x86_64.sh"; \
-    chmod +x cmake-3.21.2-Linux-x86_64.sh; \
-    ./cmake-3.21.2-Linux-x86_64.sh --skip-license --prefix="/usr"
+		tabulate;
 
 FROM base AS libraries
 
 # Boost
 RUN set -ex; \
     cd /usr/src; \
-    wget -q 'https://archives.boost.io/release/1.74.0/source/boost_1_74_0.tar.bz2' -O boost.tar.bz2; \
-    test "$(sha256sum boost.tar.bz2)" = "83bfc1507731a0906e387fc28b7ef5417d591429e51e788417fe9ff025e116b1  boost.tar.bz2" && \
+    wget -q 'https://archives.boost.io/release/1.83.0/source/boost_1_83_0.tar.bz2' -O boost.tar.bz2; \
+    test "$(sha256sum boost.tar.bz2)" = "6478edfe2f3305127cffe8caf73ea0176c53769f4bf1585be237eb30798c3b8e  boost.tar.bz2" && \
     tar -xf boost.tar.bz2; \
     rm boost.tar.bz2; \
-    cd boost_1_74_0; \
-    CXXFLAGS="-stdlib=libc++ -pthread" LDFLAGS="-stdlib=libc++" ./bootstrap.sh --with-toolset=clang --prefix=/usr; \
+    cd boost_1_83_0; \
+    CXXFLAGS="-std=c++17 -stdlib=libc++ -pthread" LDFLAGS="-stdlib=libc++" ./bootstrap.sh --with-toolset=clang --prefix=/usr; \
     ./b2 toolset=clang cxxflags="-stdlib=libc++ -pthread" linkflags="-stdlib=libc++ -pthread" headers; \
     ./b2 toolset=clang cxxflags="-stdlib=libc++ -pthread" linkflags="-stdlib=libc++ -pthread" \
         link=static variant=release runtime-link=static \
         system filesystem unit_test_framework program_options \
         install -j $(($(nproc)/2)); \
-    rm -rf /usr/src/boost_1_74_0
+    rm -rf /usr/src/boost_1_83_0
 
 # Z3
 RUN set -ex; \
