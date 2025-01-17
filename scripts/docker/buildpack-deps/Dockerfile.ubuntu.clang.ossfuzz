@@ -84,21 +84,17 @@ RUN set -ex; \
 
 # Z3
 RUN set -ex; \
-    git clone --depth 1 -b z3-4.12.1 https://github.com/Z3Prover/z3.git \
-    /usr/src/z3; \
-    cd /usr/src/z3; \
-    mkdir build; \
-    cd build; \
-    LDFLAGS=$CXXFLAGS cmake -DZ3_BUILD_LIBZ3_SHARED=OFF -DCMAKE_INSTALL_PREFIX=/usr \
-    -DCMAKE_BUILD_TYPE=Release ..; \
-    make libz3 -j; \
-    make install; \
-    rm -rf /usr/src/z3
+	z3_version="4.13.3"; \
+	z3_archive_name="z3-${z3_version}-x64-glibc-2.35"; \
+	wget "https://github.com/Z3Prover/z3/releases/download/z3-${z3_version}/${z3_archive_name}.zip" -O /opt/z3.zip; \
+	test "$(sha256sum /opt/z3.zip)" = "32c7377026733c9d7b33c21cd77a68f50ba682367207b031a6bfd80140a8722f  /opt/z3.zip"; \
+	unzip -j /opt/z3.zip "${z3_archive_name}/bin/z3" -d /usr/bin; \
+	rm -f /opt/z3.zip;
 
 # Eldarica
 RUN set -ex; \
 	apt-get update; \
-	apt-get install -qy unzip openjdk-11-jre; \
+	apt-get install -qqy openjdk-11-jre; \
 	eldarica_version="2.1"; \
 	wget "https://github.com/uuverifiers/eldarica/releases/download/v${eldarica_version}/eldarica-bin-${eldarica_version}.zip" -O /opt/eld_binaries.zip; \
 	test "$(sha256sum /opt/eld_binaries.zip)" = "0ac43f45c0925383c9d2077f62bbb515fd792375f3b2b101b30c9e81dcd7785c  /opt/eld_binaries.zip"; \
@@ -107,14 +103,12 @@ RUN set -ex; \
 
 # CVC5
 RUN set -ex; \
-	cvc5_version="1.1.2"; \
-	wget "https://github.com/cvc5/cvc5/releases/download/cvc5-${cvc5_version}/cvc5-Linux-static.zip" -O /opt/cvc5.zip; \
-	test "$(sha256sum /opt/cvc5.zip)" = "cf291aef67da8eaa8d425a51f67f3f72f36db8b1040655dc799b64e3d69e6086  /opt/cvc5.zip"; \
-	unzip /opt/cvc5.zip -x "cvc5-Linux-static/lib/cmake/*" -d /opt; \
-	mv /opt/cvc5-Linux-static/bin/* /usr/bin; \
-	mv /opt/cvc5-Linux-static/include/* /usr/include; \
-	mv /opt/cvc5-Linux-static/lib/* /usr/lib; \
-	rm -rf /opt/cvc5-Linux-static /opt/cvc5.zip;
+	cvc5_version="1.2.0"; \
+	cvc5_archive_name="cvc5-Linux-x86_64-static"; \
+	wget "https://github.com/cvc5/cvc5/releases/download/cvc5-${cvc5_version}/${cvc5_archive_name}.zip" -O /opt/cvc5.zip; \
+	test "$(sha256sum /opt/cvc5.zip)" = "d18f174ff9a11923c32c3f871f844ed16bd77a28f51050b8e7c8d821c98a1c2e  /opt/cvc5.zip"; \
+	unzip -j /opt/cvc5.zip "${cvc5_archive_name}/bin/cvc5" -d /usr/bin; \
+	rm -f /opt/cvc5.zip;
 
 # OSSFUZZ: libprotobuf-mutator
 RUN set -ex; \
