@@ -68,19 +68,19 @@ FROM base AS libraries
 
 # Boost
 RUN set -ex; \
-    cd /usr/src; \
-    wget -q 'https://archives.boost.io/release/1.83.0/source/boost_1_83_0.tar.bz2' -O boost.tar.bz2; \
-    test "$(sha256sum boost.tar.bz2)" = "6478edfe2f3305127cffe8caf73ea0176c53769f4bf1585be237eb30798c3b8e  boost.tar.bz2" && \
-    tar -xf boost.tar.bz2; \
-    rm boost.tar.bz2; \
-    cd boost_1_83_0; \
-    CXXFLAGS="-std=c++17 -stdlib=libc++ -pthread" LDFLAGS="-stdlib=libc++" ./bootstrap.sh --with-toolset=clang --prefix=/usr; \
-    ./b2 toolset=clang cxxflags="-stdlib=libc++ -pthread" linkflags="-stdlib=libc++ -pthread" headers; \
-    ./b2 toolset=clang cxxflags="-stdlib=libc++ -pthread" linkflags="-stdlib=libc++ -pthread" \
-        link=static variant=release runtime-link=static \
-        system filesystem unit_test_framework program_options \
-        install -j $(($(nproc)/2)); \
-    rm -rf /usr/src/boost_1_83_0
+	cd /usr/src; \
+	wget -q 'https://archives.boost.io/release/1.83.0/source/boost_1_83_0.tar.bz2' -O boost.tar.bz2; \
+	test "$(sha256sum boost.tar.bz2)" = "6478edfe2f3305127cffe8caf73ea0176c53769f4bf1585be237eb30798c3b8e  boost.tar.bz2" && \
+	tar -xf boost.tar.bz2; \
+	rm boost.tar.bz2; \
+	cd boost_1_83_0; \
+	CXXFLAGS="-std=c++17 -stdlib=libc++ -pthread" LDFLAGS="-stdlib=libc++" ./bootstrap.sh --with-toolset=clang --prefix=/usr; \
+	./b2 toolset=clang cxxflags="-stdlib=libc++ -pthread" linkflags="-stdlib=libc++ -pthread" headers; \
+	./b2 toolset=clang cxxflags="-stdlib=libc++ -pthread" linkflags="-stdlib=libc++ -pthread" \
+		link=static variant=release runtime-link=static \
+		system filesystem unit_test_framework program_options \
+		install -j $(($(nproc)/2)); \
+	rm -rf /usr/src/boost_1_83_0
 
 # Z3
 RUN set -ex; \
@@ -112,15 +112,14 @@ RUN set -ex; \
 
 # OSSFUZZ: libprotobuf-mutator
 RUN set -ex; \
-	git clone https://github.com/google/libprotobuf-mutator.git \
-	    /usr/src/libprotobuf-mutator; \
+	git clone https://github.com/google/libprotobuf-mutator.git /usr/src/libprotobuf-mutator; \
 	cd /usr/src/libprotobuf-mutator; \
 	git checkout 3521f47a2828da9ace403e4ecc4aece1a84feb36; \
 	mkdir build; \
 	cd build; \
 	cmake .. -GNinja -DLIB_PROTO_MUTATOR_DOWNLOAD_PROTOBUF=ON \
-        -DLIB_PROTO_MUTATOR_TESTING=OFF -DCMAKE_BUILD_TYPE=Release \
-        -DCMAKE_INSTALL_PREFIX="/usr"; \
+		-DLIB_PROTO_MUTATOR_TESTING=OFF -DCMAKE_BUILD_TYPE=Release \
+		-DCMAKE_INSTALL_PREFIX="/usr"; \
 	ninja; \
 	cp -vpr external.protobuf/bin/* /usr/bin/; \
 	cp -vpr external.protobuf/include/* /usr/include/; \
@@ -142,37 +141,37 @@ RUN set -ex; \
 
 # gmp
 RUN set -ex; \
-    # Replace system installed libgmp static library
-    # with sanitized version. Do not perform apt
-    # remove because it removes mlton as well that
-    # we need for building libabicoder
-    cd /usr/src/; \
-    git clone --depth 1 --branch gmp-6.2.1 https://github.com/gmp-mirror/gmp-6.2 gmp/; \
-    rm -r gmp/.git/; \
-    test \
-        "$(tar --create gmp/ --sort=name --mtime=1970-01-01Z --owner=0 --group=0 --numeric-owner | sha256sum)" = \
-        "d606ff6a4ce98692f9920031e85ea8fcf4a65ce1426f6f0048b8794aefed174b  -"; \
-    # NOTE: This removes also libgmp.so, which git depends on
-    rm -f /usr/lib/x86_64-linux-gnu/libgmp.*; \
-    rm -f /usr/include/x86_64-linux-gnu/gmp.h; \
-    cd gmp/; \
-    autoreconf -i; \
-    ./configure --prefix=/usr --enable-static=yes --enable-maintainer-mode; \
-    make -j; \
-    make check; \
-    make install; \
-    rm -rf /usr/src/gmp/
+	# Replace system installed libgmp static library
+	# with sanitized version. Do not perform apt
+	# remove because it removes mlton as well that
+	# we need for building libabicoder
+	cd /usr/src/; \
+	git clone --depth 1 --branch gmp-6.2.1 https://github.com/gmp-mirror/gmp-6.2 gmp/; \
+	rm -r gmp/.git/; \
+	test \
+		"$(tar --create gmp/ --sort=name --mtime=1970-01-01Z --owner=0 --group=0 --numeric-owner | sha256sum)" = \
+		"d606ff6a4ce98692f9920031e85ea8fcf4a65ce1426f6f0048b8794aefed174b  -"; \
+	# NOTE: This removes also libgmp.so, which git depends on
+	rm -f /usr/lib/x86_64-linux-gnu/libgmp.*; \
+	rm -f /usr/include/x86_64-linux-gnu/gmp.h; \
+	cd gmp/; \
+	autoreconf -i; \
+	./configure --prefix=/usr --enable-static=yes --enable-maintainer-mode; \
+	make -j; \
+	make check; \
+	make install; \
+	rm -rf /usr/src/gmp/
 
 # libabicoder
 RUN set -ex; \
-    cd /usr/src; \
-    git clone https://github.com/ekpyron/Yul-Isabelle; \
-    cd Yul-Isabelle; \
-    cd libabicoder; \
-    CXX=clang++ CXXFLAGS="-stdlib=libc++ -pthread" make; \
-    cp libabicoder.a /usr/lib; \
-    cp abicoder.hpp /usr/include; \
-    rm -rf /usr/src/Yul-Isabelle
+	cd /usr/src; \
+	git clone https://github.com/ekpyron/Yul-Isabelle; \
+	cd Yul-Isabelle; \
+	cd libabicoder; \
+	CXX=clang++ CXXFLAGS="-stdlib=libc++ -pthread" make; \
+	cp libabicoder.a /usr/lib; \
+	cp abicoder.hpp /usr/include; \
+	rm -rf /usr/src/Yul-Isabelle
 
 FROM base
 COPY --from=libraries /usr/lib /usr/lib
