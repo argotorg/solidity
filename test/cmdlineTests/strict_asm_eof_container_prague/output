@@ -73,7 +73,7 @@ stop
 sub_0: assembly {
       0x00
       dup1
-      returcontract{0}
+      returncontract{0}
     stop
 
     sub_0: assembly {
@@ -89,7 +89,7 @@ sub_0: assembly {
 sub_1: assembly {
       0x00
       dup1
-      returcontract{0}
+      returncontract{0}
     stop
 
     sub_0: assembly {
