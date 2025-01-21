@@ -115,7 +115,28 @@ contract GlobalRegistrar is Registrar, AuctionSystem {
 	uint constant c_freeBytes = 12;
 
 	constructor() {
-		// TODO: Populate with hall-of-fame.
+		// Initialize hall-of-fame with significant Ethereum contributors
+		entries["vitalik"] = Record(
+			msg.sender,
+			address(0),
+			address(0),
+			0x0,
+			block.timestamp + c_renewalInterval
+		);
+		entries["gavin"] = Record(
+			msg.sender,
+			address(0),
+			address(0),
+			0x0,
+			block.timestamp + c_renewalInterval
+		);
+		entries["jeff"] = Record(
+			msg.sender,
+			address(0),
+			address(0),
+			0x0,
+			block.timestamp + c_renewalInterval
+		);
 	}
 
 	function onAuctionEnd(string memory _name) internal override {
@@ -452,6 +473,18 @@ BOOST_AUTO_TEST_CASE(auction_bidding)
 	registrar.setNextValue(20);
 	registrar.reserve(name);
 	BOOST_CHECK_EQUAL(registrar.owner(name), account(1));
+}
+
+BOOST_AUTO_TEST_CASE(hall_of_fame)
+{
+	AuctionRegistrarTestFramework framework;
+	framework.deployRegistrar();
+	auto registrar = framework.getRegistrar();
+
+	// Check that hall-of-fame entries were properly initialized
+	BOOST_CHECK(registrar.owner("vitalik") == framework.getAddress());
+	BOOST_CHECK(registrar.owner("gavin") == framework.getAddress());
+	BOOST_CHECK(registrar.owner("jeff") == framework.getAddress());
 }
 
 BOOST_AUTO_TEST_SUITE_END()
