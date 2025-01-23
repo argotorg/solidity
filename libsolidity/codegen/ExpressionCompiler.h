@@ -91,6 +91,7 @@ private:
 	bool visit(IndexRangeAccess const& _indexAccess) override;
 	void endVisit(Identifier const& _identifier) override;
 	void endVisit(Literal const& _literal) override;
+	void emitAddressMasking();
 
 	///@{
 	///@name Append code for various operator types

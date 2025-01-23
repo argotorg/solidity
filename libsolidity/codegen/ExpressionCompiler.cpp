@@ -33,6 +33,7 @@
 #include <libsolidity/ast/TypeProvider.h>
 
 #include <libevmasm/GasMeter.h>
+#include <libevmasm/Instruction.h>
 #include <libsolutil/Common.h>
 #include <libsolutil/FunctionSelector.h>
 #include <libsolutil/Keccak256.h>
@@ -1524,6 +1525,23 @@ bool ExpressionCompiler::visit(FunctionCall const& _functionCall)
 		}
 	}
 	return false;
+}
+
+void ExpressionCompiler::emitAddressMasking()
+{
+    if (m_context.optimizeForBytecodeSize())
+    {
+        m_context << Instruction::PUSH0    
+                  << Instruction::NOT      
+                  << Instruction::PUSH1    
+                  << u256(12)              
+                  << Instruction::SHR;     
+    }
+    else
+    {
+        m_context << Instruction::PUSH20  
+                  << u256(0xffffffffffffffffffffffffffffffffffffffff);
+    }
 }
 
 bool ExpressionCompiler::visit(FunctionCallOptions const& _functionCallOptions)
