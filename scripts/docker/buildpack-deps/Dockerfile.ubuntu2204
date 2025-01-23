@@ -1,0 +1,108 @@
+# vim:syntax=dockerfile
+#------------------------------------------------------------------------------
+# Dockerfile for building and testing Solidity Compiler on CI
+# Target: Ubuntu 22.04 (Jammy Jellyfish)
+# URL: https://hub.docker.com/r/ethereum/solidity-buildpack-deps
+#
+# This file is part of solidity.
+#
+# solidity is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# solidity is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with solidity.  If not, see <http://www.gnu.org/licenses/>
+#
+# (c) 2016-2025 solidity contributors.
+#------------------------------------------------------------------------------
+FROM buildpack-deps:jammy AS base
+LABEL version="1"
+
+ARG DEBIAN_FRONTEND=noninteractive
+
+RUN set -ex; \
+	dist=$(grep DISTRIB_CODENAME /etc/lsb-release | cut -d= -f2); \
+	echo "deb http://ppa.launchpad.net/ethereum/cpp-build-deps/ubuntu $dist main" >> /etc/apt/sources.list ; \
+	apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 1c52189c923f6ca9 ; \
+	apt-get update; \
+	apt-get install -qqy --no-install-recommends \
+		build-essential \
+		cmake \
+		jq \
+		clang \
+		libboost-filesystem-dev \
+		libboost-program-options-dev \
+		libboost-system-dev \
+		libboost-test-dev \
+		libcln-dev \
+		locales-all \
+		lsof \
+		ninja-build \
+		python3-pip \
+		python3-sphinx \
+		software-properties-common \
+		sudo \
+		unzip \
+		zip; \
+	pip3 install \
+		codecov \
+		colorama \
+		deepdiff \
+		parsec \
+		pygments-lexer-solidity \
+		pylint \
+		requests \
+		tabulate \
+		z3-solver;
+
+# Eldarica
+RUN set -ex; \
+	apt-get update; \
+	apt-get install -qqy \
+		openjdk-11-jre; \
+	eldarica_version="2.1"; \
+	wget "https://github.com/uuverifiers/eldarica/releases/download/v${eldarica_version}/eldarica-bin-${eldarica_version}.zip" -O /opt/eld_binaries.zip; \
+	test "$(sha256sum /opt/eld_binaries.zip)" = "0ac43f45c0925383c9d2077f62bbb515fd792375f3b2b101b30c9e81dcd7785c  /opt/eld_binaries.zip"; \
+	unzip /opt/eld_binaries.zip -d /opt; \
+	rm -f /opt/eld_binaries.zip;
+
+# CVC5
+RUN set -ex; \
+	cvc5_version="1.2.0"; \
+	cvc5_archive_name="cvc5-Linux-x86_64-static"; \
+	wget "https://github.com/cvc5/cvc5/releases/download/cvc5-${cvc5_version}/${cvc5_archive_name}.zip" -O /opt/cvc5.zip; \
+	test "$(sha256sum /opt/cvc5.zip)" = "d18f174ff9a11923c32c3f871f844ed16bd77a28f51050b8e7c8d821c98a1c2e  /opt/cvc5.zip"; \
+	unzip -j /opt/cvc5.zip "${cvc5_archive_name}/bin/cvc5" -d /usr/bin; \
+	rm -f /opt/cvc5.zip;
+
+# Z3
+RUN set -ex; \
+	z3_version="4.13.3"; \
+	z3_archive_name="z3-${z3_version}-x64-glibc-2.35"; \
+	wget "https://github.com/Z3Prover/z3/releases/download/z3-${z3_version}/${z3_archive_name}.zip" -O /opt/z3.zip; \
+	test "$(sha256sum /opt/z3.zip)" = "32c7377026733c9d7b33c21cd77a68f50ba682367207b031a6bfd80140a8722f  /opt/z3.zip"; \
+	unzip -j /opt/z3.zip "${z3_archive_name}/bin/z3" -d /usr/bin; \
+	rm -f /opt/z3.zip;
+
+FROM base AS libraries
+
+# EVMONE
+RUN set -ex; \
+	wget -O /usr/src/evmone.tar.gz https://github.com/ethereum/evmone/releases/download/v0.12.0/evmone-0.12.0-linux-x86_64.tar.gz; \
+	test "$(sha256sum /usr/src/evmone.tar.gz)" = "1c7b5eba0c8c3b3b2a7a05101e2d01a13a2f84b323989a29be66285dba4136ce  /usr/src/evmone.tar.gz"; \
+	cd /usr; \
+	tar -xf /usr/src/evmone.tar.gz; \
+	rm -rf /usr/src/evmone.tar.gz
+
+FROM base
+COPY --from=libraries /usr/lib /usr/lib
+COPY --from=libraries /usr/bin /usr/bin
+COPY --from=libraries /usr/include /usr/include
+COPY --from=libraries /opt/eldarica /opt/eldarica
+ENV PATH="$PATH:/opt/eldarica"

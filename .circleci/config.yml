@@ -11,6 +11,10 @@ parameters:
     type: string
     # solbuildpackpusher/solidity-buildpack-deps:ubuntu2004-26
     default: "solbuildpackpusher/solidity-buildpack-deps@sha256:1f387a77be889f65a2a25986a5c5eccc88cec23fabe6aeaf351790751145c81e"
+  ubuntu-2204-docker-image:
+    type: string
+    # solbuildpackpusher/solidity-buildpack-deps:ubuntu2204-1
+    default: "solbuildpackpusher/solidity-buildpack-deps@sha256:d61b0a4a49ac106e6747c1e8037882f1d421b537dba6c96c0a400ca105d85d4d"
   ubuntu-2404-docker-image:
     type: string
     # solbuildpackpusher/solidity-buildpack-deps:ubuntu2404-2
@@ -551,6 +555,42 @@ defaults:
         MAKEFLAGS: -j 10
         CPUs: 10
 
+  - base_ubuntu2204: &base_ubuntu2204
+      docker:
+        - image: << pipeline.parameters.ubuntu-2204-docker-image >>
+      environment: &base_ubuntu2204_env
+        TERM: xterm
+        CC: gcc
+        CXX: g++
+        MAKEFLAGS: -j 3
+        CPUs: 3
+
+  - base_ubuntu2204_large: &base_ubuntu2204_large
+      <<: *base_ubuntu2204
+      resource_class: large
+      environment: &base_ubuntu2204_large_env
+        <<: *base_ubuntu2204_env
+        MAKEFLAGS: -j 5
+        CPUs: 5
+
+  - base_ubuntu2204_clang: &base_ubuntu2204_clang
+      docker:
+        - image: << pipeline.parameters.ubuntu-2204-docker-image >>
+      environment: &base_ubuntu2204_clang_env
+        TERM: xterm
+        CC: clang
+        CXX: clang++
+        MAKEFLAGS: -j 3
+        CPUs: 3
+
+  - base_ubuntu2204_clang_large: &base_ubuntu2204_clang_large
+      <<: *base_ubuntu2204_clang
+      resource_class: large
+      environment: &base_ubuntu2204_clang_large_env
+        <<: *base_ubuntu2204_clang_env
+        MAKEFLAGS: -j 5
+        CPUs: 5
+
   - base_ubuntu2404: &base_ubuntu2404
       docker:
         - image: << pipeline.parameters.ubuntu-2404-docker-image >>
@@ -1063,6 +1103,23 @@ jobs:
       # gold is more memory-efficient than the default, allows us to stay with the "large" resource class without OOM errors
       CMAKE_OPTIONS: -DCMAKE_CXX_STANDARD=20 -DCMAKE_CXX_FLAGS=-fuse-ld=gold
       MAKEFLAGS: -j 6
+    steps:
+      - checkout
+      - run_build
+      - matrix_notify_failure_unless_pr
+
+  b_ubu_2204:
+    <<: *base_ubuntu2204_large
+    steps:
+      - checkout
+      - run_build
+      - matrix_notify_failure_unless_pr
+
+  b_ubu_2204_clang:
+    <<: *base_ubuntu2204_clang_large
+    environment:
+      <<: *base_ubuntu2204_clang_large_env
+      MAKEFLAGS: -j 10
     steps:
       - checkout
       - run_build
@@ -1818,6 +1875,8 @@ workflows:
       - b_docs: *requires_nothing
       - b_ubu_cxx20: *requires_nothing
       - b_ubu_ossfuzz: *requires_nothing
+      - b_ubu_2204: *requires_nothing
+      - b_ubu_2204_clang: *requires_nothing
 
       # OS/X build and tests
       - b_osx: *requires_nothing

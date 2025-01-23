@@ -11,5 +11,5 @@ object "a" {
 // EVMVersion: >=prague
 // bytecodeFormat: legacy
 // ----
-// DeclarationError 4619: (42-54): Function "auxdataloadn" not found.
+// DeclarationError 7223: (42-54): Builtin function "auxdataloadn" is only available in EOF.
 // TypeError 3950: (42-57): Expected expression to evaluate to one value, but got 0 values instead.
