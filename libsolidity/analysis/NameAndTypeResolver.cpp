@@ -716,7 +716,7 @@ void DeclarationRegistrationHelper::registerDeclaration(Declaration& _declaratio
 		);
 
 		// NOTE: We're registering the function outside of its scope(). This will only affect
-		// name lookups. An more general alternative would be to modify Scoper to simply assign it
+		// name lookups. A more general alternative would be to modify Scoper to simply assign it
 		// that scope in the first place, but this would complicate the AST traversal here, which
 		// currently assumes that scopes follow ScopeOpener nesting.
 		registerDeclaration(*m_scopes.at(quantifier->scope()), _declaration, nullptr, nullptr, false /* inactive */, m_errorReporter);
