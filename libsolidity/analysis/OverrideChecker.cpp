@@ -801,7 +801,7 @@ void OverrideChecker::checkAmbiguousOverridesInternal(std::set<OverrideProxy> _b
 	std::string callableName = _baseCallables.begin()->astNodeName();
 	if (_baseCallables.begin()->isVariable())
 		callableName = "function";
-	std::string distinguishigProperty = _baseCallables.begin()->distinguishingProperty();
+	std::string distinguishingProperty = _baseCallables.begin()->distinguishingProperty();
 
 	bool foundVariable = false;
 	for (auto const& base: _baseCallables)
@@ -811,7 +811,7 @@ void OverrideChecker::checkAmbiguousOverridesInternal(std::set<OverrideProxy> _b
 	std::string message =
 		"Derived contract must override " + callableName + " \"" +
 		_baseCallables.begin()->name() +
-		"\". Two or more base classes define " + callableName + " with same " + distinguishigProperty + ".";
+		"\". Two or more base classes define " + callableName + " with same " + distinguishingProperty + ".";
 
 	if (foundVariable)
 		message +=
