@@ -109,7 +109,7 @@ Json semanticTokensLegend()
 	tokenTypes.emplace_back("operator");
 	tokenTypes.emplace_back("parameter");
 	tokenTypes.emplace_back("property");
-	tokenTypes.emplace_back("std::string");
+	tokenTypes.emplace_back("string");
 	tokenTypes.emplace_back("struct");
 	tokenTypes.emplace_back("type");
 	tokenTypes.emplace_back("typeParameter");
