@@ -64,7 +64,7 @@ yulFuzzerUtil::TerminationReason yulFuzzerUtil::interpret(
 	}
 	catch (ExpressionNestingLimitReached const&)
 	{
-		reason = TerminationReason::ExpresionNestingLimitReached;
+		reason = TerminationReason::ExpressionNestingLimitReached;
 	}
 	catch (ExplicitlyTerminated const&)
 	{
@@ -83,5 +83,5 @@ bool yulFuzzerUtil::resourceLimitsExceeded(TerminationReason _reason)
 	return
 		_reason == yulFuzzerUtil::TerminationReason::StepLimitReached ||
 		_reason == yulFuzzerUtil::TerminationReason::TraceLimitReached ||
-		_reason == yulFuzzerUtil::TerminationReason::ExpresionNestingLimitReached;
+		_reason == yulFuzzerUtil::TerminationReason::ExpressionNestingLimitReached;
 }
