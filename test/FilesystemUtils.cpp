@@ -44,12 +44,12 @@ void solidity::test::createFilesWithParentDirs(std::set<boost::filesystem::path>
 void solidity::test::createFileWithContent(boost::filesystem::path const& _path, std::string const& _content)
 {
 	if (boost::filesystem::is_regular_file(_path))
-		BOOST_THROW_EXCEPTION(std::runtime_error("File already exists: \"" + _path.string() + "\".")); \
+		BOOST_THROW_EXCEPTION(std::runtime_error("File already exists: \"" + _path.string() + "\"."));
 
 	// Use binary mode to avoid line ending conversion on Windows.
 	std::ofstream newFile(_path.string(), std::ofstream::binary);
 	if (newFile.fail() || !boost::filesystem::is_regular_file(_path))
-		BOOST_THROW_EXCEPTION(std::runtime_error("Failed to create a file: \"" + _path.string() + "\".")); \
+		BOOST_THROW_EXCEPTION(std::runtime_error("Failed to create a file: \"" + _path.string() + "\"."));
 
 	newFile << _content;
 }
