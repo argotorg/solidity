@@ -40,7 +40,7 @@ the compiler notifying you about it.
   More specifically, they will use error data equal to a function call to ``Panic(uint256)`` with an error code specific
   to the circumstances.
 
-  This will save gas on errors while it still allows static analysis tools to distinguish
+  This will save gas on errors while it still allowing static analysis tools to distinguish
   these situations from a revert on invalid input, like a failing ``require``.
 
 * If a byte array in storage is accessed whose length is encoded incorrectly, a panic is caused.
