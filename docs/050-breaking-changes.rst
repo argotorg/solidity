@@ -348,7 +348,7 @@ Given the interface defined above, you can now easily use the already deployed p
 
 Similarly, pre-0.5.0 libraries can be used by defining the functions of the library without implementation and
 supplying the address of the pre-0.5.0 library during linking (see :ref:`commandline-compiler` for how to use the
-commandline compiler for linking):
+command-line compiler for linking):
 
 .. code-block:: solidity
 
