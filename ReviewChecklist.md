@@ -146,7 +146,7 @@ The following points are all covered by the coding style but come up so often th
     - [ ] Attached library functions? Functions attached with `using for`?
     - [ ] Possible combinations of `storage`, `memory`, `calldata`, `immutable`, `constant`?
         Remember that internal functions can take `storage` arguments.
-    - [ ] Does it work at construction time as well? What if you store it at construction time and read after deployment?
+    - [ ] Does it work at construction time as well? What if you store it at construction time and read it after deployment?
     - [ ] What about importing it from a different module or inheriting it?
     - [ ] Have you tested it with the ternary operator?
 
@@ -155,7 +155,7 @@ The following points are all covered by the coding style but come up so often th
     When checking if we have the case already covered the name is usually the only clue we see.
     - [ ] Place them in the right subdirectory.
     - [ ] **Avoid simply appending numbers to the name to distinguish similar cases.**
-        Coming up with good names is hard but figuring out if any of hundreds of tests with names that
+        Coming up with good names is hard but figuring out if any of the hundreds of tests with names that
         match your search actually fits your case is even harder.
 - [ ] **Do not include version pragma and the SPDX comment in semantic and syntax test cases**.
     In other test types include them if necessary to suppress warnings.
