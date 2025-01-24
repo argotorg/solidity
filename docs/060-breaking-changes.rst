@@ -15,7 +15,7 @@ Changes the Compiler Might not Warn About
 This section lists changes where the behavior of your code might
 change without the compiler telling you about it.
 
-* The resulting type of an exponentiation is the type of the base. It used to be the smallest type
+* The resulting type of exponentiation is the type of the base. It used to be the smallest type
   that can hold both the type of the base and the type of the exponent, as with symmetric
   operations. Additionally, signed types are allowed for the base of the exponentiation.
 
@@ -78,7 +78,7 @@ and it does something else afterwards.
   * If present, the receive ether function is called whenever the call data is empty (whether
     or not ether is received). This function is implicitly ``payable``.
 
-  * The new fallback function is called when no other function matches (if the receive ether
+  * The new fallback function is called when no other function matches (if the received ether
     function does not exist then this includes calls with empty call data).
     You can make this function ``payable`` or not. If it is not ``payable`` then transactions
     not matching any other function which send value will revert. You should only need to
