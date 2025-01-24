@@ -19,7 +19,7 @@ Semantic Only Changes
 =====================
 
 This section lists the changes that are semantic-only, thus potentially
-hiding new and different behavior in existing code.
+hiding new and different behaviors in existing code.
 
 * Signed right shift now uses proper arithmetic shift, i.e. rounding towards
   negative infinity, instead of rounding towards zero.  Signed and unsigned
@@ -212,7 +212,7 @@ Conversions
   is now disallowed.
 
 * Explicit and implicit conversions from hex literals to ``bytesXX`` types
-  of different size is now disallowed.
+  of different sizes is now disallowed.
 
 Literals and Suffixes
 ---------------------
