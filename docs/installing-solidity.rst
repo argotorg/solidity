@@ -81,13 +81,13 @@ and runs it in a new container, passing the ``--help`` argument.
 
 .. code-block:: bash
 
-    docker run ethereum/solc:stable --help
+    docker run ethereum/solc:0.8.23 --help
 
 You can specify release build versions in the tag. For example:
 
 .. code-block:: bash
 
-    docker run ethereum/solc:stable --help
+    docker run ethereum/solc:0.8.23 --help
 
 Note
 
