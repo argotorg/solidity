@@ -44,7 +44,7 @@ label {
     margin: 0 auto;
     display: inline-block;
     justify-content: center;
-    align-items: right;
+    align-items: flex-end;
     border-radius: 100px;
     position: relative;
     cursor: pointer;
