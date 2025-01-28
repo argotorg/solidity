@@ -74,7 +74,7 @@ The selector consists of the first four bytes of the keccak256-hash of the signa
 .. note::
     It is possible for a contract to revert
     with different errors of the same name or even with errors defined in different places
-    that are indistinguishable by the caller. For the outside, i.e. the ABI,
+    that are indistinguishable by the caller. From the outside, i.e. the ABI,
     only the name of the error is relevant, not the contract or file where it is defined.
 
 The statement ``require(condition, "description");`` would be equivalent to
