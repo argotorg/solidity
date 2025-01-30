@@ -25,6 +25,8 @@ add_executable(isoltest
 	../libsolidity/util/TestFunctionCall.cpp
 	../libsolidity/util/compiler/Compiler.h
 	../libsolidity/util/compiler/Compiler.cpp
+	../libsolidity/util/compiler/CompilerHost.h
+	../libsolidity/util/compiler/CompilerHost.cpp
 	../libsolidity/util/compiler/InternalCompiler.h
 	../libsolidity/util/compiler/InternalCompiler.cpp
 	../libsolidity/GasTest.cpp
