@@ -27,6 +27,9 @@
 
 #include <test/ExecutionFramework.h>
 
+#include <test/libsolidity/util/compiler/Compiler.h>
+#include <test/libsolidity/util/compiler/CompilerHost.h>
+
 #include <libsolidity/interface/CompilerStack.h>
 #include <libsolidity/interface/DebugSettings.h>
 
@@ -82,11 +85,12 @@ public:
 protected:
 	using CompilerStack = solidity::frontend::CompilerStack;
 	std::optional<uint8_t> m_eofVersion;
-	CompilerStack m_compiler;
+	CompilerInput m_compilerInput;
+	CompilerHost m_compiler;
 	bool m_compileViaYul = false;
 	bool m_showMetadata = false;
 	bool m_appendCBORMetadata = true;
-	CompilerStack::MetadataHash m_metadataHash = CompilerStack::MetadataHash::IPFS;
+	MetadataHash m_metadataHash = MetadataHash::IPFS;
 	RevertStrings m_revertStrings = RevertStrings::Default;
 };
 

@@ -23,6 +23,7 @@
 
 #include <test/libsolidity/SolidityExecutionFramework.h>
 #include <test/libsolidity/util/Common.h>
+#include <test/libsolidity/util/SoltestErrors.h>
 
 #include <liblangutil/DebugInfoSelection.h>
 #include <libyul/Exceptions.h>
@@ -50,41 +51,52 @@ bytes SolidityExecutionFramework::multiSourceCompileContract(
 	if (_mainSourceName.has_value())
 		solAssert(_sourceCode.find(_mainSourceName.value()) != _sourceCode.end(), "");
 
-	m_compiler.reset();
-	m_compiler.setSources(withPreamble(
+	m_compilerInput = CompilerInput{};
+	m_compilerInput.sourceCode = withPreamble(
 		_sourceCode,
 		solidity::test::CommonOptions::get().useABIEncoderV1 // _addAbicoderV1Pragma
-	));
-	m_compiler.setLibraries(_libraryAddresses);
-	m_compiler.setRevertStringBehaviour(m_revertStrings);
-	m_compiler.setEVMVersion(m_evmVersion);
-	m_compiler.setEOFVersion(m_eofVersion);
-	m_compiler.setOptimiserSettings(m_optimiserSettings);
-	m_compiler.setViaIR(m_compileViaYul);
-	m_compiler.setRevertStringBehaviour(m_revertStrings);
+	);
+	m_compilerInput.libraryAddresses = _libraryAddresses;
+	m_compilerInput.evmVersion = std::make_optional(m_evmVersion);
+	m_compilerInput.eofVersion = m_eofVersion;
+	m_compilerInput.optimiserSettings = std::make_optional(m_optimiserSettings);
+	m_compilerInput.revertStrings = std::make_optional(m_revertStrings);
+	m_compilerInput.metadataHash = std::make_optional(m_metadataHash);
+	m_compilerInput.viaIR = std::make_optional(m_compileViaYul);
 	if (!m_appendCBORMetadata) {
-		m_compiler.setMetadataFormat(CompilerStack::MetadataFormat::NoMetadata);
+		m_compilerInput.metadataFormat = std::make_optional(MetadataFormat::NoMetadata);
 	}
-	m_compiler.setMetadataHash(m_metadataHash);
 
-	if (!m_compiler.compile())
+	m_compiler.compile(m_compilerInput);
+
+	auto output = m_compiler.output();
+	if (!output.success())
 	{
 		// The testing framework expects an exception for
 		// "unimplemented" yul IR generation.
 		if (m_compileViaYul)
-			for (auto const& error: m_compiler.errors())
-				if (error->type() == langutil::Error::Type::CodeGenerationError)
-					BOOST_THROW_EXCEPTION(*error);
-		langutil::SourceReferenceFormatter{std::cerr, m_compiler, true, false}
-			.printErrorInformation(m_compiler.errors());
+		{
+			auto type = langutil::Error::Type::CodeGenerationError;
+			auto error = output.findError(type);
+			if (error.has_value())
+				BOOST_THROW_EXCEPTION(error.value());
+		}
+		std::cout << output.errorInformation() << std::endl;
 		BOOST_ERROR("Compiling contract failed");
 	}
-	std::string contractName(_contractName.empty() ? m_compiler.lastContractName(_mainSourceName) : _contractName);
-	evmasm::LinkerObject obj = m_compiler.object(contractName);
-	BOOST_REQUIRE(obj.linkReferences.empty());
+
+	std::optional<CompiledContract> contract;
+	if (_contractName.empty())
+		contract = output.contract(_mainSourceName, std::nullopt);
+	else
+		contract = output.contract(std::nullopt, std::make_optional(_contractName));
+
+	soltestAssert(contract.has_value());
+	soltestAssert(!contract.value().hasUnlinkedReferences);
+	
 	if (m_showMetadata)
-		std::cout << "metadata: " << m_compiler.metadata(contractName) << std::endl;
-	return obj.bytecode;
+		std::cout << "metadata: " << contract.value().metadata << std::endl;
+	return contract.value().object;
 }
 
 bytes SolidityExecutionFramework::compileContract(

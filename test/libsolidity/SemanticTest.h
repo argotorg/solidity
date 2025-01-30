@@ -30,13 +30,6 @@
 namespace solidity::frontend::test
 {
 
-struct AnnotatedEventSignature
-{
-	std::string signature;
-	std::vector<std::string> indexedTypes;
-	std::vector<std::string> nonIndexedTypes;
-};
-
 enum class RequiresYulOptimizer
 {
 	False,

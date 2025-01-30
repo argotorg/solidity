@@ -38,7 +38,8 @@ namespace solidity::frontend::test
 #define CHECK_DEPLOY_GAS(_gasNoOpt, _gasOpt, _evmVersion) \
 	do \
 	{ \
-		u256 metaCost = GasMeter::dataGas(m_compiler.cborMetadata(m_compiler.lastContractName()), true, _evmVersion); \
+		auto compiledContract = m_compiler.output().contract().value(); \
+		u256 metaCost = GasMeter::dataGas(compiledContract.cborMetadata, true, _evmVersion); \
 		u256 gasOpt{_gasOpt}; \
 		u256 gasNoOpt{_gasNoOpt}; \
 		u256 gas = m_optimiserSettings == OptimiserSettings::minimal() ? gasNoOpt : gasOpt; \
@@ -90,7 +91,7 @@ BOOST_AUTO_TEST_CASE(string_storage)
 			}
 		}
 	)";
-	m_compiler.setMetadataFormat(CompilerStack::MetadataFormat::NoMetadata);
+
 	m_appendCBORMetadata = false;
 	compileAndRun(sourceCode);
 
@@ -202,8 +203,9 @@ BOOST_AUTO_TEST_CASE(single_callvaluecheck)
 		}
 	)";
 	compileAndRun(sourceCode);
-	size_t bytecodeSizeNonpayable = m_compiler.object("Nonpayable").bytecode.size();
-	size_t bytecodeSizePayable = m_compiler.object("Payable").bytecode.size();
+	auto compilerOutput = m_compiler.output();
+	size_t bytecodeSizeNonpayable = compilerOutput.contract("Nonpayable").value().object.size();
+	size_t bytecodeSizePayable = compilerOutput.contract("Payable").value().object.size();
 
 	auto evmVersion = solidity::test::CommonOptions::get().evmVersion();
 	if (evmVersion < EVMVersion::shanghai())
