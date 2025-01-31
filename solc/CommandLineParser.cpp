@@ -1442,11 +1442,7 @@ void CommandLineParser::processArgs()
 	}
 
 	if (m_args.count(g_strModelCheckerPrintQuery))
-	{
-		if (!(m_options.modelChecker.settings.solvers == smtutil::SMTSolverChoice::SMTLIB2()))
-			solThrow(CommandLineValidationError, "Only SMTLib2 solver can be enabled to print queries");
 		m_options.modelChecker.settings.printQuery = true;
-	}
 
 	if (m_args.count(g_strModelCheckerTargets))
 	{

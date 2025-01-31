@@ -64,9 +64,7 @@ CHC::CHC(
 	SMTEncoder(_context, _settings, _errorReporter, _unsupportedErrorReporter, _provedSafeReporter, _charStreamProvider),
 	m_smtlib2Responses(_smtlib2Responses),
 	m_smtCallback(_smtCallback)
-{
-	solAssert(!_settings.printQuery || _settings.solvers == smtutil::SMTSolverChoice::SMTLIB2(), "Only SMTLib2 solver can be enabled to print queries");
-}
+{}
 
 void CHC::analyze(SourceUnit const& _source)
 {
@@ -1897,6 +1895,7 @@ CHCSolverInterface::QueryResult CHC::query(smtutil::Expression const& _query, la
 			2339_error,
 			"CHC: Requested query:\n" + smtLibCode
 		);
+		return {.answer = CheckResult::UNKNOWN, .invariant = smtutil::Expression(true), .cex = {}};
 	}
 	auto result = m_interface->query(_query);
 	switch (result.answer)

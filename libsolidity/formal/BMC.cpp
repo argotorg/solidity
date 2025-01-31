@@ -49,7 +49,6 @@ BMC::BMC(
 ):
 	SMTEncoder(_context, _settings, _errorReporter, _unsupportedErrorReporter, _provedSafeReporter, _charStreamProvider)
 {
-	solAssert(!_settings.printQuery || _settings.solvers == SMTSolverChoice::SMTLIB2(), "Only SMTLib2 solver can be enabled to print queries");
 	std::vector<std::unique_ptr<BMCSolverInterface>> solvers;
 	if (_settings.solvers.smtlib2)
 		solvers.emplace_back(std::make_unique<SMTLib2Interface>(_smtlib2Responses, _smtCallback, _settings.timeout));
@@ -1262,8 +1261,10 @@ BMC::checkSatisfiableAndGenerateModel(std::vector<smtutil::Expression> const& _e
 				6240_error,
 				"BMC: Requested query:\n" + smtlibCode
 			);
+			result = CheckResult::UNKNOWN;
 		}
-		tie(result, values) = m_interface->check(_expressionsToEvaluate);
+		else
+			tie(result, values) = m_interface->check(_expressionsToEvaluate);
 	}
 	catch (smtutil::SolverError const& _e)
 	{

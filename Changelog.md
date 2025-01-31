@@ -9,6 +9,7 @@ Compiler Features:
  * EVM Assembly Import: Allow enabling opcode-based optimizer.
  * General: The experimental EOF backend implements a subset of EOF sufficient to compile arbitrary high-level Solidity syntax via IR with optimization enabled.
  * SMTChecker: Support `block.blobbasefee` and `blobhash`.
+ * SMTChecker: The option `--model-checker-print-query` no longer requires `--model-checker-solvers smtlib2`.
  * SMTChecker: Z3 is now a runtime dependency, not a build dependency (except for emscripten build).
  * Yul Parser: Make name clash with a builtin a non-fatal error.
 
