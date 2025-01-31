@@ -1336,7 +1336,7 @@ void CHC::clearIndices(ContractDefinition const* _contract, FunctionDefinition c
 
 void CHC::setCurrentBlock(Predicate const& _block)
 {
-	if (m_context.solverStackHeigh() > 0)
+	if (m_context.solverStackHeight() > 0)
 		m_context.popSolver();
 	solAssert(m_currentContract, "");
 	clearIndices(m_currentContract, m_currentFunction);
