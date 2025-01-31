@@ -710,7 +710,7 @@ void ArrayUtils::resizeDynamicArray(ArrayType const& _typeIn) const
 				CompilerUtils(_context).computeHashStatic();
 				_context << Instruction::SSTORE;
 				// stack: ref new_length current_length
-				// Store new length: Compule 2*length + 1 and store it.
+				// Store new length: Compute 2*length + 1 and store it.
 				_context << Instruction::DUP2 << Instruction::DUP1 << Instruction::ADD;
 				_context << u256(1) << Instruction::ADD;
 				// stack: ref new_length current_length 2*new_length+1
