@@ -25,7 +25,7 @@ contract C
 // ----
 // lib: @diagnostics 2072
 // -> textDocument/definition {
-//     "position": @wheatherImportCursor
+//     "position": @weatherImportCursor
 // }
 // <- [
 //     {
