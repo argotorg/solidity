@@ -246,7 +246,6 @@ def examine_id_coverage(top_dir, source_id_to_file_names, new_ids_only=False):
         "4802",
         "4902",
         "5272",
-        "5622",
         "5798",
         "5840",
         "7128",

@@ -58,17 +58,6 @@ BMC::BMC(
 	if (_settings.solvers.z3 )
 		solvers.emplace_back(std::make_unique<Z3SMTLib2Interface>(_smtCallback, _settings.timeout));
 	m_interface = std::make_unique<SMTPortfolio>(std::move(solvers), _settings.timeout);
-#if defined (HAVE_Z3)
-	if (m_settings.solvers.z3)
-		if (!_smtlib2Responses.empty())
-			m_errorReporter.warning(
-				5622_error,
-				"SMT-LIB2 query responses were given in the auxiliary input, "
-				"but this Solidity binary uses an SMT solver Z3 directly."
-				"These responses will be ignored."
-				"Consider disabling Z3 at compilation time in order to use SMT-LIB2 responses."
-			);
-#endif
 }
 
 void BMC::analyze(SourceUnit const& _source, std::map<ASTNode const*, std::set<VerificationTargetType>, smt::EncodingContext::IdCompare> _solvedTargets)
