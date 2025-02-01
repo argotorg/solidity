@@ -29,6 +29,7 @@
 #include <libyul/optimiser/CircularReferencesPruner.h>
 #include <libyul/optimiser/ConditionalUnsimplifier.h>
 #include <libyul/optimiser/ConditionalSimplifier.h>
+#include <libyul/optimiser/ConstantFunctionEvaluator.h>
 #include <libyul/optimiser/CommonSubexpressionEliminator.h>
 #include <libyul/optimiser/EqualStoreEliminator.h>
 #include <libyul/optimiser/EquivalentFunctionCombiner.h>
@@ -161,6 +162,12 @@ YulOptimizerTestCommon::YulOptimizerTestCommon(std::shared_ptr<Object const> _ob
 			ConditionalSimplifier::run(*m_context, block);
 			return block;
 		}},
+		{"constantFunctionEvaluator", [&]() {
+			auto block = disambiguate();
+			updateContext(block);
+			ConstantFunctionEvaluator::run(*m_context, block);
+			return block;
+	    }},
 		{"expressionSplitter", [&]() {
 			auto block = std::get<Block>(ASTCopier{}(m_object->code()->root()));
 			updateContext(block);
