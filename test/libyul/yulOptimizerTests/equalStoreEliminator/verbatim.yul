@@ -4,7 +4,7 @@
     sstore(a, b)
     if calldataload(32) {
         sstore(a, b)
-        pop(staticcall(0, 0, 0, 0, 0, 0))
+        pop(sload(a))
         verbatim_0i_0o("xyz")
     }
     sstore(a, b)
@@ -20,7 +20,7 @@
 //     sstore(a, b)
 //     if calldataload(32)
 //     {
-//         pop(staticcall(0, 0, 0, 0, 0, 0))
+//         pop(sload(a))
 //         verbatim_0i_0o("xyz")
 //     }
 //     sstore(a, b)

@@ -3,6 +3,7 @@ object "a" {
 }
 // ====
 // EVMVersion: >=shanghai
+// outputs: Assembly
 // ----
 // Assembly:
 //     /* "source":36:37   */
@@ -13,6 +14,3 @@ object "a" {
 //   sstore
 //     /* "source":22:42   */
 //   stop
-// Bytecode: 60015f5500
-// Opcodes: PUSH1 0x1 PUSH0 SSTORE STOP
-// SourceMappings: 36:1:0:-:0;33;26:12;22:20

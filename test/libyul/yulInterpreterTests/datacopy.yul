@@ -8,6 +8,8 @@ object "main"
     }
     object "sub" { code { sstore(0, 1) } }
 }
+// ====
+// bytecodeFormat: legacy
 // ----
 // Trace:
 // Memory dump:

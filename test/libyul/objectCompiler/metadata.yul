@@ -21,6 +21,7 @@ object "A" {
 }
 // ====
 // EVMVersion: >=shanghai
+// bytecodeFormat: legacy
 // ----
 // Assembly:
 //     /* "source":55:68   */

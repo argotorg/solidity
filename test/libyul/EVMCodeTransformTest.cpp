@@ -67,7 +67,7 @@ TestCase::TestResult EVMCodeTransformTest::run(std::ostream& _stream, std::strin
 		return TestResult::FatalError;
 	}
 
-	evmasm::Assembly assembly{CommonOptions::get().evmVersion(), false, std::nullopt, {}};
+	evmasm::Assembly assembly{CommonOptions::get().evmVersion(), false, CommonOptions::get().eofVersion(), {}};
 	EthAssemblyAdapter adapter(assembly);
 	EVMObjectCompiler::compile(
 		*yulStack.parserResult(),

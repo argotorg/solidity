@@ -8,6 +8,7 @@
 }
 // ====
 // EVMVersion: >=shanghai
+// bytecodeFormat: legacy
 // stackOptimization: true
 // ----
 //     /* "":90:97   */

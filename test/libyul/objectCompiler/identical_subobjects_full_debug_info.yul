@@ -66,6 +66,7 @@ object "A" {
 // ====
 // EVMVersion: >=shanghai
 // optimizationPreset: full
+// outputs: Assembly
 // ----
 // Assembly:
 //     /* "A.sol":10:20   */
@@ -110,6 +111,3 @@ object "A" {
 //       sstore(calldataload(0x00), calldataload(0x01))
 //       stop
 // }
-// Bytecode: 6001355f355500fe
-// Opcodes: PUSH1 0x1 CALLDATALOAD PUSH0 CALLDATALOAD SSTORE STOP INVALID
-// SourceMappings: 10:10::-:0;-1:-1;10:10;-1:-1;10:10;-1:-1

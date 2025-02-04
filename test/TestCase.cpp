@@ -150,7 +150,7 @@ void EVMVersionRestrictedTestCase::processBytecodeFormatSetting()
 	// EOF only available since Prague
 	solAssert(!eofVersion.has_value() ||solidity::test::CommonOptions::get().evmVersion() >= langutil::EVMVersion::prague());
 
-	std::string bytecodeFormatString = m_reader.stringSetting("bytecodeFormat", "legacy");
+	std::string bytecodeFormatString = m_reader.stringSetting("bytecodeFormat", "legacy,>=EOFv1");
 	if (bytecodeFormatString == "legacy,>=EOFv1" || bytecodeFormatString == ">=EOFv1,legacy")
 		return;
 

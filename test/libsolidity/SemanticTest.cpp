@@ -91,7 +91,12 @@ SemanticTest::SemanticTest(
 	if (m_runWithABIEncoderV1Only && !solidity::test::CommonOptions::get().useABIEncoderV1)
 		m_shouldRun = false;
 
-	std::string compileViaYul = m_reader.stringSetting("compileViaYul", "also");
+	auto const eofEnabled = solidity::test::CommonOptions::get().eofVersion().has_value();
+	std::string compileViaYul = m_reader.stringSetting("compileViaYul", eofEnabled ? "true" : "also");
+
+	if (compileViaYul == "false" && eofEnabled)
+		m_shouldRun = false;
+
 	if (m_runWithABIEncoderV1Only && compileViaYul != "false")
 		BOOST_THROW_EXCEPTION(std::runtime_error(
 			"ABIEncoderV1Only tests cannot be run via yul, "

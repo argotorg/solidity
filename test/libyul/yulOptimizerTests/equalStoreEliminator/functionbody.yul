@@ -10,7 +10,7 @@
     }
 
     function g() {
-        pop(staticcall(0, 0, 0, 0, 0, 0))
+        pop(sload(calldataload(0)))
     }
 
     function h(a_, b_) {
@@ -21,7 +21,7 @@
     }
 
     function i() {
-        pop(delegatecall(0, 0, 0, 0, 0, 0))
+        sstore(calldataload(64), 42)
     }
 
 
@@ -40,9 +40,7 @@
 //         g()
 //     }
 //     function g()
-//     {
-//         pop(staticcall(0, 0, 0, 0, 0, 0))
-//     }
+//     { pop(sload(calldataload(0))) }
 //     function h(a_, b_)
 //     {
 //         sstore(a_, b_)
@@ -50,7 +48,5 @@
 //         sstore(a_, b_)
 //     }
 //     function i()
-//     {
-//         pop(delegatecall(0, 0, 0, 0, 0, 0))
-//     }
+//     { sstore(calldataload(64), 42) }
 // }

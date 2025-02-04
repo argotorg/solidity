@@ -66,6 +66,7 @@ object "A" {
 // ====
 // EVMVersion: >=constantinople
 // optimizationPreset: full
+// outputs: Assembly
 // ----
 // Assembly:
 //   sstore(calldataload(sub(shl(0xff, 0x01), shl(0x7f, 0x01))), calldataload(0x01))
@@ -103,6 +104,3 @@ object "A" {
 //       sstore(calldataload(sub(shl(0xff, 0x01), shl(0x7f, 0x01))), calldataload(0x01))
 //       stop
 // }
-// Bytecode: 6001356001607f1b600160ff1b03355500fe
-// Opcodes: PUSH1 0x1 CALLDATALOAD PUSH1 0x1 PUSH1 0x7F SHL PUSH1 0x1 PUSH1 0xFF SHL SUB CALLDATALOAD SSTORE STOP INVALID
-// SourceMappings: :::-:0;;;;;;;;;;;

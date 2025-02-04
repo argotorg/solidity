@@ -12,6 +12,7 @@ object "Contract" {
 
 // ====
 // optimizationPreset: none
+// bytecodeFormat: legacy
 // ----
 // Assembly:
 //     /* "source":33:54   */

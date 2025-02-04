@@ -26,6 +26,8 @@ object "test"
   data 'A' "A"
 }
 
+// ====
+// bytecodeFormat: legacy
 // ----
 // step: equivalentFunctionCombiner
 //

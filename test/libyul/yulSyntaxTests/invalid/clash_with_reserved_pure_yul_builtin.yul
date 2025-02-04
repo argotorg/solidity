@@ -4,6 +4,8 @@
     function loadimmutable(setimmutable) -> datasize {}
     let dataoffset
 }
+// ====
+// bytecodeFormat: legacy
 // ----
 // ParserError 5568: (158-171): Cannot use builtin function name "loadimmutable" as identifier name.
 // ParserError 5568: (172-184): Cannot use builtin function name "setimmutable" as identifier name.

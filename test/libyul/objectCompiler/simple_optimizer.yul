@@ -7,6 +7,7 @@
 // ====
 // EVMVersion: >=shanghai
 // optimizationPreset: full
+// outputs: Assembly
 // ----
 // Assembly:
 //     /* "source":63:64   */
@@ -18,6 +19,3 @@
 //   sstore
 //     /* "source":27:73   */
 //   stop
-// Bytecode: 5f80355500
-// Opcodes: PUSH0 DUP1 CALLDATALOAD SSTORE STOP
-// SourceMappings: 63:1:0:-:0;46:15;;39:26;27:46

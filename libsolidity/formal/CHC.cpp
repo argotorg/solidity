@@ -927,17 +927,6 @@ void CHC::internalFunctionCall(FunctionCall const& _funCall)
 	Expression const* calledExpr = &_funCall.expression();
 	auto funType = dynamic_cast<FunctionType const*>(calledExpr->annotation().type);
 
-	auto contractAddressValue = [this](FunctionCall const& _f) {
-		auto [callExpr, callOptions] = functionCallExpression(_f);
-
-		FunctionType const& funType = dynamic_cast<FunctionType const&>(*callExpr->annotation().type);
-		if (funType.kind() == FunctionType::Kind::Internal)
-			return state().thisAddress();
-		if (MemberAccess const* callBase = dynamic_cast<MemberAccess const*>(callExpr))
-			return expr(callBase->expression());
-		solAssert(false, "Unreachable!");
-	};
-
 	std::vector<Expression const*> arguments;
 	for (auto& arg: _funCall.sortedArguments())
 		arguments.push_back(&(*arg));

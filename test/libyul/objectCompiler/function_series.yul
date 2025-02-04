@@ -13,6 +13,7 @@ object "Contract" {
 // ====
 // EVMVersion: >=shanghai
 // optimizationPreset: none
+// bytecodeFormat: legacy
 // ----
 // Assembly:
 //     /* "source":33:48   */

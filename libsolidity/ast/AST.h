@@ -2054,7 +2054,7 @@ public:
 	):
 		Expression(_id, _location),
 		m_leftHandSide(std::move(_leftHandSide)),
-		m_assigmentOperator(_assignmentOperator),
+		m_assignmentOperator(_assignmentOperator),
 		m_rightHandSide(std::move(_rightHandSide))
 	{
 		solAssert(TokenTraits::isAssignmentOp(_assignmentOperator), "");
@@ -2063,12 +2063,12 @@ public:
 	void accept(ASTConstVisitor& _visitor) const override;
 
 	Expression const& leftHandSide() const { return *m_leftHandSide; }
-	Token assignmentOperator() const { return m_assigmentOperator; }
+	Token assignmentOperator() const { return m_assignmentOperator; }
 	Expression const& rightHandSide() const { return *m_rightHandSide; }
 
 private:
 	ASTPointer<Expression> m_leftHandSide;
-	Token m_assigmentOperator;
+	Token m_assignmentOperator;
 	ASTPointer<Expression> m_rightHandSide;
 };
 

@@ -1,10 +1,12 @@
 object "a" {
   code {}
   // Unreferenced data is not added to the assembled bytecode.
+  // TODO: This is not implemented for EOF. Should work for legacy and EOF when implemented.
   data "str" "Hello, World!"
 }
 // ====
 // EVMVersion: >=constantinople
+// bytecodeFormat: legacy
 // ----
 // Assembly:
 //     /* "source":22:29   */

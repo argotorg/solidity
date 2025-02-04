@@ -58,6 +58,7 @@ object "A" {
 // ====
 // EVMVersion: >=shanghai
 // optimizationPreset: full
+// outputs: Assembly
 // ----
 // Assembly:
 //     /* "source":83:84   */
@@ -165,6 +166,3 @@ object "A" {
 //         /* "source":938:1034   */
 //       stop
 // }
-// Bytecode: 6001355f355500fe
-// Opcodes: PUSH1 0x1 CALLDATALOAD PUSH0 CALLDATALOAD SSTORE STOP INVALID
-// SourceMappings: 83:1:0:-:0;70:15;66:1;53:15;46:40;22:80

@@ -13,6 +13,7 @@ Compiler Features:
 Bugfixes:
  * General: Fix internal compiler error when requesting IR AST outputs for interfaces and abstract contracts.
  * SMTChecker: Fix SMT logic error when analyzing cross-contract getter call with BMC.
+ * SMTChecker: Fix SMT logic error when external call has extra effectless parentheses.
  * SMTChecker: Fix SMT logic error when initializing a fixed-sized-bytes array using string literals.
  * SMTChecker: Fix SMT logic error when translating invariants involving array store and select operations.
  * SMTChecker: Fix wrong encoding of string literals as arguments of ``ecrecover`` precompile.

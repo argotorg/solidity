@@ -14,6 +14,8 @@
 }
 // ====
 // EVMVersion: >=shanghai
+// bytecodeFormat: legacy
+// outputs: Assembly
 // ----
 // Assembly:
 //     /* "source":53:54   */
@@ -25,6 +27,3 @@
 //     /* "source":134:138   */
 //   tag_1
 //   jump	// in
-// Bytecode: 60025b5f600256
-// Opcodes: PUSH1 0x2 JUMPDEST PUSH0 PUSH1 0x2 JUMP
-// SourceMappings: 53:1:0:-:0;108:32;136:1;134:4;:::i

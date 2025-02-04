@@ -9,6 +9,8 @@
     sstore(9, c)
     sstore(10, d)
 }
+// ====
+// bytecodeFormat: legacy
 // ----
 // step: expressionSimplifier
 //

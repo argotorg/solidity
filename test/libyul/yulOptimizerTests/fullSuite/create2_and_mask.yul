@@ -8,6 +8,7 @@
 }
 // ====
 // EVMVersion: >=shanghai
+// bytecodeFormat: legacy
 // ----
 // step: fullSuite
 //

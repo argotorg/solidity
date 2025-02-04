@@ -1,3 +1,4 @@
+// TODO: Add EOF version of this contract and compare with legacy to see which optimizations are missed.
 /**
  * @title Library to validate AZTEC zero-knowledge proofs
  * @author Zachary Williamson, AZTEC
@@ -230,6 +231,7 @@
 }
 // ====
 // EVMVersion: >=istanbul
+// bytecodeFormat: legacy
 // ----
 // step: fullSuite
 //

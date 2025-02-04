@@ -67,24 +67,24 @@ std::string joinHumanReadable
 {
 	auto const itEnd = end(_list);
 
-	std::string result;
+	std::stringstream result;
 
 	for (auto it = begin(_list); it != itEnd; )
 	{
-		std::string element = *it;
+		auto const& element = *it;
 		bool first = (it == begin(_list));
 		++it;
 		if (!first)
 		{
 			if (it == itEnd && !_lastSeparator.empty())
-				result += _lastSeparator; // last iteration
+				result << _lastSeparator; // last iteration
 			else
-				result += _separator;
+				result << _separator;
 		}
-		result += std::move(element);
+		result << element;
 	}
 
-	return result;
+	return result.str();
 }
 
 /// Joins collection of strings just like joinHumanReadable, but prepends the separator
