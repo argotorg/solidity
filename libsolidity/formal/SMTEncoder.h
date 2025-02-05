@@ -71,7 +71,7 @@ public:
 
 	/// @returns the innermost element in a chain of 1-tuples if applicable,
 	/// otherwise _expr.
-	static Expression const* innermostTuple(Expression const& _expr);
+	static Expression const& innermostTuple(Expression const& _expr);
 
 	/// @returns the underlying type if _type is UserDefinedValueType,
 	/// and _type otherwise.

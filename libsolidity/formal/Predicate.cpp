@@ -247,24 +247,17 @@ std::string Predicate::formatSummaryCall(
 		{
 			bool visit(MemberAccess const& _memberAccess)
 			{
-				Expression const* memberExpr = SMTEncoder::innermostTuple(_memberAccess.expression());
+				if (auto magicType = dynamic_cast<MagicType const*>(_memberAccess.expression().annotation().type))
+				{
+					auto memberName = _memberAccess.memberName();
+					auto magicKind = magicType->kind();
+					// TODO remove this for 0.9.0
+					if (magicKind == MagicType::Kind::Block && memberName == "difficulty")
+						memberName = "prevrandao";
 
-				Type const* exprType = memberExpr->annotation().type;
-				solAssert(exprType, "");
-				if (exprType->category() == Type::Category::Magic)
-					if (auto const* identifier = dynamic_cast<Identifier const*>(memberExpr))
-					{
-						ASTString const& name = identifier->name();
-						auto memberName = _memberAccess.memberName();
-
-						// TODO remove this for 0.9.0
-						if (name == "block" && memberName == "difficulty")
-							memberName = "prevrandao";
-
-						if (name == "block" || name == "msg" || name == "tx")
-							txVars.insert(name + "." + memberName);
-					}
-
+					if (magicKind == MagicType::Kind::Block || magicKind == MagicType::Kind::Message || magicKind == MagicType::Kind::Transaction)
+						txVars.insert(magicType->toString(true) + "." + memberName);
+				}
 				return true;
 			}
 
