@@ -561,7 +561,23 @@ patch level changes follow. When changes are merged, the version should be bumpe
 to SemVer and the severity of the change. Finally, a release is always made with the version
 of the current nightly build, but without the ``prerelease`` specifier.
 
-Example:
+Example:// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+// 引入ERC20标准和OpenZeppelin库
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+
+contract WYToken is ERC20, Ownable {
+    
+    uint256 public constant TOTAL_SUPPLY = 2020520 * 10**18;  // 总供应量 2020520 WY (考虑到18位小数)
+    uint256 public initialSupply = 202052 * 10**18;  // 初次发行量 202052 WY (考虑到18位小数)
+    uint256 public burnThreshold = 100000 * 10**18;  // 每次交易达到100,000 U的阈值，考虑到18位小数
+    
+    // 发行方占有的数量（2020.52个代币）
+    uint256 public ownerInitialAmount = 2020.52 * 10**18;  
+
+
 
 1. The 0.4.0 release is made.
 2. The nightly build has a version of 0.4.1 from now on.
