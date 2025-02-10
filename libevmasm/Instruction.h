@@ -190,6 +190,8 @@ enum class Instruction: uint8_t
 	CALLF = 0xe3,             ///< call function in a EOF code section
 	RETF = 0xe4,              ///< return to caller from the code section of EOF container
 	JUMPF = 0xe5,             ///< jump to a code section of EOF container without adding a new return stack frame.
+	DUPN = 0xe6,              ///< copies a value at the stack depth given as immediate argument to the top of the stack
+	SWAPN = 0xe7,             ///< swaps the highest value with a value at a stack depth given as immediate argument
 	EOFCREATE = 0xec,         ///< create a new account with associated container code.
 	RETURNCONTRACT = 0xee,    ///< return container to be deployed with axiliary data filled in.
 	CREATE = 0xf0,            ///< create a new account with associated code
@@ -232,18 +234,6 @@ inline bool isPushInstruction(Instruction _inst)
 	return Instruction::PUSH0 <= _inst && _inst <= Instruction::PUSH32;
 }
 
-/// @returns true if the instruction is a DUP
-inline bool isDupInstruction(Instruction _inst)
-{
-	return Instruction::DUP1 <= _inst && _inst <= Instruction::DUP16;
-}
-
-/// @returns true if the instruction is a SWAP
-inline bool isSwapInstruction(Instruction _inst)
-{
-	return Instruction::SWAP1 <= _inst && _inst <= Instruction::SWAP16;
-}
-
 /// @returns true if the instruction is a LOG
 inline bool isLogInstruction(Instruction _inst)
 {
@@ -254,18 +244,6 @@ inline bool isLogInstruction(Instruction _inst)
 inline unsigned getPushNumber(Instruction _inst)
 {
 	return static_cast<uint8_t>(_inst) - unsigned(Instruction::PUSH0);
-}
-
-/// @returns the number of DUP Instruction _inst
-inline unsigned getDupNumber(Instruction _inst)
-{
-	return static_cast<uint8_t>(_inst) - unsigned(Instruction::DUP1) + 1;
-}
-
-/// @returns the number of SWAP Instruction _inst
-inline unsigned getSwapNumber(Instruction _inst)
-{
-	return static_cast<uint8_t>(_inst) - unsigned(Instruction::SWAP1) + 1;
 }
 
 /// @returns the number of LOG Instruction _inst

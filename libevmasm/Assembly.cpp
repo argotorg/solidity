@@ -767,9 +767,19 @@ AssemblyItem Assembly::newImmutableAssignment(std::string const& _identifier)
 	return AssemblyItem{AssignImmutable, h};
 }
 
-AssemblyItem Assembly::newAuxDataLoadN(size_t _offset)
+AssemblyItem Assembly::newAuxDataLoadN(size_t _offset) const
 {
 	return AssemblyItem{AuxDataLoadN, _offset};
+}
+
+AssemblyItem Assembly::newSwapN(size_t _depth) const
+{
+	return AssemblyItem::swapN(_depth);
+}
+
+AssemblyItem Assembly::newDupN(size_t _depth) const
+{
+	return AssemblyItem::dupN(_depth);
 }
 
 Assembly& Assembly::optimise(OptimiserSettings const& _settings)
@@ -1558,7 +1568,9 @@ LinkerObject const& Assembly::assembleEOF() const
 					item.instruction() != Instruction::RJUMPI &&
 					item.instruction() != Instruction::CALLF &&
 					item.instruction() != Instruction::JUMPF &&
-					item.instruction() != Instruction::RETF
+					item.instruction() != Instruction::RETF &&
+					item.instruction() != Instruction::DUPN &&
+					item.instruction() != Instruction::SWAPN
 				);
 				solAssert(!(item.instruction() >= Instruction::PUSH0 && item.instruction() <= Instruction::PUSH32));
 				ret.bytecode += assembleOperation(item);
@@ -1635,6 +1647,12 @@ LinkerObject const& Assembly::assembleEOF() const
 			}
 			case RetF:
 				ret.bytecode.push_back(static_cast<uint8_t>(Instruction::RETF));
+				break;
+			case SwapN:
+			case DupN:
+				ret.bytecode.push_back(static_cast<uint8_t>(item.instruction()));
+				solAssert(item.data() >= 1 && item.data() <= 256);
+				ret.bytecode.push_back(static_cast<uint8_t>(item.data() - 1));
 				break;
 			default:
 				solAssert(false, "Unexpected opcode while assembling.");

@@ -290,7 +290,7 @@ struct DupSwap: SimplePeepholeOptimizerMethod<DupSwap>
 		if (
 			SemanticInformation::isDupInstruction(_dupN) &&
 			SemanticInformation::isSwapInstruction(_swapN) &&
-			getDupNumber(_dupN.instruction()) == getSwapNumber(_swapN.instruction())
+			SemanticInformation::getDupNumber(_dupN) == SemanticInformation::getSwapNumber(_swapN)
 		)
 		{
 			*_out = _dupN;

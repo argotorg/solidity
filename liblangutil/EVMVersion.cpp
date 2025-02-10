@@ -84,6 +84,8 @@ bool EVMVersion::hasOpcode(Instruction _opcode, std::optional<uint8_t> _eofVersi
 	case Instruction::RJUMPI:
 	case Instruction::CALLF:
 	case Instruction::JUMPF:
+	case Instruction::DUPN:
+	case Instruction::SWAPN:
 	case Instruction::RETF:
 	case Instruction::EXTCALL:
 	case Instruction::EXTSTATICCALL:

@@ -741,7 +741,9 @@ bool AsmAnalyzer::validateInstructions(evmasm::Instruction _instr, SourceLocatio
 		_instr != evmasm::Instruction::RJUMPI &&
 		_instr != evmasm::Instruction::CALLF &&
 		_instr != evmasm::Instruction::JUMPF &&
-		_instr != evmasm::Instruction::RETF
+		_instr != evmasm::Instruction::RETF &&
+		_instr != evmasm::Instruction::DUPN &&
+		_instr != evmasm::Instruction::SWAPN
 	);
 
 	auto errorForVM = [&](ErrorId _errorId, std::string const& vmKindMessage) {

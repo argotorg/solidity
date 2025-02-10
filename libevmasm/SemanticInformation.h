@@ -86,6 +86,10 @@ struct SemanticInformation
 	static bool terminatesControlFlow(AssemblyItem const& _item);
 	static bool terminatesControlFlow(Instruction _instruction);
 	static bool reverts(Instruction _instruction);
+	/// @returns the 1-based DUP depth a DUP AssembleItem @a _item
+	static size_t getDupNumber(AssemblyItem const& _item);
+	/// @returns the 1-based SWAP depth a DUP AssembleItem @a _item
+	static size_t getSwapNumber(AssemblyItem const& _item);
 	/// @returns false if the value put on the stack by _item depends on anything else than
 	/// the information in the current block header, memory, storage, transient storage or stack.
 	static bool isDeterministic(AssemblyItem const& _item);

@@ -74,6 +74,9 @@ public:
 
 	void appendAuxDataLoadN(uint16_t _offset) override;
 
+	void appendSwapN(size_t _depth) override;
+	void appendDupN(size_t _depth) override;
+
 	void markAsInvalid() override;
 
 	langutil::EVMVersion evmVersion() const override;

@@ -211,8 +211,8 @@ std::vector<std::optional<BuiltinFunctionForEVM>> createBuiltins(langutil::EVMVe
 		auto const opcode = instr.second;
 
 		if (
-			!evmasm::isDupInstruction(opcode) &&
-			!evmasm::isSwapInstruction(opcode) &&
+			!(opcode >= evmasm::Instruction::DUP1 && opcode <= evmasm::Instruction::DUP16) &&
+			!(opcode >= evmasm::Instruction::SWAP1 && opcode <= evmasm::Instruction::SWAP16) &&
 			!evmasm::isPushInstruction(opcode) &&
 			opcode != evmasm::Instruction::JUMP &&
 			opcode != evmasm::Instruction::JUMPI &&
@@ -224,6 +224,8 @@ std::vector<std::optional<BuiltinFunctionForEVM>> createBuiltins(langutil::EVMVe
 			opcode != evmasm::Instruction::RJUMPI &&
 			opcode != evmasm::Instruction::CALLF &&
 			opcode != evmasm::Instruction::JUMPF &&
+			opcode != evmasm::Instruction::DUPN &&
+			opcode != evmasm::Instruction::SWAPN &&
 			opcode != evmasm::Instruction::RETF &&
 			_evmVersion.hasOpcode(opcode, _eofVersion) &&
 			!prevRandaoException(name)

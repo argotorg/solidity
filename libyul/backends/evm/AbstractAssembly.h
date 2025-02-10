@@ -149,6 +149,13 @@ public:
 	/// EOF auxiliary data in data section and the auxiliary data are different things.
 	virtual void appendToAuxiliaryData(bytes const& _data) = 0;
 
+	/// Appends a SWAPN with 1-based indexing for @arg _depth. I.e. a depth of 1 would be equivalent to emitting SWAP1.
+	/// @arg _depth ranges from 1 to 256.
+	virtual void appendSwapN(size_t _depth) = 0;
+	/// Appends a DUPN with 1-based indexing for @arg _depth. I.e. a depth of 1 would be equivalent to emitting DUP1.
+	/// @arg _depth ranges from 1 to 256.
+	virtual void appendDupN(size_t _depth) = 0;
+
 	/// Mark this assembly as invalid. Any attempt to request bytecode from it should throw.
 	virtual void markAsInvalid() = 0;
 

@@ -11,6 +11,8 @@
     function extcall() {}
     function extstaticcall() {}
     function extdelegatecall() {}
+    function swapn() {}
+    function dupn() {}
 }
 // ====
 // bytecodeFormat: legacy

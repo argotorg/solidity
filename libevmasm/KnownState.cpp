@@ -137,14 +137,14 @@ KnownState::StoreOperation KnownState::feedItem(AssemblyItem const& _item, bool 
 			setStackElement(
 				m_stackHeight + 1,
 				stackElement(
-					m_stackHeight - static_cast<int>(instruction) + static_cast<int>(Instruction::DUP1),
+					m_stackHeight - (static_cast<int>(SemanticInformation::getDupNumber(_item)) - 1),
 					_item.debugData()
 				)
 			);
 		else if (SemanticInformation::isSwapInstruction(_item))
 			swapStackElements(
 				m_stackHeight,
-				m_stackHeight - 1 - static_cast<int>(instruction) + static_cast<int>(Instruction::SWAP1),
+				m_stackHeight - 1 - (static_cast<int>(SemanticInformation::getSwapNumber(_item)) - 1),
 				_item.debugData()
 			);
 		else if (instruction != Instruction::POP)

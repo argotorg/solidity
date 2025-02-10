@@ -232,6 +232,17 @@ void EthAssemblyAdapter::appendAuxDataLoadN(uint16_t _offset)
 	m_assembly.appendAuxDataLoadN(_offset);
 }
 
+void EthAssemblyAdapter::appendSwapN(size_t _depth)
+{
+	m_assembly.appendSwapN(_depth);
+}
+
+void EthAssemblyAdapter::appendDupN(size_t _depth)
+{
+	m_assembly.appendDupN(_depth);
+}
+
+
 void EthAssemblyAdapter::markAsInvalid()
 {
 	m_assembly.markAsInvalid();

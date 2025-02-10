@@ -486,6 +486,8 @@ u256 EVMInstructionInterpreter::eval(
 	case Instruction::SWAP14:
 	case Instruction::SWAP15:
 	case Instruction::SWAP16:
+	case Instruction::SWAPN:
+	case Instruction::DUPN:
 		yulAssert(false, "Impossible in strict assembly.");
 	case Instruction::DATALOADN:
 	case Instruction::CALLF:

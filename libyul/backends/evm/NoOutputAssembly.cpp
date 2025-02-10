@@ -114,6 +114,11 @@ void NoOutputAssembly::appendAssemblySize()
 	appendInstruction(evmasm::Instruction::PUSH1);
 }
 
+void NoOutputAssembly::appendDupN(size_t)
+{
+	m_stackHeight++;
+}
+
 std::pair<std::shared_ptr<AbstractAssembly>, AbstractAssembly::SubID> NoOutputAssembly::createSubAssembly(bool, std::string)
 {
 	yulAssert(false, "Sub assemblies not implemented.");

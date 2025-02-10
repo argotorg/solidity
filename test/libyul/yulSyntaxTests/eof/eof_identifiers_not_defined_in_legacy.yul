@@ -11,6 +11,8 @@
     extcall(0, 1, 2, 3)
     extstaticcall(0, 1, 2)
     extdelegatecall(0, 1, 2)
+    swapn()
+    dupn()
 }
 // ====
 // bytecodeFormat: legacy
@@ -27,3 +29,5 @@
 // TypeError 4328: (172-179): The "extcall" instruction is only available in EOF.
 // TypeError 4328: (196-209): The "extstaticcall" instruction is only available in EOF.
 // TypeError 4328: (223-238): The "extdelegatecall" instruction is only available in EOF.
+// DeclarationError 4619: (252-257): Function "swapn" not found.
+// DeclarationError 4619: (264-268): Function "dupn" not found.

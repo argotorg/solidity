@@ -5,6 +5,8 @@
     function callf() {}
     function jumpf() {}
     function retf() {}
+    function swapn() {}
+    function dupn() {}
 }
 // ====
 // bytecodeFormat: >=EOFv1
@@ -15,3 +17,5 @@
 // DeclarationError 5017: (83-102): The identifier "callf" is reserved and can not be used.
 // DeclarationError 5017: (107-126): The identifier "jumpf" is reserved and can not be used.
 // DeclarationError 5017: (131-149): The identifier "retf" is reserved and can not be used.
+// DeclarationError 5017: (154-173): The identifier "swapn" is reserved and can not be used.
+// DeclarationError 5017: (178-196): The identifier "dupn" is reserved and can not be used.

@@ -312,16 +312,22 @@ bool SemanticInformation::isCommutativeOperation(AssemblyItem const& _item)
 
 bool SemanticInformation::isDupInstruction(AssemblyItem const& _item)
 {
+	if (_item.type() == evmasm::DupN)
+		return true;
 	if (_item.type() != evmasm::Operation)
 		return false;
-	return evmasm::isDupInstruction(_item.instruction());
+	auto inst = _item.instruction();
+	return Instruction::DUP1 <= inst && inst <= Instruction::DUP16;
 }
 
 bool SemanticInformation::isSwapInstruction(AssemblyItem const& _item)
 {
+	if (_item.type() == evmasm::SwapN)
+		return true;
 	if (_item.type() != evmasm::Operation)
 		return false;
-	return evmasm::isSwapInstruction(_item.instruction());
+	auto inst = _item.instruction();
+	return Instruction::SWAP1 <= inst && inst <= Instruction::SWAP16;
 }
 
 bool SemanticInformation::altersControlFlow(AssemblyItem const& _item)
@@ -385,6 +391,24 @@ bool SemanticInformation::reverts(Instruction _instruction)
 		default:
 			return false;
 	}
+}
+
+size_t SemanticInformation::getDupNumber(AssemblyItem const& _item)
+{
+	assertThrow(isDupInstruction(_item), OptimizerException, "Not a DUP instruction.");
+	if (_item.type() == evmasm::DupN)
+		return static_cast<size_t>(_item.data());
+	auto inst = _item.instruction();
+	return static_cast<uint8_t>(inst) - static_cast<size_t>(Instruction::DUP1) + 1;
+}
+
+size_t SemanticInformation::getSwapNumber(AssemblyItem const& _item)
+{
+	assertThrow(isSwapInstruction(_item), OptimizerException, "Not a swap instruction.");
+	if (_item.type() == evmasm::SwapN)
+		return static_cast<size_t>(_item.data());
+	auto inst = _item.instruction();
+	return static_cast<uint8_t>(inst) - static_cast<size_t>(Instruction::SWAP1) + 1;
 }
 
 bool SemanticInformation::isDeterministic(AssemblyItem const& _item)

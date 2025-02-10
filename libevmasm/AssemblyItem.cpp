@@ -19,6 +19,7 @@
 #include <libevmasm/AssemblyItem.h>
 
 #include <libevmasm/Assembly.h>
+#include <libevmasm/SemanticInformation.h>
 
 #include <libsolutil/CommonData.h>
 #include <libsolutil/CommonIO.h>
@@ -90,6 +91,9 @@ std::pair<std::string, std::string> AssemblyItem::nameAndData(langutil::EVMVersi
 	case JumpF:
 	case RetF:
 		return {instructionInfo(instruction(), _evmVersion).name, ""};
+	case SwapN:
+	case DupN:
+		return {instructionInfo(instruction(), _evmVersion).name, util::toString(static_cast<size_t>(data())) };
 	case Push:
 		return {"PUSH", toStringInHex(data())};
 	case PushTag:
@@ -192,6 +196,10 @@ size_t AssemblyItem::bytesRequired(size_t _addressLength, langutil::EVMVersion _
 		return 2;
 	case ReturnContract:
 		return 2;
+	case SwapN:
+		return 2;
+	case DupN:
+		return 2;
 	case UndefinedItem:
 		solAssert(false);
 	}
@@ -203,6 +211,10 @@ size_t AssemblyItem::arguments() const
 {
 	if (type() == CallF || type() == JumpF)
 		return functionSignature().argsNum;
+	else if (type() == SwapN)
+		return static_cast<size_t>(data()) + 1;
+	else if (type() == DupN)
+		return static_cast<size_t>(data());
 	else if (hasInstruction())
 	{
 		solAssert(instruction() != Instruction::CALLF && instruction() != Instruction::JUMPF);
@@ -231,6 +243,9 @@ size_t AssemblyItem::returnValues() const
 		// The latest EVMVersion is used here, since the InstructionInfo is assumed to be
 		// the same across all EVM versions except for the instruction name.
 		return static_cast<size_t>(instructionInfo(instruction(), EVMVersion()).ret);
+	case SwapN:
+	case DupN:
+		return static_cast<size_t>(data()) + 1;
 	case Push:
 	case PushTag:
 	case PushData:
@@ -270,8 +285,10 @@ bool AssemblyItem::canBeFunctional() const
 	case ConditionalRelativeJump:
 	case CallF:
 	case JumpF:
+	case SwapN:
+	case DupN:
 	case RetF:
-		return !isDupInstruction(instruction()) && !isSwapInstruction(instruction());
+		return !SemanticInformation::isDupInstruction(*this) && !SemanticInformation::isSwapInstruction(*this);
 	case Push:
 	case PushTag:
 	case PushData:
@@ -410,6 +427,12 @@ std::string AssemblyItem::toAssemblyText(Assembly const& _assembly) const
 	case RetF:
 		text = "retf";
 		break;
+	case SwapN:
+		text = "swapn{" + std::to_string(static_cast<size_t>(data())) + "}";
+		break;
+	case DupN:
+		text = "dupn{" + std::to_string(static_cast<size_t>(data())) + "}";
+		break;
 	}
 	if (m_jumpType == JumpType::IntoFunction || m_jumpType == JumpType::OutOfFunction)
 	{
@@ -435,6 +458,8 @@ std::ostream& solidity::evmasm::operator<<(std::ostream& _out, AssemblyItem cons
 	case CallF:
 	case JumpF:
 	case RetF:
+	case SwapN:
+	case DupN:
 		_out << " " << instructionInfo(_item.instruction(), EVMVersion()).name;
 		if (_item.instruction() == Instruction::JUMP || _item.instruction() == Instruction::JUMPI)
 			_out << "\t" << _item.getJumpTypeAsString();
