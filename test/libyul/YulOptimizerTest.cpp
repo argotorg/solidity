@@ -84,7 +84,7 @@ TestCase::TestResult YulOptimizerTest::run(std::ostream& _stream, std::string co
 	else
 		printedOptimizedObject = optimizedObject->toString();
 
-	// Re-parse new code for compilability
+	// Re-parse new code for compatibility
 	if (!parse(_stream, _linePrefix, _formatted, printedOptimizedObject))
 	{
 		util::AnsiColorized(_stream, _formatted, {util::formatting::BOLD, util::formatting::CYAN})
