@@ -62,7 +62,7 @@
 #include <libyul/backends/evm/EVMDialect.h>
 #include <libyul/backends/evm/EVMMetrics.h>
 #include <libyul/AsmAnalysis.h>
-#include <libyul/CompilabilityChecker.h>
+#include <libyul/CompatibilityChecker.h>
 
 #include <libsolidity/interface/OptimiserSettings.h>
 
@@ -436,7 +436,7 @@ YulOptimizerTestCommon::YulOptimizerTestCommon(std::shared_ptr<Object const> _ob
 			updateContext(block);
 			Object object(*m_optimizedObject);
 			object.setCode(std::make_shared<AST>(*m_object->dialect(), std::get<Block>(ASTCopier{}(block))));
-			auto const unreachables = CompilabilityChecker{
+			auto const unreachables = CompatibilityChecker{
 				object,
 				true
 			}.unreachableVariables;
