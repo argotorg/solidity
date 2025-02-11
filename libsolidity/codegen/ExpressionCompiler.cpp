@@ -2662,7 +2662,6 @@ void ExpressionCompiler::appendShiftOperatorCode(Token _operator, Type const& _v
 
 		}
 		break;
-	case Token::SHR:
 	default:
 		solAssert(false, "Unknown shift operator.");
 	}
