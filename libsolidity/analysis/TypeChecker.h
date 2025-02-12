@@ -54,7 +54,7 @@ public:
 	{}
 
 	/// Performs type checking on the given source and all of its sub-nodes.
-	/// @returns true iff all checks passed. Note even if all checks passed, errors() can still contain warnings
+	/// @returns true if all checks passed. Note even if all checks passed, errors() can still contain warnings
 	bool checkTypeRequirements(SourceUnit const& _source);
 
 	static bool typeSupportedByOldABIEncoder(Type const& _type, bool _isLibraryCall);
