@@ -24,4 +24,4 @@ contract C is A {
 // SMTIgnoreCex: no
 // ----
 // Warning 6328: (56-70): CHC: Assertion violation happens here.\nCounterexample:\nx = 2\n\nTransaction trace:\nC.constructor()\nState: x = 0\nC.g()\n    A.f() -- internal call\n        C.v() -- internal call
-// Info 1391: CHC: 2 verification condition(s) proved safe! Enable the model checker option "show proved safe" to see all of them.
+// Info 1391: CHC: 1 verification condition(s) proved safe! Enable the model checker option "show proved safe" to see all of them.

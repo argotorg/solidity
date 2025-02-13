@@ -111,7 +111,7 @@ YulName VarNameCleaner::findCleanName(YulName const& _name) const
 
 bool VarNameCleaner::isUsedName(YulName const& _name) const
 {
-	return isRestrictedIdentifier(m_dialect, _name) || m_usedNames.count(_name);
+	return isRestrictedIdentifier(m_dialect, _name.str()) || m_usedNames.contains(_name);
 }
 
 YulName VarNameCleaner::stripSuffix(YulName const& _name) const

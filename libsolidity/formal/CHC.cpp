@@ -2169,7 +2169,13 @@ void CHC::checkAndReportTarget(
 	}
 	else if (result == CheckResult::SATISFIABLE)
 	{
-		solAssert(!_satMsg.empty(), "");
+		solAssert(!_satMsg.empty());
+		if (auto it = m_safeTargets.find(_target.errorNode); it != m_safeTargets.end())
+		{
+			std::erase_if(it->second, [&](auto const& target) { return target.type == _target.type; });
+			if (it->second.empty())
+				m_safeTargets.erase(it);
+		}
 		auto cex = generateCounterexample(model, error().name);
 		if (cex)
 			m_unsafeTargets[_target.errorNode][_target.type] = {

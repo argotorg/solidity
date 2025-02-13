@@ -24,11 +24,11 @@
 #include <libsolutil/Common.h>
 #include <libyul/ASTForward.h>
 #include <libyul/Dialect.h>
-#include <libyul/YulName.h>
 #include <libyul/optimiser/ASTWalker.h>
 #include <liblangutil/EVMVersion.h>
 
 #include <optional>
+#include <string_view>
 
 namespace solidity::evmasm
 {
@@ -45,7 +45,7 @@ void removeEmptyBlocks(Block& _block);
 
 /// Returns true if a given literal can not be used as an identifier.
 /// This includes Yul keywords and builtins of the given dialect.
-bool isRestrictedIdentifier(Dialect const& _dialect, YulName const& _identifier);
+bool isRestrictedIdentifier(Dialect const& _dialect, std::string_view _identifier);
 
 /// Helper function that returns the instruction, if the `_name` is a BuiltinFunction
 std::optional<evmasm::Instruction> toEVMInstruction(Dialect const& _dialect, FunctionName const& _name);

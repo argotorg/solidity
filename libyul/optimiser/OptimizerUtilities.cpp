@@ -56,9 +56,9 @@ void yul::removeEmptyBlocks(Block& _block)
 	ranges::actions::remove_if(_block.statements, isEmptyBlock);
 }
 
-bool yul::isRestrictedIdentifier(Dialect const& _dialect, YulName const& _identifier)
+bool yul::isRestrictedIdentifier(Dialect const& _dialect, std::string_view const _identifier)
 {
-	return _identifier.empty() || hasLeadingOrTrailingDot(_identifier.str()) || TokenTraits::isYulKeyword(_identifier.str()) || _dialect.reservedIdentifier(_identifier.str());
+	return _identifier.empty() || hasLeadingOrTrailingDot(_identifier) || TokenTraits::isYulKeyword(_identifier) || _dialect.reservedIdentifier(_identifier);
 }
 
 std::optional<evmasm::Instruction> yul::toEVMInstruction(Dialect const& _dialect, FunctionName const& _name)

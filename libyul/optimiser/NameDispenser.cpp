@@ -58,7 +58,7 @@ YulName NameDispenser::newName(YulName _nameHint)
 
 bool NameDispenser::illegalName(YulName _name)
 {
-	return isRestrictedIdentifier(m_dialect, _name) || m_usedNames.count(_name);
+	return isRestrictedIdentifier(m_dialect, _name.str()) || m_usedNames.contains(_name);
 }
 
 void NameDispenser::reset(Block const& _ast)
