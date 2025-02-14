@@ -3124,13 +3124,8 @@ RationalNumberType const* SMTEncoder::isConstant(Expression const& _expr)
 	if (auto type = dynamic_cast<RationalNumberType const*>(_expr.annotation().type))
 		return type;
 
-	// _expr may not be constant evaluable.
-	// In that case we ignore any warnings emitted by the constant evaluator,
-	// as it will return nullptr in case of failure.
-	ErrorList l;
-	ErrorReporter e(l);
-	if (auto t = ConstantEvaluator::evaluate(e, _expr))
-		return TypeProvider::rationalNumber(t->value);
+	if (auto typedRational = ConstantEvaluator::tryEvaluate(_expr))
+		return TypeProvider::rationalNumber(typedRational->value);
 
 	return nullptr;
 }
