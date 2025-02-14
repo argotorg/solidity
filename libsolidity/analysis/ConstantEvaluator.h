@@ -57,6 +57,10 @@ public:
 		Expression const& _expr
 	);
 
+	/// Works the same as `evaluate` but swallows any errors that might occur in the evaluation and simply returns
+	/// `std::nullopt` instead.
+	static std::optional<TypedRational> tryEvaluate(Expression const& _expr);
+
 	/// Performs arbitrary-precision evaluation of a binary operator. Returns nullopt on cases like
 	/// division by zero or e.g. bit operators applied to fractional values.
 	static std::optional<rational> evaluateBinaryOperator(Token _operator, rational const& _left, rational const&  _right);

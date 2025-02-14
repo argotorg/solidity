@@ -269,6 +269,20 @@ std::optional<TypedRational> ConstantEvaluator::evaluate(
 	return ConstantEvaluator{_errorReporter}.evaluate(_expr);
 }
 
+std::optional<TypedRational> ConstantEvaluator::tryEvaluate(Expression const& _expr)
+{
+	ErrorList errorList;
+	ErrorReporter errorReporter(errorList);
+	try
+	{
+		return ConstantEvaluator{errorReporter}.evaluate(_expr);
+	}
+	catch (FatalError const&)
+	{
+		return std::nullopt;
+	}
+}
+
 
 std::optional<TypedRational> ConstantEvaluator::evaluate(ASTNode const& _node)
 {
