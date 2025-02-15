@@ -508,7 +508,7 @@ protected:
 	ContractDefinition const* m_currentContract = nullptr;
 
 	/// Stores the free functions and internal library functions.
-	/// Those need to be encoded repeatedely for every analyzed contract.
+	/// Those need to be encoded repeatedly for every analyzed contract.
 	std::set<FunctionDefinition const*, ASTNode::CompareByID> m_freeFunctions;
 
 	/// Stores the context of the encoding.
