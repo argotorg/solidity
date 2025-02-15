@@ -367,7 +367,7 @@ private:
 	/// modifier is applied twice, the position of the variable needs to be restored
 	/// after the nested modifier is left.
 	std::map<Declaration const*, std::vector<unsigned>> m_localVariables;
-	/// The contract currently being compiled. Virtual function lookup starts from this contarct.
+	/// The contract currently being compiled. Virtual function lookup starts from this contract.
 	ContractDefinition const* m_mostDerivedContract = nullptr;
 	/// Whether to use checked arithmetic.
 	Arithmetic m_arithmetic = Arithmetic::Checked;
