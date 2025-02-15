@@ -2529,8 +2529,8 @@ std::optional<std::string> Parser::findLicenseString(std::vector<ASTPointer<ASTN
 
 	if (licenseNames.size() == 1)
 	{
-std::string const& license = licenseNames.front();
-		if (regex_match(license, licenseNameRegex))
+        std::string const& license = licenseNames.front();
+         if (regex_match(license, licenseNameRegex))
 			return license;
 		else
 			parserError(
