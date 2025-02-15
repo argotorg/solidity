@@ -67,7 +67,7 @@ class NameDispenser;
  * The current value mapping is cleared for a variable a at the end of each block
  * in which it was assigned. We compensate that by appending a declaration
  * of the form of "let a_1 := a" right after the location where control flow joins so
- * variable references can use the SSA variable. The only exception to this rule are
+ * variable references can use the SSA variable. The only exception to this rule is
  * for loop conditions, as we cannot insert a variable declaration there.
  *
  * After this stage, UnusedAssignmentEliminator is recommended to remove the unnecessary
