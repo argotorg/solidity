@@ -459,7 +459,7 @@ bool BMC::visit(ForStatement const& _node)
 			_node.condition()->accept(*this);
 			forCondition = expr(*_node.condition());
 		}
-		// asseert that the loop is complete
+		// assert that the loop is complete
 		m_context.addAssertion(!forCondition || broke || !forConditionOnPreviousIterations);
 		mergeVariables(
 			broke || !forConditionOnPreviousIterations,
