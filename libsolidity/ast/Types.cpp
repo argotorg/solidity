@@ -571,7 +571,7 @@ MemberList::MemberMap AddressType::nativeMembers(ASTNode const*) const
 namespace
 {
 
-bool isValidShiftAndAmountType(Token _operator, Type const& _shiftAmountType)
+bool isValidShiftAndAmountType(Type const& _shiftAmountType)
 {
 	
 	if (IntegerType const* otherInt = dynamic_cast<decltype(otherInt)>(&_shiftAmountType))
@@ -716,7 +716,7 @@ TypeResult IntegerType::binaryOperatorResult(Token _operator, Type const* _other
 	if (TokenTraits::isShiftOp(_operator))
 	{
 		// Shifts are not symmetric with respect to the type
-		if (isValidShiftAndAmountType(_operator, *_other))
+		if (isValidShiftAndAmountType(*_other))
 			return this;
 		else
 			return nullptr;
@@ -1082,7 +1082,7 @@ TypeResult RationalNumberType::binaryOperatorResult(Token _operator, Type const*
 		// the types as below. As an exception, we always use uint here.
 		if (TokenTraits::isShiftOp(_operator))
 		{
-			if (!isValidShiftAndAmountType(_operator, *_other))
+			if (!isValidShiftAndAmountType(*_other))
 				return nullptr;
 			return isNegative() ? TypeProvider::int256() : TypeProvider::uint256();
 		}
@@ -1384,7 +1384,7 @@ TypeResult FixedBytesType::binaryOperatorResult(Token _operator, Type const* _ot
 {
 	if (TokenTraits::isShiftOp(_operator))
 	{
-		if (isValidShiftAndAmountType(_operator, *_other))
+		if (isValidShiftAndAmountType(*_other))
 			return this;
 		else
 			return nullptr;
