@@ -46,15 +46,25 @@ SyntaxTest::SyntaxTest(
 	CommonSyntaxTest(_filename, _evmVersion),
 	m_minSeverity(_minSeverity)
 {
-	static std::set<std::string> const compileViaYulAllowedValues{"true", "false"};
-
 	auto const eofEnabled = solidity::test::CommonOptions::get().eofVersion().has_value();
 
-	m_compileViaYul = m_reader.stringSetting("compileViaYul", eofEnabled ? "true" : "false");
-	if (!compileViaYulAllowedValues.contains(m_compileViaYul))
-		BOOST_THROW_EXCEPTION(std::runtime_error("Invalid compileViaYul value: " + m_compileViaYul + "."));
+	m_compileViaYul = m_reader.enumSetting<CompileViaYul>(
+		"compileViaYul",
+		{
+			{toString(CompileViaYul::False), CompileViaYul::False},
+			{toString(CompileViaYul::True), CompileViaYul::True},
+			{toString(CompileViaYul::Also), CompileViaYul::Also},
+			{toString(CompileViaYul::OnlyOnEOF), CompileViaYul::OnlyOnEOF}
+		},
+		toString(CompileViaYul::OnlyOnEOF)
+	);
 
-	if (m_compileViaYul == "false" && eofEnabled)
+	solUnimplementedAssert(m_compileViaYul != CompileViaYul::Also);
+
+	if (bytecodeFormat() == ">=EOFv1" && m_compileViaYul == CompileViaYul::False)
+		BOOST_THROW_EXCEPTION(std::runtime_error("Compilation to EOF requires using Yul IR"));
+
+	if (m_compileViaYul == CompileViaYul::False && eofEnabled)
 		m_shouldRun = false;
 
 	m_optimiseYul = m_reader.boolSetting("optimize-yul", true);
@@ -81,7 +91,8 @@ void SyntaxTest::setupCompiler(CompilerStack& _compiler)
 		OptimiserSettings::full() :
 		OptimiserSettings::minimal()
 	);
-	_compiler.setViaIR(m_compileViaYul == "true");
+	auto const eofEnabled = solidity::test::CommonOptions::get().eofVersion().has_value();
+	_compiler.setViaIR(m_compileViaYul == CompileViaYul::True || (m_compileViaYul == CompileViaYul::OnlyOnEOF && eofEnabled));
 	_compiler.setExperimental(m_experimental);
 	_compiler.setMetadataFormat(CompilerStack::MetadataFormat::NoMetadata);
 	_compiler.setMetadataHash(CompilerStack::MetadataHash::None);

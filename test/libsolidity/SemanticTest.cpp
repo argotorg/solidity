@@ -73,9 +73,8 @@ SemanticTest::SemanticTest(
 	m_enforceGasCost(_enforceGasCost),
 	m_enforceGasCostMinValue(std::move(_enforceGasCostMinValue))
 {
-	static std::set<std::string> const compileViaYulAllowedValues{"also", "true", "false"};
-	static std::set<std::string> const yulRunTriggers{"also", "true"};
-	static std::set<std::string> const legacyRunTriggers{"also", "false", "default"};
+	static std::set<CompileViaYul> const yulRunTriggers{CompileViaYul::Also, CompileViaYul::True};
+	static std::set<CompileViaYul> const legacyRunTriggers{CompileViaYul::Also, CompileViaYul::False};
 
 	m_requiresYulOptimizer = m_reader.enumSetting<RequiresYulOptimizer>(
 		"requiresYulOptimizer",
@@ -92,18 +91,31 @@ SemanticTest::SemanticTest(
 		m_shouldRun = false;
 
 	auto const eofEnabled = solidity::test::CommonOptions::get().eofVersion().has_value();
-	std::string compileViaYul = m_reader.stringSetting("compileViaYul", eofEnabled ? "true" : "also");
 
-	if (compileViaYul == "false" && eofEnabled)
+	auto const compileViaYul = m_reader.enumSetting<CompileViaYul>(
+		"compileViaYul",
+		{
+			{toString(CompileViaYul::False), CompileViaYul::False},
+			{toString(CompileViaYul::True), CompileViaYul::True},
+			{toString(CompileViaYul::Also), CompileViaYul::Also},
+			{toString(CompileViaYul::onlyOnEOF), CompileViaYul::onlyOnEOF}
+		},
+		eofEnabled ? toString(CompileViaYul::True) : toString(CompileViaYul::Also)
+	);
+
+	std::string bytecodeFormatString = m_reader.stringSetting("bytecodeFormat", "unset");
+	if (bytecodeFormatString == ">=EOFv1" && compileViaYul == CompileViaYul::False)
+		BOOST_THROW_EXCEPTION(std::runtime_error("Compilation to EOF requires using Yul IR"));
+
+	if (compileViaYul == CompileViaYul::False && eofEnabled)
 		m_shouldRun = false;
 
-	if (m_runWithABIEncoderV1Only && compileViaYul != "false")
+	if (m_runWithABIEncoderV1Only && compileViaYul != CompileViaYul::False)
 		BOOST_THROW_EXCEPTION(std::runtime_error(
 			"ABIEncoderV1Only tests cannot be run via yul, "
 			"so they need to also specify ``compileViaYul: false``"
 		));
-	if (!util::contains(compileViaYulAllowedValues, compileViaYul))
-		BOOST_THROW_EXCEPTION(std::runtime_error("Invalid compileViaYul value: " + compileViaYul + "."));
+
 	m_testCaseWantsYulRun = util::contains(yulRunTriggers, compileViaYul);
 	m_testCaseWantsLegacyRun = util::contains(legacyRunTriggers, compileViaYul);
 

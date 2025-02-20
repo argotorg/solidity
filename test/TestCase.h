@@ -113,11 +113,25 @@ protected:
 class EVMVersionRestrictedTestCase: public TestCase
 {
 private:
+	std::string m_bytecodeFormat;
+
 	void processEVMVersionSetting();
 	void processBytecodeFormatSetting();
 
 protected:
+	const std::string& bytecodeFormat() const { return m_bytecodeFormat; }
+
 	EVMVersionRestrictedTestCase(std::string const& _filename);
 };
+
+enum class CompileViaYul
+{
+	False,
+	True,
+	Also,
+	onlyOnEOF,
+};
+
+std::ostream& operator<<(std::ostream& _output, CompileViaYul _compileViaYul);
 
 }
