@@ -443,7 +443,7 @@ BOOST_AUTO_TEST_CASE(metadata_revert_strings)
 
 BOOST_AUTO_TEST_CASE(metadata_optimiser_sequence)
 {
-	char const* sourceCode = R"(
+	std::string const sourceCode = R"(
 		pragma solidity >=0.0;
 		contract C {
 		}
@@ -455,19 +455,36 @@ BOOST_AUTO_TEST_CASE(metadata_optimiser_sequence)
 		{"", ""},
 		{"", "fDn"},
 		{"dhfoDgvulfnTUtnIf", "" },
-		{"dhfoDgvulfnTUtnIf", "fDn"}
+		{"dhfoDgvulfnTUtnIf", "fDn"},
+		// test that a custom cleanup step sequence does not lead to default standard optimiser settings in metadata
+		{OptimiserSettings::DefaultYulOptimiserSteps, "D"},
+		// test that a custom optimizer sequence does not lead to default standard optimiser settings in metadata
+		{"dhfoDgvulfnTUtnIf", OptimiserSettings::DefaultYulOptimiserCleanupSteps}
 	};
 
-	auto check = [sourceCode](std::string const& _optimizerSequence, std::string const& _optimizerCleanupSequence)
+	std::vector<OptimiserSettings> settingsToTest;
+	for (auto const& [optimizerSequence, optimizerCleanupSequence]: sequences)
 	{
-		OptimiserSettings optimizerSettings = OptimiserSettings::minimal();
-		optimizerSettings.runYulOptimiser = true;
-		optimizerSettings.yulOptimiserSteps = _optimizerSequence;
-		optimizerSettings.yulOptimiserCleanupSteps = _optimizerCleanupSequence;
+		for (auto const& preset: {
+			OptimiserSettings::none(),
+			OptimiserSettings::minimal(),
+			OptimiserSettings::standard(),
+			OptimiserSettings::full(),
+		})
+		{
+			settingsToTest.emplace_back(preset);
+			settingsToTest.back().runYulOptimiser = true;
+			settingsToTest.back().yulOptimiserSteps = optimizerSequence;
+			settingsToTest.back().yulOptimiserCleanupSteps = optimizerCleanupSequence;
+		}
+	}
+
+	auto generateMetadataJson = [](std::string const& _source, OptimiserSettings const& _optimizerSettings) -> Json
+	{
 		CompilerStack compilerStack;
-		compilerStack.setSources({{"", sourceCode}});
+		compilerStack.setSources({{"", _source}});
 		compilerStack.setEVMVersion(solidity::test::CommonOptions::get().evmVersion());
-		compilerStack.setOptimiserSettings(optimizerSettings);
+		compilerStack.setOptimiserSettings(_optimizerSettings);
 
 		BOOST_REQUIRE_MESSAGE(compilerStack.compile(), "Compiling contract failed");
 
@@ -475,17 +492,33 @@ BOOST_AUTO_TEST_CASE(metadata_optimiser_sequence)
 		Json metadata;
 		BOOST_REQUIRE(util::jsonParseStrict(serialisedMetadata, metadata));
 		BOOST_CHECK(solidity::test::isValidMetadata(metadata));
-		BOOST_CHECK(metadata["settings"]["optimizer"].contains("details"));
-		BOOST_CHECK(metadata["settings"]["optimizer"]["details"].contains("yulDetails"));
-		BOOST_CHECK(metadata["settings"]["optimizer"]["details"]["yulDetails"].contains("optimizerSteps"));
+		return metadata;
+	};
 
-		std::string const metadataOptimizerSteps = metadata["settings"]["optimizer"]["details"]["yulDetails"]["optimizerSteps"].get<std::string>();
-		std::string const expectedMetadataOptimiserSteps = _optimizerSequence + ":" + _optimizerCleanupSequence;
+	auto checkCustomSettings = [generateMetadataJson, sourceCode](OptimiserSettings const& _optimizerSettings)
+	{
+		auto const metadataJson = generateMetadataJson(sourceCode, _optimizerSettings);
+		BOOST_CHECK(metadataJson["settings"]["optimizer"].contains("details"));
+		BOOST_CHECK(metadataJson["settings"]["optimizer"]["details"].contains("yulDetails"));
+		BOOST_CHECK(metadataJson["settings"]["optimizer"]["details"]["yulDetails"].contains("optimizerSteps"));
+
+		std::string const metadataOptimizerSteps = metadataJson["settings"]["optimizer"]["details"]["yulDetails"]["optimizerSteps"].get<std::string>();
+		std::string const expectedMetadataOptimiserSteps = _optimizerSettings.yulOptimiserSteps + ":" + _optimizerSettings.yulOptimiserCleanupSteps;
 		BOOST_CHECK_EQUAL(metadataOptimizerSteps, expectedMetadataOptimiserSteps);
 	};
 
-	for (auto const& [sequence, cleanupSequence] : sequences)
-		check(sequence, cleanupSequence);
+	for (auto const& optimizerSettings: settingsToTest)
+		checkCustomSettings(optimizerSettings);
+
+	for (auto const& preset: {OptimiserSettings::minimal(), OptimiserSettings::standard(), OptimiserSettings::full()})
+	{
+		auto const metadataJson = generateMetadataJson(sourceCode, preset);
+		Json expectedOptimizerMetadata = {
+			{"enabled", preset != OptimiserSettings::minimal()},
+			{"runs", preset.expectedExecutionsPerDeployment}
+		};
+		BOOST_CHECK(metadataJson["settings"]["optimizer"] == expectedOptimizerMetadata);
+	}
 }
 
 BOOST_AUTO_TEST_CASE(metadata_license_missing)

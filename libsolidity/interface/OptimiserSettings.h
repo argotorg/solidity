@@ -111,27 +111,8 @@ struct OptimiserSettings
 		util::unreachable();
 	}
 
-	bool operator==(OptimiserSettings const& _other) const
-	{
-		return
-			runOrderLiterals == _other.runOrderLiterals &&
-			runInliner == _other.runInliner &&
-			runJumpdestRemover == _other.runJumpdestRemover &&
-			runPeephole == _other.runPeephole &&
-			runDeduplicate == _other.runDeduplicate &&
-			runCSE == _other.runCSE &&
-			runConstantOptimiser == _other.runConstantOptimiser &&
-			simpleCounterForLoopUncheckedIncrement == _other.simpleCounterForLoopUncheckedIncrement &&
-			optimizeStackAllocation == _other.optimizeStackAllocation &&
-			runYulOptimiser == _other.runYulOptimiser &&
-			yulOptimiserSteps == _other.yulOptimiserSteps &&
-			expectedExecutionsPerDeployment == _other.expectedExecutionsPerDeployment;
-	}
-
-	bool operator!=(OptimiserSettings const& _other) const
-	{
-		return !(*this == _other);
-	}
+	bool operator==(OptimiserSettings const& _other) const = default;
+	bool operator!=(OptimiserSettings const& _other) const = default;
 
 	/// Move literals to the right of commutative binary operators during code generation.
 	/// This helps exploiting associativity.
