@@ -263,9 +263,10 @@ void DataFlowAnalyzer::handleAssignment(std::set<YulName> const& _variables, Exp
 	}
 
 	auto const& referencedVariables = movableChecker.referencedVariables();
+	std::vector const referencedVariablesSorted(referencedVariables.begin(), referencedVariables.end());
 	for (auto const& name: _variables)
 	{
-		m_state.references[name] = referencedVariables;
+		m_state.sortedReferences[name] = referencedVariablesSorted;
 		if (!_isDeclaration)
 		{
 			// assignment to slot denoted by "name"
@@ -310,12 +311,12 @@ void DataFlowAnalyzer::popScope()
 	for (auto const& name: m_variableScopes.back().variables)
 	{
 		m_state.value.erase(name);
-		m_state.references.erase(name);
+		m_state.sortedReferences.erase(name);
 	}
 	m_variableScopes.pop_back();
 }
 
-void DataFlowAnalyzer::clearValues(std::set<YulName> _variables)
+void DataFlowAnalyzer::clearValues(std::set<YulName> const& _variablesToClear)
 {
 	// All variables that reference variables to be cleared also have to be
 	// cleared, but not recursively, since only the value of the original
@@ -333,30 +334,32 @@ void DataFlowAnalyzer::clearValues(std::set<YulName> _variables)
 	// First clear storage knowledge, because we do not have to clear
 	// storage knowledge of variables whose expression has changed,
 	// since the value is still unchanged.
-	auto eraseCondition = mapTuple([&_variables](auto&& key, auto&& value) {
-		return _variables.count(key) || _variables.count(value);
+	auto eraseCondition = mapTuple([&_variablesToClear](auto&& key, auto&& value) {
+		return _variablesToClear.count(key) || _variablesToClear.count(value);
 	});
 	std::erase_if(m_state.environment.storage, eraseCondition);
 	std::erase_if(m_state.environment.memory, eraseCondition);
-	std::erase_if(m_state.environment.keccak, [&_variables](auto&& _item) {
+	std::erase_if(m_state.environment.keccak, [&_variablesToClear](auto&& _item) {
 		return
-			_variables.count(_item.first.first) ||
-			_variables.count(_item.first.second) ||
-			_variables.count(_item.second);
+			_variablesToClear.count(_item.first.first) ||
+			_variablesToClear.count(_item.first.second) ||
+			_variablesToClear.count(_item.second);
 	});
 
 	// Also clear variables that reference variables to be cleared.
-	std::set<YulName> referencingVariables;
-	for (auto const& variableToClear: _variables)
-		for (auto const& [ref, names]: m_state.references)
-			if (names.count(variableToClear))
-				referencingVariables.emplace(ref);
+	std::set<YulName> referencingVariablesToClear;
+	std::vector const sortedVariablesToClear(_variablesToClear.begin(), _variablesToClear.end());
+	for (auto const& [referencingVariable, referencedVariables]: m_state.sortedReferences)
+		// instead of checking each variable in `referencedVariables`, we check if there is any intersection making use of the
+		// sortedness of the vectors, which can increase performance by up to 50% in pathological cases
+		if (hasNonemptyIntersectionSorted(referencedVariables, sortedVariablesToClear))
+			referencingVariablesToClear.emplace(referencingVariable);
 
 	// Clear the value and update the reference relation.
-	for (auto const& name: _variables + referencingVariables)
+	for (auto const& name: _variablesToClear + referencingVariablesToClear)
 	{
 		m_state.value.erase(name);
-		m_state.references.erase(name);
+		m_state.sortedReferences.erase(name);
 	}
 }
 

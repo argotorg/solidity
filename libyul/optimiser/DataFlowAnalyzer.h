@@ -104,7 +104,7 @@ public:
 
 	/// @returns the current value of the given variable, if known - always movable.
 	AssignedValue const* variableValue(YulName _variable) const { return util::valueOrNullptr(m_state.value, _variable); }
-	std::set<YulName> const* references(YulName _variable) const { return util::valueOrNullptr(m_state.references, _variable); }
+	std::vector<YulName> const* sortedReferences(YulName _variable) const { return util::valueOrNullptr(m_state.sortedReferences, _variable); }
 	std::map<YulName, AssignedValue> const& allValues() const { return m_state.value; }
 	std::optional<YulName> storageValue(YulName _key) const;
 	std::optional<YulName> memoryValue(YulName _key) const;
@@ -122,7 +122,7 @@ protected:
 
 	/// Clears information about the values assigned to the given variables,
 	/// for example at points where control flow is merged.
-	void clearValues(std::set<YulName> _names);
+	void clearValues(std::set<YulName> const& _variablesToClear);
 
 	virtual void assignValue(YulName _variable, Expression const* _value);
 
@@ -180,7 +180,8 @@ private:
 		/// Current values of variables, always movable.
 		std::map<YulName, AssignedValue> value;
 		/// m_references[a].contains(b) <=> the current expression assigned to a references b
-		std::unordered_map<YulName, std::set<YulName>> references;
+		/// The mapped vectors _must always_ be sorted
+		std::unordered_map<YulName, std::vector<YulName>> sortedReferences;
 
 		Environment environment;
 	};

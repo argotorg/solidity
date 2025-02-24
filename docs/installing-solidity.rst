@@ -47,20 +47,20 @@ npm / Node.js
 =============
 
 Use ``npm`` for a convenient and portable way to install ``solcjs``, a Solidity compiler. The
-`solcjs` program has fewer features than the ways to access the compiler described
+``solcjs`` program has fewer features than the ways to access the compiler described
 further down this page. The
 :ref:`commandline-compiler` documentation assumes you are using
 the full-featured compiler, ``solc``. The usage of ``solcjs`` is documented inside its own
 `repository <https://github.com/ethereum/solc-js>`_.
 
 Note: The solc-js project is derived from the C++
-`solc` by using Emscripten, which means that both use the same compiler source code.
-`solc-js` can be used in JavaScript projects directly (such as Remix).
+``solc`` by using Emscripten, which means that both use the same compiler source code.
+``solc-js`` can be used in JavaScript projects directly (such as Remix).
 Please refer to the solc-js repository for instructions.
 
 .. code-block:: bash
 
-    npm install -g solc
+    npm install --global solc
 
 .. note::
 
@@ -83,24 +83,24 @@ and runs it in a new container, passing the ``--help`` argument.
 
     docker run ethereum/solc:stable --help
 
-You can specify release build versions in the tag. For example:
+.. note::
 
-.. code-block:: bash
-
-    docker run ethereum/solc:stable --help
-
-Note
-
-Specific compiler versions are supported as the Docker image tag such as `ethereum/solc:0.8.23`. We will be passing the
-`stable` tag here instead of specific version tag to ensure that users get the latest version by default and avoid the issue of
-an out-of-date version.
+    Specific compiler versions are supported as the Docker image tag such as ``ethereum/solc:0.8.23``.
+    We will be passing the ``stable`` tag here instead of specific version tag to ensure that users get
+    the latest version by default and avoid the issue of an out-of-date version.
 
 To use the Docker image to compile Solidity files on the host machine, mount a
 local folder for input and output, and specify the contract to compile. For example:
 
 .. code-block:: bash
 
-    docker run -v /local/path:/sources ethereum/solc:stable -o /sources/output --abi --bin /sources/Contract.sol
+    docker run \
+        --volume "/tmp/some/local/path/:/sources/" \
+        ethereum/solc:stable \
+            /sources/Contract.sol \
+            --abi \
+            --bin \
+            --output-dir /sources/output/
 
 You can also use the standard JSON interface (which is recommended when using the compiler with tooling).
 When using this interface, it is not necessary to mount any directories as long as the JSON input is
@@ -218,7 +218,7 @@ out-of-the-box but it is also meant to be friendly to third-party tools:
 
 - The content is mirrored to https://binaries.soliditylang.org where it can be easily downloaded over
   HTTPS without any authentication, rate limiting or the need to use git.
-- Content is served with correct `Content-Type` headers and lenient CORS configuration so that it
+- Content is served with correct ``Content-Type`` headers and lenient CORS configuration so that it
   can be directly loaded by tools running in the browser.
 - Binaries do not require installation or unpacking (exception for older Windows builds
   bundled with necessary DLLs).
