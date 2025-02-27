@@ -74,14 +74,14 @@ class BaseRunner(metaclass=ABCMeta):
 
     def setup_solc(self) -> str:
         if self.solc_binary_type == "solcjs":
-            # TODO: add support to solc-js
+            # TODO: add support for solc-js
             raise NotImplementedError()
         print("Setting up solc...")
         solc_version_output = subprocess.check_output(
             [self.solc_binary_path, "--version"],
             shell=False,
             encoding="utf-8"
-        ).split(":")[1]
+        ).partition(":")[1]
         return parse_solc_version(solc_version_output)
 
     @staticmethod
