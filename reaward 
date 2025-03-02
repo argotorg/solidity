@@ -1,0 +1,129 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.23;
+
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import { IERC721 } from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import { IERC1155 } from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
+import { ERC721Holder } from "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
+import { ERC1155Holder } from "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
+import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import { BitMaps } from "@openzeppelin/contracts/utils/structs/BitMaps.sol";
+import { Address } from "@openzeppelin/contracts/utils/Address.sol";
+import { AccessControlDefaultAdminRules } from
+  "@openzeppelin/contracts/access/extensions/AccessControlDefaultAdminRules.sol";
+import { PixelDungeonsItems } from "./PixelDungeonsItems.sol";
+
+contract PixelDungeonsRewards is AccessControlDefaultAdminRules, ReentrancyGuard, ERC721Holder, ERC1155Holder {
+  using BitMaps for BitMaps.BitMap;
+  using SafeERC20 for IERC20;
+
+  bytes32 public constant SENDER_ROLE = keccak256("SENDER_ROLE");
+  bytes32 public constant WITHDRAW_ROLE = keccak256("WITHDRAW_ROLE");
+
+  enum Category {
+    ETHER,
+    ITEM,
+    ERC20,
+    ERC721,
+    ERC1155
+  }
+
+  struct Item {
+    Category category;
+    address receiver;
+    uint256 amount;
+    uint256 tokenId; // Used for Item, ERC721, ERC1155 rewards
+    address tokenAddress; // Used for ERC20, ERC721, ERC1155 rewards
+  }
+
+  struct Reward {
+    uint256 topic; // game, tournament, referral, etc.
+    uint256 id;
+    Item[] items;
+  }
+
+  address payable public recipient;
+  PixelDungeonsItems public immutable items;
+  mapping(uint256 => BitMaps.BitMap) private sentRewards;
+
+  event RewardSent(uint256 indexed topic, uint256 indexed id);
+
+  error InvalidRecipient(address recipient);
+
+  constructor(PixelDungeonsItems _items, address _recipient) AccessControlDefaultAdminRules(2 days, msg.sender) {
+    items = _items;
+    recipient = payable(_recipient);
+  }
+
+  function hasSentReward(uint256 _topic, uint256 _id) public view returns (bool) {
+    return sentRewards[_topic].get(_id);
+  }
+
+  function setRecipient(address payable _recipient) public onlyRole(DEFAULT_ADMIN_ROLE) {
+    if (_recipient == address(0)) {
+      revert InvalidRecipient(_recipient);
+    }
+
+    recipient = _recipient;
+  }
+
+  function sendRewards(Reward[] calldata _rewards) external virtual onlyRole(SENDER_ROLE) nonReentrant {
+    for (uint256 i = 0; i < _rewards.length; i++) {
+      Reward calldata reward = _rewards[i];
+
+      if (!hasSentReward(reward.topic, reward.id)) {
+        for (uint256 j = 0; j < reward.items.length; j++) {
+          Item calldata item = reward.items[j];
+
+          if (item.category == Category.ETHER) {
+            Address.sendValue(payable(item.receiver), item.amount);
+          } else if (item.category == Category.ITEM) {
+            items.mint(item.receiver, item.tokenId, item.amount, "");
+          } else if (item.category == Category.ERC20) {
+            IERC20(item.tokenAddress).safeTransfer(item.receiver, item.amount);
+          } else if (item.category == Category.ERC721) {
+            IERC721(item.tokenAddress).safeTransferFrom(address(this), item.receiver, item.tokenId);
+          } else if (item.category == Category.ERC1155) {
+            IERC1155(item.tokenAddress).safeTransferFrom(address(this), item.receiver, item.tokenId, item.amount, "");
+          }
+        }
+
+        _markRewardAsSent(reward.topic, reward.id);
+      }
+    }
+  }
+
+  function _markRewardAsSent(uint256 _topic, uint256 _id) internal {
+    sentRewards[_topic].set(_id);
+    emit RewardSent(_topic, _id);
+  }
+
+  function withdrawEther(uint256 _amount) external onlyRole(WITHDRAW_ROLE) {
+    Address.sendValue(recipient, _amount);
+  }
+
+  function withdrawERC20(IERC20 _token, uint256 _amount) external onlyRole(WITHDRAW_ROLE) {
+    _token.safeTransfer(recipient, _amount);
+  }
+
+  function withdrawERC721(IERC721 _token, uint256 _tokenId) external onlyRole(WITHDRAW_ROLE) {
+    _token.safeTransferFrom(address(this), recipient, _tokenId);
+  }
+
+  function withdrawERC1155(IERC1155 _token, uint256 _id, uint256 _amount) external onlyRole(WITHDRAW_ROLE) {
+    _token.safeTransferFrom(address(this), recipient, _id, _amount, "");
+  }
+
+  function supportsInterface(bytes4 interfaceId)
+    public
+    view
+    virtual
+    override(ERC1155Holder, AccessControlDefaultAdminRules)
+    returns (bool)
+  {
+    return super.supportsInterface(interfaceId);
+  }
+
+  receive() external payable { }
+}
