@@ -1,0 +1,123 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.23;
+
+import { AccessControlDefaultAdminRulesUpgradeable } from
+  "@openzeppelin/contracts-upgradeable/access/extensions/AccessControlDefaultAdminRulesUpgradeable.sol";
+import { ERC1155SupplyUpgradeable } from
+  "@openzeppelin/contracts-upgradeable/token/ERC1155/extensions/ERC1155SupplyUpgradeable.sol";
+import { ERC1155Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155Upgradeable.sol";
+import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+
+contract PixelDungeonsItems is
+  Initializable,
+  ERC1155Upgradeable,
+  AccessControlDefaultAdminRulesUpgradeable,
+  ERC1155SupplyUpgradeable,
+  UUPSUpgradeable
+{
+  bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
+  bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
+
+  string public constant name = "Pixel Dungeons Items";
+  string public constant symbol = "PDI";
+
+  mapping(uint256 => bool) public soulboundTokens;
+  mapping(uint256 => uint256) public minimumPrices;
+
+  event SoulboundUpdated(uint256 id, bool soulbound);
+  event MinimumPriceUpdated(uint256 id, uint256 price);
+
+  error InvalidSoulboundTransfer(uint256 id);
+
+  /// @custom:oz-upgrades-unsafe-allow constructor
+  constructor() {
+    _disableInitializers();
+  }
+
+  function initialize() public initializer {
+    __ERC1155_init("https://api.pixeldungeons.xyz/items/{id}");
+    __AccessControlDefaultAdminRules_init(2 days, msg.sender);
+    __ERC1155Supply_init();
+    __UUPSUpgradeable_init();
+  }
+
+  function setMinimumPrice(uint256 _id, uint256 _price) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    minimumPrices[_id] = _price;
+    emit MinimumPriceUpdated(_id, _price);
+  }
+
+  function setSoulbound(uint256 _id, bool _soulbound) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    soulboundTokens[_id] = _soulbound;
+    emit SoulboundUpdated(_id, _soulbound);
+  }
+
+  function setTokenURI(string memory _newUri) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    _setURI(_newUri);
+  }
+
+  function mint(address account, uint256 id, uint256 amount, bytes memory data) external onlyRole(MINTER_ROLE) {
+    _mint(account, id, amount, data);
+  }
+
+  function mintBatch(address[] memory to, uint256[][] memory ids, uint256[][] memory amounts, bytes memory data)
+    external
+    onlyRole(MINTER_ROLE)
+  {
+    for (uint256 i = 0; i < to.length; i++) {
+      _mintBatch(to[i], ids[i], amounts[i], data);
+    }
+  }
+
+  function burn(address account, uint256 id, uint256 amount) external onlyRole(BURNER_ROLE) {
+    _burn(account, id, amount);
+  }
+
+  function burnBatch(address[] memory accounts, uint256[][] memory ids, uint256[][] memory amounts)
+    external
+    onlyRole(BURNER_ROLE)
+  {
+    for (uint256 i = 0; i < accounts.length; i++) {
+      _burnBatch(accounts[i], ids[i], amounts[i]);
+    }
+  }
+
+  // Disable soul-bound token transfers
+  function _updateWithAcceptanceCheck(
+    address from,
+    address to,
+    uint256[] memory ids,
+    uint256[] memory values,
+    bytes memory data
+  ) internal virtual override {
+    if (from != address(0) && to != address(0)) {
+      // Only check for transfers, not minting or burning
+      for (uint256 i = 0; i < ids.length; i++) {
+        if (soulboundTokens[ids[i]]) {
+          revert InvalidSoulboundTransfer(ids[i]);
+        }
+      }
+    }
+    super._updateWithAcceptanceCheck(from, to, ids, values, data);
+  }
+
+  function _authorizeUpgrade(address newImplementation) internal override onlyRole(DEFAULT_ADMIN_ROLE) { }
+
+  // The following functions are overrides required by Solidity.
+  function _update(address from, address to, uint256[] memory ids, uint256[] memory values)
+    internal
+    override(ERC1155Upgradeable, ERC1155SupplyUpgradeable)
+  {
+    super._update(from, to, ids, values);
+  }
+
+  function supportsInterface(bytes4 interfaceId)
+    public
+    view
+    override(ERC1155Upgradeable, AccessControlDefaultAdminRulesUpgradeable)
+    returns (bool)
+  {
+    return super.supportsInterface(interfaceId);
+  }
+}
