@@ -5,6 +5,8 @@
     let $z := 42
     $z := f($z)
 }
+// ====
+// bytecodeFormat: legacy
 // ----
 // step: fakeStackLimitEvader
 //

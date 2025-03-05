@@ -107,4 +107,20 @@ Type const* type(VariableDeclaration const& _variable)
 	return _variable.annotation().type;
 }
 
+bigint contractStorageSizeUpperBound(ContractDefinition const& _contract, VariableDeclaration::Location _location)
+{
+	solAssert(_location == VariableDeclaration::Location::Unspecified || _location == VariableDeclaration::Location::Transient);
+
+	bigint size = 0;
+	for (ContractDefinition const* contract: _contract.annotation().linearizedBaseContracts)
+		for (VariableDeclaration const* variable: contract->stateVariables())
+			if (
+				!(variable->isConstant() || variable->immutable()) &&
+				variable->referenceLocation() == _location
+			)
+				size += variable->annotation().type->storageSizeUpperBound();
+
+	return size;
+}
+
 }

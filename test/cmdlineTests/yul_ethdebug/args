@@ -1,1 +1,1 @@
---ethdebug --strict-assembly --optimize --ir-optimized
+--ethdebug --strict-assembly

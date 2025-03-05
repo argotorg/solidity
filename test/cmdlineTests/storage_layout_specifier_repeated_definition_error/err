@@ -1,0 +1,10 @@
+Error: More than one storage layout definition.
+ --> <stdin>:5:34:
+  |
+5 | contract C layout at 0x1234 is A layout at 0xABCD {
+  |                                  ^^^^^^
+Note: Previous definition:
+ --> <stdin>:5:12:
+  |
+5 | contract C layout at 0x1234 is A layout at 0xABCD {
+  |            ^^^^^^^^^^^^^^^^

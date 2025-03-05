@@ -22,13 +22,19 @@
 
 #include <libsolidity/analysis/PostTypeContractLevelChecker.h>
 
+#include <fmt/format.h>
 #include <libsolidity/ast/AST.h>
+#include <libsolidity/ast/ASTUtils.h>
+#include <libsolidity/ast/TypeProvider.h>
 #include <libsolutil/FunctionSelector.h>
 #include <liblangutil/ErrorReporter.h>
+
+#include <limits>
 
 using namespace solidity;
 using namespace solidity::langutil;
 using namespace solidity::frontend;
+using namespace solidity::util;
 
 bool PostTypeContractLevelChecker::check(SourceUnit const& _sourceUnit)
 {
@@ -51,7 +57,7 @@ bool PostTypeContractLevelChecker::check(ContractDefinition const& _contract)
 	for (ErrorDefinition const* error: _contract.interfaceErrors())
 	{
 		std::string signature = error->functionType(true)->externalSignature();
-		uint32_t hash = util::selectorFromSignatureU32(signature);
+		uint32_t hash = selectorFromSignatureU32(signature);
 		// Fail if there is a different signature for the same hash.
 		if (!errorHashes[hash].empty() && !errorHashes[hash].count(signature))
 		{
@@ -67,5 +73,66 @@ bool PostTypeContractLevelChecker::check(ContractDefinition const& _contract)
 			errorHashes[hash][signature] = error->location();
 	}
 
+	if (auto const* layoutSpecifier = _contract.storageLayoutSpecifier())
+		checkStorageLayoutSpecifier(*layoutSpecifier);
+
 	return !Error::containsErrors(m_errorReporter.errors());
+}
+
+void PostTypeContractLevelChecker::checkStorageLayoutSpecifier(StorageLayoutSpecifier const& _storageLayoutSpecifier)
+{
+	Expression const& baseSlotExpression = _storageLayoutSpecifier.baseSlotExpression();
+
+	if (!*baseSlotExpression.annotation().isPure)
+	{
+		// TODO: introduce and handle erc7201 as a builtin function
+		m_errorReporter.typeError(
+			1139_error,
+			baseSlotExpression.location(),
+			"The base slot of the storage layout must be a compile-time constant expression."
+		);
+		return;
+	}
+
+	auto const* baseSlotExpressionType = type(baseSlotExpression);
+	auto const* rationalType = dynamic_cast<RationalNumberType const*>(baseSlotExpressionType);
+	if (!rationalType)
+	{
+		m_errorReporter.typeError(
+			6396_error,
+			baseSlotExpression.location(),
+			"The base slot of the storage layout must evaluate to a rational number."
+		);
+		return;
+	}
+
+	if (rationalType->isFractional())
+	{
+		m_errorReporter.typeError(
+			1763_error,
+			baseSlotExpression.location(),
+			"The base slot of the storage layout must evaluate to an integer."
+		);
+		return;
+	}
+	solAssert(rationalType->value().denominator() == 1);
+
+	if (
+		rationalType->value().numerator() < 0 ||
+		rationalType->value().numerator() > std::numeric_limits<u256>::max()
+	)
+	{
+		m_errorReporter.typeError(
+			6753_error,
+			baseSlotExpression.location(),
+			fmt::format(
+				"The base slot of the storage layout evaluates to {}, which is outside the range of type uint256.",
+				formatNumberReadable(rationalType->value().numerator())
+			)
+		);
+		return;
+	}
+
+	solAssert(baseSlotExpressionType->isImplicitlyConvertibleTo(*TypeProvider::uint256()));
+	_storageLayoutSpecifier.annotation().baseSlot = u256(rationalType->value().numerator());
 }

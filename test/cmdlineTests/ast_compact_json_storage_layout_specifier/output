@@ -1,0 +1,103 @@
+JSON AST (compact format):
+
+
+======= ast_compact_json_storage_layout_specifier/input.sol =======
+{
+    "absolutePath": "ast_compact_json_storage_layout_specifier/input.sol",
+    "exportedSymbols": {
+        "C": [
+            6
+        ]
+    },
+    "id": 7,
+    "license": "GPL-3.0",
+    "nodeType": "SourceUnit",
+    "nodes": [
+        {
+            "id": 1,
+            "literals": [
+                "solidity",
+                ">=",
+                "0.0"
+            ],
+            "nodeType": "PragmaDirective",
+            "src": "36:22:0"
+        },
+        {
+            "abstract": false,
+            "baseContracts": [],
+            "canonicalName": "C",
+            "contractDependencies": [],
+            "contractKind": "contract",
+            "fullyImplemented": true,
+            "id": 6,
+            "linearizedBaseContracts": [
+                6
+            ],
+            "name": "C",
+            "nameLocation": "69:1:0",
+            "nodeType": "ContractDefinition",
+            "nodes": [],
+            "scope": 7,
+            "src": "60:35:0",
+            "storageLayout": {
+                "baseSlotExpression": {
+                    "commonType": {
+                        "typeIdentifier": "t_rational_5801_by_1",
+                        "typeString": "int_const 5801"
+                    },
+                    "id": 4,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": true,
+                    "lValueRequested": false,
+                    "leftExpression": {
+                        "hexValue": "31323334",
+                        "id": 2,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": true,
+                        "kind": "number",
+                        "lValueRequested": false,
+                        "nodeType": "Literal",
+                        "src": "81:4:0",
+                        "typeDescriptions": {
+                            "typeIdentifier": "t_rational_1234_by_1",
+                            "typeString": "int_const 1234"
+                        },
+                        "value": "1234"
+                    },
+                    "nodeType": "BinaryOperation",
+                    "operator": "+",
+                    "rightExpression": {
+                        "hexValue": "34353637",
+                        "id": 3,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": true,
+                        "kind": "number",
+                        "lValueRequested": false,
+                        "nodeType": "Literal",
+                        "src": "88:4:0",
+                        "typeDescriptions": {
+                            "typeIdentifier": "t_rational_4567_by_1",
+                            "typeString": "int_const 4567"
+                        },
+                        "value": "4567"
+                    },
+                    "src": "81:11:0",
+                    "typeDescriptions": {
+                        "typeIdentifier": "t_rational_5801_by_1",
+                        "typeString": "int_const 5801"
+                    }
+                },
+                "id": 5,
+                "nodeType": "StorageLayoutSpecifier",
+                "src": "71:21:0"
+            },
+            "usedErrors": [],
+            "usedEvents": []
+        }
+    ],
+    "src": "36:60:0"
+}

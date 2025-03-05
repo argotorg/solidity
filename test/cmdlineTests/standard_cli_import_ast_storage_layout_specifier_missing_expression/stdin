@@ -1,0 +1,62 @@
+{
+    "language": "SolidityAST",
+    "sources": {
+        "A": {
+            "AST": {
+                "absolutePath": "A",
+                "exportedSymbols": {
+                    "C": [
+                        4
+                    ]
+                },
+                "id": 5,
+                "license": "GPL-3.0",
+                "nodeType": "SourceUnit",
+                "nodes": [
+                    {
+                        "id": 1,
+                        "literals": [
+                            "solidity",
+                            ">=",
+                            "0.0"
+                        ],
+                        "nodeType": "PragmaDirective",
+                        "src": "36:22:0"
+                    },
+                    {
+                        "abstract": false,
+                        "baseContracts": [],
+                        "canonicalName": "C",
+                        "contractDependencies": [],
+                        "contractKind": "contract",
+                        "fullyImplemented": true,
+                        "id": 4,
+                        "linearizedBaseContracts": [
+                            4
+                        ],
+                        "name": "C",
+                        "nameLocation": "69:1:0",
+                        "nodeType": "ContractDefinition",
+                        "nodes": [],
+                        "scope": 5,
+                        "src": "60:28:0",
+                        "storageLayout": {
+                            "id": 3,
+                            "nodeType": "StorageLayoutSpecifier",
+                            "src": "71:16:0"
+                        },
+                        "usedErrors": [],
+                        "usedEvents": []
+                    }
+                ],
+                "src": "36:53:0"
+            },
+            "id": 0
+        }
+    },
+    "settings": {
+        "outputSelection": {
+            "*": { "*": [] }
+        }
+    }
+}

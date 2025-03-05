@@ -210,6 +210,13 @@ Json ASTJsonExporter::toJson(ASTNode const& _node)
 	return util::removeNullMembers(std::move(m_currentValue));
 }
 
+Json ASTJsonExporter::toJson(ASTNode const* _node)
+{
+	if (!_node)
+		return Json();
+	return toJson(*_node);
+}
+
 bool ASTJsonExporter::visit(SourceUnit const& _node)
 {
 	std::vector<std::pair<std::string, Json>> attributes = {
@@ -279,6 +286,14 @@ bool ASTJsonExporter::visit(ImportDirective const& _node)
 	return false;
 }
 
+bool ASTJsonExporter::visit(StorageLayoutSpecifier const& _node)
+{
+	setJsonNode(_node, "StorageLayoutSpecifier", {
+		{"baseSlotExpression", toJson(_node.baseSlotExpression())}
+	});
+	return false;
+}
+
 bool ASTJsonExporter::visit(ContractDefinition const& _node)
 {
 	std::vector<std::pair<std::string, Json>> attributes = {
@@ -293,7 +308,8 @@ bool ASTJsonExporter::visit(ContractDefinition const& _node)
 		std::make_pair("usedEvents", getContainerIds(_node.interfaceEvents(false))),
 		std::make_pair("usedErrors", getContainerIds(_node.interfaceErrors(false))),
 		std::make_pair("nodes", toJson(_node.subNodes())),
-		std::make_pair("scope", idOrNull(_node.scope()))
+		std::make_pair("scope", idOrNull(_node.scope())),
+		std::make_pair("storageLayout", toJson(_node.storageLayoutSpecifier()))
 	};
 	addIfSet(attributes, "canonicalName", _node.annotation().canonicalName);
 

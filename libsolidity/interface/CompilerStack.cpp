@@ -507,9 +507,14 @@ bool CompilerStack::analyze()
 		else if (!analyzeLegacy(noErrors))
 			noErrors = false;
 	}
-	catch (FatalError const& error)
+	catch (FatalError const&)
 	{
-		solAssert(m_errorReporter.hasErrors(), "Unreported fatal error: "s + error.what());
+		if (!m_errorReporter.hasErrors())
+		{
+			std::cerr << "Unreported fatal error:" << std::endl;
+			std::cerr << boost::current_exception_diagnostic_information() << std::endl;
+			solAssert(false, "Unreported fatal error.");
+		}
 		noErrors = false;
 	}
 	catch (UnimplementedFeatureError const& _error)
@@ -1104,6 +1109,7 @@ Json const& CompilerStack::storageLayout(Contract const& _contract) const
 	solAssert(m_stackState >= AnalysisSuccessful, "Analysis was not successful.");
 	solAssert(_contract.contract);
 	solUnimplementedAssert(!isExperimentalSolidity());
+	solUnimplementedAssert(!_contract.contract->storageLayoutSpecifier(), "Storage layout not supported for contract with specified layout base.");
 
 	return _contract.storageLayout.init([&]{ return StorageLayout().generate(*_contract.contract, DataLocation::Storage); });
 }
@@ -1316,9 +1322,14 @@ StringMap CompilerStack::loadMissingSources(SourceUnit const& _ast)
 				}
 			}
 	}
-	catch (FatalError const& error)
+	catch (FatalError const&)
 	{
-		solAssert(m_errorReporter.hasErrors(), "Unreported fatal error: "s + error.what());
+		if (!m_errorReporter.hasErrors())
+		{
+			std::cerr << "Unreported fatal error:" << std::endl;
+			std::cerr << boost::current_exception_diagnostic_information() << std::endl;
+			solAssert(false, "Unreported fatal error.");
+		}
 	}
 	return newSources;
 }
@@ -1523,6 +1534,7 @@ void CompilerStack::compileContract(
 	solAssert(!m_viaIR, "");
 	solUnimplementedAssert(!m_eofVersion.has_value(), "Experimental EOF support is only available for via-IR compilation.");
 	solAssert(m_stackState >= AnalysisSuccessful, "");
+	solUnimplementedAssert(!_contract.storageLayoutSpecifier(), "Code generation is not supported for contracts with specified storage layout base.");
 
 	if (_otherCompilers.count(&_contract))
 		return;
@@ -1558,7 +1570,7 @@ void CompilerStack::compileContract(
 void CompilerStack::generateIR(ContractDefinition const& _contract, bool _unoptimizedOnly)
 {
 	solAssert(m_stackState >= AnalysisSuccessful, "");
-
+	solUnimplementedAssert(!_contract.storageLayoutSpecifier(), "Code generation is not supported for contracts with specified storage layout base.");
 	Contract& compiledContract = m_contracts.at(_contract.fullyQualifiedName());
 	if (compiledContract.yulIR)
 	{

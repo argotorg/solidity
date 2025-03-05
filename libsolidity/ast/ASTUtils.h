@@ -48,4 +48,8 @@ Type const* type(Expression const& _expression);
 /// (this can happen for variables with non-explicit types before their types are resolved)
 Type const* type(VariableDeclaration const& _variable);
 
+/// @returns The number of slots occupied by all state variables in contract's inheritance hierarchy,
+/// located in @a _location (either storage or transient storage).
+bigint contractStorageSizeUpperBound(ContractDefinition const& _contract, VariableDeclaration::Location _location);
+
 }

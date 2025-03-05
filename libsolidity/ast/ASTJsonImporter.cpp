@@ -37,6 +37,8 @@
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string.hpp>
 
+#include <range/v3/algorithm/find_if.hpp>
+
 namespace solidity::frontend
 {
 
@@ -255,6 +257,8 @@ ASTPointer<ASTNode> ASTJsonImporter::convertJsonToASTNode(Json const& _json)
 		return createLiteral(_json);
 	if (nodeType == "StructuredDocumentation")
 		return createDocumentation(_json);
+	if (nodeType == "StorageLayoutSpecifier")
+		return createStorageLayoutSpecifier(_json);
 	else
 		astAssert(false, "Unknown type of ASTNode: " + nodeType);
 
@@ -348,7 +352,17 @@ ASTPointer<ContractDefinition> ASTJsonImporter::createContractDefinition(Json co
 		baseContracts,
 		subNodes,
 		contractKind(_node),
-		memberAsBool(_node, "abstract")
+		memberAsBool(_node, "abstract"),
+		nullOrCast<StorageLayoutSpecifier>(member(_node, "storageLayout"))
+	);
+}
+
+ASTPointer<StorageLayoutSpecifier> ASTJsonImporter::createStorageLayoutSpecifier(Json const& _node)
+{
+	astAssert(_node.contains("baseSlotExpression"), "Expected field \"baseSlotExpression\" is missing.");
+	return createASTNode<StorageLayoutSpecifier>(
+		_node,
+		convertJsonToASTNode<Expression>(_node["baseSlotExpression"])
 	);
 }
 

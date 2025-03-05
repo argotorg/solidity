@@ -87,6 +87,9 @@ private:
 	/// Sets the source locations to the one in @a _debugData.
 	void createStackLayout(langutil::DebugData::ConstPtr _debugData, Stack _targetStack);
 
+	void appendSwap(size_t _depth);
+	void appendDup(size_t _depth);
+
 	/// Generate code for the given block @a _block.
 	/// Expects the current stack layout m_stack to be a stack layout that is compatible with the
 	/// entry layout expected by the block.
@@ -116,6 +119,7 @@ private:
 	std::vector<StackTooDeepError> m_stackErrors;
 	/// True if it simulates functions with jumps. False otherwise. True for legacy bytecode
 	bool m_simulateFunctionsWithJumps = true;
+	size_t const m_reachableStackDepth{};
 };
 
 }

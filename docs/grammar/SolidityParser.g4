@@ -52,9 +52,14 @@ symbolAliases: LBrace aliases+=importAliases (Comma aliases+=importAliases)* RBr
 /**
  * Top-level definition of a contract.
  */
-contractDefinition:
+contractDefinition
+locals [boolean layoutSet=false, boolean inheritanceSet=false]
+:
 	Abstract? Contract name=identifier
-	inheritanceSpecifierList?
+	(
+		{!$layoutSet}? Layout At expression {$layoutSet = true;}
+		| {!$inheritanceSet}? inheritanceSpecifierList {$inheritanceSet = true;}
+	)*
 	LBrace contractBodyElement* RBrace;
 /**
  * Top-level definition of an interface.
@@ -379,7 +384,7 @@ expression:
 	expression LBrack index=expression? RBrack # IndexAccess
 	| expression LBrack startIndex=expression? Colon endIndex=expression? RBrack # IndexRangeAccess
 	| expression Period (identifier | Address) # MemberAccess
-	| expression LBrace (namedArgument (Comma namedArgument)*)? RBrace # FunctionCallOptions
+	| expression LBrace (namedArgument (Comma namedArgument)*) RBrace # FunctionCallOptions
 	| expression callArgumentList # FunctionCall
 	| Payable callArgumentList # PayableConversion
 	| Type LParen typeName RParen # MetaType
@@ -420,7 +425,7 @@ inlineArrayExpression: LBrack (expression ( Comma expression)* ) RBrack;
 /**
  * Besides regular non-keyword Identifiers, some keywords like 'from' and 'error' can also be used as identifiers.
  */
-identifier: Identifier | From | Error | Revert | Global | Transient;
+identifier: Identifier | From | Error | Revert | Global | Transient | Layout | At;
 
 literal: stringLiteral | numberLiteral | booleanLiteral | hexStringLiteral | unicodeStringLiteral;
 

@@ -75,13 +75,18 @@ bool AsmAnalyzer::analyze(Block const& _block)
 
 		(*this)(_block);
 	}
-	catch (FatalError const& error)
+	catch (FatalError const&)
 	{
 		// NOTE: There's a cap on the number of reported errors, but watcher.ok() will work fine even if
 		// we exceed it because the reporter keeps counting (it just stops adding errors to the list).
 		// Note also that fact of exceeding the cap triggers a FatalError so one can get thrown even
 		// if we don't make any of our errors fatal.
-		yulAssert(!watcher.ok(), "Unreported fatal error: "s + error.what());
+		if (watcher.ok())
+		{
+			std::cerr << "Unreported fatal error:" << std::endl;
+			std::cerr << boost::current_exception_diagnostic_information() << std::endl;
+			yulAssert(false, "Unreported fatal error.");
+		}
 	}
 	return watcher.ok();
 }

@@ -7,6 +7,8 @@ add_library(yul
 	AST.h
 	AST.cpp
 	ASTForward.h
+	ASTLabelRegistry.cpp
+	ASTLabelRegistry.h
 	AsmJsonConverter.h
 	AsmJsonConverter.cpp
 	AsmJsonImporter.h

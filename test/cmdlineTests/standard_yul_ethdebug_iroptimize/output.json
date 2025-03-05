@@ -1,0 +1,20 @@
+{
+    "contracts": {
+        "C": {
+            "C_6_deployed": {
+                "evm": {
+                    "bytecode": {
+                        "ethdebug": {
+                            "not yet implemented @ MachineAssemblyObject::ethdebug": true
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "ethdebug": {
+        "sources": [
+            "C"
+        ]
+    }
+}

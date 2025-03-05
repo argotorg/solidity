@@ -1,0 +1,1 @@
+Error: --ethdebug / --ethdebug-runtime output can only be used with --ir / --ir-optimized. Optimization (using --optimize) is not yet supported with ethdebug.

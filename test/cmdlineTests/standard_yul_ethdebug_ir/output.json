@@ -1,0 +1,33 @@
+{
+    "contracts": {
+        "C": {
+            "C_6_deployed": {
+                "evm": {
+                    "bytecode": {
+                        "ethdebug": {
+                            "not yet implemented @ MachineAssemblyObject::ethdebug": true
+                        }
+                    }
+                },
+                "ir": "/// ethdebug: enabled
+/// @use-src 0:\"input.sol\"
+object \"C_6_deployed\" {
+    code {
+        /// @src 0:60:101
+        mstore(64, 128)
+        fun_f_5()
+        /// @src 0:77:99
+        function fun_f_5()
+        { sstore(0, 42) }
+    }
+}
+"
+            }
+        }
+    },
+    "ethdebug": {
+        "sources": [
+            "C"
+        ]
+    }
+}

@@ -1,0 +1,11 @@
+{
+    "errors": [
+        {
+            "component": "general",
+            "formattedMessage": "'evm.bytecode.ethdebug' or 'evm.deployedBytecode.ethdebug' can only be selected as output, if 'viaIR' was set.",
+            "message": "'evm.bytecode.ethdebug' or 'evm.deployedBytecode.ethdebug' can only be selected as output, if 'viaIR' was set.",
+            "severity": "error",
+            "type": "FatalError"
+        }
+    ]
+}

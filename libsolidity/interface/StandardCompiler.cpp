@@ -846,6 +846,9 @@ std::variant<StandardCompiler::InputsAndSettings, Json> StandardCompiler::parseI
 		ret.eofVersion = 1;
 	}
 
+	if (ret.eofVersion.has_value() && !ret.evmVersion.supportsEOF())
+		return formatFatalError(Error::Type::JSONError, "EOF is not supported by EVM versions earlier than " + EVMVersion::firstWithEOF().name() + ".");
+
 	if (settings.contains("debug"))
 	{
 		if (auto result = checkKeys(settings["debug"], {"revertStrings", "debugInfo"}, "settings.debug"))
@@ -1200,13 +1203,14 @@ std::variant<StandardCompiler::InputsAndSettings, Json> StandardCompiler::parseI
 	}
 
 	if (
-		ret.debugInfoSelection.has_value() && ret.debugInfoSelection->ethdebug && ret.language == "Solidity" &&
+		ret.debugInfoSelection.has_value() && ret.debugInfoSelection->ethdebug && (ret.language == "Solidity" || ret.language == "Yul") &&
 		!pipelineConfig(ret.outputSelection)[""][""].irCodegen && !isEthdebugRequested(ret.outputSelection)
 	)
 		return formatFatalError(Error::Type::FatalError, "'settings.debug.debugInfo' can only include 'ethdebug', if output 'ir', 'irOptimized', 'evm.bytecode.ethdebug', or 'evm.deployedBytecode.ethdebug' was selected.");
 
-	if (isEthdebugRequested(ret.outputSelection) && (ret.optimiserSettings.runYulOptimiser || isArtifactRequested(ret.outputSelection, "*", "*", "irOptimized", false)))
-		return formatFatalError(Error::Type::FatalError, "Optimization is not yet supported with ethdebug.");
+	if (isEthdebugRequested(ret.outputSelection))
+		if (ret.optimiserSettings.runYulOptimiser)
+			solUnimplemented("Optimization is not yet supported with ethdebug.");
 
 	return {std::move(ret)};
 }

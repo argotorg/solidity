@@ -132,6 +132,10 @@ Block StackLimitEvader::run(
 		evmDialect && evmDialect->providesObjectAccess(),
 		"StackLimitEvader can only be run on objects using the EVMDialect with object access."
 	);
+	yulAssert(
+		!evmDialect->eofVersion().has_value(),
+		"StackLimitEvader does not support EOF."
+	);
 	auto astRoot = std::get<Block>(ASTCopier{}(_object.code()->root()));
 	if (evmDialect && evmDialect->evmVersion().canOverchargeGasForCall())
 	{
@@ -141,7 +145,7 @@ Block StackLimitEvader::run(
 			_object.summarizeStructure()
 		);
 		std::unique_ptr<CFG> cfg = ControlFlowGraphBuilder::build(analysisInfo, *evmDialect, astRoot);
-		run(_context, astRoot, StackLayoutGenerator::reportStackTooDeep(*cfg, !evmDialect->eofVersion().has_value()));
+		run(_context, astRoot, StackLayoutGenerator::reportStackTooDeep(*cfg, *evmDialect));
 	}
 	else
 	{
@@ -159,6 +163,15 @@ void StackLimitEvader::run(
 	std::map<YulName, std::vector<StackLayoutGenerator::StackTooDeep>> const& _stackTooDeepErrors
 )
 {
+	auto const* evmDialect = dynamic_cast<EVMDialect const*>(&_context.dialect);
+	yulAssert(
+		evmDialect && evmDialect->providesObjectAccess(),
+		"StackLimitEvader can only be run on objects using the EVMDialect with object access."
+	);
+	yulAssert(
+		!evmDialect->eofVersion().has_value(),
+		"StackLimitEvader does not support EOF."
+	);
 	std::map<YulName, std::vector<YulName>> unreachableVariables;
 	for (auto&& [function, stackTooDeepErrors]: _stackTooDeepErrors)
 	{
@@ -182,6 +195,10 @@ void StackLimitEvader::run(
 	yulAssert(
 		evmDialect && evmDialect->providesObjectAccess(),
 		"StackLimitEvader can only be run on objects using the EVMDialect with object access."
+	);
+	yulAssert(
+		!evmDialect->eofVersion().has_value(),
+		"StackLimitEvader does not support EOF."
 	);
 
 	std::vector<FunctionCall*> memoryGuardCalls = findFunctionCalls(_astRoot, "memoryguard", *evmDialect);
