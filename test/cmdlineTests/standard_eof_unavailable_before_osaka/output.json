@@ -1,0 +1,11 @@
+{
+    "errors": [
+        {
+            "component": "general",
+            "formattedMessage": "EOF is not supported by EVM versions earlier than osaka.",
+            "message": "EOF is not supported by EVM versions earlier than osaka.",
+            "severity": "error",
+            "type": "JSONError"
+        }
+    ]
+}

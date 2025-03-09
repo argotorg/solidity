@@ -36,7 +36,7 @@ namespace solidity::yul
 struct YulException: virtual util::Exception {};
 struct OptimizerException: virtual YulException {};
 struct CodegenException: virtual YulException {};
-struct YulAssertion: virtual YulException {};
+struct YulAssertion: virtual util::Exception {};
 
 struct StackTooDeepError: virtual YulException
 {

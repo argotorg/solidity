@@ -7,6 +7,8 @@
     let z, $w
   }
 }
+// ====
+// bytecodeFormat: legacy
 // ----
 // step: fakeStackLimitEvader
 //

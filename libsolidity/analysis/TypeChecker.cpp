@@ -1327,7 +1327,7 @@ bool TypeChecker::visit(VariableDeclarationStatement const& _statement)
 		solAssert(m_errorReporter.hasErrors(), "Should have errors!");
 		for (auto const& var: variables)
 			if (var && !var->annotation().type)
-				BOOST_THROW_EXCEPTION(FatalError());
+				solThrow(FatalError, "Type checker failed to determine types of all variables within the declaration.");
 	}
 
 	return false;
@@ -1380,7 +1380,7 @@ bool TypeChecker::visit(Conditional const& _conditional)
 		commonType = falseType;
 
 	if (!trueType && !falseType)
-		BOOST_THROW_EXCEPTION(FatalError());
+		solThrow(FatalError, "Both sides of the ternary expression have invalid types.");
 	else if (trueType && falseType)
 	{
 		commonType = Type::commonType(trueType, falseType);

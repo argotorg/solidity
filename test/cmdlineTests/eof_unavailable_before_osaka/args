@@ -1,0 +1,1 @@
+--optimize --experimental-eof-version 1 --evm-version cancun

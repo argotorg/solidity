@@ -75,13 +75,18 @@ bool AsmAnalyzer::analyze(Block const& _block)
 
 		(*this)(_block);
 	}
-	catch (FatalError const& error)
+	catch (FatalError const&)
 	{
 		// NOTE: There's a cap on the number of reported errors, but watcher.ok() will work fine even if
 		// we exceed it because the reporter keeps counting (it just stops adding errors to the list).
 		// Note also that fact of exceeding the cap triggers a FatalError so one can get thrown even
 		// if we don't make any of our errors fatal.
-		yulAssert(!watcher.ok(), "Unreported fatal error: "s + error.what());
+		if (watcher.ok())
+		{
+			std::cerr << "Unreported fatal error:" << std::endl;
+			std::cerr << boost::current_exception_diagnostic_information() << std::endl;
+			yulAssert(false, "Unreported fatal error.");
+		}
 	}
 	return watcher.ok();
 }
@@ -108,7 +113,36 @@ AsmAnalysisInfo AsmAnalyzer::analyzeStrictAssertCorrect(
 		{},
 		std::move(_objectStructure)
 	).analyze(_astRoot);
-	yulAssert(success && !errors.hasErrors(), "Invalid assembly/yul code.");
+
+	if (!success)
+	{
+		auto formatErrors = [](ErrorList const& _errorList) {
+			std::vector<std::string> formattedErrors;
+			for (std::shared_ptr<Error const> const& error: _errorList)
+			{
+				yulAssert(error->comment());
+				formattedErrors.push_back(fmt::format(
+					// Intentionally not showing source locations because we don't have the original
+					// source here and it's unlikely they match the pretty-printed version.
+					// They may not even match the original source if the AST was modified by the optimizer.
+					"- {} {}: {}",
+					Error::formatErrorType(error->type()),
+					error->errorId().error,
+					*error->comment()
+				));
+			}
+			return joinHumanReadable(formattedErrors, "\n");
+		};
+
+		yulAssert(errors.hasErrors(), "Yul analysis failed but did not report any errors.");
+		yulAssert(false, fmt::format(
+			"{}\n\nExpected valid Yul, but errors were reported during analysis:\n{}",
+			AsmPrinter{_dialect}(_astRoot),
+			formatErrors(errorList)
+		));
+	}
+
+	yulAssert(!errors.hasErrors());
 	return analysisInfo;
 }
 

@@ -176,9 +176,14 @@ ASTPointer<SourceUnit> Parser::parse(CharStream& _charStream)
 		solAssert(m_recursionDepth == 0, "");
 		return nodeFactory.createNode<SourceUnit>(findLicenseString(nodes), nodes, m_experimentalSolidityEnabledInCurrentSourceUnit);
 	}
-	catch (FatalError const& error)
+	catch (FatalError const&)
 	{
-		solAssert(m_errorReporter.hasErrors(), "Unreported fatal error: "s + error.what());
+		if (!m_errorReporter.hasErrors())
+		{
+			std::cerr << "Unreported fatal error:" << std::endl;
+			std::cerr << boost::current_exception_diagnostic_information() << std::endl;
+			solAssert(false, "Unreported fatal error.");
+		}
 		return nullptr;
 	}
 }
@@ -1539,7 +1544,7 @@ ASTPointer<InlineAssembly> Parser::parseInlineAssembly(ASTPointer<ASTString> con
 	yul::Parser asmParser(m_errorReporter, dialect);
 	std::shared_ptr<yul::AST> ast = asmParser.parseInline(m_scanner);
 	if (ast == nullptr)
-		BOOST_THROW_EXCEPTION(FatalError());
+		solThrow(FatalError, "Failed to parse inline assembly.");
 
 	location.end = nativeLocationOf(ast->root()).end;
 	return std::make_shared<InlineAssembly>(nextID(), location, _docString, dialect, std::move(flags), ast);

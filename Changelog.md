@@ -1,7 +1,7 @@
 ### 0.8.29 (unreleased)
 
 Language Features:
- * Introduce syntax for specifying contract storage layout base.
+ * Allow relocating contract storage to an arbitrary location.
 
 
 Compiler Features:
@@ -16,6 +16,8 @@ Compiler Features:
 
 
 Bugfixes:
+ * Commandline Interface: Report StackTooDeep errors in compiler mode as proper errors instead of printing diagnostic information meant for internal compiler errors.
+ * Error Reporting: Fix error locations not being shown for source files with empty names.
  * General: Fix internal compiler error when requesting IR AST outputs for interfaces and abstract contracts.
  * Metadata: Fix custom cleanup sequence missing from metadata when other optimizer settings have default values.
  * SMTChecker: Fix internal compiler error when analyzing overflowing expressions or bitwise negation of unsigned types involving constants.
@@ -27,12 +29,18 @@ Bugfixes:
  * SMTChecker: Fix SMT logic error when translating invariants involving array store and select operations.
  * SMTChecker: Fix wrong encoding of string literals as arguments of ``ecrecover`` precompile.
  * Standard JSON Interface: Fix ``generatedSources`` and ``sourceMap`` being generated internally even when not requested.
+ * TypeChecker: Fix supurious compilation errors due to incorrect computation of contract storage size which erroneously included transient storage variables.
  * Yul: Fix internal compiler error when a code generation error should be reported instead.
+ * Yul Optimizer: Fix failing debug assertion due to dereferencing of an empty ``optional`` value.
 
 
 Build system:
  * Linux release builds are fully static again and no longer depend on ``glibc``.
  * Switch from C++17 to C++20 as the target standard.
+
+
+Solc-Js:
+ * The wrapper now requires at least nodejs v12.
 
 ### 0.8.28 (2024-10-09)
 

@@ -23,6 +23,7 @@
 #include <libsolidity/analysis/ContractLevelChecker.h>
 
 #include <libsolidity/ast/AST.h>
+#include <libsolidity/ast/ASTUtils.h>
 #include <libsolidity/ast/TypeProvider.h>
 #include <libsolidity/analysis/TypeChecker.h>
 #include <libsolutil/FunctionSelector.h>
@@ -30,6 +31,7 @@
 
 #include <fmt/format.h>
 
+#include <range/v3/algorithm/find_if.hpp>
 #include <range/v3/view/reverse.hpp>
 
 using namespace solidity;
@@ -97,10 +99,44 @@ bool ContractLevelChecker::check(ContractDefinition const& _contract)
 	checkBaseABICompatibility(_contract);
 	checkPayableFallbackWithoutReceive(_contract);
 	checkStorageSize(_contract);
+	checkStorageLayoutSpecifier(_contract);
 
 	return !Error::containsErrors(m_errorReporter.errors());
 }
 
+void ContractLevelChecker::checkStorageLayoutSpecifier(ContractDefinition const& _contract)
+{
+	if (_contract.storageLayoutSpecifier())
+	{
+		solAssert(!_contract.isLibrary() && !_contract.isInterface());
+
+		if (_contract.abstract())
+			m_errorReporter.typeError(
+				7587_error,
+				_contract.storageLayoutSpecifier()->location(),
+				"Storage layout cannot be specified for abstract contracts."
+			);
+	}
+
+	for (auto const& baseContractSpecifier: _contract.baseContracts())
+	{
+		auto const* baseContract = dynamic_cast<ContractDefinition const*>(
+			baseContractSpecifier->name().annotation().referencedDeclaration
+		);
+
+		solAssert(baseContract);
+		if (baseContract->storageLayoutSpecifier())
+			m_errorReporter.typeError(
+				8894_error,
+				baseContractSpecifier->location(),
+				SecondarySourceLocation().append(
+					"Custom storage layout defined here:",
+					baseContract->storageLayoutSpecifier()->location()
+				),
+				"Cannot inherit from a contract with a custom storage layout."
+			);
+	}
+}
 void ContractLevelChecker::checkDuplicateFunctions(ContractDefinition const& _contract)
 {
 	/// Checks that two functions with the same name defined in this contract have different
@@ -555,16 +591,16 @@ void ContractLevelChecker::checkPayableFallbackWithoutReceive(ContractDefinition
 
 void ContractLevelChecker::checkStorageSize(ContractDefinition const& _contract)
 {
-	bigint size = 0;
-	for (ContractDefinition const* contract: _contract.annotation().linearizedBaseContracts | ranges::views::reverse)
-		for (VariableDeclaration const* variable: contract->stateVariables())
-			if (!(variable->isConstant() || variable->immutable()))
-			{
-				size += variable->annotation().type->storageSizeUpperBound();
-				if (size >= bigint(1) << 256)
-				{
-					m_errorReporter.typeError(7676_error, _contract.location(), "Contract requires too much storage.");
-					break;
-				}
-			}
+	using enum VariableDeclaration::Location;
+	for (VariableDeclaration::Location location: {Unspecified, Transient})
+	{
+		bigint size = contractStorageSizeUpperBound(_contract, location);
+		if (size >= bigint(1) << 256)
+		{
+			if (location == Unspecified)
+				m_errorReporter.typeError(7676_error, _contract.location(), "Contract requires too much storage.");
+			else
+				m_errorReporter.typeError(5026_error, _contract.location(), "Contract requires too much transient storage.");
+		}
+	}
 }

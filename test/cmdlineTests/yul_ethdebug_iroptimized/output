@@ -1,0 +1,26 @@
+======= Debug Data (ethdebug/format/info/resources) =======
+{"sources":["yul_ethdebug_iroptimized/input.yul"]}
+
+======= yul_ethdebug_iroptimized/input.yul (EVM) =======
+
+Pretty printed source:
+/// ethdebug: enabled
+object "object" {
+    code {
+        {
+            let a
+            let b
+            a := z()
+            b := z_1()
+            sstore(a, b)
+        }
+        function z() -> y
+        { y := calldataload(0) }
+        function z_1() -> y
+        { y := calldataload(0x20) }
+    }
+}
+
+
+Debug Data (ethdebug/format/program):
+{"not yet implemented @ MachineAssemblyObject::ethdebug":true}

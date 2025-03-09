@@ -1,0 +1,12 @@
+{
+    "language": "Solidity",
+    "sources": {
+        "in.sol": {"urls": ["standard_stack_too_deep_from_code_transform/in.sol"]}
+    },
+    "settings": {
+        "viaIR": true,
+        "outputSelection": {
+            "*": {"*": ["evm.bytecode"]}
+        }
+    }
+}

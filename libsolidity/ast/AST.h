@@ -622,6 +622,8 @@ public:
 	void accept(ASTConstVisitor& _visitor) const override;
 
 	Expression const& baseSlotExpression() const { solAssert(m_baseSlotExpression); return *m_baseSlotExpression; }
+	StorageLayoutSpecifierAnnotation& annotation() const override;
+
 private:
 	ASTPointer<Expression> m_baseSlotExpression;
 };

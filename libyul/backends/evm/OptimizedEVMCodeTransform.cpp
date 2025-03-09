@@ -23,6 +23,7 @@
 
 #include <libyul/Utilities.h>
 
+#include <libevmasm/Assembly.h>
 #include <libevmasm/Instruction.h>
 
 #include <libsolutil/Visitor.h>
@@ -48,7 +49,7 @@ std::vector<StackTooDeepError> OptimizedEVMCodeTransform::run(
 )
 {
 	std::unique_ptr<CFG> dfg = ControlFlowGraphBuilder::build(_analysisInfo, _dialect, _block);
-	StackLayout stackLayout = StackLayoutGenerator::run(*dfg, !_dialect.eofVersion().has_value());
+	StackLayout stackLayout = StackLayoutGenerator::run(*dfg, _dialect);
 
 	if (_dialect.eofVersion().has_value())
 	{
@@ -229,7 +230,8 @@ OptimizedEVMCodeTransform::OptimizedEVMCodeTransform(
 		}
 		return functionLabels;
 	}()),
-	m_simulateFunctionsWithJumps(_simulateFunctionsWithJumps)
+	m_simulateFunctionsWithJumps(_simulateFunctionsWithJumps),
+	m_reachableStackDepth(_dialect.reachableStackDepth())
 {
 }
 
@@ -285,11 +287,11 @@ void OptimizedEVMCodeTransform::createStackLayout(langutil::DebugData::ConstPtr 
 		{
 			yulAssert(static_cast<int>(m_stack.size()) == m_assembly.stackHeight(), "");
 			yulAssert(_i > 0 && _i < m_stack.size(), "");
-			if (_i <= 16)
-				m_assembly.appendInstruction(evmasm::swapInstruction(_i));
+			if (_i <= m_reachableStackDepth)
+				appendSwap(_i);
 			else
 			{
-				int deficit = static_cast<int>(_i) - 16;
+				int deficit = static_cast<int>(_i) - static_cast<int>(m_reachableStackDepth);
 				StackSlot const& deepSlot = m_stack.at(m_stack.size() - _i - 1);
 				YulName varNameDeep = slotVariableName(deepSlot);
 				YulName varNameTop = slotVariableName(m_stack.back());
@@ -310,22 +312,21 @@ void OptimizedEVMCodeTransform::createStackLayout(langutil::DebugData::ConstPtr 
 		[&](StackSlot const& _slot)
 		{
 			yulAssert(static_cast<int>(m_stack.size()) == m_assembly.stackHeight(), "");
-
 			// Dup the slot, if already on stack and reachable.
 			if (auto depth = util::findOffset(m_stack | ranges::views::reverse, _slot))
 			{
-				if (*depth < 16)
+				if (*depth < m_reachableStackDepth)
 				{
-					m_assembly.appendInstruction(evmasm::dupInstruction(static_cast<unsigned>(*depth + 1)));
+					appendDup(*depth + 1);
 					return;
 				}
 				else if (!canBeFreelyGenerated(_slot))
 				{
-					int deficit = static_cast<int>(*depth - 15);
+					int deficit = static_cast<int>(*depth - (m_reachableStackDepth - 1));
 					YulName varName = slotVariableName(_slot);
 					std::string msg =
 						(varName.empty() ? "Slot " + stackSlotToString(_slot, m_dialect) : "Variable " + varName.str())
-						+ " is " + std::to_string(*depth - 15) + " too deep in the stack " + stackToString(m_stack, m_dialect);
+						+ " is " + std::to_string(*depth - (m_reachableStackDepth - 1)) + " too deep in the stack " + stackToString(m_stack, m_dialect);
 					m_stackErrors.emplace_back(StackTooDeepError(
 						m_currentFunctionInfo ? m_currentFunctionInfo->function.name : YulName{},
 						varName,
@@ -388,9 +389,32 @@ void OptimizedEVMCodeTransform::createStackLayout(langutil::DebugData::ConstPtr 
 		[&]()
 		{
 			m_assembly.appendInstruction(evmasm::Instruction::POP);
-		}
+		},
+		m_reachableStackDepth
 	);
 	yulAssert(m_assembly.stackHeight() == static_cast<int>(m_stack.size()), "");
+}
+
+void OptimizedEVMCodeTransform::appendSwap(size_t _depth)
+{
+	if (_depth <= 16)
+		m_assembly.appendInstruction(evmasm::swapInstruction(static_cast<unsigned>(_depth)));
+	else
+	{
+		yulAssert(_depth <= m_reachableStackDepth);
+		m_assembly.appendSwapN(_depth);
+	}
+}
+
+void OptimizedEVMCodeTransform::appendDup(size_t _depth)
+{
+	if (_depth <= 16)
+		m_assembly.appendInstruction(evmasm::dupInstruction(static_cast<unsigned>(_depth)));
+	else
+	{
+		yulAssert(_depth <= m_reachableStackDepth);
+		m_assembly.appendDupN(_depth);
+	}
 }
 
 void OptimizedEVMCodeTransform::operator()(CFG::BasicBlock const& _block)

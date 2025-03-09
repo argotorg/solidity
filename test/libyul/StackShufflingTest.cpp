@@ -24,6 +24,7 @@
 
 #include <liblangutil/Scanner.h>
 #include <libsolutil/AnsiColorized.h>
+#include <libsolutil/StringUtils.h>
 
 using namespace solidity::test;
 using namespace solidity::util;
@@ -136,8 +137,18 @@ bool StackShufflingTest::parse(std::string const& _source)
 StackShufflingTest::StackShufflingTest(std::string const& _filename):
 	TestCase(_filename)
 {
+	processSettings();
 	m_source = m_reader.source();
 	m_expectation = m_reader.simpleExpectations();
+}
+
+void StackShufflingTest::processSettings()
+{
+	std::string depthString = m_reader.stringSetting("maximumStackDepth", "16");
+	std::optional<unsigned> depth = toUnsignedInt(depthString);
+	if (!depth.has_value())
+		BOOST_THROW_EXCEPTION(std::runtime_error{"Invalid maximum stack depth: \"" + depthString + "\""});
+	m_maximumStackDepth = *depth;
 }
 
 TestCase::TestResult StackShufflingTest::run(std::ostream& _stream, std::string const& _linePrefix, bool _formatted)
@@ -150,16 +161,19 @@ TestCase::TestResult StackShufflingTest::run(std::ostream& _stream, std::string 
 	}
 
 	std::ostringstream output;
+	size_t operations = 0;
 	createStackLayout(
 		m_sourceStack,
 		m_targetStack,
 		[&](unsigned _swapDepth) // swap
 		{
+			++operations;
 			output << stackToString(m_sourceStack, dialect) << std::endl;
 			output << "SWAP" << _swapDepth << std::endl;
 		},
 		[&](StackSlot const& _slot) // dupOrPush
 		{
+			++operations;
 			output << stackToString(m_sourceStack, dialect) << std::endl;
 			if (canBeFreelyGenerated(_slot))
 				output << "PUSH " << stackSlotToString(_slot, dialect) << std::endl;
@@ -172,12 +186,15 @@ TestCase::TestResult StackShufflingTest::run(std::ostream& _stream, std::string 
 			}
 		},
 		[&](){ // pop
+			++operations;
 			output << stackToString(m_sourceStack, dialect) << std::endl;
 			output << "POP" << std::endl;
-		}
+		},
+		m_maximumStackDepth
     );
 
 	output << stackToString(m_sourceStack, dialect) << std::endl;
+	output << operations << " operations" << std::endl;
 	m_obtainedResult = output.str();
 
 	return checkResult(_stream, _linePrefix, _formatted);

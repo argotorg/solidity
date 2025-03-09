@@ -129,22 +129,22 @@ void CommonOptions::addOptions()
 
 void CommonOptions::validate() const
 {
-	assertThrow(
+	solRequire(
 		!testPath.empty(),
 		ConfigException,
 		"No test path specified. The --testpath argument must not be empty when given."
 	);
-	assertThrow(
+	solRequire(
 		fs::exists(testPath),
 		ConfigException,
 		"Invalid test path specified."
 	);
-	assertThrow(
+	solRequire(
 		batches > 0,
 		ConfigException,
 		"Batches needs to be at least 1."
 	);
-	assertThrow(
+	solRequire(
 		selectedBatch < batches,
 		ConfigException,
 		"Selected batch has to be less than number of batches."
@@ -162,7 +162,11 @@ void CommonOptions::validate() const
 		std::cout << std::endl << "DO NOT COMMIT THE UPDATED EXPECTATIONS." << std::endl << std::endl;
 	}
 
-	assertThrow(!eofVersion().has_value() || evmVersion().supportsEOF(), ConfigException, "EOF is unavailable before Osaka fork.");
+	solRequire(
+		!eofVersion().has_value() || evmVersion().supportsEOF(),
+		ConfigException,
+		"EOF is not supported by EVM versions earlier than " + langutil::EVMVersion::firstWithEOF().name() + "."
+	);
 }
 
 bool CommonOptions::parse(int argc, char const* const* argv)

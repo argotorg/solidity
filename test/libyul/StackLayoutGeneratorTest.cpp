@@ -232,11 +232,10 @@ TestCase::TestResult StackLayoutGeneratorTest::run(std::ostream& _stream, std::s
 		yulStack.parserResult()->code()->root()
 	);
 
-	bool simulateFunctionsWithJumps = true;
-	if (auto const* evmDialect = dynamic_cast<EVMDialect const*>(&yulStack.dialect()))
-		simulateFunctionsWithJumps = !evmDialect->eofVersion().has_value();
+	auto const* evmDialect = dynamic_cast<EVMDialect const*>(&yulStack.dialect());
+	solAssert(evmDialect, "StackLayoutGenerator can only be run on EVM dialects.");
 
-	StackLayout stackLayout = StackLayoutGenerator::run(*cfg, simulateFunctionsWithJumps);
+	StackLayout stackLayout = StackLayoutGenerator::run(*cfg, *evmDialect);
 
 	output << "digraph CFG {\nnodesep=0.7;\nnode[shape=box];\n\n";
 	StackLayoutPrinter printer{output, stackLayout, yulStack.dialect()};

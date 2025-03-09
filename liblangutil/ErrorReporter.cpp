@@ -23,6 +23,9 @@
 
 #include <liblangutil/ErrorReporter.h>
 #include <liblangutil/SourceLocation.h>
+
+#include <libsolutil/Exceptions.h>
+
 #include <range/v3/algorithm/find_if.hpp>
 #include <memory>
 
@@ -121,7 +124,7 @@ bool ErrorReporter::checkForExcessiveErrors(Error::Type _type)
 		if (m_errorCount > c_maxErrorsAllowed)
 		{
 			m_errorList.push_back(std::make_shared<Error>(4013_error, Error::Type::Warning, "There are more than 256 errors. Aborting."));
-			BOOST_THROW_EXCEPTION(FatalError());
+			solThrow(FatalError, "There are more than 256 errors. Aborting.");
 		}
 	}
 
@@ -131,13 +134,13 @@ bool ErrorReporter::checkForExcessiveErrors(Error::Type _type)
 void ErrorReporter::fatalError(ErrorId _error, Error::Type _type, SourceLocation const& _location, SecondarySourceLocation const& _secondaryLocation, std::string const& _description)
 {
 	error(_error, _type, _location, _secondaryLocation, _description);
-	BOOST_THROW_EXCEPTION(FatalError());
+	solThrow(FatalError, _description);
 }
 
 void ErrorReporter::fatalError(ErrorId _error, Error::Type _type, SourceLocation const& _location, std::string const& _description)
 {
 	error(_error, _type, _location, _description);
-	BOOST_THROW_EXCEPTION(FatalError());
+	solThrow(FatalError, _description);
 }
 
 ErrorList const& ErrorReporter::errors() const

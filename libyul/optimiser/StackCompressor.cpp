@@ -248,14 +248,14 @@ std::tuple<bool, Block> StackCompressor::run(
 		"Need to run the function grouper before the stack compressor."
 	);
 	bool usesOptimizedCodeGenerator = false;
-	bool simulateFunctionsWithJumps = true;
-	if (auto evmDialect = dynamic_cast<EVMDialect const*>(_object.dialect()))
+	auto evmDialect = dynamic_cast<EVMDialect const*>(_object.dialect());
+	if (evmDialect)
 	{
+		yulAssert(!evmDialect->eofVersion().has_value(), "StackCompressor does not support EOF.");
 		usesOptimizedCodeGenerator =
 			_optimizeStackAllocation &&
 			evmDialect->evmVersion().canOverchargeGasForCall() &&
 			evmDialect->providesObjectAccess();
-		simulateFunctionsWithJumps = !evmDialect->eofVersion().has_value();
 	}
 	bool allowMSizeOptimization = !MSizeFinder::containsMSize(*_object.dialect(), _object.code()->root());
 	Block astRoot = std::get<Block>(ASTCopier{}(_object.code()->root()));
@@ -267,10 +267,11 @@ std::tuple<bool, Block> StackCompressor::run(
 			_object.summarizeStructure()
 		);
 		std::unique_ptr<CFG> cfg = ControlFlowGraphBuilder::build(analysisInfo, *_object.dialect(), astRoot);
+		yulAssert(evmDialect);
 		eliminateVariablesOptimizedCodegen(
 			*_object.dialect(),
 			astRoot,
-			StackLayoutGenerator::reportStackTooDeep(*cfg, simulateFunctionsWithJumps),
+			StackLayoutGenerator::reportStackTooDeep(*cfg, *evmDialect),
 			allowMSizeOptimization
 		);
 	}

@@ -1,0 +1,6 @@
+Error: Cannot swap Variable value23 with Slot 0x20: too deep in the stack by 9 slots in [ RET value23 value22 value21 value20 value19 value18 value17 value16 value15 value14 value13 value12 value11 value10 value9 value8 value7 value6 value5 value4 value3 value2 value1 value0 pos 0x20 ]
+memoryguard was present.
+ --> stack_too_deep_from_code_transform/input.sol:1:1:
+  |
+1 | contract C {
+  | ^ (Relevant source part starts here and spans across multiple lines).

@@ -383,6 +383,11 @@ StorageLayoutSpecifier::StorageLayoutSpecifier(
 	solAssert(_location.contains(m_baseSlotExpression->location()));
 }
 
+StorageLayoutSpecifierAnnotation& StorageLayoutSpecifier::annotation() const
+{
+	return initAnnotation<StorageLayoutSpecifierAnnotation>();
+}
+
 TypeNameAnnotation& TypeName::annotation() const
 {
 	return initAnnotation<TypeNameAnnotation>();

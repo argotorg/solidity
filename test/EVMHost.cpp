@@ -29,6 +29,7 @@
 #endif
 
 #include <test/EVMHost.h>
+#include <test/libsolidity/util/SoltestErrors.h>
 
 #if defined(__GNUC__) && !defined(__clang__) // GCC-specific pragma
 #pragma GCC diagnostic pop
@@ -105,7 +106,7 @@ EVMHost::EVMHost(langutil::EVMVersion _evmVersion, evmc::VM& _vm):
 	if (!m_vm)
 	{
 		std::cerr << "Unable to find evmone library" << std::endl;
-		assertThrow(false, Exception, "");
+		solRequire(false, Exception, "");
 	}
 
 	if (_evmVersion == langutil::EVMVersion::homestead())
@@ -137,7 +138,7 @@ EVMHost::EVMHost(langutil::EVMVersion _evmVersion, evmc::VM& _vm):
 	else if (_evmVersion == langutil::EVMVersion::osaka())
 		m_evmRevision = EVMC_OSAKA;
 	else
-		assertThrow(false, Exception, "Unsupported EVM version");
+		solRequire(false, Exception, "Unsupported EVM version");
 
 	if (m_evmRevision >= EVMC_PARIS)
 		// This is the value from the merge block.
@@ -228,7 +229,7 @@ void EVMHost::newTransactionFrame()
 
 void EVMHost::transfer(evmc::MockedAccount& _sender, evmc::MockedAccount& _recipient, u256 const& _value) noexcept
 {
-	assertThrow(u256(convertFromEVMC(_sender.balance)) >= _value, Exception, "Insufficient balance for transfer");
+	solRequire(u256(convertFromEVMC(_sender.balance)) >= _value, Exception, "Insufficient balance for transfer");
 	_sender.balance = convertToEVMC(u256(convertFromEVMC(_sender.balance)) - _value);
 	_recipient.balance = convertToEVMC(u256(convertFromEVMC(_recipient.balance)) + _value);
 }
@@ -329,7 +330,7 @@ evmc::Result EVMHost::call(evmc_message const& _message) noexcept
 			} else if (value <= 0xffff) {
 				return bytes{128 + 55 + 2, static_cast<uint8_t>(value >> 8), static_cast<uint8_t>(value)};
 			} else {
-				assertThrow(false, Exception, "Can only encode RLP numbers <= 0xffff");
+				solUnimplemented("Can only encode RLP numbers <= 0xffff");
 			}
 		};
 
@@ -343,7 +344,7 @@ evmc::Result EVMHost::call(evmc_message const& _message) noexcept
 		), h160::AlignRight);
 
 		message.recipient = convertToEVMC(createAddress);
-		assertThrow(accounts.count(message.recipient) == 0, Exception, "Account cannot exist");
+		soltestAssert(accounts.count(message.recipient) == 0, "Account cannot exist");
 
 		code = evmc::bytes(message.input_data, message.input_data + message.input_size);
 	}
@@ -1320,7 +1321,7 @@ evmc::Result EVMHost::resultWithGas(
 
 StorageMap const& EVMHost::get_address_storage(evmc::address const& _addr)
 {
-	assertThrow(account_exists(_addr), Exception, "Account does not exist.");
+	soltestAssert(account_exists(_addr), "Account does not exist.");
 	return accounts[_addr].storage;
 }
 
@@ -1383,9 +1384,10 @@ void EVMHostPrinter::callRecords()
 				return "CREATE";
 			case evmc_call_kind::EVMC_CREATE2:
 				return "CREATE2";
-			default:
-				assertThrow(false, Exception, "Invalid call kind.");
+			case evmc_call_kind::EVMC_EOFCREATE:
+				return "EOFCREATE";
 		}
+		unreachable();
 	};
 
 	for (auto const& record: m_host.recorded_calls)

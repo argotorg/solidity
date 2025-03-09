@@ -1009,12 +1009,22 @@ void CommandLineInterface::compile()
 		if (!successful)
 			solThrow(CommandLineExecutionError, "");
 	}
+	// NOTE: This includes langutil::StackTooDeepError.
 	catch (CompilerError const& _exception)
 	{
 		m_hasOutput = true;
 		formatter.printExceptionInformation(
 			_exception,
 			Error::errorSeverity(Error::Type::CompilerError)
+		);
+		solThrow(CommandLineExecutionError, "");
+	}
+	catch (yul::StackTooDeepError const& _exception)
+	{
+		m_hasOutput = true;
+		formatter.printExceptionInformation(
+			_exception,
+			Error::errorSeverity(Error::Type::YulException)
 		);
 		solThrow(CommandLineExecutionError, "");
 	}
