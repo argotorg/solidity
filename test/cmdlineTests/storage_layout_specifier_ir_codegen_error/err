@@ -1,5 +1,0 @@
-Error: Code generation is not supported for contracts with specified storage layout base.
- --> <stdin>:4:1:
-  |
-4 | contract C layout at 42 {}
-  | ^^^^^^^^^^^^^^^^^^^^^^^^^^

@@ -1,1 +1,0 @@
-Error: --ethdebug / --ethdebug-runtime output can only be selected, if --via-ir was specified.

@@ -201,7 +201,9 @@ void StackLimitEvader::run(
 		"StackLimitEvader does not support EOF."
 	);
 
-	std::vector<FunctionCall*> memoryGuardCalls = findFunctionCalls(_astRoot, "memoryguard", *evmDialect);
+	auto const memoryGuardHandle = evmDialect->findBuiltin("memoryguard");
+	yulAssert(memoryGuardHandle, "Compiling with object access, memoryguard should be available as builtin.");
+	std::vector<FunctionCall*> const memoryGuardCalls = findFunctionCalls(_astRoot, *memoryGuardHandle);
 	// Do not optimise, if no ``memoryguard`` call is found.
 	if (memoryGuardCalls.empty())
 		return;
@@ -233,7 +235,7 @@ void StackLimitEvader::run(
 	StackToMemoryMover::run(_context, reservedMemory, memoryOffsetAllocator.slotAllocations, requiredSlots, _astRoot);
 
 	reservedMemory += 32 * requiredSlots;
-	for (FunctionCall* memoryGuardCall: findFunctionCalls(_astRoot, "memoryguard", *evmDialect))
+	for (FunctionCall* memoryGuardCall: findFunctionCalls(_astRoot, *memoryGuardHandle))
 	{
 		Literal* literal = std::get_if<Literal>(&memoryGuardCall->arguments.front());
 		yulAssert(literal && literal->kind == LiteralKind::Number, "");

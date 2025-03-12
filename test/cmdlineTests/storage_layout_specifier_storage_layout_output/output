@@ -1,0 +1,435 @@
+
+======= <stdin>:A =======
+Contract Storage Layout:
+{
+    "storage": [
+        {
+            "astId": 3,
+            "contract": "<stdin>:A",
+            "label": "x",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint256"
+        },
+        {
+            "astId": 7,
+            "contract": "<stdin>:A",
+            "label": "y",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_uint256"
+        }
+    ],
+    "types": {
+        "t_uint256": {
+            "encoding": "inplace",
+            "label": "uint256",
+            "numberOfBytes": "32"
+        }
+    }
+}
+Contract Transient Storage Layout:
+{
+    "storage": [
+        {
+            "astId": 5,
+            "contract": "<stdin>:A",
+            "label": "t1",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint256"
+        }
+    ],
+    "types": {
+        "t_uint256": {
+            "encoding": "inplace",
+            "label": "uint256",
+            "numberOfBytes": "32"
+        }
+    }
+}
+
+======= <stdin>:B =======
+Contract Storage Layout:
+{
+    "storage": [
+        {
+            "astId": 12,
+            "contract": "<stdin>:B",
+            "label": "w",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_int8"
+        }
+    ],
+    "types": {
+        "t_int8": {
+            "encoding": "inplace",
+            "label": "int8",
+            "numberOfBytes": "1"
+        }
+    }
+}
+Contract Transient Storage Layout:
+{
+    "storage": [
+        {
+            "astId": 10,
+            "contract": "<stdin>:B",
+            "label": "t2",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint256"
+        },
+        {
+            "astId": 14,
+            "contract": "<stdin>:B",
+            "label": "t3",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_int8"
+        }
+    ],
+    "types": {
+        "t_int8": {
+            "encoding": "inplace",
+            "label": "int8",
+            "numberOfBytes": "1"
+        },
+        "t_uint256": {
+            "encoding": "inplace",
+            "label": "uint256",
+            "numberOfBytes": "32"
+        }
+    }
+}
+
+======= <stdin>:C =======
+Contract Storage Layout:
+{
+    "storage": [
+        {
+            "astId": 12,
+            "contract": "<stdin>:C",
+            "label": "w",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_int8"
+        },
+        {
+            "astId": 19,
+            "contract": "<stdin>:C",
+            "label": "z",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_uint128"
+        },
+        {
+            "astId": 21,
+            "contract": "<stdin>:C",
+            "label": "b",
+            "offset": 17,
+            "slot": "0",
+            "type": "t_bool"
+        }
+    ],
+    "types": {
+        "t_bool": {
+            "encoding": "inplace",
+            "label": "bool",
+            "numberOfBytes": "1"
+        },
+        "t_int8": {
+            "encoding": "inplace",
+            "label": "int8",
+            "numberOfBytes": "1"
+        },
+        "t_uint128": {
+            "encoding": "inplace",
+            "label": "uint128",
+            "numberOfBytes": "16"
+        }
+    }
+}
+Contract Transient Storage Layout:
+{
+    "storage": [
+        {
+            "astId": 10,
+            "contract": "<stdin>:C",
+            "label": "t2",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint256"
+        },
+        {
+            "astId": 14,
+            "contract": "<stdin>:C",
+            "label": "t3",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_int8"
+        },
+        {
+            "astId": 23,
+            "contract": "<stdin>:C",
+            "label": "t4",
+            "offset": 1,
+            "slot": "1",
+            "type": "t_bool"
+        }
+    ],
+    "types": {
+        "t_bool": {
+            "encoding": "inplace",
+            "label": "bool",
+            "numberOfBytes": "1"
+        },
+        "t_int8": {
+            "encoding": "inplace",
+            "label": "int8",
+            "numberOfBytes": "1"
+        },
+        "t_uint256": {
+            "encoding": "inplace",
+            "label": "uint256",
+            "numberOfBytes": "32"
+        }
+    }
+}
+
+======= <stdin>:D =======
+Contract Storage Layout:
+{
+    "storage": [
+        {
+            "astId": 3,
+            "contract": "<stdin>:D",
+            "label": "x",
+            "offset": 0,
+            "slot": "100",
+            "type": "t_uint256"
+        },
+        {
+            "astId": 7,
+            "contract": "<stdin>:D",
+            "label": "y",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_uint256"
+        },
+        {
+            "astId": 12,
+            "contract": "<stdin>:D",
+            "label": "w",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_int8"
+        },
+        {
+            "astId": 19,
+            "contract": "<stdin>:D",
+            "label": "z",
+            "offset": 1,
+            "slot": "102",
+            "type": "t_uint128"
+        },
+        {
+            "astId": 21,
+            "contract": "<stdin>:D",
+            "label": "b",
+            "offset": 17,
+            "slot": "102",
+            "type": "t_bool"
+        },
+        {
+            "astId": 32,
+            "contract": "<stdin>:D",
+            "label": "addr",
+            "offset": 0,
+            "slot": "103",
+            "type": "t_address"
+        },
+        {
+            "astId": 38,
+            "contract": "<stdin>:D",
+            "label": "array",
+            "offset": 0,
+            "slot": "104",
+            "type": "t_array(t_uint256)2_storage"
+        },
+        {
+            "astId": 42,
+            "contract": "<stdin>:D",
+            "label": "m",
+            "offset": 0,
+            "slot": "106",
+            "type": "t_mapping(t_uint256,t_address)"
+        }
+    ],
+    "types": {
+        "t_address": {
+            "encoding": "inplace",
+            "label": "address",
+            "numberOfBytes": "20"
+        },
+        "t_array(t_uint256)2_storage": {
+            "base": "t_uint256",
+            "encoding": "inplace",
+            "label": "uint256[2]",
+            "numberOfBytes": "64"
+        },
+        "t_bool": {
+            "encoding": "inplace",
+            "label": "bool",
+            "numberOfBytes": "1"
+        },
+        "t_int8": {
+            "encoding": "inplace",
+            "label": "int8",
+            "numberOfBytes": "1"
+        },
+        "t_mapping(t_uint256,t_address)": {
+            "encoding": "mapping",
+            "key": "t_uint256",
+            "label": "mapping(uint256 => address)",
+            "numberOfBytes": "32",
+            "value": "t_address"
+        },
+        "t_uint128": {
+            "encoding": "inplace",
+            "label": "uint128",
+            "numberOfBytes": "16"
+        },
+        "t_uint256": {
+            "encoding": "inplace",
+            "label": "uint256",
+            "numberOfBytes": "32"
+        }
+    }
+}
+Contract Transient Storage Layout:
+{
+    "storage": [
+        {
+            "astId": 5,
+            "contract": "<stdin>:D",
+            "label": "t1",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint256"
+        },
+        {
+            "astId": 10,
+            "contract": "<stdin>:D",
+            "label": "t2",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_uint256"
+        },
+        {
+            "astId": 14,
+            "contract": "<stdin>:D",
+            "label": "t3",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_int8"
+        },
+        {
+            "astId": 23,
+            "contract": "<stdin>:D",
+            "label": "t4",
+            "offset": 1,
+            "slot": "2",
+            "type": "t_bool"
+        },
+        {
+            "astId": 34,
+            "contract": "<stdin>:D",
+            "label": "t5",
+            "offset": 2,
+            "slot": "2",
+            "type": "t_address"
+        }
+    ],
+    "types": {
+        "t_address": {
+            "encoding": "inplace",
+            "label": "address",
+            "numberOfBytes": "20"
+        },
+        "t_bool": {
+            "encoding": "inplace",
+            "label": "bool",
+            "numberOfBytes": "1"
+        },
+        "t_int8": {
+            "encoding": "inplace",
+            "label": "int8",
+            "numberOfBytes": "1"
+        },
+        "t_uint256": {
+            "encoding": "inplace",
+            "label": "uint256",
+            "numberOfBytes": "32"
+        }
+    }
+}
+
+======= <stdin>:P =======
+Contract Storage Layout:
+{
+    "storage": [
+        {
+            "astId": 3,
+            "contract": "<stdin>:P",
+            "label": "x",
+            "offset": 0,
+            "slot": "200",
+            "type": "t_uint256"
+        },
+        {
+            "astId": 7,
+            "contract": "<stdin>:P",
+            "label": "y",
+            "offset": 0,
+            "slot": "201",
+            "type": "t_uint256"
+        },
+        {
+            "astId": 49,
+            "contract": "<stdin>:P",
+            "label": "q",
+            "offset": 0,
+            "slot": "202",
+            "type": "t_uint256"
+        }
+    ],
+    "types": {
+        "t_uint256": {
+            "encoding": "inplace",
+            "label": "uint256",
+            "numberOfBytes": "32"
+        }
+    }
+}
+Contract Transient Storage Layout:
+{
+    "storage": [
+        {
+            "astId": 5,
+            "contract": "<stdin>:P",
+            "label": "t1",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint256"
+        }
+    ],
+    "types": {
+        "t_uint256": {
+            "encoding": "inplace",
+            "label": "uint256",
+            "numberOfBytes": "32"
+        }
+    }
+}

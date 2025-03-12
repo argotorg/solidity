@@ -220,6 +220,27 @@ json = re.sub(r"\n\s*\n", "\n", json)                                           
 json = re.sub(r"},(\n{0,1})\n*(\s*(]|}))", r"}\1\2", json)                          # Remove trailing comma
 open("$stdout_path", "w").write(json)
 EOF
+        # Only do this to files that actually contain ethdebug output, because jq will reformat
+        # the whole file and its formatting differs from `solc --pretty-json`
+        if jq 'has("ethdebug")' "$stdout_path" --exit-status > /dev/null; then
+            local temporary_file
+            temporary_file=$(mktemp -t cmdline-ethdebug-XXXXXX.tmp)
+            if [[ -e ${tdir}/strip-ethdebug ]]; then
+                jq --indent 4 '
+                    (. | .. | objects | select(has("ethdebug"))) |= (.ethdebug = "<ETHDEBUG DEBUG DATA REMOVED>")
+                ' "$stdout_path" > "$temporary_file"
+            else
+                jq --indent 4 '
+                    if .ethdebug.compilation.compiler.version? != null then
+                        .ethdebug.compilation.compiler.version = "<VERSION REMOVED>"
+                    else
+                        .
+                    end
+                ' "$stdout_path" > "$temporary_file"
+            fi
+            mv "$temporary_file" "$stdout_path"
+        fi
+
         sed -i.bak -E -e 's/ Consider adding \\"pragma solidity \^[0-9.]*;\\"//g' "$stdout_path"
         sed -i.bak -E -e 's/\"opcodes\":[[:space:]]*\"[^"]+\"/\"opcodes\":\"<OPCODES REMOVED>\"/g' "$stdout_path"
         sed -i.bak -E -e 's/\"sourceMap\":[[:space:]]*\"[0-9:;-]+\"/\"sourceMap\":\"<SOURCEMAP REMOVED>\"/g' "$stdout_path"

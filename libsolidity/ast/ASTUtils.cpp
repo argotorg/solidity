@@ -123,4 +123,18 @@ bigint contractStorageSizeUpperBound(ContractDefinition const& _contract, Variab
 	return size;
 }
 
+u256 layoutBaseForInheritanceHierarchy(ContractDefinition const& _topLevelContract, DataLocation _location)
+{
+	if (_location != DataLocation::Storage)
+	{
+		solAssert(_location == DataLocation::Transient);
+		return 0;
+	}
+
+	if (auto const* storageLayoutSpecifier = _topLevelContract.storageLayoutSpecifier())
+		return *storageLayoutSpecifier->annotation().baseSlot;
+
+	return 0;
+}
+
 }

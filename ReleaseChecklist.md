@@ -121,4 +121,5 @@ At least a day before the release:
  - [ ] Share the announcement on [`#solidity` channel on Matrix](https://matrix.to/#/#ethereum_solidity:gitter.im)
  - [ ] Share the announcement on [`#solc-tooling`](https://matrix.to/#/#solc-tooling:matrix.org)
  - [ ] If anything went wrong this time, mention it in [Learning from Past Releases](https://notes.ethereum.org/@solidity/release-mistakes).
+ - [ ] Bump vendored dependencies.
  - [ ] Lean back, wait for bug reports and repeat from step 1 :).

@@ -149,9 +149,6 @@ public:
 	// return the JSON representation of the YuL CFG (experimental)
 	Json cfgJson() const;
 
-	/// @returns a JSON representing the top-level ethdebug data (types, etc.).
-	Json ethdebug() const;
-
 	/// Return the parsed and analyzed object.
 	std::shared_ptr<Object> parserResult() const;
 

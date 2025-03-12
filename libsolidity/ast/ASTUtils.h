@@ -18,6 +18,8 @@
 
 #pragma once
 
+#include <libsolutil/Numeric.h>
+
 namespace solidity::frontend
 {
 
@@ -26,6 +28,7 @@ class Declaration;
 class Expression;
 class SourceUnit;
 class VariableDeclaration;
+class ContractDefinition;
 
 /// Find the topmost referenced constant variable declaration when the given variable
 /// declaration value is an identifier. Works only for constant variable declarations.
@@ -51,5 +54,11 @@ Type const* type(VariableDeclaration const& _variable);
 /// @returns The number of slots occupied by all state variables in contract's inheritance hierarchy,
 /// located in @a _location (either storage or transient storage).
 bigint contractStorageSizeUpperBound(ContractDefinition const& _contract, VariableDeclaration::Location _location);
+
+/// @returns The base slot of the inheritance hierarchy rooted at the specified contract.
+/// The value comes from the inheritance specifier of the contract and defaults to zero.
+/// The value is zero also when the contract is an interface or a library (and cannot have storage).
+/// Assumes analysis was successful.
+u256 layoutBaseForInheritanceHierarchy(ContractDefinition const& _topLevelContract, DataLocation _location);
 
 }

@@ -4,7 +4,7 @@
             "A1": {
                 "evm": {
                     "deployedBytecode": {
-                        "ethdebug": {}
+                        "ethdebug": "<ETHDEBUG DEBUG DATA REMOVED>"
                     }
                 },
                 "ir": "/// ethdebug: enabled
@@ -181,7 +181,7 @@ object \"A1_14\" {
             "A2": {
                 "evm": {
                     "deployedBytecode": {
-                        "ethdebug": {}
+                        "ethdebug": "<ETHDEBUG DEBUG DATA REMOVED>"
                     }
                 },
                 "ir": "/// ethdebug: enabled
@@ -360,7 +360,7 @@ object \"A2_27\" {
             "A1": {
                 "evm": {
                     "deployedBytecode": {
-                        "ethdebug": {}
+                        "ethdebug": "<ETHDEBUG DEBUG DATA REMOVED>"
                     }
                 },
                 "ir": "/// ethdebug: enabled
@@ -537,7 +537,7 @@ object \"A1_42\" {
             "B2": {
                 "evm": {
                     "deployedBytecode": {
-                        "ethdebug": {}
+                        "ethdebug": "<ETHDEBUG DEBUG DATA REMOVED>"
                     }
                 },
                 "ir": "/// ethdebug: enabled
@@ -713,12 +713,7 @@ object \"B2_55\" {
             }
         }
     },
-    "ethdebug": {
-        "sources": [
-            "a.sol",
-            "b.sol"
-        ]
-    },
+    "ethdebug": "<ETHDEBUG DEBUG DATA REMOVED>",
     "sources": {
         "a.sol": {
             "id": 0

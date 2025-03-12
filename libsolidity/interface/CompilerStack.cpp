@@ -78,12 +78,13 @@
 #include <liblangutil/SemVerHandler.h>
 #include <liblangutil/SourceReferenceFormatter.h>
 
-
 #include <libsolutil/SwarmHash.h>
 #include <libsolutil/IpfsHash.h>
 #include <libsolutil/JSON.h>
 #include <libsolutil/Algorithms.h>
 #include <libsolutil/FunctionSelector.h>
+
+#include <libevmasm/Ethdebug.h>
 
 #include <boost/algorithm/string/replace.hpp>
 
@@ -827,7 +828,12 @@ YulStack CompilerStack::loadGeneratedIR(std::string const& _ir) const
 		yulAnalysisSuccessful,
 		_ir + "\n\n"
 		"Invalid IR generated:\n" +
-		SourceReferenceFormatter::formatErrorInformation(stack.errors(), stack) + "\n"
+		SourceReferenceFormatter::formatErrorInformation(
+			stack.errors(),
+			stack, // _charStreamProvider
+			false, // _colored
+			true   // _withErrorIds
+		) + "\n"
 	);
 
 	return stack;
@@ -1109,7 +1115,6 @@ Json const& CompilerStack::storageLayout(Contract const& _contract) const
 	solAssert(m_stackState >= AnalysisSuccessful, "Analysis was not successful.");
 	solAssert(_contract.contract);
 	solUnimplementedAssert(!isExperimentalSolidity());
-	solUnimplementedAssert(!_contract.contract->storageLayoutSpecifier(), "Storage layout not supported for contract with specified layout base.");
 
 	return _contract.storageLayout.init([&]{ return StorageLayout().generate(*_contract.contract, DataLocation::Storage); });
 }
@@ -1191,9 +1196,7 @@ Json CompilerStack::ethdebug() const
 {
 	solAssert(m_stackState >= AnalysisSuccessful, "Analysis was not successful.");
 	solAssert(!m_contracts.empty());
-	Json result = Json::object();
-	result["sources"] = sourceNames();
-	return result;
+	return evmasm::ethdebug::resources(sourceNames(), VersionString);
 }
 
 Json CompilerStack::ethdebug(std::string const& _contractName) const
@@ -1211,13 +1214,10 @@ Json CompilerStack::ethdebug(Contract const& _contract, bool _runtime) const
 	solAssert(m_stackState >= AnalysisSuccessful, "Analysis was not successful.");
 	solAssert(_contract.contract);
 	solUnimplementedAssert(!isExperimentalSolidity());
-	if (_runtime)
-	{
-		Json result = Json::object();
-		return result;
-	}
-	Json result = Json::object();
-	return result;
+	evmasm::LinkerObject const& object = _runtime ? _contract.runtimeObject : _contract.object;
+	std::shared_ptr<evmasm::Assembly> const& assembly = _runtime ? _contract.evmRuntimeAssembly : _contract.evmAssembly;
+	solAssert(sourceIndices().contains(_contract.contract->sourceUnitName()));
+	return evmasm::ethdebug::program(_contract.contract->name(), sourceIndices()[_contract.contract->sourceUnitName()], assembly.get(), object);
 }
 
 bytes CompilerStack::cborMetadata(std::string const& _contractName, bool _forIR) const
@@ -1534,7 +1534,6 @@ void CompilerStack::compileContract(
 	solAssert(!m_viaIR, "");
 	solUnimplementedAssert(!m_eofVersion.has_value(), "Experimental EOF support is only available for via-IR compilation.");
 	solAssert(m_stackState >= AnalysisSuccessful, "");
-	solUnimplementedAssert(!_contract.storageLayoutSpecifier(), "Code generation is not supported for contracts with specified storage layout base.");
 
 	if (_otherCompilers.count(&_contract))
 		return;
@@ -1570,7 +1569,6 @@ void CompilerStack::compileContract(
 void CompilerStack::generateIR(ContractDefinition const& _contract, bool _unoptimizedOnly)
 {
 	solAssert(m_stackState >= AnalysisSuccessful, "");
-	solUnimplementedAssert(!_contract.storageLayoutSpecifier(), "Code generation is not supported for contracts with specified storage layout base.");
 	Contract& compiledContract = m_contracts.at(_contract.fullyQualifiedName());
 	if (compiledContract.yulIR)
 	{

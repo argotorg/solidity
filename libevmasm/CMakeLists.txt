@@ -4,6 +4,8 @@ set(sources
 	Assembly.h
 	AssemblyItem.cpp
 	AssemblyItem.h
+	Ethdebug.cpp
+	Ethdebug.h
 	EVMAssemblyStack.cpp
 	EVMAssemblyStack.h
 	BlockDeduplicator.cpp

@@ -353,11 +353,14 @@ Input Description
             }
           }
         },
-        // Version of the EVM to compile for.
+        // Version of the EVM to compile for (optional).
         // Affects type checking and code generation. Can be homestead,
         // tangerineWhistle, spuriousDragon, byzantium, constantinople,
         // petersburg, istanbul, berlin, london, paris, shanghai, cancun (default), prague (experimental) or osaka (experimental).
         "evmVersion": "cancun",
+        // EVM Object Format version to compile for (optional, experimental).
+        // Currently the only valid value is 1. If not specified, legacy non-EOF bytecode will be generated.
+        "eofVersion": null,
         // Optional: Change compilation pipeline to go through the Yul intermediate representation.
         // This is false by default.
         "viaIR": true,

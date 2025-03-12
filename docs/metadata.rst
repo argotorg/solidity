@@ -134,6 +134,8 @@ explanatory purposes.
         },
         // Required for Solidity.
         "evmVersion": "london",
+        // Optional: Only present if not null.
+        "eofVersion": 1,
         // Required for Solidity: Addresses for libraries used.
         "libraries": {
           "MyLib": "0x123123..."
