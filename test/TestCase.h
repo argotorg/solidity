@@ -110,16 +110,22 @@ protected:
 	bool m_shouldRun = true;
 };
 
+enum class BytecodeFormat
+{
+	Legacy,
+	EOFv1
+};
+
 class EVMVersionRestrictedTestCase: public TestCase
 {
 private:
-	std::string m_bytecodeFormat;
+	std::set<BytecodeFormat> m_bytecodeFormat;
 
 	void processEVMVersionSetting();
 	void processBytecodeFormatSetting();
 
 protected:
-	const std::string& bytecodeFormat() const { return m_bytecodeFormat; }
+	std::set<BytecodeFormat> const& bytecodeFormat() const { return m_bytecodeFormat; }
 
 	EVMVersionRestrictedTestCase(std::string const& _filename);
 };
@@ -129,7 +135,7 @@ enum class CompileViaYul
 	False,
 	True,
 	Also,
-	onlyOnEOF,
+	OnlyOnEOF,
 };
 
 std::ostream& operator<<(std::ostream& _output, CompileViaYul _compileViaYul);

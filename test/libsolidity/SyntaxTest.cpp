@@ -59,9 +59,10 @@ SyntaxTest::SyntaxTest(
 		toString(CompileViaYul::OnlyOnEOF)
 	);
 
-	solUnimplementedAssert(m_compileViaYul != CompileViaYul::Also);
+	solUnimplementedAssert(m_compileViaYul != CompileViaYul::Also,
+		"'compileViaYul: also' is not yet supported in syntax tests.");
 
-	if (bytecodeFormat() == ">=EOFv1" && m_compileViaYul == CompileViaYul::False)
+	if (bytecodeFormat().contains(BytecodeFormat::EOFv1) && m_compileViaYul == CompileViaYul::False)
 		BOOST_THROW_EXCEPTION(std::runtime_error("Compilation to EOF requires using Yul IR"));
 
 	if (m_compileViaYul == CompileViaYul::False && eofEnabled)

@@ -98,13 +98,15 @@ SemanticTest::SemanticTest(
 			{toString(CompileViaYul::False), CompileViaYul::False},
 			{toString(CompileViaYul::True), CompileViaYul::True},
 			{toString(CompileViaYul::Also), CompileViaYul::Also},
-			{toString(CompileViaYul::onlyOnEOF), CompileViaYul::onlyOnEOF}
+			{toString(CompileViaYul::OnlyOnEOF), CompileViaYul::OnlyOnEOF}
 		},
 		eofEnabled ? toString(CompileViaYul::True) : toString(CompileViaYul::Also)
 	);
 
-	std::string bytecodeFormatString = m_reader.stringSetting("bytecodeFormat", "unset");
-	if (bytecodeFormatString == ">=EOFv1" && compileViaYul == CompileViaYul::False)
+	solUnimplementedAssert(compileViaYul != CompileViaYul::OnlyOnEOF,
+		"'compileViaYul: onlyOnEOF' is not yet supported in semantic tests.");
+
+	if (bytecodeFormat().contains(BytecodeFormat::EOFv1) && compileViaYul == CompileViaYul::False)
 		BOOST_THROW_EXCEPTION(std::runtime_error("Compilation to EOF requires using Yul IR"));
 
 	if (compileViaYul == CompileViaYul::False && eofEnabled)

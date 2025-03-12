@@ -150,17 +150,27 @@ void EVMVersionRestrictedTestCase::processBytecodeFormatSetting()
 	// EOF only available since Osaka
 	solAssert(!eofVersion.has_value() || solidity::test::CommonOptions::get().evmVersion().supportsEOF());
 
-	m_bytecodeFormat = m_reader.stringSetting("bytecodeFormat", "legacy,>=EOFv1");
-	if (bytecodeFormat() == "legacy,>=EOFv1" || bytecodeFormat() == ">=EOFv1,legacy")
+	auto const bytecodeFormatStr = m_reader.stringSetting("bytecodeFormat", "");
+	if (bytecodeFormatStr == "legacy,>=EOFv1" || bytecodeFormatStr == ">=EOFv1,legacy")
+	{
+		m_bytecodeFormat.insert(BytecodeFormat::Legacy);
+		m_bytecodeFormat.insert(BytecodeFormat::EOFv1);
+	}
+	else if (bytecodeFormatStr == "legacy")
+		m_bytecodeFormat.insert(BytecodeFormat::Legacy);
+	else if (bytecodeFormatStr == ">=EOFv1")
+		m_bytecodeFormat.insert(BytecodeFormat::EOFv1);
+	else if (!bytecodeFormatStr.empty())
+		BOOST_THROW_EXCEPTION(std::runtime_error{"Invalid bytecodeFormat flag: \"" + bytecodeFormatStr + "\""});
+
+	if (bytecodeFormat().contains(BytecodeFormat::Legacy) && bytecodeFormat().contains(BytecodeFormat::EOFv1))
 		return;
 
 	// TODO: This is naive implementation because for now we support only one EOF version.
-	if (bytecodeFormat() == "legacy" && eofVersion.has_value())
+	if (bytecodeFormat().contains(BytecodeFormat::Legacy) && eofVersion.has_value())
 		m_shouldRun = false;
-	else if (bytecodeFormat() == ">=EOFv1" && !eofVersion.has_value())
+	else if (bytecodeFormat().contains(BytecodeFormat::EOFv1) && !eofVersion.has_value())
 		m_shouldRun = false;
-	else if (bytecodeFormat() != "legacy" && bytecodeFormat() != ">=EOFv1" )
-		BOOST_THROW_EXCEPTION(std::runtime_error{"Invalid bytecodeFormat flag: \"" + bytecodeFormat() + "\""});
 }
 
 EVMVersionRestrictedTestCase::EVMVersionRestrictedTestCase(std::string const& _filename):
@@ -177,7 +187,7 @@ std::ostream& solidity::frontend::test::operator<<(std::ostream& _output, Compil
 	case CompileViaYul::False: _output << "false"; break;
 	case CompileViaYul::True: _output << "true"; break;
 	case CompileViaYul::Also: _output << "also"; break;
-	case CompileViaYul::onlyOnEOF: _output << "onlyOnEOF"; break;
+	case CompileViaYul::OnlyOnEOF: _output << "onlyOnEOF"; break;
 	}
 	return _output;
 }
