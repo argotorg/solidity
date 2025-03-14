@@ -103,8 +103,8 @@ SemanticTest::SemanticTest(
 		eofEnabled ? toString(CompileViaYul::True) : toString(CompileViaYul::Also)
 	);
 
-	solUnimplementedAssert(compileViaYul != CompileViaYul::OnlyOnEOF,
-		"'compileViaYul: onlyOnEOF' is not yet supported in semantic tests.");
+	if (compileViaYul == CompileViaYul::OnlyOnEOF)
+		solUnimplemented("'compileViaYul: onlyOnEOF' is not yet supported in semantic tests.");
 
 	if (bytecodeFormat().contains(BytecodeFormat::EOFv1) && compileViaYul == CompileViaYul::False)
 		BOOST_THROW_EXCEPTION(std::runtime_error("Compilation to EOF requires using Yul IR"));

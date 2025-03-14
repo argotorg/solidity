@@ -11,5 +11,6 @@ contract C {
 // ====
 // ABIEncoderV1Only: true
 // compileViaYul: false
+// bytecodeFormat: legacy
 // ----
 // f(bytes2,uint16): "abc", 0x40102 -> 0x0 # We input longer data on purpose. #

@@ -29,6 +29,7 @@ contract C {
 }
 // ====
 // compileViaYul: false
+// bytecodeFormat: legacy
 // ----
 // f(uint256): 1 -> 1
 // f(uint256): 2 -> 2

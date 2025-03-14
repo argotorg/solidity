@@ -35,6 +35,7 @@ contract C {
 }
 // ====
 // compileViaYul: false
+// bytecodeFormat: legacy
 // ----
 // ret() -> 0xff
 // f(uint8): 0x1ff -> 0xff

@@ -63,6 +63,7 @@ contract C {
 
 // ====
 // compileViaYul: false
+// bytecodeFormat: legacy
 // ----
 // constructor() ->
 // gas legacy: 92268

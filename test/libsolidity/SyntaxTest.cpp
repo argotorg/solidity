@@ -46,8 +46,6 @@ SyntaxTest::SyntaxTest(
 	CommonSyntaxTest(_filename, _evmVersion),
 	m_minSeverity(_minSeverity)
 {
-	auto const eofEnabled = solidity::test::CommonOptions::get().eofVersion().has_value();
-
 	m_compileViaYul = m_reader.enumSetting<CompileViaYul>(
 		"compileViaYul",
 		{
@@ -64,9 +62,6 @@ SyntaxTest::SyntaxTest(
 
 	if (bytecodeFormat().contains(BytecodeFormat::EOFv1) && m_compileViaYul == CompileViaYul::False)
 		BOOST_THROW_EXCEPTION(std::runtime_error("Compilation to EOF requires using Yul IR"));
-
-	if (m_compileViaYul == CompileViaYul::False && eofEnabled)
-		m_shouldRun = false;
 
 	m_optimiseYul = m_reader.boolSetting("optimize-yul", true);
 	m_experimental = m_reader.boolSetting("experimental", false);

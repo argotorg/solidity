@@ -150,24 +150,23 @@ void EVMVersionRestrictedTestCase::processBytecodeFormatSetting()
 	// EOF only available since Osaka
 	solAssert(!eofVersion.has_value() || solidity::test::CommonOptions::get().evmVersion().supportsEOF());
 
-	auto const bytecodeFormatStr = m_reader.stringSetting("bytecodeFormat", "");
+	auto const bytecodeFormatStr = m_reader.stringSetting("bytecodeFormat", "legacy,>=EOFv1");
 	if (bytecodeFormatStr == "legacy,>=EOFv1" || bytecodeFormatStr == ">=EOFv1,legacy")
-	{
-		m_bytecodeFormat.insert(BytecodeFormat::Legacy);
-		m_bytecodeFormat.insert(BytecodeFormat::EOFv1);
-	}
+		m_bytecodeFormat = {BytecodeFormat::Legacy, BytecodeFormat::EOFv1};
 	else if (bytecodeFormatStr == "legacy")
-		m_bytecodeFormat.insert(BytecodeFormat::Legacy);
+		m_bytecodeFormat = {BytecodeFormat::Legacy};
 	else if (bytecodeFormatStr == ">=EOFv1")
-		m_bytecodeFormat.insert(BytecodeFormat::EOFv1);
-	else if (!bytecodeFormatStr.empty())
+		m_bytecodeFormat = {BytecodeFormat::EOFv1};
+	else if (bytecodeFormatStr.empty())
+		BOOST_THROW_EXCEPTION(std::runtime_error{"The 'bytecodeFormat' setting requires at least one value."});
+	else
 		BOOST_THROW_EXCEPTION(std::runtime_error{"Invalid bytecodeFormat flag: \"" + bytecodeFormatStr + "\""});
 
 	if (bytecodeFormat().contains(BytecodeFormat::Legacy) && bytecodeFormat().contains(BytecodeFormat::EOFv1))
 		return;
 
 	// TODO: This is naive implementation because for now we support only one EOF version.
-	if (bytecodeFormat().contains(BytecodeFormat::Legacy) && eofVersion.has_value())
+	if (!bytecodeFormat().contains(BytecodeFormat::EOFv1) && eofVersion.has_value())
 		m_shouldRun = false;
 	else if (bytecodeFormat().contains(BytecodeFormat::EOFv1) && !eofVersion.has_value())
 		m_shouldRun = false;

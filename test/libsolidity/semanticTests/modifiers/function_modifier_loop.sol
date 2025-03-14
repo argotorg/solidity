@@ -15,5 +15,6 @@ contract C {
 
 // ====
 // compileViaYul: false
+// bytecodeFormat: legacy
 // ----
 // f() -> 10

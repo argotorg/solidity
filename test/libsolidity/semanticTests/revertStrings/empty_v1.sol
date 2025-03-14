@@ -12,6 +12,7 @@ contract C {
 // EVMVersion: >=byzantium
 // revertStrings: debug
 // compileViaYul: false
+// bytecodeFormat: legacy
 // ----
 // f() -> FAILURE, hex"08c379a0", 0x20, 0
 // g(string): 0x20, 0, "" -> FAILURE, hex"08c379a0", 0x20, 0

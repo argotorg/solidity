@@ -8,5 +8,6 @@ contract B is A {
 }
 // ====
 // compileViaYul: false
+// bytecodeFormat: legacy
 // ----
 // x() -> 4

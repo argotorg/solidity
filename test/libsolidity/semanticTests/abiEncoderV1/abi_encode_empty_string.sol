@@ -22,6 +22,7 @@ contract C {
 // ====
 // ABIEncoderV1Only: true
 // compileViaYul: false
+// bytecodeFormat: legacy
 // ----
 // f1() -> 0x20, 0x40, 0x20, 0
 // f2(string): 0x20, 0 -> 0x20, 0x40, 0x20, 0
