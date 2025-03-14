@@ -81,7 +81,7 @@ class BaseRunner(metaclass=ABCMeta):
             [self.solc_binary_path, "--version"],
             shell=False,
             encoding="utf-8"
-        ).partition(":")[1]
+        ).split(":")[1]
         return parse_solc_version(solc_version_output)
 
     @staticmethod
