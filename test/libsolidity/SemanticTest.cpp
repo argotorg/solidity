@@ -681,6 +681,12 @@ bool SemanticTest::deploy(
 	std::map<std::string, solidity::test::Address> const& _libraries
 )
 {
+	std::cout << std::endl << "deploy():" << std::endl;
+	std::cout << "_contractName: " << _contractName << std::endl;
 	auto output = compileAndRunWithoutCheck(m_sources.sources, _value, _contractName, _arguments, _libraries, m_sources.mainSourceFile);
+	
+	std::cout << "output: " << output.size() << std::endl;
+	std::cout << "m_transactionSuccessful: " << m_transactionSuccessful << std::endl;
+
 	return !output.empty() && m_transactionSuccessful;
 }

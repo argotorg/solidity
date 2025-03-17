@@ -159,6 +159,25 @@ public:
 	/// compilation.
 	std::string errorInformation() const;
 
+	friend std::ostream& operator<<(std::ostream& os, const CompilerOutput& output)
+	{
+		os << "CompilerOutput {" << std::endl;
+		os << "    m_sourceUnits: [" << std::endl;
+		
+		for (auto [sourceName, contracts]: output.m_sourceUnits) {
+			os << "         name: " << sourceName << std::endl;
+			os << "         contracts: ["  << std::endl;
+			for (auto contract: contracts) {
+				os << "              name: " << contract.name << std::endl;
+			}
+			os << "         ]"  << std::endl;
+		}
+		
+		os << "    ]" << std::endl; 
+		os << "}" << std::endl;
+		return os;
+	}
+
 private:
 	/// All compiled contracts, indexed by source name.
 	SourceUnits m_sourceUnits;

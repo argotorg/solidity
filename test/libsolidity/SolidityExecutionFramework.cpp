@@ -48,6 +48,9 @@ bytes SolidityExecutionFramework::multiSourceCompileContract(
 	std::map<std::string, Address> const& _libraryAddresses
 )
 {
+	std::cout << "multiSourceCompileContract():" << std::endl;
+	std::cout << "_contractName: " << _contractName << std::endl;
+
 	if (_mainSourceName.has_value())
 		solAssert(_sourceCode.find(_mainSourceName.value()) != _sourceCode.end(), "");
 
@@ -70,6 +73,9 @@ bytes SolidityExecutionFramework::multiSourceCompileContract(
 	m_compiler.compile(m_compilerInput);
 
 	auto output = m_compiler.output();
+
+	std::cout << output << std::endl;
+
 	if (!output.success())
 	{
 		// The testing framework expects an exception for
@@ -96,6 +102,8 @@ bytes SolidityExecutionFramework::multiSourceCompileContract(
 	
 	if (m_showMetadata)
 		std::cout << "metadata: " << contract.value().metadata << std::endl;
+
+	std::cout << "_contract.name: " << contract.value().name << std::endl;
 	return contract.value().object;
 }
 
