@@ -472,7 +472,6 @@ bool SemanticInformation::movable(Instruction _instruction)
 	default:
 		return true;
 	}
-	return true;
 }
 
 bool SemanticInformation::canBeRemoved(Instruction _instruction)
