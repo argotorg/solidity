@@ -32,7 +32,7 @@ please help us extend this section (especially, some examples would not hurt)!
 
 NOTE: In addition to the list below, you can find more security recommendations and best practices
 `in Guy Lando's knowledge list <https://github.com/guylando/KnowledgeLists/blob/master/EthereumSmartContracts.md>`_ and
-`the Consensys GitHub repo <https://consensys.github.io/smart-contract-best-practices/>`_.
+`the Smart Contract Security Field Guide <https://scsfg.io/>`_.
 
 ********
 Pitfalls
