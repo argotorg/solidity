@@ -695,3 +695,133 @@ Error Types
 13. ``YulException``: Error during Yul code generation - this should be reported as an issue.
 14. ``Warning``: A warning, which didn't stop the compilation, but should be addressed if possible.
 15. ``Info``: Information that the compiler thinks the user might find useful, but is not dangerous and does not necessarily need to be addressed.
+
+.. _output-selection-documentation:
+
+Output Selection Deep Dive
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The ``outputSelection`` field allows fine-grained control over which compiler outputs to generate for each source file and contract.
+Understanding its syntax and semantics can help optimize compilation time and reduce unnecessary outputs.
+
+For more detailed examples showing how to use ``outputSelection`` effectively in different scenarios, see the :doc:`examples/output-selection` page.
+
+Syntax and Structure
+~~~~~~~~~~~~~~~~~~~
+
+The ``outputSelection`` field uses a two-level nested JSON object with the following structure:
+
+.. code-block:: javascript
+
+    "outputSelection": {
+      // First level: source file name (or wildcard)
+      "<file_name or *>": {
+        // Second level: contract name (or wildcard or empty string)
+        "<contract_name or * or ?>": [ 
+          // List of requested outputs
+          "<output1>", "<output2>", ...
+        ]
+      }
+    }
+
+Special Values
+~~~~~~~~~~~~~
+
+* ``"*"`` (asterisk) as a file name: Matches all source files.
+* ``"*"`` as a contract name: Matches all contracts in the specified file.
+* ``""`` (empty string) as a contract name: Used for outputs that apply to the entire source file rather than specific contracts (e.g., ``ast``).
+* ``"*"`` as an output: Requests all standard outputs, with some exceptions noted below.
+
+Wildcards and Matching Rules
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+1. The wildcard ``"*"`` is recognized as a special value only when it appears exactly as ``"*"``. Patterns like ``"*.sol"`` are interpreted literally and will not match any files unless a file is actually named ``"*.sol"``.
+
+2. When using ``"*"`` as an output selector, it does not match experimental outputs by default. As of Solidity 0.8.x, experimental outputs include:
+   
+   * ``"ir"``
+   * ``"irAst"``
+   * ``"irOptimized"``
+   * ``"irOptimizedAst"``
+   * ``"yulCFGJson"``
+   * ``"ethdebug"`` (and any output containing ``"ethdebug"``)
+
+   These must be requested explicitly or with the appropriate compiler settings.
+
+3. Overlapping selections are combined. For example, if you specify both ``"*": { "*": ["abi"] }`` and ``"MyFile.sol": { "MyContract": ["evm"] }``, then ``MyContract`` in ``MyFile.sol`` will have both ``abi`` and all ``evm`` outputs generated.
+
+Example Patterns
+~~~~~~~~~~~~~~~
+
+1. Request everything for all files and contracts:
+
+   .. code-block:: javascript
+
+      "outputSelection": { "*": { "*": [ "*" ], "": [ "*" ] } }
+
+   Note: This does not include experimental outputs.
+
+2. Request ABI only for all contracts:
+
+   .. code-block:: javascript
+
+      "outputSelection": { "*": { "*": [ "abi" ] } }
+
+3. Request AST for all files plus bytecode for specific contracts:
+
+   .. code-block:: javascript
+
+      "outputSelection": {
+        "*": { "": [ "ast" ] },
+        "Main.sol": { "MainContract": [ "evm.bytecode.object" ] }
+      }
+
+Performance Considerations
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+1. **Lazy Compilation**: The compiler performs only the compilation stages required by the requested outputs. For example:
+   
+   * If you request only ``"abi"``, the compiler will not generate bytecode
+   * If you request only ``"ir"``, the compiler will not proceed to EVM bytecode generation
+
+2. **Compilation Stages and Dependencies**:
+
+   * **Parsing**: Required for all outputs
+   * **Analysis**: Required for most outputs including ABI
+   * **IR Generation**: Required for IR-related outputs and bytecode when using ``viaIR: true``
+   * **IR Optimization**: Required for optimized IR outputs
+   * **Bytecode Generation**: Required for EVM-related outputs
+
+3. **Implicit Dependencies**: Some outputs trigger compilation of related contracts. For example:
+   
+   * Requesting bytecode for a contract will compile any libraries it uses
+   * Inheritance relationships may require compilation of parent contracts
+
+Best Practices
+~~~~~~~~~~~~~
+
+1. **Framework Optimization**: Frameworks should request only the outputs they actually need
+   
+   * Bad: ``{ "*": { "*": [ "*" ] } }`` (compiles everything)
+   * Good: ``{ "*": { "*": [ "abi", "evm.bytecode.object" ] } }`` (specific outputs only)
+
+2. **Development vs. Production**: Use different output selections for different environments
+   
+   * Development: Include debugging info like source maps
+   * Production: Include only essential outputs
+
+3. **Avoid Redundancy**: Don't request the same output through multiple patterns
+
+   * Redundant: ``{ "*": { "*": [ "abi" ] }, "Contract.sol": { "MyContract": [ "abi" ] } }``
+   * Better: ``{ "*": { "*": [ "abi" ] } }``
+
+Version Compatibility
+~~~~~~~~~~~~~~~~~~~~
+
+The behavior of ``outputSelection`` has evolved across Solidity versions:
+
+* Pre-0.7.0: Limited wildcards support and different experimental output handling
+* 0.7.0+: Enhanced wildcards support but still with limitations for experimental outputs
+* 0.8.0+: Current behavior as documented above
+
+Legacy output selection via command-line options remains supported but using the JSON interface with specific output selection is recommended for production environments.
