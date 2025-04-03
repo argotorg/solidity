@@ -2,7 +2,6 @@
 contract C {
     function f() view public {
         assembly {
-            eofcreate("a", 0, 0, 0, 0)
             returncontract("a", 0)
             auxdataloadn(0)
         }
@@ -11,6 +10,5 @@ contract C {
 // ====
 // bytecodeFormat: >=EOFv1
 // ----
-// DeclarationError 4619: (186-195): Function "eofcreate" not found.
-// DeclarationError 4619: (225-239): Function "returncontract" not found.
-// DeclarationError 4619: (260-272): Function "auxdataloadn" not found.
+// DeclarationError 4619: (186-200): Function "returncontract" not found.
+// DeclarationError 4619: (221-233): Function "auxdataloadn" not found.

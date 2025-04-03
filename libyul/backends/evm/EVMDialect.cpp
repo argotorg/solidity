@@ -435,7 +435,7 @@ std::vector<std::optional<BuiltinFunctionForEVM>> createBuiltins(langutil::EVMVe
 			1,
 			EVMDialect::sideEffectsOfInstruction(evmasm::Instruction::EOFCREATE),
 			ControlFlowSideEffects::fromInstruction(evmasm::Instruction::EOFCREATE),
-			// TODO: Personaly I don't like this solution but cannot find any better way to prevent 9114 error in asm analysis.
+			// TODO: Personally I don't like this solution but cannot find any better way to prevent 9114 error in asm analysis.
 			{_objectAccess ? LiteralKind::String : std::optional<LiteralKind>{}, std::nullopt, std::nullopt, std::nullopt, std::nullopt},
 			[](
 				FunctionCall const& _call,

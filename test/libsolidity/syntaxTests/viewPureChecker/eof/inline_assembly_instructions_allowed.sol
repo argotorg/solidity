@@ -1,3 +1,5 @@
+contract B {}
+
 contract C {
     function f() public {
         assembly {
@@ -71,6 +73,8 @@ contract C {
             pop(tload(0))
             tstore(0, 0)
 
+            pop(eofcreate(B.objectName, 0, 0, 0, 0))
+
             // NOTE: msize() is allowed only with optimizer disabled
             //pop(msize())
         }
@@ -79,8 +83,8 @@ contract C {
 // ====
 // bytecodeFormat: >=EOFv1
 // ----
-// Warning 2394: (1970-1976): Transient storage as defined by EIP-1153 can break the composability of smart contracts: Since transient storage is cleared only at the end of the transaction and not at the end of the outermost call frame to the contract within a transaction, your contract may unintentionally misbehave when invoked multiple times in a complex transaction. To avoid this, be sure to clear all transient storage at the end of any call to your contract. The use of transient storage for reentrancy guards that are cleared at the end of the call is safe.
-// Warning 5740: (89-1400): Unreachable code.
-// Warning 5740: (1413-1425): Unreachable code.
-// Warning 5740: (1438-1447): Unreachable code.
-// Warning 5740: (1460-1982): Unreachable code.
+// Warning 2394: (1985-1991): Transient storage as defined by EIP-1153 can break the composability of smart contracts: Since transient storage is cleared only at the end of the transaction and not at the end of the outermost call frame to the contract within a transaction, your contract may unintentionally misbehave when invoked multiple times in a complex transaction. To avoid this, be sure to clear all transient storage at the end of any call to your contract. The use of transient storage for reentrancy guards that are cleared at the end of the call is safe.
+// Warning 5740: (104-1415): Unreachable code.
+// Warning 5740: (1428-1440): Unreachable code.
+// Warning 5740: (1453-1462): Unreachable code.
+// Warning 5740: (1475-2051): Unreachable code.
