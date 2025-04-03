@@ -19,7 +19,7 @@
 // ----
 // DeclarationError 7223: (6-18): Builtin function "auxdataloadn" is only available in EOF.
 // DeclarationError 4619: (26-35): Function "dataloadn" not found.
-// DeclarationError 7223: (43-52): Builtin function "eofcreate" is only available in EOF.
+// TypeError 4328: (43-52): The "eofcreate" instruction is only available in EOF.
 // DeclarationError 7223: (77-91): Builtin function "returncontract" is only available in EOF.
 // DeclarationError 4619: (110-115): Function "rjump" not found.
 // DeclarationError 4619: (122-128): Function "rjumpi" not found.

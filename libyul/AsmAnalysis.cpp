@@ -790,12 +790,12 @@ bool AsmAnalyzer::validateInstructions(evmasm::Instruction _instr, SourceLocatio
 	yulAssert(m_evmVersion.hasBitwiseShifting() == m_evmVersion.hasCreate2(), "");
 
 	// These instructions are disabled in the dialect.
+	// EOFCREATE instruction is enabled to run ViewPureChecker validation.
 	yulAssert(
 		_instr != evmasm::Instruction::JUMP &&
 		_instr != evmasm::Instruction::JUMPI &&
 		_instr != evmasm::Instruction::JUMPDEST &&
 		_instr != evmasm::Instruction::DATALOADN &&
-		_instr != evmasm::Instruction::EOFCREATE &&
 		_instr != evmasm::Instruction::RETURNCONTRACT &&
 		_instr != evmasm::Instruction::RJUMP &&
 		_instr != evmasm::Instruction::RJUMPI &&
@@ -863,7 +863,8 @@ bool AsmAnalyzer::validateInstructions(evmasm::Instruction _instr, SourceLocatio
 	else if (!m_eofVersion.has_value() && (
 		_instr == evmasm::Instruction::EXTCALL ||
 		_instr == evmasm::Instruction::EXTDELEGATECALL ||
-		_instr == evmasm::Instruction::EXTSTATICCALL
+		_instr == evmasm::Instruction::EXTSTATICCALL ||
+		_instr == evmasm::Instruction::EOFCREATE
 	))
 	{
 		m_errorReporter.typeError(

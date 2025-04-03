@@ -815,7 +815,7 @@ bool TypeChecker::visit(InlineAssembly const& _inlineAssembly)
 			if (!identifierInfo.suffix.empty())
 			{
 				std::string const& suffix = identifierInfo.suffix;
-				solAssert((std::set<std::string>{"offset", "slot", "length", "selector", "address"}).count(suffix), "");
+				solAssert((std::set<std::string>{"offset", "slot", "length", "selector", "address", "objectName"}).count(suffix), "");
 				if (!var->isConstant() && (var->isStateVariable() || var->type()->dataStoredIn(DataLocation::Storage)))
 				{
 					if (suffix != "slot" && suffix != "offset")
@@ -896,9 +896,36 @@ bool TypeChecker::visit(InlineAssembly const& _inlineAssembly)
 				return false;
 			}
 		}
+		else if (dynamic_cast<ContractDefinition const*>(declaration) && !identifierInfo.suffix.empty())
+		{
+			if (identifierInfo.suffix != "objectName" || !m_eofVersion.has_value())
+			{
+				m_errorReporter.typeError(
+					1342_error,
+					nativeLocationOf(_identifier),
+					"\".objectName\" suffix is supported only for contract name identifier when compiling to EOF."
+				);
+				return false;
+			}
+		}
 		else if (!identifierInfo.suffix.empty())
 		{
-			m_errorReporter.typeError(7944_error, nativeLocationOf(_identifier), "The suffixes \".offset\", \".slot\" and \".length\" can only be used with variables.");
+			if (m_eofVersion.has_value())
+			{
+				m_errorReporter.typeError(
+					9479_error,
+					nativeLocationOf(_identifier),
+					"The suffixes \".offset\", \".slot\" and \".length\" can only be used with variables or the suffix \"objectName\" can be used with a contract name identifier."
+				);
+			}
+			else
+			{
+				m_errorReporter.typeError(
+					7944_error,
+					nativeLocationOf(_identifier),
+					"The suffixes \".offset\", \".slot\" and \".length\" can only be used with variables."
+				);
+			}
 			return false;
 		}
 		else if (_context == yul::IdentifierContext::LValue)
@@ -923,7 +950,7 @@ bool TypeChecker::visit(InlineAssembly const& _inlineAssembly)
 			}
 			else if (auto contract = dynamic_cast<ContractDefinition const*>(declaration))
 			{
-				if (!contract->isLibrary())
+				if (!contract->isLibrary() && identifierInfo.suffix != "objectName")
 				{
 					m_errorReporter.typeError(4977_error, nativeLocationOf(_identifier), "Expected a library.");
 					return false;

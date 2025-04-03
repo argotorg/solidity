@@ -405,29 +405,6 @@ std::vector<std::optional<BuiltinFunctionForEVM>> createBuiltins(langutil::EVMVe
 			));
 
 			builtins.emplace_back(createFunction(
-				"eofcreate",
-				5,
-				1,
-				EVMDialect::sideEffectsOfInstruction(evmasm::Instruction::EOFCREATE),
-				ControlFlowSideEffects::fromInstruction(evmasm::Instruction::EOFCREATE),
-				{LiteralKind::String, std::nullopt, std::nullopt, std::nullopt, std::nullopt},
-				[](
-					FunctionCall const& _call,
-					AbstractAssembly& _assembly,
-					BuiltinContext& context
-				) {
-					yulAssert(_call.arguments.size() == 5);
-					Literal const* literal = std::get_if<Literal>(&_call.arguments.front());
-					auto const formattedLiteral = formatLiteral(*literal);
-					yulAssert(!util::contains(formattedLiteral, '.'));
-					auto const* containerID = valueOrNullptr(context.subIDs, formattedLiteral);
-					yulAssert(containerID != nullptr);
-					yulAssert(*containerID <= std::numeric_limits<AbstractAssembly::ContainerID>::max());
-					_assembly.appendEOFCreate(static_cast<AbstractAssembly::ContainerID>(*containerID));
-				}
-				));
-
-			builtins.emplace_back(createFunction(
 				"returncontract",
 				3,
 				0,
@@ -451,6 +428,31 @@ std::vector<std::optional<BuiltinFunctionForEVM>> createBuiltins(langutil::EVMVe
 				}
 			));
 		}
+
+		builtins.emplace_back(createFunction(
+			"eofcreate",
+			5,
+			1,
+			EVMDialect::sideEffectsOfInstruction(evmasm::Instruction::EOFCREATE),
+			ControlFlowSideEffects::fromInstruction(evmasm::Instruction::EOFCREATE),
+			// TODO: Personaly I don't like this solution but cannot find any better way to prevent 9114 error in asm analysis.
+			{_objectAccess ? LiteralKind::String : std::optional<LiteralKind>{}, std::nullopt, std::nullopt, std::nullopt, std::nullopt},
+			[](
+				FunctionCall const& _call,
+				AbstractAssembly& _assembly,
+				BuiltinContext& context
+			) {
+				yulAssert(_call.arguments.size() == 5);
+				Literal const* literal = std::get_if<Literal>(&_call.arguments.front());
+				auto const formattedLiteral = formatLiteral(*literal);
+				yulAssert(!util::contains(formattedLiteral, '.'));
+				auto const* containerID = valueOrNullptr(context.subIDs, formattedLiteral);
+				yulAssert(containerID != nullptr);
+				yulAssert(*containerID <= std::numeric_limits<AbstractAssembly::ContainerID>::max());
+				_assembly.appendEOFCreate(static_cast<AbstractAssembly::ContainerID>(*containerID));
+			}
+		));
+		(*builtins.back()).instruction = evmasm::Instruction::EOFCREATE;
 	}
 	yulAssert(
 		ranges::all_of(builtins, [](std::optional<BuiltinFunctionForEVM> const& _builtinFunction){

@@ -329,7 +329,7 @@ void ReferencesResolver::operator()(yul::Identifier const& _identifier)
 		return;
 	}
 
-	static std::set<std::string> suffixes{"slot", "offset", "length", "address", "selector"};
+	static std::set<std::string> suffixes{"slot", "offset", "length", "address", "selector", "objectName"};
 	std::string suffix;
 	for (std::string const& s: suffixes)
 		if (boost::algorithm::ends_with(_identifier.name.str(), "." + s))

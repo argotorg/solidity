@@ -68,8 +68,11 @@ public:
 	{
 		if (yul::EVMDialect const* dialect = dynamic_cast<decltype(dialect)>(&m_dialect))
 			if (yul::BuiltinFunctionForEVM const* builtin = resolveBuiltinFunctionForEVM(_funCall.functionName, *dialect))
+			{
+				solAssert(builtin->instruction.has_value());
 				if (builtin->instruction)
 					checkInstruction(nativeLocationOf(_funCall), *builtin->instruction);
+			}
 
 		for (auto const& arg: _funCall.arguments)
 			std::visit(*this, arg);

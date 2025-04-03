@@ -105,11 +105,27 @@ private:
 	yul::Expression translateReference(yul::Identifier const& _identifier)
 	{
 		auto const& reference = m_references.at(&_identifier);
+		std::string value;
+
+		if (auto const contractDefinition = dynamic_cast<ContractDefinition const*>(reference.declaration))
+		{
+			// Already verified in TypeChecker
+			solAssert(reference.suffix == "objectName");
+			solAssert(m_context.eofVersion().has_value());
+
+			// Add sub-object as it's referenced from this context
+			m_context.addSubObject(contractDefinition);
+			return yul::Literal{
+				_identifier.debugData,
+				yul::LiteralKind::String,
+				yul::LiteralValue{IRNames::creationObject(*contractDefinition)}
+			};
+		}
+
 		auto const varDecl = dynamic_cast<VariableDeclaration const*>(reference.declaration);
 		solUnimplementedAssert(varDecl);
 		std::string const& suffix = reference.suffix;
 
-		std::string value;
 		if (suffix.empty() && varDecl->isLocalVariable())
 		{
 			auto const& var = m_context.localVariable(*varDecl);
