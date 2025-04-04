@@ -56,9 +56,6 @@ then
   brew install diffutils
   brew install grep
 
-  # writing to /usr/local/lib need administrative privileges.
-  sudo ./scripts/install_obsolete_jsoncpp_1_7_4.sh
-
   # boost
   boost_version="1.84.0"
   boost_package="boost_${boost_version//./_}.tar.bz2"
