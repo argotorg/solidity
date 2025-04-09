@@ -843,8 +843,7 @@ std::map<u256, u256> const& Assembly::optimiseInternal(
 			}
 		}
 
-		// TODO: verify this for EOF.
-		if (_settings.runPeephole && !m_eofVersion.has_value())
+		if (_settings.runPeephole)
 		{
 			for (auto& codeSection: m_codeSections)
 			{

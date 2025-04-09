@@ -572,14 +572,31 @@ struct UnreachableCode
 		auto end = _state.items.end();
 		if (it == end)
 			return false;
-		if (
-			it[0] != Instruction::JUMP &&
-			it[0] != Instruction::RJUMP &&
-			it[0] != Instruction::RETURN &&
-			it[0] != Instruction::STOP &&
-			it[0] != Instruction::INVALID &&
-			it[0] != Instruction::SELFDESTRUCT &&
-			it[0] != Instruction::REVERT
+		if (it[0].type() == Operation)
+		{
+			// These instructions have their own AssemblyItemType
+			solAssert(
+				it[0] != Instruction::RJUMP &&
+				it[0] != Instruction::RETURNCONTRACT &&
+				it[0] != Instruction::JUMPF &&
+				it[0] != Instruction::RETF
+			);
+
+			if (
+				it[0] != Instruction::JUMP &&
+				it[0] != Instruction::RETURN &&
+				it[0] != Instruction::STOP &&
+				it[0] != Instruction::INVALID &&
+				it[0] != Instruction::SELFDESTRUCT &&
+				it[0] != Instruction::REVERT
+			)
+				return false;
+		}
+		else if (
+			it[0].type() != RelativeJump &&
+			it[0].type() != JumpF &&
+			it[0].type() != RetF &&
+			it[0].type() != ReturnContract
 		)
 			return false;
 
