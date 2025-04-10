@@ -1,12 +1,9 @@
 {
 	"language": "Yul",
 	"sources": {
-		"C": {"urls": ["standard_yul_ethdebug_optimize_iroptimized/in.yul"]}
+		"C": {"urls": ["ethdebug/standard_yul_ethdebug_bytecode_iroptimized/in.yul"]}
 	},
 	"settings": {
-		"optimizer": {
-			"enabled": true
-		},
 		"outputSelection": {
 			"*": {"*": ["evm.bytecode.ethdebug", "irOptimized"]}
 		}
