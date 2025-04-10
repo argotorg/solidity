@@ -82,17 +82,33 @@ do
     test_name_filter+=(-and -not -name "$pattern")
 done
 
+# shellcheck disable=SC2207 # We do not support test names containing spaces.
+all_tests=($(find . -mindepth 1 -maxdepth 2 -type d | \
+    while read -r dir; do
+        if ! find "$dir" -mindepth 1 -maxdepth 1 -type d | grep -q .; then
+            echo "${dir#./}"
+        fi
+    done
+))
+
+selected_tests=()
+for test_path in "${all_tests[@]}"; do
+    num_matches=$(find "$test_path" -type d "${test_name_filter[@]}" | wc -l)
+    if [ "$num_matches" -ge 1 ]; then
+        selected_tests+=("$test_path")
+    fi
+done
 # NOTE: We want leading symbols in names to affect the sort order but without
 # LC_COLLATE=C sort seems to ignore them.
 # shellcheck disable=SC2207 # We do not support test names containing spaces.
-selected_tests=($(find . -mindepth 1 -maxdepth 1 -type d "${test_name_filter[@]}" | cut -c 3- | LC_COLLATE=C sort))
+selected_tests=($(printf '%s\n' "${selected_tests[@]}" | LC_COLLATE=C sort))
 
 if (( ${#selected_tests[@]} == 0 ))
 then
     printWarning "The pattern '${test_name_filter[*]}' did not match any tests."
     exit 0;
 else
-    test_count=$(find . -mindepth 1 -maxdepth 1 -type d | wc -l)
+    test_count=$(printf '%s\n' "${all_tests[@]}" | wc -l)
     printLog "Selected ${#selected_tests[@]} out of ${test_count} tests."
 fi
 
@@ -367,7 +383,7 @@ printTask "Running general commandline tests..."
         fi
 
         # Strip trailing slash from $tdir.
-        tdir=$(basename "${tdir}")
+        tdir=${tdir%/}
         if [[ $no_smt == true ]]
         then
             if [[ $tdir =~ .*model_checker_.* ]]
