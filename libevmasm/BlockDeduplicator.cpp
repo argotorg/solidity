@@ -41,55 +41,130 @@ bool BlockDeduplicator::deduplicate()
 
 	// Virtual tag that signifies "the current block" and which is used to optimise loops.
 	// We abort if this virtual tag actually exists.
-	AssemblyItem pushSelf{PushTag, u256(-4)};
-	if (
-		std::count(m_items.cbegin(), m_items.cend(), pushSelf.tag()) ||
-		std::count(m_items.cbegin(), m_items.cend(), pushSelf.pushTag())
-	)
+	auto const virtualTagData = u256(-4);
+	AssemblyItem pushSelf{PushTag, u256(virtualTagData)};
+
+	// There is no PushTag in EOF context but relative jumps have their destination stored in AssmblyItem data.
+	// We need to virtually replace all destinations of these r-jumps if they point to the _item Tag data.
+	AssemblyItem rjumpSelf{RelativeJump, Instruction::RJUMP, virtualTagData};
+	AssemblyItem rjumpiSelf{ConditionalRelativeJump, Instruction::RJUMPI, virtualTagData};
+
+	if (std::count(m_items.cbegin(), m_items.cend(), pushSelf.tag()))
 		return false;
 
-	std::function<bool(size_t, size_t)> comparator = [&](size_t _i, size_t _j)
+	if (!m_eofVersion.has_value())
 	{
-		if (_i == _j)
+		if (std::count(m_items.cbegin(), m_items.cend(), pushSelf.pushTag()))
 			return false;
+	}
+	else
+	{
+		if (
+			std::count(m_items.cbegin(), m_items.cend(), rjumpSelf) ||
+			std::count(m_items.cbegin(), m_items.cend(), rjumpiSelf)
+		)
+			return false;
+	}
 
-		// To compare recursive loops, we have to already unify PushTag opcodes of the
-		// block's own tag.
-		AssemblyItem pushFirstTag{pushSelf};
-		AssemblyItem pushSecondTag{pushSelf};
+	std::function<bool(size_t, size_t)> comparator;
 
-		if (_i < m_items.size() && m_items.at(_i).type() == Tag)
-			pushFirstTag = m_items.at(_i).pushTag();
-		if (_j < m_items.size() && m_items.at(_j).type() == Tag)
-			pushSecondTag = m_items.at(_j).pushTag();
+	if (!m_eofVersion.has_value())
+	{
+		comparator = [&](size_t _i, size_t _j)
+		{
+			if (_i == _j)
+				return false;
 
-		using diff_type = BlockIterator::difference_type;
-		BlockIterator first{m_items.begin() + diff_type(_i), m_items.end(), &pushFirstTag, &pushSelf};
-		BlockIterator second{m_items.begin() + diff_type(_j), m_items.end(), &pushSecondTag, &pushSelf};
-		BlockIterator end{m_items.end(), m_items.end()};
+			using diff_type = BlockIterator::difference_type;
 
-		if (first != end && (*first).type() == Tag)
-			++first;
-		if (second != end && (*second).type() == Tag)
-			++second;
+			// To compare recursive loops, we have to already unify PushTag opcodes of the
+			// block's own tag.
+			AssemblyItem pushFirstTag{pushSelf};
+			AssemblyItem pushSecondTag{pushSelf};
 
-		return std::lexicographical_compare(first, end, second, end);
-	};
+			if (_i < m_items.size() && m_items.at(_i).type() == Tag)
+				pushFirstTag = m_items.at(_i).pushTag();
+			if (_j < m_items.size() && m_items.at(_j).type() == Tag)
+				pushSecondTag = m_items.at(_j).pushTag();
+
+			BlockIterator first{m_items.begin() + diff_type(_i), m_items.end(), {{pushFirstTag, pushSelf}}};
+			BlockIterator second{m_items.begin() + diff_type(_j), m_items.end(), {{pushSecondTag, pushSelf}}};
+			BlockIterator end{m_items.end(), m_items.end(), {}};
+
+			if (first != end && (*first).type() == Tag)
+				++first;
+			if (second != end && (*second).type() == Tag)
+				++second;
+
+			return std::lexicographical_compare(first, end, second, end);
+		};
+	}
+	else
+	{
+		comparator = [&](size_t _i, size_t _j)
+		{
+			if (_i == _j)
+				return false;
+
+			using diff_type = BlockIterator::difference_type;
+
+			std::map<AssemblyItem const, AssemblyItem const> replacmentMapFirst;
+			std::map<AssemblyItem const, AssemblyItem const> replacmentMapSecond;
+
+			if (_i < m_items.size() && m_items.at(_i).type() == Tag)
+			{
+				replacmentMapFirst.emplace(AssemblyItem::relativeJumpTo(m_items.at(_i)), rjumpSelf);
+				replacmentMapFirst.emplace(AssemblyItem::conditionalRelativeJumpTo(m_items.at(_i)), rjumpiSelf);
+			}
+			if (_j < m_items.size() && m_items.at(_j).type() == Tag)
+			{
+				replacmentMapSecond.emplace(AssemblyItem::relativeJumpTo(m_items.at(_j)), rjumpSelf);
+				replacmentMapSecond.emplace(AssemblyItem::conditionalRelativeJumpTo(m_items.at(_j)), rjumpiSelf);
+			}
+
+			BlockIterator first{m_items.begin() + diff_type(_i), m_items.end(), std::move(replacmentMapFirst)};
+			BlockIterator second{m_items.begin() + diff_type(_j), m_items.end(), std::move(replacmentMapSecond)};
+			BlockIterator end{m_items.end(), m_items.end(), {}};
+
+			if (first != end && (*first).type() == Tag)
+				++first;
+			if (second != end && (*second).type() == Tag)
+				++second;
+
+			return std::lexicographical_compare(first, end, second, end);
+		};
+	}
 
 	size_t iterations = 0;
 	for (; ; ++iterations)
 	{
-		//@todo this should probably be optimized.
 		std::set<size_t, std::function<bool(size_t, size_t)>> blocksSeen(comparator);
-		for (size_t i = 0; i < m_items.size(); ++i)
+		if (!m_eofVersion.has_value())
 		{
-			if (m_items.at(i).type() != Tag)
-				continue;
-			auto it = blocksSeen.find(i);
-			if (it == blocksSeen.end())
-				blocksSeen.insert(i);
-			else
-				m_replacedTags[m_items.at(i).data()] = m_items.at(*it).data();
+			//@todo this should probably be optimized.
+			for (size_t i = 0; i < m_items.size(); ++i)
+			{
+				if (m_items.at(i).type() != Tag)
+					continue;
+				auto it = blocksSeen.find(i);
+				if (it == blocksSeen.end())
+					blocksSeen.insert(i);
+				else
+					m_replacedTags[m_items.at(i).data()] = m_items.at(*it).data();
+			}
+		}
+		else
+		{
+			for (size_t i = m_items.size(); i > 0; --i)
+			{
+				if (m_items.at(i - 1).type() != Tag)
+					continue;
+				auto it = blocksSeen.find(i - 1);
+				if (it == blocksSeen.end())
+					blocksSeen.insert(i - 1);
+				else
+					m_replacedTags[m_items.at(i - 1).data()] = m_items.at(*it).data();
+			}
 		}
 
 		if (!applyTagReplacement(m_items, m_replacedTags))
@@ -131,7 +206,12 @@ BlockDeduplicator::BlockIterator& BlockDeduplicator::BlockIterator::operator++()
 {
 	if (it == end)
 		return *this;
-	if (SemanticInformation::altersControlFlow(*it) && *it != AssemblyItem{Instruction::JUMPI} && it->type() != ConditionalRelativeJump)
+	if (
+		SemanticInformation::altersControlFlow(*it) &&
+		*it != AssemblyItem{Instruction::JUMPI} &&
+		it->type() != ConditionalRelativeJump &&
+		it->type() != CallF
+	)
 		it = end;
 	else
 	{
@@ -144,8 +224,9 @@ BlockDeduplicator::BlockIterator& BlockDeduplicator::BlockIterator::operator++()
 
 AssemblyItem const& BlockDeduplicator::BlockIterator::operator*() const
 {
-	if (replaceItem && replaceWith && *it == *replaceItem)
-		return *replaceWith;
-	else
-		return *it;
+	auto const rmIt =  m_replaceMap.find(*it);
+
+	if (rmIt != m_replaceMap.end())
+		return rmIt->second;
+	return *it;
 }

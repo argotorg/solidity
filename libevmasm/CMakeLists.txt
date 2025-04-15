@@ -10,6 +10,8 @@ set(sources
 	EVMAssemblyStack.h
 	BlockDeduplicator.cpp
 	BlockDeduplicator.h
+	BlockSorter.cpp
+    BlockSorter.h
 	CommonSubexpressionEliminator.cpp
 	CommonSubexpressionEliminator.h
 	ConstantOptimiser.cpp

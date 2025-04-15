@@ -46,7 +46,8 @@ using AssemblyItems = std::vector<AssemblyItem>;
 class BlockDeduplicator
 {
 public:
-	explicit BlockDeduplicator(AssemblyItems& _items): m_items(_items) {}
+	explicit BlockDeduplicator(AssemblyItems& _items, std::optional<uint8_t> _eofVersion):
+		m_items(_items), m_eofVersion(_eofVersion) {}
 	/// @returns true if something was changed
 	bool deduplicate();
 	/// @returns the tags that were replaced.
@@ -77,22 +78,21 @@ private:
 		BlockIterator(
 			AssemblyItems::const_iterator _it,
 			AssemblyItems::const_iterator _end,
-			AssemblyItem const* _replaceItem = nullptr,
-			AssemblyItem const* _replaceWith = nullptr
+			std::map<AssemblyItem const, AssemblyItem const>&& replaceMap
 		):
-			it(_it), end(_end), replaceItem(_replaceItem), replaceWith(_replaceWith) {}
+			it(_it), end(_end), m_replaceMap(replaceMap) {}
 		BlockIterator& operator++();
 		bool operator==(BlockIterator const& _other) const { return it == _other.it; }
 		bool operator!=(BlockIterator const& _other) const { return it != _other.it; }
 		AssemblyItem const& operator*() const;
 		AssemblyItems::const_iterator it;
 		AssemblyItems::const_iterator end;
-		AssemblyItem const* replaceItem;
-		AssemblyItem const* replaceWith;
+		std::map<AssemblyItem const, AssemblyItem const> m_replaceMap;
 	};
 
 	std::map<u256, u256> m_replacedTags;
 	AssemblyItems& m_items;
+	std::optional<uint8_t> m_eofVersion;
 };
 
 }

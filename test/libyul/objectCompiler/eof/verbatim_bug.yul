@@ -61,18 +61,8 @@ object "a" {
 //     /* "source":386:390   */
 //   0x03
 //     /* "source":381:406   */
-//   eq
-//   rjumpi{tag_7}
-//     /* "source":108:406   */
-// tag_8:
-//     /* "source":426:427   */
-//   0x00
-//     /* "source":419:436   */
-//   sstore
-//     /* "source":108:406   */
-//   stop
-//     /* "source":391:406   */
-// tag_7:
+//   sub
+//   rjumpi{tag_8}
 //     /* "source":393:404   */
 //   pop
 //     /* "source":403:404   */
@@ -108,5 +98,11 @@ object "a" {
 //   0xaabbccddeeff
 //     /* "source":171:211   */
 //   verbatimbytecode_506000
-//     /* "source":143:225   */
-//   rjump{tag_8}
+//     /* "source":108:406   */
+// tag_8:
+//     /* "source":426:427   */
+//   0x00
+//     /* "source":419:436   */
+//   sstore
+//     /* "source":108:406   */
+//   stop

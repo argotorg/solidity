@@ -22,13 +22,14 @@
 
 #include <libevmasm/Assembly.h>
 
+#include <libevmasm/BlockDeduplicator.h>
+#include <libevmasm/BlockSorter.h>
 #include <libevmasm/CommonSubexpressionEliminator.h>
+#include <libevmasm/ConstantOptimiser.h>
 #include <libevmasm/ControlFlowGraph.h>
-#include <libevmasm/PeepholeOptimiser.h>
 #include <libevmasm/Inliner.h>
 #include <libevmasm/JumpdestRemover.h>
-#include <libevmasm/BlockDeduplicator.h>
-#include <libevmasm/ConstantOptimiser.h>
+#include <libevmasm/PeepholeOptimiser.h>
 
 #include <liblangutil/CharStream.h>
 #include <liblangutil/Exceptions.h>
@@ -796,6 +797,10 @@ std::map<u256, u256> const& Assembly::optimiseInternal(
 	if (m_tagReplacements)
 		return *m_tagReplacements;
 
+	if (m_eofVersion.has_value())
+		for (auto& codeSection: m_codeSections)
+			BlockSorter{codeSection.items}.sort();
+
 	// Run optimisation for sub-assemblies.
 	// TODO: verify and double-check this for EOF.
 	for (size_t subId = 0; subId < m_subs.size(); ++subId)
@@ -856,12 +861,12 @@ std::map<u256, u256> const& Assembly::optimiseInternal(
 			}
 		}
 
-		// This only modifies PushTags, we have to run again to actually remove code.
-		// TODO: implement for EOF.
-		if (_settings.runDeduplicate && !m_eofVersion.has_value())
+		// For legacy this only modifies PushTags, we have to run again to actually remove code.
+		// For EOF it modifies RJUMP and RJUMPI tags.
+		if (_settings.runDeduplicate)
 			for (auto& section: m_codeSections)
 			{
-				BlockDeduplicator deduplicator{section.items};
+				BlockDeduplicator deduplicator{section.items, m_eofVersion};
 				if (deduplicator.deduplicate())
 				{
 					for (auto const& replacement: deduplicator.replacedTags())
