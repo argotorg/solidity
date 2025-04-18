@@ -27,12 +27,10 @@
 #include <libsolidity/ast/TypeProvider.h>
 
 #include <boost/algorithm/string/join.hpp>
-#include <boost/algorithm/string.hpp>
 
 #include <range/v3/view.hpp>
 #include <utility>
 
-using boost::algorithm::starts_with;
 using namespace solidity;
 using namespace solidity::smtutil;
 using namespace solidity::frontend;
@@ -434,15 +432,15 @@ std::pair<std::vector<std::optional<std::string>>, std::vector<VariableDeclarati
 	return {formatExpressions(outValuesInScope, outTypes), localVarsInScope};
 }
 
-std::map<std::string, std::string> Predicate::expressionSubstitution(smtutil::Expression const& _predExpr) const
+std::map<std::string, std::string> Predicate::expressionSubstitution(std::vector<std::string> const& _predArgs) const
 {
 	std::map<std::string, std::string> subst;
 	std::string predName = functor().name;
 
-	solAssert(contextContract(), "");
+	smtAssert(contextContract());
 	auto const& stateVars = SMTEncoder::stateVariablesIncludingInheritedAndPrivate(*contextContract());
 
-	auto nArgs = _predExpr.arguments.size();
+	auto const nArgs = _predArgs.size();
 
 	// The signature of an interface predicate is
 	// interface(this, abiFunctions, (optionally) bytesConcatFunctions, cryptoFunctions, blockchainState, stateVariables).
@@ -450,12 +448,13 @@ std::map<std::string, std::string> Predicate::expressionSubstitution(smtutil::Ex
 	// invariant over its state, for example `x <= 0`.
 	if (isInterface())
 	{
+		smtAssert(nArgs > 0);
 		size_t shift = txValuesIndex();
-		solAssert(starts_with(predName, "interface"), "");
-		subst[_predExpr.arguments.at(0).name] = "address(this)";
-		solAssert(nArgs == stateVars.size() + shift, "");
+		smtAssert(predName.starts_with("interface"));
+		subst[_predArgs.at(0)] = "address(this)";
+		smtAssert(nArgs == stateVars.size() + shift);
 		for (size_t i = nArgs - stateVars.size(); i < nArgs; ++i)
-			subst[_predExpr.arguments.at(i).name] = stateVars.at(i - shift)->name();
+			subst[_predArgs.at(i)] = stateVars.at(i - shift)->name();
 	}
 	// The signature of a nondet interface predicate is
 	// nondet_interface(error, this, abiFunctions, (optionally) bytesConcatFunctions, cryptoFunctions, blockchainState, stateVariables, blockchainState', stateVariables').
@@ -466,14 +465,15 @@ std::map<std::string, std::string> Predicate::expressionSubstitution(smtutil::Ex
 	// `(x <= 0) => (x' <= 100)`.
 	else if (isNondetInterface())
 	{
-		solAssert(starts_with(predName, "nondet_interface"), "");
-		subst[_predExpr.arguments.at(0).name] = "<errorCode>";
-		subst[_predExpr.arguments.at(1).name] = "address(this)";
-		solAssert(nArgs == stateVars.size() * 2 + firstArgIndex(), "");
+		smtAssert(nArgs > 1);
+		smtAssert(predName.starts_with("nondet_interface"));
+		subst[_predArgs.at(0)] = "<errorCode>";
+		subst[_predArgs.at(1)] = "address(this)";
+		smtAssert(nArgs == stateVars.size() * 2 + firstArgIndex());
 		for (size_t i = nArgs - stateVars.size(), s = 0; i < nArgs; ++i, ++s)
-			subst[_predExpr.arguments.at(i).name] = stateVars.at(s)->name() + "'";
+			subst[_predArgs.at(i)] = stateVars.at(s)->name() + "'";
 		for (size_t i = nArgs - (stateVars.size() * 2 + 1), s = 0; i < nArgs - (stateVars.size() + 1); ++i, ++s)
-			subst[_predExpr.arguments.at(i).name] = stateVars.at(s)->name();
+			subst[_predArgs.at(i)] = stateVars.at(s)->name();
 	}
 
 	return subst;

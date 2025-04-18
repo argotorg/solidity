@@ -4,6 +4,7 @@ Language Features:
 
 
 Compiler Features:
+* NatSpec: Capture Natspec documentation of `enum` values in the AST.
 
 
 Bugfixes:

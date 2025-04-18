@@ -94,8 +94,8 @@ protected:
 	/// Communicates with the solver via the callback. Throws SMTSolverError on error.
 	virtual std::string querySolver(std::string const& _input);
 
-	/// Translates CHC solver response with a model to our representation of invariants. Returns None on error.
-	std::optional<smtutil::Expression> invariantsFromSolverResponse(std::string const& _response) const;
+	/// Translates CHC solver response with a model to our representation of invariants.
+	Invariants invariantsFromSolverResponse(std::string const& _response) const;
 
 	std::set<std::string> collectVariableNames(Expression const& _expr) const;
 

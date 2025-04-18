@@ -229,7 +229,7 @@ contract premium is module, safeMath {
     function transfer(address to, uint256 amount, bytes calldata extraData) isReady external returns (bool success) {
         /*
             Launch a transaction where we transfer from a given address to another one.
-            After thetransaction the approvedCorionPremiumToken function of the receiver’s address is going to be called with the given data.
+            After the transaction the approvedCorionPremiumToken function of the receiver’s address is going to be called with the given data.
 
             @to         For who?
             @amount     Amount

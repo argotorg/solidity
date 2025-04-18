@@ -19,8 +19,8 @@
 #include <libsolidity/formal/CHC.h>
 
 #include <libsolidity/formal/ArraySlicePredicate.h>
+#include <libsolidity/formal/ExpressionFormatter.h>
 #include <libsolidity/formal/EldaricaCHCSmtLib2Interface.h>
-#include <libsolidity/formal/Invariants.h>
 #include <libsolidity/formal/ModelChecker.h>
 #include <libsolidity/formal/PredicateInstance.h>
 #include <libsolidity/formal/PredicateSort.h>
@@ -34,9 +34,8 @@
 #include <libsolutil/Algorithms.h>
 #include <libsolutil/StringUtils.h>
 
-#include <boost/algorithm/string.hpp>
-
 #include <range/v3/algorithm/for_each.hpp>
+#include <range/v3/algorithm/none_of.hpp>
 #include <range/v3/view.hpp>
 #include <range/v3/view/enumerate.hpp>
 #include <range/v3/view/reverse.hpp>
@@ -1895,7 +1894,7 @@ CHCSolverInterface::QueryResult CHC::query(smtutil::Expression const& _query, la
 			2339_error,
 			"CHC: Requested query:\n" + smtLibCode
 		);
-		return {.answer = CheckResult::UNKNOWN, .invariant = smtutil::Expression(true), .cex = {}};
+		return {.answer = CheckResult::UNKNOWN, .invariants = {}, .cex = {}};
 	}
 	auto result = m_interface->query(_query);
 	switch (result.answer)
@@ -2134,6 +2133,43 @@ void CHC::checkVerificationTargets()
 		m_safeTargets[m_verificationTargets.at(id).errorNode].insert(m_verificationTargets.at(id));
 }
 
+namespace
+{
+std::map<Predicate const*, std::set<std::string>> collectInvariants(
+	CHCSmtLib2Interface::Invariants const& _invariants,
+	std::set<Predicate const*> const& _predicates,
+	ModelCheckerInvariants const& _invariantsSetting
+)
+{
+	std::set<std::string> targets;
+	if (_invariantsSetting.has(InvariantType::Contract))
+		targets.insert("interface_");
+	if (_invariantsSetting.has(InvariantType::Reentrancy))
+		targets.insert("nondet_interface_");
+
+	std::map<Predicate const*, std::set<std::string>> invariants;
+	for (auto const* pred: _predicates)
+	{
+		smtAssert(pred);
+		auto const& predName = pred->functor().name;
+		if (!_invariants.contains(predName))
+			continue;
+		if (ranges::none_of(targets, [&](auto const& _target) { return predName.starts_with(_target); }))
+			continue;
+
+		smtAssert(pred->contextContract());
+
+		auto const& [definition, formalArguments] = _invariants.at(predName);
+
+		auto r = substitute(definition, pred->expressionSubstitution(formalArguments));
+		// No point in reporting true/false as invariants.
+		if (r.name != "true" && r.name != "false")
+			invariants[pred].insert(toSolidityStr(r));
+	}
+	return invariants;
+}
+} // namespace
+
 void CHC::checkAndReportTarget(
 	CHCVerificationTarget const& _target,
 	std::vector<CHCQueryPlaceholder> const& _placeholders,
@@ -2153,7 +2189,7 @@ void CHC::checkAndReportTarget(
 			placeholder.constraints && placeholder.errorExpression == _target.errorId
 		);
 	auto const& location = _target.errorNode->location();
-	auto [result, invariant, model] = query(error(), location);
+	auto [result, invariants, model] = query(error(), location);
 	if (result == CheckResult::UNSATISFIABLE)
 	{
 		m_safeTargets[_target.errorNode].insert(_target);
@@ -2162,9 +2198,9 @@ void CHC::checkAndReportTarget(
 			predicates.insert(pred);
 		for (auto const* pred: m_nondetInterfaces | ranges::views::values)
 			predicates.insert(pred);
-		std::map<Predicate const*, std::set<std::string>> invariants = collectInvariants(invariant, predicates, m_settings.invariants);
-		for (auto pred: invariants | ranges::views::keys)
-			m_invariants[pred] += std::move(invariants.at(pred));
+		std::map<Predicate const*, std::set<std::string>> invariantStrings = collectInvariants(invariants, predicates, m_settings.invariants);
+		for (auto pred: invariantStrings | ranges::views::keys)
+			m_invariants[pred] += std::move(invariantStrings.at(pred));
 	}
 	else if (result == CheckResult::SATISFIABLE)
 	{

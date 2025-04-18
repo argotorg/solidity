@@ -385,7 +385,7 @@ commands:
           name: Installing dependencies / Restoring dependency cache
           command: |
             if [[ -f ~/osx-dependencies-cached ]]; then
-              echo "Dependency flag exists. Removing /usr/local/ and /opt/homebrew/. These directories will be restored from cache."
+              echo "Dependency flag exists. Removing /usr/local/, /opt/homebrew/, and /opt/boost. These directories will be restored from cache."
 
               # CircleCI is providing the circleci cli tools via some kind of symlink magic.
               # So we just save the original symlinks and restore them later.
@@ -404,6 +404,10 @@ commands:
               sudo rm -rf /usr/local/*
               sudo mkdir -p /usr/local/bin
               sudo chmod 777 /usr/{local,local/bin}
+
+              sudo rm -rf /opt/boost
+              sudo mkdir -p /opt/boost
+              sudo chmod 777 /opt/boost
 
               mv /tmp/circleci "${circleci_binary_path}"
               mv /tmp/circleci-agent "${circleci_agent_binary_path}"
@@ -425,6 +429,7 @@ commands:
             # Homebrew is installed in /usr/local on intel macs, but in /opt/homebrew on apple silicon.
             - /usr/local
             - /opt/homebrew
+            - /opt/boost
       - save_cache:
           key: osx-dependencies-cached-{{ arch }}-{{ checksum ".circleci/osx_install_dependencies.sh" }}
           paths:
@@ -1159,7 +1164,8 @@ jobs:
     environment:
       <<: *base_osx_env
       CMAKE_BUILD_TYPE: Release
-      CMAKE_OPTIONS: -DCMAKE_OSX_ARCHITECTURES:STRING=x86_64;arm64
+      # boost root configured to the prefix used in `osx_install_dependencies.sh`
+      CMAKE_OPTIONS: -DCMAKE_OSX_ARCHITECTURES:STRING=x86_64;arm64 -DBoost_ROOT=/opt/boost
     steps:
       - checkout
       - install_dependencies_osx

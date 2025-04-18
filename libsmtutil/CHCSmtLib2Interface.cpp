@@ -102,21 +102,18 @@ CHCSolverInterface::QueryResult CHCSmtLib2Interface::query(Expression const& _bl
 		// However, with CHC solvers, the meaning is flipped, UNSAT -> UNSAFE and SAT -> SAFE.
 		// So we have to flip the answer.
 		if (boost::starts_with(response, "sat"))
-		{
-			auto maybeInvariants = invariantsFromSolverResponse(response);
-			return {CheckResult::UNSATISFIABLE, maybeInvariants.value_or(Expression(true)), {}};
-		}
-		else if (boost::starts_with(response, "unsat"))
+			return {CheckResult::UNSATISFIABLE, invariantsFromSolverResponse(response), {}};
+		if (boost::starts_with(response, "unsat"))
 			result = CheckResult::SATISFIABLE;
 		else if (boost::starts_with(response, "unknown"))
 			result = CheckResult::UNKNOWN;
 		else
 			result = CheckResult::ERROR;
-		return {result, Expression(true), {}};
+		return {result, {}, {}};
 	}
 	catch(smtutil::SMTSolverInteractionError const&)
 	{
-		return {CheckResult::ERROR, Expression(true), {}};
+		return {CheckResult::ERROR, {}, {}};
 	}
 
 }
@@ -416,7 +413,7 @@ smtutil::Expression CHCSmtLib2Interface::ScopedParser::toSMTUtilExpression(SMTLi
 }
 
 
-std::optional<smtutil::Expression> CHCSmtLib2Interface::invariantsFromSolverResponse(std::string const& _response) const
+CHCSmtLib2Interface::Invariants CHCSmtLib2Interface::invariantsFromSolverResponse(std::string const& _response) const
 {
 	std::stringstream ss(_response);
 	std::string answer;
@@ -438,7 +435,7 @@ std::optional<smtutil::Expression> CHCSmtLib2Interface::invariantsFromSolverResp
 	smtSolverInteractionRequire(parser.isEOF(), "Error during parsing CHC model");
 	smtSolverInteractionRequire(!parsedOutput.empty(), "Error during parsing CHC model");
 	auto& commands = parsedOutput.size() == 1 ? asSubExpressions(parsedOutput[0]) : parsedOutput;
-	std::vector<Expression> definitions;
+	Invariants definitions;
 	for (auto& command: commands)
 	{
 		auto& args = asSubExpressions(command);
@@ -456,7 +453,7 @@ std::optional<smtutil::Expression> CHCSmtLib2Interface::invariantsFromSolverResp
 		inlineLetExpressions(interpretation);
 		ScopedParser scopedParser(m_context);
 		auto const& formalArguments = asSubExpressions(args[2]);
-		std::vector<Expression> predicateArgs;
+		std::vector<std::string> predicateArguments;
 		for (auto const& formalArgument: formalArguments)
 		{
 			smtSolverInteractionRequire(!isAtom(formalArgument), "Invalid format of CHC model");
@@ -465,7 +462,7 @@ std::optional<smtutil::Expression> CHCSmtLib2Interface::invariantsFromSolverResp
 			smtSolverInteractionRequire(isAtom(nameSortPair[0]), "Invalid format of CHC model");
 			SortPointer varSort = scopedParser.toSort(nameSortPair[1]);
 			scopedParser.addVariableDeclaration(asAtom(nameSortPair[0]), varSort);
-			predicateArgs.push_back(scopedParser.toSMTUtilExpression(nameSortPair[0]));
+			predicateArguments.push_back(asAtom(nameSortPair[0]));
 		}
 
 		auto parsedInterpretation = scopedParser.toSMTUtilExpression(interpretation);
@@ -476,11 +473,11 @@ std::optional<smtutil::Expression> CHCSmtLib2Interface::invariantsFromSolverResp
 				return first.name < second.name;
 			});
 
-		Expression predicate(asAtom(args[1]), predicateArgs, SortProvider::boolSort);
-		// FIXME: Why do we need to represent the predicate as Expression?
-		definitions.push_back(predicate == parsedInterpretation);
+		std::string const& predicateName = asAtom(args[1]);
+		smtSolverInteractionRequire(!definitions.contains(predicateName), "Predicates must be unique");
+		definitions.emplace(predicateName, InvariantInfo{parsedInterpretation, predicateArguments});
 	}
-	return Expression::mkAnd(std::move(definitions));
+	return definitions;
 }
 
 namespace

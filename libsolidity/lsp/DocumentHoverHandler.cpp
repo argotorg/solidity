@@ -59,6 +59,11 @@ void DocumentHoverHandler::operator()(MessageID _id, Json const& _args)
 {
 	auto const [sourceUnitName, lineColumn] = HandlerBase(*this).extractSourceUnitNameAndLineColumn(_args);
 	auto const [sourceNode, sourceOffset] = m_server.astNodeAndOffsetAtSourceLocation(sourceUnitName, lineColumn);
+	if (!sourceNode)
+	{
+		client().reply(_id, Json());
+		return;
+	}
 
 	MarkdownBuilder markdown;
 	auto rangeToHighlight = toRange(sourceNode->location());

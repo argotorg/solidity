@@ -179,9 +179,9 @@ public:
 	/// @returns the values of the local variables used by this predicate.
 	std::pair<std::vector<std::optional<std::string>>, std::vector<VariableDeclaration const*>> localVariableValues(std::vector<smtutil::Expression> const& _args) const;
 
-	/// @returns a substitution map from the arguments of _predExpr
+	/// @returns a substitution map from the predicate arguments @p _predArgs
 	/// to a Solidity-like expression.
-	std::map<std::string, std::string> expressionSubstitution(smtutil::Expression const& _predExprs) const;
+	std::map<std::string, std::string> expressionSubstitution(std::vector<std::string> const& _predArgs) const;
 
 private:
 	/// Recursively fills _array from _expr.

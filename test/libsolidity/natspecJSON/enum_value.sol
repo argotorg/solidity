@@ -1,11 +1,13 @@
 contract C {
-    /// @title example of title
-    /// @author example of author
-    /// @notice example of notice
-    /// @dev example of dev
     enum Color {
+        /// @custom red color
         Red,
+        /// @title example of title
+        /// @author example of author
+        /// @notice example of notice
+        /// @dev example of dev
         Green
+        /// @notice beyond last value
     }
 }
 // ----

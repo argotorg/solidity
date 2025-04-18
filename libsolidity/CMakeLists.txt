@@ -117,8 +117,6 @@ set(sources
 	formal/EncodingContext.h
 	formal/ExpressionFormatter.cpp
 	formal/ExpressionFormatter.h
-	formal/Invariants.cpp
-	formal/Invariants.h
 	formal/ModelChecker.cpp
 	formal/ModelChecker.h
 	formal/ModelCheckerSettings.cpp
