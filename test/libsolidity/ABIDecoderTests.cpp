@@ -430,18 +430,17 @@ BOOST_AUTO_TEST_CASE(invalid_tuple_offset)
 {
 	std::string sourceCode = R"(
 		contract C {
-			struct S { uint a; uint b; }
-			function f(S calldata x) external pure returns (uint) {
-				return x.a + x.b;
+			function f(uint[] calldata x) external pure returns (uint) {
+				return x.length > 0 ? x[0] : 0;
 			}
 		}
 	)";
 	BOTH_ENCODERS(
 		compileAndRun(sourceCode);
-		// Creating an invalid call with tuple offset pointing outside the calldata
+		// Creating an invalid call with array offset pointing outside the calldata
 		bytes calldata = encodeArgs(0x20, 0xffff) + bytes(62, 0); // 0xffff is an invalid offset
-		// This should revert because the tuple offset is invalid
-		ABI_CHECK(callContractFunctionNoEncoding("f((uint256,uint256))", calldata), encodeArgs());
+		// This should revert because the array offset is invalid
+		ABI_CHECK(callContractFunctionNoEncoding("f(uint256[])", calldata), encodeArgs());
 	)
 }
 
