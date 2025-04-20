@@ -430,7 +430,8 @@ BOOST_AUTO_TEST_CASE(invalid_tuple_offset)
 {
 	std::string sourceCode = R"(
 		contract C {
-			function f((uint a, uint b) calldata x) external pure returns (uint) {
+			struct S { uint a; uint b; }
+			function f(S calldata x) external pure returns (uint) {
 				return x.a + x.b;
 			}
 		}
