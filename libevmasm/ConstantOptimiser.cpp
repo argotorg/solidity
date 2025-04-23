@@ -253,7 +253,47 @@ AssemblyItems ComputeMethod::findRepresentation(u256 const& _value)
 	if (_value < 0x10000)
 		// Very small value, not worth computing
 		return AssemblyItems{_value};
-	else if (numberEncodingSize(~_value) < numberEncodingSize(_value))
+
+	// check for masks first
+	unsigned lowZeros = 0;
+	unsigned highOnes = 0;
+	for (; ((_value >> lowZeros) & 1) == 0 && lowZeros < 256; lowZeros++) {}
+	for (; ((_value >> (lowZeros + highOnes)) & 1) == 1 && highOnes < 256; highOnes++) {}
+	if (m_params.evmVersion.hasBitwiseShifting() && highOnes > 32 &&
+		((_value >> (lowZeros + highOnes)) == 0) &&
+		((lowZeros + highOnes < 256) || lowZeros > 16))
+	{
+		// this is a big enough mask to use zero negation
+		AssemblyItems newRoutine = AssemblyItems{u256(0), Instruction::NOT};
+		if ((highOnes + lowZeros) != 256)
+			newRoutine += AssemblyItems{u256(256 - highOnes), Instruction::SHR};
+		if (lowZeros > 0)
+			newRoutine += AssemblyItems{u256(lowZeros), Instruction::SHL};
+		return newRoutine;
+	}
+	// check powers of 10
+	u256 divBy10 = _value;
+	unsigned pow10 = 0;
+	while (divBy10 > 0 && divBy10 % 10 == 0)
+	{
+		divBy10 = divBy10 / 10;
+		pow10++;
+	}
+	// 10^9 = 0x3b9aca00; requires 5 bytes with PUSH4; also 5 bytes with PUSH 5 PUSH 10 EXP
+	if (pow10 > 9 && divBy10 == 1)
+	{
+		// pure power of 10
+		return AssemblyItems{u256(pow10), u256(10), Instruction::EXP};
+	}
+	// 10^x * y can be encoded as: push x push 10 exp push y mul. That's about 7 bytes more than plain push
+	if (pow10 > 12)
+	{
+		AssemblyItems newRoutine = findRepresentation(divBy10);
+		newRoutine += AssemblyItems{u256(pow10), u256(10), Instruction::EXP, Instruction::MUL};
+		return newRoutine;
+	}
+	if (numberEncodingSize(~_value) < numberEncodingSize(_value) &&
+		(lowZeros+highOnes < 256 || highOnes > 16))
 		// Negated is shorter to represent
 		return findRepresentation(~_value) + AssemblyItems{Instruction::NOT};
 	else

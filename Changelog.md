@@ -20,6 +20,7 @@ Compiler Features:
 * EVM: Set default EVM Version to `prague`.
 * NatSpec: Capture Natspec documentation of `enum` values in the AST.
 
+* Constant Optimizer: Compute masks using shifts when optimizing for size; use an ``--optimizer-runs`` value less than 200 for maximum size reduction.
 
 Bugfixes:
 * SMTChecker: Do not consider loop conditions as constant-condition verification target as this could cause incorrect reports and internal compiler errors.

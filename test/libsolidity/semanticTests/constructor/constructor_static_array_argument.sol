@@ -11,11 +11,11 @@ contract C {
 // bytecodeFormat: legacy,>=EOFv1
 // ----
 // constructor(): 1, 2, 3, 4 ->
-// gas irOptimized: 148129
+// gas irOptimized: 148025
 // gas irOptimized code: 23000
 // gas legacy: 157977
 // gas legacy code: 60400
-// gas legacyOptimized: 149973
+// gas legacyOptimized: 149921
 // gas legacyOptimized code: 26200
 // a() -> 1
 // b(uint256): 0 -> 2

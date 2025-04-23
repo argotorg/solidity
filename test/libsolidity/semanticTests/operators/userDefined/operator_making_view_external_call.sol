@@ -63,11 +63,11 @@ contract C {
 // gas irOptimized: 102563
 // gas legacy: 57117
 // gas legacy code: 127000
-// gas legacyOptimized: 55246
-// gas legacyOptimized code: 68400
+// gas legacyOptimized: 55242
+// gas legacyOptimized code: 68200
 // testInc(int32): 42 -> 43
 // gas irOptimized: 102386
 // gas legacy: 56378
 // gas legacy code: 127000
-// gas legacyOptimized: 54943
-// gas legacyOptimized code: 68400
+// gas legacyOptimized: 54944
+// gas legacyOptimized code: 68200

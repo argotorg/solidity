@@ -65,42 +65,43 @@ object "A" {
 }
 // ====
 // EVMVersion: >=constantinople
+// bytecodeFormat: legacy
 // optimizationPreset: full
 // outputs: Assembly
 // ----
 // Assembly:
-//   sstore(calldataload(sub(shl(0xff, 0x01), shl(0x7f, 0x01))), calldataload(0x01))
+//   sstore(calldataload(shl(0x7f, shr(0x80, not(0x00)))), calldataload(0x01))
 //   stop
 // stop
 //
 // sub_0: assembly {
-//       sstore(calldataload(shl(0x7f, 0xffffffffffffffffffffffffffffffff)), calldataload(0x01))
+//       sstore(calldataload(shl(0x7f, shr(0x80, not(0x00)))), calldataload(0x01))
 //       stop
 //     stop
 //
 //     sub_0: assembly {
-//           sstore(calldataload(sub(shl(0xff, 0x01), shl(0x7f, 0x01))), calldataload(0x01))
+//           sstore(calldataload(shl(0x7f, shr(0x80, not(0x00)))), calldataload(0x01))
 //           stop
 //         stop
 //
 //         sub_0: assembly {
-//               sstore(calldataload(shl(0x7f, 0xffffffffffffffffffffffffffffffff)), calldataload(0x01))
+//               sstore(calldataload(shl(0x7f, shr(0x80, not(0x00)))), calldataload(0x01))
 //               stop
 //         }
 //
 //         sub_1: assembly {
-//               sstore(calldataload(sub(shl(0xff, 0x01), shl(0x7f, 0x01))), calldataload(0x01))
+//               sstore(calldataload(shl(0x7f, shr(0x80, not(0x00)))), calldataload(0x01))
 //               stop
 //         }
 //     }
 // }
 //
 // sub_1: assembly {
-//       sstore(calldataload(shl(0x7f, 0xffffffffffffffffffffffffffffffff)), calldataload(0x01))
+//       sstore(calldataload(shl(0x7f, shr(0x80, not(0x00)))), calldataload(0x01))
 //       stop
 // }
 //
 // sub_2: assembly {
-//       sstore(calldataload(sub(shl(0xff, 0x01), shl(0x7f, 0x01))), calldataload(0x01))
+//       sstore(calldataload(shl(0x7f, shr(0x80, not(0x00)))), calldataload(0x01))
 //       stop
 // }

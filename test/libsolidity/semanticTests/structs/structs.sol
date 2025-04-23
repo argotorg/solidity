@@ -30,7 +30,7 @@ contract test {
 // ----
 // check() -> false
 // set() ->
-// gas irOptimized: 134073
+// gas irOptimized: 134078
 // gas legacy: 135243
-// gas legacyOptimized: 134062
+// gas legacyOptimized: 134067
 // check() -> true

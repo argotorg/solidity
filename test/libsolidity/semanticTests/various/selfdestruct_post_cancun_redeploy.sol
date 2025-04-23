@@ -83,20 +83,20 @@ contract D {
 // bytecodeFormat: legacy
 // ----
 // constructor(), 1 ether ->
-// gas irOptimized: 132974
-// gas irOptimized code: 293800
+// gas irOptimized: 131902
+// gas irOptimized code: 282800
 // gas legacy: 151236
 // gas legacy code: 533800
-// gas legacyOptimized: 131436
-// gas legacyOptimized code: 276600
+// gas legacyOptimized: 130256
+// gas legacyOptimized code: 263600
 // exists() -> false
 // test_deploy_and_terminate() ->
 // ~ emit Deployed(address,bytes32) from 0x137aa4dfc0911524504fcd4d98501f179bc13b4a: 0x7e6580007e709ac52945fae182c61131d42634e8, 0x1234000000000000000000000000000000000000000000000000000000000000
-// gas irOptimized: 96528
+// gas irOptimized: 96480
 // gas irOptimized code: 20800
 // gas legacy: 97788
 // gas legacy code: 20800
-// gas legacyOptimized: 96043
+// gas legacyOptimized: 95984
 // gas legacyOptimized code: 20800
 // exists() -> false
 // deploy_create2() ->
@@ -107,6 +107,6 @@ contract D {
 // test_balance_after_selfdestruct() ->
 // exists() -> true
 // deploy_create2() -> FAILURE
-// gas irOptimized: 96903654
+// gas irOptimized: 96903653
 // gas legacy: 96903658
 // gas legacyOptimized: 96903639

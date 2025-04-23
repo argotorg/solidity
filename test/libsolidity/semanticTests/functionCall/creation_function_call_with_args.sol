@@ -15,10 +15,10 @@ contract D {
 }
 // ----
 // constructor(): 2 ->
-// gas irOptimized: 138930
-// gas irOptimized code: 53800
+// gas irOptimized: 138598
+// gas irOptimized code: 53200
 // gas legacy: 145569
 // gas legacy code: 95600
-// gas legacyOptimized: 138297
-// gas legacyOptimized code: 54600
+// gas legacyOptimized: 138078
+// gas legacyOptimized code: 53400
 // f() -> 2

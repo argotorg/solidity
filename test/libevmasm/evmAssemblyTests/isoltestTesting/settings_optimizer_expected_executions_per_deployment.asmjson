@@ -19,8 +19,8 @@
 // stop
 //
 // sub_0: assembly {
-//       sub(shl(0x40, 0x01), 0x01)
+//       shr(0xc0, not(0x00))
 // }
-// Bytecode: 6003fe6001600160401b03
-// Opcodes: PUSH1 0x3 INVALID PUSH1 0x1 PUSH1 0x1 PUSH1 0x40 SHL SUB
+// Bytecode: 6003fe5f1960c01c
+// Opcodes: PUSH1 0x3 INVALID PUSH0 NOT PUSH1 0xC0 SHR
 // SourceMappings: :::-:0
