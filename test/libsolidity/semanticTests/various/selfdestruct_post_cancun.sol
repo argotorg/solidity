@@ -65,12 +65,12 @@ contract D {
 // bytecodeFormat: legacy
 // ----
 // constructor(), 1 ether ->
-// gas irOptimized: 67028
-// gas irOptimized code: 175400
+// gas irOptimized: 66279
+// gas irOptimized code: 166200
 // gas legacy: 76227
 // gas legacy code: 298200
-// gas legacyOptimized: 66516
-// gas legacyOptimized code: 168000
+// gas legacyOptimized: 66074
+// gas legacyOptimized code: 162400
 // exists() -> false
 // test_create_and_terminate() ->
 // exists() -> false

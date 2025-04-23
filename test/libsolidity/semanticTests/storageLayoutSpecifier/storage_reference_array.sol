@@ -14,7 +14,7 @@ contract C layout at 42 {
 }
 // ----
 // initUsingReference() ->
-// gas irOptimized: 273556
+// gas irOptimized: 273564
 // gas legacy: 274795
 // gas legacyOptimized: 271954
 // array(uint256): 0 -> 1
