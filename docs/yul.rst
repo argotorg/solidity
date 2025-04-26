@@ -589,7 +589,7 @@ declaration.
 Functions can be referenced already before their declaration (if they are visible).
 
 As an exception to the general scoping rule, the scope of the "init" part of the for-loop
-(the first block) extends across all other parts of the for loop.
+(the first block) extends across all other parts of the for-loop.
 This means that variables (and functions) declared in the init part (but not inside a
 block inside the init part) are visible in all other parts of the for-loop.
 
@@ -1050,15 +1050,28 @@ the additional optimiser steps will be run on it.
 verbatim
 ^^^^^^^^
 
-The set of ``verbatim...`` builtin functions lets you create bytecode for opcodes
+The ``verbatim`` builtin function lets you create bytecode for opcodes
 that are not known to the Yul compiler. It also allows you to create
 bytecode sequences that will not be modified by the optimizer.
 
-The functions are ``verbatim_<n>i_<m>o("<data>", ...)``, where
+This function can be used in two ways:
 
-- ``n`` is a decimal between 0 and 99 that specifies the number of input stack slots / variables
-- ``m`` is a decimal between 0 and 99 that specifies the number of output stack slots / variables
-- ``data`` is a string literal that contains the sequence of bytes
+1. (Recommended) Using the newer syntax ``verbatim(n, m, "<data>", ...)``, where:
+
+   - ``n`` is a literal number between 0 and 99 that specifies the number of input stack slots / variables
+   - ``m`` is a literal number between 0 and 99 that specifies the number of output stack slots / variables
+   - ``data`` is a string literal that contains the sequence of bytes
+
+2. (Legacy) Using the older syntax ``verbatim_<n>i_<m>o("<data>", ...)``, where:
+
+   - ``n`` is a decimal between 0 and 99 that specifies the number of input stack slots / variables
+   - ``m`` is a decimal between 0 and 99 that specifies the number of output stack slots / variables
+   - ``data`` is a string literal that contains the sequence of bytes
+
+.. note::
+
+   The legacy ``verbatim_<n>i_<m>o`` functions are deprecated and will be removed in a future version.
+   Please use the new ``verbatim`` function.
 
 If you for example want to define a function that multiplies the input
 by two, without the optimizer touching the constant two, you can use
@@ -1066,7 +1079,7 @@ by two, without the optimizer touching the constant two, you can use
 .. code-block:: yul
 
     let x := calldataload(0)
-    let double := verbatim_1i_1o(hex"600202", x)
+    let double := verbatim(1, 1, hex"600202", x)
 
 This code will result in a ``dup1`` opcode to retrieve ``x``
 (the optimizer might directly reuse result of the
@@ -1342,13 +1355,6 @@ Complete ERC20 Example
                 function transferFrom(from, to, amount) {
                     decreaseAllowanceBy(from, caller(), amount)
                     executeTransfer(from, to, amount)
-                }
-
-                function executeTransfer(from, to, amount) {
-                    revertIfZeroAddress(to)
-                    deductFromBalance(from, amount)
-                    addToBalance(to, amount)
-                    emitTransfer(from, to, amount)
                 }
 
 
