@@ -318,7 +318,7 @@ In general, read about the limits of two's complement representation, which even
 more special edge cases for signed numbers.
 .. _solcmc:
 
-SolCMC (Solidity Contract Management and Checking) is a tool used for detecting security vulnerabilities in Solidity contracts, such as integer overflows. It helps ensure that contracts are secure before deployment.
+SolCMC (Solidity Compiler’s Model Checker)
 
 Try to use ``require`` to limit the size of inputs to a reasonable range and use the
 :ref:`SolCMC<solcmc>` to find potential overflows.
