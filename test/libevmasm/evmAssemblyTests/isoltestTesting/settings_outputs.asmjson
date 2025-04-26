@@ -1,0 +1,10 @@
+{
+    ".code": [
+        {"name": "CALLVALUE"}
+    ]
+}
+// ====
+// outputs: SourceMappings,Opcodes
+// ----
+// Opcodes: CALLVALUE
+// SourceMappings: :::-:0

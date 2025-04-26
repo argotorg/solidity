@@ -1,0 +1,26 @@
+{
+    ".code": [
+        {"name": "PUSH [tag]", "value": "1"},
+        {"name": "PUSH [tag]", "value": "2"},
+        {"name": "tag", "value": "1"},
+        {"name": "JUMPDEST"},
+        {"name": "JUMP"},
+        {"name": "tag", "value": "2"},
+        {"name": "JUMPDEST"},
+        {"name": "JUMP"}
+    ]
+}
+// ====
+// optimizationPreset: none
+// optimizer.deduplicate: true
+// ----
+// Assembly:
+//   tag_1
+//   tag_1
+// tag_1:
+//   jump
+// tag_2:
+//   jump
+// Bytecode: 600460045b565b56
+// Opcodes: PUSH1 0x4 PUSH1 0x4 JUMPDEST JUMP JUMPDEST JUMP
+// SourceMappings: :::-:0;;;;;

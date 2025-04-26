@@ -1,5 +1,5 @@
 Warning: BMC: Assertion violation happens here.
- --> model_checker_solvers_cvc5/input.sol:5:3:
+ --> input.sol:5:3:
   |
 5 | 		assert(x > 0);
   | 		^^^^^^^^^^^^^

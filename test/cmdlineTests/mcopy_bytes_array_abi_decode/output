@@ -1,6 +1,6 @@
 IR:
 
-/// @use-src 0:"mcopy_bytes_array_abi_decode/input.sol"
+/// @use-src 0:"input.sol"
 object "C_15" {
     code {
 
@@ -27,7 +27,7 @@ object "C_15" {
         }
 
     }
-    /// @use-src 0:"mcopy_bytes_array_abi_decode/input.sol"
+    /// @use-src 0:"input.sol"
     object "C_15_deployed" {
         code {
 

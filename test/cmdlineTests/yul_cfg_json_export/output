@@ -1,5 +1,5 @@
 
-======= yul_cfg_json_export/input.sol:C =======
+======= input.sol:C =======
 Yul Control Flow Graph:
 {
     "C_19": {
@@ -447,7 +447,7 @@ Yul Control Flow Graph:
     "type": "Object"
 }
 
-======= yul_cfg_json_export/input.sol:D =======
+======= input.sol:D =======
 Yul Control Flow Graph:
 {
     "D_38": {
@@ -2127,6 +2127,6 @@ Yul Control Flow Graph:
     "type": "Object"
 }
 
-======= yul_cfg_json_export/input.sol:I =======
+======= input.sol:I =======
 Yul Control Flow Graph:
 null

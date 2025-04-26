@@ -137,8 +137,6 @@ set(sources
 	formal/SymbolicTypes.h
 	formal/SymbolicVariables.cpp
 	formal/SymbolicVariables.h
-	formal/VariableUsage.cpp
-	formal/VariableUsage.h
 	formal/Z3CHCSmtLib2Interface.cpp
 	formal/Z3CHCSmtLib2Interface.h
 	formal/Z3SMTLib2Interface.cpp

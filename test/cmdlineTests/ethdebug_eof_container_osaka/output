@@ -1,4 +1,4 @@
 ======= Debug Data (ethdebug/format/info/resources) =======
-{"compilation":{"compiler":{"name":"solc","version": "<VERSION REMOVED>"},"sources":[{"id":0,"path":"ethdebug_eof_container_osaka/input.sol"}]}}
+{"compilation":{"compiler":{"name":"solc","version": "<VERSION REMOVED>"},"sources":[{"id":0,"path":"input.sol"}]}}
 
-======= ethdebug_eof_container_osaka/input.sol:C =======
+======= input.sol:C =======

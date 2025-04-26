@@ -1,12 +1,12 @@
 Warning: BMC: Condition is always true.
- --> model_checker_targets_default_bmc/input.sol:6:11:
+ --> input.sol:6:11:
   |
 6 | 		require(x >= 0);
   | 		        ^^^^^^
 Note: Callstack:
 
 Warning: BMC: Division by zero happens here.
- --> model_checker_targets_default_bmc/input.sol:9:3:
+ --> input.sol:9:3:
   |
 9 | 		2 / x;
   | 		^^^^^
@@ -19,7 +19,7 @@ Note: Callstack:
 Note:
 
 Warning: BMC: Insufficient funds happens here.
-  --> model_checker_targets_default_bmc/input.sol:10:3:
+  --> input.sol:10:3:
    |
 10 | 		a.transfer(x);
    | 		^^^^^^^^^^^^^
@@ -31,7 +31,7 @@ Note: Callstack:
 Note:
 
 Warning: BMC: Assertion violation happens here.
-  --> model_checker_targets_default_bmc/input.sol:11:3:
+  --> input.sol:11:3:
    |
 11 | 		assert(x > 0);
    | 		^^^^^^^^^^^^^

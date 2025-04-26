@@ -756,7 +756,6 @@ void SMTEncoder::initContract(ContractDefinition const& _contract)
 	m_context.pushSolver();
 	createStateVariables(_contract);
 	clearIndices(m_currentContract, nullptr);
-	m_variableUsage.setCurrentContract(_contract);
 	m_checked = true;
 }
 
@@ -2811,14 +2810,6 @@ Expression const* SMTEncoder::cleanExpression(Expression const& _expr)
 		}
 	solAssert(expr, "");
 	return expr;
-}
-
-std::set<VariableDeclaration const*> SMTEncoder::touchedVariables(ASTNode const& _node)
-{
-	std::vector<CallableDeclaration const*> callStack;
-	for (auto const& call: m_callStack)
-		callStack.push_back(call.first);
-	return m_variableUsage.touchedVariables(_node, callStack);
 }
 
 Declaration const* SMTEncoder::expressionToDeclaration(Expression const& _expr) const

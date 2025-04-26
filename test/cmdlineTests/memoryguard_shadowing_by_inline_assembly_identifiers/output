@@ -1,6 +1,6 @@
 IR:
 
-/// @use-src 0:"memoryguard_shadowing_by_inline_assembly_identifiers/input.sol"
+/// @use-src 0:"input.sol"
 object "C_10" {
     code {
 
@@ -27,7 +27,7 @@ object "C_10" {
         }
 
     }
-    /// @use-src 0:"memoryguard_shadowing_by_inline_assembly_identifiers/input.sol"
+    /// @use-src 0:"input.sol"
     object "C_10_deployed" {
         code {
 

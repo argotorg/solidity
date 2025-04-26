@@ -1,11 +1,11 @@
 {
     "sourceList": [
-        "no_contract_combined_json/input.sol"
+        "input.sol"
     ],
     "sources": {
-        "no_contract_combined_json/input.sol": {
+        "input.sol": {
             "AST": {
-                "absolutePath": "no_contract_combined_json/input.sol",
+                "absolutePath": "input.sol",
                 "exportedSymbols": {},
                 "id": 2,
                 "license": "GPL-3.0",

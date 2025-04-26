@@ -1,5 +1,5 @@
 
-======= yul_verbatim_msize/input.yul (EVM) =======
+======= input.yul (EVM) =======
 
 Pretty printed source:
 object "object" {
@@ -17,19 +17,19 @@ Binary representation:
 6120005150616160025f5500
 
 Text representation:
-    /* "yul_verbatim_msize/input.yul":61:67   */
+    /* "input.yul":61:67   */
   0x2000
-    /* "yul_verbatim_msize/input.yul":55:68   */
+    /* "input.yul":55:68   */
   mload
-    /* "yul_verbatim_msize/input.yul":51:69   */
+    /* "input.yul":51:69   */
   pop
-    /* "yul_verbatim_msize/input.yul":82:102   */
+    /* "input.yul":82:102   */
   verbatimbytecode_6161
-    /* "yul_verbatim_msize/input.yul":125:126   */
+    /* "input.yul":125:126   */
   0x02
-    /* "yul_verbatim_msize/input.yul":122:123   */
+    /* "input.yul":122:123   */
   0x00
-    /* "yul_verbatim_msize/input.yul":115:127   */
+    /* "input.yul":115:127   */
   sstore
-    /* "yul_verbatim_msize/input.yul":27:143   */
+    /* "input.yul":27:143   */
   stop

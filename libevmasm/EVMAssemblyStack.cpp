@@ -74,13 +74,13 @@ void EVMAssemblyStack::assemble()
 LinkerObject const& EVMAssemblyStack::object(std::string const& _contractName) const
 {
 	solAssert(_contractName == m_name);
-	return m_object;
+	return object();
 }
 
 LinkerObject const& EVMAssemblyStack::runtimeObject(std::string const& _contractName) const
 {
 	solAssert(_contractName == m_name);
-	return m_runtimeObject;
+	return runtimeObject();
 }
 
 std::map<std::string, unsigned> EVMAssemblyStack::sourceIndices() const
@@ -95,13 +95,13 @@ std::map<std::string, unsigned> EVMAssemblyStack::sourceIndices() const
 std::string const* EVMAssemblyStack::sourceMapping(std::string const& _contractName) const
 {
 	solAssert(_contractName == m_name);
-	return &m_sourceMapping;
+	return &sourceMapping();
 }
 
 std::string const* EVMAssemblyStack::runtimeSourceMapping(std::string const& _contractName) const
 {
 	solAssert(_contractName == m_name);
-	return &m_runtimeSourceMapping;
+	return &runtimeSourceMapping();
 }
 
 Json EVMAssemblyStack::ethdebug(std::string const& _contractName) const
@@ -123,18 +123,28 @@ Json EVMAssemblyStack::ethdebug() const
 	return {};
 }
 
+Json EVMAssemblyStack::assemblyJSON() const
+{
+	solAssert(m_evmAssembly);
+	return m_evmAssembly->assemblyJSON(sourceIndices());
+}
+
 Json EVMAssemblyStack::assemblyJSON(std::string const& _contractName) const
 {
 	solAssert(_contractName == m_name);
+	return assemblyJSON();
+}
+
+std::string EVMAssemblyStack::assemblyString(StringMap const& _sourceCodes) const
+{
 	solAssert(m_evmAssembly);
-	return m_evmAssembly->assemblyJSON(sourceIndices());
+	return m_evmAssembly->assemblyString(m_debugInfoSelection, _sourceCodes);
 }
 
 std::string EVMAssemblyStack::assemblyString(std::string const& _contractName, StringMap const& _sourceCodes) const
 {
 	solAssert(_contractName == m_name);
-	solAssert(m_evmAssembly);
-	return m_evmAssembly->assemblyString(m_debugInfoSelection, _sourceCodes);
+	return assemblyString(_sourceCodes);
 }
 
 std::string const EVMAssemblyStack::filesystemFriendlyName(std::string const& _contractName) const

@@ -1,0 +1,13 @@
+{
+    ".code": [
+        {"name": "CODESIZE"}
+    ]
+}
+// ====
+// bytecodeFormat: legacy
+// ----
+// Assembly:
+//   codesize
+// Bytecode: 38
+// Opcodes: CODESIZE
+// SourceMappings: :::-:0

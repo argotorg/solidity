@@ -225,7 +225,7 @@ EOF
         if jq 'has("ethdebug")' "$stdout_path" --exit-status > /dev/null; then
             local temporary_file
             temporary_file=$(mktemp -t cmdline-ethdebug-XXXXXX.tmp)
-            if [[ -e ${tdir}/strip-ethdebug ]]; then
+            if [[ -e strip-ethdebug ]]; then
                 jq --indent 4 '
                     (. | .. | objects | select(has("ethdebug"))) |= (.ethdebug = "<ETHDEBUG DEBUG DATA REMOVED>")
                 ' "$stdout_path" > "$temporary_file"
@@ -350,9 +350,11 @@ test_solc_behaviour "${0}" "ctx:=/some/remapping/target" "" "" 1 "" "Error: Inva
 
 printTask "Running general commandline tests..."
 (
-    cd "$REPO_ROOT"/test/cmdlineTests/
     for tdir in "${selected_tests[@]}"
     do
+        # go back to the test root dir
+        cd "$REPO_ROOT"/test/cmdlineTests/
+
         if ! [[ -d $tdir ]]
         then
             fail "Test directory not found: $tdir"
@@ -377,10 +379,13 @@ printTask "Running general commandline tests..."
             fi
         fi
 
-        scriptFiles="$(ls -1 "${tdir}/test."* 2> /dev/null || true)"
+        # jump into test dir
+        cd "${tdir}"
+
+        scriptFiles="$(ls -1 "test."* 2> /dev/null || true)"
         scriptCount="$(echo "${scriptFiles}" | wc -w)"
 
-        inputFiles="$(ls -1 "${tdir}/input."* 2> /dev/null || true)"
+        inputFiles="$(ls -1 "input."* 2> /dev/null || true)"
         inputCount="$(echo "${inputFiles}" | wc -w)"
         (( inputCount <= 1 )) || fail "Ambiguous input. Found input files in multiple formats:"$'\n'"${inputFiles}"
         (( scriptCount <= 1 )) || fail "Ambiguous input. Found script files in multiple formats:"$'\n'"${scriptFiles}"
@@ -388,7 +393,7 @@ printTask "Running general commandline tests..."
 
         if (( scriptCount == 1 ))
         then
-            if ! "$scriptFiles"
+            if ! "./$scriptFiles"
             then
                 fail "Test script ${scriptFiles} failed."
             fi
@@ -399,38 +404,38 @@ printTask "Running general commandline tests..."
         # Use printf to get rid of the trailing newline
         inputFile=$(printf "%s" "${inputFiles}")
 
-        if [ "${inputFile}" = "${tdir}/input.json" ]
+        if [ "${inputFile}" = "input.json" ]
         then
-            ! [ -e "${tdir}/stdin" ] || fail "Found a file called 'stdin' but redirecting standard input in JSON mode is not allowed."
+            ! [ -e "stdin" ] || fail "Found a file called 'stdin' but redirecting standard input in JSON mode is not allowed."
 
             stdin="${inputFile}"
             inputFile=""
-            stdout="$(cat "${tdir}/output.json" 2>/dev/null || true)"
-            stdoutExpectationFile="${tdir}/output.json"
+            stdout="$(cat "output.json" 2>/dev/null || true)"
+            stdoutExpectationFile="output.json"
             prettyPrintFlags=""
-            if [[ ! -f "${tdir}/no-pretty-print" ]]
+            if [[ ! -f "no-pretty-print" ]]
             then
                 prettyPrintFlags="--pretty-json --json-indent 4"
             fi
 
-            command_args="--standard-json ${prettyPrintFlags} "$(cat "${tdir}/args" 2>/dev/null || true)
+            command_args="--standard-json ${prettyPrintFlags} "$(cat "args" 2>/dev/null || true)
         else
-            if [ -e "${tdir}/stdin" ]
+            if [ -e "stdin" ]
             then
-                stdin="${tdir}/stdin"
-                [ -f "${tdir}/stdin" ] || fail "'stdin' is not a regular file."
+                stdin="stdin"
+                [ -f "stdin" ] || fail "'stdin' is not a regular file."
             else
                 stdin=""
             fi
 
-            stdout="$(cat "${tdir}/output" 2>/dev/null || true)"
-            stdoutExpectationFile="${tdir}/output"
-            command_args=$(cat "${tdir}/args" 2>/dev/null || true)
+            stdout="$(cat "output" 2>/dev/null || true)"
+            stdoutExpectationFile="output"
+            command_args=$(cat "args" 2>/dev/null || true)
         fi
-        exitCodeExpectationFile="${tdir}/exit"
+        exitCodeExpectationFile="exit"
         exitCode=$(cat "$exitCodeExpectationFile" 2>/dev/null || true)
-        err="$(cat "${tdir}/err" 2>/dev/null || true)"
-        stderrExpectationFile="${tdir}/err"
+        err="$(cat "err" 2>/dev/null || true)"
+        stderrExpectationFile="err"
         test_solc_behaviour "$inputFile" \
                             "$command_args" \
                             "$stdin" \
