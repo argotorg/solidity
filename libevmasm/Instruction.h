@@ -322,6 +322,6 @@ InstructionInfo instructionInfo(Instruction _inst, langutil::EVMVersion _evmVers
 bool isValidInstruction(Instruction _inst);
 
 /// Convert from string mnemonic to Instruction type.
-extern const std::map<std::string, Instruction> c_instructions;
+extern const std::map<std::string, Instruction, std::less<>> c_instructions;
 
 }

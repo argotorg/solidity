@@ -8,6 +8,7 @@ Compiler Features:
 
 
 Bugfixes:
+* SMTChecker: Do not consider loop conditions as constant-condition verification target as this could cause incorrect reports and internal compiler errors.
 * SMTChecker: Fix incorrect analysis when only a subset of contracts is selected with `--model-checker-contracts`.
 * SMTChecker: Fix internal compiler error when string literal is used to initialize user-defined type based on fixed bytes.
 

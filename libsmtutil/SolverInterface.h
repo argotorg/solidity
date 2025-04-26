@@ -26,7 +26,8 @@
 #include <libsolutil/CommonData.h>
 
 #include <range/v3/algorithm/all_of.hpp>
-#include <range/v3/view.hpp>
+#include <range/v3/range/conversion.hpp>
+#include <range/v3/view/split.hpp>
 
 #include <cstdio>
 #include <map>

@@ -27,7 +27,6 @@
 #include <libsolidity/formal/EncodingContext.h>
 #include <libsolidity/formal/ModelCheckerSettings.h>
 #include <libsolidity/formal/SymbolicVariables.h>
-#include <libsolidity/formal/VariableUsage.h>
 
 #include <libsolidity/ast/AST.h>
 #include <libsolidity/ast/ASTVisitor.h>
@@ -454,7 +453,6 @@ protected:
 		smtutil::Expression constraints;
 	};
 
-	smt::VariableUsage m_variableUsage;
 	bool m_arrayAssignmentHappened = false;
 
 	/// Stores the instances of an Uninterpreted Function applied to arguments.

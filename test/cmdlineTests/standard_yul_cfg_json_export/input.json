@@ -1,7 +1,7 @@
 {
 	"language": "Solidity",
 	"sources": {
-		"C": {"urls": ["standard_yul_cfg_json_export/in.sol"]}
+		"C": {"urls": ["in.sol"]}
 	},
 	"settings": {
 		"optimizer": {

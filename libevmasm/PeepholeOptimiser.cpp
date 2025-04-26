@@ -563,7 +563,9 @@ struct TruthyAnd: SimplePeepholeOptimizerMethod<TruthyAnd>
 	}
 };
 
-/// Removes everything after a JUMP (or similar) until the next JUMPDEST.
+/// Removes everything after an non-continuing instruction until the next Tag.
+/// Note: JUMPF can return but to the caller's parent call frame.
+/// So it won't continue from the next to the JUMPF instruction
 struct UnreachableCode
 {
 	static bool apply(OptimiserState& _state)
@@ -572,14 +574,18 @@ struct UnreachableCode
 		auto end = _state.items.end();
 		if (it == end)
 			return false;
+
 		if (
 			it[0] != Instruction::JUMP &&
-			it[0] != Instruction::RJUMP &&
 			it[0] != Instruction::RETURN &&
 			it[0] != Instruction::STOP &&
 			it[0] != Instruction::INVALID &&
 			it[0] != Instruction::SELFDESTRUCT &&
-			it[0] != Instruction::REVERT
+			it[0] != Instruction::REVERT &&
+			it[0] != Instruction::RJUMP &&
+			it[0] != Instruction::JUMPF &&
+			it[0] != Instruction::RETF &&
+			it[0] != Instruction::RETURNCONTRACT
 		)
 			return false;
 

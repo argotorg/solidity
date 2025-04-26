@@ -1,6 +1,6 @@
 IR:
 
-/// @use-src 0:"require_with_error_ir/input.sol"
+/// @use-src 0:"input.sol"
 object "C_36" {
     code {
 
@@ -27,7 +27,7 @@ object "C_36" {
         }
 
     }
-    /// @use-src 0:"require_with_error_ir/input.sol"
+    /// @use-src 0:"input.sol"
     object "C_36_deployed" {
         code {
 

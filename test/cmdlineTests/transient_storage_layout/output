@@ -1,11 +1,11 @@
 
-======= transient_storage_layout/input.sol:C =======
+======= input.sol:C =======
 Contract Transient Storage Layout:
 {
     "storage": [
         {
             "astId": 4,
-            "contract": "transient_storage_layout/input.sol:C",
+            "contract": "input.sol:C",
             "label": "x",
             "offset": 0,
             "slot": "0",
@@ -13,7 +13,7 @@ Contract Transient Storage Layout:
         },
         {
             "astId": 8,
-            "contract": "transient_storage_layout/input.sol:C",
+            "contract": "input.sol:C",
             "label": "w",
             "offset": 0,
             "slot": "1",
@@ -21,7 +21,7 @@ Contract Transient Storage Layout:
         },
         {
             "astId": 12,
-            "contract": "transient_storage_layout/input.sol:C",
+            "contract": "input.sol:C",
             "label": "b",
             "offset": 20,
             "slot": "1",
@@ -29,7 +29,7 @@ Contract Transient Storage Layout:
         },
         {
             "astId": 15,
-            "contract": "transient_storage_layout/input.sol:C",
+            "contract": "input.sol:C",
             "label": "d",
             "offset": 0,
             "slot": "2",
@@ -60,7 +60,7 @@ Contract Transient Storage Layout:
     }
 }
 
-======= transient_storage_layout/input.sol:D =======
+======= input.sol:D =======
 Contract Transient Storage Layout:
 {
     "storage": []

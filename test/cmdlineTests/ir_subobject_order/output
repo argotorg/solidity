@@ -1,8 +1,8 @@
 Optimized IR:
-/// @use-src 0:"ir_subobject_order/input.sol"
+/// @use-src 0:"input.sol"
 object "A_13" {
     code { { revert(0, 0) } }
-    /// @use-src 0:"ir_subobject_order/input.sol"
+    /// @use-src 0:"input.sol"
     object "A_13_deployed" {
         code { { revert(0, 0) } }
         data ".metadata" hex"<BYTECODE REMOVED>"
@@ -10,10 +10,10 @@ object "A_13" {
 }
 
 Optimized IR:
-/// @use-src 0:"ir_subobject_order/input.sol"
+/// @use-src 0:"input.sol"
 object "B_7" {
     code { { revert(0, 0) } }
-    /// @use-src 0:"ir_subobject_order/input.sol"
+    /// @use-src 0:"input.sol"
     object "B_7_deployed" {
         code { { revert(0, 0) } }
         data ".metadata" hex"<BYTECODE REMOVED>"
@@ -21,7 +21,7 @@ object "B_7" {
 }
 
 Optimized IR:
-/// @use-src 0:"ir_subobject_order/input.sol"
+/// @use-src 0:"input.sol"
 object "C_33" {
     code {
         {
@@ -69,24 +69,24 @@ object "C_33" {
             return(_7, _8)
         }
     }
-    /// @use-src 0:"ir_subobject_order/input.sol"
+    /// @use-src 0:"input.sol"
     object "C_33_deployed" {
         code { { revert(0, 0) } }
         data ".metadata" hex"<BYTECODE REMOVED>"
     }
-    /// @use-src 0:"ir_subobject_order/input.sol"
+    /// @use-src 0:"input.sol"
     object "A_13" {
         code { { revert(0, 0) } }
-        /// @use-src 0:"ir_subobject_order/input.sol"
+        /// @use-src 0:"input.sol"
         object "A_13_deployed" {
             code { { revert(0, 0) } }
             data ".metadata" hex"<BYTECODE REMOVED>"
         }
     }
-    /// @use-src 0:"ir_subobject_order/input.sol"
+    /// @use-src 0:"input.sol"
     object "B_7" {
         code { { revert(0, 0) } }
-        /// @use-src 0:"ir_subobject_order/input.sol"
+        /// @use-src 0:"input.sol"
         object "B_7_deployed" {
             code { { revert(0, 0) } }
             data ".metadata" hex"<BYTECODE REMOVED>"

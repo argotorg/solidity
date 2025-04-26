@@ -244,7 +244,7 @@ public:
 	/// Shortcut that avoids constructing an AssemblyItem just to perform the comparison.
 	bool operator==(Instruction _instr) const
 	{
-		return type() == Operation && instruction() == _instr;
+		return hasInstruction() && instruction() == _instr;
 	}
 	bool operator!=(Instruction _instr) const { return !operator==(_instr); }
 

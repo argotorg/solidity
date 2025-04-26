@@ -25,7 +25,8 @@
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 
-#include <range/v3/algorithm/find_if.hpp>
+#include <range/v3/view/transform.hpp>
+#include <range/v3/view/zip.hpp>
 
 #include <array>
 #include <fstream>

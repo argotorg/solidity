@@ -28,7 +28,7 @@
 
 #include <boost/algorithm/string/join.hpp>
 
-#include <range/v3/view.hpp>
+#include <range/v3/view/enumerate.hpp>
 #include <utility>
 
 using namespace solidity;
