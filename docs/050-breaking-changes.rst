@@ -152,8 +152,8 @@ Command-line and JSON Interfaces
 
 * The command-line option ``--formal`` (used to generate Why3 output for
   further formal verification) was deprecated and is now removed.  A new
-  formal verification module, the SMTChecker, is enabled via ``pragma
-  experimental SMTChecker;``.
+  formal verification module, the SolCMC, is enabled via ``pragma
+  experimental SolCMC;``.
 
 * The command-line option ``--julia`` was renamed to ``--yul`` due to the
   renaming of the intermediate language ``Julia`` to ``Yul``.

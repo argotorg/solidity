@@ -147,10 +147,10 @@ Because the ABI coder v2 is not considered experimental anymore,
 it can be selected via ``pragma abicoder v2`` (please see above)
 since Solidity 0.7.4.
 
-.. index:: ! pragma; SMTChecker
-.. _smt_checker:
+.. index:: ! pragma; SolCMC
+.. _solcmc_checker:
 
-SMTChecker
+SolCMC
 ~~~~~~~~~~
 
 This component has to be enabled when the Solidity compiler is built
@@ -162,7 +162,7 @@ statically-built Linux binaries. It can be activated for solc-js via the
 `smtCallback <https://github.com/ethereum/solc-js#example-usage-with-smtsolver-callback>`_ if you have an SMT solver
 installed locally and run solc-js via node (not via the browser).
 
-If you use ``pragma experimental SMTChecker;``, then you get additional
+If you use ``pragma experimental SolCMC;``, then you get additional
 :ref:`safety warnings<formal_verification>` which are obtained by querying an
 SMT solver.
 The component does not yet support all features of the Solidity language and

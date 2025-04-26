@@ -140,7 +140,7 @@ However, if ``Eldarica`` is not found, these tests will be automatically skipped
 If ``z3`` is not present on your system, you should disable the
 SMT tests by exporting ``SMT_FLAGS=--no-smt`` before running ``./scripts/tests.sh`` or
 running ``./scripts/soltest.sh --no-smt``.
-These tests are ``libsolidity/smtCheckerTests``.
+These tests are ``libsolidity/solCMCTests``.
 
 .. note::
 

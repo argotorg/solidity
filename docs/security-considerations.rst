@@ -318,7 +318,7 @@ In general, read about the limits of two's complement representation, which even
 more special edge cases for signed numbers.
 
 Try to use ``require`` to limit the size of inputs to a reasonable range and use the
-:ref:`SMT checker<smt_checker>` to find potential overflows.
+:ref:`SolCMC<solcmc>` to find potential overflows.
 
 .. _clearing-mappings:
 

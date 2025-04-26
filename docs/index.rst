@@ -169,7 +169,7 @@ Contents
    :caption: Additional Material
 
    natspec-format.rst
-   smtchecker.rst
+   solcmc.rst
    yul.rst
    path-resolution.rst
 

@@ -1,7 +1,7 @@
 .. _formal_verification:
 
 ##################################
-SMTChecker and Formal Verification
+SolCMC and Formal Verification
 ##################################
 
 Using formal verification it is possible to perform an automated mathematical
@@ -17,15 +17,15 @@ is what you wanted and that you did not miss any unintended effects of it.
 Solidity implements a formal verification approach based on
 `SMT (Satisfiability Modulo Theories) <https://en.wikipedia.org/wiki/Satisfiability_modulo_theories>`_ and
 `Horn <https://en.wikipedia.org/wiki/Horn-satisfiability>`_ solving.
-The SMTChecker module automatically tries to prove that the code satisfies the
+The SolCMC module automatically tries to prove that the code satisfies the
 specification given by ``require`` and ``assert`` statements. That is, it considers
 ``require`` statements as assumptions and tries to prove that the conditions
 inside ``assert`` statements are always true.  If an assertion failure is
 found, a counterexample may be given to the user showing how the assertion can
-be violated. If no warning is given by the SMTChecker for a property,
+be violated. If no warning is given by the SolCMC for a property,
 it means that the property is safe.
 
-The other verification targets that the SMTChecker checks at compile time are:
+The other verification targets that the SolCMC checks at compile time are:
 
 - Arithmetic underflow and overflow.
 - Division by zero.
@@ -37,32 +37,32 @@ The other verification targets that the SMTChecker checks at compile time are:
 All the targets above are automatically checked by default if all engines are
 enabled, except underflow and overflow for Solidity >=0.8.7.
 
-The potential warnings that the SMTChecker reports are:
+The potential warnings that the SolCMC reports are:
 
-- ``<failing  property> happens here.``. This means that the SMTChecker proved that a certain property fails. A counterexample may be given, however in complex situations it may also not show a counterexample. This result may also be a false positive in certain cases, when the SMT encoding adds abstractions for Solidity code that is either hard or impossible to express.
-- ``<failing property> might happen here``. This means that the solver could not prove either case within the given timeout. Since the result is unknown, the SMTChecker reports the potential failure for soundness. This may be solved by increasing the query timeout, but the problem might also simply be too hard for the engine to solve.
+- ``<failing  property> happens here.``. This means that the SolCMC proved that a certain property fails. A counterexample may be given, however in complex situations it may also not show a counterexample. This result may also be a false positive in certain cases, when the SMT encoding adds abstractions for Solidity code that is either hard or impossible to express.
+- ``<failing property> might happen here``. This means that the solver could not prove either case within the given timeout. Since the result is unknown, the SolCMC reports the potential failure for soundness. This may be solved by increasing the query timeout, but the problem might also simply be too hard for the engine to solve.
 
-To enable the SMTChecker, you must select :ref:`which engine should run<smtchecker_engines>`,
-where the default is no engine. Selecting the engine enables the SMTChecker on all files.
+To enable the SolCMC, you must select :ref:`which engine should run<solcmc_engines>`,
+where the default is no engine. Selecting the engine enables the SolCMC on all files.
 
 .. note::
 
-    Prior to Solidity 0.8.4, the default way to enable the SMTChecker was via
-    ``pragma experimental SMTChecker;`` and only the contracts containing the
+    Prior to Solidity 0.8.4, the default way to enable the SolCMC was via
+    ``pragma experimental SolCMC;`` and only the contracts containing the
     pragma would be analyzed. That pragma has been deprecated, and although it
-    still enables the SMTChecker for backwards compatibility, it will be removed
+    still enables the SolCMC for backwards compatibility, it will be removed
     in Solidity 0.9.0. Note also that now using the pragma even in a single file
-    enables the SMTChecker for all files.
+    enables the SolCMC for all files.
 
 .. note::
 
     The lack of warnings for a verification target represents an undisputed
-    mathematical proof of correctness, assuming no bugs in the SMTChecker and
+    mathematical proof of correctness, assuming no bugs in the SolCMC and
     the underlying solver. Keep in mind that these problems are
     *very hard* and sometimes *impossible* to solve automatically in the
     general case.  Therefore, several properties might not be solved or might
     lead to false positives for large contracts. Every proven property should
-    be seen as an important achievement. For advanced users, see :ref:`SMTChecker Tuning <smtchecker_options>`
+    be seen as an important achievement. For advanced users, see :ref:`SolCMC Tuning <solcmc_options>`
     to learn a few options that might help proving more complex
     properties.
 
@@ -96,10 +96,10 @@ Overflow
     }
 
 The contract above shows an overflow check example.
-The SMTChecker does not check underflow and overflow by default for Solidity >=0.8.7,
+The SolCMC does not check underflow and overflow by default for Solidity >=0.8.7,
 so we need to use the command-line option ``--model-checker-targets "underflow,overflow"``
 or the JSON option ``settings.modelChecker.targets = ["underflow", "overflow"]``.
-See :ref:`this section for targets configuration<smtchecker_targets>`.
+See :ref:`this section for targets configuration<solcmc_targets>`.
 Here, it reports the following:
 
 .. code-block:: text
@@ -120,7 +120,7 @@ Here, it reports the following:
       |                    ^^^^^^^
 
 If we add ``require`` statements that filter out overflow cases,
-the SMTChecker proves that no overflow is reachable (by not reporting warnings):
+the SolCMC proves that no overflow is reachable (by not reporting warnings):
 
 .. code-block:: solidity
 
@@ -156,7 +156,7 @@ An assertion represents an invariant in your code: a property that must be true
 The code below defines a function ``f`` that guarantees no overflow.
 Function ``inv`` defines the specification that ``f`` is monotonically increasing:
 for every possible pair ``(a, b)``, if ``b > a`` then ``f(b) > f(a)``.
-Since ``f`` is indeed monotonically increasing, the SMTChecker proves that our
+Since ``f`` is indeed monotonically increasing, the SolCMC proves that our
 property is correct. You are encouraged to play with the property and the function
 definition to see what results come out!
 
@@ -201,7 +201,7 @@ equal every element in the array.
         }
     }
 
-Note that in this example the SMTChecker will automatically try to prove three properties:
+Note that in this example the SolCMC will automatically try to prove three properties:
 
 1. ``++i`` in the first loop does not overflow.
 2. ``++i`` in the second loop does not overflow.
@@ -257,7 +257,7 @@ gives us:
 State Properties
 ================
 
-So far the examples only demonstrated the use of the SMTChecker over pure code,
+So far the examples only demonstrated the use of the SolCMC over pure code,
 proving properties about specific operations or algorithms.
 A common type of properties in smart contracts are properties that involve the
 state of the contract. Multiple transactions might be needed to make an assertion
@@ -310,12 +310,12 @@ below.
 
 Function ``inv`` represents an invariant of the state machine that ``x + y``
 must be even.
-The SMTChecker manages to prove that regardless how many commands we give the
+The SolCMC manages to prove that regardless how many commands we give the
 robot, even if infinitely many, the invariant can *never* fail. The interested
 reader may want to prove that fact manually as well.  Hint: this invariant is
 inductive.
 
-We can also trick the SMTChecker into giving us a path to a certain position we
+We can also trick the SolCMC into giving us a path to a certain position we
 think might be reachable.  We can add the property that (2, 4) is *not*
 reachable, by adding the following function.
 
@@ -326,7 +326,7 @@ reachable, by adding the following function.
     }
 
 This property is false, and while proving that the property is false,
-the SMTChecker tells us exactly *how* to reach (2, 4):
+the SolCMC tells us exactly *how* to reach (2, 4):
 
 .. code-block:: text
 
@@ -358,7 +358,7 @@ might change depending on the used solver, its version, or just randomly.
 External Calls and Reentrancy
 =============================
 
-Every external call is treated as a call to unknown code by the SMTChecker.
+Every external call is treated as a call to unknown code by the SolCMC.
 The reasoning behind that is that even if the code of the called contract is
 available at compile time, there is no guarantee that the deployed contract
 will indeed be the same as the contract where the interface came from at
@@ -412,7 +412,7 @@ is already "locked", so it would not be possible to change the value of ``x``,
 regardless of what the unknown called code does.
 
 If we "forget" to use the ``mutex`` modifier on function ``set``, the
-SMTChecker is able to synthesize the behavior of the externally called code so
+SolCMC is able to synthesize the behavior of the externally called code so
 that the assertion fails:
 
 .. code-block:: text
@@ -433,31 +433,31 @@ that the assertion fails:
        | 		^^^^^^^^^^^^^^^^^
 
 
-.. _smtchecker_options:
+.. _solcmc_options:
 
 *****************************
-SMTChecker Options and Tuning
+SolCMC Options and Tuning
 *****************************
 
 Timeout
 =======
 
-The SMTChecker uses a hardcoded resource limit (``rlimit``) chosen per solver,
+The SolCMC uses a hardcoded resource limit (``rlimit``) chosen per solver,
 which is not precisely related to time. We chose the ``rlimit`` option as the default
 because it gives more determinism guarantees than time inside the solver.
 
 This options translates roughly to "a few seconds timeout" per query. Of course many properties
 are very complex and need a lot of time to be solved, where determinism does not matter.
-If the SMTChecker does not manage to solve the contract properties with the default ``rlimit``,
+If the SolCMC does not manage to solve the contract properties with the default ``rlimit``,
 a timeout can be given in milliseconds via the CLI option ``--model-checker-timeout <time>`` or
 the JSON option ``settings.modelChecker.timeout=<time>``, where 0 means no timeout.
 
-.. _smtchecker_targets:
+.. _solcmc_targets:
 
 Verification Targets
 ====================
 
-The types of verification targets created by the SMTChecker can also be
+The types of verification targets created by the SolCMC can also be
 customized via the CLI option ``--model-checker-target <targets>`` or the JSON
 option ``settings.modelChecker.targets=<targets>``.
 In the CLI case, ``<targets>`` is a no-space-comma-separated list of one or
@@ -486,7 +486,7 @@ but it can be useful especially when dealing with large contracts.
 Proved Targets
 ==============
 
-If there are any proved targets, the SMTChecker issues one warning per engine stating
+If there are any proved targets, the SolCMC issues one warning per engine stating
 how many targets were proved. If the user wishes to see all the specific
 proved targets, the CLI option ``--model-checker-show-proved-safe`` and
 the JSON option ``settings.modelChecker.showProvedSafe = true`` can be used.
@@ -494,7 +494,7 @@ the JSON option ``settings.modelChecker.showProvedSafe = true`` can be used.
 Unproved Targets
 ================
 
-If there are any unproved targets, the SMTChecker issues one warning stating
+If there are any unproved targets, the SolCMC issues one warning stating
 how many unproved targets there are. If the user wishes to see all the specific
 unproved targets, the CLI option ``--model-checker-show-unproved`` and
 the JSON option ``settings.modelChecker.showUnproved = true`` can be used.
@@ -503,7 +503,7 @@ Unsupported Language Features
 =============================
 
 Certain Solidity language features are not completely supported by the SMT
-encoding that the SMTChecker applies, for example assembly blocks.
+encoding that the SolCMC applies, for example assembly blocks.
 The unsupported construct is abstracted via overapproximation to preserve
 soundness, meaning any properties reported safe are safe even though this
 feature is unsupported.
@@ -523,12 +523,12 @@ By default all the deployable contracts in the given sources are analyzed separa
 the one that will be deployed. This means that if a contract has many direct
 and indirect inheritance parents, all of them will be analyzed on their own,
 even though only the most derived will be accessed directly on the blockchain.
-This causes an unnecessary burden on the SMTChecker and the solver.  To aid
+This causes an unnecessary burden on the SolCMC and the solver.  To aid
 cases like this, users can specify which contracts should be analyzed as the
 deployed one. The parent contracts are of course still analyzed, but only in
 the context of the most derived contract, reducing the complexity of the
 encoding and generated queries. Note that abstract contracts are by default
-not analyzed as the most derived by the SMTChecker.
+not analyzed as the most derived by the SolCMC.
 
 The chosen contracts can be given via a comma-separated list (whitespace is not
 allowed) of <source>:<contract> pairs in the CLI:
@@ -546,7 +546,7 @@ which has the following form:
 Trusted External Calls
 ======================
 
-By default, the SMTChecker does not assume that compile-time available code
+By default, the SolCMC does not assume that compile-time available code
 is the same as the runtime code for external calls. Take the following contracts
 as an example:
 
@@ -569,7 +569,7 @@ as an example:
 When ``MyContract.callExt`` is called, an address is given as the argument.
 At deployment time, we cannot know for sure that address ``_e`` actually
 contains a deployment of contract ``Ext``.
-Therefore, the SMTChecker will warn that the assertion above can be violated,
+Therefore, the SolCMC will warn that the assertion above can be violated,
 which is true, if ``_e`` contains another contract than ``Ext``.
 
 However, it can be useful to treat these external calls as trusted, for example,
@@ -578,13 +578,13 @@ This means assuming that address ``_e`` indeed was deployed as contract ``Ext``.
 This mode can be enabled via the CLI option ``--model-checker-ext-calls=trusted``
 or the JSON field ``settings.modelChecker.extCalls: "trusted"``.
 
-Please be aware that enabling this mode can make the SMTChecker analysis much more
+Please be aware that enabling this mode can make the SolCMC analysis much more
 computationally costly.
 
 An important part of this mode is that it is applied to contract types and high
 level external calls to contracts, and not low level calls such as ``call`` and
 ``delegatecall``. The storage of an address is stored per contract type, and
-the SMTChecker assumes that an externally called contract has the type of the
+the SolCMC assumes that an externally called contract has the type of the
 caller expression.  Therefore, casting an ``address`` or a contract to
 different contract types will yield different storage values and can give
 unsound results if the assumptions are inconsistent, such as the example below:
@@ -730,7 +730,7 @@ Reported Inferred Inductive Invariants
 ======================================
 
 For properties that were proved safe with the CHC engine,
-the SMTChecker can retrieve inductive invariants that were inferred by the Horn
+the SolCMC can retrieve inductive invariants that were inferred by the Horn
 solver as part of the proof.
 Currently only two types of invariants can be reported to the user:
 
@@ -741,12 +741,12 @@ Currently only two types of invariants can be reported to the user:
   between the value of the state variables before and after the external call, where the external call is free to do anything, including making reentrant calls to the analyzed contract. Primed variables represent the state variables' values after said external call. Example: ``lock -> x = x'``.
 
 The user can choose the type of invariants to be reported using the CLI option ``--model-checker-invariants "contract,reentrancy"`` or as an array in the field ``settings.modelChecker.invariants`` in the :ref:`JSON input<compiler-api>`.
-By default the SMTChecker does not report invariants.
+By default the SolCMC does not report invariants.
 
 Division and Modulo With Slack Variables
 ========================================
 
-Spacer, the default Horn solver used by the SMTChecker, often dislikes division
+Spacer, the default Horn solver used by the SolCMC, often dislikes division
 and modulo operations inside Horn rules. Because of that, by default the
 Solidity division and modulo operations are encoded using the constraint
 ``a = b * d + m`` where ``d = a / b`` and ``m = a % b``.
@@ -761,18 +761,18 @@ Natspec Function Abstraction
 Certain functions including common math methods such as ``pow``
 and ``sqrt`` may be too complex to be analyzed in a fully automated way.
 These functions can be annotated with Natspec tags that indicate to the
-SMTChecker that these functions should be abstracted. This means that the
+SolCMC that these functions should be abstracted. This means that the
 body of the function is not used, and when called, the function will:
 
-- Return a nondeterministic value, and either keep the state variables unchanged if the abstracted function is view/pure, or also set the state variables to nondeterministic values otherwise. This can be used via the annotation ``/// @custom:smtchecker abstract-function-nondet``.
-- Act as an uninterpreted function. This means that the semantics of the function (given by the body) are ignored, and the only property this function has is that given the same input it guarantees the same output. This is currently under development and will be available via the annotation ``/// @custom:smtchecker abstract-function-uf``.
+- Return a nondeterministic value, and either keep the state variables unchanged if the abstracted function is view/pure, or also set the state variables to nondeterministic values otherwise. This can be used via the annotation ``/// @custom:solcmc abstract-function-nondet``.
+- Act as an uninterpreted function. This means that the semantics of the function (given by the body) are ignored, and the only property this function has is that given the same input it guarantees the same output. This is currently under development and will be available via the annotation ``/// @custom:solcmc abstract-function-uf``.
 
-.. _smtchecker_engines:
+.. _solcmc_engines:
 
 Model Checking Engines
 ======================
 
-The SMTChecker module implements two different reasoning engines, a Bounded
+The SolCMC module implements two different reasoning engines, a Bounded
 Model Checker (BMC) and a system of Constrained Horn Clauses (CHC).  Both
 engines are currently under development, and have different characteristics.
 The engines are independent and every property warning states from which engine
@@ -837,7 +837,7 @@ option ``--model-checker-solvers {all,cvc5,eld,smtlib2,z3}`` or the JSON option
   z3 version 4.8.16 broke ABI compatibility with previous versions and cannot
   be used with solc <=0.8.13. If you are using z3 >=4.8.16 please use solc
   >=0.8.14, and conversely, only use older z3 with older solc releases.
-  We also recommend using the latest z3 release which is what SMTChecker also does.
+  We also recommend using the latest z3 release which is what SolCMC also does.
 
 Since both BMC and CHC use ``z3``, and ``z3`` is available in a greater variety
 of environments, including in the browser, most users will almost never need to be
@@ -845,17 +845,17 @@ concerned about this option. More advanced users might apply this option to try
 alternative solvers on more complex problems.
 
 Please note that certain combinations of chosen engine and solver will lead to
-the SMTChecker doing nothing, for example choosing CHC and ``cvc5``.
+the SolCMC doing nothing, for example choosing CHC and ``cvc5``.
 
 *******************************
 Abstraction and False Positives
 *******************************
 
-The SMTChecker implements abstractions in an incomplete and sound way: If a bug
+The SolCMC implements abstractions in an incomplete and sound way: If a bug
 is reported, it might be a false positive introduced by abstractions (due to
 erasing knowledge or using a non-precise type). If it determines that a
 verification target is safe, it is indeed safe, that is, there are no false
-negatives (unless there is a bug in the SMTChecker).
+negatives (unless there is a bug in the SolCMC).
 
 If a target cannot be proven you can try to help the solver by using the tuning
 options in the previous section.
@@ -865,7 +865,7 @@ with more information may also give some more power to the solver.
 SMT Encoding and Types
 ======================
 
-The SMTChecker encoding tries to be as precise as possible, mapping Solidity types
+The SolCMC encoding tries to be as precise as possible, mapping Solidity types
 and expressions to their closest `SMT-LIB <http://smtlib.cs.uiowa.edu/>`_
 representation, as shown in the table below.
 
@@ -978,7 +978,7 @@ not mean loss of proving power.
         }
     }
 
-In the example above, the SMTChecker is not expressive enough to actually
+In the example above, the SolCMC is not expressive enough to actually
 compute ``ecrecover``, but by modelling the function calls as uninterpreted
 functions we know that the return value is the same when called on equivalent
 parameters. This is enough to prove that the assertion above is always true.
@@ -995,7 +995,7 @@ Solidity implements aliasing for reference types with the same :ref:`data
 location<data-location>`.
 That means one variable may be modified through a reference to the same data
 area.
-The SMTChecker does not keep track of which references refer to the same data.
+The SolCMC does not keep track of which references refer to the same data.
 This implies that whenever a local reference or state variable of reference
 type is assigned, all knowledge regarding variables of the same type and data
 location is erased.
@@ -1064,7 +1064,7 @@ A contract may be deployed with funds sent to it, if ``msg.value`` > 0 in the
 deployment transaction.
 However, the contract's address may already have funds before deployment,
 which are kept by the contract.
-Therefore, the SMTChecker assumes that ``address(this).balance >= msg.value``
+Therefore, the SolCMC assumes that ``address(this).balance >= msg.value``
 in the constructor in order to be consistent with the EVM rules.
 The contract's balance may also increase without triggering any calls to the
 contract, if
@@ -1073,7 +1073,7 @@ contract, if
   as the target of the remaining funds,
 - the contract is the coinbase (i.e., ``block.coinbase``) of some block.
 
-To model this properly, the SMTChecker assumes that at every new transaction
+To model this properly, the SolCMC assumes that at every new transaction
 the contract's balance may grow by at least ``msg.value``.
 
 **********************
@@ -1087,7 +1087,7 @@ push: If the ``push`` operation is applied to an array of length 2^256 - 1, its
 length silently overflows.
 However, this is unlikely to happen in practice, since the operations required
 to grow the array to that point would take billions of years to execute.
-Another similar assumption taken by the SMTChecker is that an address' balance
+Another similar assumption taken by the SolCMC is that an address' balance
 can never overflow.
 
 A similar idea was presented in `EIP-1985 <https://eips.ethereum.org/EIPS/eip-1985>`_.

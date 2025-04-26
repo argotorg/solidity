@@ -490,7 +490,7 @@ Input Description
           "engine": "chc",
           // Choose whether external calls should be considered trusted in case the
           // code of the called function is available at compile-time.
-          // For details see the SMTChecker section.
+          // For details see the SolCMC section.
           "extCalls": "trusted",
           // Choose which types of invariants should be reported to the user: contract, reentrancy.
           "invariants": ["contract", "reentrancy"],
@@ -510,7 +510,7 @@ Input Description
           // See the Formal Verification section for the targets description.
           "targets": ["underflow", "overflow", "assert"],
           // Timeout for each SMT query in milliseconds.
-          // If this option is not given, the SMTChecker will use a deterministic
+          // If this option is not given, the SolCMC will use a deterministic
           // resource limit by default.
           // A given timeout of 0 means no resource/time restrictions for any query.
           "timeout": 20000
