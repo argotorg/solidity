@@ -316,8 +316,6 @@ overflow, this can lead to a smart contract being stuck in a certain state.
 
 In general, read about the limits of two's complement representation, which even has some
 more special edge cases for signed numbers.
-.. _solcmc:
-SolCMC (Solidity Compiler’s Model Checker)
 
 Try to use ``require`` to limit the size of inputs to a reasonable range and use the
 :ref:`SolCMC<solcmc>` to find potential overflows.
