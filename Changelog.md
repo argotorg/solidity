@@ -5,6 +5,8 @@ Language Features:
 
 Compiler Features:
 * ethdebug: Experimental support for instructions and source locations under EOF.
+* Constant Optimizer: Compute masks using shifts when optimizing for size; use an ``--optimizer-runs`` value less than 200 for maximum size reduction.
+
 
 Bugfixes:
 * Assembler: Fix not using a fixed-width type for IDs being assigned to subassemblies nested more than one level away, resulting in inconsistent `--asm-json` output between target architectures.
@@ -19,8 +21,6 @@ Build System:
 Compiler Features:
 * EVM: Set default EVM Version to `prague`.
 * NatSpec: Capture Natspec documentation of `enum` values in the AST.
-
-* Constant Optimizer: Compute masks using shifts when optimizing for size; use an ``--optimizer-runs`` value less than 200 for maximum size reduction.
 
 Bugfixes:
 * SMTChecker: Do not consider loop conditions as constant-condition verification target as this could cause incorrect reports and internal compiler errors.
