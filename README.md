@@ -1,92 +1,114 @@
-# The Solidity Contract-Oriented Programming Language
+# Dimvy Clothing Brand Solidity Smart Contracts
 
-[![Matrix Chat](https://img.shields.io/badge/Matrix%20-chat-brightgreen?style=plastic&logo=matrix)](https://matrix.to/#/#ethereum_solidity:gitter.im)
-[![Gitter Chat](https://img.shields.io/badge/Gitter%20-chat-brightgreen?style=plastic&logo=gitter)](https://gitter.im/ethereum/solidity)
-[![Solidity Forum](https://img.shields.io/badge/Solidity_Forum%20-discuss-brightgreen?style=plastic&logo=discourse)](https://forum.soliditylang.org/)
-[![X Follow](https://img.shields.io/twitter/follow/solidity_lang?style=plastic&logo=x)](https://X.com/solidity_lang)
-[![Mastodon Follow](https://img.shields.io/mastodon/follow/000335908?domain=https%3A%2F%2Ffosstodon.org%2F&logo=mastodon&style=plastic)](https://fosstodon.org/@solidity)
-
-You can talk to us on Gitter and Matrix, tweet at us on X (previously Twitter) or create a new topic in the Solidity forum. Questions, feedback, and suggestions are welcome!
-
-Solidity is a statically-typed, contract-oriented, high-level language for implementing smart contracts on the Ethereum platform.
-
-For a good overview and starting point, please check out the official [Solidity Language Portal](https://soliditylang.org).
+Welcome to the official repository for Dimvy Clothing Brand's Solidity-based smart contracts. This project contains all the smart contracts and supporting code powering Dimvy's blockchain functionalities, including NFT minting, secure on-chain payments, and supply chain tracking.
 
 ## Table of Contents
 
-- [Background](#background)
-- [Build and Install](#build-and-install)
-- [Example](#example)
-- [Documentation](#documentation)
-- [Development](#development)
-- [Maintainers](#maintainers)
-- [License](#license)
+- [Overview](#overview)
+- [Features](#features)
+- [Getting Started](#getting-started)
+- [Project Structure](#project-structure)
+- [Usage](#usage)
+- [Testing](#testing)
 - [Security](#security)
+- [Contributing](#contributing)
+- [License](#license)
 
-## Background
+## Overview
 
-Solidity is a statically-typed curly-braces programming language designed for developing smart contracts
-that run on the Ethereum Virtual Machine. Smart contracts are programs that are executed inside a peer-to-peer
-network where nobody has special authority over the execution, and thus they allow anyone to implement tokens of value,
-ownership, voting, and other kinds of logic.
+This repository holds Solidity contracts and supporting scripts that enable blockchain-powered features for the Dimvy Clothing Brand. These contracts are designed for deployment on EVM-compatible blockchains (such as Ethereum, Polygon, etc.).
 
-When deploying contracts, you should use the latest released version of
-Solidity. This is because breaking changes, as well as new features and bug fixes, are
-introduced regularly. We currently use a 0.x version
-number [to indicate this fast pace of change](https://semver.org/#spec-item-4).
+## Features
 
-## Build and Install
+- NFT-based product authentication and ownership
+- Secure on-chain payments
+- Supply chain transparency and traceability
+- Role-based access management for administrators and suppliers
+- Automated royalty and reward payouts
 
-Instructions about how to build and install the Solidity compiler can be
-found in the [Solidity documentation](https://docs.soliditylang.org/en/latest/installing-solidity.html#building-from-source).
+## Getting Started
 
+### Prerequisites
 
-## Example
+- [Node.js](https://nodejs.org/) (LTS version recommended)
+- [npm](https://www.npmjs.com/) or [yarn](https://yarnpkg.com/)
+- [Hardhat](https://hardhat.org/) (preferred for development)
+- [Solidity](https://docs.soliditylang.org/)
 
-A "Hello World" program in Solidity is of even less use than in other languages, but still:
+### Installation
 
-```solidity
-// SPDX-License-Identifier: MIT
-pragma solidity >=0.6.0 <0.9.0;
+Clone the repository and install dependencies:
 
-contract HelloWorld {
-    function helloWorld() external pure returns (string memory) {
-        return "Hello, World!";
-    }
-}
+```bash
+git clone https://github.com/Dimvy-Clothing-brand/solidity.git
+cd solidity
+npm install
+# or
+yarn install
 ```
 
-To get started with Solidity, you can use [Remix](https://remix.ethereum.org/), which is a
-browser-based IDE. Here are some example contracts:
+## Project Structure
 
-1. [Voting](https://docs.soliditylang.org/en/latest/solidity-by-example.html#voting)
-2. [Blind Auction](https://docs.soliditylang.org/en/latest/solidity-by-example.html#blind-auction)
-3. [Safe remote purchase](https://docs.soliditylang.org/en/latest/solidity-by-example.html#safe-remote-purchase)
-4. [Micropayment Channel](https://docs.soliditylang.org/en/latest/solidity-by-example.html#micropayment-channel)
+```
+solidity/
+├── contracts/      # Solidity smart contracts
+├── scripts/        # Deployment and utility scripts
+├── test/           # Test scripts for contracts
+├── README.md
+├── package.json
+└── ...
+```
 
-## Documentation
+## Usage
 
-The Solidity documentation is hosted using [Read the Docs](https://docs.soliditylang.org).
+### Compile Contracts
 
-## Development
+```bash
+npx hardhat compile
+```
 
-Solidity is still under development. Contributions are always welcome!
-Please follow the
-[Developer's Guide](https://docs.soliditylang.org/en/latest/contributing.html)
-if you want to help.
+### Deploy Contracts
 
-You can find our current feature and bug priorities for forthcoming
-releases in the [projects section](https://github.com/ethereum/solidity/projects).
+Update network and credentials in `hardhat.config.js`, then:
 
-## Maintainers
-The Solidity programming language and compiler are open-source community projects governed by a core team.
-The core team is sponsored by the [Ethereum Foundation](https://ethereum.foundation/).
+```bash
+npx hardhat run scripts/deploy.js --network <network_name>
+```
 
-## License
-Solidity is licensed under [GNU General Public License v3.0](LICENSE.txt).
+### Interact with Contracts
 
-Some third-party code has its [own licensing terms](cmake/templates/license.h.in).
+You can use Hardhat tasks or your own scripts to interact with deployed contracts.
+
+## Testing
+
+Run the test suite:
+
+```bash
+npx hardhat test
+```
+
+Ensure all tests pass before deploying or submitting pull requests.
 
 ## Security
 
-The security policy may be [found here](SECURITY.md).
+- All contracts are audited for common security vulnerabilities.
+- Sensitive functions are protected with access control.
+- For security concerns or vulnerability reports, please contact the repository maintainers directly.
+
+## Contributing
+
+We welcome contributions! Please open issues for bugs or feature requests, and submit pull requests for fixes and enhancements.
+
+1. Fork the repo
+2. Create your feature branch (`git checkout -b feature/new-feature`)
+3. Commit your changes (`git commit -am 'Add new feature'`)
+4. Push to the branch (`git push origin feature/new-feature`)
+5. Open a pull request
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+---
+
+**Dimvy Clothing Brand** — Empowering fashion with blockchain transparency.
