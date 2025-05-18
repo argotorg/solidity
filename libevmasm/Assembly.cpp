@@ -53,6 +53,54 @@ using namespace solidity::evmasm;
 using namespace solidity::langutil;
 using namespace solidity::util;
 
+namespace
+{
+
+/// Produces instruction location info in RAII style. When an assembly instruction is added to the bytecode,
+/// this class can be instantiated in that scope. It will record the current bytecode size (before addition)
+/// and, at destruction time, record the new bytecode size. This information is then added to an external
+/// instruction locations vector.
+/// If the instruction decomposes into multiple individual evm instructions, `emit` can be
+/// called for all but the last one (which will be emitted by the destructor).
+class InstructionLocationEmitter
+{
+public:
+	InstructionLocationEmitter(
+		std::vector<LinkerObject::InstructionLocation>& _instructionLocations,
+		bytes const& _bytecode,
+		size_t const _assemblyItemIndex
+	):
+		m_instructionLocations(_instructionLocations),
+		m_bytecode(_bytecode),
+		m_assemblyItemIndex(_assemblyItemIndex),
+		m_instructionLocationStart(_bytecode.size())
+	{}
+
+	~InstructionLocationEmitter()
+	{
+		emit();
+	}
+
+	void emit()
+	{
+		auto const end = m_bytecode.size();
+		m_instructionLocations.push_back(LinkerObject::InstructionLocation{
+			.start = m_instructionLocationStart,
+			.end = end,
+			.assemblyItemIndex = m_assemblyItemIndex
+		});
+		m_instructionLocationStart = end;
+	}
+
+private:
+	std::vector<LinkerObject::InstructionLocation>& m_instructionLocations;
+	bytes const& m_bytecode;
+	size_t const m_assemblyItemIndex{};
+	size_t m_instructionLocationStart{};
+};
+
+}
+
 std::map<std::string, std::shared_ptr<std::string const>> Assembly::s_sharedSourceNames;
 
 AssemblyItem const& Assembly::append(AssemblyItem _i)
@@ -843,8 +891,7 @@ std::map<u256, u256> const& Assembly::optimiseInternal(
 			}
 		}
 
-		// TODO: verify this for EOF.
-		if (_settings.runPeephole && !m_eofVersion.has_value())
+		if (_settings.runPeephole)
 		{
 			for (auto& codeSection: m_codeSections)
 			{
@@ -1281,8 +1328,13 @@ LinkerObject const& Assembly::assembleLegacy() const
 	uint8_t tagPush = static_cast<uint8_t>(pushInstruction(bytesPerTag));
 	uint8_t dataRefPush = static_cast<uint8_t>(pushInstruction(bytesPerDataRef));
 
-	for (AssemblyItem const& item: items)
+	LinkerObject::CodeSectionLocation codeSectionLocation;
+	codeSectionLocation.instructionLocations.reserve(items.size());
+	codeSectionLocation.start = 0;
+	for (auto const& [assemblyItemIndex, item]: items | ranges::views::enumerate)
 	{
+		// collect instruction locations via side effects
+		InstructionLocationEmitter instructionLocationEmitter(codeSectionLocation.instructionLocations, ret.bytecode, assemblyItemIndex);
 		// store position of the invalid jump destination
 		if (item.type() != Tag && m_tagPositionsInBytecode[0] == std::numeric_limits<size_t>::max())
 			m_tagPositionsInBytecode[0] = ret.bytecode.size();
@@ -1296,12 +1348,10 @@ LinkerObject const& Assembly::assembleLegacy() const
 			ret.bytecode += assemblePush(item);
 			break;
 		case PushTag:
-		{
 			ret.bytecode.push_back(tagPush);
 			tagRefs[ret.bytecode.size()] = item.splitForeignPushTag();
 			ret.bytecode.resize(ret.bytecode.size() + bytesPerTag);
 			break;
-		}
 		case PushData:
 			ret.bytecode.push_back(dataRefPush);
 			dataRefs.insert(std::make_pair(h256(item.data()), ret.bytecode.size()));
@@ -1326,12 +1376,10 @@ LinkerObject const& Assembly::assembleLegacy() const
 			break;
 		}
 		case PushProgramSize:
-		{
 			ret.bytecode.push_back(dataRefPush);
 			sizeRefs.push_back(static_cast<unsigned>(ret.bytecode.size()));
 			ret.bytecode.resize(ret.bytecode.size() + bytesPerDataRef);
 			break;
-		}
 		case PushLibraryAddress:
 		{
 			auto const [bytecode, linkRef] = assemblePushLibraryAddress(item, ret.bytecode.size());
@@ -1359,20 +1407,28 @@ LinkerObject const& Assembly::assembleLegacy() const
 			{
 				if (i != offsets.size() - 1)
 				{
-					ret.bytecode.push_back(uint8_t(Instruction::DUP2));
-					ret.bytecode.push_back(uint8_t(Instruction::DUP2));
+					ret.bytecode.push_back(static_cast<uint8_t>(Instruction::DUP2));
+					// This item type decomposes into multiple evm instructions, so we manually call emit()
+					instructionLocationEmitter.emit();
+					ret.bytecode.push_back(static_cast<uint8_t>(Instruction::DUP2));
+					instructionLocationEmitter.emit();
 				}
 				// TODO: should we make use of the constant optimizer methods for pushing the offsets?
 				bytes offsetBytes = toCompactBigEndian(u256(offsets[i]));
 				ret.bytecode.push_back(static_cast<uint8_t>(pushInstruction(static_cast<unsigned>(offsetBytes.size()))));
 				ret.bytecode += offsetBytes;
-				ret.bytecode.push_back(uint8_t(Instruction::ADD));
-				ret.bytecode.push_back(uint8_t(Instruction::MSTORE));
+				instructionLocationEmitter.emit();
+				ret.bytecode.push_back(static_cast<uint8_t>(Instruction::ADD));
+				instructionLocationEmitter.emit();
+				ret.bytecode.push_back(static_cast<uint8_t>(Instruction::MSTORE));
+				// No emit needed here, it's taken care of by the destructor of instructionLocationEmitter.
 			}
 			if (offsets.empty())
 			{
-				ret.bytecode.push_back(uint8_t(Instruction::POP));
-				ret.bytecode.push_back(uint8_t(Instruction::POP));
+				ret.bytecode.push_back(static_cast<uint8_t>(Instruction::POP));
+				instructionLocationEmitter.emit();
+				ret.bytecode.push_back(static_cast<uint8_t>(Instruction::POP));
+				// no emit needed here, it's taken care of by the destructor of instructionLocationEmitter
 			}
 			immutableReferencesBySub.erase(item.data());
 			break;
@@ -1387,6 +1443,10 @@ LinkerObject const& Assembly::assembleLegacy() const
 			solAssert(false, "Unexpected opcode while assembling.");
 		}
 	}
+
+	codeSectionLocation.end = ret.bytecode.size();
+
+	ret.codeSectionLocations.emplace_back(std::move(codeSectionLocation));
 
 	if (!immutableReferencesBySub.empty())
 		throw
@@ -1550,9 +1610,17 @@ LinkerObject const& Assembly::assembleEOF() const
 	for (auto&& [codeSectionIndex, codeSection]: m_codeSections | ranges::views::enumerate)
 	{
 		auto const sectionStart = ret.bytecode.size();
+
+		std::vector<LinkerObject::InstructionLocation> instructionLocations;
+		instructionLocations.reserve(codeSection.items.size());
+
 		solAssert(!codeSection.items.empty(), "Empty code section.");
-		for (AssemblyItem const& item: codeSection.items)
+
+		for (auto const& [assemblyItemIndex, item]: codeSection.items | ranges::views::enumerate)
 		{
+			// collect instruction locations via side effects
+			InstructionLocationEmitter instructionLocationEmitter {instructionLocations, ret.bytecode, assemblyItemIndex};
+
 			// store position of the invalid jump destination
 			if (item.type() != Tag && m_tagPositionsInBytecode[0] == std::numeric_limits<size_t>::max())
 				m_tagPositionsInBytecode[0] = ret.bytecode.size();
@@ -1668,6 +1736,12 @@ LinkerObject const& Assembly::assembleEOF() const
 				"Code section too large for EOF."
 			);
 		setBigEndianUint16(ret.bytecode, codeSectionSizePositions[codeSectionIndex], ret.bytecode.size() - sectionStart);
+
+		ret.codeSectionLocations.push_back(LinkerObject::CodeSectionLocation{
+			.start = sectionStart,
+			.end = ret.bytecode.size(),
+			.instructionLocations = std::move(instructionLocations)
+		});
 	}
 
 	for (auto const& [refPos, tagId]: tagRef)

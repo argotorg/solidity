@@ -86,10 +86,10 @@ Community contributors help translate this documentation into several languages.
 Note that they have varying degrees of completeness and up-to-dateness.
 The English version stands as a reference.
 
-You can switch between languages by clicking on the flyout menu in the bottom-left corner
+You can switch between languages by clicking on the flyout menu in the bottom-right corner
 and selecting the preferred language.
 
-* `Chinese <https://docs.soliditylang.org/zh/latest/>`_
+* `Chinese <https://docs.soliditylang.org/zh-cn/latest/>`_
 * `French <https://docs.soliditylang.org/fr/latest/>`_
 * `Indonesian <https://github.com/solidity-docs/id-indonesian>`_
 * `Japanese <https://github.com/solidity-docs/ja-japanese>`_

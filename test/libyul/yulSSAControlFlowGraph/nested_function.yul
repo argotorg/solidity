@@ -78,8 +78,9 @@
 // FunctionEntry_w_0 -> Block4_0;
 // Block4_0 [label="\
 // Block 0; (0, max 0)\nLiveIn: \l\
-// LiveOut: \l\n"];
-// Block4_0Exit [label="FunctionReturn[1]"];
+// LiveOut: v2\l\nv2 := 1\l\
+// "];
+// Block4_0Exit [label="FunctionReturn[v2]"];
 // Block4_0 -> Block4_0Exit;
 // FunctionEntry_v_0 [label="function v:
 //  r := v()"];
@@ -95,8 +96,9 @@
 // FunctionEntry_w_0 -> Block6_0;
 // Block6_0 [label="\
 // Block 0; (0, max 0)\nLiveIn: \l\
-// LiveOut: \l\n"];
-// Block6_0Exit [label="FunctionReturn[17]"];
+// LiveOut: v2\l\nv2 := 17\l\
+// "];
+// Block6_0Exit [label="FunctionReturn[v2]"];
 // Block6_0 -> Block6_0Exit;
 // FunctionEntry_cycle1_0 [label="function cycle1:
 //  r := cycle1()"];

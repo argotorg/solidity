@@ -1,5 +1,5 @@
 Warning: BMC: Overflow (resulting value larger than 2**256 - 1) happens here.
- --> model_checker_targets_overflow_bmc/input.sol:8:3:
+ --> input.sol:8:3:
   |
 8 | 		x + type(uint).max;
   | 		^^^^^^^^^^^^^^^^^^

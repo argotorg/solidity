@@ -205,8 +205,8 @@ contract publisher is announcementTypes, module, safeMath {
             If announcement is opposable, anyone owning a token can oppose it
             Opposition is automatically with the total amount of tokens
             If the quantity of his tokens changes, the purport of his opposition changes automatically
-            The prime time is the windup  of the announcement, because this is the moment when the number of tokens in opposition are counted.
-            One address is entitled to be in oppositon only once. An opposition cannot be withdrawn.
+            The prime time is the windup of the announcement, because this is the moment when the number of tokens in opposition are counted.
+            One address is entitled to be in opposition only once. An opposition cannot be withdrawn.
             Running announcements can be opposed only.
 
             @id     Announcement identification

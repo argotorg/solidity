@@ -123,7 +123,7 @@ std::optional<ModelCheckerContracts> ModelCheckerContracts::fromString(std::stri
 	{
 		auto&& names = sourceContract | ranges::views::split(':') | ranges::to<std::vector<std::string>>();
 		if (names.size() != 2 || names.at(0).empty() || names.at(1).empty())
-			return {};
+			return std::nullopt;
 		chosen[names.at(0)].insert(names.at(1));
 	}
 

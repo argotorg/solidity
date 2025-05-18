@@ -4,17 +4,11 @@
             "C_6_deployed": {
                 "evm": {
                     "bytecode": {
-                        "ethdebug": {
-                            "not yet implemented @ MachineAssemblyObject::ethdebug": true
-                        }
+                        "ethdebug": "<ETHDEBUG DEBUG DATA REMOVED>"
                     }
                 }
             }
         }
     },
-    "ethdebug": {
-        "sources": [
-            "C"
-        ]
-    }
+    "ethdebug": "<ETHDEBUG DEBUG DATA REMOVED>"
 }

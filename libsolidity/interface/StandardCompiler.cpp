@@ -30,6 +30,7 @@
 #include <libyul/optimiser/Suite.h>
 
 #include <libevmasm/Disassemble.h>
+#include <libevmasm/Ethdebug.h>
 #include <libevmasm/EVMAssemblyStack.h>
 
 #include <libsmtutil/Exceptions.h>
@@ -1680,19 +1681,6 @@ Json StandardCompiler::compileYul(InputsAndSettings _inputsAndSettings)
 		return output;
 	}
 
-	for (auto const& fileRequests: _inputsAndSettings.outputSelection)
-		for (auto const& requests: fileRequests)
-			for (auto const& request: requests)
-				if (request == "evm.deployedBytecode.ethdebug")
-				{
-					output["errors"].emplace_back(formatError(
-						Error::Type::JSONError,
-						"general",
-						"\"evm.deployedBytecode.ethdebug\" cannot be used for Yul."
-					));
-					return output;
-				}
-
 	YulStack stack(
 		_inputsAndSettings.evmVersion,
 		_inputsAndSettings.eofVersion,
@@ -1799,7 +1787,7 @@ Json StandardCompiler::compileYul(InputsAndSettings _inputsAndSettings)
 		output["contracts"][sourceName][contractName]["yulCFGJson"] = stack.cfgJson();
 
 	if (isEthdebugRequested(_inputsAndSettings.outputSelection))
-		output["ethdebug"] = stack.ethdebug();
+		output["ethdebug"] = evmasm::ethdebug::resources({sourceName}, VersionString);
 
 	return output;
 }

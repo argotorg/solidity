@@ -46,6 +46,37 @@ struct LinkerObject
 	/// to a list of offsets into the bytecode that refer to their values.
 	std::map<u256, ImmutableRefs> immutableReferences;
 
+	struct InstructionLocation
+	{
+		/// Absolute position of instruction's opcode within the bytecode.
+		/// The opcode takes up exactly one byte and is assumed to be followed by its immediate arguments.
+		size_t start{};
+		/// Absolute position of the first byte past the end of the instruction, including potential immediate arguments.
+		size_t end{};
+		/// Index of the AssemblyItem that produced the instruction within the Assembly.
+		/// While items of most types generate a single instruction, in general it can be more than one.
+		size_t assemblyItemIndex{};
+	};
+	struct CodeSectionLocation
+	{
+		/// Absolute position of the first byte belonging to the code section.
+		/// Equal to instructionLocations[0].start if the code section is not empty.
+		size_t start{};
+		/// Absolute position of the first byte past end of the code section.
+		/// Greater or equal to start. Must be equal if instructionLocations is empty.
+		size_t end{};
+		/// Descriptions of all instructions contained within the code section.
+		/// The instructions are assumed to fill the whole section, without any gaps or duplicates.
+		/// The areas between opcodes are assumed to contain their immediate arguments, of size appropriate for the opcode type.
+		/// The arguments of the last instruction extend to the end of the section.
+		/// The instructions must be ordered according to their positions (ascending).
+		std::vector<InstructionLocation> instructionLocations;
+	};
+	/// Descriptions of all code sections in the ascending order of their positions.
+	/// There are no duplicates and the sections never overlap.
+	/// Only sections belonging to the top-level assembly are included, even if the bytecode contains subassemblies.
+	std::vector<CodeSectionLocation> codeSectionLocations;
+
 	struct FunctionDebugData
 	{
 		std::optional<size_t> bytecodeOffset;

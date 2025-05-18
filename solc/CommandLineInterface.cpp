@@ -43,6 +43,7 @@
 
 #include <libyul/YulStack.h>
 
+#include <libevmasm/Ethdebug.h>
 #include <libevmasm/Disassemble.h>
 
 #include <liblangutil/Exceptions.h>
@@ -1347,25 +1348,24 @@ void CommandLineInterface::assembleYul(yul::YulStack::Language _language, yul::Y
 		solThrow(CommandLineExecutionError, "");
 	}
 
-	if (m_options.compiler.outputs.ethdebug)
-	{
-		Json ethdebugObject = Json::object();
-		ethdebugObject["sources"] = m_fileReader.sourceUnits() | ranges::views::keys;
-		sout() << "======= Debug Data (ethdebug/format/info/resources) =======" << std::endl;
-		sout() << util::jsonPrint(
-				ethdebugObject,
-				m_options.formatting.json
-		) << std::endl;
-	}
-
 	for (auto const& [sourceUnitName, yulSource]: m_fileReader.sourceUnits())
 	{
 		solAssert(_targetMachine == yul::YulStack::Machine::EVM);
-		std::string machine = "EVM";
-		sout() << std::endl << "======= " << sourceUnitName << " (" << machine << ") =======" << std::endl;
 
 		yul::YulStack const& stack = yulStacks[sourceUnitName];
 		yul::MachineAssemblyObject const& object = objects[sourceUnitName];
+
+		if (m_options.compiler.outputs.ethdebug)
+		{
+			sout() << "======= Debug Data (ethdebug/format/info/resources) =======" << std::endl;
+			sout() << util::jsonPrint(
+					evmasm::ethdebug::resources({{sourceUnitName}}, VersionString),
+					m_options.formatting.json
+			) << std::endl;
+		}
+
+		std::string machine = "EVM";
+		sout() << std::endl << "======= " << sourceUnitName << " (" << machine << ") =======" << std::endl;
 
 		if (m_options.compiler.outputs.irOptimized)
 		{

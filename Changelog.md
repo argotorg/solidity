@@ -1,4 +1,28 @@
-### 0.8.29 (unreleased)
+### 0.8.31 (unreleased)
+
+Language Features:
+
+
+Compiler Features:
+
+
+Bugfixes:
+
+
+### 0.8.30 (2025-05-07)
+
+Compiler Features:
+* EVM: Set default EVM Version to `prague`.
+* NatSpec: Capture Natspec documentation of `enum` values in the AST.
+
+
+Bugfixes:
+* SMTChecker: Do not consider loop conditions as constant-condition verification target as this could cause incorrect reports and internal compiler errors.
+* SMTChecker: Fix incorrect analysis when only a subset of contracts is selected with `--model-checker-contracts`.
+* SMTChecker: Fix internal compiler error when string literal is used to initialize user-defined type based on fixed bytes.
+
+
+### 0.8.29 (2025-03-12)
 
 Language Features:
  * Allow relocating contract storage to an arbitrary location.
@@ -6,11 +30,12 @@ Language Features:
 
 Compiler Features:
  * Error Reporting: Errors reported during code generation now point at the location of the contract when more fine-grained location is not available.
+ * ethdebug: Experimental support for instructions and source locations.
  * EVM: Support for the EVM version "Osaka".
  * EVM Assembly Import: Allow enabling opcode-based optimizer.
  * General: The experimental EOF backend implements a subset of EOF sufficient to compile arbitrary high-level Solidity syntax via IR with optimization enabled.
- * SMTChecker: Support `block.blobbasefee` and `blobhash`.
- * SMTChecker: The option `--model-checker-print-query` no longer requires `--model-checker-solvers smtlib2`.
+ * SMTChecker: Support ``block.blobbasefee`` and ``blobhash``.
+ * SMTChecker: The option ``--model-checker-print-query`` no longer requires ``--model-checker-solvers smtlib2``.
  * SMTChecker: Z3 is now a runtime dependency, not a build dependency (except for emscripten build).
  * Yul Parser: Make name clash with a builtin a non-fatal error.
 
@@ -29,7 +54,7 @@ Bugfixes:
  * SMTChecker: Fix SMT logic error when translating invariants involving array store and select operations.
  * SMTChecker: Fix wrong encoding of string literals as arguments of ``ecrecover`` precompile.
  * Standard JSON Interface: Fix ``generatedSources`` and ``sourceMap`` being generated internally even when not requested.
- * TypeChecker: Fix supurious compilation errors due to incorrect computation of contract storage size which erroneously included transient storage variables.
+ * TypeChecker: Fix spurious compilation errors due to incorrect computation of contract storage size which erroneously included transient storage variables.
  * Yul: Fix internal compiler error when a code generation error should be reported instead.
  * Yul Optimizer: Fix failing debug assertion due to dereferencing of an empty ``optional`` value.
 

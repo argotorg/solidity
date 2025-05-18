@@ -1,7 +1,7 @@
 {
     "language": "Solidity",
     "sources": {
-        "in.sol": {"urls": ["standard_stack_too_deep_from_code_transform/in.sol"]}
+        "in.sol": {"urls": ["in.sol"]}
     },
     "settings": {
         "viaIR": true,

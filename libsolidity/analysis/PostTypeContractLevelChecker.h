@@ -52,6 +52,8 @@ private:
 
 	void checkStorageLayoutSpecifier(ContractDefinition const& _contract);
 
+	void warnStorageLayoutBaseNearStorageEnd(ContractDefinition const& _contract);
+
 	langutil::ErrorReporter& m_errorReporter;
 };
 

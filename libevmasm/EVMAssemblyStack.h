@@ -58,20 +58,26 @@ public:
 
 	std::string const& name() const { return m_name; }
 
+	LinkerObject const& object() const { return m_object; }
 	LinkerObject const& object(std::string const& _contractName) const override;
+	LinkerObject const& runtimeObject() const { return m_runtimeObject; }
 	LinkerObject const& runtimeObject(std::string const& _contractName) const override;
 
 	std::shared_ptr<evmasm::Assembly> const& evmAssembly() const { return m_evmAssembly; }
 	std::shared_ptr<evmasm::Assembly> const& evmRuntimeAssembly() const { return m_evmRuntimeAssembly; }
 
+	std::string const& sourceMapping() const { return m_sourceMapping; }
 	std::string const* sourceMapping(std::string const& _contractName) const override;
+	std::string const& runtimeSourceMapping() const { return m_runtimeSourceMapping; }
 	std::string const* runtimeSourceMapping(std::string const& _contractName) const override;
 
 	Json ethdebug(std::string const& _contractName) const override;
 	Json ethdebugRuntime(std::string const& _contractName) const override;
 	Json ethdebug() const override;
 
+	Json assemblyJSON() const;
 	Json assemblyJSON(std::string const& _contractName) const override;
+	std::string assemblyString(StringMap const& _sourceCodes) const;
 	std::string assemblyString(std::string const& _contractName, StringMap const& _sourceCodes) const override;
 
 	std::string const filesystemFriendlyName(std::string const& _contractName) const override;

@@ -1,0 +1,11 @@
+{
+    ".code": [
+        {"name": "CALLVALUE"}
+    ]
+}
+// ----
+// Assembly:
+//   callvalue
+// Bytecode: 34
+// Opcodes: CALLVALUE
+// SourceMappings: :::-:0

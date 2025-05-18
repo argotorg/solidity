@@ -22,6 +22,7 @@
 #pragma once
 
 #include <libyul/ASTForward.h>
+#include <libyul/backends/evm/EVMDialect.h>
 #include <libyul/optimiser/ASTWalker.h>
 
 #include <libevmasm/Instruction.h>
@@ -162,8 +163,7 @@ public:
 	/// activated e.g., Redundant store eliminator, Equal store eliminator.
 	static void run(
 		InterpreterState& _state,
-		Dialect const& _dialect,
-		Block const& _ast,
+		AST const& _ast,
 		bool _disableExternalCalls,
 		bool _disableMemoryTracing
 	);

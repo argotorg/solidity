@@ -18,6 +18,8 @@
 
 #include <libsolidity/formal/SymbolicVariables.h>
 
+#include <libsolidity/ast/AST.h>
+
 #include <libsolidity/formal/EncodingContext.h>
 #include <libsolidity/formal/SymbolicTypes.h>
 

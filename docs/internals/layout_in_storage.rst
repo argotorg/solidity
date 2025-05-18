@@ -34,6 +34,110 @@ by the above rules, state variables from different contracts do share the same s
 The elements of structs and arrays are stored after each other, just as if they were given
 as individual values.
 
+If a contract specifies a :ref:`custom storage layout<custom-storage-layout>`, the slots assigned
+to static storage variables are shifted according the value defined as the layout base.
+Locations of dynamic arrays and mappings are also indirectly affected by this due to shifting
+of the static slots they are based on.
+The custom layout is specified in the most derived contract and, following the order explained
+above, starting from the most base-ward contract's variables, all storage slots are adjusted.
+
+In the following example, contract ``C`` inherits from contracts ``A`` and ``B`` and also
+specifies a custom storage base slot.
+The result is that all storage variable slots of the inheritance tree are adjusted according to
+the value specified by ``C``.
+
+.. code-block:: solidity
+
+    // SPDX-License-Identifier: GPL-3.0
+    pragma solidity ^0.8.29;
+
+    struct S {
+        int32 x;
+        bool y;
+    }
+
+    contract A {
+        uint a;
+        uint128 transient b;
+        uint constant c = 10;
+        uint immutable d = 12;
+    }
+
+    contract B {
+        uint8[] e;
+        mapping(uint => S) f;
+        uint16 g;
+        uint16 h;
+        bytes16 transient i;
+        S s;
+        int8 k;
+    }
+
+    contract C is A, B layout at 42 {
+        bytes21 l;
+        uint8[10] m;
+        bytes5[8] n;
+        bytes5 o;
+    }
+
+In the example, the storage layout starts with the inherited
+state variable ``a`` stored directly inside the base slot (slot ``42``).
+Transient, constant and immutable variables are stored in separate
+locations, and thus, ``b``, ``i``, ``c`` and ``d`` have no effect on the storage layout.
+Then we get to the dynamic array ``e`` and mapping ``f``.
+They both reserve a whole slot whose address will be used to :ref:`calculate<storage-hashed-encoding>`
+the location where their data is actually stored.
+The slot cannot be shared with any other variable, because the resulting addresses must be unique.
+The next two variables, ``g`` and ``h``, need 2 bytes each and can be packed together into
+slot ``45``, at offsets ``0`` and ``2`` respectively.
+Since ``s`` is a struct, its two members are packed contiguously, each taking up 5 bytes.
+Even though they both would still fit in slot ``45``, structs and arrays always start a new slot.
+Therefore, ``s`` is placed in slot ``46`` and the next variable, ``k``, in slot ``47``.
+Base contracts, on the other hand, can share slots with derived ones, so ``l`` does not require an new one.
+Then variable ``m``, which is an array of 10 items, gets into slot ``48`` and takes up 10 bytes.
+``n`` is an array as well, but due to the size of its items, cannot fill its first slot perfectly
+and spills over to the next one.
+Finally, variable ``o`` ends up in slot ``51``, even though it is of the same type as items of ``n``.
+As explained before, variables after structs and arrays always start a new slot.
+
+Putting it all together, the storage and transient storage layouts of contract ``C`` can be illustrated as follows:
+
+- Storage:
+  ::
+
+      42 [aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa]
+      43 [eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee]
+      44 [ffffffffffffffffffffffffffffffff]
+      45 [                            hhgg]
+      46 [                           yxxxx]
+      47 [          lllllllllllllllllllllk]
+      48 [                      mmmmmmmmmm]
+      49 [  nnnnnnnnnnnnnnnnnnnnnnnnnnnnnn]
+      50 [                      nnnnnnnnnn]
+      51 [                           ooooo]
+
+- Transient storage:
+  ::
+
+      00 [iiiiiiiiiiiiiiiibbbbbbbbbbbbbbbb]
+
+Note that the storage specifier affects ``A`` and ``B`` only as a part of ``C``'s inheritance hierarchy.
+When deployed independently, their storage starts at ``0``:
+
+- Storage layout of ``A``:
+  ::
+
+      00 [aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa]
+
+- Storage layout of ``B``:
+  ::
+
+      00 [eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee]
+      01 [ffffffffffffffffffffffffffffffff]
+      02 [                            hhgg]
+      03 [                           yxxxx]
+      04 [                               k]
+
 .. warning::
     When using elements that are smaller than 32 bytes, your contract's gas usage may be higher.
     This is because the EVM operates on 32 bytes at a time. Therefore, if the element is smaller

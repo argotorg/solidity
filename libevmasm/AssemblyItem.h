@@ -85,7 +85,10 @@ public:
 		m_type(Operation),
 		m_instruction(_i),
 		m_debugData(std::move(_debugData))
-	{}
+	{
+		solAssert(_i != Instruction::SWAPN, "Construct via AssemblyItem::swapN");
+		solAssert(_i != Instruction::DUPN, "Construct via AssemblyItem::dupN");
+	}
 	AssemblyItem(AssemblyItemType _type, u256 _data = 0, langutil::DebugData::ConstPtr _debugData = langutil::DebugData::create()):
 		m_type(_type),
 		m_debugData(std::move(_debugData))
@@ -105,7 +108,6 @@ public:
 
 	explicit AssemblyItem(bytes _verbatimData, size_t _arguments, size_t _returnVariables):
 		m_type(VerbatimBytecode),
-		m_instruction{},
 		m_verbatimBytecode{{_arguments, _returnVariables, std::move(_verbatimData)}},
 		m_debugData{langutil::DebugData::create()}
 	{}
@@ -195,7 +197,7 @@ public:
 	/// @returns true if the item has m_instruction properly set.
 	bool hasInstruction() const
 	{
-		return
+		bool const shouldHaveInstruction =
 			m_type == Operation ||
 			m_type == EOFCreate ||
 			m_type == ReturnContract ||
@@ -206,12 +208,14 @@ public:
 			m_type == RetF ||
 			m_type == SwapN ||
 			m_type == DupN;
+		solAssert(shouldHaveInstruction == m_instruction.has_value());
+		return shouldHaveInstruction;
 	}
 	/// @returns the instruction of this item (only valid if hasInstruction returns true)
 	Instruction instruction() const
 	{
 		solAssert(hasInstruction());
-		return m_instruction;
+		return *m_instruction;
 	}
 
 	/// @returns true if the type and data of the items are equal.
@@ -243,7 +247,7 @@ public:
 	/// Shortcut that avoids constructing an AssemblyItem just to perform the comparison.
 	bool operator==(Instruction _instr) const
 	{
-		return type() == Operation && instruction() == _instr;
+		return hasInstruction() && instruction() == _instr;
 	}
 	bool operator!=(Instruction _instr) const { return !operator==(_instr); }
 
@@ -323,7 +327,7 @@ private:
 	size_t opcodeCount() const noexcept;
 
 	AssemblyItemType m_type;
-	Instruction m_instruction; ///< Only valid if m_type == Operation
+	std::optional<Instruction> m_instruction; ///< Only valid for item types that represent a specific opcode
 	std::shared_ptr<u256> m_data; ///< Only valid if m_type != Operation
 	std::optional<FunctionSignature> m_functionSignature; ///< Only valid if m_type == CallF or JumpF
 	/// If m_type == VerbatimBytecode, this holds number of arguments, number of

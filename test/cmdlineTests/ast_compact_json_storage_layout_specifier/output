@@ -1,9 +1,9 @@
 JSON AST (compact format):
 
 
-======= ast_compact_json_storage_layout_specifier/input.sol =======
+======= input.sol =======
 {
-    "absolutePath": "ast_compact_json_storage_layout_specifier/input.sol",
+    "absolutePath": "input.sol",
     "exportedSymbols": {
         "C": [
             6

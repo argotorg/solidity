@@ -489,7 +489,8 @@ ASTPointer<EnumValue> ASTJsonImporter::createEnumValue(Json const& _node)
 {
 	return createASTNode<EnumValue>(
 		_node,
-		memberAsASTString(_node, "name")
+		memberAsASTString(_node, "name"),
+		_node.contains("documentation") && !_node["documentation"].is_null() ? createDocumentation(member(_node, "documentation")) : nullptr
 	);
 }
 

@@ -1,5 +1,5 @@
 Optimized IR:
-/// @use-src 0:"ir_optimized_with_optimize/input.sol"
+/// @use-src 0:"input.sol"
 object "C_2" {
     code {
         {
@@ -11,7 +11,7 @@ object "C_2" {
             return(_1, _2)
         }
     }
-    /// @use-src 0:"ir_optimized_with_optimize/input.sol"
+    /// @use-src 0:"input.sol"
     object "C_2_deployed" {
         code { { revert(0, 0) } }
         data ".metadata" hex"<BYTECODE REMOVED>"

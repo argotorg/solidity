@@ -22,7 +22,9 @@
 
 #include <string>
 #include <boost/test/unit_test.hpp>
+#include <boost/test/data/test_case.hpp>
 #include <boost/algorithm/string/replace.hpp>
+#include <liblangutil/EVMVersion.h>
 #include <libsolidity/interface/OptimiserSettings.h>
 #include <libsolidity/interface/StandardCompiler.h>
 #include <libsolidity/interface/Version.h>
@@ -1169,33 +1171,14 @@ BOOST_AUTO_TEST_CASE(evm_version)
 		)";
 	};
 	Json result;
-	result = compile(inputForVersion("\"evmVersion\": \"homestead\","));
-	BOOST_CHECK(result["contracts"]["fileA"]["A"]["metadata"].get<std::string>().find("\"evmVersion\":\"homestead\"") != std::string::npos);
-	result = compile(inputForVersion("\"evmVersion\": \"tangerineWhistle\","));
-	BOOST_CHECK(result["contracts"]["fileA"]["A"]["metadata"].get<std::string>().find("\"evmVersion\":\"tangerineWhistle\"") != std::string::npos);
-	result = compile(inputForVersion("\"evmVersion\": \"spuriousDragon\","));
-	BOOST_CHECK(result["contracts"]["fileA"]["A"]["metadata"].get<std::string>().find("\"evmVersion\":\"spuriousDragon\"") != std::string::npos);
-	result = compile(inputForVersion("\"evmVersion\": \"byzantium\","));
-	BOOST_CHECK(result["contracts"]["fileA"]["A"]["metadata"].get<std::string>().find("\"evmVersion\":\"byzantium\"") != std::string::npos);
-	result = compile(inputForVersion("\"evmVersion\": \"constantinople\","));
-	BOOST_CHECK(result["contracts"]["fileA"]["A"]["metadata"].get<std::string>().find("\"evmVersion\":\"constantinople\"") != std::string::npos);
-	result = compile(inputForVersion("\"evmVersion\": \"petersburg\","));
-	BOOST_CHECK(result["contracts"]["fileA"]["A"]["metadata"].get<std::string>().find("\"evmVersion\":\"petersburg\"") != std::string::npos);
-	result = compile(inputForVersion("\"evmVersion\": \"istanbul\","));
-	BOOST_CHECK(result["contracts"]["fileA"]["A"]["metadata"].get<std::string>().find("\"evmVersion\":\"istanbul\"") != std::string::npos);
-	result = compile(inputForVersion("\"evmVersion\": \"berlin\","));
-	BOOST_CHECK(result["contracts"]["fileA"]["A"]["metadata"].get<std::string>().find("\"evmVersion\":\"berlin\"") != std::string::npos);
-	result = compile(inputForVersion("\"evmVersion\": \"london\","));
-	BOOST_CHECK(result["contracts"]["fileA"]["A"]["metadata"].get<std::string>().find("\"evmVersion\":\"london\"") != std::string::npos);
-	result = compile(inputForVersion("\"evmVersion\": \"paris\","));
-	BOOST_CHECK(result["contracts"]["fileA"]["A"]["metadata"].get<std::string>().find("\"evmVersion\":\"paris\"") != std::string::npos);
-	result = compile(inputForVersion("\"evmVersion\": \"shanghai\","));
-	BOOST_CHECK(result["contracts"]["fileA"]["A"]["metadata"].get<std::string>().find("\"evmVersion\":\"shanghai\"") != std::string::npos);
-	result = compile(inputForVersion("\"evmVersion\": \"cancun\","));
-	BOOST_CHECK(result["contracts"]["fileA"]["A"]["metadata"].get<std::string>().find("\"evmVersion\":\"cancun\"") != std::string::npos);
+	for (auto const& version: langutil::EVMVersion::allVersions())
+	{
+		result = compile(inputForVersion(fmt::format("\"evmVersion\": \"{}\",", version.name())));
+		BOOST_CHECK(result["contracts"]["fileA"]["A"]["metadata"].get<std::string>().find(fmt::format("\"evmVersion\":\"{}\"", version.name())) != std::string::npos);
+	}
 	// test default
 	result = compile(inputForVersion(""));
-	BOOST_CHECK(result["contracts"]["fileA"]["A"]["metadata"].get<std::string>().find("\"evmVersion\":\"cancun\"") != std::string::npos);
+	BOOST_CHECK(result["contracts"]["fileA"]["A"]["metadata"].get<std::string>().find("\"evmVersion\":\"prague\"") != std::string::npos);
 	// test invalid
 	result = compile(inputForVersion("\"evmVersion\": \"invalid\","));
 	BOOST_CHECK(result["errors"][0]["message"].get<std::string>() == "Invalid EVM version requested.");
@@ -2229,6 +2212,46 @@ BOOST_AUTO_TEST_CASE(ethdebug_ethdebug_output)
 		BOOST_REQUIRE(!optionalCheck.has_value() ? result.contains("errors") : result.contains("contracts"));
 		if (optionalCheck.has_value())
 			BOOST_REQUIRE((*optionalCheck)(result));
+	}
+}
+
+BOOST_DATA_TEST_CASE(ethdebug_output_instructions_smoketest, boost::unit_test::data::make({"deployedBytecode", "bytecode"}), bytecodeType)
+{
+	frontend::StandardCompiler compiler;
+	Json result = compiler.compile(generateStandardJson(true, {}, Json::array({std::string("evm.") + bytecodeType + ".ethdebug"})));
+	BOOST_REQUIRE(result["contracts"]["fileA"]["C"]["evm"][bytecodeType].contains("ethdebug"));
+	bool creation = std::string(bytecodeType) == "bytecode";
+	Json ethdebugInstructionsToCheck = result["contracts"]["fileA"]["C"]["evm"][bytecodeType]["ethdebug"];
+	BOOST_REQUIRE(ethdebugInstructionsToCheck["contract"]["definition"]["source"]["id"] == 0);
+	BOOST_REQUIRE(ethdebugInstructionsToCheck["contract"]["name"] == "C");
+	BOOST_REQUIRE(ethdebugInstructionsToCheck["environment"] == (creation ? "create" : "call"));
+	BOOST_REQUIRE(ethdebugInstructionsToCheck["instructions"].is_array());
+	for (auto const& instruction: ethdebugInstructionsToCheck["instructions"])
+	{
+		BOOST_REQUIRE(instruction.contains("offset"));
+		BOOST_REQUIRE(instruction.contains("operation"));
+		BOOST_REQUIRE(instruction["operation"].contains("mnemonic"));
+		BOOST_REQUIRE(instruction["context"]["code"]["range"].contains("length"));
+		BOOST_REQUIRE(instruction["context"]["code"]["range"].contains("offset"));
+		BOOST_REQUIRE(instruction["context"]["code"]["source"].contains("id"));
+		std::string mnemonic = instruction["operation"]["mnemonic"];
+		if (mnemonic.find("PUSH") != std::string::npos)
+		{
+			size_t bytesToPush = boost::lexical_cast<size_t>(mnemonic.substr(4));
+			if (bytesToPush > 0)
+			{
+				BOOST_REQUIRE(instruction["operation"].contains("arguments"));
+				BOOST_REQUIRE(instruction["operation"]["arguments"].is_array());
+				BOOST_REQUIRE(instruction["operation"]["arguments"].size() == 1);
+				std::string argument = instruction["operation"]["arguments"][0];
+				BOOST_REQUIRE(argument.length() % 2 == 0);
+				BOOST_REQUIRE(bytesToPush == (argument.length() - 2) / 2); // remove "0x" and calculate actual byte size from hex.
+			}
+			else
+				BOOST_REQUIRE(!instruction["operation"].contains("arguments"));
+		}
+		else
+			BOOST_REQUIRE(!instruction["operation"].contains("arguments"));
 	}
 }
 

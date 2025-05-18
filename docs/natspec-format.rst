@@ -37,7 +37,7 @@ Documentation Example
 =====================
 
 Documentation is inserted above each ``contract``, ``interface``, ``library``,
-``function``, and ``event`` using the Doxygen notation format.
+``function``, ``enum``, ``enum`` value and ``event`` using the Doxygen notation format.
 A ``public`` state variable is equivalent to a ``function``
 for the purposes of NatSpec.
 
@@ -116,13 +116,13 @@ in the same way as if it were tagged with ``@notice``.
 =============== ====================================================================================== =============================
 Tag                                                                                                    Context
 =============== ====================================================================================== =============================
-``@title``      A title that should describe the contract/interface                                    contract, library, interface, struct, enum
-``@author``     The name of the author                                                                 contract, library, interface, struct, enum
-``@notice``     Explain to an end user what this does                                                  contract, library, interface, function, public state variable, event, struct, enum, error
-``@dev``        Explain to a developer any extra details                                               contract, library, interface, function, state variable, event, struct, enum, error
-``@param``      Documents a parameter just like in Doxygen (must be followed by parameter name)        function, event, error
-``@return``     Documents the return variables of a contract's function                                function, public state variable
-``@inheritdoc`` Copies all missing tags from the base function (must be followed by the contract name) function, public state variable
+``@title``      A title that should describe the contract/interface                                    contract, library, interface, struct, enum, enum values
+``@author``     The name of the author                                                                 contract, library, interface, struct, enum, enum values
+``@notice``     Explain to an end user what this does                                                  contract, library, interface, function, public state variable, event, struct, enum, enum values error
+``@dev``        Explain to a developer any extra details                                               contract, library, interface, function, state variable, event, struct, enum, enum values, error
+``@param``      Documents a parameter just like in Doxygen (must be followed by parameter name)        function, event, enum values, error
+``@return``     Documents the return variables of a contract's function                                function, enum, enum values, public state variable
+``@inheritdoc`` Copies all missing tags from the base function (must be followed by the contract name) function, enum, enum values, public state variable
 ``@custom:...`` Custom tag, semantics is application-defined                                           everywhere
 =============== ====================================================================================== =============================
 

@@ -430,6 +430,7 @@ bool ASTJsonExporter::visit(EnumValue const& _node)
 	setJsonNode(_node, "EnumValue", {
 		std::make_pair("name", _node.name()),
 		std::make_pair("nameLocation", sourceLocationToString(_node.nameLocation())),
+		std::make_pair("documentation", toJson(_node.documentation().get())),
 	});
 	return false;
 }

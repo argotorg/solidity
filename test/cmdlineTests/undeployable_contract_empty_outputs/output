@@ -1,5 +1,5 @@
 
-======= undeployable_contract_empty_outputs/input.sol:C =======
+======= input.sol:C =======
 EVM assembly:
 null
 Gas estimation:
@@ -21,7 +21,7 @@ Function signatures:
 Contract JSON ABI
 []
 
-======= undeployable_contract_empty_outputs/input.sol:I =======
+======= input.sol:I =======
 EVM assembly:
 null
 Gas estimation:

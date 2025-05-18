@@ -3,7 +3,7 @@
 	"sources": {
 		"C": {
 			"urls": [
-				"standard_yul_debug_info_ethdebug_incompatible_output/in.yul"
+				"in.yul"
 			]
 		}
 	},

@@ -42,9 +42,10 @@ source "${repo_root}/scripts/common.sh"
 # shellcheck source=scripts/common_cmdline.sh
 source "${repo_root}/scripts/common_cmdline.sh"
 
-(( $# <= 1 )) || fail "Too many arguments. Usage: external.sh [<solc-path>]"
+(( $# <= 2 )) || fail "Too many arguments. Usage: external.sh [<solc-path>] [<num-repeats>]"
 
 solc="${1:-${SOLIDITY_BUILD_DIR}/solc/solc}"
+num_repeats="${2:-1}"
 command_available "$solc" --version
 command_available "$(type -P time)" --version
 
@@ -65,10 +66,10 @@ function benchmark_project {
         > /dev/null \
         2> "../stderr-${project}-${pipeline}.log" || true
 
-    printf '| %-21s | %8s | %6d s | %9d MiB | %9d |\n' \
+    printf '| %-21s | %8s | %6.2f s | %9d MiB | %9d |\n' \
         "$project" \
         "$pipeline" \
-        "$(jq '(.user + .sys) | round' "$time_file")" \
+        "$(jq '(.user + .sys) * 100 | round / 100' "$time_file")" \
         "$(jq '.mem / 1024 | round' "$time_file")" \
         "$(jq '.exit' "$time_file")"
     cd ..
@@ -96,8 +97,12 @@ echo "|         File          | Pipeline |   Time   | Memory (peak) | Exit code 
 echo "|-----------------------|----------|---------:|--------------:|----------:|"
 
 for project in "${benchmarks[@]}"; do
-    benchmark_project legacy "$project"
-    benchmark_project ir     "$project"
+    for ((i=0; i<num_repeats; i++)); do
+        benchmark_project legacy "$project"
+    done
+    for ((i=0; i<num_repeats; i++)); do
+        benchmark_project ir "$project"
+    done
 done
 
 for project in "${benchmarks[@]}"; do

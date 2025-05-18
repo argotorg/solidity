@@ -1,6 +1,6 @@
 IR:
 
-/// @use-src 0:"ir_unoptimized_with_optimize_via_ir/input.sol"
+/// @use-src 0:"input.sol"
 object "C_2" {
     code {
 
@@ -27,7 +27,7 @@ object "C_2" {
         }
 
     }
-    /// @use-src 0:"ir_unoptimized_with_optimize_via_ir/input.sol"
+    /// @use-src 0:"input.sol"
     object "C_2_deployed" {
         code {
 

@@ -30,15 +30,15 @@ using namespace solidity;
 using namespace solidity::yul;
 using namespace solidity::util;
 
-YulName Disambiguator::translateIdentifier(YulName _originalName)
+YulName Disambiguator::translateIdentifier(YulName const _originalName)
 {
-	if (m_dialect.findBuiltin(_originalName.str()) || m_externallyUsedIdentifiers.count(_originalName))
+	if (m_externallyUsedIdentifiers.contains(_originalName))
 		return _originalName;
 
 	assertThrow(!m_scopes.empty() && m_scopes.back(), OptimizerException, "");
 	Scope::Identifier const* id = m_scopes.back()->lookup(_originalName);
 	assertThrow(id, OptimizerException, "");
-	if (!m_translations.count(id))
+	if (!m_translations.contains(id))
 		m_translations[id] = m_nameDispenser.newName(_originalName);
 	return m_translations.at(id);
 }

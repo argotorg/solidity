@@ -103,8 +103,7 @@ public:
 	static void run(
 		std::shared_ptr<Inspector> _inspector,
 		InterpreterState& _state,
-		Dialect const& _dialect,
-		Block const& _ast,
+		AST const& _ast,
 		bool _disableExternalCalls,
 		bool _disableMemoryTracing
 	);

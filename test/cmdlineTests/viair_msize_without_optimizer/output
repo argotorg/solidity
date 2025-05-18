@@ -1,5 +1,5 @@
 
-======= viair_msize_without_optimizer/input.sol:C =======
+======= input.sol:C =======
 EVM assembly:
   mstore(0x40, 0x80)
   jumpi(tag_4, iszero(callvalue))
@@ -173,7 +173,7 @@ sub_0: assembly {
 }
 
 Optimized IR:
-/// @use-src 0:"viair_msize_without_optimizer/input.sol"
+/// @use-src 0:"input.sol"
 object "C_7" {
     code {
         mstore(64, memoryguard(128))
@@ -192,7 +192,7 @@ object "C_7" {
         function constructor_C_7()
         { }
     }
-    /// @use-src 0:"viair_msize_without_optimizer/input.sol"
+    /// @use-src 0:"input.sol"
     object "C_7_deployed" {
         code {
             mstore(64, memoryguard(128))

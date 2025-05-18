@@ -63,6 +63,9 @@ std::pair<std::shared_ptr<AST const>, std::shared_ptr<AsmAnalysisInfo>> parse(st
 		solidity::frontend::OptimiserSettings::none(),
 		DebugInfoSelection::Default()
 	);
+	auto const* evmDialect = dynamic_cast<EVMDialect const*>(&stack.dialect());
+	// TODO: Add EOF support
+	solUnimplementedAssert(evmDialect && !evmDialect->eofVersion(), "No EOF support for yulrun yet.");
 	if (stack.parseAndAnalyze("--INPUT--", _source))
 	{
 		yulAssert(!Error::hasErrorsWarningsOrInfos(stack.errors()), "Parsed successfully but had errors.");
@@ -87,13 +90,10 @@ void interpret(std::string const& _source, bool _inspect, bool _disableExternalC
 	state.maxTraceSize = 10000;
 	try
 	{
-		Dialect const& dialect(EVMDialect::strictAssemblyForEVMObjects(langutil::EVMVersion{}, std::nullopt));
-
 		if (_inspect)
-			InspectedInterpreter::run(std::make_shared<Inspector>(_source, state), state, dialect, ast->root(), _disableExternalCalls, /*disableMemoryTracing=*/false);
-
+			InspectedInterpreter::run(std::make_shared<Inspector>(_source, state), state, *ast, _disableExternalCalls, /*disableMemoryTracing=*/false);
 		else
-			Interpreter::run(state, dialect, ast->root(), _disableExternalCalls, /*disableMemoryTracing=*/false);
+			Interpreter::run(state, *ast, _disableExternalCalls, /*disableMemoryTracing=*/false);
 	}
 	catch (InterpreterTerminatedGeneric const&)
 	{

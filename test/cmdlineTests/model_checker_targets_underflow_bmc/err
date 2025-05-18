@@ -1,5 +1,5 @@
 Warning: BMC: Underflow (resulting value less than 0) happens here.
- --> model_checker_targets_underflow_bmc/input.sol:7:3:
+ --> input.sol:7:3:
   |
 7 | 		--x;
   | 		^^^

@@ -1,0 +1,26 @@
+{
+    ".code": [
+        {"name": "PUSH [$]", "value": "0"}
+    ],
+    ".data": {
+        "0": {
+            ".code": [
+                {"name": "PUSH", "value": "ffffffffffffffff"}
+            ]
+         }
+    }
+}
+// ====
+// optimizationPreset: standard
+// optimizer.expectedExecutionsPerDeployment: 0
+// ----
+// Assembly:
+//   dataOffset(sub_0)
+// stop
+//
+// sub_0: assembly {
+//       sub(shl(0x40, 0x01), 0x01)
+// }
+// Bytecode: 6003fe6001600160401b03
+// Opcodes: PUSH1 0x3 INVALID PUSH1 0x1 PUSH1 0x1 PUSH1 0x40 SHL SUB
+// SourceMappings: :::-:0

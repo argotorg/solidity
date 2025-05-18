@@ -78,10 +78,14 @@ public:
 		std::reference_wrapper<FunctionCall const> call;
 		bool canContinue;
 	};
+	struct LiteralAssignment
+	{
+		langutil::DebugData::ConstPtr debugData;
+	};
 
 	struct Operation {
 		std::vector<ValueId> outputs{};
-		std::variant<BuiltinCall, Call> kind;
+		std::variant<BuiltinCall, Call, LiteralAssignment> kind;
 		std::vector<ValueId> inputs{};
 	};
 	struct BasicBlock
@@ -199,7 +203,7 @@ public:
 	}
 	ValueId newLiteral(langutil::DebugData::ConstPtr _debugData, u256 _value)
 	{
-		auto [it, inserted] = m_literals.emplace(_value, SSACFG::ValueId{m_valueInfos.size()});
+		auto [it, inserted] = m_literals.emplace(_value, ValueId{m_valueInfos.size()});
 		if (inserted)
 			m_valueInfos.emplace_back(LiteralValue{std::move(_debugData), _value});
 		else

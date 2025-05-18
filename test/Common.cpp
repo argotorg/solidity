@@ -313,6 +313,13 @@ boost::unit_test::precondition::predicate_t nonEOF()
 	};
 }
 
+boost::unit_test::precondition::predicate_t onEOF()
+{
+	return [](boost::unit_test::test_unit_id) {
+		return solidity::test::CommonOptions::get().eofVersion().has_value();
+	};
+}
+
 boost::unit_test::precondition::predicate_t minEVMVersionCheck(langutil::EVMVersion _minEVMVersion)
 {
 	return [_minEVMVersion](boost::unit_test::test_unit_id) {

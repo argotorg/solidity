@@ -62,7 +62,7 @@ public:
 		langutil::ErrorReporter& _errorReporter,
 		Dialect const& _dialect,
 		ExternalIdentifierAccess::Resolver _resolver = ExternalIdentifierAccess::Resolver(),
-		Object::Structure const _objectStructure = {}
+		Object::Structure _objectStructure = {}
 	):
 		m_resolver(std::move(_resolver)),
 		m_info(_analysisInfo),
@@ -85,7 +85,12 @@ public:
 	static AsmAnalysisInfo analyzeStrictAssertCorrect(
 		Dialect const& _dialect,
 		Block const& _astRoot,
-		Object::Structure const _objectStructure
+		Object::Structure _objectStructure
+	);
+	static AsmAnalysisInfo analyzeStrictAssertCorrect(
+		Dialect const& _dialect,
+		AST const& _ast,
+		Object::Structure _objectStructure
 	);
 
 	size_t operator()(Literal const& _literal);
@@ -98,9 +103,9 @@ public:
 	void operator()(If const& _if);
 	void operator()(Switch const& _switch);
 	void operator()(ForLoop const& _forLoop);
-	void operator()(Break const&) { }
-	void operator()(Continue const&) { }
-	void operator()(Leave const&) { }
+	void operator()(Break const&) const { }
+	void operator()(Continue const&) const { }
+	void operator()(Leave const&) const { }
 	void operator()(Block const& _block);
 
 	/// @returns the worst side effects encountered during analysis (including within defined functions).
@@ -109,7 +114,7 @@ private:
 	/// Visits the expression, expects that it evaluates to exactly one value.
 	/// Reports errors otherwise.
 	void expectExpression(Expression const& _expr);
-	void expectUnlimitedStringLiteral(Literal const& _literal);
+	static void expectUnlimitedStringLiteral(Literal const& _literal);
 
 	/// Verifies that a variable to be assigned to exists and can be assigned to.
 	void checkAssignment(Identifier const& _variable);
@@ -121,7 +126,7 @@ private:
 	bool validateInstructions(std::string_view _instrIdentifier, langutil::SourceLocation const& _location);
 	bool validateInstructions(FunctionCall const& _functionCall);
 
-	void validateObjectStructure(langutil::SourceLocation _astRootLocation);
+	void validateObjectStructure(langutil::SourceLocation const& _astRootLocation);
 
 	yul::ExternalIdentifierAccess::Resolver m_resolver;
 	Scope* m_currentScope = nullptr;
