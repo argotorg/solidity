@@ -1,0 +1,62 @@
+pragma solidity ^0.8.0;
+
+contract Voting {
+    struct Candidate {
+        uint id;
+        string name;
+        uint voteCount;
+    }
+    mapping(address => bool) public voters;
+    Candidate[] public candidates;
+    address public owner;
+    event Voted(uint indexed candidateId, address voter);
+
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Only the owner can perform this action");
+        _;
+    }
+
+  
+    constructor(string[] memory candidateNames) {
+        owner = msg.sender;
+        for (uint i = 0; i < candidateNames.length; i++) {
+            candidates.push(Candidate({
+                id: i,
+                name: candidateNames[i],
+                voteCount: 0
+            }));
+        }
+    }
+
+  
+    function addCandidate(string memory name) public onlyOwner {
+        uint newId = candidates.length;
+        candidates.push(Candidate({
+            id: newId,
+            name: name,
+            voteCount: 0
+        }));
+    }
+
+    function vote(uint candidateId) public {
+        require(!voters[msg.sender], "You have already voted");
+        require(candidateId < candidates.length, "Invalid candidate ID");
+
+        voters[msg.sender] = true;
+        candidates[candidateId].voteCount++;
+
+        emit Voted(candidateId, msg.sender);
+    }
+
+    
+    function getNumCandidates() public view returns (uint) {
+        return candidates.length;
+    }
+
+   
+    function getCandidate(uint candidateId) public view returns (uint, string memory, uint) {
+        require(candidateId < candidates.length, "Invalid candidate ID");
+        Candidate memory candidate = candidates[candidateId];
+        return (candidate.id, candidate.name, candidate.voteCount);
+    }
+}
