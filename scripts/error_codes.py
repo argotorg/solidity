@@ -208,6 +208,7 @@ def examine_id_coverage(top_dir, source_id_to_file_names, new_ids_only=False):
         "2788", # SMTChecker: BMC: verification condition(s) could not be proved
         "1733", # AsmAnalysis: expecting bool expression (everything is implicitly bool without types in Yul)
         "9547", # AsmAnalysis: assigning incompatible types in Yul (whitelisted as there are currently no types)
+        "5026", # ContractLevelChecker: too difficult to exceed transient storage max size due to only value types supported.
     }
     assert len(test_ids & white_ids) == 0, "The sets are not supposed to intersect"
     test_ids |= white_ids

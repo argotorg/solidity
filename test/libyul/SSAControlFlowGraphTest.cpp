@@ -28,7 +28,15 @@
 #include <libyul/YulStack.h>
 
 #ifdef ISOLTEST
+#include <boost/version.hpp>
+#if (BOOST_VERSION < 108800)
 #include <boost/process.hpp>
+#else
+#define BOOST_PROCESS_VERSION 1
+#include <boost/process/v1/child.hpp>
+#include <boost/process/v1/io.hpp>
+#include <boost/process/v1/pipe.hpp>
+#endif
 #endif
 
 using namespace solidity;
@@ -65,7 +73,8 @@ TestCase::TestResult SSAControlFlowGraphTest::run(std::ostream& _stream, std::st
 	std::unique_ptr<ControlFlow> controlFlow = SSAControlFlowGraphBuilder::build(
 		*yulStack.parserResult()->analysisInfo,
 		yulStack.dialect(),
-		yulStack.parserResult()->code()->root()
+		yulStack.parserResult()->code()->root(),
+		true
 	);
 	ControlFlowLiveness liveness(*controlFlow);
 	m_obtainedResult = controlFlow->toDot(&liveness);

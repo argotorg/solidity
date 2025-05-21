@@ -30,6 +30,7 @@
 #include <libyul/optimiser/Suite.h>
 
 #include <libevmasm/Disassemble.h>
+#include <libevmasm/Ethdebug.h>
 #include <libevmasm/EVMAssemblyStack.h>
 
 #include <libsmtutil/Exceptions.h>
@@ -131,7 +132,7 @@ Json formatErrorWithException(
 	);
 
 	if (std::string const* description = _exception.comment())
-		message = ((_message.length() > 0) ? (_message + ":") : "") + *description;
+		message = ((_message.length() > 0) ? (_message + ": ") : "") + *description;
 	else
 		message = _message;
 
@@ -846,6 +847,9 @@ std::variant<StandardCompiler::InputsAndSettings, Json> StandardCompiler::parseI
 		ret.eofVersion = 1;
 	}
 
+	if (ret.eofVersion.has_value() && !ret.evmVersion.supportsEOF())
+		return formatFatalError(Error::Type::JSONError, "EOF is not supported by EVM versions earlier than " + EVMVersion::firstWithEOF().name() + ".");
+
 	if (settings.contains("debug"))
 	{
 		if (auto result = checkKeys(settings["debug"], {"revertStrings", "debugInfo"}, "settings.debug"))
@@ -1200,13 +1204,14 @@ std::variant<StandardCompiler::InputsAndSettings, Json> StandardCompiler::parseI
 	}
 
 	if (
-		ret.debugInfoSelection.has_value() && ret.debugInfoSelection->ethdebug && ret.language == "Solidity" &&
+		ret.debugInfoSelection.has_value() && ret.debugInfoSelection->ethdebug && (ret.language == "Solidity" || ret.language == "Yul") &&
 		!pipelineConfig(ret.outputSelection)[""][""].irCodegen && !isEthdebugRequested(ret.outputSelection)
 	)
 		return formatFatalError(Error::Type::FatalError, "'settings.debug.debugInfo' can only include 'ethdebug', if output 'ir', 'irOptimized', 'evm.bytecode.ethdebug', or 'evm.deployedBytecode.ethdebug' was selected.");
 
-	if (isEthdebugRequested(ret.outputSelection) && (ret.optimiserSettings.runYulOptimiser || isArtifactRequested(ret.outputSelection, "*", "*", "irOptimized", false)))
-		return formatFatalError(Error::Type::FatalError, "Optimization is not yet supported with ethdebug.");
+	if (isEthdebugRequested(ret.outputSelection))
+		if (ret.optimiserSettings.runYulOptimiser)
+			solUnimplemented("Optimization is not yet supported with ethdebug.");
 
 	return {std::move(ret)};
 }
@@ -1408,6 +1413,7 @@ Json StandardCompiler::compileSolidity(StandardCompiler::InputsAndSettings _inpu
 				));
 		}
 	}
+	// NOTE: This includes langutil::StackTooDeepError.
 	catch (CompilerError const& _exception)
 	{
 		errors.emplace_back(formatErrorWithException(
@@ -1418,14 +1424,22 @@ Json StandardCompiler::compileSolidity(StandardCompiler::InputsAndSettings _inpu
 			"Compiler error (" + _exception.lineInfo() + ")"
 		));
 	}
-	catch (InternalCompilerError const& _exception)
+	catch (yul::StackTooDeepError const& _exception)
 	{
 		errors.emplace_back(formatErrorWithException(
 			compilerStack,
 			_exception,
+			Error::Type::YulException,
+			"general",
+			"" // No prefix needed. These messages already say it's a "stack too deep" error.
+		));
+	}
+	catch (InternalCompilerError const&)
+	{
+		errors.emplace_back(formatError(
 			Error::Type::InternalCompilerError,
 			"general",
-			"Internal compiler error (" + _exception.lineInfo() + ")"
+			"Internal compiler error:\n" + boost::current_exception_diagnostic_information()
 		));
 	}
 	catch (UnimplementedFeatureError const& _exception)
@@ -1433,24 +1447,20 @@ Json StandardCompiler::compileSolidity(StandardCompiler::InputsAndSettings _inpu
 		// let StandardCompiler::compile handle this
 		throw _exception;
 	}
-	catch (yul::YulException const& _exception)
+	catch (YulAssertion const&)
 	{
-		errors.emplace_back(formatErrorWithException(
-			compilerStack,
-			_exception,
+		errors.emplace_back(formatError(
 			Error::Type::YulException,
 			"general",
-			"Yul exception"
+			"Yul assertion failed:\n" + boost::current_exception_diagnostic_information()
 		));
 	}
-	catch (smtutil::SMTLogicError const& _exception)
+	catch (smtutil::SMTLogicError const&)
 	{
-		errors.emplace_back(formatErrorWithException(
-			compilerStack,
-			_exception,
+		errors.emplace_back(formatError(
 			Error::Type::SMTLogicException,
 			"general",
-			"SMT logic exception"
+			"SMT logic error:\n" + boost::current_exception_diagnostic_information()
 		));
 	}
 	catch (...)
@@ -1671,19 +1681,6 @@ Json StandardCompiler::compileYul(InputsAndSettings _inputsAndSettings)
 		return output;
 	}
 
-	for (auto const& fileRequests: _inputsAndSettings.outputSelection)
-		for (auto const& requests: fileRequests)
-			for (auto const& request: requests)
-				if (request == "evm.deployedBytecode.ethdebug")
-				{
-					output["errors"].emplace_back(formatError(
-						Error::Type::JSONError,
-						"general",
-						"\"evm.deployedBytecode.ethdebug\" cannot be used for Yul."
-					));
-					return output;
-				}
-
 	YulStack stack(
 		_inputsAndSettings.evmVersion,
 		_inputsAndSettings.eofVersion,
@@ -1790,7 +1787,7 @@ Json StandardCompiler::compileYul(InputsAndSettings _inputsAndSettings)
 		output["contracts"][sourceName][contractName]["yulCFGJson"] = stack.cfgJson();
 
 	if (isEthdebugRequested(_inputsAndSettings.outputSelection))
-		output["ethdebug"] = stack.ethdebug();
+		output["ethdebug"] = evmasm::ethdebug::resources({sourceName}, VersionString);
 
 	return output;
 }
@@ -1823,7 +1820,10 @@ Json StandardCompiler::compile(Json const& _input) noexcept
 	}
 	catch (...)
 	{
-		return formatFatalError(Error::Type::InternalCompilerError, "Internal exception in StandardCompiler::compile: " +  boost::current_exception_diagnostic_information());
+		return formatFatalError(
+			Error::Type::InternalCompilerError,
+			"Uncaught exception:\n" + boost::current_exception_diagnostic_information()
+		);
 	}
 }
 

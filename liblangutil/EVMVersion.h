@@ -167,7 +167,7 @@ private:
 
 	EVMVersion(Version _version): m_version(_version) {}
 
-	Version m_version = Version::Cancun;
+	Version m_version = Version::Prague;
 };
 
 }

@@ -371,6 +371,22 @@ std::multimap<std::string, FunctionDefinition const*> const& ContractDefinition:
 	});
 }
 
+StorageLayoutSpecifier::StorageLayoutSpecifier(
+	int64_t _id,
+	SourceLocation const& _location,
+	ASTPointer<Expression> _baseSlotExpression
+):
+	ASTNode(_id, _location),
+	m_baseSlotExpression(_baseSlotExpression)
+{
+	solAssert(m_baseSlotExpression);
+	solAssert(_location.contains(m_baseSlotExpression->location()));
+}
+
+StorageLayoutSpecifierAnnotation& StorageLayoutSpecifier::annotation() const
+{
+	return initAnnotation<StorageLayoutSpecifierAnnotation>();
+}
 
 TypeNameAnnotation& TypeName::annotation() const
 {

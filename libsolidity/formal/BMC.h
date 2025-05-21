@@ -161,7 +161,6 @@ private:
 
 	void checkVerificationTargets();
 	void checkVerificationTarget(BMCVerificationTarget& _target);
-	void checkConstantCondition(BMCVerificationTarget& _target);
 	void checkUnderflow(BMCVerificationTarget& _target);
 	void checkOverflow(BMCVerificationTarget& _target);
 	void checkDivByZero(BMCVerificationTarget& _target);
@@ -172,7 +171,12 @@ private:
 		smtutil::Expression const& _value,
 		Expression const* _expression
 	);
+	/// Special handling of ConstantCondition verification target.
+	/// The target is checked immediately, unlike the other targets that are queued for checking at the end of analysis.
+	void checkIfConditionIsConstant(Expression const& _condition);
 	//@}
+
+
 
 	/// Solver related.
 	//@{
@@ -188,13 +192,18 @@ private:
 		std::string const& _additionalValueName = "",
 		smtutil::Expression const* _additionalValue = nullptr
 	);
-	/// Checks that a boolean condition is not constant. Do not warn if the expression
-	/// is a literal constant.
-	void checkBooleanNotConstant(
-		Expression const& _condition,
+
+	struct ConstantExpressionCheckResult
+	{
+		smtutil::CheckResult canBeTrue;
+		smtutil::CheckResult canBeFalse;
+	};
+
+	/// Checks whether the given boolean condition is either true or always false under given constraints.
+	/// Returns the results from the solver for these two checks.
+	ConstantExpressionCheckResult checkBooleanNotConstant(
 		smtutil::Expression const& _constraints,
-		smtutil::Expression const& _value,
-		std::vector<CallStackEntry> const& _callStack
+		smtutil::Expression const& _condition
 	);
 	std::pair<smtutil::CheckResult, std::vector<std::string>>
 	checkSatisfiableAndGenerateModel(std::vector<smtutil::Expression> const& _expressionsToEvaluate);
@@ -222,20 +231,23 @@ private:
 	/// Number of verification conditions that could not be proved.
 	size_t m_unprovedAmt = 0;
 
+	/// Loop analysis
+	//@{
 	enum class LoopControlKind
 	{
 		Continue,
 		Break
 	};
 
-	// Current path conditions and SSA indices for break or continue statement
+	/// Current path conditions and SSA indices for break or continue statement
 	struct LoopControl {
 		LoopControlKind kind;
 		smtutil::Expression pathConditions;
 		VariableIndices variableIndices;
 	};
 
-	// Loop control statements for every loop
+	/// Loop control statements for every loop
 	std::stack<std::vector<LoopControl>> m_loopCheckpoints;
+	//@}
 };
 }

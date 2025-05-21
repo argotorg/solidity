@@ -165,7 +165,7 @@ private:
 
 inline YulString operator "" _yulname(char const* _string, std::size_t _size)
 {
-	return YulString(std::string(_string, _size));
+	return YulString(std::string_view(_string, _size));
 }
 
 }

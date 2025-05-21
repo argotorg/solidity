@@ -33,7 +33,15 @@
 #include <range/v3/view/reverse.hpp>
 
 #ifdef ISOLTEST
+#include <boost/version.hpp>
+#if (BOOST_VERSION < 108800)
 #include <boost/process.hpp>
+#else
+#define BOOST_PROCESS_VERSION 1
+#include <boost/process/v1/child.hpp>
+#include <boost/process/v1/io.hpp>
+#include <boost/process/v1/pipe.hpp>
+#endif
 #endif
 
 using namespace solidity;
@@ -232,11 +240,10 @@ TestCase::TestResult StackLayoutGeneratorTest::run(std::ostream& _stream, std::s
 		yulStack.parserResult()->code()->root()
 	);
 
-	bool simulateFunctionsWithJumps = true;
-	if (auto const* evmDialect = dynamic_cast<EVMDialect const*>(&yulStack.dialect()))
-		simulateFunctionsWithJumps = !evmDialect->eofVersion().has_value();
+	auto const* evmDialect = dynamic_cast<EVMDialect const*>(&yulStack.dialect());
+	solAssert(evmDialect, "StackLayoutGenerator can only be run on EVM dialects.");
 
-	StackLayout stackLayout = StackLayoutGenerator::run(*cfg, simulateFunctionsWithJumps);
+	StackLayout stackLayout = StackLayoutGenerator::run(*cfg, *evmDialect);
 
 	output << "digraph CFG {\nnodesep=0.7;\nnode[shape=box];\n\n";
 	StackLayoutPrinter printer{output, stackLayout, yulStack.dialect()};

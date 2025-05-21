@@ -36,7 +36,7 @@ Json StorageLayout::generate(ContractDefinition const& _contractDef, DataLocatio
 	solAssert(contractType, "");
 
 	Json variables = Json::array();
-	for (auto [var, slot, offset]: contractType->stateVariables(_location))
+	for (auto [var, slot, offset]: contractType->linearizedStateVariables(_location))
 		variables.emplace_back(generate(*var, slot, offset));
 
 	Json layout;

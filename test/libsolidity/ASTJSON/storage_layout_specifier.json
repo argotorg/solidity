@@ -1,0 +1,88 @@
+{
+  "absolutePath": "a",
+  "exportedSymbols": {
+    "C": [
+      5
+    ]
+  },
+  "id": 6,
+  "nodeType": "SourceUnit",
+  "nodes": [
+    {
+      "abstract": false,
+      "baseContracts": [],
+      "canonicalName": "C",
+      "contractDependencies": [],
+      "contractKind": "contract",
+      "fullyImplemented": true,
+      "id": 5,
+      "linearizedBaseContracts": [
+        5
+      ],
+      "name": "C",
+      "nameLocation": "9:1:1",
+      "nodeType": "ContractDefinition",
+      "nodes": [],
+      "scope": 6,
+      "src": "0:35:1",
+      "storageLayout": {
+        "baseSlotExpression": {
+          "commonType": {
+            "typeIdentifier": "t_rational_5801_by_1",
+            "typeString": "int_const 5801"
+          },
+          "id": 3,
+          "isConstant": false,
+          "isLValue": false,
+          "isPure": true,
+          "lValueRequested": false,
+          "leftExpression": {
+            "hexValue": "31323334",
+            "id": 1,
+            "isConstant": false,
+            "isLValue": false,
+            "isPure": true,
+            "kind": "number",
+            "lValueRequested": false,
+            "nodeType": "Literal",
+            "src": "21:4:1",
+            "typeDescriptions": {
+              "typeIdentifier": "t_rational_1234_by_1",
+              "typeString": "int_const 1234"
+            },
+            "value": "1234"
+          },
+          "nodeType": "BinaryOperation",
+          "operator": "+",
+          "rightExpression": {
+            "hexValue": "34353637",
+            "id": 2,
+            "isConstant": false,
+            "isLValue": false,
+            "isPure": true,
+            "kind": "number",
+            "lValueRequested": false,
+            "nodeType": "Literal",
+            "src": "28:4:1",
+            "typeDescriptions": {
+              "typeIdentifier": "t_rational_4567_by_1",
+              "typeString": "int_const 4567"
+            },
+            "value": "4567"
+          },
+          "src": "21:11:1",
+          "typeDescriptions": {
+            "typeIdentifier": "t_rational_5801_by_1",
+            "typeString": "int_const 5801"
+          }
+        },
+        "id": 4,
+        "nodeType": "StorageLayoutSpecifier",
+        "src": "11:21:1"
+      },
+      "usedErrors": [],
+      "usedEvents": []
+    }
+  ],
+  "src": "0:36:1"
+}

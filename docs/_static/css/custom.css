@@ -93,7 +93,7 @@ h1 {
 }
 
 section:first-of-type h1:first-of-type {
-    font-family: 'Overpass mono', monospace;
+    font-family: 'Overpass Mono', monospace;
     font-size: 48px;
     margin-top: 3rem;
     margin-bottom: 5rem;

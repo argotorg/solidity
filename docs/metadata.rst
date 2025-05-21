@@ -124,54 +124,29 @@ explanatory purposes.
           "version": 1 // NatSpec version
         }
       },
-      // Required: Compiler settings. Reflects the settings in the JSON input during compilation.
-      // Check the documentation of standard JSON input's "settings" field
+      // Required: Compiler settings.
+      // Reflects the settings in the JSON input during compilation, except:
+      // - Different format: "libraries" field
+      // - Added field in metadata.settings: "compilationTarget"
+      // - Not in metadata.settings: "stopAfter", "debug.debugInfo", "outputSelection"
+      // See the standard JSON input's "settings" field docs for the rest.
       "settings": {
         // Required for Solidity: File path and the name of the contract or library this
-        // metadata is created for.
+        // metadata is created for. This field is not present in the standard JSON input settings.
         "compilationTarget": {
           "myDirectory/myFile.sol": "MyContract"
         },
-        // Required for Solidity.
-        "evmVersion": "london",
         // Required for Solidity: Addresses for libraries used.
+        // Note that metadata has a different format for "libraries" field than the standard JSON input.
+        // metadata format = { "MyLib.sol:MyLib": "0x123123..." }
+        // standard JSON input format = { "MyLib.sol": { "MyLib": "0x123123..." } }
         "libraries": {
-          "MyLib": "0x123123..."
+          "MyLib.sol:MyLib": "0x123123..."
         },
-        "metadata": {
-          // Reflects the setting used in the input json, defaults to "true"
-          "appendCBOR": true,
-          // Reflects the setting used in the input json, defaults to "ipfs"
-          "bytecodeHash": "ipfs",
-          // Reflects the setting used in the input json, defaults to "false"
-          "useLiteralContent": true
-        },
-        // Optional: Optimizer settings. The fields "enabled" and "runs" are deprecated
-        // and are only given for backward-compatibility.
-        "optimizer": {
-          "details": {
-            "constantOptimizer": false,
-            "cse": false,
-            "deduplicate": false,
-            // inliner defaults to "false"
-            "inliner": false,
-            // jumpdestRemover defaults to "true"
-            "jumpdestRemover": true,
-            "orderLiterals": false,
-            // peephole defaults to "true"
-            "peephole": true,
-            "yul": true,
-            // Optional: Only present if "yul" is "true"
-            "yulDetails": {
-              "optimizerSteps": "dhfoDgvulfnTUtnIf...",
-              "stackAllocation": false
-            }
-          },
-          "enabled": true,
-          "runs": 500
-        },
-        // Required for Solidity: Sorted list of import remappings.
-        "remappings": [ ":g=/dir" ]
+        // ...
+        // ...
+        // ...
+        // The rest of the fields and their defaults same as in std JSON input.
       },
       // Required: Compilation source files/source units, keys are file paths
       "sources": {

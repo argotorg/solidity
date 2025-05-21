@@ -109,14 +109,13 @@ void InterpreterState::dumpTraceAndState(std::ostream& _out, bool _disableMemory
 
 void Interpreter::run(
 	InterpreterState& _state,
-	Dialect const& _dialect,
-	Block const& _ast,
+	AST const& _ast,
 	bool _disableExternalCalls,
 	bool _disableMemoryTrace
 )
 {
 	Scope scope;
-	Interpreter{_state, _dialect, scope, _disableExternalCalls, _disableMemoryTrace}(_ast);
+	Interpreter{_state, _ast.dialect(), scope, _disableExternalCalls, _disableMemoryTrace}(_ast.root());
 }
 
 void Interpreter::operator()(ExpressionStatement const& _expressionStatement)

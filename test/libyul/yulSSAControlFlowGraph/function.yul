@@ -67,7 +67,9 @@
 // FunctionEntry_i_0 -> Block4_0;
 // Block4_0 [label="\
 // Block 0; (0, max 0)\nLiveIn: \l\
-// LiveOut: \l\n"];
-// Block4_0Exit [label="FunctionReturn[514, 771]"];
+// LiveOut: v2,v4\l\nv2 := 514\l\
+// v4 := 771\l\
+// "];
+// Block4_0Exit [label="FunctionReturn[v2, v4]"];
 // Block4_0 -> Block4_0Exit;
 // }

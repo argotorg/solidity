@@ -63,9 +63,14 @@ std::shared_ptr<Object> ObjectParser::parse(std::shared_ptr<Scanner> const& _sca
 			expectToken(Token::EOS);
 		return object;
 	}
-	catch (FatalError const& error)
+	catch (FatalError const&)
 	{
-		yulAssert(m_errorReporter.hasErrors(), "Unreported fatal error: "s + error.what());
+		if (!m_errorReporter.hasErrors())
+		{
+			std::cerr << "Unreported fatal error:" << std::endl;
+			std::cerr << boost::current_exception_diagnostic_information() << std::endl;
+			yulAssert(false, "Unreported fatal error.");
+		}
 	}
 	return nullptr;
 }

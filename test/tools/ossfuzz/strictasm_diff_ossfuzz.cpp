@@ -90,8 +90,7 @@ extern "C" int LLVMFuzzerTestOneInput(uint8_t const* _data, size_t _size)
 	// TODO: Add EOF support
 	yulFuzzerUtil::TerminationReason termReason = yulFuzzerUtil::interpret(
 		os1,
-		stack.parserResult()->code()->root(),
-		EVMDialect::strictAssemblyForEVMObjects(langutil::EVMVersion(), std::nullopt),
+		*stack.parserResult()->code(),
 		/*disableMemoryTracing=*/true
 	);
 	if (yulFuzzerUtil::resourceLimitsExceeded(termReason))
@@ -100,8 +99,7 @@ extern "C" int LLVMFuzzerTestOneInput(uint8_t const* _data, size_t _size)
 	stack.optimize();
 	termReason = yulFuzzerUtil::interpret(
 		os2,
-		stack.parserResult()->code()->root(),
-		EVMDialect::strictAssemblyForEVMObjects(langutil::EVMVersion(), std::nullopt),
+		*stack.parserResult()->code(),
 		/*disableMemoryTracing=*/true
 	);
 

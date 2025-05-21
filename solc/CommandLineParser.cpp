@@ -1252,6 +1252,9 @@ void CommandLineParser::processArgs()
 		m_options.output.eofVersion = 1;
 	}
 
+	if (m_options.output.eofVersion.has_value() && !m_options.output.evmVersion.supportsEOF())
+		solThrow(CommandLineValidationError, "EOF is not supported by EVM versions earlier than " + EVMVersion::firstWithEOF().name() + ".");
+
 	if (m_args.count(g_strNoOptimizeYul) > 0 && m_args.count(g_strOptimizeYul) > 0)
 		solThrow(
 			CommandLineValidationError,
@@ -1342,12 +1345,18 @@ void CommandLineParser::processArgs()
 			);
 
 		if (m_options.compiler.outputs.ethdebug || m_options.compiler.outputs.ethdebugRuntime)
+		{
+			if (m_options.optimiserSettings().runYulOptimiser)
+				solUnimplemented(
+					"Optimization (using --" + g_strOptimize + ") is not yet supported with ethdebug."
+				);
+
 			if (!m_options.output.debugInfoSelection.has_value())
 			{
 				m_options.output.debugInfoSelection = DebugInfoSelection::Default();
 				m_options.output.debugInfoSelection->enable("ethdebug");
 			}
-
+		}
 		return;
 	}
 	else if (countEnabledOptions({g_strYulDialect, g_strMachine}) >= 1)
@@ -1486,17 +1495,14 @@ void CommandLineParser::processArgs()
 
 	bool incompatibleEthdebugOutputs =
 		m_options.compiler.outputs.asmJson || m_options.compiler.outputs.irAstJson || m_options.compiler.outputs.irOptimizedAstJson ||
-		m_options.compiler.outputs.irOptimized || m_options.optimizer.optimizeYul || m_options.optimizer.optimizeEvmasm;
+		m_options.optimizer.optimizeYul || m_options.optimizer.optimizeEvmasm;
 
 	bool incompatibleEthdebugInputs = m_options.input.mode != InputMode::Compiler;
 
 	static std::string enableEthdebugMessage =
 		"--" + CompilerOutputs::componentName(&CompilerOutputs::ethdebug) + " / --" + CompilerOutputs::componentName(&CompilerOutputs::ethdebugRuntime);
 
-	static std::string incompatibleEthdebugOptimizerMessage =
-		"--" + g_strOptimize + " / --" + CompilerOutputs::componentName(&CompilerOutputs::irOptimized);
-
-	static std::string enableIrMessage = "--" + CompilerOutputs::componentName(&CompilerOutputs::ir);
+	static std::string enableIrMessage = "--" + CompilerOutputs::componentName(&CompilerOutputs::ir) + " / --" + CompilerOutputs::componentName(&CompilerOutputs::irOptimized);
 
 	if (m_options.compiler.outputs.ethdebug || m_options.compiler.outputs.ethdebugRuntime)
 	{
@@ -1509,7 +1515,7 @@ void CommandLineParser::processArgs()
 		if (incompatibleEthdebugOutputs)
 			solThrow(
 				CommandLineValidationError,
-				enableEthdebugMessage + " output can only be used with " + enableIrMessage + ". Optimization is not yet supported with ethdebug, e.g. no support for " + incompatibleEthdebugOptimizerMessage + " yet."
+				enableEthdebugMessage + " output can only be used with " + enableIrMessage + ". Optimization (using --" + g_strOptimize + ") is not yet supported with ethdebug."
 			);
 
 		if (!m_options.output.debugInfoSelection.has_value())
@@ -1533,7 +1539,7 @@ void CommandLineParser::processArgs()
 	)
 		solThrow(
 			CommandLineValidationError,
-			"--debug-info ethdebug can only be used with " + enableIrMessage + " and/or " + enableEthdebugMessage + ". Optimization is not yet supported with ethdebug, e.g. no support for " + incompatibleEthdebugOptimizerMessage + " yet."
+			"--debug-info ethdebug can only be used with " + enableIrMessage + " and/or " + enableEthdebugMessage + ". Optimization (using --" + g_strOptimize + ") is not yet supported with ethdebug."
 		);
 
 	if (m_options.output.debugInfoSelection.has_value() && m_options.output.debugInfoSelection->ethdebug && incompatibleEthdebugInputs)

@@ -1,6 +1,6 @@
 {
   "contracts": {
-    "function_debug_info/input.sol:C": {
+    "input.sol:C": {
       "function-debug": {
         "@_34": {
           "id": 34,

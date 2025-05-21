@@ -78,12 +78,13 @@
 #include <liblangutil/SemVerHandler.h>
 #include <liblangutil/SourceReferenceFormatter.h>
 
-
 #include <libsolutil/SwarmHash.h>
 #include <libsolutil/IpfsHash.h>
 #include <libsolutil/JSON.h>
 #include <libsolutil/Algorithms.h>
 #include <libsolutil/FunctionSelector.h>
+
+#include <libevmasm/Ethdebug.h>
 
 #include <boost/algorithm/string/replace.hpp>
 
@@ -507,9 +508,14 @@ bool CompilerStack::analyze()
 		else if (!analyzeLegacy(noErrors))
 			noErrors = false;
 	}
-	catch (FatalError const& error)
+	catch (FatalError const&)
 	{
-		solAssert(m_errorReporter.hasErrors(), "Unreported fatal error: "s + error.what());
+		if (!m_errorReporter.hasErrors())
+		{
+			std::cerr << "Unreported fatal error:" << std::endl;
+			std::cerr << boost::current_exception_diagnostic_information() << std::endl;
+			solAssert(false, "Unreported fatal error.");
+		}
 		noErrors = false;
 	}
 	catch (UnimplementedFeatureError const& _error)
@@ -822,7 +828,12 @@ YulStack CompilerStack::loadGeneratedIR(std::string const& _ir) const
 		yulAnalysisSuccessful,
 		_ir + "\n\n"
 		"Invalid IR generated:\n" +
-		SourceReferenceFormatter::formatErrorInformation(stack.errors(), stack) + "\n"
+		SourceReferenceFormatter::formatErrorInformation(
+			stack.errors(),
+			stack, // _charStreamProvider
+			false, // _colored
+			true   // _withErrorIds
+		) + "\n"
 	);
 
 	return stack;
@@ -1185,9 +1196,7 @@ Json CompilerStack::ethdebug() const
 {
 	solAssert(m_stackState >= AnalysisSuccessful, "Analysis was not successful.");
 	solAssert(!m_contracts.empty());
-	Json result = Json::object();
-	result["sources"] = sourceNames();
-	return result;
+	return evmasm::ethdebug::resources(sourceNames(), VersionString);
 }
 
 Json CompilerStack::ethdebug(std::string const& _contractName) const
@@ -1205,13 +1214,10 @@ Json CompilerStack::ethdebug(Contract const& _contract, bool _runtime) const
 	solAssert(m_stackState >= AnalysisSuccessful, "Analysis was not successful.");
 	solAssert(_contract.contract);
 	solUnimplementedAssert(!isExperimentalSolidity());
-	if (_runtime)
-	{
-		Json result = Json::object();
-		return result;
-	}
-	Json result = Json::object();
-	return result;
+	evmasm::LinkerObject const& object = _runtime ? _contract.runtimeObject : _contract.object;
+	std::shared_ptr<evmasm::Assembly> const& assembly = _runtime ? _contract.evmRuntimeAssembly : _contract.evmAssembly;
+	solAssert(sourceIndices().contains(_contract.contract->sourceUnitName()));
+	return evmasm::ethdebug::program(_contract.contract->name(), sourceIndices()[_contract.contract->sourceUnitName()], assembly.get(), object);
 }
 
 bytes CompilerStack::cborMetadata(std::string const& _contractName, bool _forIR) const
@@ -1316,9 +1322,14 @@ StringMap CompilerStack::loadMissingSources(SourceUnit const& _ast)
 				}
 			}
 	}
-	catch (FatalError const& error)
+	catch (FatalError const&)
 	{
-		solAssert(m_errorReporter.hasErrors(), "Unreported fatal error: "s + error.what());
+		if (!m_errorReporter.hasErrors())
+		{
+			std::cerr << "Unreported fatal error:" << std::endl;
+			std::cerr << boost::current_exception_diagnostic_information() << std::endl;
+			solAssert(false, "Unreported fatal error.");
+		}
 	}
 	return newSources;
 }
@@ -1558,7 +1569,6 @@ void CompilerStack::compileContract(
 void CompilerStack::generateIR(ContractDefinition const& _contract, bool _unoptimizedOnly)
 {
 	solAssert(m_stackState >= AnalysisSuccessful, "");
-
 	Contract& compiledContract = m_contracts.at(_contract.fullyQualifiedName());
 	if (compiledContract.yulIR)
 	{

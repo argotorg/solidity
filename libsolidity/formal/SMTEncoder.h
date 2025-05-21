@@ -27,7 +27,6 @@
 #include <libsolidity/formal/EncodingContext.h>
 #include <libsolidity/formal/ModelCheckerSettings.h>
 #include <libsolidity/formal/SymbolicVariables.h>
-#include <libsolidity/formal/VariableUsage.h>
 
 #include <libsolidity/ast/AST.h>
 #include <libsolidity/ast/ASTVisitor.h>
@@ -238,11 +237,12 @@ protected:
 	void visitFunctionIdentifier(Identifier const& _identifier);
 	virtual void visitPublicGetter(FunctionCall const& _funCall);
 
-	/// @returns true if @param _contract is set for analysis in the settings
-	/// and it is not abstract.
-	bool shouldAnalyze(ContractDefinition const& _contract) const;
-	/// @returns true if @param _source is set for analysis in the settings.
-	bool shouldAnalyze(SourceUnit const& _source) const;
+	/// @returns true if symbolic representation of @param _contract is required for verification
+	bool shouldEncode(ContractDefinition const& _contract) const;
+	/// @returns true if the verification targets of @param _contract are actually selected for verification
+	bool shouldAnalyzeVerificationTargetsFor(ContractDefinition const& _contract) const;
+	/// @returns true if we should descend into @param _source to look for contracts that should be verified
+	bool shouldAnalyzeVerificationTargetsFor(SourceUnit const& _source) const;
 
 	/// @returns the state variable returned by a public getter if
 	/// @a _expr is a call to a public getter,
@@ -453,7 +453,6 @@ protected:
 		smtutil::Expression constraints;
 	};
 
-	smt::VariableUsage m_variableUsage;
 	bool m_arrayAssignmentHappened = false;
 
 	/// Stores the instances of an Uninterpreted Function applied to arguments.

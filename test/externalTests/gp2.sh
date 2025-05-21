@@ -66,10 +66,7 @@ function gp2_test
     force_hardhat_compiler_settings "$config_file" "$(first_word "$SELECTED_PRESETS")" "$config_var"
     force_hardhat_unlimited_contract_size "$config_file" "$config_var"
     yarn
-    # We require to install hardhat 2.20.0 due to support for evm version cancun, otherwise we get the following error:
-    # Invalid value {"blockGasLimit":12500000,"hardfork":"cancun","allowUnlimitedContractSize":true} for HardhatConfig.networks.hardhat - Expected a value of type HardhatNetworkConfig.
-    # See: https://github.com/NomicFoundation/hardhat/issues/4176
-    yarn add hardhat@2.20.0
+    yarn add hardhat
 
     # Ignore bench directory which fails to compile with current hardhat and ethers versions.
     # bench/trace/gas.ts:123:19 - error TS2339: Property 'equals' does not exist on type 'Uint8Array'.

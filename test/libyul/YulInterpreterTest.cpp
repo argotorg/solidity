@@ -80,8 +80,7 @@ std::string YulInterpreterTest::interpret(std::shared_ptr<Object const> const& _
 	{
 		Interpreter::run(
 			state,
-			*_object->dialect(),
-			_object->code()->root(),
+			*_object->code(),
 			/*disableExternalCalls=*/ !m_simulateExternalCallsToSelf,
 			/*disableMemoryTracing=*/ false
 		);

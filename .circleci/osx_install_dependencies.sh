@@ -59,9 +59,6 @@ then
   brew install openjdk@11
   brew install unzip
 
-  # writing to /usr/local/lib need administrative privileges.
-  sudo ./scripts/install_obsolete_jsoncpp_1_7_4.sh
-
   # boost
   boost_version="1.84.0"
   boost_package="boost_${boost_version//./_}.tar.bz2"
@@ -72,7 +69,8 @@ then
   cd "$boost_dir"
   ./bootstrap.sh --with-toolset=clang --with-libraries=thread,system,filesystem,program_options,serialization,test
   # the default number of jobs that b2 is taking, is the number of detected available CPU threads.
-  sudo ./b2 -a address-model=64 architecture=arm+x86 install
+  # install boost to /opt/boost, to use it in CMake, specify Boost_ROOT
+  sudo ./b2 -a address-model=64 architecture=arm+x86 --prefix=/opt/boost install
   cd ..
   sudo rm -rf "$boost_dir"
 

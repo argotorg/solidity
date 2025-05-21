@@ -1,0 +1,14 @@
+{
+	"language": "Yul",
+	"sources": {
+		"C": {"urls": ["in.yul"]}
+	},
+	"settings": {
+		"optimizer": {
+			"enabled": true
+		},
+		"outputSelection": {
+			"*": {"*": ["evm.bytecode.ethdebug", "ir"]}
+		}
+	}
+}

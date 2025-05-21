@@ -19,7 +19,7 @@ General Resources
 Integrated (Ethereum) Development Environments
 ==============================================
 
-* `Ape <https://docs.apeworx.io/ape/stable/az>`_
+* `Ape <https://docs.apeworx.io/ape>`_
         A Python-based web3 development tool for compiling, testing, and interacting with smart contracts.
 
 * `Brownie <https://eth-brownie.readthedocs.io/en/stable/>`_

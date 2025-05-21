@@ -1,1 +1,1 @@
---evm-version cancun --no-cbor-metadata --via-ir --ir --debug-info none
+--no-cbor-metadata --via-ir --ir --debug-info none

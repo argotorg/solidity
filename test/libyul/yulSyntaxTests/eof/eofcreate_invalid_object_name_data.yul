@@ -10,4 +10,4 @@ object "a" {
 // EVMVersion: >=shanghai
 // bytecodeFormat: >=EOFv1
 // ----
-// TypeError 7575: (52-59): Data name "data1" cannot be used as an argument of eofcreate/returncontract. An object name is only acceptable.
+// TypeError 7575: (52-59): Data name "data1" cannot be used as an argument of eofcreate/returncontract. Only an object name is acceptable.

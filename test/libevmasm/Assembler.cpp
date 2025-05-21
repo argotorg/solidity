@@ -25,6 +25,7 @@
 #include <libevmasm/Assembly.h>
 #include <libsolutil/JSON.h>
 #include <libevmasm/Disassemble.h>
+#include <libevmasm/Ethdebug.h>
 #include <libyul/Exceptions.h>
 
 #include <test/Common.h>
@@ -423,6 +424,46 @@ BOOST_AUTO_TEST_CASE(subobject_encode_decode)
 
 	std::vector<size_t> subPath{0, 0};
 	BOOST_CHECK(assembly.decodeSubPath(assembly.encodeSubPath(subPath)) == subPath);
+}
+
+BOOST_AUTO_TEST_CASE(ethdebug_program_last_instruction_with_immediate_arguments)
+{
+	EVMVersion evmVersion = solidity::test::CommonOptions::get().evmVersion();
+	{
+		Assembly assembly{evmVersion, true, {}, {}};
+		assembly.append(AssemblyItem{0x11223344});
+		LinkerObject output = assembly.assemble();
+
+		Json const program = ethdebug::program("", 0, &assembly, output);
+		BOOST_REQUIRE(program["instructions"].size() == 1);
+		BOOST_REQUIRE(program["instructions"][0]["operation"]["mnemonic"] == "PUSH4");
+		BOOST_REQUIRE(program["instructions"][0]["operation"]["arguments"][0] == "0x11223344");
+	}
+	{
+		Assembly assembly{evmVersion, true, {}, {}};
+		assembly.append(AssemblyItem{Instruction::PUSH0});
+		assembly.append(AssemblyItem{0x1122334455});
+		LinkerObject output = assembly.assemble();
+
+		Json const program = ethdebug::program("", 0, &assembly, output);
+		BOOST_REQUIRE(program["instructions"].size() == 2);
+		BOOST_REQUIRE(program["instructions"][0]["operation"]["mnemonic"] == "PUSH0");
+		BOOST_REQUIRE(!program["instructions"][0]["operation"].contains("arguments"));
+		BOOST_REQUIRE(program["instructions"][1]["operation"]["mnemonic"] == "PUSH5");
+		BOOST_REQUIRE(program["instructions"][1]["operation"]["arguments"][0] == "0x1122334455");
+	}
+}
+
+BOOST_AUTO_TEST_CASE(ethdebug_resources)
+{
+	Json const resources = ethdebug::resources({"sourceA", "sourceB"}, "version1");
+	BOOST_REQUIRE(resources["compilation"]["compiler"]["name"] == "solc");
+	BOOST_REQUIRE(resources["compilation"]["compiler"]["version"] == "version1");
+	BOOST_REQUIRE(resources["compilation"]["sources"].size() == 2);
+	BOOST_REQUIRE(resources["compilation"]["sources"][0]["id"] == 0);
+	BOOST_REQUIRE(resources["compilation"]["sources"][0]["path"] == "sourceA");
+	BOOST_REQUIRE(resources["compilation"]["sources"][1]["id"] == 1);
+	BOOST_REQUIRE(resources["compilation"]["sources"][1]["path"] == "sourceB");
 }
 
 BOOST_AUTO_TEST_SUITE_END()

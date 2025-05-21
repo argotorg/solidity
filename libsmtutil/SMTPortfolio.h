@@ -20,10 +20,7 @@
 
 
 #include <libsmtutil/BMCSolverInterface.h>
-#include <libsolidity/interface/ReadFile.h>
-#include <libsolutil/FixedHash.h>
 
-#include <map>
 #include <vector>
 
 namespace solidity::smtutil

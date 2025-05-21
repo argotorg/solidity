@@ -509,14 +509,16 @@ public:
 		std::vector<ASTPointer<InheritanceSpecifier>> _baseContracts,
 		std::vector<ASTPointer<ASTNode>> _subNodes,
 		ContractKind _contractKind = ContractKind::Contract,
-		bool _abstract = false
+		bool _abstract = false,
+		ASTPointer<StorageLayoutSpecifier> _storageLayoutSpecifier = nullptr
 	):
 		Declaration(_id, _location, _name, std::move(_nameLocation)),
 		StructurallyDocumented(_documentation),
 		m_baseContracts(std::move(_baseContracts)),
 		m_subNodes(std::move(_subNodes)),
 		m_contractKind(_contractKind),
-		m_abstract(_abstract)
+		m_abstract(_abstract),
+		m_storageLayoutSpecifier(_storageLayoutSpecifier)
 	{}
 
 	void accept(ASTVisitor& _visitor) override;
@@ -586,6 +588,9 @@ public:
 
 	bool abstract() const { return m_abstract; }
 
+	StorageLayoutSpecifier const* storageLayoutSpecifier() const { return m_storageLayoutSpecifier.get(); }
+	StorageLayoutSpecifier* storageLayoutSpecifier() { return m_storageLayoutSpecifier.get(); }
+
 	ContractDefinition const* superContract(ContractDefinition const& _mostDerivedContract) const;
 	/// @returns the next constructor in the inheritance hierarchy.
 	FunctionDefinition const* nextConstructor(ContractDefinition const& _mostDerivedContract) const;
@@ -597,10 +602,30 @@ private:
 	std::vector<ASTPointer<ASTNode>> m_subNodes;
 	ContractKind m_contractKind;
 	bool m_abstract{false};
+	ASTPointer<StorageLayoutSpecifier> m_storageLayoutSpecifier;
 
 	util::LazyInit<std::vector<std::pair<util::FixedHash<4>, FunctionTypePointer>>> m_interfaceFunctionList[2];
 	util::LazyInit<std::vector<EventDefinition const*>> m_interfaceEvents;
 	util::LazyInit<std::multimap<std::string, FunctionDefinition const*>> m_definedFunctionsByName;
+};
+
+
+class StorageLayoutSpecifier : public ASTNode
+{
+public:
+	StorageLayoutSpecifier(
+		int64_t _id,
+		SourceLocation const& _location,
+		ASTPointer<Expression> _baseSlotExpression
+	);
+	void accept(ASTVisitor& _visitor) override;
+	void accept(ASTConstVisitor& _visitor) const override;
+
+	Expression const& baseSlotExpression() const { solAssert(m_baseSlotExpression); return *m_baseSlotExpression; }
+	StorageLayoutSpecifierAnnotation& annotation() const override;
+
+private:
+	ASTPointer<Expression> m_baseSlotExpression;
 };
 
 /**
@@ -798,11 +823,19 @@ private:
 /**
  * Declaration of an Enum Value
  */
-class EnumValue: public Declaration
+class EnumValue: public Declaration, public StructurallyDocumented
 {
 public:
-	EnumValue(int64_t _id, SourceLocation const& _location, ASTPointer<ASTString> const& _name):
-		Declaration(_id, _location, _name, _location) {}
+	EnumValue(
+		int64_t _id,
+		SourceLocation const& _location,
+		ASTPointer<ASTString> const& _name,
+		ASTPointer<StructuredDocumentation> _documentation
+	):
+		Declaration(_id, _location, _name, _location),
+		StructurallyDocumented(std::move(_documentation))
+	{
+	}
 
 	void accept(ASTVisitor& _visitor) override;
 	void accept(ASTConstVisitor& _visitor) const override;

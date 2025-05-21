@@ -1,5 +1,5 @@
 Optimized IR:
-/// @use-src 0:"mcopy_string_literal_returned_from_function/input.sol"
+/// @use-src 0:"input.sol"
 object "C_10" {
     code {
         {
@@ -11,7 +11,7 @@ object "C_10" {
             return(_1, _2)
         }
     }
-    /// @use-src 0:"mcopy_string_literal_returned_from_function/input.sol"
+    /// @use-src 0:"input.sol"
     object "C_10_deployed" {
         code {
             {

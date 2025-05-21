@@ -22,13 +22,21 @@
 
 #include <libsolidity/analysis/PostTypeContractLevelChecker.h>
 
+#include <fmt/format.h>
 #include <libsolidity/ast/AST.h>
+#include <libsolidity/ast/ASTUtils.h>
+#include <libsolidity/ast/TypeProvider.h>
 #include <libsolutil/FunctionSelector.h>
 #include <liblangutil/ErrorReporter.h>
+
+#include <range/v3/action/reverse.hpp>
+
+#include <limits>
 
 using namespace solidity;
 using namespace solidity::langutil;
 using namespace solidity::frontend;
+using namespace solidity::util;
 
 bool PostTypeContractLevelChecker::check(SourceUnit const& _sourceUnit)
 {
@@ -51,7 +59,7 @@ bool PostTypeContractLevelChecker::check(ContractDefinition const& _contract)
 	for (ErrorDefinition const* error: _contract.interfaceErrors())
 	{
 		std::string signature = error->functionType(true)->externalSignature();
-		uint32_t hash = util::selectorFromSignatureU32(signature);
+		uint32_t hash = selectorFromSignatureU32(signature);
 		// Fail if there is a different signature for the same hash.
 		if (!errorHashes[hash].empty() && !errorHashes[hash].count(signature))
 		{
@@ -67,5 +75,134 @@ bool PostTypeContractLevelChecker::check(ContractDefinition const& _contract)
 			errorHashes[hash][signature] = error->location();
 	}
 
+	if (_contract.storageLayoutSpecifier())
+		checkStorageLayoutSpecifier(_contract);
+
+	warnStorageLayoutBaseNearStorageEnd(_contract);
+
 	return !Error::containsErrors(m_errorReporter.errors());
+}
+
+void PostTypeContractLevelChecker::checkStorageLayoutSpecifier(ContractDefinition const& _contract)
+{
+	StorageLayoutSpecifier const* storageLayoutSpecifier = _contract.storageLayoutSpecifier();
+	solAssert(storageLayoutSpecifier);
+	Expression const& baseSlotExpression = storageLayoutSpecifier->baseSlotExpression();
+
+	if (!*baseSlotExpression.annotation().isPure)
+	{
+		// TODO: introduce and handle erc7201 as a builtin function
+		m_errorReporter.typeError(
+			1139_error,
+			baseSlotExpression.location(),
+			"The base slot of the storage layout must be a compile-time constant expression."
+		);
+		return;
+	}
+
+	auto const* baseSlotExpressionType = type(baseSlotExpression);
+	auto const* rationalType = dynamic_cast<RationalNumberType const*>(baseSlotExpressionType);
+	if (!rationalType)
+	{
+		m_errorReporter.typeError(
+			6396_error,
+			baseSlotExpression.location(),
+			"The base slot of the storage layout must evaluate to a rational number."
+		);
+		return;
+	}
+
+	if (rationalType->isFractional())
+	{
+		m_errorReporter.typeError(
+			1763_error,
+			baseSlotExpression.location(),
+			"The base slot of the storage layout must evaluate to an integer."
+		);
+		return;
+	}
+	solAssert(rationalType->value().denominator() == 1);
+
+	bigint baseSlot = rationalType->value().numerator();
+	if (!(0 <= baseSlot && baseSlot <= std::numeric_limits<u256>::max()))
+	{
+		m_errorReporter.typeError(
+			6753_error,
+			baseSlotExpression.location(),
+			fmt::format(
+				"The base slot of the storage layout evaluates to {}, which is outside the range of type uint256.",
+				formatNumberReadable(baseSlot)
+			)
+		);
+		return;
+	}
+
+	solAssert(baseSlotExpressionType->isImplicitlyConvertibleTo(*TypeProvider::uint256()));
+	storageLayoutSpecifier->annotation().baseSlot = u256(baseSlot);
+
+	bigint size = contractStorageSizeUpperBound(_contract, VariableDeclaration::Location::Unspecified);
+	solAssert(size < bigint(1) << 256);
+	if (baseSlot + size >= bigint(1) << 256)
+		m_errorReporter.typeError(
+			5015_error,
+			baseSlotExpression.location(),
+			"Contract extends past the end of storage when this base slot value is specified."
+		);
+}
+
+namespace
+{
+
+VariableDeclaration const* findLastStorageVariable(ContractDefinition const& _contract)
+{
+	for (ContractDefinition const* baseContract: ranges::actions::reverse(_contract.annotation().linearizedBaseContracts))
+		for (VariableDeclaration const* stateVariable: ranges::actions::reverse(baseContract->stateVariables()))
+			if (stateVariable->referenceLocation() == VariableDeclaration::Location::Unspecified)
+				return stateVariable;
+
+	return nullptr;
+}
+
+}
+
+void PostTypeContractLevelChecker::warnStorageLayoutBaseNearStorageEnd(ContractDefinition const& _contract)
+{
+	// In case of most errors the warning is pointless. E.g. if we're already past storage end.
+	// If the errors were in the layout specifier, we may not even be able to get values to validate.
+	if (Error::containsErrors(m_errorReporter.errors()))
+		return;
+
+	bigint storageSize = contractStorageSizeUpperBound(_contract, VariableDeclaration::Location::Unspecified);
+	u256 baseSlot = layoutBaseForInheritanceHierarchy(_contract, DataLocation::Storage);
+	solAssert(baseSlot + storageSize <= std::numeric_limits<u256>::max());
+
+	if (
+		u256 slotsLeft = std::numeric_limits<u256>::max() - baseSlot - u256(storageSize);
+		slotsLeft <= u256(1) << 64
+	)
+	{
+		auto const& location = _contract.storageLayoutSpecifier() ?
+			_contract.storageLayoutSpecifier()->location() :
+			_contract.location();
+
+		VariableDeclaration const* lastStorageVariable = findLastStorageVariable(_contract);
+
+		auto errorID = 3495_error;
+		std::string errorMsg = "This contract is very close to the end of storage. This limits its future upgradability.";
+		if (lastStorageVariable)
+			m_errorReporter.warning(
+				errorID,
+				location,
+				errorMsg,
+				SecondarySourceLocation{}.append(
+					fmt::format(
+						"There are {} storage slots between this state variable and the end of storage.",
+						formatNumberReadable(slotsLeft)
+					),
+					lastStorageVariable->location()
+				)
+			);
+		else
+			m_errorReporter.warning(errorID, location, errorMsg);
+	}
 }

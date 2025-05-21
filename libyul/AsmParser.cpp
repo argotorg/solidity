@@ -127,9 +127,14 @@ std::unique_ptr<AST> Parser::parseInline(std::shared_ptr<Scanner> const& _scanne
 			fetchDebugDataFromComment();
 		return std::make_unique<AST>(m_dialect, parseBlock());
 	}
-	catch (FatalError const& error)
+	catch (FatalError const&)
 	{
-		yulAssert(m_errorReporter.hasErrors(), "Unreported fatal error: "s + error.what());
+		if (!m_errorReporter.hasErrors())
+		{
+			std::cerr << "Unreported fatal error:" << std::endl;
+			std::cerr << boost::current_exception_diagnostic_information() << std::endl;
+			yulAssert(false, "Unreported fatal error.");
+		}
 	}
 
 	return nullptr;

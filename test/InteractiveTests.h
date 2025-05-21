@@ -42,6 +42,8 @@
 #include <test/libyul/StackShufflingTest.h>
 #include <test/libyul/SyntaxTest.h>
 
+#include <test/libevmasm/EVMAssemblyTest.h>
+
 #include <boost/filesystem.hpp>
 
 namespace solidity::frontend::test
@@ -64,6 +66,7 @@ struct Testsuite
 Testsuite const g_interactiveTestsuites[] = {
 /*
 	Title                           Path           Subpath                          SMT   NeedsVM Creator function */
+	{"EVM Assembly",                "libevmasm",   "evmAssemblyTests",              false, false, &evmasm::test::EVMAssemblyTest::create},
 	{"Yul Optimizer",               "libyul",      "yulOptimizerTests",             false, false, &yul::test::YulOptimizerTest::create},
 	{"Yul Interpreter",             "libyul",      "yulInterpreterTests",           false, false, &yul::test::YulInterpreterTest::create},
 	{"Yul Object Compiler",         "libyul",      "objectCompiler",                false, false, &yul::test::ObjectCompilerTest::create},

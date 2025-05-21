@@ -154,12 +154,13 @@ std::optional<h256> ObjectOptimizer::calculateCacheKey(
 	rawKey += keccak256(asmPrinter(_ast)).asBytes();
 	rawKey += keccak256(_debugData.formatUseSrcComment()).asBytes();
 	rawKey += h256(u256(_settings.language)).asBytes();
-	rawKey += FixedHash<1>(uint8_t(_settings.optimizeStackAllocation ? 0 : 1)).asBytes();
+	static_assert(static_cast<uint8_t>(static_cast<bool>(2)) == 1);
+	rawKey += FixedHash<1>(static_cast<uint8_t>(_settings.optimizeStackAllocation)).asBytes();
 	rawKey += h256(u256(_settings.expectedExecutionsPerDeployment)).asBytes();
-	rawKey += FixedHash<1>(uint8_t(_isCreation ? 0 : 1)).asBytes();
+	rawKey += FixedHash<1>(static_cast<uint8_t>(_isCreation)).asBytes();
 	rawKey += keccak256(_settings.evmVersion.name()).asBytes();
 	yulAssert(!_settings.eofVersion.has_value() || *_settings.eofVersion > 0);
-	rawKey += FixedHash<1>(uint8_t(_settings.eofVersion ? 0 : *_settings.eofVersion)).asBytes();
+	rawKey += FixedHash<1>(static_cast<uint8_t>(_settings.eofVersion ? *_settings.eofVersion : 0)).asBytes();
 	rawKey += keccak256(_settings.yulOptimiserSteps).asBytes();
 	rawKey += keccak256(_settings.yulOptimiserCleanupSteps).asBytes();
 

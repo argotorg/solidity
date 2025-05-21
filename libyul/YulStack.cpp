@@ -30,6 +30,7 @@
 #include <libyul/optimiser/Suite.h>
 #include <libyul/YulControlFlowGraphExporter.h>
 #include <libevmasm/Assembly.h>
+#include <libevmasm/Ethdebug.h>
 #include <liblangutil/Scanner.h>
 #include <liblangutil/SourceReferenceFormatter.h>
 
@@ -273,12 +274,15 @@ YulStack::assembleWithDeployed(std::optional<std::string_view> _deployName)
 				{{m_charStream->name(), 0}}
 			);
 		}
-		creationObject.ethdebug["not yet implemented @ MachineAssemblyObject::ethdebug"] = true;
+		if (debugInfoSelection().ethdebug)
+			creationObject.ethdebug = evmasm::ethdebug::program(creationObject.assembly->name(), 0, creationObject.assembly.get(), *creationObject.bytecode.get());
 
 		if (deployedAssembly)
 		{
 			deployedObject.bytecode = std::make_shared<evmasm::LinkerObject>(deployedAssembly->assemble());
 			deployedObject.assembly = deployedAssembly;
+			if (debugInfoSelection().ethdebug)
+				deployedObject.ethdebug = evmasm::ethdebug::program(deployedObject.assembly->name(), 0, deployedObject.assembly.get(), *deployedObject.bytecode.get());
 			solAssert(deployedAssembly->codeSections().size() == 1);
 			deployedObject.sourceMappings = std::make_unique<std::string>(
 				evmasm::AssemblyItem::computeSourceMapping(
@@ -383,17 +387,6 @@ Json YulStack::astJson() const
 	return  m_parserResult->toJson();
 }
 
-Json YulStack::ethdebug() const
-{
-	yulAssert(m_parserResult, "");
-	yulAssert(m_parserResult->hasCode(), "");
-	yulAssert(m_parserResult->analysisInfo, "");
-
-	Json result = Json::object();
-	result["sources"] = Json::array({m_charStream->name()});
-	return result;
-}
-
 Json YulStack::cfgJson() const
 {
 	yulAssert(m_parserResult, "");
@@ -401,11 +394,15 @@ Json YulStack::cfgJson() const
 	yulAssert(m_parserResult->analysisInfo, "");
 	// FIXME: we should not regenerate the cfg, but for now this is sufficient for testing purposes
 	auto exportCFGFromObject = [&](Object const& _object) -> Json {
+		// with this set to `true`, assignments of the type `let x := 42` are preserved and added as assignment
+		// operations to the control flow graphs
+		bool constexpr keepLiteralAssignments = true;
 		// NOTE: The block Ids are reset for each object
 		std::unique_ptr<ControlFlow> controlFlow = SSAControlFlowGraphBuilder::build(
-			*_object.analysisInfo.get(),
+			*_object.analysisInfo,
 			languageToDialect(m_language, m_evmVersion, m_eofVersion),
-			_object.code()->root()
+			_object.code()->root(),
+			keepLiteralAssignments
 		);
 		std::unique_ptr<ControlFlowLiveness> liveness = std::make_unique<ControlFlowLiveness>(*controlFlow);
 		YulControlFlowGraphExporter exporter(*controlFlow, liveness.get());

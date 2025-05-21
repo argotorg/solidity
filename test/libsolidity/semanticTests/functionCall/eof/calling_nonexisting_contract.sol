@@ -8,7 +8,7 @@ contract C {
 
     function f() public returns (uint256) {
         // This call throws on legacy bytecode because of calling nonexisting contract. Legacy checks that there is
-        // a non-empty code under under an address. EOF doesn't do it because non-observability assumption
+        // a non-empty code under an address. EOF doesn't do it because non-observability assumption
         d.g();
         return 7;
     }

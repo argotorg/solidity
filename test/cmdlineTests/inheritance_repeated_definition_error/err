@@ -1,0 +1,10 @@
+Error: More than one inheritance list.
+ --> <stdin>:9:20:
+  |
+9 | contract C is A, B is B {
+  |                    ^^
+Note: Previous list:
+ --> <stdin>:9:15:
+  |
+9 | contract C is A, B is B {
+  |               ^

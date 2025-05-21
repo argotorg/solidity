@@ -1,4 +1,4 @@
-/*(
+/*
 	This file is part of solidity.
 
 	solidity is free software: you can redistribute it and/or modify
@@ -71,7 +71,7 @@ void Rematerialiser::visit(Expression& _e)
 			)
 			{
 				assertThrow(m_referenceCounts[name] > 0, OptimizerException, "");
-				auto variableReferences = references(name);
+				auto variableReferences = sortedReferences(name);
 				if (!variableReferences || ranges::all_of(*variableReferences, [&](auto const& ref) { return inScope(ref); }))
 				{
 					// update reference counts

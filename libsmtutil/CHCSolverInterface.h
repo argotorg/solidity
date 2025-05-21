@@ -25,6 +25,7 @@
 #include <libsmtutil/SolverInterface.h>
 
 #include <map>
+#include <unordered_map>
 #include <vector>
 
 namespace solidity::smtutil
@@ -49,10 +50,19 @@ public:
 		std::map<unsigned, std::vector<unsigned>> edges;
 	};
 
+	struct InvariantInfo
+	{
+		/// Predicate definition as SMT expression
+		Expression expression;
+		/// Names of the formal arguments of the predicate definition
+		std::vector<std::string> variableNames;
+	};
+	/// Maps predicate to its definition as given by the solver and the formal arguments of the predicate
+	using Invariants = std::unordered_map<std::string, InvariantInfo>;
 	struct QueryResult
 	{
 		CheckResult answer;
-		Expression invariant;
+		Invariants invariants;
 		CexGraph cex;
 	};
 	/// Takes a function application _expr and checks for reachability.

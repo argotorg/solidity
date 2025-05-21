@@ -56,7 +56,7 @@ protected:
 	void leaveScope(Block const& _block) override;
 	void enterFunction(FunctionDefinition const& _function) override;
 	void leaveFunction(FunctionDefinition const& _function) override;
-	YulName translateIdentifier(YulName _name) override;
+	YulName translateIdentifier(YulName _originalName) override;
 
 	void enterScopeInternal(Scope& _scope);
 	void leaveScopeInternal(Scope& _scope);

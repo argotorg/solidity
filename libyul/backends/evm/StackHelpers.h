@@ -56,7 +56,6 @@ inline std::string stackToString(Stack const& _stack, Dialect const& _dialect)
 }
 
 
-// Abstraction of stack shuffling operations. Can be defined as actual concept once we switch to C++20.
 // Used as an interface for the stack shuffler below.
 // The shuffle operation class is expected to internally keep track of a current stack layout (the "source layout")
 // that the shuffler is supposed to shuffle to a fixed target stack layout.
@@ -65,7 +64,6 @@ inline std::string stackToString(Stack const& _stack, Dialect const& _dialect)
 // in the interface below.
 // Based on that information the shuffler decides which is the next optimal operation to perform on the stack
 // and calls the corresponding entry point in the shuffling operations (swap, pushOrDupTarget or pop).
-/*
 template<typename ShuffleOperations>
 concept ShuffleOperationConcept = requires(ShuffleOperations ops, size_t sourceOffset, size_t targetOffset, size_t depth) {
 	// Returns true, iff the current slot at sourceOffset in source layout is a suitable slot at targetOffset.
@@ -98,11 +96,13 @@ concept ShuffleOperationConcept = requires(ShuffleOperations ops, size_t sourceO
 	{ ops.pop() };
 	// Dups or pushes the slot that is supposed to end up at the given target offset.
 	{ ops.pushOrDupTarget(targetOffset) };
+	// Maximum reachable depth with swaps and dups.
+	{ ops.reachableStackDepth } -> std::convertible_to<size_t>;
 };
-*/
+
 /// Helper class that can perform shuffling of a source stack layout to a target stack layout via
 /// abstracted shuffle operations.
-template</*ShuffleOperationConcept*/ typename ShuffleOperations>
+template<ShuffleOperationConcept ShuffleOperations>
 class Shuffler
 {
 public:
@@ -128,10 +128,10 @@ private:
 	static bool dupDeepSlotIfRequired(ShuffleOperations& _ops)
 	{
 		// Check if the stack is large enough for anything to potentially become unreachable.
-		if (_ops.sourceSize() < 15)
+		if (_ops.sourceSize() < (_ops.reachableStackDepth - 1))
 			return false;
 		// Check whether any deep slot might still be needed later (i.e. we still need to reach it with a DUP or SWAP).
-		for (size_t sourceOffset: ranges::views::iota(0u, _ops.sourceSize() - 15))
+		for (size_t sourceOffset: ranges::views::iota(0u, _ops.sourceSize() - (_ops.reachableStackDepth - 1)))
 		{
 			// This slot needs to be moved.
 			if (!_ops.isCompatible(sourceOffset, sourceOffset))
@@ -256,10 +256,10 @@ private:
 				)
 				{
 					// We cannot swap that deep.
-					if (ops.sourceSize() - offset - 1 > 16)
+					if (ops.sourceSize() - offset - 1 > ops.reachableStackDepth)
 					{
 						// If there is a reachable slot to be removed, park the current top there.
-						for (size_t swapDepth: ranges::views::iota(1u, 17u) | ranges::views::reverse)
+						for (size_t swapDepth: ranges::views::iota(1u, ops.reachableStackDepth + 1u) | ranges::views::reverse)
 							if (ops.sourceMultiplicity(ops.sourceSize() - 1 - swapDepth) < 0)
 							{
 								ops.swap(swapDepth);
@@ -327,7 +327,7 @@ private:
 			yulAssert(ops.sourceMultiplicity(i) == 0 && (ops.targetIsArbitrary(i) || ops.targetMultiplicity(i) == 0), "");
 		yulAssert(ops.isCompatible(sourceTop, sourceTop), "");
 
-		auto swappableOffsets = ranges::views::iota(size > 17 ? size - 17 : 0u, size);
+		auto swappableOffsets = ranges::views::iota(size > ops.reachableStackDepth + 1u ? size - (ops.reachableStackDepth + 1u) : 0u, size);
 
 		// If we find a lower slot that is out of position, but also compatible with the top, swap that up.
 		for (size_t offset: swappableOffsets)
@@ -431,7 +431,14 @@ private:
 /// its argument to the stack top.
 /// @a _pop is a function with signature void() that is called when the top most slot is popped.
 template<typename Swap, typename PushOrDup, typename Pop>
-void createStackLayout(Stack& _currentStack, Stack const& _targetStack, Swap _swap, PushOrDup _pushOrDup, Pop _pop)
+void createStackLayout(
+	Stack& _currentStack,
+	Stack const& _targetStack,
+	Swap _swap,
+	PushOrDup _pushOrDup,
+	Pop _pop,
+	size_t _reachableStackDepth
+)
 {
 	struct ShuffleOperations
 	{
@@ -441,18 +448,21 @@ void createStackLayout(Stack& _currentStack, Stack const& _targetStack, Swap _sw
 		PushOrDup pushOrDupCallback;
 		Pop popCallback;
 		Multiplicity multiplicity;
+		size_t reachableStackDepth;
 		ShuffleOperations(
 			Stack& _currentStack,
 			Stack const& _targetStack,
 			Swap _swap,
 			PushOrDup _pushOrDup,
-			Pop _pop
+			Pop _pop,
+			size_t _reachableStackDepth
 		):
 			currentStack(_currentStack),
 			targetStack(_targetStack),
 			swapCallback(_swap),
 			pushOrDupCallback(_pushOrDup),
-			popCallback(_pop)
+			popCallback(_pop),
+			reachableStackDepth(_reachableStackDepth)
 		{
 			for (auto const& slot: currentStack)
 				--multiplicity[slot];
@@ -499,7 +509,7 @@ void createStackLayout(Stack& _currentStack, Stack const& _targetStack, Swap _sw
 		}
 	};
 
-	Shuffler<ShuffleOperations>::shuffle(_currentStack, _targetStack, _swap, _pushOrDup, _pop);
+	Shuffler<ShuffleOperations>::shuffle(_currentStack, _targetStack, _swap, _pushOrDup, _pop, _reachableStackDepth);
 
 	yulAssert(_currentStack.size() == _targetStack.size(), "");
 	for (auto&& [current, target]: ranges::zip_view(_currentStack, _targetStack))

@@ -20,6 +20,8 @@
 	sstore(0, f())
 	let x, y := g()
 }
+// ====
+// bytecodeFormat: legacy
 // ----
 // step: fakeStackLimitEvader
 //

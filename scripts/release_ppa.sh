@@ -68,7 +68,7 @@ packagename=solc
 # This needs to be a still active release
 static_build_distribution=noble
 
-DISTRIBUTIONS="jammy noble oracular"
+DISTRIBUTIONS="jammy noble oracular plucky"
 
 if is_release
 then
@@ -92,7 +92,6 @@ cd "$distribution"
 if [ "$distribution" = STATIC ]
 then
     pparepo=ethereum-static
-    SMTDEPENDENCY=""
     CMAKE_OPTIONS="-DSOLC_LINK_STATIC=On -DCMAKE_EXE_LINKER_FLAGS=-static"
 else
     if is_release
@@ -100,20 +99,6 @@ else
         pparepo=ethereum
     else
         pparepo=ethereum-dev
-    fi
-    if [ "$distribution" = focal ]
-    then
-        SMTDEPENDENCY="libz3-static-dev,
-            libcvc4-dev,
-            "
-    elif [ "$distribution" = disco ]
-    then
-        SMTDEPENDENCY="libz3-static-dev,
-            libcvc4-dev,
-            "
-    else
-        SMTDEPENDENCY="libz3-static-dev,
-            "
     fi
     CMAKE_OPTIONS=""
 fi
@@ -156,7 +141,7 @@ Source: solc
 Section: science
 Priority: extra
 Maintainer: Christian (Buildserver key) <builds@ethereum.org>
-Build-Depends: ${SMTDEPENDENCY}debhelper (>= 9.0.0),
+Build-Depends: debhelper (>= 9.0.0),
                cmake,
                g++ (>= 5.0),
                git,

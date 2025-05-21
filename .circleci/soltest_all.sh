@@ -38,7 +38,7 @@ EVMS_WITH_EOF=(osaka)
 # set EVM_VALUES to the default values.
 IFS=" " read -ra EVM_VALUES <<< "${1:-${DEFAULT_EVM_VALUES[@]}}"
 
-DEFAULT_EVM=cancun
+DEFAULT_EVM=prague
 OPTIMIZE_VALUES=(0 1)
 EOF_VERSIONS=(0 1)
 

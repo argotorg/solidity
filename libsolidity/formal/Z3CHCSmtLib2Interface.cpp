@@ -90,26 +90,23 @@ CHCSolverInterface::QueryResult Z3CHCSmtLib2Interface::query(smtutil::Expression
 #endif
 			setupSmtCallback(true);
 			if (!boost::starts_with(response, "unsat"))
-				return {CheckResult::SATISFIABLE, Expression(true), {}};
-			return {CheckResult::SATISFIABLE, Expression(true), graphFromZ3Answer(response)};
+				return {CheckResult::SATISFIABLE, {}, {}};
+			return {CheckResult::SATISFIABLE, {}, graphFromZ3Answer(response)};
 		}
 
 		CheckResult result;
 		if (boost::starts_with(response, "sat"))
-		{
-			auto maybeInvariants = invariantsFromSolverResponse(response);
-			return {CheckResult::UNSATISFIABLE, maybeInvariants.value_or(Expression(true)), {}};
-		}
-		else if (boost::starts_with(response, "unknown"))
+			return {CheckResult::UNSATISFIABLE, invariantsFromSolverResponse(response), {}};
+		if (boost::starts_with(response, "unknown"))
 			result = CheckResult::UNKNOWN;
 		else
 			result = CheckResult::ERROR;
 
-		return {result, Expression(true), {}};
+		return {result, {}, {}};
 	}
 	catch(smtutil::SMTSolverInteractionError const&)
 	{
-		return {CheckResult::ERROR, Expression(true), {}};
+		return {CheckResult::ERROR, {}, {}};
 	}
 }
 

@@ -560,7 +560,7 @@ public:
 	/// Signature: (address) -> mpos
 	std::string externalCodeFunction();
 
-	/// @return the name of a function that that checks if two external functions pointers are equal or not
+	/// @return the name of a function that checks if two external functions pointers are equal or not
 	std::string externalFunctionPointersEqualFunction();
 
 private:

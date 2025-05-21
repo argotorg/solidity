@@ -1,5 +1,5 @@
 Optimized IR:
-/// @use-src 0:"ir_optimized_transient_storage_value_type/input.sol"
+/// @use-src 0:"input.sol"
 object "C_14" {
     code {
         {
@@ -11,7 +11,7 @@ object "C_14" {
             return(_1, _2)
         }
     }
-    /// @use-src 0:"ir_optimized_transient_storage_value_type/input.sol"
+    /// @use-src 0:"input.sol"
     object "C_14_deployed" {
         code {
             {

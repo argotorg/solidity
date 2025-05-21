@@ -1,0 +1,10 @@
+{
+    "language": "Yul",
+    "sources": {
+        "C.yul": {"content": "{}"}
+    },
+    "settings": {
+        "eofVersion": 1,
+        "evmVersion": "cancun"
+    }
+}

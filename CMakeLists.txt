@@ -21,7 +21,7 @@ include(EthPolicy)
 eth_policy()
 
 # project name and version should be set after cmake_policy CMP0048
-set(PROJECT_VERSION "0.8.29")
+set(PROJECT_VERSION "0.8.31")
 # OSX target needed in order to support std::visit
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.14")
 project(solidity VERSION ${PROJECT_VERSION} LANGUAGES C CXX)
@@ -61,6 +61,11 @@ if (NOT IGNORE_VENDORED_DEPENDENCIES)
   include(fmtlib)
   include(nlohmann-json)
   include(range-v3)
+else ()
+  message(WARNING "-- Ignoring vendored dependencies. Will use installed versions if found. Versions may differ from the ones the compiler was tested with. Make sure to run the test suite and thoroughly test the resulting binaries before using them in production.")
+  find_package(fmt REQUIRED)
+  find_package(nlohmann_json REQUIRED)
+  find_package(range-v3 REQUIRED)
 endif()
 
 find_package(Threads)

@@ -33,7 +33,7 @@ public:
 	ControlFlowGraphBuilder& operator=(ControlFlowGraphBuilder const&) = delete;
 	static std::unique_ptr<CFG> build(AsmAnalysisInfo const& _analysisInfo, Dialect const& _dialect, Block const& _block);
 
-	StackSlot operator()(Expression const& _literal);
+	StackSlot operator()(Expression const& _expression);
 	StackSlot operator()(Literal const& _literal);
 	StackSlot operator()(Identifier const& _identifier);
 	StackSlot operator()(FunctionCall const&);

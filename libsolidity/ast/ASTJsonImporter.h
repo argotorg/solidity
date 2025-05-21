@@ -131,10 +131,11 @@ private:
 	ASTPointer<ElementaryTypeNameExpression> createElementaryTypeNameExpression(Json const& _node);
 	ASTPointer<ASTNode> createLiteral(Json const& _node);
 	ASTPointer<StructuredDocumentation> createDocumentation(Json const& _node);
+	ASTPointer<StorageLayoutSpecifier> createStorageLayoutSpecifier(Json const& _node);
 	///@}
 
 	// =============== general helper functions ===================
-	/// @returns the member of a given JSON object, throws if member does not exist
+	/// @returns the member of a given JSON object or null if member does not exist
 	Json member(Json const& _node, std::string const& _name);
 	/// @returns the appropriate TokenObject used in parsed Strings (pragma directive or operator)
 	Token scanSingleToken(Json const& _node);
