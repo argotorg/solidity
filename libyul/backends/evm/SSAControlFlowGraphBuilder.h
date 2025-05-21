@@ -45,7 +45,7 @@ class SSAControlFlowGraphBuilder
 		AsmAnalysisInfo const& _analysisInfo,
 		ControlFlowSideEffectsCollector const& _sideEffects,
 		Dialect const& _dialect,
-		bool _keepLiteralAssignments
+		bool _literalsAsPushConstants
 	);
 public:
 	SSAControlFlowGraphBuilder(SSAControlFlowGraphBuilder const&) = delete;
@@ -54,7 +54,7 @@ public:
 		AsmAnalysisInfo const& _analysisInfo,
 		Dialect const& _dialect,
 		Block const& _block,
-		bool _keepLiteralAssignments
+		bool _literalsAsPushConstants
 	);
 
 	void operator()(ExpressionStatement const& _statement);
@@ -82,6 +82,7 @@ private:
 	std::vector<SSACFG::ValueId> visitFunctionCall(FunctionCall const& _call);
 	void registerFunctionDefinition(FunctionDefinition const& _functionDefinition);
 	void buildFunctionGraph(Scope::Function const* _function, FunctionDefinition const* _functionDefinition);
+	SSACFG::ValueId moveLiteralToVariable(SSACFG::ValueId _value);
 
 	SSACFG::ValueId zero();
 	SSACFG::ValueId readVariable(Scope::Variable const& _variable, SSACFG::BlockId _block);
@@ -94,7 +95,7 @@ private:
 	AsmAnalysisInfo const& m_info;
 	ControlFlowSideEffectsCollector const& m_sideEffects;
 	Dialect const& m_dialect;
-	bool const m_keepLiteralAssignments;
+	bool const m_literalsAsPushConstants;
 	std::vector<std::tuple<Scope::Function const*, FunctionDefinition const*>> m_functionDefinitions;
 	SSACFG::BlockId m_currentBlock;
 	SSACFG::BasicBlock& currentBlock() { return m_graph.block(m_currentBlock); }

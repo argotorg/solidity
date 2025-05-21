@@ -394,15 +394,15 @@ Json YulStack::cfgJson() const
 	yulAssert(m_parserResult->analysisInfo, "");
 	// FIXME: we should not regenerate the cfg, but for now this is sufficient for testing purposes
 	auto exportCFGFromObject = [&](Object const& _object) -> Json {
-		// with this set to `true`, assignments of the type `let x := 42` are preserved and added as assignment
-		// operations to the control flow graphs
-		bool constexpr keepLiteralAssignments = true;
+		// with this set to `false`, all literals get their own variable assignments (except for immediate literal
+		// arguments of builtins)
+		bool constexpr treatLiteralsAsPushConstants = false;
 		// NOTE: The block Ids are reset for each object
 		std::unique_ptr<ControlFlow> controlFlow = SSAControlFlowGraphBuilder::build(
 			*_object.analysisInfo,
 			languageToDialect(m_language, m_evmVersion, m_eofVersion),
 			_object.code()->root(),
-			keepLiteralAssignments
+			treatLiteralsAsPushConstants
 		);
 		std::unique_ptr<ControlFlowLiveness> liveness = std::make_unique<ControlFlowLiveness>(*controlFlow);
 		YulControlFlowGraphExporter exporter(*controlFlow, liveness.get());

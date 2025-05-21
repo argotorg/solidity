@@ -48,7 +48,9 @@
 // FunctionEntry_g_0 -> Block2_0;
 // Block2_0 [label="\
 // Block 0; (0, max 0)\nLiveIn: \l\
-// LiveOut: \l\nsstore(257, 1)\l\
+// LiveOut: \l\nv1 := 257\l\
+// v3 := 1\l\
+// sstore(v1, v3)\l\
 // "];
 // Block2_0Exit [label="FunctionReturn[]"];
 // Block2_0 -> Block2_0Exit;
@@ -57,8 +59,9 @@
 // FunctionEntry_h_0 -> Block3_0;
 // Block3_0 [label="\
 // Block 0; (0, max 0)\nLiveIn: v0\l\
-// LiveOut: \l\nv2 := f(0, v0)\l\
-// h(v2)\l\
+// LiveOut: \l\nv2 := 0\l\
+// v3 := f(v2, v0)\l\
+// h(v3)\l\
 // "];
 // Block3_0Exit [label="Terminated"];
 // Block3_0 -> Block3_0Exit;

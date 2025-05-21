@@ -31,6 +31,7 @@
 #include <libsolutil/StringUtils.h>
 #include <libsolutil/Visitor.h>
 
+#include <range/v3/algorithm/find_if.hpp>
 #include <range/v3/algorithm/replace.hpp>
 #include <range/v3/range/conversion.hpp>
 #include <range/v3/view/drop_last.hpp>
@@ -52,14 +53,14 @@ SSAControlFlowGraphBuilder::SSAControlFlowGraphBuilder(
 	AsmAnalysisInfo const& _analysisInfo,
 	ControlFlowSideEffectsCollector const& _sideEffects,
 	Dialect const& _dialect,
-	bool _keepLiteralAssignments
+	bool _literalsAsPushConstants
 ):
 	m_controlFlow(_controlFlow),
 	m_graph(_graph),
 	m_info(_analysisInfo),
 	m_sideEffects(_sideEffects),
 	m_dialect(_dialect),
-	m_keepLiteralAssignments(_keepLiteralAssignments)
+	m_literalsAsPushConstants(_literalsAsPushConstants)
 {
 }
 
@@ -67,13 +68,13 @@ std::unique_ptr<ControlFlow> SSAControlFlowGraphBuilder::build(
 	AsmAnalysisInfo const& _analysisInfo,
 	Dialect const& _dialect,
 	Block const& _block,
-	bool _keepLiteralAssignments
+	bool _literalsAsPushConstants
 )
 {
 	ControlFlowSideEffectsCollector sideEffects(_dialect, _block);
 
 	auto controlFlow = std::make_unique<ControlFlow>();
-	SSAControlFlowGraphBuilder builder(*controlFlow, *controlFlow->mainGraph, _analysisInfo, sideEffects, _dialect, _keepLiteralAssignments);
+	SSAControlFlowGraphBuilder builder(*controlFlow, *controlFlow->mainGraph, _analysisInfo, sideEffects, _dialect, _literalsAsPushConstants);
 	builder.m_currentBlock = controlFlow->mainGraph->makeBlock(debugDataOf(_block));
 	builder.sealBlock(builder.m_currentBlock);
 	builder(_block);
@@ -86,7 +87,6 @@ std::unique_ptr<ControlFlow> SSAControlFlowGraphBuilder::build(
 
 SSACFG::ValueId SSAControlFlowGraphBuilder::tryRemoveTrivialPhi(SSACFG::ValueId _phi)
 {
-	// TODO: double-check if this is sane
 	auto const* phiInfo = std::get_if<SSACFG::PhiValue>(&m_graph.valueInfo(_phi));
 	yulAssert(phiInfo);
 	yulAssert(blockInfo(phiInfo->block).sealed);
@@ -190,8 +190,8 @@ void SSAControlFlowGraphBuilder::cleanUnreachable()
 
 		std::set<SSACFG::ValueId> maybeTrivialPhi;
 		for (auto it = block.entries.begin(); it != block.entries.end();)
-			if (reachabilityCheck.visited.count(*it))
-				it++;
+			if (reachabilityCheck.visited.contains(*it))
+				++it;
 			else
 				it = block.entries.erase(it);
 		for (auto phi: block.phis)
@@ -211,10 +211,7 @@ void SSAControlFlowGraphBuilder::cleanUnreachable()
 	}
 }
 
-void SSAControlFlowGraphBuilder::buildFunctionGraph(
-	Scope::Function const* _function,
-	FunctionDefinition const* _functionDefinition
-)
+void SSAControlFlowGraphBuilder::buildFunctionGraph(Scope::Function const* _function, FunctionDefinition const* _functionDefinition)
 {
 	m_controlFlow.functionGraphs.emplace_back(std::make_unique<SSACFG>());
 	auto& cfg = *m_controlFlow.functionGraphs.back();
@@ -240,7 +237,7 @@ void SSAControlFlowGraphBuilder::buildFunctionGraph(
 	cfg.arguments = arguments;
 	cfg.returns = returns;
 
-	SSAControlFlowGraphBuilder builder(m_controlFlow, cfg, m_info, m_sideEffects, m_dialect, m_keepLiteralAssignments);
+	SSAControlFlowGraphBuilder builder(m_controlFlow, cfg, m_info, m_sideEffects, m_dialect, m_literalsAsPushConstants);
 	builder.m_currentBlock = cfg.entry;
 	builder.m_functionDefinitions = m_functionDefinitions;
 	for (auto&& [var, varId]: cfg.arguments)
@@ -253,6 +250,19 @@ void SSAControlFlowGraphBuilder::buildFunctionGraph(
 	// Artificial explicit function exit (`leave`) at the end of the body.
 	builder(Leave{debugDataOf(*_functionDefinition)});
 	builder.cleanUnreachable();
+}
+
+SSACFG::ValueId SSAControlFlowGraphBuilder::moveLiteralToVariable(SSACFG::ValueId const _value)
+{
+	yulAssert(!m_literalsAsPushConstants);
+	yulAssert(m_graph.isLiteralValue(_value));
+	SSACFG::Operation assignment{
+		.outputs = {m_graph.newVariable(m_currentBlock)},
+		.kind = SSACFG::LiteralAssignment{},
+		.inputs = {_value}
+	};
+	currentBlock().operations.emplace_back(assignment);
+	return assignment.outputs.back();
 }
 
 void SSAControlFlowGraphBuilder::operator()(ExpressionStatement const& _expressionStatement)
@@ -541,16 +551,8 @@ void SSAControlFlowGraphBuilder::assign(std::vector<std::reference_wrapper<Scope
 
 	for (auto const& [var, value]: ranges::zip_view(_variables, rhs))
 	{
-		if (m_keepLiteralAssignments && m_graph.isLiteralValue(value))
-		{
-			SSACFG::Operation assignment{
-				.outputs = {m_graph.newVariable(m_currentBlock)},
-				.kind = SSACFG::LiteralAssignment{},
-				.inputs = {value}
-			};
-			currentBlock().operations.emplace_back(assignment);
-			writeVariable(var, m_currentBlock, assignment.outputs.back());
-		}
+		if (!m_literalsAsPushConstants && m_graph.isLiteralValue(value))
+			writeVariable(var, m_currentBlock, moveLiteralToVariable(value));
 		else
 			writeVariable(var, m_currentBlock, value);
 	}
@@ -567,7 +569,15 @@ std::vector<SSACFG::ValueId> SSAControlFlowGraphBuilder::visitFunctionCall(Funct
 			SSACFG::Operation result{{}, SSACFG::BuiltinCall{_call.debugData, builtin, _call}, {}};
 			for (auto&& [idx, arg]: _call.arguments | ranges::views::enumerate | ranges::views::reverse)
 				if (!builtin.literalArgument(idx).has_value())
-					result.inputs.emplace_back(std::visit(*this, arg));
+				{
+					if (!m_literalsAsPushConstants && std::holds_alternative<Literal>(arg))
+					{
+						auto const lit = m_graph.newLiteral(debugDataOf(currentBlock()), std::get<Literal>(arg).value.value());
+						result.inputs.emplace_back(moveLiteralToVariable(lit));
+					}
+					else
+						result.inputs.emplace_back(std::visit(*this, arg));
+				}
 			for (size_t i = 0; i < builtin.numReturns; ++i)
 				result.outputs.emplace_back(m_graph.newVariable(m_currentBlock));
 			canContinue = builtin.controlFlowSideEffects.canContinue;
@@ -582,7 +592,15 @@ std::vector<SSACFG::ValueId> SSAControlFlowGraphBuilder::visitFunctionCall(Funct
 			canContinue = m_sideEffects.functionSideEffects().at(definition).canContinue;
 			SSACFG::Operation result{{}, SSACFG::Call{debugDataOf(_call), function, _call, canContinue}, {}};
 			for (auto const& arg: _call.arguments | ranges::views::reverse)
-				result.inputs.emplace_back(std::visit(*this, arg));
+			{
+				if (!m_literalsAsPushConstants && std::holds_alternative<Literal>(arg))
+				{
+					auto const lit = m_graph.newLiteral(debugDataOf(currentBlock()), std::get<Literal>(arg).value.value());
+					result.inputs.emplace_back(moveLiteralToVariable(lit));
+				}
+				else
+					result.inputs.emplace_back(std::visit(*this, arg));
+			}
 			for (size_t i = 0; i < function.numReturns; ++i)
 				result.outputs.emplace_back(m_graph.newVariable(m_currentBlock));
 			return result;
@@ -747,9 +765,8 @@ void SSAControlFlowGraphBuilder::tableJump(
 
 FunctionDefinition const* SSAControlFlowGraphBuilder::findFunctionDefinition(Scope::Function const* _function) const
 {
-	auto it = std::find_if(
-			m_functionDefinitions.begin(),
-			m_functionDefinitions.end(),
+	auto it = ranges::find_if(
+			m_functionDefinitions,
 			[&_function](auto const& _entry) { return std::get<0>(_entry) == _function; }
 		);
 	if (it != m_functionDefinitions.end())

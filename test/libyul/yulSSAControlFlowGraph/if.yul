@@ -16,7 +16,8 @@
 // Entry0 -> Block0_0;
 // Block0_0 [label="\
 // Block 0; (0, max 2)\nLiveIn: \l\
-// LiveOut: v1\l\nv1 := calldataload(3)\l\
+// LiveOut: v2\l\nv1 := 3\l\
+// v2 := calldataload(v1)\l\
 // "];
 // Block0_0 -> Block0_0Exit;
 // Block0_0Exit [label="{ If 0 | { <0> Zero | <1> NonZero }}" shape=Mrecord];
@@ -24,19 +25,21 @@
 // Block0_0Exit:1 -> Block0_1 [style="solid"];
 // Block0_1 [label="\
 // Block 1; (1, max 2)\nLiveIn: \l\
-// LiveOut: v4\l\nv4 := calldataload(77)\l\
+// LiveOut: v6\l\nv5 := 77\l\
+// v6 := calldataload(v5)\l\
 // "];
 // Block0_1 -> Block0_1Exit [arrowhead=none];
 // Block0_1Exit [label="Jump" shape=oval];
 // Block0_1Exit -> Block0_2 [style="solid"];
 // Block0_2 [label="\
-// Block 2; (2, max 2)\nLiveIn: v5\l\
-// LiveOut: \l\nv5 := φ(\l\
-// 	Block 0 => v1,\l\
-// 	Block 1 => v4\l\
+// Block 2; (2, max 2)\nLiveIn: v7\l\
+// LiveOut: \l\nv7 := φ(\l\
+// 	Block 0 => v2,\l\
+// 	Block 1 => v6\l\
 // )\l\
-// v6 := calldataload(v5)\l\
-// sstore(0, v6)\l\
+// v8 := calldataload(v7)\l\
+// v9 := 0\l\
+// sstore(v9, v8)\l\
 // "];
 // Block0_2Exit [label="MainExit"];
 // Block0_2 -> Block0_2Exit;

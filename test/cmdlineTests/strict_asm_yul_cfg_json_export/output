@@ -7,7 +7,7 @@ Yul Control Flow Graph:
         "blocks": [
             {
                 "exit": {
-                    "cond": "v2",
+                    "cond": "v3",
                     "targets": [
                         "Block2",
                         "Block1"
@@ -28,8 +28,16 @@ Yul Control Flow Graph:
                     },
                     {
                         "in": [
-                            "v0",
                             "0x40"
+                        ],
+                        "out": [
+                            "v2"
+                        ]
+                    },
+                    {
+                        "in": [
+                            "v0",
+                            "v2"
                         ],
                         "op": "mstore",
                         "out": []
@@ -38,7 +46,7 @@ Yul Control Flow Graph:
                         "in": [],
                         "op": "callvalue",
                         "out": [
-                            "v2"
+                            "v3"
                         ]
                     }
                 ],
@@ -63,7 +71,7 @@ Yul Control Flow Graph:
                         "in": [],
                         "op": "datasize",
                         "out": [
-                            "v4"
+                            "v7"
                         ]
                     },
                     {
@@ -73,13 +81,13 @@ Yul Control Flow Graph:
                         "in": [],
                         "op": "dataoffset",
                         "out": [
-                            "v5"
+                            "v8"
                         ]
                     },
                     {
                         "in": [
-                            "v4",
-                            "v5",
+                            "v7",
+                            "v8",
                             "v0"
                         ],
                         "op": "codecopy",
@@ -87,7 +95,7 @@ Yul Control Flow Graph:
                     },
                     {
                         "in": [
-                            "v4",
+                            "v7",
                             "v0"
                         ],
                         "op": "return",
@@ -110,8 +118,24 @@ Yul Control Flow Graph:
                 "instructions": [
                     {
                         "in": [
-                            "0x00",
                             "0x00"
+                        ],
+                        "out": [
+                            "v5"
+                        ]
+                    },
+                    {
+                        "in": [
+                            "0x00"
+                        ],
+                        "out": [
+                            "v6"
+                        ]
+                    },
+                    {
+                        "in": [
+                            "v5",
+                            "v6"
                         ],
                         "op": "revert",
                         "out": []
@@ -130,7 +154,7 @@ Yul Control Flow Graph:
                 "blocks": [
                     {
                         "exit": {
-                            "cond": "v5",
+                            "cond": "v7",
                             "targets": [
                                 "Block2",
                                 "Block1"
@@ -151,36 +175,52 @@ Yul Control Flow Graph:
                             },
                             {
                                 "in": [
-                                    "v0",
                                     "0x40"
+                                ],
+                                "out": [
+                                    "v2"
+                                ]
+                            },
+                            {
+                                "in": [
+                                    "v0",
+                                    "v2"
                                 ],
                                 "op": "mstore",
                                 "out": []
                             },
                             {
+                                "in": [
+                                    "0x04"
+                                ],
+                                "out": [
+                                    "v4"
+                                ]
+                            },
+                            {
                                 "in": [],
                                 "op": "calldatasize",
                                 "out": [
-                                    "v3"
+                                    "v5"
                                 ]
                             },
                             {
                                 "in": [
-                                    "0x04",
-                                    "v3"
+                                    "v4",
+                                    "v5"
                                 ],
                                 "op": "lt",
                                 "out": [
-                                    "v4"
+                                    "v6"
                                 ]
                             },
                             {
                                 "in": [
-                                    "v4"
+                                    "v6"
                                 ],
                                 "op": "iszero",
                                 "out": [
-                                    "v5"
+                                    "v7"
                                 ]
                             }
                         ],
@@ -200,8 +240,24 @@ Yul Control Flow Graph:
                         "instructions": [
                             {
                                 "in": [
-                                    "0x00",
                                     "0x00"
+                                ],
+                                "out": [
+                                    "v38"
+                                ]
+                            },
+                            {
+                                "in": [
+                                    "0x00"
+                                ],
+                                "out": [
+                                    "v39"
+                                ]
+                            },
+                            {
+                                "in": [
+                                    "v38",
+                                    "v39"
                                 ],
                                 "op": "revert",
                                 "out": []
@@ -215,7 +271,7 @@ Yul Control Flow Graph:
                     },
                     {
                         "exit": {
-                            "cond": "v11",
+                            "cond": "v16",
                             "targets": [
                                 "Block4",
                                 "Block3"
@@ -228,29 +284,53 @@ Yul Control Flow Graph:
                                 "in": [
                                     "0x00"
                                 ],
-                                "op": "calldataload",
-                                "out": [
-                                    "v7"
-                                ]
-                            },
-                            {
-                                "in": [
-                                    "v7",
-                                    "0xe0"
-                                ],
-                                "op": "shr",
                                 "out": [
                                     "v9"
                                 ]
                             },
                             {
                                 "in": [
-                                    "v9",
+                                    "v9"
+                                ],
+                                "op": "calldataload",
+                                "out": [
+                                    "v10"
+                                ]
+                            },
+                            {
+                                "in": [
+                                    "0xe0"
+                                ],
+                                "out": [
+                                    "v12"
+                                ]
+                            },
+                            {
+                                "in": [
+                                    "v10",
+                                    "v12"
+                                ],
+                                "op": "shr",
+                                "out": [
+                                    "v13"
+                                ]
+                            },
+                            {
+                                "in": [
                                     "0x26121ff0"
+                                ],
+                                "out": [
+                                    "v15"
+                                ]
+                            },
+                            {
+                                "in": [
+                                    "v13",
+                                    "v15"
                                 ],
                                 "op": "eq",
                                 "out": [
-                                    "v11"
+                                    "v16"
                                 ]
                             }
                         ],
@@ -280,7 +360,7 @@ Yul Control Flow Graph:
                     },
                     {
                         "exit": {
-                            "cond": "v12",
+                            "cond": "v17",
                             "targets": [
                                 "Block6",
                                 "Block5"
@@ -293,7 +373,7 @@ Yul Control Flow Graph:
                                 "in": [],
                                 "op": "callvalue",
                                 "out": [
-                                    "v12"
+                                    "v17"
                                 ]
                             }
                         ],
@@ -309,7 +389,7 @@ Yul Control Flow Graph:
                     },
                     {
                         "exit": {
-                            "cond": "v17",
+                            "cond": "v26",
                             "targets": [
                                 "Block9",
                                 "Block8"
@@ -320,38 +400,54 @@ Yul Control Flow Graph:
                         "instructions": [
                             {
                                 "in": [
+                                    "0x00"
+                                ],
+                                "out": [
+                                    "v20"
+                                ]
+                            },
+                            {
+                                "in": [
                                     "0x03"
+                                ],
+                                "out": [
+                                    "v22"
+                                ]
+                            },
+                            {
+                                "in": [
+                                    "v22"
                                 ],
                                 "op": "not",
                                 "out": [
-                                    "v14"
+                                    "v23"
                                 ]
                             },
                             {
                                 "in": [],
                                 "op": "calldatasize",
                                 "out": [
-                                    "v15"
+                                    "v24"
                                 ]
                             },
                             {
                                 "in": [
-                                    "v14",
-                                    "v15"
+                                    "v23",
+                                    "v24"
                                 ],
                                 "op": "add",
                                 "out": [
-                                    "v16"
+                                    "v25"
                                 ]
                             },
                             {
                                 "in": [
-                                    "0x00",
-                                    "v16"
+                                    "v20",
+                                    "v25"
                                 ],
                                 "op": "slt",
                                 "out": [
-                                    "v17"
+                                    "v26"
                                 ]
                             }
                         ],
@@ -373,8 +469,24 @@ Yul Control Flow Graph:
                         "instructions": [
                             {
                                 "in": [
-                                    "0x00",
                                     "0x00"
+                                ],
+                                "out": [
+                                    "v18"
+                                ]
+                            },
+                            {
+                                "in": [
+                                    "0x00"
+                                ],
+                                "out": [
+                                    "v19"
+                                ]
+                            },
+                            {
+                                "in": [
+                                    "v18",
+                                    "v19"
                                 ],
                                 "op": "revert",
                                 "out": []
@@ -394,7 +506,15 @@ Yul Control Flow Graph:
                         "instructions": [
                             {
                                 "in": [
-                                    "0x2a",
+                                    "0x2a"
+                                ],
+                                "out": [
+                                    "v30"
+                                ]
+                            },
+                            {
+                                "in": [
+                                    "v30",
                                     "v0"
                                 ],
                                 "op": "mstore",
@@ -402,7 +522,15 @@ Yul Control Flow Graph:
                             },
                             {
                                 "in": [
-                                    "0x20",
+                                    "0x20"
+                                ],
+                                "out": [
+                                    "v37"
+                                ]
+                            },
+                            {
+                                "in": [
+                                    "v37",
                                     "v0"
                                 ],
                                 "op": "return",
@@ -425,8 +553,24 @@ Yul Control Flow Graph:
                         "instructions": [
                             {
                                 "in": [
-                                    "0x00",
                                     "0x00"
+                                ],
+                                "out": [
+                                    "v27"
+                                ]
+                            },
+                            {
+                                "in": [
+                                    "0x00"
+                                ],
+                                "out": [
+                                    "v28"
+                                ]
+                            },
+                            {
+                                "in": [
+                                    "v27",
+                                    "v28"
                                 ],
                                 "op": "revert",
                                 "out": []
