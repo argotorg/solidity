@@ -1601,7 +1601,7 @@ Language Features:
 
 Compiler Features:
  * ABI: Additional internal type info in the field ``internalType``.
- * eWasm: Highly experimental eWasm output using ``--ewasm`` in the commandline interface or output selection of ``ewasm.wast`` in standard-json.
+ * eWasm: Highly experimental eWasm output using ``--ewasm`` in the commandline interface or output selection of ``ewasm.waste`` in standard-json.
  * Metadata: Update the swarm hash to the current specification, changes ``bzzr0`` to ``bzzr1`` and urls to use ``bzz-raw://``.
  * Standard JSON Interface: Compile only selected sources and contracts.
  * Standard JSON Interface: Provide secondary error locations (e.g. the source position of other conflicting declarations).
@@ -1831,7 +1831,7 @@ Bugfixes:
  * SMTChecker: Fix crash related to statically-sized arrays.
  * TypeChecker: Fix internal error and disallow index access on contracts and libraries.
  * Yul: Properly detect name clashes with functions before their declaration.
- * Yul: Take built-in functions into account in the compilability checker.
+ * Yul: Take built-in functions into account in the compatibility checker.
  * Yul Optimizer: Properly take reassignments to variables in sub-expressions into account when replacing in the ExpressionSimplifier.
 
 
