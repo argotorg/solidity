@@ -102,7 +102,8 @@ private:
 	ASTPointer<OverrideSpecifier> parseOverrideSpecifier();
 	StateMutability parseStateMutability();
 	FunctionHeaderParserResult parseFunctionHeader(bool _isStateVariable);
-	ASTPointer<ASTNode> parseFunctionDefinition(bool _freeFunction = false, bool _allowBody = true);
+	ASTPointer<ForAllQuantifier> parseQuantifiedFunctionDefinition();
+	ASTPointer<FunctionDefinition> parseFunctionDefinition(bool _freeFunction = false, bool _allowBody = true);
 	ASTPointer<StructDefinition> parseStructDefinition();
 	ASTPointer<EnumDefinition> parseEnumDefinition();
 	ASTPointer<UserDefinedValueTypeDefinition> parseUserDefinedValueTypeDefinition();
@@ -222,10 +223,10 @@ private:
 	/// or an expression;
 	IndexAccessedPath parseIndexAccessedPath();
 	/// @returns a typename parsed in look-ahead fashion from something like "a.b[8][2**70]",
-	/// or an empty pointer if an empty @a _pathAndIncides has been supplied.
+	/// or an empty pointer if an empty @a _pathAndIndices has been supplied.
 	ASTPointer<TypeName> typeNameFromIndexAccessStructure(IndexAccessedPath const& _pathAndIndices);
 	/// @returns an expression parsed in look-ahead fashion from something like "a.b[8][2**70]",
-	/// or an empty pointer if an empty @a _pathAndIncides has been supplied.
+	/// or an empty pointer if an empty @a _pathAndIndices has been supplied.
 	ASTPointer<Expression> expressionFromIndexAccessStructure(IndexAccessedPath const& _pathAndIndices);
 
 	ASTPointer<ASTString> expectIdentifierToken();

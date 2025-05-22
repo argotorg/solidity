@@ -39,6 +39,7 @@ NAMESPACE_STD_FREE_FILES=(
     libyul/backends/evm/*
     libyul/optimiser/*
     solc/*
+    test/*
     test/contracts/*
     test/libevmasm/*
     test/liblangutil/*
@@ -50,6 +51,7 @@ NAMESPACE_STD_FREE_FILES=(
     test/libyul/*
     test/solc/*
     test/tools/yulInterpreter/*
+    test/yulPhaser/*
 )
 
 (

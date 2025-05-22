@@ -29,7 +29,6 @@
 #include <libevmasm/JumpdestRemover.h>
 #include <libevmasm/BlockDeduplicator.h>
 #include <libevmasm/ConstantOptimiser.h>
-#include <libevmasm/GasMeter.h>
 
 #include <liblangutil/CharStream.h>
 #include <liblangutil/Exceptions.h>
@@ -125,8 +124,10 @@ AssemblyItem Assembly::createAssemblyItemFromJSON(Json::Value const& _json, std:
 	solRequire(!name.empty(), AssemblyImportException, "Member 'name' is empty.");
 
 	SourceLocation location;
-	location.start = get<int>(_json["begin"]);
-	location.end = get<int>(_json["end"]);
+	if (_json.isMember("begin"))
+		location.start = get<int>(_json["begin"]);
+	if (_json.isMember("end"))
+		location.end = get<int>(_json["end"]);
 	int srcIndex = getOrDefault<int>(_json["source"], -1);
 	size_t modifierDepth = static_cast<size_t>(getOrDefault<int>(_json["modifierDepth"], 0));
 	std::string value = getOrDefault<std::string>(_json["value"], "");
@@ -180,7 +181,7 @@ AssemblyItem Assembly::createAssemblyItemFromJSON(Json::Value const& _json, std:
 
 	if (c_instructions.count(name))
 	{
-		AssemblyItem item{c_instructions.at(name), location};
+		AssemblyItem item{c_instructions.at(name), langutil::DebugData::create(location)};
 		if (!jumpType.empty())
 		{
 			if (item.instruction() == Instruction::JUMP || item.instruction() == Instruction::JUMPI)
@@ -555,7 +556,7 @@ std::pair<std::shared_ptr<Assembly>, std::vector<std::string>> Assembly::fromJSO
 
 	result->importAssemblyItemsFromJSON(_json[".code"], _level == 0 ? parsedSourceList : _sourceList);
 
-	if (_json[".auxdata"])
+	if (_json.isMember(".auxdata"))
 	{
 		solRequire(_json[".auxdata"].isString(), AssemblyImportException, "Optional member '.auxdata' is not a string.");
 		result->m_auxiliaryData = fromHex(_json[".auxdata"].asString());
@@ -862,8 +863,8 @@ LinkerObject const& Assembly::assemble() const
 			immutableReferencesBySub = linkerObject.immutableReferences;
 		}
 		for (size_t tagPos: sub->m_tagPositionsInBytecode)
-			if (tagPos != std::numeric_limits<size_t>::max() && tagPos > subTagSize)
-				subTagSize = tagPos;
+			if (tagPos != std::numeric_limits<size_t>::max() && numberEncodingSize(tagPos) > subTagSize)
+				subTagSize = numberEncodingSize(tagPos);
 	}
 
 	bool setsImmutables = false;
@@ -891,6 +892,18 @@ LinkerObject const& Assembly::assemble() const
 	std::multimap<size_t, size_t> subRef;
 	std::vector<unsigned> sizeRef; ///< Pointers to code locations where the size of the program is inserted
 	unsigned bytesPerTag = numberEncodingSize(bytesRequiredForCode);
+	// Adjust bytesPerTag for references to sub assemblies.
+	for (AssemblyItem const& i: m_items)
+		if (i.type() == PushTag)
+		{
+			auto [subId, tagId] = i.splitForeignPushTag();
+			if (subId == std::numeric_limits<size_t>::max())
+				continue;
+			assertThrow(subId < m_subs.size(), AssemblyException, "Invalid sub id");
+			auto subTagPosition = m_subs[subId]->m_tagPositionsInBytecode.at(tagId);
+			assertThrow(subTagPosition != std::numeric_limits<size_t>::max(), AssemblyException, "Reference to tag without position.");
+			bytesPerTag = std::max(bytesPerTag, numberEncodingSize(subTagPosition));
+		}
 	uint8_t tagPush = static_cast<uint8_t>(pushInstruction(bytesPerTag));
 
 	unsigned bytesRequiredIncludingData = bytesRequiredForCode + 1 + static_cast<unsigned>(m_auxiliaryData.size());

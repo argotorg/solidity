@@ -202,7 +202,6 @@ def examine_id_coverage(top_dir, source_id_to_file_names, new_ids_only=False):
         "4591", # "There are more than 256 warnings. Ignoring the rest."
                 # Due to 3805, the warning lists look different for different compiler builds.
         "1834", # Unimplemented feature error, as we do not test it anymore via cmdLineTests
-        "6679", # blobbasefee being used in inline assembly for EVMVersion < cancun
         "1180", # SMTChecker, covered by CL tests
         "2339", # SMTChecker, covered by CL tests
         "2961", # SMTChecker, covered by CL tests
@@ -275,18 +274,15 @@ def examine_id_coverage(top_dir, source_id_to_file_names, new_ids_only=False):
         "1801",
         "1807",
         "2015",
-        "2138",
         "2345",
         "2399",
         "2599",
         "2655",
-        "2658",
         "2934",
         "3101",
         "3111",
         "3195",
         "3520",
-        "3570",
         "3573",
         "3654",
         "4316",
@@ -329,8 +325,6 @@ def examine_id_coverage(top_dir, source_id_to_file_names, new_ids_only=False):
         "9282",
         "9603",
         "9658",
-        "9817",
-        "9831",
         "9988",
     }
 
