@@ -73,7 +73,8 @@ TestCase::TestResult SSAControlFlowGraphTest::run(std::ostream& _stream, std::st
 	std::unique_ptr<ControlFlow> controlFlow = SSAControlFlowGraphBuilder::build(
 		*yulStack.parserResult()->analysisInfo,
 		yulStack.dialect(),
-		yulStack.parserResult()->code()->root()
+		yulStack.parserResult()->code()->root(),
+		true
 	);
 	ControlFlowLiveness liveness(*controlFlow);
 	m_obtainedResult = controlFlow->toDot(&liveness);

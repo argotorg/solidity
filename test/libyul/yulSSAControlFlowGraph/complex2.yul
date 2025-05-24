@@ -79,36 +79,38 @@
 // FunctionEntry_f_0 -> Block1_0;
 // Block1_0 [label="\
 // Block 0; (0, max 17)\nLiveIn: v0,v1\l\
-// LiveOut: v0,v1\l\n"];
+// LiveOut: v0,v1,v4\l\nv4 := 42\l\
+// "];
 // Block1_0 -> Block1_0Exit [arrowhead=none];
 // Block1_0Exit [label="Jump" shape=oval];
 // Block1_0Exit -> Block1_1 [style="solid"];
 // Block1_1 [label="\
-// Block 1; (1, max 17)\nLiveIn: v0,v1,v5\l\
-// LiveOut: v0,v1,v5\l\nv5 := φ(\l\
-// 	Block 0 => 42,\l\
-// 	Block 21 => v43\l\
+// Block 1; (1, max 17)\nLiveIn: v0,v1,v6\l\
+// LiveOut: v0,v1,v6\l\nv6 := φ(\l\
+// 	Block 0 => v4,\l\
+// 	Block 21 => v44\l\
 // )\l\
-// v6 := lt(v0, v5)\l\
+// v7 := lt(v0, v6)\l\
 // "];
 // Block1_1 -> Block1_1Exit;
-// Block1_1Exit [label="{ If v6 | { <0> Zero | <1> NonZero }}" shape=Mrecord];
+// Block1_1Exit [label="{ If v7 | { <0> Zero | <1> NonZero }}" shape=Mrecord];
 // Block1_1Exit:0 -> Block1_4 [style="solid"];
 // Block1_1Exit:1 -> Block1_2 [style="solid"];
 // Block1_2 [label="\
-// Block 2; (2, max 17)\nLiveIn: v0,v1,v5\l\
-// LiveOut: v0,v1,v5,v7\l\nv7 := mload(v5)\l\
-// v8 := eq(0, v7)\l\
+// Block 2; (2, max 17)\nLiveIn: v0,v1,v6\l\
+// LiveOut: v0,v1,v6,v8\l\nv8 := mload(v6)\l\
+// v9 := eq(0, v8)\l\
 // "];
 // Block1_2 -> Block1_2Exit;
-// Block1_2Exit [label="{ If v8 | { <0> Zero | <1> NonZero }}" shape=Mrecord];
+// Block1_2Exit [label="{ If v9 | { <0> Zero | <1> NonZero }}" shape=Mrecord];
 // Block1_2Exit:0 -> Block1_7 [style="solid"];
 // Block1_2Exit:1 -> Block1_6 [style="solid"];
 // Block1_4 [label="\
 // Block 4; (4, max 4)\nLiveIn: \l\
-// LiveOut: \l\nsstore(3084, 12)\l\
+// LiveOut: v78\l\nsstore(3084, 12)\l\
+// v78 := 27\l\
 // "];
-// Block1_4Exit [label="FunctionReturn[27]"];
+// Block1_4Exit [label="FunctionReturn[v78]"];
 // Block1_4 -> Block1_4Exit;
 // Block1_6 [label="\
 // Block 6; (3, max 4)\nLiveIn: \l\
@@ -118,11 +120,11 @@
 // Block1_6Exit [label="Jump" shape=oval];
 // Block1_6Exit -> Block1_4 [style="solid"];
 // Block1_7 [label="\
-// Block 7; (5, max 17)\nLiveIn: v0,v1,v5,v7\l\
-// LiveOut: v0,v1,v5,v7\l\nv13 := eq(1, v7)\l\
+// Block 7; (5, max 17)\nLiveIn: v0,v1,v6,v8\l\
+// LiveOut: v0,v1,v6,v8\l\nv14 := eq(1, v8)\l\
 // "];
 // Block1_7 -> Block1_7Exit;
-// Block1_7Exit [label="{ If v13 | { <0> Zero | <1> NonZero }}" shape=Mrecord];
+// Block1_7Exit [label="{ If v14 | { <0> Zero | <1> NonZero }}" shape=Mrecord];
 // Block1_7Exit:0 -> Block1_10 [style="solid"];
 // Block1_7Exit:1 -> Block1_9 [style="solid"];
 // Block1_9 [label="\
@@ -132,11 +134,11 @@
 // Block1_9Exit [label="FunctionReturn[0]"];
 // Block1_9 -> Block1_9Exit;
 // Block1_10 [label="\
-// Block 10; (7, max 17)\nLiveIn: v0,v1,v5,v7\l\
-// LiveOut: v0,v1,v5,v7\l\nv20 := eq(2, v7)\l\
+// Block 10; (7, max 17)\nLiveIn: v0,v1,v6,v8\l\
+// LiveOut: v0,v1,v6,v8\l\nv21 := eq(2, v8)\l\
 // "];
 // Block1_10 -> Block1_10Exit;
-// Block1_10Exit [label="{ If v20 | { <0> Zero | <1> NonZero }}" shape=Mrecord];
+// Block1_10Exit [label="{ If v21 | { <0> Zero | <1> NonZero }}" shape=Mrecord];
 // Block1_10Exit:0 -> Block1_13 [style="solid"];
 // Block1_10Exit:1 -> Block1_12 [style="solid"];
 // Block1_12 [label="\
@@ -147,31 +149,31 @@
 // Block1_12Exit [label="Terminated"];
 // Block1_12 -> Block1_12Exit;
 // Block1_13 [label="\
-// Block 13; (9, max 17)\nLiveIn: v0,v1,v5,v7\l\
-// LiveOut: v0,v1,v5\l\nv25 := eq(3, v7)\l\
+// Block 13; (9, max 17)\nLiveIn: v0,v1,v6,v8\l\
+// LiveOut: v0,v1,v6\l\nv26 := eq(3, v8)\l\
 // "];
 // Block1_13 -> Block1_13Exit;
-// Block1_13Exit [label="{ If v25 | { <0> Zero | <1> NonZero }}" shape=Mrecord];
+// Block1_13Exit [label="{ If v26 | { <0> Zero | <1> NonZero }}" shape=Mrecord];
 // Block1_13Exit:0 -> Block1_16 [style="solid"];
 // Block1_13Exit:1 -> Block1_15 [style="solid"];
 // Block1_15 [label="\
-// Block 15; (10, max 14)\nLiveIn: v0,v1,v5\l\
-// LiveOut: v0,v1,v5\l\nsstore(2056, 8)\l\
+// Block 15; (10, max 14)\nLiveIn: v0,v1,v6\l\
+// LiveOut: v0,v1,v6\l\nsstore(2056, 8)\l\
 // "];
 // Block1_15 -> Block1_15Exit [arrowhead=none];
 // Block1_15Exit [label="Jump" shape=oval];
 // Block1_15Exit -> Block1_5 [style="solid"];
 // Block1_16 [label="\
-// Block 16; (15, max 17)\nLiveIn: v0,v1,v5\l\
-// LiveOut: v0,v1,v5\l\nv29 := mload(v1)\l\
+// Block 16; (15, max 17)\nLiveIn: v0,v1,v6\l\
+// LiveOut: v0,v1,v6\l\nv30 := mload(v1)\l\
 // "];
 // Block1_16 -> Block1_16Exit;
-// Block1_16Exit [label="{ If v29 | { <0> Zero | <1> NonZero }}" shape=Mrecord];
+// Block1_16Exit [label="{ If v30 | { <0> Zero | <1> NonZero }}" shape=Mrecord];
 // Block1_16Exit:0 -> Block1_18 [style="solid"];
 // Block1_16Exit:1 -> Block1_17 [style="solid"];
 // Block1_5 [label="\
-// Block 5; (11, max 14)\nLiveIn: v0,v1,v5\l\
-// LiveOut: v0,v1,v5\l\nsstore(2827, 11)\l\
+// Block 5; (11, max 14)\nLiveIn: v0,v1,v6\l\
+// LiveOut: v0,v1,v6\l\nsstore(2827, 11)\l\
 // "];
 // Block1_5 -> Block1_5Exit [arrowhead=none];
 // Block1_5Exit [label="Jump" shape=oval];
@@ -183,30 +185,30 @@
 // Block1_17Exit [label="Terminated"];
 // Block1_17 -> Block1_17Exit;
 // Block1_18 [label="\
-// Block 18; (17, max 17)\nLiveIn: v0,v1,v5\l\
-// LiveOut: v0,v1,v5\l\nsstore(2570, 10)\l\
+// Block 18; (17, max 17)\nLiveIn: v0,v1,v6\l\
+// LiveOut: v0,v1,v6\l\nsstore(2570, 10)\l\
 // "];
 // Block1_18 -> Block1_18Exit [arrowhead=none];
 // Block1_18Exit [label="Jump" shape=oval];
 // Block1_18Exit -> Block1_5 [style="solid"];
 // Block1_3 [label="\
-// Block 3; (12, max 14)\nLiveIn: v0,v1,v5\l\
-// LiveOut: v0,v1,v43\l\nv43 := add(1, v5)\l\
-// v44 := calldataload(v43)\l\
+// Block 3; (12, max 14)\nLiveIn: v0,v1,v6\l\
+// LiveOut: v0,v1,v44\l\nv44 := add(1, v6)\l\
+// v45 := calldataload(v44)\l\
 // "];
 // Block1_3 -> Block1_3Exit;
-// Block1_3Exit [label="{ If v44 | { <0> Zero | <1> NonZero }}" shape=Mrecord];
+// Block1_3Exit [label="{ If v45 | { <0> Zero | <1> NonZero }}" shape=Mrecord];
 // Block1_3Exit:0 -> Block1_21 [style="solid"];
 // Block1_3Exit:1 -> Block1_20 [style="solid"];
 // Block1_20 [label="\
-// Block 20; (13, max 13)\nLiveIn: v43\l\
-// LiveOut: \l\nsstore(v43, 0)\l\
+// Block 20; (13, max 13)\nLiveIn: v44\l\
+// LiveOut: \l\nsstore(v44, 0)\l\
 // "];
 // Block1_20Exit [label="FunctionReturn[0]"];
 // Block1_20 -> Block1_20Exit;
 // Block1_21 [label="\
-// Block 21; (14, max 14)\nLiveIn: v0,v1,v43\l\
-// LiveOut: v0,v1,v43\l\nsstore(65535, 255)\l\
+// Block 21; (14, max 14)\nLiveIn: v0,v1,v44\l\
+// LiveOut: v0,v1,v44\l\nsstore(65535, 255)\l\
 // "];
 // Block1_21 -> Block1_21Exit [arrowhead=none];
 // Block1_21Exit [label="Jump" shape=oval];

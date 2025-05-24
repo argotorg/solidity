@@ -1221,16 +1221,27 @@
                                             "type": "ConditionalJump"
                                         },
                                         "id": "Block18",
-                                        "instructions": [],
+                                        "instructions": [
+                                            {
+                                                "in": [
+                                                    "0x00"
+                                                ],
+                                                "out": [
+                                                    "v64"
+                                                ]
+                                            }
+                                        ],
                                         "liveness": {
                                             "in": [
                                                 "v46",
                                                 "v59"
                                             ],
                                             "out": [
-                                                "v46"
+                                                "v46",
+                                                "v64"
                                             ]
-                                        }
+                                        },
+                                        "type": "LiteralAssignment"
                                     },
                                     {
                                         "exit": {
@@ -1297,12 +1308,12 @@
                                         "instructions": [
                                             {
                                                 "in": [
-                                                    "0x00",
-                                                    "v93"
+                                                    "v64",
+                                                    "v95"
                                                 ],
                                                 "op": "PhiFunction",
                                                 "out": [
-                                                    "v95"
+                                                    "v97"
                                                 ]
                                             },
                                             {
@@ -1311,13 +1322,13 @@
                                                 ],
                                                 "op": "mload",
                                                 "out": [
-                                                    "v94"
+                                                    "v96"
                                                 ]
                                             },
                                             {
                                                 "in": [
-                                                    "v95",
-                                                    "v94"
+                                                    "v97",
+                                                    "v96"
                                                 ],
                                                 "op": "mstore",
                                                 "out": []
@@ -1325,7 +1336,7 @@
                                             {
                                                 "in": [
                                                     "0x20",
-                                                    "v94"
+                                                    "v96"
                                                 ],
                                                 "op": "return",
                                                 "out": []
@@ -1333,7 +1344,7 @@
                                         ],
                                         "liveness": {
                                             "in": [
-                                                "v95"
+                                                "v97"
                                             ],
                                             "out": []
                                         },
@@ -1341,7 +1352,7 @@
                                     },
                                     {
                                         "exit": {
-                                            "cond": "v67",
+                                            "cond": "v69",
                                             "targets": [
                                                 "Block23",
                                                 "Block22"
@@ -1351,20 +1362,28 @@
                                         "id": "Block20",
                                         "instructions": [
                                             {
+                                                "in": [
+                                                    "0x20"
+                                                ],
+                                                "out": [
+                                                    "v67"
+                                                ]
+                                            },
+                                            {
                                                 "in": [],
                                                 "op": "returndatasize",
                                                 "out": [
-                                                    "v66"
+                                                    "v68"
                                                 ]
                                             },
                                             {
                                                 "in": [
-                                                    "v66",
+                                                    "v68",
                                                     "0x20"
                                                 ],
                                                 "op": "gt",
                                                 "out": [
-                                                    "v67"
+                                                    "v69"
                                                 ]
                                             }
                                         ],
@@ -1373,7 +1392,8 @@
                                                 "v46"
                                             ],
                                             "out": [
-                                                "v46"
+                                                "v46",
+                                                "v67"
                                             ]
                                         },
                                         "type": "BuiltinCall"
@@ -1384,7 +1404,7 @@
                                             "Block22"
                                         ],
                                         "exit": {
-                                            "cond": "v80",
+                                            "cond": "v82",
                                             "targets": [
                                                 "Block25",
                                                 "Block24"
@@ -1395,12 +1415,12 @@
                                         "instructions": [
                                             {
                                                 "in": [
-                                                    "0x20",
-                                                    "v68"
+                                                    "v67",
+                                                    "v70"
                                                 ],
                                                 "op": "PhiFunction",
                                                 "out": [
-                                                    "v71"
+                                                    "v73"
                                                 ]
                                             },
                                             {
@@ -1409,79 +1429,79 @@
                                                 ],
                                                 "op": "not",
                                                 "out": [
-                                                    "v70"
+                                                    "v72"
                                                 ]
                                             },
                                             {
                                                 "in": [
                                                     "0x1f",
-                                                    "v71"
+                                                    "v73"
                                                 ],
                                                 "op": "add",
                                                 "out": [
-                                                    "v72"
+                                                    "v74"
                                                 ]
                                             },
                                             {
                                                 "in": [
-                                                    "v70",
-                                                    "v72"
+                                                    "v72",
+                                                    "v74"
                                                 ],
                                                 "op": "and",
                                                 "out": [
-                                                    "v73"
+                                                    "v75"
                                                 ]
                                             },
                                             {
                                                 "in": [
-                                                    "v73",
+                                                    "v75",
                                                     "v46"
                                                 ],
                                                 "op": "add",
                                                 "out": [
-                                                    "v77"
+                                                    "v79"
                                                 ]
                                             },
                                             {
                                                 "in": [
                                                     "v46",
-                                                    "v77"
+                                                    "v79"
                                                 ],
                                                 "op": "lt",
                                                 "out": [
-                                                    "v78"
+                                                    "v80"
                                                 ]
                                             },
                                             {
                                                 "in": [
                                                     "0xffffffffffffffff",
-                                                    "v77"
+                                                    "v79"
                                                 ],
                                                 "op": "gt",
                                                 "out": [
-                                                    "v79"
+                                                    "v81"
                                                 ]
                                             },
                                             {
                                                 "in": [
-                                                    "v78",
-                                                    "v79"
+                                                    "v80",
+                                                    "v81"
                                                 ],
                                                 "op": "or",
                                                 "out": [
-                                                    "v80"
+                                                    "v82"
                                                 ]
                                             }
                                         ],
                                         "liveness": {
                                             "in": [
                                                 "v46",
-                                                "v71"
+                                                "v73"
                                             ],
                                             "out": [
                                                 "v46",
-                                                "v71",
-                                                "v77"
+                                                "v73",
+                                                "v79"
                                             ]
                                         },
                                         "type": "BuiltinCall"
@@ -1499,7 +1519,7 @@
                                                 "in": [],
                                                 "op": "returndatasize",
                                                 "out": [
-                                                    "v68"
+                                                    "v70"
                                                 ]
                                             }
                                         ],
@@ -1509,14 +1529,14 @@
                                             ],
                                             "out": [
                                                 "v46",
-                                                "v68"
+                                                "v70"
                                             ]
                                         },
                                         "type": "BuiltinCall"
                                     },
                                     {
                                         "exit": {
-                                            "cond": "v90",
+                                            "cond": "v92",
                                             "targets": [
                                                 "Block28",
                                                 "Block27"
@@ -1527,7 +1547,7 @@
                                         "instructions": [
                                             {
                                                 "in": [
-                                                    "v77",
+                                                    "v79",
                                                     "0x40"
                                                 ],
                                                 "op": "mstore",
@@ -1535,40 +1555,40 @@
                                             },
                                             {
                                                 "in": [
-                                                    "v71",
+                                                    "v73",
                                                     "v46"
                                                 ],
                                                 "op": "add",
                                                 "out": [
-                                                    "v88"
+                                                    "v90"
                                                 ]
                                             },
                                             {
                                                 "in": [
                                                     "v46",
-                                                    "v88"
+                                                    "v90"
                                                 ],
                                                 "op": "sub",
                                                 "out": [
-                                                    "v89"
+                                                    "v91"
                                                 ]
                                             },
                                             {
                                                 "in": [
                                                     "0x20",
-                                                    "v89"
+                                                    "v91"
                                                 ],
                                                 "op": "slt",
                                                 "out": [
-                                                    "v90"
+                                                    "v92"
                                                 ]
                                             }
                                         ],
                                         "liveness": {
                                             "in": [
                                                 "v46",
-                                                "v71",
-                                                "v77"
+                                                "v73",
+                                                "v79"
                                             ],
                                             "out": [
                                                 "v46"
@@ -1589,12 +1609,12 @@
                                                 ],
                                                 "op": "shl",
                                                 "out": [
-                                                    "v81"
+                                                    "v83"
                                                 ]
                                             },
                                             {
                                                 "in": [
-                                                    "v81",
+                                                    "v83",
                                                     "0x00"
                                                 ],
                                                 "op": "mstore",
@@ -1638,7 +1658,7 @@
                                                 ],
                                                 "op": "mload",
                                                 "out": [
-                                                    "v93"
+                                                    "v95"
                                                 ]
                                             }
                                         ],
@@ -1647,7 +1667,7 @@
                                                 "v46"
                                             ],
                                             "out": [
-                                                "v93"
+                                                "v95"
                                             ]
                                         },
                                         "type": "BuiltinCall"
