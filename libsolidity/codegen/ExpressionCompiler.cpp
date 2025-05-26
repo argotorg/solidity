@@ -2851,8 +2851,7 @@ void ExpressionCompiler::appendExternalFunctionCall(
 		// code, the call will return empty data and the ABI decoder will revert.
 		if (
 			encodedHeadSize == 0 ||
-			!haveReturndatacopy ||
-			m_context.revertStrings() >= RevertStrings::Debug
+			!haveReturndatacopy
 		)
 		{
 			m_context << Instruction::DUP1 << Instruction::EXTCODESIZE << Instruction::ISZERO;

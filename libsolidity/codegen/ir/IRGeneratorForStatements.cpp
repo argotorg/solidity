@@ -2724,8 +2724,7 @@ void IRGeneratorForStatements::appendExternalFunctionCall(
 		!eof &&
 		(
 			encodedHeadSize == 0 ||
-			!m_context.evmVersion().supportsReturndata() ||
-			m_context.revertStrings() >= RevertStrings::Debug
+			!m_context.evmVersion().supportsReturndata()
 		);
 	templ("checkExtcodesize", checkExtcodesize);
 
