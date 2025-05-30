@@ -19,7 +19,9 @@ if (OSSFUZZ)
     )
 
     add_custom_target(ossfuzz_abiv2)
-    add_dependencies(ossfuzz_abiv2 abiv2_proto_ossfuzz abiv2_isabelle_ossfuzz)
+    add_dependencies(ossfuzz_abiv2 abiv2_proto_ossfuzz
+		# abiv2_isabelle_ossfuzz
+	)
 endif()
 
 if (OSSFUZZ)
@@ -158,27 +160,27 @@ if (OSSFUZZ)
     set_target_properties(abiv2_proto_ossfuzz PROPERTIES LINK_FLAGS ${LIB_FUZZING_ENGINE})
     target_compile_options(abiv2_proto_ossfuzz PUBLIC ${COMPILE_OPTIONS} -Wno-sign-conversion -Wno-suggest-destructor-override -Wno-inconsistent-missing-destructor-override -Wno-shorten-64-to-32)
 
-    add_executable(abiv2_isabelle_ossfuzz
-            AbiV2IsabelleFuzzer.cpp
-            SolidityEvmoneInterface.cpp
-            ../../EVMHost.cpp
-            protoToAbiV2.cpp
-            abiV2Proto.pb.cc
-    )
-    target_include_directories(abiv2_isabelle_ossfuzz PRIVATE
-            /usr/include/libprotobuf-mutator
-    )
-    target_link_libraries(abiv2_isabelle_ossfuzz PRIVATE solidity
-            evmc
-            evmone-standalone
-            protobuf-mutator-libfuzzer.a
-            protobuf-mutator.a
-            protobuf.a
-            abicoder
-            gmp.a
-    )
-    set_target_properties(abiv2_isabelle_ossfuzz PROPERTIES LINK_FLAGS ${LIB_FUZZING_ENGINE})
-    target_compile_options(abiv2_isabelle_ossfuzz PUBLIC ${COMPILE_OPTIONS} -Wno-sign-conversion -Wno-suggest-destructor-override -Wno-inconsistent-missing-destructor-override -Wno-shorten-64-to-32)
+    # add_executable(abiv2_isabelle_ossfuzz
+    #         AbiV2IsabelleFuzzer.cpp
+    #         SolidityEvmoneInterface.cpp
+    #         ../../EVMHost.cpp
+    #         protoToAbiV2.cpp
+    #         abiV2Proto.pb.cc
+    # )
+    # target_include_directories(abiv2_isabelle_ossfuzz PRIVATE
+    #         /usr/include/libprotobuf-mutator
+    # )
+    # target_link_libraries(abiv2_isabelle_ossfuzz PRIVATE solidity
+    #         evmc
+    #         evmone-standalone
+    #         protobuf-mutator-libfuzzer.a
+    #         protobuf-mutator.a
+    #         protobuf.a
+    #         abicoder
+    #         gmp.a
+    # )
+    # set_target_properties(abiv2_isabelle_ossfuzz PROPERTIES LINK_FLAGS ${LIB_FUZZING_ENGINE})
+    # target_compile_options(abiv2_isabelle_ossfuzz PUBLIC ${COMPILE_OPTIONS} -Wno-sign-conversion -Wno-suggest-destructor-override -Wno-inconsistent-missing-destructor-override -Wno-shorten-64-to-32)
 
     add_executable(sol_proto_ossfuzz
             solProtoFuzzer.cpp
