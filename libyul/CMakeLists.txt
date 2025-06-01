@@ -145,6 +145,8 @@ add_library(yul
 	optimiser/InlinableExpressionFunctionFinder.h
 	optimiser/KnowledgeBase.cpp
 	optimiser/KnowledgeBase.h
+	optimiser/LabelIDDispenser.cpp
+	optimiser/LabelIDDispenser.h
 	optimiser/LoadResolver.cpp
 	optimiser/LoadResolver.h
 	optimiser/LoopInvariantCodeMotion.cpp

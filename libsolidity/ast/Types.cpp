@@ -1648,7 +1648,7 @@ BoolResult ArrayType::isImplicitlyConvertibleTo(Type const& _convertTo) const
 	}
 	else
 	{
-		// Conversion to storage pointer or to memory, we de not copy element-for-element here, so
+		// Conversion to storage pointer or to memory, we do not copy element-for-element here, so
 		// require that the base type is the same, not only convertible.
 		// This disallows assignment of nested dynamic arrays from storage to memory for now.
 		if (
