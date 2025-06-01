@@ -178,7 +178,7 @@ for binary_name in $platform_binaries; do
                 "${yul_optimizer_flags[@]}"
         fi
 
-        rm -r "${work_dir}/solidity/"
+        rm -r "${eth_dir}/solidity/"
     else
         echo "Binary ${binary_name} (version ${solidity_version}) does not match any modified version. Skipping."
     fi
