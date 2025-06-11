@@ -27,7 +27,7 @@ namespace solidity::evmasm::ethdebug
 {
 
 // returns ethdebug/format/program.
-Json program(std::string_view _name, unsigned _sourceId, Assembly const* _assembly, LinkerObject const& _linkerObject);
+Json program(std::string_view _name, unsigned _sourceID, Assembly const& _assembly, LinkerObject const& _linkerObject);
 
 // returns ethdebug/format/info/resources
 Json resources(std::vector<std::string> const& _sources, std::string const& _version);

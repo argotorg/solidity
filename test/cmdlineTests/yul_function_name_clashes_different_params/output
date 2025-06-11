@@ -1,5 +1,5 @@
 
-======= yul_function_name_clashes_different_params/input.yul (EVM) =======
+======= input.yul (EVM) =======
 
 Pretty printed source:
 object "object" {
@@ -23,37 +23,37 @@ Binary representation:
 60056011565b600d60706016565b9055005b5f3590565b359056
 
 Text representation:
-    /* "yul_function_name_clashes_different_params/input.yul":92:95   */
+    /* "input.yul":92:95   */
   tag_3
   tag_1
   jump	// in
 tag_3:
-    /* "yul_function_name_clashes_different_params/input.yul":113:122   */
+    /* "input.yul":113:122   */
   tag_4
-    /* "yul_function_name_clashes_different_params/input.yul":117:121   */
+    /* "input.yul":117:121   */
   0x70
-    /* "yul_function_name_clashes_different_params/input.yul":113:122   */
+    /* "input.yul":113:122   */
   tag_2
   jump	// in
 tag_4:
-    /* "yul_function_name_clashes_different_params/input.yul":135:147   */
+    /* "input.yul":135:147   */
   swap1
   sstore
-    /* "yul_function_name_clashes_different_params/input.yul":27:284   */
+    /* "input.yul":27:284   */
   stop
-    /* "yul_function_name_clashes_different_params/input.yul":166:216   */
+    /* "input.yul":166:216   */
 tag_1:
-    /* "yul_function_name_clashes_different_params/input.yul":212:213   */
+    /* "input.yul":212:213   */
   0x00
-    /* "yul_function_name_clashes_different_params/input.yul":199:214   */
+    /* "input.yul":199:214   */
   calldataload
-    /* "yul_function_name_clashes_different_params/input.yul":166:216   */
+    /* "input.yul":166:216   */
   swap1
   jump	// out
-    /* "yul_function_name_clashes_different_params/input.yul":225:278   */
+    /* "input.yul":225:278   */
 tag_2:
-    /* "yul_function_name_clashes_different_params/input.yul":261:276   */
+    /* "input.yul":261:276   */
   calldataload
-    /* "yul_function_name_clashes_different_params/input.yul":225:278   */
+    /* "input.yul":225:278   */
   swap1
   jump	// out

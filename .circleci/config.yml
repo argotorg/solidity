@@ -34,7 +34,7 @@ parameters:
     default: "solbuildpackpusher/solidity-buildpack-deps@sha256:98f963ed799a0d206ef8e7b5475f847e0dea53b7fdea9618bbc6106a62730bd2"
   evm-version:
     type: string
-    default: cancun
+    default: prague
 
 orbs:
   win: circleci/windows@2.2.0
@@ -831,6 +831,7 @@ defaults:
       project: uniswap
       binary_type: native
       image: cimg/node:18.16
+      resource_class: medium # Tests run out of memory on a smaller machine
 
   - job_native_test_ext_prb_math: &job_native_test_ext_prb_math
       <<: *requires_b_ubu_static

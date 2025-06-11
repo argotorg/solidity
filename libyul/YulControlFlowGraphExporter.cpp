@@ -177,12 +177,20 @@ Json YulControlFlowGraphExporter::toJson(SSACFG const& _cfg, SSACFG::BlockId _bl
 Json YulControlFlowGraphExporter::toJson(Json& _ret, SSACFG const& _cfg, SSACFG::Operation const& _operation)
 {
 	Json opJson = Json::object();
-	std::visit(util::GenericVisitor{
-		[&](SSACFG::Call const& _call) {
+	std::visit(GenericVisitor{
+		[&](SSACFG::Call const& _call)
+		{
 			_ret["type"] = "FunctionCall";
 			opJson["op"] = _call.function.get().name.str();
 		},
-		[&](SSACFG::BuiltinCall const& _call) {
+		[&](SSACFG::LiteralAssignment const&)
+		{
+			yulAssert(_operation.inputs.size() == 1);
+			yulAssert(_cfg.isLiteralValue(_operation.inputs.back()));
+			opJson["op"] = "LiteralAssignment";
+		},
+		[&](SSACFG::BuiltinCall const& _call)
+		{
 			_ret["type"] = "BuiltinCall";
 			Json builtinArgsJson = Json::array();
 			auto const& builtin = _call.builtin.get();
@@ -202,7 +210,7 @@ Json YulControlFlowGraphExporter::toJson(Json& _ret, SSACFG const& _cfg, SSACFG:
 			}
 
 			if (!builtinArgsJson.empty())
-				opJson["builtinArgs"] = builtinArgsJson;
+				opJson["literalArgs"] = builtinArgsJson;
 
 			opJson["op"] = _call.builtin.get().name;
 		},

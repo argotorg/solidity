@@ -1,5 +1,5 @@
 
-======= yul_optimize_runs/input.yul (EVM) =======
+======= input.yul (EVM) =======
 
 Pretty printed source:
 object "RunsTest1" {
@@ -24,28 +24,28 @@ Binary representation:
 602480600a5f395ff3fe7fabc12345000000000000000000000000000000000000000000000000000000005f5500
 
 Text representation:
-    /* "yul_optimize_runs/input.yul":64:92   */
+    /* "input.yul":64:92   */
   dataSize(sub_0)
-    /* "yul_optimize_runs/input.yul":117:147   */
+    /* "input.yul":117:147   */
   dup1
   dataOffset(sub_0)
-    /* "yul_optimize_runs/input.yul":114:115   */
+    /* "input.yul":114:115   */
   0x00
-    /* "yul_optimize_runs/input.yul":105:152   */
+    /* "input.yul":105:152   */
   codecopy
-    /* "yul_optimize_runs/input.yul":172:173   */
+    /* "input.yul":172:173   */
   0x00
-    /* "yul_optimize_runs/input.yul":165:178   */
+    /* "input.yul":165:178   */
   return
 stop
 
 sub_0: assembly {
-        /* "yul_optimize_runs/input.yul":282:348   */
+        /* "input.yul":282:348   */
       0xabc1234500000000000000000000000000000000000000000000000000000000
-        /* "yul_optimize_runs/input.yul":279:280   */
+        /* "input.yul":279:280   */
       0x00
-        /* "yul_optimize_runs/input.yul":272:349   */
+        /* "input.yul":272:349   */
       sstore
-        /* "yul_optimize_runs/input.yul":240:373   */
+        /* "input.yul":240:373   */
       stop
 }

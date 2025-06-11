@@ -168,17 +168,28 @@ private:
 					[&](SSACFG::BuiltinCall const& _call) {
 						return _call.builtin.get().name;
 					},
+					[&](SSACFG::LiteralAssignment const&)
+					{
+						yulAssert(operation.inputs.size() == 1);
+						return varToString(m_cfg, operation.inputs.back());
+					}
 				}, operation.kind);
 				if (!operation.outputs.empty())
 					m_result << fmt::format(
 						"{} := ",
 						fmt::join(operation.outputs | ranges::views::transform(valueToString), ", ")
 					);
-				m_result << fmt::format(
-					"{}({})\\l\\\n",
-					escape(label),
-					fmt::join(operation.inputs | ranges::views::transform(valueToString), ", ")
-				);
+				if (std::holds_alternative<SSACFG::LiteralAssignment>(operation.kind))
+					m_result << fmt::format(
+						"{}\\l\\\n",
+						escape(label)
+					);
+				else
+					m_result << fmt::format(
+						"{}({})\\l\\\n",
+						escape(label),
+						fmt::join(operation.inputs | ranges::views::transform(valueToString), ", ")
+					);
 			}
 			m_result << "\"];\n";
 			std::visit(GenericVisitor{

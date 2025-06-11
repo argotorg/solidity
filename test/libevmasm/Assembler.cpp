@@ -434,7 +434,7 @@ BOOST_AUTO_TEST_CASE(ethdebug_program_last_instruction_with_immediate_arguments)
 		assembly.append(AssemblyItem{0x11223344});
 		LinkerObject output = assembly.assemble();
 
-		Json const program = ethdebug::program("", 0, &assembly, output);
+		Json const program = ethdebug::program("", 0, assembly, output);
 		BOOST_REQUIRE(program["instructions"].size() == 1);
 		BOOST_REQUIRE(program["instructions"][0]["operation"]["mnemonic"] == "PUSH4");
 		BOOST_REQUIRE(program["instructions"][0]["operation"]["arguments"][0] == "0x11223344");
@@ -445,7 +445,7 @@ BOOST_AUTO_TEST_CASE(ethdebug_program_last_instruction_with_immediate_arguments)
 		assembly.append(AssemblyItem{0x1122334455});
 		LinkerObject output = assembly.assemble();
 
-		Json const program = ethdebug::program("", 0, &assembly, output);
+		Json const program = ethdebug::program("", 0, assembly, output);
 		BOOST_REQUIRE(program["instructions"].size() == 2);
 		BOOST_REQUIRE(program["instructions"][0]["operation"]["mnemonic"] == "PUSH0");
 		BOOST_REQUIRE(!program["instructions"][0]["operation"].contains("arguments"));

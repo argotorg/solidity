@@ -1,0 +1,27 @@
+{
+  "language": "Solidity",
+  "sources": {
+    "a.sol": {
+      "content": "// SPDX-License-Identifier: GPL-2.0\npragma solidity >=0.0;\n\nabstract contract C {\n    function f() public virtual returns (bytes32);\n}\n"
+    },
+    "b.sol": {
+      "content": "// SPDX-License-Identifier: GPL-2.0\npragma solidity >=0.0;\n\ninterface C {\n    function f() external;\n}\n"
+    }
+  },
+  "settings": {
+    "viaIR": true,
+    "debug": {
+      "debugInfo": [
+        "ethdebug"
+      ]
+    },
+    "outputSelection": {
+      "*": {
+        "*": [
+          "evm.bytecode.ethdebug",
+          "evm.deployedBytecode.ethdebug"
+        ]
+      }
+    }
+  }
+}

@@ -1,1 +1,1 @@
- --experimental-eof-version 1 --evm-version osaka --ethdebug --via-ir
+ --experimental-eof-version 1 --evm-version osaka --ethdebug --via-ir --pretty-json --json-indent 4

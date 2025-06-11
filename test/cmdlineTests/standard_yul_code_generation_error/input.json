@@ -1,6 +1,6 @@
 {
 	"language": "Yul",
 	"sources": {
-		"C": {"urls": ["standard_yul_code_generation_error/in.yul"]}
+		"C": {"urls": ["in.yul"]}
 	}
 }

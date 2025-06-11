@@ -1,0 +1,54 @@
+{
+    "contracts": {
+        "a.sol": {
+            "C": {
+                "evm": {
+                    "bytecode": {
+                        "ethdebug": null
+                    },
+                    "deployedBytecode": {
+                        "ethdebug": null
+                    }
+                }
+            }
+        },
+        "b.sol": {
+            "C": {
+                "evm": {
+                    "bytecode": {
+                        "ethdebug": null
+                    },
+                    "deployedBytecode": {
+                        "ethdebug": null
+                    }
+                }
+            }
+        }
+    },
+    "ethdebug": {
+        "compilation": {
+            "compiler": {
+                "name": "solc",
+                "version": "<VERSION REMOVED>"
+            },
+            "sources": [
+                {
+                    "id": 0,
+                    "path": "a.sol"
+                },
+                {
+                    "id": 1,
+                    "path": "b.sol"
+                }
+            ]
+        }
+    },
+    "sources": {
+        "a.sol": {
+            "id": 0
+        },
+        "b.sol": {
+            "id": 1
+        }
+    }
+}

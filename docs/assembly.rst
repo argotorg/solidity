@@ -216,6 +216,7 @@ shadow any declaration visible in the scope of the inline assembly block
 Since Solidity 0.7.0, variables and functions declared inside the
 inline assembly block may not contain ``.``, but using ``.`` is
 valid to access Solidity variables from outside the inline assembly block.
+However, it is still valid to use dots if you use Solidity in Yul-only mode.
 
 Things to Avoid
 ---------------

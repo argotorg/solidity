@@ -68,10 +68,7 @@ public:
 
 	struct IdCompare
 	{
-		bool operator()(ASTNode const* lhs, ASTNode const* rhs) const
-		{
-			return lhs->id() < rhs->id();
-		}
+		bool operator()(ASTNode const* lhs, ASTNode const* rhs) const;
 	};
 
 	/// Variables.

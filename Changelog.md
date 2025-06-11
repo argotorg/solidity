@@ -1,13 +1,21 @@
-### 0.8.30 (unreleased)
+### 0.8.31 (unreleased)
 
 Language Features:
 
+Compiler Features:
+* ethdebug: Experimental support for instructions and source locations under EOF.
+
+Bugfixes:
+
+### 0.8.30 (2025-05-07)
 
 Compiler Features:
+* EVM: Set default EVM Version to `prague`.
 * NatSpec: Capture Natspec documentation of `enum` values in the AST.
 
 
 Bugfixes:
+* SMTChecker: Do not consider loop conditions as constant-condition verification target as this could cause incorrect reports and internal compiler errors.
 * SMTChecker: Fix incorrect analysis when only a subset of contracts is selected with `--model-checker-contracts`.
 * SMTChecker: Fix internal compiler error when string literal is used to initialize user-defined type based on fixed bytes.
 

@@ -19,7 +19,6 @@
 #pragma once
 
 #include <libsolidity/formal/SymbolicVariables.h>
-#include <libsolidity/ast/AST.h>
 #include <libsolidity/ast/Types.h>
 
 namespace solidity::frontend::smt

@@ -44,7 +44,8 @@ class SSAControlFlowGraphBuilder
 		SSACFG& _graph,
 		AsmAnalysisInfo const& _analysisInfo,
 		ControlFlowSideEffectsCollector const& _sideEffects,
-		Dialect const& _dialect
+		Dialect const& _dialect,
+		bool _keepLiteralAssignments
 	);
 public:
 	SSAControlFlowGraphBuilder(SSAControlFlowGraphBuilder const&) = delete;
@@ -52,7 +53,8 @@ public:
 	static std::unique_ptr<ControlFlow> build(
 		AsmAnalysisInfo const& _analysisInfo,
 		Dialect const& _dialect,
-		Block const& _block
+		Block const& _block,
+		bool _keepLiteralAssignments
 	);
 
 	void operator()(ExpressionStatement const& _statement);
@@ -92,6 +94,7 @@ private:
 	AsmAnalysisInfo const& m_info;
 	ControlFlowSideEffectsCollector const& m_sideEffects;
 	Dialect const& m_dialect;
+	bool const m_keepLiteralAssignments;
 	std::vector<std::tuple<Scope::Function const*, FunctionDefinition const*>> m_functionDefinitions;
 	SSACFG::BlockId m_currentBlock;
 	SSACFG::BasicBlock& currentBlock() { return m_graph.block(m_currentBlock); }

@@ -1,0 +1,14 @@
+{
+    ".code": [
+        {"name": "tag", "value": "1"},
+        {"name": "JUMPDEST"}
+    ]
+}
+// ====
+// optimizationPreset: none
+// optimizer.jumpdestRemover: true
+// ----
+// Assembly:
+// Bytecode:
+// Opcodes:
+// SourceMappings:

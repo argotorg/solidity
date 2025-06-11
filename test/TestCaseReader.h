@@ -59,6 +59,7 @@ public:
 	std::size_t lineNumber() const { return m_lineNumber; }
 	std::map<std::string, std::string> const& settings() const { return m_settings; }
 	std::ifstream& stream() { return m_fileStream; }
+	boost::filesystem::path const& fileName() const { return m_fileName; }
 
 	std::string simpleExpectations();
 

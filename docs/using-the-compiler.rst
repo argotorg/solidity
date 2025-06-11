@@ -176,12 +176,12 @@ at each version. Backward compatibility is not guaranteed between each version.
    - Introduces ``prevrandao()`` and ``block.prevrandao``, and changes the semantics of the now deprecated ``block.difficulty``, disallowing ``difficulty()`` in inline assembly (see `EIP-4399 <https://eips.ethereum.org/EIPS/eip-4399>`_).
 - ``shanghai``
    - Smaller code size and gas savings due to the introduction of ``push0`` (see `EIP-3855 <https://eips.ethereum.org/EIPS/eip-3855>`_).
-- ``cancun`` (**default**)
+- ``cancun``
    - The block's blob base fee (`EIP-7516 <https://eips.ethereum.org/EIPS/eip-7516>`_ and `EIP-4844 <https://eips.ethereum.org/EIPS/eip-4844>`_) can be accessed via the global ``block.blobbasefee`` or ``blobbasefee()`` in inline assembly.
    - Introduces ``blobhash()`` in inline assembly and a corresponding global function to retrieve versioned hashes of blobs associated with the transaction (see `EIP-4844 <https://eips.ethereum.org/EIPS/eip-4844>`_).
    - Opcode ``mcopy`` is available in assembly (see `EIP-5656 <https://eips.ethereum.org/EIPS/eip-5656>`_).
    - Opcodes ``tstore`` and ``tload`` are available in assembly (see `EIP-1153 <https://eips.ethereum.org/EIPS/eip-1153>`_).
-- ``prague`` (**experimental**)
+- ``prague`` (**default**)
 - ``osaka`` (**experimental**)
    - Experimental compilation to EOF is available starting from this version. (`EIP-7692 <https://eips.ethereum.org/EIPS/eip-7692>`_)
 
@@ -356,8 +356,8 @@ Input Description
         // Version of the EVM to compile for (optional).
         // Affects type checking and code generation. Can be homestead,
         // tangerineWhistle, spuriousDragon, byzantium, constantinople,
-        // petersburg, istanbul, berlin, london, paris, shanghai, cancun (default), prague (experimental) or osaka (experimental).
-        "evmVersion": "cancun",
+        // petersburg, istanbul, berlin, london, paris, shanghai, cancun, prague (default) or osaka (experimental).
+        "evmVersion": "prague",
         // EVM Object Format version to compile for (optional, experimental).
         // Currently the only valid value is 1. If not specified, legacy non-EOF bytecode will be generated.
         "eofVersion": null,

@@ -1,5 +1,5 @@
 
-======= evmasm_transient_storage_inline_assembly/input.sol:C =======
+======= input.sol:C =======
 EVM assembly:
   mstore(0x40, 0x80)
   callvalue

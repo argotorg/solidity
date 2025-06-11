@@ -1,0 +1,13 @@
+{
+    ".code": [
+        {"name": "BLOBBASEFEE"}
+    ]
+}
+// ====
+// EVMVersion: >=cancun
+// ----
+// Assembly:
+//   blobbasefee
+// Bytecode: 4a
+// Opcodes: BLOBBASEFEE
+// SourceMappings: :::-:0

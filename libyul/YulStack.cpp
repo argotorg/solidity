@@ -275,14 +275,14 @@ YulStack::assembleWithDeployed(std::optional<std::string_view> _deployName)
 			);
 		}
 		if (debugInfoSelection().ethdebug)
-			creationObject.ethdebug = evmasm::ethdebug::program(creationObject.assembly->name(), 0, creationObject.assembly.get(), *creationObject.bytecode.get());
+			creationObject.ethdebug = evmasm::ethdebug::program(creationObject.assembly->name(), 0, *creationObject.assembly, *creationObject.bytecode);
 
 		if (deployedAssembly)
 		{
 			deployedObject.bytecode = std::make_shared<evmasm::LinkerObject>(deployedAssembly->assemble());
 			deployedObject.assembly = deployedAssembly;
 			if (debugInfoSelection().ethdebug)
-				deployedObject.ethdebug = evmasm::ethdebug::program(deployedObject.assembly->name(), 0, deployedObject.assembly.get(), *deployedObject.bytecode.get());
+				deployedObject.ethdebug = evmasm::ethdebug::program(deployedObject.assembly->name(), 0, *deployedObject.assembly, *deployedObject.bytecode);
 			solAssert(deployedAssembly->codeSections().size() == 1);
 			deployedObject.sourceMappings = std::make_unique<std::string>(
 				evmasm::AssemblyItem::computeSourceMapping(
@@ -394,11 +394,15 @@ Json YulStack::cfgJson() const
 	yulAssert(m_parserResult->analysisInfo, "");
 	// FIXME: we should not regenerate the cfg, but for now this is sufficient for testing purposes
 	auto exportCFGFromObject = [&](Object const& _object) -> Json {
+		// with this set to `true`, assignments of the type `let x := 42` are preserved and added as assignment
+		// operations to the control flow graphs
+		bool constexpr keepLiteralAssignments = true;
 		// NOTE: The block Ids are reset for each object
 		std::unique_ptr<ControlFlow> controlFlow = SSAControlFlowGraphBuilder::build(
-			*_object.analysisInfo.get(),
+			*_object.analysisInfo,
 			languageToDialect(m_language, m_evmVersion, m_eofVersion),
-			_object.code()->root()
+			_object.code()->root(),
+			keepLiteralAssignments
 		);
 		std::unique_ptr<ControlFlowLiveness> liveness = std::make_unique<ControlFlowLiveness>(*controlFlow);
 		YulControlFlowGraphExporter exporter(*controlFlow, liveness.get());

@@ -20,6 +20,8 @@
 
 #include <libsolidity/formal/SymbolicTypes.h>
 
+#include <libsolidity/ast/AST.h>
+
 #include <libsolutil/Algorithms.h>
 #include <libsolutil/CommonData.h>
 

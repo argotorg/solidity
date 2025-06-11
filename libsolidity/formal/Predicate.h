@@ -19,7 +19,8 @@
 #pragma once
 
 
-#include <libsolidity/ast/AST.h>
+#include <libsolidity/ast/ASTForward.h>
+#include <libsolidity/ast/Types.h>
 
 #include <libsmtutil/SolverInterface.h>
 #include <libsmtutil/Sorts.h>

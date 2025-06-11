@@ -20,6 +20,7 @@
 
 #include <libsolidity/formal/EncodingContext.h>
 
+#include <libsolidity/ast/AST.h>
 #include <libsolidity/ast/TypeProvider.h>
 #include <libsolidity/ast/Types.h>
 #include <libsolutil/CommonData.h>
