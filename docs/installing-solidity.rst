@@ -327,7 +327,7 @@ The following are dependencies for all builds of Solidity:
 | Windows, 3.13+ otherwise)         |                                                       |
 +-----------------------------------+-------------------------------------------------------+
 | `Boost`_ (version 1.77+ on        | C++ libraries.                                        |
-| Windows, 1.67+ otherwise)         |                                                       |
+| Windows, 1.76+ otherwise)         |                                                       |
 +-----------------------------------+-------------------------------------------------------+
 | `Git`_                            | Command-line tool for retrieving source code.         |
 +-----------------------------------+-------------------------------------------------------+
@@ -372,7 +372,7 @@ Minimum Compiler Versions
 
 The following C++ compilers and their minimum versions can build the Solidity codebase:
 
-- `GCC <https://gcc.gnu.org>`_, version 11+
+- `GCC <https://gcc.gnu.org>`_, version 14+
 - `Clang <https://clang.llvm.org/>`_, version 14+
 - `MSVC <https://visualstudio.microsoft.com/vs/>`_, version 2019+
 
