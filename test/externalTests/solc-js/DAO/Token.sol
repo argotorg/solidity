@@ -23,7 +23,7 @@ corresponding approval process. Tokens need to be created by a derived
 contract (e.g. TokenCreation.sol).
 
 Thank you ConsenSys, this contract originated from:
-https://github.com/ConsenSys/Tokens/blob/master/Token_Contracts/contracts/Standard_Token.sol
+https://github.com/ConsenSys/Token-Factory/blob/master/contracts/StandardToken.sol
 Which is itself based on the Ethereum standardized contract APIs:
 https://github.com/ethereum/wiki/wiki/Standardized_Contract_APIs
 */
