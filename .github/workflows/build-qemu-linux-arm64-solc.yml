@@ -1,0 +1,85 @@
+name: Build Solidity ARM64 Binary (QEMU + x86 runners)
+run-name: Build solc-linux-arm64-${{ github.event_name == 'workflow_dispatch' && github.event.inputs.version || 'develop' }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Solidity version to build (e.g., v0.8.24)'
+        required: false
+        default: 'v0.8.24'
+        type: string
+  # push:
+  #   branches: [ develop ]
+  # pull_request:
+  #   branches: [ develop ]
+
+jobs:
+  build-arm64:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Determine version to build
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION="develop"
+          fi
+          echo "Building version: $VERSION"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          
+          # Extract clean version for filename (remove 'v' prefix if present)
+          CLEAN_VERSION=$(echo "$VERSION" | sed 's/^v//')
+          echo "clean_version=$CLEAN_VERSION" >> $GITHUB_OUTPUT
+          
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.version.outputs.version }}
+          
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        
+      - name: Apply cross-compilation patches
+        run: |
+          echo "Patching missing includes for cross-compilation..."
+          sed -i '/#include <string>/a #include <cstdint>' liblangutil/Token.h
+          
+      - name: Build ARM64 binary
+        run: |
+          docker buildx build \
+            --platform linux/arm64 \
+            --load \
+            -t solc-arm64:latest \
+            -f scripts/Dockerfile \
+            .
+            
+      - name: Extract and rename binary
+        run: |
+          # Create container and extract binary
+          docker create --name temp-container solc-arm64:latest
+          docker cp temp-container:/usr/bin/solc ./solc-temp
+          docker rm temp-container
+          
+          # Rename binary with version
+          BINARY_NAME="solc-linux-arm64-v${{ steps.version.outputs.clean_version }}"
+          mv ./solc-temp "./$BINARY_NAME"
+          
+          # Make it executable
+          chmod +x "./$BINARY_NAME"
+          
+          # Display file info
+          echo "Binary created: $BINARY_NAME"
+          ls -la "./$BINARY_NAME"
+          file "./$BINARY_NAME"
+          
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: solc-linux-arm64-v${{ steps.version.outputs.clean_version }}
+          path: solc-linux-arm64-v${{ steps.version.outputs.clean_version }}
