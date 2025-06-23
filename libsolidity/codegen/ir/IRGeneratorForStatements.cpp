@@ -1602,6 +1602,32 @@ void IRGeneratorForStatements::endVisit(FunctionCall const& _functionCall)
 
 		break;
 	}
+	case FunctionType::Kind::TransferToken:
+	{
+		solAssert(arguments.size() == 2 && parameterTypes.size() == 2);
+		std::string address{IRVariable(_functionCall.expression()).part("address").name()};
+		std::string tokenValue{expressionAsType(*arguments[0], *(parameterTypes[0]))};
+		std::string tokenId{expressionAsType(*arguments[1], *(parameterTypes[1]))};
+		Whiskers templ(R"(
+			if lt(<tokenId>, 0xF4240) { revert(0, 0) }
+			let LONG_MAX := sub(exp(2, 63), 1)
+			if gt(<tokenId>, LONG_MAX) { revert(0, 0) }
+			let <gas> := 0
+			if iszero(<tokenValue>) { <gas> := <callStipend> }
+			let <success> := calltoken(<gas>, <address>, <tokenValue>, <tokenId>, 0, 0, 0, 0)
+			if iszero(<success>) { <forwardingRevert>() }
+		)");
+		templ("gas", m_context.newYulVariable());
+		templ("callStipend", toString(evmasm::GasCosts::callStipend));
+		templ("address", address);
+		templ("tokenValue", tokenValue);
+		templ("tokenId", tokenId);
+		templ("success", m_context.newYulVariable());
+		templ("forwardingRevert", m_utils.forwardingRevertFunction());
+		appendCode() << templ.render();
+
+		break;
+	}
 	case FunctionType::Kind::ECRecover:
 	case FunctionType::Kind::RIPEMD160:
 	case FunctionType::Kind::SHA256:
@@ -1805,7 +1831,7 @@ void IRGeneratorForStatements::endVisit(MemberAccess const& _memberAccess)
 				"isContract(" <<
 				expressionAsType(_memberAccess.expression(), *TypeProvider::address()) <<
 				")\n";
-		else if (std::set<std::string>{"send", "transfer"}.count(member))
+		else if (std::set<std::string>{"send", "transfer", "transferToken"}.count(member))
 		{
 			solAssert(dynamic_cast<AddressType const&>(*_memberAccess.expression().annotation().type).stateMutability() == StateMutability::Payable);
 			define(IRVariable{_memberAccess}.part("address"), _memberAccess.expression());
@@ -2158,6 +2184,7 @@ void IRGeneratorForStatements::endVisit(MemberAccess const& _memberAccess)
 				case FunctionType::Kind::ECRecover:
 				case FunctionType::Kind::SHA256:
 				case FunctionType::Kind::RIPEMD160:
+				case FunctionType::Kind::TransferToken:
 				default:
 					solAssert(false, "unsupported member function");
 				}
