@@ -2079,8 +2079,7 @@ void IRGeneratorForStatements::endVisit(MemberAccess const& _memberAccess)
 
 			define(_memberAccess) << requestedValue << "\n";
 		}
-		else if (std::set<std::string>{"encode", "encodePacked", "encodeWithSelector", "encodeCall", "encodeWithSignature", "decode",
-							 "totalNetLimit", "totalNetWeight", "totalEnergyCurrentLimit", "totalEnergyWeight","unfreezeDelayDays"}.count(member))
+		else if (std::set<std::string>{"encode", "encodePacked", "encodeWithSelector", "encodeCall", "encodeWithSignature", "decode"}.count(member))
 		{
 			// no-op
 		}
