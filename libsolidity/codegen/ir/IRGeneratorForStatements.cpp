@@ -1938,6 +1938,10 @@ void IRGeneratorForStatements::endVisit(MemberAccess const& _memberAccess)
 			define(_memberAccess) << "caller()\n";
 		else if (member == "value")
 			define(_memberAccess) << "callvalue()\n";
+		else if (member == "tokenvalue")
+			define(_memberAccess) << "calltokenvalue()\n";
+		else if (member == "tokenid")
+			define(_memberAccess) << "calltokenid()\n";
 		else if (member == "origin")
 			define(_memberAccess) << "origin()\n";
 		else if (member == "gasprice")
