@@ -1628,6 +1628,24 @@ void IRGeneratorForStatements::endVisit(FunctionCall const& _functionCall)
 
 		break;
 	}
+	case FunctionType::Kind::TokenBalance:
+	{
+		solAssert(arguments.size() == 1 && parameterTypes.size() == 1);
+		std::string address{IRVariable(_functionCall.expression()).part("address").name()};
+		std::string tokenId{expressionAsType(*arguments[0], *(parameterTypes[0]))};
+		Whiskers templ(R"(
+			if lt(<tokenId>, 0xF4240) { revert(0, 0) }
+			let LONG_MAX := sub(exp(2, 63), 1)
+			if gt(<tokenId>, LONG_MAX) { revert(0, 0) }
+			let <retVars> := tokenbalance(<address>, <tokenId>)
+		)");
+		templ("address", address);
+		templ("tokenId", tokenId);
+		templ("retVars", IRVariable(_functionCall).commaSeparatedList());
+		appendCode() << templ.render();
+
+		break;
+	}
 	case FunctionType::Kind::ECRecover:
 	case FunctionType::Kind::RIPEMD160:
 	case FunctionType::Kind::SHA256:
@@ -1836,7 +1854,7 @@ void IRGeneratorForStatements::endVisit(MemberAccess const& _memberAccess)
 			solAssert(dynamic_cast<AddressType const&>(*_memberAccess.expression().annotation().type).stateMutability() == StateMutability::Payable);
 			define(IRVariable{_memberAccess}.part("address"), _memberAccess.expression());
 		}
-		else if (std::set<std::string>{"call", "callcode", "delegatecall", "staticcall"}.count(member))
+		else if (std::set<std::string>{"tokenBalance", "call", "callcode", "delegatecall", "staticcall"}.count(member))
 			define(IRVariable{_memberAccess}.part("address"), _memberAccess.expression());
 		else
 			solAssert(false, "Invalid member access to address");
