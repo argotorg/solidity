@@ -1918,8 +1918,64 @@ void IRGeneratorForStatements::endVisit(MemberAccess const& _memberAccess)
 			);
 		break;
 	case Type::Category::Magic:
+	{
 		// we can ignore the kind of magic and only look at the name of the member
-		if (member == "coinbase")
+		Whiskers routine(R"(
+			// load free mem ptr
+			let <ptr> := mload(64)
+			// save index param to mem
+			mstore(<ptr>, <index>)
+			// do static call to get chain parameter, if return zero, revert
+			if iszero(staticcall(gas(), 0x100000b, <ptr>, 32, <ptr>, 32)) {
+				let pos := mload(64)
+				returndatacopy(pos, 0, returndatasize())
+				revert(pos, returndatasize())
+			}
+			// finalize the mem allocation
+			mstore(64, add(<ptr>, 32))
+            // return data size must be exactly 32 bytes
+            if iszero(eq(returndatasize(), 32)) { revert(0, 0) }
+			// load the return value
+			let <result> := mload(<ptr>)
+			// do check the value is a valid uint64
+			if iszero(eq(<result>, and(<result>, 0xffffffffffffffff))) { revert(0, 0) }
+		)");
+		if (member == "totalNetLimit")
+		{
+			routine("ptr", m_context.newYulVariable());
+			routine("index", "1");
+			routine("result", IRVariable(_memberAccess).commaSeparatedList());
+			appendCode() << routine.render();
+		}
+		else if (member == "totalNetWeight")
+		{
+			routine("ptr", m_context.newYulVariable());
+			routine("index", "2");
+			routine("result", IRVariable(_memberAccess).commaSeparatedList());
+			appendCode() << routine.render();
+		}
+		else if (member == "totalEnergyCurrentLimit")
+		{
+			routine("ptr", m_context.newYulVariable());
+			routine("index", "3");
+			routine("result", IRVariable(_memberAccess).commaSeparatedList());
+			appendCode() << routine.render();
+		}
+		else if (member == "totalEnergyWeight")
+		{
+			routine("ptr", m_context.newYulVariable());
+			routine("index", "4");
+			routine("result", IRVariable(_memberAccess).commaSeparatedList());
+			appendCode() << routine.render();
+		}
+		else if (member == "unfreezeDelayDays")
+		{
+			routine("ptr", m_context.newYulVariable());
+			routine("index", "5");
+			routine("result", IRVariable(_memberAccess).commaSeparatedList());
+			appendCode() << routine.render();
+		}
+		else if (member == "coinbase")
 			define(_memberAccess) << "coinbase()\n";
 		else if (member == "timestamp")
 			define(_memberAccess) << "timestamp()\n";
@@ -2024,13 +2080,14 @@ void IRGeneratorForStatements::endVisit(MemberAccess const& _memberAccess)
 			define(_memberAccess) << requestedValue << "\n";
 		}
 		else if (std::set<std::string>{"encode", "encodePacked", "encodeWithSelector", "encodeCall", "encodeWithSignature", "decode",
-                             "totalNetLimit", "totalNetWeight", "totalEnergyCurrentLimit", "totalEnergyWeight","unfreezeDelayDays"}.count(member))
+							 "totalNetLimit", "totalNetWeight", "totalEnergyCurrentLimit", "totalEnergyWeight","unfreezeDelayDays"}.count(member))
 		{
 			// no-op
 		}
 		else
 			solAssert(false, "Unknown magic member.");
 		break;
+	}
 	case Type::Category::Struct:
 	{
 		auto const& structType = dynamic_cast<StructType const&>(*_memberAccess.expression().annotation().type);
