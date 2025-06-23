@@ -142,13 +142,13 @@ void ContractCompiler::appendCallValueCheck()
 {
 	// Throw if function is not payable but call contained trx.
 	m_context << Instruction::CALLVALUE;
-	m_context.appendConditionalRevert(false, "Ether sent to non-payable function");
+	m_context.appendConditionalRevert(false, "TRX sent to non-payable function");
 
 	m_context << Instruction::CALLTOKENID;
-	m_context.appendConditionalRevert(false, "Ether sent to non-payable function");
+	m_context.appendConditionalRevert(false, "TRC10 sent to non-payable function");
 
 	m_context << Instruction::CALLTOKENVALUE;
-	m_context.appendConditionalRevert(false, "Ether sent to non-payable function");
+	m_context.appendConditionalRevert(false, "TRC10 sent to non-payable function");
 }
 
 void ContractCompiler::appendInitAndConstructorCode(ContractDefinition const& _contract)
