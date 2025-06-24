@@ -1147,9 +1147,9 @@ bool ExpressionCompiler::visit(FunctionCall const& _functionCall)
 		case FunctionType::Kind::RewardBalance:
 		case FunctionType::Kind::IsSrCandidate:
 		case FunctionType::Kind::VoteCount:
-		case FunctionType::Kind::TotalVoteCount:
-		case FunctionType::Kind::ReceivedVoteCount:
 		case FunctionType::Kind::UsedVoteCount:
+		case FunctionType::Kind::ReceivedVoteCount:
+		case FunctionType::Kind::TotalVoteCount:
         case FunctionType::Kind::GetChainParameter:
         case FunctionType::Kind::AvailableUnfreezeV2Size:
         case FunctionType::Kind::UnfreezableBalanceV2:
