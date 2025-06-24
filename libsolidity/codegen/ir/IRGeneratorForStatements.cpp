@@ -1637,11 +1637,11 @@ void IRGeneratorForStatements::endVisit(FunctionCall const& _functionCall)
 			if lt(<tokenId>, 0xF4240) { revert(0, 0) }
 			let LONG_MAX := sub(exp(2, 63), 1)
 			if gt(<tokenId>, LONG_MAX) { revert(0, 0) }
-			let <retVars> := tokenbalance(<address>, <tokenId>)
+			let <result> := tokenbalance(<address>, <tokenId>)
 		)");
 		templ("address", address);
 		templ("tokenId", tokenId);
-		templ("retVars", IRVariable(_functionCall).commaSeparatedList());
+		templ("result", IRVariable(_functionCall).commaSeparatedList());
 		appendCode() << templ.render();
 
 		break;
@@ -1649,6 +1649,12 @@ void IRGeneratorForStatements::endVisit(FunctionCall const& _functionCall)
 	case FunctionType::Kind::ECRecover:
 	case FunctionType::Kind::RIPEMD160:
 	case FunctionType::Kind::SHA256:
+	case FunctionType::Kind::RewardBalance:
+	case FunctionType::Kind::IsSrCandidate:
+	case FunctionType::Kind::VoteCount:
+	case FunctionType::Kind::UsedVoteCount:
+	case FunctionType::Kind::ReceivedVoteCount:
+	case FunctionType::Kind::TotalVoteCount:
 	{
 		solAssert(!_functionCall.annotation().tryCall);
 		solAssert(!functionType->valueSet());
@@ -1659,6 +1665,12 @@ void IRGeneratorForStatements::endVisit(FunctionCall const& _functionCall)
 			{FunctionType::Kind::ECRecover, std::make_tuple(1, 0)},
 			{FunctionType::Kind::SHA256, std::make_tuple(2, 0)},
 			{FunctionType::Kind::RIPEMD160, std::make_tuple(3, 12)},
+			{FunctionType::Kind::RewardBalance, std::make_tuple(0x1000005, 0)},
+			{FunctionType::Kind::IsSrCandidate, std::make_tuple(0x1000006, 0)},
+			{FunctionType::Kind::VoteCount, std::make_tuple(0x1000007, 0)},
+			{FunctionType::Kind::UsedVoteCount, std::make_tuple(0x1000008, 0)},
+			{FunctionType::Kind::ReceivedVoteCount, std::make_tuple(0x1000009, 0)},
+			{FunctionType::Kind::TotalVoteCount, std::make_tuple(0x100000a, 0)},
 		};
 		auto [ address, offset ] = precompiles[functionType->kind()];
 		TypePointers argumentTypes;
@@ -1685,7 +1697,7 @@ void IRGeneratorForStatements::endVisit(FunctionCall const& _functionCall)
 		templ("pos", m_context.newYulVariable());
 		templ("end", m_context.newYulVariable());
 		templ("isECRecover", FunctionType::Kind::ECRecover == functionType->kind());
-		if (FunctionType::Kind::ECRecover == functionType->kind())
+		if (FunctionType::Kind::SHA256 != functionType->kind() && FunctionType::Kind::RIPEMD160 != functionType->kind())
 			templ("encodeArgs", m_context.abiFunctions().tupleEncoder(argumentTypes, parameterTypes));
 		else
 			templ("encodeArgs", m_context.abiFunctions().tupleEncoderPacked(argumentTypes, parameterTypes));
@@ -1706,6 +1718,75 @@ void IRGeneratorForStatements::endVisit(FunctionCall const& _functionCall)
 		}
 
 		appendCode() << templ.render();
+
+		break;
+	}
+	case FunctionType::Kind::Freeze:
+	{
+		solAssert(arguments.size() == 2 && parameterTypes.size() == 2);
+		std::string address{IRVariable(_functionCall.expression()).part("address").name()};
+		std::string value{expressionAsType(*arguments[0], *(parameterTypes[0]))};
+		std::string resource{expressionAsType(*arguments[1], *(parameterTypes[1]))};
+		Whiskers templ(R"(
+			if iszero(nativefreeze(<address>, <value>, <resource>)) { revert(0, 0) }
+		)");
+		templ("address", address);
+		templ("value", value);
+		templ("resource", resource);
+		appendCode() << templ.render();
+
+		break;
+	}
+	case FunctionType::Kind::Unfreeze:
+	{
+		solAssert(arguments.size() == 1 && parameterTypes.size() == 1);
+		std::string address{IRVariable(_functionCall.expression()).part("address").name()};
+		std::string resource{expressionAsType(*arguments[0], *(parameterTypes[0]))};
+		Whiskers templ(R"(
+			if iszero(nativeunfreeze(<address>, <resource>)) { revert(0, 0) }
+		)");
+		templ("address", address);
+		templ("resource", resource);
+		appendCode() << templ.render();
+
+		break;
+	}
+	case FunctionType::Kind::FreezeExpireTime:
+	{
+		solAssert(arguments.size() == 1 && parameterTypes.size() == 1);
+		std::string address{IRVariable(_functionCall.expression()).part("address").name()};
+		std::string resource{expressionAsType(*arguments[0], *(parameterTypes[0]))};
+		Whiskers templ(R"(
+			let <result> := nativefreezeexpiretime(<address>, <resource>)
+		)");
+		templ("address", address);
+		templ("resource", resource);
+		templ("result", IRVariable(_functionCall).commaSeparatedList());
+		appendCode() << templ.render();
+
+		break;
+	}
+	case FunctionType::Kind::Vote:
+	{
+		solAssert(arguments.size() == 2 && parameterTypes.size() == 2);
+		std::string sr{expressionAsType(*arguments[0], *(parameterTypes[0]))};
+		std::string tp{expressionAsType(*arguments[1], *(parameterTypes[1]))};
+		Whiskers templ(R"(
+			let <sr_offset> := <sr>
+			let <tp_offset> := <tp>
+			if iszero(nativevote(mload(<tp_offset>), <tp_offset>, mload(<sr_offset>), <sr_offset>)) { revert(0, 0) }
+		)");
+		templ("sr_offset", m_context.newYulVariable());
+		templ("tp_offset", m_context.newYulVariable());
+		templ("sr", sr);
+		templ("tp", tp);
+		appendCode() << templ.render();
+
+		break;
+	}
+	case FunctionType::Kind::WithdrawReward:
+	{
+		define(_functionCall) << "nativewithdrawreward()\n";
 
 		break;
 	}
@@ -1854,7 +1935,13 @@ void IRGeneratorForStatements::endVisit(MemberAccess const& _memberAccess)
 			solAssert(dynamic_cast<AddressType const&>(*_memberAccess.expression().annotation().type).stateMutability() == StateMutability::Payable);
 			define(IRVariable{_memberAccess}.part("address"), _memberAccess.expression());
 		}
-		else if (std::set<std::string>{"tokenBalance", "call", "callcode", "delegatecall", "staticcall"}.count(member))
+		else if (std::set<std::string>{"freeze", "unfreeze"}.count(member))
+		{
+			solAssert(dynamic_cast<AddressType const&>(*_memberAccess.expression().annotation().type).stateMutability() == StateMutability::Payable);
+			define(IRVariable{_memberAccess}.part("address"), _memberAccess.expression());
+		}
+		else if (std::set<std::string>{"tokenBalance", "call", "callcode", "delegatecall", "staticcall",
+			"freezeExpireTime"}.count(member))
 			define(IRVariable{_memberAccess}.part("address"), _memberAccess.expression());
 		else
 			solAssert(false, "Invalid member access to address");

@@ -3435,6 +3435,9 @@ std::vector<std::tuple<std::string, Type const*>> FunctionType::makeStackItems()
 	case Kind::Send:
 	case Kind::TransferToken:
 	case Kind::TokenBalance:
+	case Kind::Freeze:
+	case Kind::Unfreeze:
+	case Kind::FreezeExpireTime:
 		slots = {std::make_tuple("address", TypeProvider::address())};
 		break;
 	case Kind::Internal:
