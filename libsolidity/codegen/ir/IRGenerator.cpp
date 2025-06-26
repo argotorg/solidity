@@ -93,7 +93,15 @@ std::string IRGenerator::run(
 	std::map<ContractDefinition const*, std::string_view const> const& _otherYulSources
 )
 {
-	return yul::reindent(generate(_contract, _cborMetadata, _otherYulSources));
+	std::string warning =
+		"/*=====================================================*\n"
+		" *                       WARNING                       *\n"
+		" *  Solidity to Yul compilation is still EXPERIMENTAL  *\n"
+		" *       It can result in LOSS OF FUNDS or worse       *\n"
+		" *                !USE AT YOUR OWN RISK!               *\n"
+		" *=====================================================*/\n\n";
+
+	return warning + yul::reindent(generate(_contract, _cborMetadata, _otherYulSources));
 }
 
 std::string IRGenerator::generate(
