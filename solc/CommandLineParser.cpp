@@ -617,16 +617,15 @@ General Information)").c_str(),
 				"Select desired EOF version. Currently the only valid value is 1. "
 				"If not specified, legacy non-EOF bytecode will be generated."
 			)
+			(
+				g_strViaIR.c_str(),
+				"Turn on compilation mode via the IR."
+			)
 		;
 	outputOptions.add_options()
 		(
 			g_strExperimentalViaIR.c_str(),
 			"Turn on experimental compilation mode via the IR (EXPERIMENTAL)."
-		)
-		(
-			g_strViaIR.c_str(),
-			("Turn on compilation mode via the IR. (NOTICE: Compilation mode via the IR is currently in experimental. "
-				 "Please use --" + g_strExperimentalViaIR + " as a substitute.)").c_str()
 		)
 		(
 			g_strRevertStrings.c_str(),
