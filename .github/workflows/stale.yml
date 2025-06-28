@@ -19,7 +19,7 @@ jobs:
   stale:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/stale@v6
+      - uses: actions/stale@v9
         with:
           debug-only: false
           days-before-issue-stale: ${{ env.BEFORE_ISSUE_STALE }}
