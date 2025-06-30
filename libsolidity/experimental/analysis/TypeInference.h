@@ -56,7 +56,9 @@ public:
 	void endVisit(VariableDeclarationStatement const& _variableDeclarationStatement) override;
 	bool visit(VariableDeclaration const& _variableDeclaration) override;
 
+	bool visit(ForAllQuantifier const& _forAllQuantifier) override;
 	bool visit(FunctionDefinition const& _functionDefinition) override;
+	void endVisit(FunctionDefinition const& _functionDefinition) override;
 	bool visit(ParameterList const&) override { return true; }
 	void endVisit(ParameterList const& _parameterList) override;
 	bool visit(SourceUnit const&) override { return true; }

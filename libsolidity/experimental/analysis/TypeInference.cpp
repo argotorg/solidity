@@ -33,6 +33,7 @@
 #include <libyul/AST.h>
 
 #include <boost/algorithm/string.hpp>
+
 #include <range/v3/view/transform.hpp>
 
 using namespace solidity;
@@ -128,6 +129,19 @@ bool TypeInference::analyze(SourceUnit const& _sourceUnit)
 	return !m_errorReporter.hasErrors();
 }
 
+bool TypeInference::visit(ForAllQuantifier const& _quantifier)
+{
+	solAssert(m_expressionContext == ExpressionContext::Term);
+
+	{
+		ScopedSaveAndRestore expressionContext{m_expressionContext, ExpressionContext::Type};
+		_quantifier.typeVariableDeclarations().accept(*this);
+	}
+
+	_quantifier.quantifiedDeclaration().accept(*this);
+	return false;
+}
+
 bool TypeInference::visit(FunctionDefinition const& _functionDefinition)
 {
 	solAssert(m_expressionContext == ExpressionContext::Term);
@@ -164,6 +178,13 @@ bool TypeInference::visit(FunctionDefinition const& _functionDefinition)
 		_functionDefinition.body().accept(*this);
 
 	return false;
+}
+
+void TypeInference::endVisit(FunctionDefinition const& _functionDefinition)
+{
+	solAssert(m_expressionContext == ExpressionContext::Term);
+
+	m_env->fixTypeVars(TypeEnvironmentHelpers{*m_env}.typeVars(type(_functionDefinition)));
 }
 
 void TypeInference::endVisit(Return const& _return)
@@ -204,6 +225,8 @@ bool TypeInference::visit(TypeClassDefinition const& _typeClassDefinition)
 	solAssert(m_analysis.annotation<TypeClassRegistration>(_typeClassDefinition).typeClass.has_value());
 	TypeClass typeClass = m_analysis.annotation<TypeClassRegistration>(_typeClassDefinition).typeClass.value();
 	Type typeVar = m_typeSystem.typeClassVariable(typeClass);
+	unify(type(_typeClassDefinition.typeVariable()), typeVar, _typeClassDefinition.location());
+
 	auto& typeMembersAnnotation = annotation().members[typeConstructor(&_typeClassDefinition)];
 
 	for (auto subNode: _typeClassDefinition.subNodes())
@@ -235,7 +258,6 @@ bool TypeInference::visit(TypeClassDefinition const& _typeClassDefinition)
 			m_errorReporter.typeError(1807_error, _typeClassDefinition.location(), "Function " + functionName + " depends on invalid type variable.");
 	}
 
-	unify(type(_typeClassDefinition.typeVariable()), m_typeSystem.freshTypeVariable({{typeClass}}), _typeClassDefinition.location());
 	for (auto instantiation: m_analysis.annotation<TypeRegistration>(_typeClassDefinition).instantiations | ranges::views::values)
 		// TODO: recursion-safety? Order of instantiation?
 		instantiation->accept(*this);
@@ -558,9 +580,11 @@ bool TypeInference::visit(Identifier const& _identifier)
 		solAssert(false);
 		break;
 	case ExpressionContext::Type:
-		// TODO: register free type variable name!
+		m_errorReporter.typeError(5934_error, _identifier.location(), "Undeclared type variable.");
+
+		// Assign it a fresh variable anyway just so that we can continue analysis.
 		identifierAnnotation.type = m_typeSystem.freshTypeVariable({});
-		return false;
+		break;
 	case ExpressionContext::Sort:
 		// TODO: error handling
 		solAssert(false);
@@ -621,45 +645,33 @@ bool TypeInference::visit(TypeClassInstantiation const& _typeClassInstantiation)
 	if (instantiationAnnotation.type)
 		return false;
 	instantiationAnnotation.type = m_voidType;
-	std::optional<TypeClass> typeClass = std::visit(util::GenericVisitor{
-		[&](ASTPointer<IdentifierPath> _typeClassName) -> std::optional<TypeClass> {
-			if (auto const* typeClassDefinition = dynamic_cast<TypeClassDefinition const*>(_typeClassName->annotation().referencedDeclaration))
-			{
-				// visiting the type class will re-visit this instantiation
-				typeClassDefinition->accept(*this);
-				// TODO: more error handling? Should be covered by the visit above.
-				solAssert(m_analysis.annotation<TypeClassRegistration>(*typeClassDefinition).typeClass.has_value());
-				return m_analysis.annotation<TypeClassRegistration>(*typeClassDefinition).typeClass.value();
-			}
-			else
-			{
-				m_errorReporter.typeError(9817_error, _typeClassInstantiation.typeClass().location(), "Expected type class.");
-				return std::nullopt;
-			}
+	TypeClass typeClass = std::visit(util::GenericVisitor{
+		[&](ASTPointer<IdentifierPath> _typeClassName) -> TypeClass {
+			auto const* typeClassDefinition = dynamic_cast<TypeClassDefinition const*>(_typeClassName->annotation().referencedDeclaration);
+			solAssert(typeClassDefinition);
+
+			// visiting the type class will re-visit this instantiation
+			typeClassDefinition->accept(*this);
+			// TODO: more error handling? Should be covered by the visit above.
+			solAssert(m_analysis.annotation<TypeClassRegistration>(*typeClassDefinition).typeClass.has_value());
+			return m_analysis.annotation<TypeClassRegistration>(*typeClassDefinition).typeClass.value();
 		},
-		[&](Token _token) -> std::optional<TypeClass> {
-			if (auto builtinClass = builtinClassFromToken(_token))
-				if (auto typeClass = util::valueOrNullptr(annotation().builtinClasses, *builtinClass))
-					return *typeClass;
-			m_errorReporter.typeError(2658_error, _typeClassInstantiation.location(), "Invalid type class name.");
-			return std::nullopt;
+		[&](Token _token) -> TypeClass {
+			std::optional<BuiltinClass> builtinClass = builtinClassFromToken(_token);
+			solAssert(builtinClass.has_value());
+			solAssert(annotation().builtinClasses.count(*builtinClass) != 0);
+			return annotation().builtinClasses.at(*builtinClass);
 		}
 	}, _typeClassInstantiation.typeClass().name());
-	if (!typeClass)
-		return false;
 
 	// TODO: _typeClassInstantiation.typeConstructor().accept(*this); ?
 	auto typeConstructor = m_analysis.annotation<TypeRegistration>(_typeClassInstantiation.typeConstructor()).typeConstructor;
-	if (!typeConstructor)
-	{
-		m_errorReporter.typeError(2138_error, _typeClassInstantiation.typeConstructor().location(), "Invalid type constructor.");
-		return false;
-	}
+	solAssert(typeConstructor);
 
 	std::vector<Type> arguments;
 	Arity arity{
 		{},
-		*typeClass
+		typeClass
 	};
 
 	{
@@ -675,6 +687,7 @@ bool TypeInference::visit(TypeClassInstantiation const& _typeClassInstantiation)
 			}) | ranges::to<std::vector<Sort>>;
 		}
 	}
+	m_env->fixTypeVars(arguments);
 
 	Type instanceType{TypeConstant{*typeConstructor, arguments}};
 
@@ -692,14 +705,10 @@ bool TypeInference::visit(TypeClassInstantiation const& _typeClassInstantiation)
 	if (auto error = m_typeSystem.instantiateClass(instanceType, arity))
 		m_errorReporter.typeError(5094_error, _typeClassInstantiation.location(), *error);
 
-	auto const& classFunctions = annotation().typeClassFunctions.at(*typeClass);
+	auto const& classFunctions = annotation().typeClassFunctions.at(typeClass);
 
-	TypeEnvironment newEnv = m_env->clone();
-	if (!newEnv.unify(m_typeSystem.typeClassVariable(*typeClass), instanceType).empty())
-	{
-		m_errorReporter.typeError(4686_error, _typeClassInstantiation.location(), "Unification of class and instance variable failed.");
-		return false;
-	}
+	solAssert(std::holds_alternative<TypeVariable>(m_typeSystem.typeClassVariable(typeClass)));
+	TypeVariable classVar = std::get<TypeVariable>(m_typeSystem.typeClassVariable(typeClass));
 
 	for (auto [name, classFunctionType]: classFunctions)
 	{
@@ -708,11 +717,22 @@ bool TypeInference::visit(TypeClassInstantiation const& _typeClassInstantiation)
 			m_errorReporter.typeError(6948_error, _typeClassInstantiation.location(), "Missing function: " + name);
 			continue;
 		}
+		Type instantiatedClassFunctionType = TypeEnvironmentHelpers{*m_env}.substitute(classFunctionType, classVar, instanceType);
+
 		Type instanceFunctionType = functionTypes.at(name);
 		functionTypes.erase(name);
 
-		if (!newEnv.typeEquals(instanceFunctionType, classFunctionType))
-			m_errorReporter.typeError(7428_error, _typeClassInstantiation.location(), "Type mismatch for function " + name + " " + TypeEnvironmentHelpers{newEnv}.typeToString(instanceFunctionType) + " != " + TypeEnvironmentHelpers{newEnv}.typeToString(classFunctionType));
+		if (!m_env->typeEquals(instanceFunctionType, instantiatedClassFunctionType))
+			m_errorReporter.typeError(
+				7428_error,
+				_typeClassInstantiation.location(),
+				fmt::format(
+					"Instantiation function '{}' does not match the declaration in the type class ({} != {}).",
+					name,
+					TypeEnvironmentHelpers{*m_env}.typeToString(instanceFunctionType),
+					TypeEnvironmentHelpers{*m_env}.typeToString(instantiatedClassFunctionType)
+				)
+			);
 	}
 
 	if (!functionTypes.empty())
@@ -772,12 +792,21 @@ bool TypeInference::visit(TypeDefinition const& _typeDefinition)
 		return false;
 
 	if (_typeDefinition.arguments())
+	{
+		ScopedSaveAndRestore expressionContext{m_expressionContext, ExpressionContext::Type};
 		_typeDefinition.arguments()->accept(*this);
+	}
 
 	std::vector<Type> arguments;
 	if (_typeDefinition.arguments())
-		for (size_t i = 0; i < _typeDefinition.arguments()->parameters().size(); ++i)
-			arguments.emplace_back(m_typeSystem.freshTypeVariable({}));
+		for (ASTPointer<VariableDeclaration> argumentDeclaration: _typeDefinition.arguments()->parameters())
+		{
+			solAssert(argumentDeclaration);
+			Type typeVar = type(*argumentDeclaration);
+			solAssert(std::holds_alternative<TypeVariable>(typeVar));
+			arguments.emplace_back(typeVar);
+		}
+	m_env->fixTypeVars(arguments);
 
 	Type definedType = type(&_typeDefinition, arguments);
 	if (arguments.empty())
@@ -803,6 +832,9 @@ bool TypeInference::visit(TypeDefinition const& _typeDefinition)
 	solAssert(newlyInserted, fmt::format("Members of type '{}' are already defined.", m_typeSystem.constructorInfo(constructor).name));
 	if (underlyingType)
 	{
+		// Undeclared type variables are not allowed in type definitions and we fixed all the declared ones.
+		solAssert(!TypeEnvironmentHelpers{*m_env}.hasGenericTypeVars(*underlyingType));
+
 		members->second.emplace("abs", TypeMember{helper.functionType(*underlyingType, definedType)});
 		members->second.emplace("rep", TypeMember{helper.functionType(definedType, *underlyingType)});
 	}

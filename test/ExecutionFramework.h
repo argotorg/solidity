@@ -306,7 +306,13 @@ protected:
 	u256 const m_gasPrice = 10000 * sun;
 	u256 const m_gas = 100000000;
 	bytes m_output;
+
+	/// Total gas used by the transaction, after refund.
 	u256 m_gasUsed;
+
+	/// The portion of @a m_gasUsed spent on code deposits of newly created contracts.
+	/// May exceed @a m_gasUsed in rare corner cases due to refunds.
+	u256 m_gasUsedForCodeDeposit;
 };
 
 #define ABI_CHECK(result, expectation) do { \
