@@ -1602,6 +1602,50 @@ void IRGeneratorForStatements::endVisit(FunctionCall const& _functionCall)
 
 		break;
 	}
+	case FunctionType::Kind::TransferToken:
+	{
+		solAssert(arguments.size() == 2 && parameterTypes.size() == 2);
+		std::string address{IRVariable(_functionCall.expression()).part("address").name()};
+		std::string tokenValue{expressionAsType(*arguments[0], *(parameterTypes[0]))};
+		std::string tokenId{expressionAsType(*arguments[1], *(parameterTypes[1]))};
+		Whiskers templ(R"(
+			if lt(<tokenId>, 0xF4240) { revert(0, 0) }
+			let LONG_MAX := sub(exp(2, 63), 1)
+			if gt(<tokenId>, LONG_MAX) { revert(0, 0) }
+			let <gas> := 0
+			if iszero(<tokenValue>) { <gas> := <callStipend> }
+			let <success> := calltoken(<gas>, <address>, <tokenValue>, <tokenId>, 0, 0, 0, 0)
+			if iszero(<success>) { <forwardingRevert>() }
+		)");
+		templ("gas", m_context.newYulVariable());
+		templ("callStipend", toString(evmasm::GasCosts::callStipend));
+		templ("address", address);
+		templ("tokenValue", tokenValue);
+		templ("tokenId", tokenId);
+		templ("success", m_context.newYulVariable());
+		templ("forwardingRevert", m_utils.forwardingRevertFunction());
+		appendCode() << templ.render();
+
+		break;
+	}
+	case FunctionType::Kind::TokenBalance:
+	{
+		solAssert(arguments.size() == 1 && parameterTypes.size() == 1);
+		std::string address{IRVariable(_functionCall.expression()).part("address").name()};
+		std::string tokenId{expressionAsType(*arguments[0], *(parameterTypes[0]))};
+		Whiskers templ(R"(
+			if lt(<tokenId>, 0xF4240) { revert(0, 0) }
+			let LONG_MAX := sub(exp(2, 63), 1)
+			if gt(<tokenId>, LONG_MAX) { revert(0, 0) }
+			let <result> := tokenbalance(<address>, <tokenId>)
+		)");
+		templ("address", address);
+		templ("tokenId", tokenId);
+		templ("result", IRVariable(_functionCall).commaSeparatedList());
+		appendCode() << templ.render();
+
+		break;
+	}
 	case FunctionType::Kind::ECRecover:
 	case FunctionType::Kind::RIPEMD160:
 	case FunctionType::Kind::SHA256:
@@ -1660,6 +1704,251 @@ void IRGeneratorForStatements::endVisit(FunctionCall const& _functionCall)
 			u256 gasNeededByCaller = evmasm::GasCosts::callGas(m_context.evmVersion()) + 10 + evmasm::GasCosts::callNewAccountGas;
 			templ("gas", "sub(gas(), " + formatNumber(gasNeededByCaller) + ")");
 		}
+
+		appendCode() << templ.render();
+
+		break;
+	}
+	case FunctionType::Kind::Freeze:
+	{
+		solAssert(arguments.size() == 2 && parameterTypes.size() == 2);
+		std::string address{IRVariable(_functionCall.expression()).part("address").name()};
+		std::string value{expressionAsType(*arguments[0], *(parameterTypes[0]))};
+		std::string resource{expressionAsType(*arguments[1], *(parameterTypes[1]))};
+		Whiskers templ(R"(
+			if iszero(nativefreeze(<address>, <value>, <resource>)) { revert(0, 0) }
+		)");
+		templ("address", address);
+		templ("value", value);
+		templ("resource", resource);
+		appendCode() << templ.render();
+
+		break;
+	}
+	case FunctionType::Kind::Unfreeze:
+	{
+		solAssert(arguments.size() == 1 && parameterTypes.size() == 1);
+		std::string address{IRVariable(_functionCall.expression()).part("address").name()};
+		std::string resource{expressionAsType(*arguments[0], *(parameterTypes[0]))};
+		Whiskers templ(R"(
+			if iszero(nativeunfreeze(<address>, <resource>)) { revert(0, 0) }
+		)");
+		templ("address", address);
+		templ("resource", resource);
+		appendCode() << templ.render();
+
+		break;
+	}
+	case FunctionType::Kind::FreezeExpireTime:
+	{
+		solAssert(arguments.size() == 1 && parameterTypes.size() == 1);
+		std::string address{IRVariable(_functionCall.expression()).part("address").name()};
+		std::string resource{expressionAsType(*arguments[0], *(parameterTypes[0]))};
+		Whiskers templ(R"(
+			let <result> := nativefreezeexpiretime(<address>, <resource>)
+		)");
+		templ("address", address);
+		templ("resource", resource);
+		templ("result", IRVariable(_functionCall).commaSeparatedList());
+		appendCode() << templ.render();
+
+		break;
+	}
+	case FunctionType::Kind::Vote:
+	{
+		solAssert(arguments.size() == 2 && parameterTypes.size() == 2);
+		std::string sr{expressionAsType(*arguments[0], *(parameterTypes[0]))};
+		std::string tp{expressionAsType(*arguments[1], *(parameterTypes[1]))};
+		Whiskers templ(R"(
+			let <sr_offset> := <sr>
+			let <tp_offset> := <tp>
+			if iszero(nativevote(mload(<tp_offset>), <tp_offset>, mload(<sr_offset>), <sr_offset>)) { revert(0, 0) }
+		)");
+		templ("sr_offset", m_context.newYulVariable());
+		templ("tp_offset", m_context.newYulVariable());
+		templ("sr", sr);
+		templ("tp", tp);
+		appendCode() << templ.render();
+
+		break;
+	}
+	case FunctionType::Kind::WithdrawReward:
+	{
+		define(_functionCall) << "nativewithdrawreward()\n";
+
+		break;
+	}
+	case FunctionType::Kind::FreezeBalanceV2:
+	{
+		solAssert(arguments.size() == 2 && parameterTypes.size() == 2);
+		std::string value{expressionAsType(*arguments[0], *(parameterTypes[0]))};
+		std::string resource{expressionAsType(*arguments[1], *(parameterTypes[1]))};
+		Whiskers templ(R"(
+			if iszero(nativefreezebalancev2(<value>, <resource>)) { revert(0, 0) }
+		)");
+		templ("value", value);
+		templ("resource", resource);
+		appendCode() << templ.render();
+
+		break;
+	}
+	case FunctionType::Kind::UnfreezeBalanceV2:
+	{
+		solAssert(arguments.size() == 2 && parameterTypes.size() == 2);
+		std::string value{expressionAsType(*arguments[0], *(parameterTypes[0]))};
+		std::string resource{expressionAsType(*arguments[1], *(parameterTypes[1]))};
+		Whiskers templ(R"(
+			if iszero(nativeunfreezebalancev2(<value>, <resource>)) { revert(0, 0) }
+		)");
+		templ("value", value);
+		templ("resource", resource);
+		appendCode() << templ.render();
+
+		break;
+	}
+	case FunctionType::Kind::CancelAllUnfreezeV2:
+	{
+		define(_functionCall) << "nativecancelallunfreezev2()\n";
+
+		break;
+	}
+	case FunctionType::Kind::WithdrawExpireUnfreeze:
+	{
+		define(_functionCall) << "nativewithdrawexpireunfreeze()\n";
+
+		break;
+	}
+	case FunctionType::Kind::DelegateResource:
+	{
+		solAssert(arguments.size() == 2 && parameterTypes.size() == 2);
+		std::string address{IRVariable(_functionCall.expression()).part("address").name()};
+		std::string value{expressionAsType(*arguments[0], *(parameterTypes[0]))};
+		std::string resource{expressionAsType(*arguments[1], *(parameterTypes[1]))};
+		Whiskers templ(R"(
+			if iszero(nativedelegateresource(<address>, <value>, <resource>)) { revert(0, 0) }
+		)");
+		templ("address", address);
+		templ("value", value);
+		templ("resource", resource);
+		appendCode() << templ.render();
+
+		break;
+	}
+	case FunctionType::Kind::UnDelegateResource:
+	{
+		solAssert(arguments.size() == 2 && parameterTypes.size() == 2);
+		std::string address{IRVariable(_functionCall.expression()).part("address").name()};
+		std::string value{expressionAsType(*arguments[0], *(parameterTypes[0]))};
+		std::string resource{expressionAsType(*arguments[1], *(parameterTypes[1]))};
+		Whiskers templ(R"(
+			if iszero(nativeundelegateresource(<address>, <value>, <resource>)) { revert(0, 0) }
+		)");
+		templ("address", address);
+		templ("value", value);
+		templ("resource", resource);
+		appendCode() << templ.render();
+
+		break;
+	}
+	case FunctionType::Kind::ValidateMultiSign:
+	case FunctionType::Kind::BatchValidateSign:
+	case FunctionType::Kind::VerifyBurnProof:
+	case FunctionType::Kind::VerifyTransferProof:
+	case FunctionType::Kind::VerifyMintProof:
+	case FunctionType::Kind::PedersenHash:
+	case FunctionType::Kind::RewardBalance:
+	case FunctionType::Kind::IsSrCandidate:
+	case FunctionType::Kind::VoteCount:
+	case FunctionType::Kind::UsedVoteCount:
+	case FunctionType::Kind::ReceivedVoteCount:
+	case FunctionType::Kind::TotalVoteCount:
+	case FunctionType::Kind::GetChainParameter:
+	case FunctionType::Kind::AvailableUnfreezeV2Size:
+	case FunctionType::Kind::UnfreezableBalanceV2:
+	case FunctionType::Kind::ExpireUnfreezeBalanceV2:
+	case FunctionType::Kind::DelegatableResource:
+	case FunctionType::Kind::ResourceV2:
+	case FunctionType::Kind::CheckUnDelegateResource:
+	case FunctionType::Kind::ResourceUsage:
+	case FunctionType::Kind::TotalResource:
+	case FunctionType::Kind::TotalDelegatedResource:
+	case FunctionType::Kind::TotalAcquiredResource:
+	{
+		solAssert(!_functionCall.annotation().tryCall);
+		solAssert(!functionType->valueSet());
+		solAssert(!functionType->gasSet());
+		if (functionType->kind() < FunctionType::Kind::AvailableUnfreezeV2Size)
+			solAssert(!functionType->hasBoundFirstArgument());
+
+		static std::map<FunctionType::Kind, u256> precompiles = {
+			{FunctionType::Kind::BatchValidateSign, 0x9},
+			{FunctionType::Kind::ValidateMultiSign, 0xa},
+			{FunctionType::Kind::VerifyMintProof, 0x1000001},
+			{FunctionType::Kind::VerifyTransferProof, 0x1000002},
+			{FunctionType::Kind::VerifyBurnProof, 0x1000003},
+			{FunctionType::Kind::PedersenHash, 0x1000004},
+			{FunctionType::Kind::RewardBalance, 0x1000005},
+			{FunctionType::Kind::IsSrCandidate, 0x1000006},
+			{FunctionType::Kind::VoteCount, 0x1000007},
+			{FunctionType::Kind::UsedVoteCount, 0x1000008},
+			{FunctionType::Kind::ReceivedVoteCount, 0x1000009},
+			{FunctionType::Kind::TotalVoteCount, 0x100000a},
+			{FunctionType::Kind::GetChainParameter, 0x100000b},
+			{FunctionType::Kind::AvailableUnfreezeV2Size, 0x100000c},
+			{FunctionType::Kind::UnfreezableBalanceV2, 0x100000d},
+			{FunctionType::Kind::ExpireUnfreezeBalanceV2, 0x100000e},
+			{FunctionType::Kind::DelegatableResource, 0x100000f},
+			{FunctionType::Kind::ResourceV2, 0x1000010},
+			{FunctionType::Kind::CheckUnDelegateResource, 0x1000011},
+			{FunctionType::Kind::ResourceUsage, 0x1000012},
+			{FunctionType::Kind::TotalResource, 0x1000013},
+			{FunctionType::Kind::TotalDelegatedResource, 0x1000014},
+			{FunctionType::Kind::TotalAcquiredResource, 0x1000015},
+		};
+		u256 address = precompiles[functionType->kind()];
+		TypePointers argumentTypes;
+		std::vector<std::string> argumentStrings;
+
+		ReturnInfo const returnInfo{m_context.evmVersion(), *functionType};
+
+		if (functionType->hasBoundFirstArgument())
+		{
+			parameterTypes.insert(parameterTypes.begin(), functionType->selfType());
+			argumentTypes.emplace_back(functionType->selfType());
+			argumentStrings += IRVariable(_functionCall.expression()).part("self").stackSlots();
+		}
+
+		for (auto const& arg: arguments)
+		{
+			argumentTypes.emplace_back(&type(*arg));
+			argumentStrings += IRVariable(*arg).stackSlots();
+		}
+		Whiskers templ(R"(
+			let <pos> := <allocateUnbounded>()
+			let <end> := <encodeArgs>(<pos> <argumentString>)
+
+			let <success> := staticcall(gas(), <address>, <pos>, sub(<end>, <pos>), <pos>, <returnDataSize>)
+
+			if iszero(<success>) { <forwardingRevert>() }
+
+			// update freeMemoryPointer according to dynamic return size
+			<finalizeAllocation>(<pos>, <returnDataSize>)
+
+			let <retVars> := <abiDecode>(<pos>, add(<pos>, <returnDataSize>))
+		)");
+		templ("allocateUnbounded", m_utils.allocateUnboundedFunction());
+		templ("pos", m_context.newYulVariable());
+		templ("end", m_context.newYulVariable());
+		templ("encodeArgs", m_context.abiFunctions().tupleEncoder(argumentTypes, parameterTypes));
+		templ("argumentString", joinHumanReadablePrefixed(argumentStrings));
+		templ("address", toString(address));
+		templ("success", m_context.newYulVariable());
+		templ("retVars", IRVariable(_functionCall).commaSeparatedList());
+		templ("forwardingRevert", m_utils.forwardingRevertFunction());
+
+		templ("abiDecode", m_context.abiFunctions().tupleDecoder(returnInfo.returnTypes, true));
+		templ("returnDataSize", std::to_string(returnInfo.estimatedReturnSize));
+		templ("finalizeAllocation", m_utils.finalizeAllocationFunction());
 
 		appendCode() << templ.render();
 
@@ -1731,7 +2020,17 @@ void IRGeneratorForStatements::endVisit(MemberAccess const& _memberAccess)
 			);
 		else if (
 			memberFunctionType->kind() == FunctionType::Kind::ArrayPush ||
-			memberFunctionType->kind() == FunctionType::Kind::ArrayPop
+			memberFunctionType->kind() == FunctionType::Kind::ArrayPop ||
+			memberFunctionType->kind() == FunctionType::Kind::AvailableUnfreezeV2Size ||
+			memberFunctionType->kind() == FunctionType::Kind::UnfreezableBalanceV2 ||
+			memberFunctionType->kind() == FunctionType::Kind::ExpireUnfreezeBalanceV2 ||
+			memberFunctionType->kind() == FunctionType::Kind::DelegatableResource ||
+			memberFunctionType->kind() == FunctionType::Kind::ResourceV2 ||
+			memberFunctionType->kind() == FunctionType::Kind::CheckUnDelegateResource ||
+			memberFunctionType->kind() == FunctionType::Kind::ResourceUsage ||
+			memberFunctionType->kind() == FunctionType::Kind::TotalResource ||
+			memberFunctionType->kind() == FunctionType::Kind::TotalDelegatedResource ||
+			memberFunctionType->kind() == FunctionType::Kind::TotalAcquiredResource
 		)
 		{
 			// Nothing to do.
@@ -1805,12 +2104,18 @@ void IRGeneratorForStatements::endVisit(MemberAccess const& _memberAccess)
 				"isContract(" <<
 				expressionAsType(_memberAccess.expression(), *TypeProvider::address()) <<
 				")\n";
-		else if (std::set<std::string>{"send", "transfer"}.count(member))
+		else if (std::set<std::string>{"send", "transfer", "transferToken"}.count(member))
 		{
 			solAssert(dynamic_cast<AddressType const&>(*_memberAccess.expression().annotation().type).stateMutability() == StateMutability::Payable);
 			define(IRVariable{_memberAccess}.part("address"), _memberAccess.expression());
 		}
-		else if (std::set<std::string>{"call", "callcode", "delegatecall", "staticcall"}.count(member))
+		else if (std::set<std::string>{"freeze", "unfreeze", "delegateResource", "unDelegateResource"}.count(member))
+		{
+			solAssert(dynamic_cast<AddressType const&>(*_memberAccess.expression().annotation().type).stateMutability() == StateMutability::Payable);
+			define(IRVariable{_memberAccess}.part("address"), _memberAccess.expression());
+		}
+		else if (std::set<std::string>{"tokenBalance", "call", "callcode", "delegatecall", "staticcall",
+			"freezeExpireTime"}.count(member))
 			define(IRVariable{_memberAccess}.part("address"), _memberAccess.expression());
 		else
 			solAssert(false, "Invalid member access to address");
@@ -1874,8 +2179,64 @@ void IRGeneratorForStatements::endVisit(MemberAccess const& _memberAccess)
 			);
 		break;
 	case Type::Category::Magic:
+	{
 		// we can ignore the kind of magic and only look at the name of the member
-		if (member == "coinbase")
+		Whiskers routine(R"(
+			// load free mem ptr
+			let <ptr> := mload(64)
+			// save index param to mem
+			mstore(<ptr>, <index>)
+			// do static call to get chain parameter, if return zero, revert
+			if iszero(staticcall(gas(), 0x100000b, <ptr>, 32, <ptr>, 32)) {
+				let pos := mload(64)
+				returndatacopy(pos, 0, returndatasize())
+				revert(pos, returndatasize())
+			}
+			// finalize the mem allocation
+			mstore(64, add(<ptr>, 32))
+            // return data size must be exactly 32 bytes
+            if iszero(eq(returndatasize(), 32)) { revert(0, 0) }
+			// load the return value
+			let <result> := mload(<ptr>)
+			// do check the value is a valid uint64
+			if iszero(eq(<result>, and(<result>, 0xffffffffffffffff))) { revert(0, 0) }
+		)");
+		if (member == "totalNetLimit")
+		{
+			routine("ptr", m_context.newYulVariable());
+			routine("index", "1");
+			routine("result", IRVariable(_memberAccess).commaSeparatedList());
+			appendCode() << routine.render();
+		}
+		else if (member == "totalNetWeight")
+		{
+			routine("ptr", m_context.newYulVariable());
+			routine("index", "2");
+			routine("result", IRVariable(_memberAccess).commaSeparatedList());
+			appendCode() << routine.render();
+		}
+		else if (member == "totalEnergyCurrentLimit")
+		{
+			routine("ptr", m_context.newYulVariable());
+			routine("index", "3");
+			routine("result", IRVariable(_memberAccess).commaSeparatedList());
+			appendCode() << routine.render();
+		}
+		else if (member == "totalEnergyWeight")
+		{
+			routine("ptr", m_context.newYulVariable());
+			routine("index", "4");
+			routine("result", IRVariable(_memberAccess).commaSeparatedList());
+			appendCode() << routine.render();
+		}
+		else if (member == "unfreezeDelayDays")
+		{
+			routine("ptr", m_context.newYulVariable());
+			routine("index", "5");
+			routine("result", IRVariable(_memberAccess).commaSeparatedList());
+			appendCode() << routine.render();
+		}
+		else if (member == "coinbase")
 			define(_memberAccess) << "coinbase()\n";
 		else if (member == "timestamp")
 			define(_memberAccess) << "timestamp()\n";
@@ -1894,6 +2255,10 @@ void IRGeneratorForStatements::endVisit(MemberAccess const& _memberAccess)
 			define(_memberAccess) << "caller()\n";
 		else if (member == "value")
 			define(_memberAccess) << "callvalue()\n";
+		else if (member == "tokenvalue")
+			define(_memberAccess) << "calltokenvalue()\n";
+		else if (member == "tokenid")
+			define(_memberAccess) << "calltokenid()\n";
 		else if (member == "origin")
 			define(_memberAccess) << "origin()\n";
 		else if (member == "gasprice")
@@ -1975,14 +2340,14 @@ void IRGeneratorForStatements::endVisit(MemberAccess const& _memberAccess)
 
 			define(_memberAccess) << requestedValue << "\n";
 		}
-		else if (std::set<std::string>{"encode", "encodePacked", "encodeWithSelector", "encodeCall", "encodeWithSignature", "decode",
-                             "totalNetLimit", "totalNetWeight", "totalEnergyCurrentLimit", "totalEnergyWeight","unfreezeDelayDays"}.count(member))
+		else if (std::set<std::string>{"encode", "encodePacked", "encodeWithSelector", "encodeCall", "encodeWithSignature", "decode"}.count(member))
 		{
 			// no-op
 		}
 		else
 			solAssert(false, "Unknown magic member.");
 		break;
+	}
 	case Type::Category::Struct:
 	{
 		auto const& structType = dynamic_cast<StructType const&>(*_memberAccess.expression().annotation().type);
@@ -2158,6 +2523,7 @@ void IRGeneratorForStatements::endVisit(MemberAccess const& _memberAccess)
 				case FunctionType::Kind::ECRecover:
 				case FunctionType::Kind::SHA256:
 				case FunctionType::Kind::RIPEMD160:
+				case FunctionType::Kind::TransferToken:
 				default:
 					solAssert(false, "unsupported member function");
 				}

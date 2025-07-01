@@ -617,15 +617,15 @@ General Information)").c_str(),
 				"Select desired EOF version. Currently the only valid value is 1. "
 				"If not specified, legacy non-EOF bytecode will be generated."
 			)
+			(
+				g_strViaIR.c_str(),
+				"Turn on compilation mode via the IR."
+			)
 		;
 	outputOptions.add_options()
 		(
 			g_strExperimentalViaIR.c_str(),
-			"Deprecated synonym of --via-ir."
-		)
-		(
-			g_strViaIR.c_str(),
-			"Turn on compilation mode via the IR."
+			"Turn on experimental compilation mode via the IR (EXPERIMENTAL)."
 		)
 		(
 			g_strRevertStrings.c_str(),
@@ -751,10 +751,10 @@ General Information)").c_str(),
 		(CompilerOutputs::componentName(&CompilerOutputs::binary).c_str(), "Binary of the contracts in hex.")
 		(CompilerOutputs::componentName(&CompilerOutputs::binaryRuntime).c_str(), "Binary of the runtime part of the contracts in hex.")
 		(CompilerOutputs::componentName(&CompilerOutputs::abi).c_str(), "ABI specification of the contracts.")
-		(CompilerOutputs::componentName(&CompilerOutputs::ir).c_str(), "Intermediate Representation (IR) of all contracts.")
-		(CompilerOutputs::componentName(&CompilerOutputs::irAstJson).c_str(), "AST of Intermediate Representation (IR) of all contracts in a compact JSON format.")
-		(CompilerOutputs::componentName(&CompilerOutputs::irOptimized).c_str(), "Optimized Intermediate Representation (IR) of all contracts.")
-		(CompilerOutputs::componentName(&CompilerOutputs::irOptimizedAstJson).c_str(), "AST of optimized Intermediate Representation (IR) of all contracts in a compact JSON format.")
+		(CompilerOutputs::componentName(&CompilerOutputs::ir).c_str(), "Intermediate Representation (IR) of all contracts (EXPERIMENTAL).")
+		(CompilerOutputs::componentName(&CompilerOutputs::irAstJson).c_str(), "AST of Intermediate Representation (IR) of all contracts in a compact JSON format (EXPERIMENTAL).")
+		(CompilerOutputs::componentName(&CompilerOutputs::irOptimized).c_str(), "Optimized Intermediate Representation (IR) of all contracts (EXPERIMENTAL).")
+		(CompilerOutputs::componentName(&CompilerOutputs::irOptimizedAstJson).c_str(), "AST of optimized Intermediate Representation (IR) of all contracts in a compact JSON format (EXPERIMENTAL).")
 		(CompilerOutputs::componentName(&CompilerOutputs::signatureHashes).c_str(), "Function signature hashes of the contracts.")
 		(CompilerOutputs::componentName(&CompilerOutputs::natspecUser).c_str(), "Natspec user documentation of all contracts.")
 		(CompilerOutputs::componentName(&CompilerOutputs::natspecDev).c_str(), "Natspec developer documentation of all contracts.")
@@ -1425,6 +1425,12 @@ void CommandLineParser::processArgs()
 		m_args.count(g_strModelCheckerSolvers) ||
 		m_args.count(g_strModelCheckerTargets) ||
 		m_args.count(g_strModelCheckerTimeout);
+	if (m_args.count(g_strViaIR) > 0) {
+		solThrow(
+			CommandLineValidationError,
+			"Compilation mode via the IR is experimental now. Use --"  + g_strExperimentalViaIR + "."
+		);
+	}
 	m_options.output.viaIR = (m_args.count(g_strExperimentalViaIR) > 0 || m_args.count(g_strViaIR) > 0);
 
 	solAssert(

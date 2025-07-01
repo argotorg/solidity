@@ -647,7 +647,7 @@ MemberList::MemberMap AddressType::nativeMembers(ASTNode const*) const
 	{
 		members.emplace_back(MemberList::Member{"send", TypeProvider::function(strings{"uint"}, strings{"bool"}, FunctionType::Kind::Send, StateMutability::NonPayable)});
 		members.emplace_back(MemberList::Member{"transfer", TypeProvider::function(strings{"uint"}, strings(), FunctionType::Kind::Transfer, StateMutability::NonPayable)});
-		members.emplace_back(MemberList::Member{"transferToken", TypeProvider::function(strings{"uint", "trcToken"}, strings(), FunctionType::Kind::TransferToken)});
+		members.emplace_back(MemberList::Member{"transferToken", TypeProvider::function(strings{"uint", "trcToken"}, strings(), FunctionType::Kind::TransferToken, StateMutability::NonPayable)});
         members.emplace_back(MemberList::Member{"freeze", TypeProvider::function(strings{"uint", "uint"}, strings(), FunctionType::Kind::Freeze, StateMutability::NonPayable)});
         members.emplace_back(MemberList::Member{"unfreeze", TypeProvider::function(strings{"uint"}, strings(), FunctionType::Kind::Unfreeze, StateMutability::NonPayable)});
         members.emplace_back(MemberList::Member{"delegateResource", TypeProvider::function(strings{"uint", "uint"}, strings(), FunctionType::Kind::DelegateResource, StateMutability::NonPayable)});
@@ -3433,6 +3433,13 @@ std::vector<std::tuple<std::string, Type const*>> FunctionType::makeStackItems()
 	case Kind::BareStaticCall:
 	case Kind::Transfer:
 	case Kind::Send:
+	case Kind::TransferToken:
+	case Kind::TokenBalance:
+	case Kind::Freeze:
+	case Kind::Unfreeze:
+	case Kind::FreezeExpireTime:
+	case Kind::DelegateResource:
+	case Kind::UnDelegateResource:
 		slots = {std::make_tuple("address", TypeProvider::address())};
 		break;
 	case Kind::Internal:

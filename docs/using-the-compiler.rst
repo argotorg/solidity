@@ -347,7 +347,7 @@ Input Description
         // petersburg, istanbul, berlin, london, paris, shanghai or cancun (default)
         "evmVersion": "cancun",
         // Optional: Change compilation pipeline to go through the Yul intermediate representation.
-        // This is false by default.
+        // This is a highly EXPERIMENTAL feature, not to be used for production. This is false by default.
         "viaIR": true,
         // Optional: Debugging settings
         "debug": {

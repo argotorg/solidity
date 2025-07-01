@@ -3251,14 +3251,14 @@ bool TypeChecker::visit(MemberAccess const& _memberAccess)
 			else if (auto const* addressType = dynamic_cast<AddressType const*>(exprType))
 			{
 				// Trigger error when using send or transfer with a non-payable fallback function.
-				if (memberName == "send" || memberName == "transfer")
+				if (memberName == "send" || memberName == "transfer" || memberName == "transferToken")
 				{
 					solAssert(
 						addressType->stateMutability() != StateMutability::Payable,
 						"Expected address not-payable as members were not found"
 					);
 
-					return { 9862_error, "\"send\" and \"transfer\" are only available for objects of type \"address payable\", not \"" + exprType->humanReadableName() + "\"." };
+					return { 9862_error, "\"send\", \"transfer\" and \"transferToken\" are only available for objects of type \"address payable\", not \"" + exprType->humanReadableName() + "\"." };
 				}
 			}
 
