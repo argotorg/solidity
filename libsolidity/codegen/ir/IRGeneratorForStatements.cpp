@@ -1850,6 +1850,12 @@ void IRGeneratorForStatements::endVisit(FunctionCall const& _functionCall)
 
 		break;
 	}
+	case FunctionType::Kind::ValidateMultiSign:
+	case FunctionType::Kind::BatchValidateSign:
+	case FunctionType::Kind::VerifyBurnProof:
+	case FunctionType::Kind::VerifyTransferProof:
+	case FunctionType::Kind::VerifyMintProof:
+	case FunctionType::Kind::PedersenHash:
 	case FunctionType::Kind::RewardBalance:
 	case FunctionType::Kind::IsSrCandidate:
 	case FunctionType::Kind::VoteCount:
@@ -1875,6 +1881,12 @@ void IRGeneratorForStatements::endVisit(FunctionCall const& _functionCall)
 			solAssert(!functionType->hasBoundFirstArgument());
 
 		static std::map<FunctionType::Kind, u256> precompiles = {
+			{FunctionType::Kind::BatchValidateSign, 0x9},
+			{FunctionType::Kind::ValidateMultiSign, 0xa},
+			{FunctionType::Kind::VerifyMintProof, 0x1000001},
+			{FunctionType::Kind::VerifyTransferProof, 0x1000002},
+			{FunctionType::Kind::VerifyBurnProof, 0x1000003},
+			{FunctionType::Kind::PedersenHash, 0x1000004},
 			{FunctionType::Kind::RewardBalance, 0x1000005},
 			{FunctionType::Kind::IsSrCandidate, 0x1000006},
 			{FunctionType::Kind::VoteCount, 0x1000007},
