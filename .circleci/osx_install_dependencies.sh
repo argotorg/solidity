@@ -83,7 +83,8 @@ then
   cd "$z3_dir"
   mkdir build
   cd build
-  cmake -DCMAKE_OSX_ARCHITECTURES:STRING="x86_64;arm64" -DZ3_BUILD_LIBZ3_SHARED=false ..
+  # Force to support for CMake 3.5, should be delete in the future version
+  cmake -DCMAKE_OSX_ARCHITECTURES:STRING="x86_64;arm64" -DZ3_BUILD_LIBZ3_SHARED=false -DCMAKE_POLICY_VERSION_MINIMUM=3.5 ..
   make -j
   sudo make install
   cd ../..
