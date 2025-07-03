@@ -123,7 +123,7 @@ to receive their Ether - contracts cannot activate themselves.
 
                 // msg.sender is not of type `address payable` and must be
                 // explicitly converted using `payable(msg.sender)` in order
-                // use the member function `send()`.
+                // to use the member function `send()`.
                 if (!payable(msg.sender).send(amount)) {
                     // No need to call throw here, just reset the amount owing
                     pendingReturns[msg.sender] = amount;
