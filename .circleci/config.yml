@@ -626,17 +626,24 @@ defaults:
   # --------------------------------------------------------------------------
   # Workflow Templates
 
-  - on_all_tags_and_branches: &on_all_tags_and_branches
+  - on_tron_version_tags: &on_tron_version_tags
       filters:
         tags:
           only: /^tv.*/
         branches:
           ignore: /.*/
 
+  - on_all_tags_and_branches: &on_all_tags_and_branches
+      filters:
+        tags:
+          only: /^v.*/
+        branches:
+          ignore: /.*/
+
   - on_version_tags: &on_version_tags
       filters:
         tags:
-          only: /^tv.*/
+          only: /^v.*/
         branches:
           ignore: /.*/
 
@@ -2004,6 +2011,29 @@ workflows:
       # Final artifacts
       - c_release_binaries:
           <<: *on_version_tags
+          requires:
+            - b_ubu_static
+            - b_osx
+            - b_win
+            - b_ems
+
+  tron_build:
+    jobs:
+      # OS/X build
+      - b_osx: *on_tron_version_tags
+
+      # Ubuntu Static build
+      - b_ubu_static: *on_tron_version_tags
+
+      # Windows build
+      - b_win: *on_tron_version_tags
+
+      # Emscripten build
+      - b_ems: *on_tron_version_tags
+
+      # Final artifacts
+      - c_release_binaries:
+          <<: *on_tron_version_tags
           requires:
             - b_ubu_static
             - b_osx
