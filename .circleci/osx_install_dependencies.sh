@@ -48,6 +48,8 @@ function validate_checksum {
 
 if [ ! -f /usr/local/lib/libz3.a ] # if this file does not exists (cache was not restored), rebuild dependencies
 then
+  brew uninstall temurin17
+  brew untap homebrew/homebrew-cask-versions
   brew update
   brew upgrade
   brew install cmake
@@ -55,9 +57,6 @@ then
   brew install coreutils
   brew install diffutils
   brew install grep
-
-  # writing to /usr/local/lib need administrative privileges.
-  sudo ./scripts/install_obsolete_jsoncpp_1_7_4.sh
 
   # boost
   boost_version="1.84.0"
@@ -84,7 +83,8 @@ then
   cd "$z3_dir"
   mkdir build
   cd build
-  cmake -DCMAKE_OSX_ARCHITECTURES:STRING="x86_64;arm64" -DZ3_BUILD_LIBZ3_SHARED=false ..
+  # Force to support for CMake 3.5, should be delete in the future version
+  cmake -DCMAKE_OSX_ARCHITECTURES:STRING="x86_64;arm64" -DZ3_BUILD_LIBZ3_SHARED=false -DCMAKE_POLICY_VERSION_MINIMUM=3.5 ..
   make -j
   sudo make install
   cd ../..
