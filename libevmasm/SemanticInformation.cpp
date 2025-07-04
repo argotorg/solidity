@@ -146,6 +146,7 @@ std::vector<SemanticInformation::Operation> SemanticInformation::readWriteOperat
 	case Instruction::CALL:
 	case Instruction::CALLCODE:
 	case Instruction::DELEGATECALL:
+	case Instruction::CALLTOKEN:
 	{
 		size_t paramCount = static_cast<size_t>(instructionInfo(_instruction, langutil::EVMVersion()).args);
 		std::vector<Operation> operations{
@@ -187,6 +188,15 @@ std::vector<SemanticInformation::Operation> SemanticInformation::readWriteOperat
 	case Instruction::MSIZE:
 		// This is just to satisfy the assert below.
 		return std::vector<Operation>{};
+	case Instruction::NATIVEVOTE:
+	{
+		size_t paramCount = static_cast<size_t>(instructionInfo(_instruction, langutil::EVMVersion()).args);
+		std::vector<Operation> operations{
+			Operation{Location::Memory, Effect::Read, paramCount - 1, paramCount - 2, {}},
+			Operation{Location::Memory, Effect::Read, paramCount - 3, paramCount - 4, {}},
+		};
+		return operations;
+	}
 	default:
 		assertThrow(storage(_instruction) == None && memory(_instruction) == None && transientStorage(_instruction) == None, AssemblyException, "");
 	}
@@ -445,6 +455,7 @@ SemanticInformation::Effect SemanticInformation::memory(Instruction _instruction
 	case Instruction::LOG2:
 	case Instruction::LOG3:
 	case Instruction::LOG4:
+	case Instruction::NATIVEVOTE:
 		return SemanticInformation::Read;
 
 	default:
@@ -460,6 +471,7 @@ bool SemanticInformation::movableApartFromEffects(Instruction _instruction)
 	case Instruction::EXTCODESIZE:
 	case Instruction::RETURNDATASIZE:
 	case Instruction::BALANCE:
+	case Instruction::TOKENBALANCE:
 	case Instruction::SELFBALANCE:
 	case Instruction::SLOAD:
 	case Instruction::TLOAD:
@@ -498,6 +510,7 @@ SemanticInformation::Effect SemanticInformation::transientStorage(Instruction _i
 {
 	switch (_instruction)
 	{
+	case Instruction::CALLTOKEN:
 	case Instruction::CALL:
 	case Instruction::CALLCODE:
 	case Instruction::DELEGATECALL:
@@ -519,6 +532,7 @@ SemanticInformation::Effect SemanticInformation::otherState(Instruction _instruc
 {
 	switch (_instruction)
 	{
+	case Instruction::CALLTOKEN:
 	case Instruction::CALL:
 	case Instruction::CALLCODE:
 	case Instruction::DELEGATECALL:
@@ -528,15 +542,28 @@ SemanticInformation::Effect SemanticInformation::otherState(Instruction _instruc
 	case Instruction::STATICCALL: // because it can affect returndatasize
 		// Strictly speaking, log0, .., log4 writes to the state, but the EVM cannot read it, so they
 		// are just marked as having 'other side effects.'
+	case Instruction::NATIVEFREEZE:
+	case Instruction::NATIVEUNFREEZE:
+	case Instruction::NATIVEVOTE:
+	case Instruction::NATIVEWITHDRAWREWARD:
+	case Instruction::NATIVEFREEZEBALANCEV2:
+	case Instruction::NATIVEUNFREEZEBALANCEV2:
+	case Instruction::NATIVECANCELALLUNFREEZEV2:
+	case Instruction::NATIVEWITHDRAWEXPIREUNFREEZE:
+	case Instruction::NATIVEDELEGATERESOURCE:
+	case Instruction::NATIVEUNDELEGATERESOURCE:
 		return SemanticInformation::Write;
 
 	case Instruction::EXTCODESIZE:
 	case Instruction::EXTCODEHASH:
 	case Instruction::RETURNDATASIZE:
 	case Instruction::BALANCE:
+	case Instruction::TOKENBALANCE:
+	case Instruction::ISCONTRACT:
 	case Instruction::SELFBALANCE:
 	case Instruction::RETURNDATACOPY:
 	case Instruction::EXTCODECOPY:
+	case Instruction::NATIVEFREEZEEXPIRETIME:
 		// PC and GAS are specifically excluded here. Instructions such as CALLER, CALLVALUE,
 		// ADDRESS are excluded because they cannot change during execution.
 		return SemanticInformation::Read;
