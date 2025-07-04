@@ -2101,7 +2101,7 @@ void IRGeneratorForStatements::endVisit(MemberAccess const& _memberAccess)
 				")\n";
 		else if (member == "isContract")
 			define(_memberAccess) <<
-				"isContract(" <<
+				"iscontract(" <<
 				expressionAsType(_memberAccess.expression(), *TypeProvider::address()) <<
 				")\n";
 		else if (std::set<std::string>{"send", "transfer", "transferToken"}.count(member))
