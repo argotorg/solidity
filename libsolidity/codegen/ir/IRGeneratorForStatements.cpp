@@ -1635,7 +1635,7 @@ void IRGeneratorForStatements::endVisit(FunctionCall const& _functionCall)
 		Whiskers templ(R"(
 			if lt(<tokenId>, 0xF4240) { revert(0, 0) }
 			if gt(<tokenId>, sub(exp(2, 63), 1)) { revert(0, 0) }
-			let <result> := tokenbalance(<address>, <tokenId>)
+			let <result> := tokenbalance(<tokenId>, <address>)
 		)");
 		templ("address", address);
 		templ("tokenId", tokenId);
@@ -1714,7 +1714,7 @@ void IRGeneratorForStatements::endVisit(FunctionCall const& _functionCall)
 		std::string value{expressionAsType(*arguments[0], *(parameterTypes[0]))};
 		std::string resource{expressionAsType(*arguments[1], *(parameterTypes[1]))};
 		Whiskers templ(R"(
-			if iszero(nativefreeze(<address>, <value>, <resource>)) { revert(0, 0) }
+			if iszero(nativefreeze(<resource>, <value>, <address>)) { revert(0, 0) }
 		)");
 		templ("address", address);
 		templ("value", value);
@@ -1729,7 +1729,7 @@ void IRGeneratorForStatements::endVisit(FunctionCall const& _functionCall)
 		std::string address{IRVariable(_functionCall.expression()).part("address").name()};
 		std::string resource{expressionAsType(*arguments[0], *(parameterTypes[0]))};
 		Whiskers templ(R"(
-			if iszero(nativeunfreeze(<address>, <resource>)) { revert(0, 0) }
+			if iszero(nativeunfreeze(<resource>, <address>)) { revert(0, 0) }
 		)");
 		templ("address", address);
 		templ("resource", resource);
@@ -1743,7 +1743,7 @@ void IRGeneratorForStatements::endVisit(FunctionCall const& _functionCall)
 		std::string address{IRVariable(_functionCall.expression()).part("address").name()};
 		std::string resource{expressionAsType(*arguments[0], *(parameterTypes[0]))};
 		Whiskers templ(R"(
-			let <result> := nativefreezeexpiretime(<address>, <resource>)
+			let <result> := nativefreezeexpiretime(<resource>, <address>)
 		)");
 		templ("address", address);
 		templ("resource", resource);
@@ -1782,7 +1782,7 @@ void IRGeneratorForStatements::endVisit(FunctionCall const& _functionCall)
 		std::string value{expressionAsType(*arguments[0], *(parameterTypes[0]))};
 		std::string resource{expressionAsType(*arguments[1], *(parameterTypes[1]))};
 		Whiskers templ(R"(
-			if iszero(nativefreezebalancev2(<value>, <resource>)) { revert(0, 0) }
+			if iszero(nativefreezebalancev2(<resource>, <value>)) { revert(0, 0) }
 		)");
 		templ("value", value);
 		templ("resource", resource);
@@ -1796,7 +1796,7 @@ void IRGeneratorForStatements::endVisit(FunctionCall const& _functionCall)
 		std::string value{expressionAsType(*arguments[0], *(parameterTypes[0]))};
 		std::string resource{expressionAsType(*arguments[1], *(parameterTypes[1]))};
 		Whiskers templ(R"(
-			if iszero(nativeunfreezebalancev2(<value>, <resource>)) { revert(0, 0) }
+			if iszero(nativeunfreezebalancev2(<resource>, <value>)) { revert(0, 0) }
 		)");
 		templ("value", value);
 		templ("resource", resource);
@@ -1823,7 +1823,7 @@ void IRGeneratorForStatements::endVisit(FunctionCall const& _functionCall)
 		std::string value{expressionAsType(*arguments[0], *(parameterTypes[0]))};
 		std::string resource{expressionAsType(*arguments[1], *(parameterTypes[1]))};
 		Whiskers templ(R"(
-			if iszero(nativedelegateresource(<address>, <value>, <resource>)) { revert(0, 0) }
+			if iszero(nativedelegateresource(<resource>, <value>, <address>)) { revert(0, 0) }
 		)");
 		templ("address", address);
 		templ("value", value);
@@ -1839,7 +1839,7 @@ void IRGeneratorForStatements::endVisit(FunctionCall const& _functionCall)
 		std::string value{expressionAsType(*arguments[0], *(parameterTypes[0]))};
 		std::string resource{expressionAsType(*arguments[1], *(parameterTypes[1]))};
 		Whiskers templ(R"(
-			if iszero(nativeundelegateresource(<address>, <value>, <resource>)) { revert(0, 0) }
+			if iszero(nativeundelegateresource(<resource>, <value>, <address>)) { revert(0, 0) }
 		)");
 		templ("address", address);
 		templ("value", value);
