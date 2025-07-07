@@ -1609,8 +1609,8 @@ void IRGeneratorForStatements::endVisit(FunctionCall const& _functionCall)
 		std::string tokenValue{expressionAsType(*arguments[0], *(parameterTypes[0]))};
 		std::string tokenId{expressionAsType(*arguments[1], *(parameterTypes[1]))};
 		Whiskers templ(R"(
-			if lt(<tokenId>, 0xF4240) { revert(0, 0) }
-			if gt(<tokenId>, sub(exp(2, 63), 1)) { revert(0, 0) }
+			if iszero(lt(0xf4240, <tokenId>)) { revert(0, 0) }
+			if iszero(gt(exp(2, 63), <tokenId>)) { revert(0, 0) }
 			let <gas> := 0
 			if iszero(<tokenValue>) { <gas> := <callStipend> }
 			let <success> := calltoken(<gas>, <address>, <tokenValue>, <tokenId>, 0, 0, 0, 0)
@@ -1633,8 +1633,8 @@ void IRGeneratorForStatements::endVisit(FunctionCall const& _functionCall)
 		std::string address{IRVariable(_functionCall.expression()).part("address").name()};
 		std::string tokenId{expressionAsType(*arguments[0], *(parameterTypes[0]))};
 		Whiskers templ(R"(
-			if lt(<tokenId>, 0xF4240) { revert(0, 0) }
-			if gt(<tokenId>, sub(exp(2, 63), 1)) { revert(0, 0) }
+			if iszero(lt(0xf4240, <tokenId>)) { revert(0, 0) }
+			if iszero(gt(exp(2, 63), <tokenId>) { revert(0, 0) }
 			let <result> := tokenbalance(<tokenId>, <address>)
 		)");
 		templ("address", address);
