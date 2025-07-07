@@ -982,9 +982,10 @@ std::string IRGenerator::deployCode(ContractDefinition const& _contract)
 
 std::string IRGenerator::callValueCheck()
 {
-	return "if callvalue() { " + m_utils.revertReasonIfDebugFunction("TRX sent to non-payable function") + "() }\n"
-	+ "if calltokenid() { " + m_utils.revertReasonIfDebugFunction("TRC10 sent to non-payable function") + "() }\n"
-	+ "if calltokenvalue() { " + m_utils.revertReasonIfDebugFunction("TRC10 sent to non-payable function") + "() }";
+	std::string valueCheck = "if callvalue() { " + m_utils.revertReasonIfDebugFunction("TRX sent to non-payable function") + "() }\n\n";
+	std::string tokenIdCheck =  "if calltokenid() { " + m_utils.revertReasonIfDebugFunction("TRC10 sent to non-payable function") + "() }\n\n";
+	std::string tokenValueCheck = "if calltokenvalue() { " + m_utils.revertReasonIfDebugFunction("TRC10 sent to non-payable function") + "() }\n";
+	return valueCheck + tokenIdCheck + tokenValueCheck;
 }
 
 std::string IRGenerator::dispatchRoutine(ContractDefinition const& _contract)
