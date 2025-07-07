@@ -3256,17 +3256,18 @@ void ExpressionCompiler::appendExternalFunctionCall(
 	    //in this kind of precompiled contracts , return type is dynamicType
 	    if (haveReturndatacopy)
 	    {
-	        m_context << Instruction::RETURNDATASIZE;
+	        m_context << u256(0) << Instruction::RETURNDATASIZE;
 	        m_context.appendInlineAssembly(R"({
-				switch v case 0 {
-					v := 0x60
-				} default {
-					v := mload(0x40)
-					mstore(0x40, add(v, and(add(returndatasize(), 0x3f), not(0x1f))))
-					mstore(v, returndatasize())
-					returndatacopy(add(v, 0x20), 0, returndatasize())
-				}
-	        })", {"v"});
+				start := mload(0x40)
+				size := add(returndatasize(), 0x40)
+				mstore(0x40, add(start, size))
+
+				returndatacopy(add(start, 0x40), 0, returndatasize())
+				mstore(start, 0x20)
+				mstore(add(start, 0x20), div(returndatasize(), 0x20))
+	        })", {"start", "size"});
+
+			utils().abiDecode(returnTypes, true);
 	    }
 
 	}

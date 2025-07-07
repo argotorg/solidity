@@ -2998,7 +2998,7 @@ void IRGeneratorForStatements::appendExternalFunctionCall(
 
 		let <success> := <call>(<gas>, <address>, <?hasValue> <value>, </hasValue> <pos>, sub(<end>, <pos>), <pos>, <staticReturndataSize>)
 		<?noTryCall>
-			if iszero(<success>) { <forwardingRevert>e() }
+			if iszero(<success>) { <forwardingRevert>() }
 		</noTryCall>
 		<?+retVars> let <retVars> </+retVars>
 		if <success> {
