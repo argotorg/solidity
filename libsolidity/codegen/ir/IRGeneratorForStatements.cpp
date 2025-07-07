@@ -1925,14 +1925,33 @@ void IRGeneratorForStatements::endVisit(FunctionCall const& _functionCall)
 			let <pos> := <allocateUnbounded>()
 			let <end> := <encodeArgs>(<pos> <argumentString>)
 
-			let <success> := staticcall(gas(), <address>, <pos>, sub(<end>, <pos>), <pos>, <returnDataSize>)
+			let <success> := staticcall(gas(), <address>, <pos>, sub(<end>, <pos>), <pos>, <staticReturndataSize>)
 
 			if iszero(<success>) { <forwardingRevert>() }
 
-			// update freeMemoryPointer according to dynamic return size
-			<finalizeAllocation>(<pos>, <returnDataSize>)
+			<?isReturndataSizeDynamic>
+				<?isMintProof>
+					let <returnDataSizeVar> := add(returndatasize(), 0x40)
+					returndatacopy(add(<pos>, 0x40), 0, returndatasize())
+					mstore(<pos>, 0x20)
+					mstore(add(<pos>, 0x20), div(returndatasize(), 0x20))
+				<!isMintProof>
+					let <returnDataSizeVar> := returndatasize()
+					returndatacopy(<pos>, 0, <returnDataSizeVar>)
+				</isMintProof>
+			<!isReturndataSizeDynamic>
+				let <returnDataSizeVar> := <staticReturndataSize>
+				<?supportsReturnData>
+					if gt(<returnDataSizeVar>, returndatasize()) {
+						<returnDataSizeVar> := returndatasize()
+					}
+				</supportsReturnData>
+			</isReturndataSizeDynamic>
 
-			let <retVars> := <abiDecode>(<pos>, add(<pos>, <returnDataSize>))
+			// update freeMemoryPointer according to dynamic return size
+			<finalizeAllocation>(<pos>, <returnDataSizeVar>)
+
+			let <retVars> := <abiDecode>(<pos>, add(<pos>, <returnDataSizeVar>))
 		)");
 		templ("allocateUnbounded", m_utils.allocateUnboundedFunction());
 		templ("pos", m_context.newYulVariable());
@@ -1941,12 +1960,19 @@ void IRGeneratorForStatements::endVisit(FunctionCall const& _functionCall)
 		templ("argumentString", joinHumanReadablePrefixed(argumentStrings));
 		templ("address", toString(address));
 		templ("success", m_context.newYulVariable());
-		templ("retVars", IRVariable(_functionCall).commaSeparatedList());
 		templ("forwardingRevert", m_utils.forwardingRevertFunction());
 
-		templ("abiDecode", m_context.abiFunctions().tupleDecoder(returnInfo.returnTypes, true));
-		templ("returnDataSize", std::to_string(returnInfo.estimatedReturnSize));
+		if (returnInfo.dynamicReturnSize)
+			solAssert(m_context.evmVersion().supportsReturndata());
+		templ("supportsReturnData", m_context.evmVersion().supportsReturndata());
+
+		templ("returnDataSizeVar", m_context.newYulVariable());
+		templ("staticReturndataSize", std::to_string(returnInfo.estimatedReturnSize));
+		templ("isReturndataSizeDynamic", returnInfo.dynamicReturnSize);
+		templ("isMintProof",functionType->kind() == FunctionType::Kind::VerifyMintProof ||functionType->kind() == FunctionType::Kind::VerifyTransferProof);
 		templ("finalizeAllocation", m_utils.finalizeAllocationFunction());
+		templ("retVars", IRVariable(_functionCall).commaSeparatedList());
+		templ("abiDecode", m_context.abiFunctions().tupleDecoder(returnInfo.returnTypes, true));
 
 		appendCode() << templ.render();
 
@@ -2972,7 +2998,7 @@ void IRGeneratorForStatements::appendExternalFunctionCall(
 
 		let <success> := <call>(<gas>, <address>, <?hasValue> <value>, </hasValue> <pos>, sub(<end>, <pos>), <pos>, <staticReturndataSize>)
 		<?noTryCall>
-			if iszero(<success>) { <forwardingRevert>() }
+			if iszero(<success>) { <forwardingRevert>e() }
 		</noTryCall>
 		<?+retVars> let <retVars> </+retVars>
 		if <success> {
