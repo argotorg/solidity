@@ -70,7 +70,7 @@ an account. The smart contract checks if a nonce is used multiple times.
 Another type of replay attack can occur when the owner
 deploys a ``ReceiverPays`` smart contract, makes some
 payments, and then destroys the contract. Later, they decide
-to deploy the ``RecipientPays`` smart contract again, but the
+to deploy the ``ReceiverPays`` smart contract again, but the
 new contract does not know the nonces used in the previous
 deployment, so the attacker can use the old messages again.
 
