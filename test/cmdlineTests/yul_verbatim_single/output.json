@@ -1,0 +1,12 @@
+{
+  "contracts": {},
+  "sourceList": [
+    "input.yul"
+  ],
+  "sources": {
+    "input.yul": {
+      "id": 0
+    }
+  },
+  "version": "<VERSION REMOVED>"
+}

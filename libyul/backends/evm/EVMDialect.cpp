@@ -250,6 +250,46 @@ std::vector<std::optional<BuiltinFunctionForEVM>> createBuiltins(langutil::EVMVe
 		return createFunction(_name, _params, _returns, _sideEffects, _controlFlowSideEffects, std::move(_literalArguments), std::move(_generateCode));
 	};
 
+	builtins.emplace_back(createIfObjectAccess(
+		"verbatim",
+		3,
+		0,
+		SideEffects::worst(),
+		ControlFlowSideEffects::worst(), // Worst control flow side effects because verbatim can do anything.
+		{LiteralKind::Number, LiteralKind::Number, LiteralKind::String},
+		[](
+			FunctionCall const& _call,
+			AbstractAssembly& _assembly,
+			BuiltinContext&
+		) {
+			yulAssert(_call.arguments.size() == 3, "");
+
+			// Get the number of inputs from the first argument
+			Literal const* argsLiteral = std::get_if<Literal>(&_call.arguments[0]);
+			yulAssert(argsLiteral, "First argument must be a literal");
+			size_t arguments = static_cast<size_t>(argsLiteral->value.value());
+
+			// Get the number of outputs from the second argument
+			Literal const* retsLiteral = std::get_if<Literal>(&_call.arguments[1]);
+			yulAssert(retsLiteral, "Second argument must be a literal");
+			size_t returnVariables = static_cast<size_t>(retsLiteral->value.value());
+
+			// Verify that arguments and returnVariables are in the allowed range
+			yulAssert(arguments <= EVMDialect::verbatimMaxInputSlots, "Too many verbatim input arguments");
+			yulAssert(returnVariables <= EVMDialect::verbatimMaxOutputSlots, "Too many verbatim return values");
+
+			// Get the bytecode from the third argument
+			Literal const* bytecodeStr = std::get_if<Literal>(&_call.arguments[2]);
+			yulAssert(bytecodeStr, "Third argument must be a literal");
+
+			_assembly.appendVerbatim(
+				asBytes(formatLiteral(*bytecodeStr)),
+				arguments,
+				returnVariables
+			);
+		}
+	));
+
 	builtins.emplace_back(createIfObjectAccess("linkersymbol", 1, 1, SideEffects{}, ControlFlowSideEffects{}, {LiteralKind::String}, [](
 		FunctionCall const& _call,
 		AbstractAssembly& _assembly,
