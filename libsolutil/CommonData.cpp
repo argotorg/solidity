@@ -59,8 +59,9 @@ std::string solidity::util::toHex(bytes const& _data, HexPrefix _prefix, HexCase
 	size_t i = 0;
 	if (_prefix == HexPrefix::Add)
 	{
-		ret[i++] = '0';
-		ret[i++] = 'x';
+		ret[0] = '0';
+		ret[1] = 'x';
+		i = 2;
 	}
 
 	// Mixed case will be handled inside the loop.
