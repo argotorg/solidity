@@ -1889,7 +1889,6 @@ workflows:
 
       # build-only
       - b_docs: *requires_nothing
-      - b_ubu_ossfuzz: *requires_nothing
       - b_ubu_2204: *requires_nothing
       - b_ubu_2204_clang: *requires_nothing
 
