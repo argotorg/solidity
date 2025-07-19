@@ -74,6 +74,8 @@ function build() {
         -DBoost_USE_STATIC_LIBS=1 \
         -DBoost_USE_STATIC_RUNTIME=1 \
         -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS}" \
+        -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+        -DCMAKE_C_COMPILER_LAUNCHER=ccache \
         -DTESTS=0 \
     ..
     make soljson

@@ -232,6 +232,25 @@ commands:
               echo "ccache not available, skipping configuration"
             fi
 
+  finalize_ccache:
+    parameters:
+      os:
+        type: string
+    steps:
+      - run:
+          name: Show ccache stats
+          command: |
+            if command -v ccache &> /dev/null; then
+              echo "ccache final stats:"
+              ccache --show-stats
+            else
+              echo "ccache not available"
+            fi
+      - save_cache:
+          key: ccache-v1-<<parameters.os>>-{{ arch }}-{{ .Branch }}-{{ checksum "/tmp/all-cmake-files.txt" }}
+          paths:
+            - ~/.ccache
+
   setup_prerelease_commit_hash:
     steps:
       - run:
@@ -255,15 +274,8 @@ commands:
       - run:
           name: Build
           command: scripts/ci/build.sh
-      - run:
-          name: Show ccache stats
-          command: |
-            echo "ccache final stats:"
-            ccache --show-stats
-      - save_cache:
-          key: ccache-v1-<<parameters.os>>-{{ arch }}-{{ .Branch }}-{{ checksum "/tmp/all-cmake-files.txt" }}
-          paths:
-            - ~/.ccache
+      - finalize_ccache:
+          os: <<parameters.os>>
 
   run_build_ossfuzz:
     steps:
@@ -1290,10 +1302,14 @@ jobs:
       MAKEFLAGS: -j 10
     steps:
       - checkout
+      - setup_ccache:
+          os: ems
       - run:
           name: Build
           command: |
             scripts/ci/build_emscripten.sh
+      - finalize_ccache:
+          os: ems
       - store_artifacts:
           path: upload/soljson.js
           destination: soljson.js
