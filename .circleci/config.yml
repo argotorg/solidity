@@ -191,6 +191,7 @@ commands:
       os:
         type: string
         default: "undefined"
+
     steps:
       - run:
           name: Create CMake files checksum
