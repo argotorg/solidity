@@ -252,6 +252,90 @@ commands:
           paths:
             - ~/.ccache
 
+  setup_sccache:
+    steps:
+      - run:
+          name: Create CMake files checksum
+          command: |
+            Get-ChildItem -Path . -Filter "CMakeLists.txt" -Recurse | Get-Content | Out-File -FilePath C:\Users\circleci\all-cmake-files.txt -Encoding UTF8
+          shell: powershell.exe
+      - restore_cache:
+          keys:
+            - sccache-v1-{{ arch }}-{{ .Branch }}-{{ checksum "C:\\Users\\circleci\\all-cmake-files.txt" }}
+            - sccache-v1-{{ arch }}-{{ .Branch }}-
+            - sccache-v1-{{ arch }}-
+      - run:
+          name: Install and configure sccache
+          command: |
+            # Check if sccache is already installed
+            $sccachePath = Get-Command sccache -ErrorAction SilentlyContinue
+            if (-not $sccachePath) {
+              Write-Host "Installing sccache..."
+              # Download sccache
+              $sccacheVersion = "v0.8.2"
+              $sccacheUrl = "https://github.com/mozilla/sccache/releases/download/$sccacheVersion/sccache-$sccacheVersion-x86_64-pc-windows-msvc.tar.gz"
+              Invoke-WebRequest -Uri $sccacheUrl -OutFile sccache.tar.gz -UserAgent ""
+
+              # Extract sccache
+              tar -xf sccache.tar.gz
+              $sccacheDir = Get-ChildItem -Directory -Filter "sccache-*" | Select-Object -First 1
+              Move-Item "$sccacheDir\sccache.exe" "C:\Windows\System32\"
+              Remove-Item sccache.tar.gz
+              Remove-Item -Recurse $sccacheDir
+            }
+            
+            # Check if Ninja is already installed
+            $ninjaPath = Get-Command ninja -ErrorAction SilentlyContinue
+            if (-not $ninjaPath) {
+              Write-Host "Installing Ninja..."
+              # Download Ninja
+              $ninjaVersion = "v1.11.1"
+              $ninjaUrl = "https://github.com/ninja-build/ninja/releases/download/$ninjaVersion/ninja-win.zip"
+              Invoke-WebRequest -Uri $ninjaUrl -OutFile ninja.zip -UserAgent ""
+              
+              # Extract Ninja
+              Expand-Archive -Path ninja.zip -DestinationPath ninja
+              Move-Item "ninja\ninja.exe" "C:\Windows\System32\"
+              Remove-Item ninja.zip
+              Remove-Item -Recurse ninja
+            }
+
+            # Configure sccache
+            $env:SCCACHE_CACHE_SIZE = "2G"
+            $env:SCCACHE_DIR = "C:\Users\circleci\sccache"
+            [Environment]::SetEnvironmentVariable("SCCACHE_CACHE_SIZE", "2G", "Machine")
+            [Environment]::SetEnvironmentVariable("SCCACHE_DIR", "C:\Users\circleci\sccache", "Machine")
+
+            # Create sccache directory if it doesn't exist
+            if (-not (Test-Path "C:\Users\circleci\sccache")) {
+              New-Item -ItemType Directory -Path "C:\Users\circleci\sccache" -Force | Out-Null
+            }
+
+            # Start sccache server and show initial stats
+            sccache --stop-server | Out-Null
+            sccache --start-server
+            Write-Host "sccache initial stats:"
+            sccache --show-stats
+          shell: powershell.exe
+
+  finalize_sccache:
+    steps:
+      - run:
+          name: Show sccache stats
+          command: |
+            $sccachePath = Get-Command sccache -ErrorAction SilentlyContinue
+            if ($sccachePath) {
+              Write-Host "sccache final stats:"
+              sccache --show-stats
+            } else {
+              Write-Host "sccache not available"
+            }
+          shell: powershell.exe
+      - save_cache:
+          key: sccache-v1-{{ arch }}-{{ .Branch }}-{{ checksum "C:\\Users\\circleci\\all-cmake-files.txt" }}
+          paths:
+            - C:\Users\circleci\sccache
+
   setup_prerelease_commit_hash:
     steps:
       - run:
@@ -1736,10 +1820,12 @@ jobs:
           key: dependencies-win-{{ arch }}-{{ checksum "scripts/install_deps.ps1" }}
           paths:
             - .\deps
+      - setup_sccache
       - run:
           name: "Building solidity"
           command: .circleci/build_win.ps1
           shell: powershell.exe
+      - finalize_sccache
       - run:
           name: "Run solc.exe to make sure build was successful."
           command: .\build\solc\Release\solc.exe --version
