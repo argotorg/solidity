@@ -1,0 +1,82 @@
+name: Documentation Checks and Build
+
+on:
+  push:
+    paths:
+      - 'docs/**'
+  pull_request:
+    paths:
+      - 'docs/**'
+
+jobs:
+  chk_spelling:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: |
+          pip install --user codespell
+
+      - name: Check spelling
+        run: ~/.local/bin/codespell
+
+  chk_pylint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install Python dependencies
+        run: |
+          pip install --user pyyaml jsonschema pytest pylint
+
+      - name: Check pylint version
+        run: pylint --version
+
+      - name: Linting Python Scripts
+        run: scripts/pylint_all.py
+
+  chk_docs_pragma_min_version:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check docs pragma version
+        run: scripts/docs_version_pragma_check.sh
+
+  b_docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Store commit hash and prerelease
+        run: |
+          if [[ $GITHUB_REF == refs/heads/release || $GITHUB_REF == refs/tags/* ]]; then
+            echo -n > prerelease.txt
+          else
+            date -u +"nightly.%Y.%-m.%-d" > prerelease.txt
+          fi
+          echo -n "$GITHUB_SHA" > commit_hash.txt
+
+      - name: Build documentation
+        run: docs/docs.sh
+
+      - name: Upload documentation artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: docs-html
+          path: docs/_build/html/

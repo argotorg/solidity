@@ -1,0 +1,22 @@
+name: ANTLR Grammar Check
+
+on:
+  push:
+    paths:
+      - 'docs/grammar/**'
+  pull_request:
+    paths:
+      - 'docs/grammar/**'
+
+jobs:
+  chk_antlr_grammar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Run ANTLR grammar tests
+        run: scripts/test_antlr_grammar.sh
