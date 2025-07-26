@@ -1,0 +1,19 @@
+name: Formal Proofs Check
+
+on:
+  push:
+    paths:
+      - 'test/formal/**'
+  pull_request:
+    paths:
+      - 'test/formal/**'
+
+jobs:
+  chk_proofs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Correctness proofs for optimization rules
+        run: scripts/run_proofs.sh
