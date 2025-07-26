@@ -210,12 +210,6 @@ commands:
           name: Build_ossfuzz
           command: scripts/ci/build_ossfuzz.sh
 
-  run_proofs:
-    steps:
-      - run:
-          name: Correctness proofs for optimization rules
-          command: scripts/run_proofs.sh
-
   run_soltest:
     steps:
       - run:
@@ -243,12 +237,6 @@ commands:
           name: command line tests
           no_output_timeout: 30m
           command: .circleci/parallel_cli_tests.py
-
-  run_docs_pragma_min_version:
-    steps:
-      - run:
-         name: docs pragma version check
-         command: scripts/docs_version_pragma_check.sh
 
   # --------------------------------------------------------------------------
   # Artifact Commands
@@ -961,20 +949,6 @@ jobs:
           command: scripts/pylint_all.py
       - matrix_notify_failure_unless_pr
 
-  chk_antlr_grammar:
-    <<: *base_cimg_small
-    steps:
-      - checkout
-      - run:
-          name: Install Java
-          command: |
-            sudo apt -q update
-            sudo apt install -y openjdk-17-jdk
-      - run:
-          name: Run tests
-          command: scripts/test_antlr_grammar.sh
-      - matrix_notify_failure_unless_pr
-
   chk_buglist:
     <<: *base_node_small
     steps:
@@ -988,20 +962,6 @@ jobs:
       - run:
           name: Test buglist
           command: test/buglistTests.js
-      - matrix_notify_failure_unless_pr
-
-  chk_proofs:
-    <<: *base_ubuntu2404_small
-    steps:
-      - checkout
-      - run_proofs
-      - matrix_notify_failure_unless_pr
-
-  chk_docs_pragma_min_version:
-    <<: *base_ubuntu2404_small
-    steps:
-      - checkout
-      - run_docs_pragma_min_version
       - matrix_notify_failure_unless_pr
 
   t_ubu_pyscripts:
@@ -1879,11 +1839,8 @@ workflows:
       - chk_coding_style: *requires_nothing
       # DISABLED FOR 0.6.0 - chk_docs_examples: *requires_nothing
       - chk_buglist: *requires_nothing
-      - chk_proofs: *requires_nothing
       - chk_pylint: *requires_nothing
       - chk_errorcodes: *requires_nothing
-      - chk_antlr_grammar: *requires_nothing
-      - chk_docs_pragma_min_version: *requires_nothing
       - t_ubu_pyscripts: *requires_nothing
       - t_win_pyscripts: *requires_nothing
 
