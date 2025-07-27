@@ -62,7 +62,7 @@ void EVMAssemblyStack::assemble()
 	m_sourceMapping = AssemblyItem::computeSourceMapping(m_evmAssembly->codeSections().front().items, sourceIndices());
 	if (m_evmAssembly->numSubs() > 0)
 	{
-		m_evmRuntimeAssembly = std::make_shared<evmasm::Assembly>(m_evmAssembly->sub(0));
+		m_evmRuntimeAssembly = std::make_shared<evmasm::Assembly>(m_evmAssembly->sub(SubAssemblyID{0}));
 		solAssert(m_evmRuntimeAssembly && !m_evmRuntimeAssembly->isCreation());
 		// TODO: Check for EOF
 		solAssert(m_evmRuntimeAssembly->codeSections().size() == 1);

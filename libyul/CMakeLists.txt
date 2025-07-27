@@ -58,6 +58,8 @@ add_library(yul
 	backends/evm/ControlFlowGraphBuilder.h
 	backends/evm/EthAssemblyAdapter.cpp
 	backends/evm/EthAssemblyAdapter.h
+	backends/evm/EVMBuiltins.cpp
+	backends/evm/EVMBuiltins.h
 	backends/evm/EVMCodeTransform.cpp
 	backends/evm/EVMCodeTransform.h
 	backends/evm/EVMDialect.cpp
@@ -145,6 +147,8 @@ add_library(yul
 	optimiser/InlinableExpressionFunctionFinder.h
 	optimiser/KnowledgeBase.cpp
 	optimiser/KnowledgeBase.h
+	optimiser/LabelIDDispenser.cpp
+	optimiser/LabelIDDispenser.h
 	optimiser/LoadResolver.cpp
 	optimiser/LoadResolver.h
 	optimiser/LoopInvariantCodeMotion.cpp

@@ -25,6 +25,8 @@
 
 #include <libyul/ASTForward.h>
 
+#include <libevmasm/SubAssemblyID.h>
+
 #include <libsolutil/Common.h>
 #include <libsolutil/CommonData.h>
 #include <libsolutil/Numeric.h>
@@ -55,7 +57,7 @@ class AbstractAssembly
 {
 public:
 	using LabelID = size_t;
-	using SubID = size_t;
+	using SubID = evmasm::SubAssemblyID;
 	using ContainerID = uint8_t;
 	using FunctionID = uint16_t;
 	enum class JumpType { Ordinary, IntoFunction, OutOfFunction };

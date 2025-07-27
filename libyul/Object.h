@@ -24,6 +24,8 @@
 #include <libyul/ASTForward.h>
 #include <libyul/AsmPrinter.h>
 
+#include <libevmasm/SubAssemblyID.h>
+
 #include <liblangutil/CharStreamProvider.h>
 #include <liblangutil/DebugInfoSelection.h>
 
@@ -135,14 +137,14 @@ public:
 	/// pathToSubObject("E2.F3.H4") == {1, 0, 2}
 	/// pathToSubObject("A1.E2") == {1}
 	/// The path must not lead to a @a Data object (will throw in that case).
-	std::vector<size_t> pathToSubObject(std::string_view _qualifiedName) const;
+	std::vector<evmasm::SubAssemblyID> pathToSubObject(std::string_view _qualifiedName) const;
 
 	std::shared_ptr<AST const> code() const;
 	void setCode(std::shared_ptr<AST const> const& _ast, std::shared_ptr<yul::AsmAnalysisInfo> = nullptr);
 	bool hasCode() const;
 
-	/// sub id for object if it is subobject of another object, max value if it is not subobject
-	size_t subId = std::numeric_limits<size_t>::max();
+	/// sub id for object if it is subobject of another object, max value / empty if it is not subobject
+	evmasm::SubAssemblyID subId{};
 
 	std::vector<std::shared_ptr<ObjectNode>> subObjects;
 	std::map<std::string, size_t, std::less<>> subIndexByName;

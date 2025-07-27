@@ -149,6 +149,7 @@ set(libyul_sources
     libyul/ControlFlowSideEffectsTest.h
     libyul/EVMCodeTransformTest.cpp
     libyul/EVMCodeTransformTest.h
+    libyul/EVMDialectCompatibility.cpp
     libyul/FunctionSideEffects.cpp
     libyul/FunctionSideEffects.h
     libyul/Inliner.cpp

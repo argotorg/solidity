@@ -49,9 +49,9 @@ CompilabilityChecker::CompilabilityChecker(
 		BuiltinContext builtinContext;
 		builtinContext.currentObject = &_object;
 		if (!_object.name.empty())
-			builtinContext.subIDs[_object.name] = 1;
+			builtinContext.subIDs[_object.name] = {1};
 		for (auto const& subNode: _object.subObjects)
-			builtinContext.subIDs[subNode->name] = 1;
+			builtinContext.subIDs[subNode->name] = {1};
 		NoOutputAssembly assembly{evmDialect->evmVersion()};
 		CodeTransform transform(
 			assembly,

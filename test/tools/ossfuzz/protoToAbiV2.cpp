@@ -5,7 +5,7 @@
 
 /// Convenience macros
 /// Returns a valid Solidity integer width w such that 8 <= w <= 256.
-#define INTWIDTH(z, n, _ununsed) BOOST_PP_MUL(BOOST_PP_ADD(n, 1), 8)
+#define INTWIDTH(z, n, _unused) BOOST_PP_MUL(BOOST_PP_ADD(n, 1), 8)
 /// Using declaration that aliases long boost multiprecision types with
 /// s(u)<width> where <width> is a valid Solidity integer width and "s"
 /// stands for "signed" and "u" for "unsigned".

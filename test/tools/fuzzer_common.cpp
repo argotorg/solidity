@@ -39,7 +39,7 @@ using namespace solidity::frontend;
 using namespace solidity::langutil;
 using namespace solidity::util;
 
-static std::vector<EVMVersion> s_evmVersions = EVMVersion::allVersions();
+static auto constexpr s_evmVersions = EVMVersion::allVersions();
 
 void FuzzerUtil::testCompilerJsonInterface(std::string const& _input, bool _optimize, bool _quiet)
 {

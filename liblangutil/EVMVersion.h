@@ -23,12 +23,10 @@
 
 #include <libsolutil/Assertions.h>
 
+#include <array>
 #include <cstdint>
 #include <optional>
 #include <string>
-#include <vector>
-
-#include <boost/operators.hpp>
 
 
 namespace solidity::evmasm
@@ -44,30 +42,30 @@ namespace solidity::langutil
  * A version specifier of the EVM we want to compile to.
  * Defaults to the latest version deployed on Ethereum Mainnet at the time of compiler release.
  */
-class EVMVersion:
-	boost::less_than_comparable<EVMVersion>,
-	boost::equality_comparable<EVMVersion>
+class EVMVersion
 {
 public:
 	EVMVersion() = default;
 
-	static EVMVersion homestead() { return {Version::Homestead}; }
-	static EVMVersion tangerineWhistle() { return {Version::TangerineWhistle}; }
-	static EVMVersion spuriousDragon() { return {Version::SpuriousDragon}; }
-	static EVMVersion byzantium() { return {Version::Byzantium}; }
-	static EVMVersion constantinople() { return {Version::Constantinople}; }
-	static EVMVersion petersburg() { return {Version::Petersburg}; }
-	static EVMVersion istanbul() { return {Version::Istanbul}; }
-	static EVMVersion berlin() { return {Version::Berlin}; }
-	static EVMVersion london() { return {Version::London}; }
-	static EVMVersion paris() { return {Version::Paris}; }
-	static EVMVersion shanghai() { return {Version::Shanghai}; }
-	static EVMVersion cancun() { return {Version::Cancun}; }
-	static EVMVersion prague() { return {Version::Prague}; }
-	static EVMVersion osaka() { return {Version::Osaka}; }
+	static EVMVersion current() { return {currentVersion}; }
 
-	static std::vector<EVMVersion> allVersions() {
-		return {
+	static EVMVersion constexpr homestead() { return {Version::Homestead}; }
+	static EVMVersion constexpr tangerineWhistle() { return {Version::TangerineWhistle}; }
+	static EVMVersion constexpr spuriousDragon() { return {Version::SpuriousDragon}; }
+	static EVMVersion constexpr byzantium() { return {Version::Byzantium}; }
+	static EVMVersion constexpr constantinople() { return {Version::Constantinople}; }
+	static EVMVersion constexpr petersburg() { return {Version::Petersburg}; }
+	static EVMVersion constexpr istanbul() { return {Version::Istanbul}; }
+	static EVMVersion constexpr berlin() { return {Version::Berlin}; }
+	static EVMVersion constexpr london() { return {Version::London}; }
+	static EVMVersion constexpr paris() { return {Version::Paris}; }
+	static EVMVersion constexpr shanghai() { return {Version::Shanghai}; }
+	static EVMVersion constexpr cancun() { return {Version::Cancun}; }
+	static EVMVersion constexpr prague() { return {Version::Prague}; }
+	static EVMVersion constexpr osaka() { return {Version::Osaka}; }
+
+	static auto constexpr allVersions() {
+		return std::array{
 			homestead(),
 			tangerineWhistle(),
 			spuriousDragon(),
@@ -85,6 +83,14 @@ public:
 		};
 	}
 
+	static auto constexpr allEOFVersions()
+	{
+		return std::array{
+			std::optional<uint8_t>(),
+			std::make_optional<uint8_t>(1)
+		};
+	}
+
 	static std::optional<EVMVersion> fromString(std::string const& _version)
 	{
 		for (auto const& v: allVersions())
@@ -96,11 +102,10 @@ public:
 	static EVMVersion firstWithEOF() { return {Version::Osaka}; }
 
 	bool isExperimental() const {
-		return *this > EVMVersion{};
+		return m_version > currentVersion;
 	}
 
-	bool operator==(EVMVersion const& _other) const { return m_version == _other.m_version; }
-	bool operator<(EVMVersion const& _other) const { return m_version < _other.m_version; }
+	auto operator<=>(EVMVersion const&) const = default;
 
 	std::string name() const
 	{
@@ -164,10 +169,11 @@ private:
 		Prague,
 		Osaka,
 	};
+	static auto constexpr currentVersion = Version::Prague;
 
-	EVMVersion(Version _version): m_version(_version) {}
+	constexpr EVMVersion(Version _version): m_version(_version) {}
 
-	Version m_version = Version::Prague;
+	Version m_version = currentVersion;
 };
 
 }

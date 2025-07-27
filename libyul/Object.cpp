@@ -169,7 +169,7 @@ Object::Structure Object::summarizeStructure() const
 	return structure;
 }
 
-std::vector<size_t> Object::pathToSubObject(std::string_view _qualifiedName) const
+std::vector<evmasm::SubAssemblyID> Object::pathToSubObject(std::string_view _qualifiedName) const
 {
 	yulAssert(_qualifiedName != name, "");
 	yulAssert(subIndexByName.count(name) == 0, "");
@@ -181,7 +181,7 @@ std::vector<size_t> Object::pathToSubObject(std::string_view _qualifiedName) con
 	std::vector<std::string> subObjectPathComponents;
 	boost::algorithm::split(subObjectPathComponents, _qualifiedName, boost::is_any_of("."));
 
-	std::vector<size_t> path;
+	std::vector<evmasm::SubAssemblyID> path;
 	Object const* object = this;
 	for (std::string const& currentSubObjectName: subObjectPathComponents)
 	{
@@ -193,8 +193,8 @@ std::vector<size_t> Object::pathToSubObject(std::string_view _qualifiedName) con
 		);
 		object = dynamic_cast<Object const*>(object->subObjects[subIndexIt->second].get());
 		yulAssert(object, "Assembly object <" + std::string(_qualifiedName) + "> not found or does not contain code.");
-		yulAssert(object->subId != std::numeric_limits<size_t>::max(), "");
-		path.push_back({object->subId});
+		yulAssert(!object->subId.empty());
+		path.emplace_back(object->subId);
 	}
 
 	return path;

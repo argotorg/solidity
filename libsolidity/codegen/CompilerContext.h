@@ -75,7 +75,7 @@ public:
 		m_yulUtilFunctions(m_evmVersion, _eofVersion, m_revertStrings, m_yulFunctionCollector)
 	{
 		if (m_runtimeContext)
-			m_runtimeSub = size_t(m_asm->newSub(m_runtimeContext->m_asm).data());
+			m_runtimeSub = evmasm::SubAssemblyID{m_asm->newSub(m_runtimeContext->m_asm).data()};
 	}
 
 	langutil::EVMVersion const& evmVersion() const { return m_evmVersion; }
@@ -227,9 +227,9 @@ public:
 	/// on the stack. @returns the pushsub assembly item.
 	evmasm::AssemblyItem addSubroutine(evmasm::AssemblyPointer const& _assembly) { return m_asm->appendSubroutine(_assembly); }
 	/// Pushes the size of the subroutine.
-	void pushSubroutineSize(size_t _subRoutine) { m_asm->pushSubroutineSize(_subRoutine); }
+	void pushSubroutineSize(evmasm::SubAssemblyID _subRoutine) { m_asm->pushSubroutineSize(_subRoutine); }
 	/// Pushes the offset of the subroutine.
-	void pushSubroutineOffset(size_t _subRoutine) { m_asm->pushSubroutineOffset(_subRoutine); }
+	void pushSubroutineOffset(evmasm::SubAssemblyID _subRoutine) { m_asm->pushSubroutineOffset(_subRoutine); }
 	/// Pushes the size of the final program
 	void appendProgramSize() { m_asm->appendProgramSize(); }
 	/// Adds data to the data section, pushes a reference to the stack
@@ -289,7 +289,7 @@ public:
 	/// @returns the runtime context if in creation mode and runtime context is set, nullptr otherwise.
 	CompilerContext* runtimeContext() const { return m_runtimeContext; }
 	/// @returns the identifier of the runtime subroutine.
-	size_t runtimeSub() const { return m_runtimeSub; }
+	evmasm::SubAssemblyID runtimeSub() const { return m_runtimeSub; }
 
 	/// @returns a const reference to the underlying assembly.
 	evmasm::Assembly const& assembly() const { return *m_asm; }
@@ -376,7 +376,7 @@ private:
 	/// The runtime context if in Creation mode, this is used for generating tags that would be stored into the storage and then used at runtime.
 	CompilerContext *m_runtimeContext;
 	/// The index of the runtime subroutine.
-	size_t m_runtimeSub = std::numeric_limits<size_t>::max();
+	evmasm::SubAssemblyID m_runtimeSub{};
 	/// An index of low-level function labels by name.
 	std::map<std::string, evmasm::AssemblyItem> m_lowLevelFunctions;
 	/// Collector for yul functions.

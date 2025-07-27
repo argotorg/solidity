@@ -50,7 +50,7 @@ std::string toStringInHex(u256 _value)
 
 }
 
-AssemblyItem AssemblyItem::toSubAssemblyTag(size_t _subId) const
+AssemblyItem AssemblyItem::toSubAssemblyTag(SubAssemblyID _subId) const
 {
 	assertThrow(data() < (u256(1) << 64), util::Exception, "Tag already has subassembly set.");
 	assertThrow(m_type == PushTag || m_type == Tag, util::Exception, "");
@@ -61,20 +61,21 @@ AssemblyItem AssemblyItem::toSubAssemblyTag(size_t _subId) const
 	return r;
 }
 
-std::pair<size_t, size_t> AssemblyItem::splitForeignPushTag() const
+std::pair<SubAssemblyID, size_t> AssemblyItem::splitForeignPushTag() const
 {
 	solAssert(m_type == PushTag || m_type == Tag || m_type == RelativeJump || m_type == ConditionalRelativeJump);
 	u256 combined = u256(data());
-	size_t subId = static_cast<size_t>((combined >> 64) - 1);
+	// the combined u256 is 'dirty', so we can't use the conversion constructor of SubAssemblyID here
+	SubAssemblyID const subID{static_cast<SubAssemblyID::ValueType>((combined >> 64) - 1)};
 	size_t tag = static_cast<size_t>(combined & 0xffffffffffffffffULL);
-	return std::make_pair(subId, tag);
+	return std::make_pair(subID, tag);
 }
 
 size_t AssemblyItem::relativeJumpTagID() const
 {
 	solAssert(m_type == RelativeJump || m_type == ConditionalRelativeJump);
 	auto const [subId, tagId] = splitForeignPushTag();
-	solAssert(subId == std::numeric_limits<size_t>::max(), "Relative jump to sub");
+	solAssert(subId.empty(), "Relative jump to sub");
 	return tagId;
 }
 
@@ -130,13 +131,13 @@ std::pair<std::string, std::string> AssemblyItem::nameAndData(langutil::EVMVersi
 	util::unreachable();
 }
 
-void AssemblyItem::setPushTagSubIdAndTag(size_t _subId, size_t _tag)
+void AssemblyItem::setPushTagSubIdAndTag(SubAssemblyID _subId, size_t _tag)
 {
 	solAssert(m_type == PushTag || m_type == Tag || m_type == RelativeJump || m_type == ConditionalRelativeJump);
-	solAssert(!(m_type == RelativeJump || m_type == ConditionalRelativeJump) || _subId == std::numeric_limits<size_t>::max());
+	solAssert(!(m_type == RelativeJump || m_type == ConditionalRelativeJump) || _subId.empty());
 	u256 data = _tag;
-	if (_subId != std::numeric_limits<size_t>::max())
-		data |= (u256(_subId) + 1) << 64;
+	if (!_subId.empty())
+		data |= (u256(_subId.value) + 1) << 64;
 	setData(data);
 }
 
@@ -352,13 +353,11 @@ std::string AssemblyItem::toAssemblyText(Assembly const& _assembly) const
 		break;
 	case PushTag:
 	{
-		size_t sub{0};
-		size_t tag{0};
-		std::tie(sub, tag) = splitForeignPushTag();
-		if (sub == std::numeric_limits<size_t>::max())
+		auto [sub, tag] = splitForeignPushTag();
+		if (sub.empty())
 			text = std::string("tag_") + std::to_string(tag);
 		else
-			text = std::string("tag_") + std::to_string(sub) + "_" + std::to_string(tag);
+			text = std::string("tag_") + std::to_string(sub.value) + "_" + std::to_string(tag);
 		break;
 	}
 	case Tag:
@@ -372,8 +371,8 @@ std::string AssemblyItem::toAssemblyText(Assembly const& _assembly) const
 	case PushSubSize:
 	{
 		std::vector<std::string> subPathComponents;
-		for (size_t subPathComponentId: _assembly.decodeSubPath(static_cast<size_t>(data())))
-			subPathComponents.emplace_back("sub_" + std::to_string(subPathComponentId));
+		for (SubAssemblyID subPathComponentId: _assembly.decodeSubPath(SubAssemblyID{data()}))
+			subPathComponents.emplace_back("sub_" + std::to_string(subPathComponentId.value));
 		text =
 			(type() == PushSub ? "dataOffset"s : "dataSize"s) +
 			"(" +
@@ -469,11 +468,11 @@ std::ostream& solidity::evmasm::operator<<(std::ostream& _out, AssemblyItem cons
 		break;
 	case PushTag:
 	{
-		size_t subId = _item.splitForeignPushTag().first;
-		if (subId == std::numeric_limits<size_t>::max())
+		SubAssemblyID subId = _item.splitForeignPushTag().first;
+		if (subId.empty())
 			_out << " PushTag " << _item.splitForeignPushTag().second;
 		else
-			_out << " PushTag " << subId << ":" << _item.splitForeignPushTag().second;
+			_out << " PushTag " << subId.value << ":" << _item.splitForeignPushTag().second;
 		break;
 	}
 	case Tag:

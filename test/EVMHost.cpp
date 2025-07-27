@@ -399,7 +399,7 @@ evmc::Result EVMHost::call(evmc_message const& _message) noexcept
 		transfer(sender, destination, value);
 	}
 
-	// Populate the access access list (enabled since Berlin).
+	// Populate the access list (enabled since Berlin).
 	// Note, this will also properly touch the created address.
 	// TODO: support a user supplied access list too
 	if (m_evmRevision >= EVMC_BERLIN)

@@ -142,7 +142,7 @@ std::pair<std::shared_ptr<AbstractAssembly>, AbstractAssembly::SubID> EthAssembl
 {
 	std::shared_ptr<evmasm::Assembly> assembly{std::make_shared<evmasm::Assembly>(m_assembly.evmVersion(), _creation, m_assembly.eofVersion(), std::move(_name))};
 	auto sub = m_assembly.newSub(assembly);
-	return {std::make_shared<EthAssemblyAdapter>(*assembly), static_cast<size_t>(sub.data())};
+	return {std::make_shared<EthAssemblyAdapter>(*assembly), SubID{sub.data()}};
 }
 
 AbstractAssembly::FunctionID EthAssemblyAdapter::registerFunction(uint8_t _args, uint8_t _rets, bool _nonReturning)
@@ -207,7 +207,7 @@ void EthAssemblyAdapter::appendDataSize(std::vector<AbstractAssembly::SubID> con
 AbstractAssembly::SubID EthAssemblyAdapter::appendData(bytes const& _data)
 {
 	evmasm::AssemblyItem pushData = m_assembly.newData(_data);
-	SubID subID = m_nextDataCounter++;
+	SubID const subID{m_nextDataCounter++};
 	m_dataHashBySubId[subID] = pushData.data();
 	return subID;
 }

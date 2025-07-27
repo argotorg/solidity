@@ -39,6 +39,7 @@
 #include <fmt/format.h>
 
 #include <range/v3/algorithm/any_of.hpp>
+#include <range/v3/algorithm/find_if.hpp>
 #include <range/v3/view/drop_exactly.hpp>
 #include <range/v3/view/enumerate.hpp>
 #include <range/v3/view/map.hpp>
@@ -715,17 +716,17 @@ std::pair<std::shared_ptr<Assembly>, std::vector<std::string>> Assembly::fromJSO
 	return std::make_pair(result, _level == 0 ? parsedSourceList : std::vector<std::string>{});
 }
 
-void Assembly::encodeAllPossibleSubPathsInAssemblyTree(std::vector<size_t> _pathFromRoot, std::vector<Assembly*> _assembliesOnPath)
+void Assembly::encodeAllPossibleSubPathsInAssemblyTree(std::vector<SubAssemblyID> _pathFromRoot, std::vector<Assembly*> _assembliesOnPath)
 {
 	_assembliesOnPath.push_back(this);
-	for (_pathFromRoot.push_back(0); _pathFromRoot.back() < m_subs.size(); ++_pathFromRoot.back())
+	for (_pathFromRoot.push_back(SubAssemblyID{0}); _pathFromRoot.back().value < m_subs.size(); ++_pathFromRoot.back().value)
 	{
 		for (size_t distanceFromRoot = 0; distanceFromRoot < _assembliesOnPath.size(); ++distanceFromRoot)
 			_assembliesOnPath[distanceFromRoot]->encodeSubPath(
 				_pathFromRoot | ranges::views::drop_exactly(distanceFromRoot) | ranges::to<std::vector>
 			);
 
-		m_subs[_pathFromRoot.back()]->encodeAllPossibleSubPathsInAssemblyTree(_pathFromRoot, _assembliesOnPath);
+		m_subs[_pathFromRoot.back().asIndex()]->encodeAllPossibleSubPathsInAssemblyTree(_pathFromRoot, _assembliesOnPath);
 	}
 }
 
@@ -846,20 +847,20 @@ std::map<u256, u256> const& Assembly::optimiseInternal(
 
 	// Run optimisation for sub-assemblies.
 	// TODO: verify and double-check this for EOF.
-	for (size_t subId = 0; subId < m_subs.size(); ++subId)
+	for (SubAssemblyID subID{0}; subID.value < m_subs.size(); ++subID.value)
 	{
 		OptimiserSettings settings = _settings;
-		Assembly& sub = *m_subs[subId];
+		Assembly& sub = *m_subs[subID.asIndex()];
 		std::set<size_t> referencedTags;
 		for (auto& codeSection: m_codeSections)
-			referencedTags += JumpdestRemover::referencedTags(codeSection.items, subId);
+			referencedTags += JumpdestRemover::referencedTags(codeSection.items, subID);
 		std::map<u256, u256> const& subTagReplacements = sub.optimiseInternal(
 			settings,
 			referencedTags
 		);
 		// Apply the replacements (can be empty).
 		for (auto& codeSection: m_codeSections)
-			BlockDeduplicator::applyTagReplacement(codeSection.items, subTagReplacements, subId);
+			BlockDeduplicator::applyTagReplacement(codeSection.items, subTagReplacements, subID);
 	}
 
 	std::map<u256, u256> tagReplacements;
@@ -1235,7 +1236,7 @@ LinkerObject const& Assembly::assemble() const
 [[nodiscard]] bytes Assembly::assembleTag(AssemblyItem const& _item, size_t _pos, bool _addJumpDest) const
 {
 	solRequire(_item.data() != 0, AssemblyException, "Invalid tag position.");
-	solRequire(_item.splitForeignPushTag().first == std::numeric_limits<size_t>::max(), AssemblyException, "Foreign tag.");
+	solRequire(_item.splitForeignPushTag().first.empty(), AssemblyException, "Foreign tag.");
 	solRequire(_pos < 0xffffffffL, AssemblyException, "Tag too large.");
 	size_t tagId = static_cast<size_t>(_item.data());
 	solRequire(m_tagPositionsInBytecode[tagId] == std::numeric_limits<size_t>::max(), AssemblyException, "Duplicate tag position.");
@@ -1306,10 +1307,10 @@ LinkerObject const& Assembly::assembleLegacy() const
 		if (item.type() == PushTag)
 		{
 			auto [subId, tagId] = item.splitForeignPushTag();
-			if (subId == std::numeric_limits<size_t>::max())
+			if (subId.empty())
 				continue;
-			assertThrow(subId < m_subs.size(), AssemblyException, "Invalid sub id");
-			auto subTagPosition = m_subs[subId]->m_tagPositionsInBytecode.at(tagId);
+			solAssert(subId.value < m_subs.size(), "Invalid sub id");
+			auto subTagPosition = m_subs[subId.asIndex()]->m_tagPositionsInBytecode.at(tagId);
 			assertThrow(subTagPosition != std::numeric_limits<size_t>::max(), AssemblyException, "Reference to tag without position.");
 			bytesPerTag = std::max(bytesPerTag, numberEncodingSize(subTagPosition));
 		}
@@ -1358,15 +1359,15 @@ LinkerObject const& Assembly::assembleLegacy() const
 			ret.bytecode.resize(ret.bytecode.size() + bytesPerDataRef);
 			break;
 		case PushSub:
-			assertThrow(item.data() <= std::numeric_limits<size_t>::max(), AssemblyException, "");
+			solAssert(item.data() <= std::numeric_limits<SubAssemblyID::ValueType>::max());
 			ret.bytecode.push_back(dataRefPush);
-			subRefs.insert(std::make_pair(static_cast<size_t>(item.data()), ret.bytecode.size()));
+			subRefs.emplace(SubAssemblyID{item.data()}, ret.bytecode.size());
 			ret.bytecode.resize(ret.bytecode.size() + bytesPerDataRef);
 			break;
 		case PushSubSize:
 		{
-			assertThrow(item.data() <= std::numeric_limits<size_t>::max(), AssemblyException, "");
-			auto s = subAssemblyById(static_cast<size_t>(item.data()))->assemble().bytecode.size();
+			solAssert(item.data() <= std::numeric_limits<SubAssemblyID::ValueType>::max());
+			auto s = subAssemblyById(SubAssemblyID{item.data()})->assemble().bytecode.size();
 			item.setPushedValue(u256(s));
 			unsigned b = std::max<unsigned>(1, numberEncodingSize(s));
 			ret.bytecode.push_back(static_cast<uint8_t>(pushInstruction(b)));
@@ -1481,14 +1482,12 @@ LinkerObject const& Assembly::assembleLegacy() const
 	}
 	for (auto const& i: tagRefs)
 	{
-		size_t subId;
-		size_t tagId;
-		std::tie(subId, tagId) = i.second;
-		assertThrow(subId == std::numeric_limits<size_t>::max() || subId < m_subs.size(), AssemblyException, "Invalid sub id");
+		auto [subId, tagId] = i.second;
+		solAssert(subId.empty() || subId.value < m_subs.size(), "Invalid sub id");
 		std::vector<size_t> const& tagPositions =
-			subId == std::numeric_limits<size_t>::max() ?
+			subId.empty() ?
 			m_tagPositionsInBytecode :
-			m_subs[subId]->m_tagPositionsInBytecode;
+			m_subs[subId.asIndex()]->m_tagPositionsInBytecode;
 		assertThrow(tagId < tagPositions.size(), AssemblyException, "Reference to non-existing tag.");
 		size_t pos = tagPositions[tagId];
 		assertThrow(pos != std::numeric_limits<size_t>::max(), AssemblyException, "Reference to tag without position.");
@@ -1813,14 +1812,13 @@ LinkerObject const& Assembly::assembleEOF() const
 	return ret;
 }
 
-std::vector<size_t> Assembly::decodeSubPath(size_t _subObjectId) const
+std::vector<SubAssemblyID> Assembly::decodeSubPath(SubAssemblyID _subObjectId) const
 {
-	if (_subObjectId < m_subs.size())
+	if (_subObjectId.value < m_subs.size())
 		return {_subObjectId};
 
-	auto subIdPathIt = find_if(
-		m_subPaths.begin(),
-		m_subPaths.end(),
+	auto subIdPathIt = ranges::find_if(
+		m_subPaths,
 		[_subObjectId](auto const& subId) { return subId.second == _subObjectId; }
 	);
 
@@ -1828,32 +1826,32 @@ std::vector<size_t> Assembly::decodeSubPath(size_t _subObjectId) const
 	return subIdPathIt->first;
 }
 
-size_t Assembly::encodeSubPath(std::vector<size_t> const& _subPath)
+SubAssemblyID Assembly::encodeSubPath(std::vector<SubAssemblyID> const& _subPath)
 {
 	assertThrow(!_subPath.empty(), AssemblyException, "");
 	if (_subPath.size() == 1)
 	{
-		assertThrow(_subPath[0] < m_subs.size(), AssemblyException, "");
+		solAssert(_subPath[0].value < m_subs.size());
 		return _subPath[0];
 	}
 
-	if (m_subPaths.find(_subPath) == m_subPaths.end())
+	if (!m_subPaths.contains(_subPath))
 	{
-		size_t objectId = std::numeric_limits<size_t>::max() - m_subPaths.size();
-		assertThrow(objectId >= m_subs.size(), AssemblyException, "");
+		SubAssemblyID const objectId{std::numeric_limits<SubAssemblyID::ValueType>::max() - m_subPaths.size()};
+		solAssert(objectId.value >= m_subs.size());
 		m_subPaths[_subPath] = objectId;
 	}
 
 	return m_subPaths[_subPath];
 }
 
-Assembly const* Assembly::subAssemblyById(size_t _subId) const
+Assembly const* Assembly::subAssemblyById(SubAssemblyID const _subId) const
 {
-	std::vector<size_t> subIds = decodeSubPath(_subId);
+	std::vector<SubAssemblyID> subIDs = decodeSubPath(_subId);
 	Assembly const* currentAssembly = this;
-	for (size_t currentSubId: subIds)
+	for (auto const& subID: subIDs)
 	{
-		currentAssembly = currentAssembly->m_subs.at(currentSubId).get();
+		currentAssembly = currentAssembly->m_subs.at(subID.asIndex()).get();
 		assertThrow(currentAssembly, AssemblyException, "");
 	}
 

@@ -56,7 +56,7 @@ Dialect const& yul::languageToDialect(Language _language, EVMVersion _version, s
 
 void ObjectOptimizer::optimize(Object& _object, Settings const& _settings)
 {
-	yulAssert(_object.subId == std::numeric_limits<size_t>::max(), "Not a top-level object.");
+	yulAssert(_object.subId.empty(), "Not a top-level object.");
 
 	optimize(_object, _settings, true /* _isCreation */);
 }

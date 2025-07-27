@@ -6,6 +6,8 @@ set(sources
 	AssemblyItem.h
 	Ethdebug.cpp
 	Ethdebug.h
+	EthdebugSchema.cpp
+	EthdebugSchema.h
 	EVMAssemblyStack.cpp
 	EVMAssemblyStack.h
 	BlockDeduplicator.cpp
@@ -42,6 +44,7 @@ set(sources
 	SimplificationRule.h
 	SimplificationRules.cpp
 	SimplificationRules.h
+	SubAssemblyID.h
 )
 
 add_library(evmasm ${sources})

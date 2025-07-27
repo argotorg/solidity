@@ -32,7 +32,7 @@ using namespace solidity::evmasm;
 
 bool JumpdestRemover::optimise(std::set<size_t> const& _tagsReferencedFromOutside)
 {
-	std::set<size_t> references{referencedTags(m_items, std::numeric_limits<size_t>::max())};
+	std::set<size_t> references{referencedTags(m_items, SubAssemblyID{})};
 	references.insert(_tagsReferencedFromOutside.begin(), _tagsReferencedFromOutside.end());
 
 	size_t initialSize = m_items.size();
@@ -45,7 +45,7 @@ bool JumpdestRemover::optimise(std::set<size_t> const& _tagsReferencedFromOutsid
 			if (_item.type() != Tag)
 				return false;
 			auto asmIdAndTag = _item.splitForeignPushTag();
-			assertThrow(asmIdAndTag.first == std::numeric_limits<size_t>::max(), OptimizerException, "Sub-assembly tag used as label.");
+			solAssert(asmIdAndTag.first.empty(), "Sub-assembly tag used as label.");
 			size_t tag = asmIdAndTag.second;
 			return !references.count(tag);
 		}
@@ -54,7 +54,7 @@ bool JumpdestRemover::optimise(std::set<size_t> const& _tagsReferencedFromOutsid
 	return m_items.size() != initialSize;
 }
 
-std::set<size_t> JumpdestRemover::referencedTags(AssemblyItems const& _items, size_t _subId)
+std::set<size_t> JumpdestRemover::referencedTags(AssemblyItems const& _items, SubAssemblyID _subId)
 {
 	std::set<size_t> ret;
 	for (auto const& item: _items)

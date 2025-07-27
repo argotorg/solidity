@@ -17,10 +17,10 @@ Yul Control Flow Graph:
                 "id": "Block0",
                 "instructions": [
                     {
-                        "builtinArgs": [
+                        "in": [],
+                        "literalArgs": [
                             "0x80"
                         ],
-                        "in": [],
                         "op": "memoryguard",
                         "out": [
                             "v0"
@@ -57,20 +57,20 @@ Yul Control Flow Graph:
                 "id": "Block2",
                 "instructions": [
                     {
-                        "builtinArgs": [
+                        "in": [],
+                        "literalArgs": [
                             "C_19_deployed"
                         ],
-                        "in": [],
                         "op": "datasize",
                         "out": [
                             "v4"
                         ]
                     },
                     {
-                        "builtinArgs": [
+                        "in": [],
+                        "literalArgs": [
                             "C_19_deployed"
                         ],
-                        "in": [],
                         "op": "dataoffset",
                         "out": [
                             "v5"
@@ -140,10 +140,10 @@ Yul Control Flow Graph:
                         "id": "Block0",
                         "instructions": [
                             {
-                                "builtinArgs": [
+                                "in": [],
+                                "literalArgs": [
                                     "0x80"
                                 ],
-                                "in": [],
                                 "op": "memoryguard",
                                 "out": [
                                     "v0"

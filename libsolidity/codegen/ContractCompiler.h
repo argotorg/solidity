@@ -58,7 +58,7 @@ public:
 	);
 	/// Compiles the constructor part of the contract.
 	/// @returns the identifier of the runtime sub-assembly.
-	size_t compileConstructor(
+	evmasm::SubAssemblyID compileConstructor(
 		ContractDefinition const& _contract,
 		std::map<ContractDefinition const*, std::shared_ptr<Compiler const>> const& _otherCompilers
 	);
@@ -73,11 +73,11 @@ private:
 	/// Adds the code that is run at creation time. Should be run after exchanging the run-time context
 	/// with a new and initialized context. Adds the constructor code.
 	/// @returns the identifier of the runtime sub assembly
-	size_t packIntoContractCreator(ContractDefinition const& _contract);
+	evmasm::SubAssemblyID packIntoContractCreator(ContractDefinition const& _contract);
 	/// Appends code that deploys the given contract as a library.
 	/// Will also add code that modifies the contract in memory by injecting the current address
 	/// for the call protector.
-	size_t deployLibrary(ContractDefinition const& _contract);
+	evmasm::SubAssemblyID deployLibrary(ContractDefinition const& _contract);
 	/// Appends state variable initialisation and constructor code.
 	void appendInitAndConstructorCode(ContractDefinition const& _contract);
 	void appendBaseConstructor(FunctionDefinition const& _constructor);

@@ -101,14 +101,14 @@ bool BlockDeduplicator::deduplicate()
 bool BlockDeduplicator::applyTagReplacement(
 	AssemblyItems& _items,
 	std::map<u256, u256> const& _replacements,
-	size_t _subId
+	SubAssemblyID _subId
 )
 {
 	bool changed = false;
 	for (AssemblyItem& item: _items)
 		if (item.type() == PushTag || item.type() == RelativeJump || item.type() == ConditionalRelativeJump)
 		{
-			size_t subId;
+			SubAssemblyID subId;
 			size_t tagId;
 			std::tie(subId, tagId) = item.splitForeignPushTag();
 			if (subId != _subId)

@@ -70,7 +70,7 @@ public:
 private:
 	OptimiserSettings const m_optimiserSettings;
 	CompilerContext m_runtimeContext;
-	size_t m_runtimeSub = size_t(-1); ///< Identifier of the runtime sub-assembly, if present.
+	evmasm::SubAssemblyID m_runtimeSub{}; ///< Identifier of the runtime sub-assembly, if present.
 	CompilerContext m_context;
 };
 

@@ -23,6 +23,7 @@
 #include <libevmasm/AssemblyItem.h>
 #include <libevmasm/LinkerObject.h>
 #include <libevmasm/Exceptions.h>
+#include <libevmasm/SubAssemblyID.h>
 
 #include <liblangutil/DebugInfoSelection.h>
 #include <liblangutil/EVMVersion.h>
@@ -47,9 +48,9 @@ using AssemblyPointer = std::shared_ptr<Assembly>;
 
 class Assembly
 {
-	using TagRefs = std::map<size_t, std::pair<size_t, size_t>>;
+	using TagRefs = std::map<size_t, std::pair<SubAssemblyID, size_t>>;
 	using DataRefs = std::multimap<util::h256, unsigned>;
-	using SubAssemblyRefs = std::multimap<size_t, size_t>;
+	using SubAssemblyRefs = std::multimap<SubAssemblyID, size_t>;
 	using ProgramSizeRefs = std::vector<unsigned>;
 	using LinkRef = std::pair<size_t, std::string>;
 
@@ -81,8 +82,8 @@ public:
 	AssemblyItem newData(bytes const& _data) { util::h256 h(util::keccak256(util::asString(_data))); m_data[h] = _data; return AssemblyItem(PushData, h); }
 	bytes const& data(util::h256 const& _i) const { return m_data.at(_i); }
 	AssemblyItem newSub(AssemblyPointer const& _sub) { m_subs.push_back(_sub); return AssemblyItem(PushSub, m_subs.size() - 1); }
-	Assembly const& sub(size_t _sub) const { return *m_subs.at(_sub); }
-	Assembly& sub(size_t _sub) { return *m_subs.at(_sub); }
+	Assembly const& sub(SubAssemblyID const _sub) const	{ return *m_subs.at(_sub.asIndex()); }
+	Assembly& sub(SubAssemblyID const _sub) { return *m_subs.at(_sub.asIndex()); }
 	size_t numSubs() const { return m_subs.size(); }
 	AssemblyItem newPushSubSize(u256 const& _subId) { return AssemblyItem(PushSubSize, _subId); }
 	AssemblyItem newPushLibraryAddress(std::string const& _identifier);
@@ -142,9 +143,9 @@ public:
 	/// Adds a subroutine to the code (in the data section) and pushes its size (via a tag)
 	/// on the stack. @returns the pushsub assembly item.
 	AssemblyItem appendSubroutine(AssemblyPointer const& _assembly) { auto sub = newSub(_assembly); append(newPushSubSize(size_t(sub.data()))); return sub; }
-	void pushSubroutineSize(size_t _subRoutine) { append(newPushSubSize(_subRoutine)); }
+	void pushSubroutineSize(SubAssemblyID _subRoutine) { append(newPushSubSize(_subRoutine.value)); }
 	/// Pushes the offset of the subroutine.
-	void pushSubroutineOffset(size_t _subRoutine) { append(AssemblyItem(PushSub, _subRoutine)); }
+	void pushSubroutineOffset(SubAssemblyID _subRoutine) { append(AssemblyItem(PushSub, _subRoutine.value)); }
 
 	/// Appends @a _data literally to the very end of the bytecode.
 	void appendToAuxiliaryData(bytes const& _data) { m_auxiliaryData += _data; }
@@ -216,8 +217,8 @@ public:
 	/// Mark this assembly as invalid. Calling ``assemble`` on it will throw.
 	void markAsInvalid() { m_invalid = true; }
 
-	std::vector<size_t> decodeSubPath(size_t _subObjectId) const;
-	size_t encodeSubPath(std::vector<size_t> const& _subPath);
+	std::vector<SubAssemblyID> decodeSubPath(SubAssemblyID _subObjectId) const;
+	SubAssemblyID encodeSubPath(std::vector<SubAssemblyID> const& _subPath);
 
 	bool isCreation() const { return m_creation; }
 
@@ -265,9 +266,9 @@ protected:
 private:
 	bool m_invalid = false;
 
-	Assembly const* subAssemblyById(size_t _subId) const;
+	Assembly const* subAssemblyById(SubAssemblyID _subId) const;
 
-	void encodeAllPossibleSubPathsInAssemblyTree(std::vector<size_t> _pathFromRoot = {}, std::vector<Assembly*> _assembliesOnPath = {});
+	void encodeAllPossibleSubPathsInAssemblyTree(std::vector<SubAssemblyID> _pathFromRoot = {}, std::vector<Assembly*> _assembliesOnPath = {});
 
 	std::shared_ptr<std::string const> sharedSourceName(std::string const& _name) const;
 
@@ -315,7 +316,10 @@ protected:
 
 	/// Map from a vector representing a path to a particular sub assembly to sub assembly id.
 	/// This map is used only for sub-assemblies which are not direct sub-assemblies (where path is having more than one value).
-	std::map<std::vector<size_t>, size_t> m_subPaths;
+	/// Nested/indirect SubAssemblyIDs are assigned negative unsigned 64 bit integers, i.e., the `i`th indirect
+	/// index corresponds to `std::numeric_limits<std::uint64_t>::max() - i` in contrast to direct indices which occupy
+	/// the non-negative half of the index space.
+	std::map<std::vector<SubAssemblyID>, SubAssemblyID> m_subPaths;
 
 	/// Contains the tag replacements relevant for super-assemblies.
 	/// If set, it means the optimizer has run and we will not run it again.

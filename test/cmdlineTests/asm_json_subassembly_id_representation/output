@@ -1,0 +1,101 @@
+
+======= input.yul (EVM) =======
+
+EVM assembly:
+{
+    ".code": [
+        {
+            "begin": 60,
+            "end": 83,
+            "name": "PUSH #[$]",
+            "source": -1,
+            "value": "000000000000000000000000000000000000000000000000ffffffffffffffff"
+        },
+        {
+            "begin": 56,
+            "end": 58,
+            "name": "PUSH",
+            "source": -1,
+            "value": "2A"
+        },
+        {
+            "begin": 49,
+            "end": 84,
+            "name": "MSTORE",
+            "source": -1
+        },
+        {
+            "begin": 108,
+            "end": 131,
+            "name": "PUSH #[$]",
+            "source": -1,
+            "value": "000000000000000000000000000000000000000000000000fffffffffffffffe"
+        },
+        {
+            "begin": 104,
+            "end": 106,
+            "name": "PUSH",
+            "source": -1,
+            "value": "2A"
+        },
+        {
+            "begin": 97,
+            "end": 132,
+            "name": "MSTORE",
+            "source": -1
+        },
+        {
+            "begin": 25,
+            "end": 148,
+            "name": "STOP",
+            "source": -1
+        }
+    ],
+    ".data": {
+        "0": {
+            ".code": [
+                {
+                    "begin": 182,
+                    "end": 189,
+                    "name": "STOP",
+                    "source": -1
+                }
+            ],
+            ".data": {
+                "0": {
+                    ".code": [
+                        {
+                            "begin": 233,
+                            "end": 240,
+                            "name": "STOP",
+                            "source": -1
+                        }
+                    ]
+                }
+            }
+        },
+        "1": {
+            ".code": [
+                {
+                    "begin": 290,
+                    "end": 297,
+                    "name": "STOP",
+                    "source": -1
+                }
+            ],
+            ".data": {
+                "0": {
+                    ".code": [
+                        {
+                            "begin": 341,
+                            "end": 348,
+                            "name": "STOP",
+                            "source": -1
+                        }
+                    ]
+                }
+            }
+        }
+    },
+    "sourceList": []
+}

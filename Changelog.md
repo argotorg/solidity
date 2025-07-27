@@ -2,12 +2,11 @@
 
 Language Features:
 
-
 Compiler Features:
-
+* ethdebug: Experimental support for instructions and source locations under EOF.
 
 Bugfixes:
-
+* Assembler: Fix not using a fixed-width type for IDs being assigned to subassemblies nested more than one level away, resulting in inconsistent `--asm-json` output between target architectures.
 
 ### 0.8.30 (2025-05-07)
 

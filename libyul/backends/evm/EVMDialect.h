@@ -25,11 +25,15 @@
 #include <libyul/Scope.h>
 
 #include <libyul/backends/evm/AbstractAssembly.h>
-#include <libyul/ASTForward.h>
+#include <libyul/backends/evm/EVMBuiltins.h>
+
 #include <liblangutil/EVMVersion.h>
 
-#include <map>
+#include <array>
+#include <optional>
 #include <set>
+#include <unordered_map>
+#include <vector>
 
 namespace solidity::yul
 {
@@ -38,32 +42,13 @@ struct FunctionCall;
 class Object;
 
 /**
- * Context used during code generation.
- */
-struct BuiltinContext
-{
-	Object const* currentObject = nullptr;
-	/// Mapping from named objects to abstract assembly sub IDs.
-	std::map<std::string, AbstractAssembly::SubID> subIDs;
-
-	std::map<Scope::Function const*, AbstractAssembly::FunctionID> functionIDs;
-};
-
-struct BuiltinFunctionForEVM: public BuiltinFunction
-{
-	std::optional<evmasm::Instruction> instruction;
-	/// Function to generate code for the given function call and append it to the abstract
-	/// assembly. Expects all non-literal arguments of the call to be on stack in reverse order
-	/// (i.e. right-most argument pushed first).
-	/// Expects the caller to set the source location.
-	std::function<void(FunctionCall const&, AbstractAssembly&, BuiltinContext&)> generateCode;
-};
-
-
-/**
  * Yul dialect for EVM as a backend.
  * The main difference is that the builtin functions take an AbstractAssembly for the
  * code generation.
+ *
+ * Builtins are defined so that their handles stay compatible over different dialect flavors - be it with/without
+ * object access, with/without EOF, different versions. It may be, of course, that these builtins are no longer defined.
+ * The ones that _are_ defined, though, remain under the same handle.
  */
 class EVMDialect: public Dialect
 {
@@ -100,6 +85,8 @@ public:
 	AuxiliaryBuiltinHandles const& auxiliaryBuiltinHandles() const { return m_auxiliaryBuiltinHandles; }
 
 	static EVMDialect const& strictAssemblyForEVM(langutil::EVMVersion _evmVersion, std::optional<uint8_t> _eofVersion);
+	/// Builtins with and without object access are compatible, i.e., builtin handles without object access are not
+	/// invalidated and still point to the same function.
 	static EVMDialect const& strictAssemblyForEVMObjects(langutil::EVMVersion _evmVersion, std::optional<uint8_t> _eofVersion);
 
 	langutil::EVMVersion evmVersion() const { return m_evmVersion; }
@@ -108,24 +95,25 @@ public:
 
 	bool providesObjectAccess() const { return m_objectAccess; }
 
-	static SideEffects sideEffectsOfInstruction(evmasm::Instruction _instruction);
-
 	static size_t constexpr verbatimMaxInputSlots = 100;
 	static size_t constexpr verbatimMaxOutputSlots = 100;
+
+	std::set<std::string_view> builtinFunctionNames() const;
 
 protected:
 	static bool constexpr isVerbatimHandle(BuiltinHandle const& _handle) { return _handle.id < verbatimIDOffset; }
 	static BuiltinFunctionForEVM createVerbatimFunctionFromHandle(BuiltinHandle const& _handle);
-	static BuiltinFunctionForEVM createVerbatimFunction(size_t _arguments, size_t _returnVariables);
 	BuiltinHandle verbatimFunction(size_t _arguments, size_t _returnVariables) const;
 
 	static size_t constexpr verbatimIDOffset = verbatimMaxInputSlots * verbatimMaxOutputSlots;
+
+	static EVMBuiltins const& allBuiltins();
 
 	bool const m_objectAccess;
 	langutil::EVMVersion const m_evmVersion;
 	std::optional<uint8_t> m_eofVersion;
 	std::unordered_map<std::string_view, BuiltinHandle> m_builtinFunctionsByName;
-	std::vector<std::optional<BuiltinFunctionForEVM>> m_functions;
+	std::vector<BuiltinFunctionForEVM const*> m_functions;
 	std::array<std::unique_ptr<BuiltinFunctionForEVM>, verbatimIDOffset> mutable m_verbatimFunctions{};
 	std::set<std::string, std::less<>> m_reserved;
 

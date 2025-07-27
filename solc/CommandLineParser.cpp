@@ -596,7 +596,7 @@ General Information)").c_str(),
 	auto const annotateEVMVersion = [](EVMVersion const& _version) {
 		return _version.name() + (_version.isExperimental() ? " (experimental)" : "");
 	};
-	std::vector<EVMVersion> allEVMVersions = EVMVersion::allVersions();
+	static auto constexpr allEVMVersions = EVMVersion::allVersions();
 	std::string annotatedEVMVersions = util::joinHumanReadable(
 		allEVMVersions | ranges::views::transform(annotateEVMVersion),
 		", ",

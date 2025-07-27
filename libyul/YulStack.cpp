@@ -275,14 +275,14 @@ YulStack::assembleWithDeployed(std::optional<std::string_view> _deployName)
 			);
 		}
 		if (debugInfoSelection().ethdebug)
-			creationObject.ethdebug = evmasm::ethdebug::program(creationObject.assembly->name(), 0, creationObject.assembly.get(), *creationObject.bytecode.get());
+			creationObject.ethdebug = evmasm::ethdebug::program(creationObject.assembly->name(), 0, *creationObject.assembly, *creationObject.bytecode);
 
 		if (deployedAssembly)
 		{
 			deployedObject.bytecode = std::make_shared<evmasm::LinkerObject>(deployedAssembly->assemble());
 			deployedObject.assembly = deployedAssembly;
 			if (debugInfoSelection().ethdebug)
-				deployedObject.ethdebug = evmasm::ethdebug::program(deployedObject.assembly->name(), 0, deployedObject.assembly.get(), *deployedObject.bytecode.get());
+				deployedObject.ethdebug = evmasm::ethdebug::program(deployedObject.assembly->name(), 0, *deployedObject.assembly, *deployedObject.bytecode);
 			solAssert(deployedAssembly->codeSections().size() == 1);
 			deployedObject.sourceMappings = std::make_unique<std::string>(
 				evmasm::AssemblyItem::computeSourceMapping(
@@ -330,15 +330,15 @@ YulStack::assembleEVMWithDeployed(std::optional<std::string_view> _deployName)
 
 		assembly.optimise(evmasm::Assembly::OptimiserSettings::translateSettings(m_optimiserSettings));
 
-		std::optional<size_t> subIndex;
+		std::optional<evmasm::SubAssemblyID> subIndex;
 
 		// Pick matching assembly if name was given
 		if (_deployName.has_value())
 		{
 			for (size_t i = 0; i < assembly.numSubs(); i++)
-				if (assembly.sub(i).name() == _deployName)
+				if (assembly.sub({i}).name() == _deployName)
 				{
-					subIndex = i;
+					subIndex = {i};
 					break;
 				}
 
@@ -346,7 +346,7 @@ YulStack::assembleEVMWithDeployed(std::optional<std::string_view> _deployName)
 		}
 		// Otherwise use heuristic: If there is a single sub-assembly, this is likely the object to be deployed.
 		else if (assembly.numSubs() == 1)
-			subIndex = 0;
+			subIndex = {0};
 
 		if (subIndex.has_value())
 		{

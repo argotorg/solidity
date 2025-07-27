@@ -1,4 +1,253 @@
 ======= Debug Data (ethdebug/format/info/resources) =======
-{"compilation":{"compiler":{"name":"solc","version": "<VERSION REMOVED>"},"sources":[{"id":0,"path":"input.sol"}]}}
+{
+    "compilation": {
+        "compiler": {
+            "name": "solc",
+            "version": "<VERSION REMOVED>"
+        },
+        "sources": [
+            {
+                "id": 0,
+                "path": "input.sol"
+            }
+        ]
+    }
+}
 
 ======= input.sol:C =======
+Debug Data (ethdebug/format/program):
+{
+    "contract": {
+        "definition": {
+            "source": {
+                "id": 0
+            }
+        },
+        "name": "C"
+    },
+    "environment": "create",
+    "instructions": [
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 30,
+            "operation": {
+                "arguments": [
+                    "0x80"
+                ],
+                "mnemonic": "PUSH1"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 32,
+            "operation": {
+                "arguments": [
+                    "0x40"
+                ],
+                "mnemonic": "PUSH1"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 34,
+            "operation": {
+                "mnemonic": "MSTORE"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 35,
+            "operation": {
+                "mnemonic": "CALLVALUE"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 36,
+            "operation": {
+                "arguments": [
+                    "0x0005"
+                ],
+                "mnemonic": "RJUMPI"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 39,
+            "operation": {
+                "mnemonic": "PUSH0"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 40,
+            "operation": {
+                "arguments": [
+                    "0x80"
+                ],
+                "mnemonic": "PUSH1"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 42,
+            "operation": {
+                "arguments": [
+                    "0x00"
+                ],
+                "mnemonic": "RETURNCONTRACT"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 44,
+            "operation": {
+                "arguments": [
+                    "0x0001"
+                ],
+                "mnemonic": "JUMPF"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 47,
+            "operation": {
+                "mnemonic": "PUSH0"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 48,
+            "operation": {
+                "mnemonic": "DUP1"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 49,
+            "operation": {
+                "mnemonic": "REVERT"
+            }
+        }
+    ]
+}

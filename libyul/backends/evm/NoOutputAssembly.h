@@ -114,6 +114,9 @@ public:
 	explicit NoOutputEVMDialect(EVMDialect const& _copyFrom);
 
 	BuiltinFunctionForEVM const& builtin(BuiltinHandle const& _handle) const override;
+
+private:
+	static std::vector<BuiltinFunctionForEVM> defineNoOutputBuiltins();
 };
 
 

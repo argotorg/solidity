@@ -71,7 +71,7 @@ std::optional<size_t> getLocalTag(AssemblyItem const& _item)
 	if (_item.type() != PushTag && _item.type() != Tag)
 		return std::nullopt;
 	auto [subId, tag] = _item.splitForeignPushTag();
-	if (subId != std::numeric_limits<size_t>::max())
+	if (!subId.empty())
 		return std::nullopt;
 	return tag;
 }

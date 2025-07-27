@@ -1216,8 +1216,11 @@ Json CompilerStack::ethdebug(Contract const& _contract, bool _runtime) const
 	solUnimplementedAssert(!isExperimentalSolidity());
 	evmasm::LinkerObject const& object = _runtime ? _contract.runtimeObject : _contract.object;
 	std::shared_ptr<evmasm::Assembly> const& assembly = _runtime ? _contract.evmRuntimeAssembly : _contract.evmAssembly;
+	if (!assembly)
+		return {};
+
 	solAssert(sourceIndices().contains(_contract.contract->sourceUnitName()));
-	return evmasm::ethdebug::program(_contract.contract->name(), sourceIndices()[_contract.contract->sourceUnitName()], assembly.get(), object);
+	return evmasm::ethdebug::program(_contract.contract->name(), sourceIndices()[_contract.contract->sourceUnitName()], *assembly, object);
 }
 
 bytes CompilerStack::cborMetadata(std::string const& _contractName, bool _forIR) const

@@ -127,7 +127,7 @@ commands:
             if [[ "<< parameters.packages >>" != "" ]]
             then
               echo "Installing additional packages..."
-              python3 -m pip install --user << parameters.packages >>
+              python3 -m pip install --user --break-system-packages << parameters.packages >>
             fi
 
   install_foundry:
@@ -823,7 +823,7 @@ defaults:
       # NOTE: test suite disabled due to dependence on a specific version of Hardhat
       # which does not support shanghai EVM.
       compile_only: 1
-      image: cimg/node:18.16
+      image: cimg/node:20.19
 
   - job_native_test_ext_uniswap: &job_native_test_ext_uniswap
       <<: *requires_b_ubu_static
@@ -876,7 +876,7 @@ defaults:
       binary_type: native
       # NOTE: test suite disabled due to constant failures.
       compile_only: 1
-      image: cimg/node:18.16
+      image: cimg/node:20.19
 
   - job_b_ubu_asan_clang: &job_b_ubu_asan_clang
       <<: *on_all_tags_and_branches
@@ -952,6 +952,8 @@ jobs:
   chk_pylint:
     <<: *base_ubuntu2404_small
     steps:
+      - install_python3:
+          packages: pyyaml jsonschema pytest
       - checkout
       - run: pylint --version
       - run:
@@ -1535,6 +1537,19 @@ jobs:
             - reports/externalTests/
       - matrix_notify_failure_unless_pr
 
+  t_ethdebug_output_validity:
+    <<: *base_node_small
+    steps:
+      - checkout
+      - attach_workspace:
+          at: /tmp/workspace
+      - install_python3:
+            packages: pyyaml jsonschema pytest
+      - run:
+          name: Ethdebug validity tests
+          command: |
+            pytest test/ethdebugSchemaTests --solc-binary-path=/tmp/workspace/solc/solc-static-linux -v
+
   c_ext_benchmarks:
     <<: *base_node_small
     steps:
@@ -1927,6 +1942,9 @@ workflows:
       #- t_ext: *job_native_compile_ext_trident
       #- t_ext: *job_native_compile_ext_chainlink
       #- t_ext: *job_native_compile_ext_bleeps
+
+      - t_ethdebug_output_validity:
+          <<: *requires_b_ubu_static
 
       - c_ext_benchmarks:
           <<: *requires_nothing

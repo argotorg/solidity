@@ -26,7 +26,7 @@ At least a day before the release:
       This is recommended especially when dealing with PPA for the first time, when we add a new Ubuntu version or when the PPA scripts were modified in this release cycle.
 - [ ] Verify that the release tarball of `solc-js` works.
       Bump version locally, add `soljson.js` from CI, build it, compare the file structure with the previous version, install it locally and try to use it.
-- [ ] Review [Learning from Past Releases](https://notes.ethereum.org/@solidity/release-mistakes) to make sure you don't repeat the same mistakes.
+- [ ] Review [Learning from Past Releases](https://notes.argot.org/@solidity-release-mistakes) to make sure you don't repeat the same mistakes.
 
 ### Drafts
 At least a day before the release:
@@ -119,6 +119,6 @@ At least a day before the release:
 - [ ] Share the announcement on [Project Updates](https://discord.com/channels/420394352083337236/798974456704925696)
 - [ ] Share the announcement on [`#solidity` channel on Matrix](https://matrix.to/#/#ethereum_solidity:gitter.im)
 - [ ] Share the announcement on [`#solc-tooling`](https://matrix.to/#/#solc-tooling:matrix.org)
-- [ ] If anything went wrong this time, mention it in [Learning from Past Releases](https://notes.ethereum.org/@solidity/release-mistakes).
+- [ ] If anything went wrong this time, mention it in [Learning from Past Releases](https://notes.argot.org/@solidity-release-mistakes).
 - [ ] Bump vendored dependencies.
 - [ ] Lean back, wait for bug reports and repeat from step 1 :).

@@ -88,6 +88,6 @@ private:
 
 	evmasm::Assembly& m_assembly;
 	std::map<SubID, u256> m_dataHashBySubId;
-	size_t m_nextDataCounter = std::numeric_limits<size_t>::max() / 2;
+	SubID::ValueType m_nextDataCounter = std::numeric_limits<SubID::ValueType>::max() / 2;
 };
 }

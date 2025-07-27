@@ -187,7 +187,7 @@ Json YulControlFlowGraphExporter::toJson(Json& _ret, SSACFG const& _cfg, SSACFG:
 		{
 			yulAssert(_operation.inputs.size() == 1);
 			yulAssert(_cfg.isLiteralValue(_operation.inputs.back()));
-			_ret["type"] = "LiteralAssignment";
+			opJson["op"] = "LiteralAssignment";
 		},
 		[&](SSACFG::BuiltinCall const& _call)
 		{
@@ -210,7 +210,7 @@ Json YulControlFlowGraphExporter::toJson(Json& _ret, SSACFG const& _cfg, SSACFG:
 			}
 
 			if (!builtinArgsJson.empty())
-				opJson["builtinArgs"] = builtinArgsJson;
+				opJson["literalArgs"] = builtinArgsJson;
 
 			opJson["op"] = _call.builtin.get().name;
 		},
