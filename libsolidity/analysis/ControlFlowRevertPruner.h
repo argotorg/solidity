@@ -57,10 +57,5 @@ private:
 	/// function/contract pairs mapped to their according revert state
 	std::map<CFG::FunctionContractTuple, RevertState> m_functions;
 
-	std::map<
-		std::tuple<FunctionCall const*, ContractDefinition const*>,
-		FunctionDefinition const*
-	> m_resolveCache;
-
 };
 }
