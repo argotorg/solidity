@@ -5,8 +5,16 @@ MAINTAINER chriseth <chris@ethereum.org>
 #Establish working directory as solidity
 WORKDIR /solidity
 
-# Build dependencies
-RUN apk update && apk add boost-dev boost-static build-base cmake git clang
+# Build dependencies 
+RUN apk update && \
+    apk add --no-cache --no-install-recommends \
+        boost-dev \
+        boost-static \
+        build-base \
+        cmake \
+        git \
+        clang && \
+    rm -rf /var/cache/apk/*
 
 #Copy working directory on travis to the image
 COPY / $WORKDIR
