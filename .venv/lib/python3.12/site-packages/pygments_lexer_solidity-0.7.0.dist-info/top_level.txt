@@ -1,0 +1,1 @@
+pygments_lexer_solidity

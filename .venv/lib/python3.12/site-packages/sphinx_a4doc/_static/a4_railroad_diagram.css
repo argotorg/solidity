@@ -1,0 +1,32 @@
+.railroad-diagram path {
+    stroke-width: 1.5;
+    stroke: black;
+    fill: none;
+}
+
+.railroad-diagram text {
+    font-size: 14px;
+    font-family: 'Consolas', 'Menlo', 'Deja Vu Sans Mono', 'Bitstream Vera Sans Mono', monospace;
+    text-anchor: middle;
+    dominant-baseline: central;
+    font-weight: bold;
+}
+
+.railroad-diagram a {
+    text-decoration: none;
+}
+
+.railroad-diagram rect {
+    stroke-width: 1.5;
+    stroke: black;
+    fill: none;
+}
+
+.railroad-diagram g.comment text {
+    font-weight: normal;
+    font-style: italic;
+}
+
+.railroad-diagram g.comment rect {
+    stroke-width: 0;
+}

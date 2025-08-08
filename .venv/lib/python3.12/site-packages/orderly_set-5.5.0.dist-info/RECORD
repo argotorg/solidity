@@ -1,0 +1,10 @@
+orderly_set-5.5.0.dist-info/INSTALLER,sha256=zuuue4knoyJ-UwPPXg8fezS7VCrXJQrAP7zeNuwvFQg,4
+orderly_set-5.5.0.dist-info/METADATA,sha256=h7dL8XtjlnJb8xTMZ1aAhcUsrzLkKSvOzYz-WFQIw-s,6646
+orderly_set-5.5.0.dist-info/RECORD,,
+orderly_set-5.5.0.dist-info/WHEEL,sha256=G2gURzTEtmeR8nrdXUJfNiB3VYVxigPQ-bEQujpNiNs,82
+orderly_set-5.5.0.dist-info/licenses/MIT-LICENSE,sha256=FIp2rzRod8cMpguCbsQXXW2QfLkNeBx7FthU0cXBoww,1099
+orderly_set/__init__.py,sha256=6-MzpW74nvwNEvGTTthO30OF2kH0G879LUn4n6Xyi0Y,254
+orderly_set/__pycache__/__init__.cpython-312.pyc,,
+orderly_set/__pycache__/sets.cpython-312.pyc,,
+orderly_set/py.typed,sha256=47DEQpj8HBSa-_TImW-5JCeuQeRkm5NMpJWZG3hSuFU,0
+orderly_set/sets.py,sha256=N-bKZdlyg68Xy7Qr08PDvo1EOX2ggKrEASfhmK195yE,43483

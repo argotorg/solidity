@@ -1,0 +1,76 @@
+Metadata-Version: 2.1
+Name: sphinxcontrib-jquery
+Version: 4.1
+Summary: Extension to include jQuery on newer Sphinx releases
+Author: Adam Turner
+Requires-Python: >=2.7
+Description-Content-Type: text/x-rst
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: License :: OSI Approved :: BSD License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: Implementation :: CPython
+Classifier: Programming Language :: Python :: Implementation :: PyPy
+Classifier: Framework :: Sphinx
+Classifier: Framework :: Sphinx :: Extension
+Classifier: Topic :: Documentation
+Classifier: Topic :: Documentation :: Sphinx
+Requires-Dist: Sphinx>=1.8
+Project-URL: Repository, https://github.com/sphinx-contrib/jquery/
+
+======================
+ sphinxcontrib-jquery
+======================
+
+.. image:: https://img.shields.io/pypi/v/sphinxcontrib-jquery.svg
+   :target: https://pypi.org/project/sphinxcontrib-jquery/
+   :alt: Package on PyPI
+
+``sphinxcontrib-jquery`` ensures that jQuery is always installed for use in
+Sphinx themes or extensions.
+
+To use it, add ``sphinxcontrib.jquery`` as a Sphinx extension:
+
+.. code:: python
+
+   # conf.py
+
+   extensions = [
+       "sphinxcontrib.jquery",
+   ]
+   ...
+
+
+Configuration
+-------------
+
+.. As this is a README, we restrict the directives we use to those which GitHub
+   renders correctly. This means that we cannot use ``versionadded``,
+   ``confval``, ``warning``, or other similar directives.
+   We use a reStructuredText definition list to emulate the ``confval``
+   rendering.
+   We use inline **bold** syntax as a poor-man's ``.. warning::`` directive.
+
+``jquery_use_sri``
+   A boolean value controlling whether to enable  `subresource integrity`_ (SRI)
+   checks for JavaScript files that this extension loads.
+
+   The default is ``False``.
+
+   **Warning**: Enabling SRI checks may break documentation when loaded from
+   local filesystem (``file:///`` URIs).
+
+   *New in version 4.0.*
+
+   .. _subresource integrity: https://developer.mozilla.org/en-US/docs/Web/Security/Subresource_Integrity
+

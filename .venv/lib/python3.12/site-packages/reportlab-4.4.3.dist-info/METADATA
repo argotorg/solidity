@@ -1,0 +1,47 @@
+Metadata-Version: 2.4
+Name: reportlab
+Version: 4.4.3
+Summary: The Reportlab Toolkit
+Home-page: https://www.reportlab.com/
+Author: Andy Robinson, Robin Becker, the ReportLab team and the community
+Author-email: reportlab-users@lists2.reportlab.com
+License: BSD license (see license.txt for details), Copyright (c) 2000-2025, ReportLab Inc.
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: BSD License
+Classifier: Topic :: Printing
+Classifier: Topic :: Text Processing :: Markup
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Programming Language :: Python :: 3.13
+Requires-Python: >=3.7,<4
+License-File: LICENSE
+Requires-Dist: pillow>=9.0.0
+Requires-Dist: charset-normalizer
+Provides-Extra: accel
+Requires-Dist: rl_accel<1.1,>=0.9.0; extra == "accel"
+Provides-Extra: renderpm
+Requires-Dist: rl_renderPM<4.1,>=4.0.3; extra == "renderpm"
+Provides-Extra: pycairo
+Requires-Dist: rlPyCairo<1,>=0.2.0; extra == "pycairo"
+Requires-Dist: freetype-py<2.4,>=2.3.0; extra == "pycairo"
+Provides-Extra: bidi
+Requires-Dist: rlbidi; extra == "bidi"
+Provides-Extra: shaping
+Requires-Dist: uharfbuzz; extra == "shaping"
+Dynamic: author
+Dynamic: author-email
+Dynamic: classifier
+Dynamic: description
+Dynamic: home-page
+Dynamic: license
+Dynamic: license-file
+Dynamic: provides-extra
+Dynamic: requires-dist
+Dynamic: requires-python
+Dynamic: summary
+
+The ReportLab Toolkit. An Open Source Python library for generating PDFs and graphics.
