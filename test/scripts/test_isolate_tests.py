@@ -6,7 +6,7 @@ from textwrap import dedent, indent
 
 from unittest_helpers import FIXTURE_DIR, load_fixture
 
-# NOTE: This test file file only works with scripts/ added to PYTHONPATH so pylint can't find the imports
+# NOTE: This test file only works with scripts/ added to PYTHONPATH so pylint can't find the imports
 # pragma pylint: disable=import-error
 from isolate_tests import extract_solidity_docs_cases, extract_yul_docs_cases
 # pragma pylint: enable=import-error

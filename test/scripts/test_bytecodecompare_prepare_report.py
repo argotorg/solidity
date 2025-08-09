@@ -7,7 +7,7 @@ from textwrap import dedent
 
 from unittest_helpers import FIXTURE_DIR, LIBSOLIDITY_TEST_DIR, load_fixture, load_libsolidity_test_case
 
-# NOTE: This test file file only works with scripts/ added to PYTHONPATH so pylint can't find the imports
+# NOTE: This test file only works with scripts/ added to PYTHONPATH so pylint can't find the imports
 # pragma pylint: disable=import-error
 from bytecodecompare.prepare_report import ExecutionArchitecture, CompilerInterface, FileReport, ContractReport
 from bytecodecompare.prepare_report import SettingsPreset, SMTUse, Statistics

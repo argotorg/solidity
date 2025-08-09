@@ -6,7 +6,7 @@ import unittest
 
 from unittest_helpers import FIXTURE_DIR, load_fixture
 
-# NOTE: This test file file only works with scripts/ added to PYTHONPATH so pylint can't find the imports
+# NOTE: This test file only works with scripts/ added to PYTHONPATH so pylint can't find the imports
 # pragma pylint: disable=import-error
 from externalTests.benchmark_diff import BenchmarkDiffer, DifferenceStyle, DiffTableSet, DiffTableFormatter, OutputFormat
 # pragma pylint: enable=import-error

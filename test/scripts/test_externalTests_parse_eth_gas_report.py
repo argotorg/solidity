@@ -7,7 +7,7 @@ from textwrap import dedent
 
 from unittest_helpers import FIXTURE_DIR, load_fixture
 
-# NOTE: This test file file only works with scripts/ added to PYTHONPATH so pylint can't find the imports
+# NOTE: This test file only works with scripts/ added to PYTHONPATH so pylint can't find the imports
 # pragma pylint: disable=import-error
 from externalTests.parse_eth_gas_report import parse_report, ReportParsingError, ReportValidationError
 # pragma pylint: enable=import-error

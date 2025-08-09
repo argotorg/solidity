@@ -6,7 +6,7 @@ from unittest.mock import call, Mock, patch
 import os
 import requests
 
-# NOTE: This test file file only works with scripts/ added to PYTHONPATH so pylint can't find the imports
+# NOTE: This test file only works with scripts/ added to PYTHONPATH so pylint can't find the imports
 # pragma pylint: disable=import-error
 from externalTests.download_benchmarks import download_benchmarks
 # pragma pylint: enable=import-error

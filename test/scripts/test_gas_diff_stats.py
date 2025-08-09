@@ -3,7 +3,7 @@
 import unittest
 from textwrap import dedent
 
-# NOTE: This test file file only works with scripts/ added to PYTHONPATH so pylint can't find the imports
+# NOTE: This test file only works with scripts/ added to PYTHONPATH so pylint can't find the imports
 # pragma pylint: disable=import-error
 from gas_diff_stats import collect_statistics
 # pragma pylint: enable=import-error
