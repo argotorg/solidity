@@ -67,3 +67,9 @@ emscripten_build/
 # OS specific local files
 .DS_Store
 Thumbs.db
+
+# Local virtual env
+.venv/
+__pycache__/
+.pytest_cache/
+.vscode/
