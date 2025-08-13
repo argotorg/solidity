@@ -1634,7 +1634,7 @@ void IRGeneratorForStatements::endVisit(FunctionCall const& _functionCall)
 		std::string tokenId{expressionAsType(*arguments[0], *(parameterTypes[0]))};
 		Whiskers templ(R"(
 			if iszero(lt(0xf4240, <tokenId>)) { revert(0, 0) }
-			if iszero(gt(exp(2, 63), <tokenId>) { revert(0, 0) }
+			if iszero(gt(exp(2, 63), <tokenId>)) { revert(0, 0) }
 			let <result> := tokenbalance(<tokenId>, <address>)
 		)");
 		templ("address", address);
