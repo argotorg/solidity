@@ -113,6 +113,24 @@ Solidity includes different types of tests, most of them bundled into the
 `Boost C++ Test Framework <https://www.boost.org/doc/libs/release/libs/test/doc/html/index.html>`_ application ``soltest``.
 Running ``build/test/soltest`` or its wrapper ``scripts/soltest.sh`` is sufficient for most changes.
 
+.. tip::
+
+   **Quickstart: build & run tests once**
+
+   If you just want to verify your environment (for example on GitHub Codespaces), run:
+
+   .. code-block:: bash
+
+      ./scripts/tests.sh
+
+   This runs the Python script tests and other basic checks. To sanity-check only the Boost test runner:
+
+   .. code-block:: bash
+
+      ./scripts/soltest.sh
+      # or directly after a full C++ build:
+      build/test/soltest
+
 The ``./scripts/tests.sh`` script executes most Solidity tests automatically,
 including those bundled into the `Boost C++ Test Framework <https://www.boost.org/doc/libs/release/libs/test/doc/html/index.html>`_
 application ``soltest`` (or its wrapper ``scripts/soltest.sh``), as well as command-line tests and

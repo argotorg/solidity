@@ -33,6 +33,29 @@ This parameter has effects on the following (this might change in the future):
 - the size of the binary search in the function dispatch routine
 - the way constants like large numbers or strings are stored
 
+.. rubric:: Using ``--via-ir`` with the optimizer (example)
+
+You can compile via the Yul IR pipeline and still use optimizer flags. The following
+uses a small run count which tends to favor smaller bytecode:
+
+.. code-block:: solidity
+
+   // SPDX-License-Identifier: MIT
+   pragma solidity ^0.8.25;
+
+   contract Inc {
+       function add1(uint256 x) external pure returns (uint256) {
+           return x + 1;
+       }
+   }
+
+Compile:
+
+.. code-block:: bash
+
+   solc --via-ir --optimize --optimize-runs=1 Inc.sol --bin --asm
+
+
 .. index:: allowed paths, --allow-paths, base path, --base-path, include paths, --include-path
 
 Base Path and Import Remapping
