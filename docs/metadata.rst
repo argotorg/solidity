@@ -66,7 +66,7 @@ explanatory purposes.
           },
           "events": {
             "Transfer(address,address,uint256)": {
-              "details": "Emitted when `value` tokens are moved from one account (`from`) toanother (`to`).",
+              "details": "Emitted when `value` tokens are moved from one account (`from`) to another (`to`).",
               "params": {
                 "from": "The sender address",
                 "to": "The receiver address",
