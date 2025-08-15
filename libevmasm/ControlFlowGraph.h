@@ -68,7 +68,7 @@ struct BasicBlock
 {
 	/// Start index into assembly item list.
 	unsigned begin = 0;
-	/// End index (excluded) inte assembly item list.
+	/// End index (excluded) into assembly item list.
 	unsigned end = 0;
 	/// Tags pushed inside this block, with multiplicity.
 	std::vector<BlockId> pushedTags;
