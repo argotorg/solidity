@@ -121,7 +121,7 @@ public:
 	unsigned sequenceNumber() const { return m_sequenceNumber; }
 
 	/// Replaces the state by the intersection with _other, i.e. only equal knowledge is retained.
-	/// If the stack heighht is different, the smaller one is used and the stack is compared
+	/// If the stack height is different, the smaller one is used and the stack is compared
 	/// relatively.
 	/// @param _combineSequenceNumbers if true, sets the sequence number to the maximum of both
 	void reduceToCommonKnowledge(KnownState const& _other, bool _combineSequenceNumbers);
