@@ -287,7 +287,7 @@ Input Description
           // NOTE: The state of the optimizer is fully determined by the 'details' dict and this setting
           // only affects its defaults - when enabled, all components default to being enabled.
           // The opposite is not true - there are several components that always default to being
-          // enabled an can only be explicitly disabled via 'details'.
+          // enabled and can only be explicitly disabled via 'details'.
           // WARNING: Before version 0.8.6 omitting this setting was not equivalent to setting
           // it to false and would result in all components being disabled instead.
           // WARNING: Enabling optimizations for EVMAssembly input is allowed but not necessary under normal
