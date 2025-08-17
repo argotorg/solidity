@@ -30,7 +30,7 @@ object "C_33" {
             if callvalue() { revert(0, 0) }
             let _2 := datasize("A_13")
             let _3 := add(_1, _2)
-            if or(gt(_3, sub(shl(64, 1), 1)), lt(_3, _1))
+            if or(gt(_3, shr(192, not(0))), lt(_3, _1))
             {
                 mstore(0, shl(224, 0x4e487b71))
                 mstore(4, 0x41)
@@ -44,11 +44,11 @@ object "C_33" {
                 returndatacopy(pos, 0, returndatasize())
                 revert(pos, returndatasize())
             }
-            sstore(0, or(and(sload(0), not(sub(shl(160, 1), 1))), and(expr_address, sub(shl(160, 1), 1))))
+            sstore(0, or(and(sload(0), shl(160, not(0))), and(expr_address, shr(96, not(0)))))
             let _4 := mload(64)
             let _5 := datasize("B_7")
             let _6 := add(_4, _5)
-            if or(gt(_6, sub(shl(64, 1), 1)), lt(_6, _4))
+            if or(gt(_6, shr(192, not(0))), lt(_6, _4))
             {
                 mstore(0, shl(224, 0x4e487b71))
                 mstore(4, 0x41)
@@ -62,7 +62,7 @@ object "C_33" {
                 returndatacopy(pos_1, 0, returndatasize())
                 revert(pos_1, returndatasize())
             }
-            sstore(0x01, or(and(sload(0x01), not(sub(shl(160, 1), 1))), and(expr_address_1, sub(shl(160, 1), 1))))
+            sstore(0x01, or(and(sload(0x01), shl(160, not(0))), and(expr_address_1, shr(96, not(0)))))
             let _7 := mload(64)
             let _8 := datasize("C_33_deployed")
             codecopy(_7, dataoffset("C_33_deployed"), _8)

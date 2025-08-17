@@ -1080,7 +1080,7 @@
 //         let _1 := mload(1)
 //         let _2 := mload(0)
 //         if slt(sub(_1, _2), 64) { revert(0, 0) }
-//         sstore(0, and(calldataload(_2), sub(shl(160, 1), 1)))
+//         sstore(0, and(calldataload(_2), shr(96, not(0))))
 //         let x0, x1, x2, x3, x4 := abi_decode_addresst_uint256t_bytes_calldatat_enum_Operation(mload(7), mload(8))
 //         sstore(x1, x0)
 //         sstore(x3, x2)
@@ -1090,7 +1090,7 @@
 //     function abi_decode_addresst_uint256t_bytes_calldatat_enum_Operation(headStart, dataEnd) -> value0, value1, value2, value3, value4
 //     {
 //         if slt(sub(dataEnd, headStart), 128) { revert(0, 0) }
-//         value0 := and(calldataload(headStart), sub(shl(160, 1), 1))
+//         value0 := and(calldataload(headStart), shr(96, not(0)))
 //         value1 := calldataload(add(headStart, 32))
 //         let offset := calldataload(add(headStart, 64))
 //         if gt(offset, 0xffffffffffffffff) { revert(0, 0) }
@@ -1107,7 +1107,7 @@
 //     {
 //         tail := add(headStart, 352)
 //         mstore(headStart, value0)
-//         mstore(add(headStart, 32), and(value1, sub(shl(160, 1), 1)))
+//         mstore(add(headStart, 32), and(value1, shr(96, not(0))))
 //         mstore(add(headStart, 64), value2)
 //         mstore(add(headStart, 96), value3)
 //         if iszero(lt(value4, 3)) { invalid() }
@@ -1115,8 +1115,8 @@
 //         mstore(add(headStart, 160), value5)
 //         mstore(add(headStart, 192), value6)
 //         mstore(add(headStart, 224), value7)
-//         mstore(add(headStart, 256), and(value8, sub(shl(160, 1), 1)))
-//         mstore(add(headStart, 288), and(value9, sub(shl(160, 1), 1)))
+//         mstore(add(headStart, 256), and(value8, shr(96, not(0))))
+//         mstore(add(headStart, 288), and(value9, shr(96, not(0))))
 //         mstore(add(headStart, 320), value10)
 //     }
 //     function cleanup_revert_enum_Operation(value) -> cleaned

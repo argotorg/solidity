@@ -64,6 +64,8 @@ struct MiniEVMInterpreter
 			return exp256(args.at(0), args.at(1));
 		case evmasm::Instruction::SHL:
 			return args.at(0) > 255 ? 0 : (args.at(1) << unsigned(args.at(0)));
+		case evmasm::Instruction::SHR:
+			return args.at(1) >> unsigned(args.at(0));
 		case evmasm::Instruction::NOT:
 			return ~args.at(0);
 		default:
@@ -134,6 +136,33 @@ Representation const& RepresentationFinder::findRepresentation(u256 const& _valu
 	auto const& auxHandles = m_dialect.auxiliaryBuiltinHandles();
 
 	Representation routine = represent(_value);
+
+	// check for masks first
+	//                                        high ones      low zeros
+	//                                       |----------||--------------|
+	// 0x000000000000000000000000000000000000ffffffffffff0000000000000000
+	unsigned lowZeros = 0;
+	unsigned highOnes = 0;
+	while (((_value >> lowZeros) & 1) == 0 && lowZeros < 256)
+		++lowZeros;
+	while (((_value >> (lowZeros + highOnes)) & 1) == 1 && highOnes < 256)
+		++highOnes;
+	if (
+		m_dialect.evmVersion().hasBitwiseShifting() &&
+		highOnes > 32 && // push would be more efficient otherwise
+		((_value >> (lowZeros + highOnes)) == 0) && // this is a pure mask
+		((lowZeros + highOnes < 256) || lowZeros > 16) // otherwise negation is more effective
+	)
+	{
+		// this is a big enough mask to use zero negation
+		Representation newRoutine = represent(*auxHandles.not_, represent(0));
+		if ((highOnes + lowZeros) != 256)
+			newRoutine = represent(*auxHandles.shr, represent(256 - highOnes), newRoutine);
+		if (lowZeros > 0)
+			newRoutine = represent(*auxHandles.shl, represent(lowZeros), newRoutine);
+		routine = min(std::move(routine), std::move(newRoutine));
+	}
+
 
 	if (numberEncodingSize(~_value) < numberEncodingSize(_value))
 		// Negated is shorter to represent

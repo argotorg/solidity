@@ -41,7 +41,7 @@ contract D {
 // bytecodeFormat: legacy
 // ----
 // constructor() ->
-// gas irOptimized: 126919
+// gas irOptimized: 126785
 // gas irOptimized code: 214800
 // gas legacy: 149480
 // gas legacy code: 501200

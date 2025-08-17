@@ -65,8 +65,8 @@ contract D {
 // bytecodeFormat: legacy
 // ----
 // constructor(), 1 ether ->
-// gas irOptimized: 66279
-// gas irOptimized code: 166200
+// gas irOptimized: 66043
+// gas irOptimized code: 163400
 // gas legacy: 76227
 // gas legacy code: 298200
 // gas legacyOptimized: 66074
