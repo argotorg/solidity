@@ -25,7 +25,7 @@
 // {
 //     {
 //         let value := calldataload(4)
-//         if iszero(eq(value, and(value, sub(shl(160, 1), 1)))) { revert(0, 0) }
+//         if iszero(eq(value, and(value, shr(96, not(0))))) { revert(0, 0) }
 //         let length := extcodesize(value)
 //         if gt(length, 0xffffffffffffffff) { revert(0, 0) }
 //         let memPtr := mload(64)

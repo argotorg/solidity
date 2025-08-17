@@ -264,6 +264,7 @@ EVMDialect::EVMDialect(langutil::EVMVersion _evmVersion, std::optional<uint8_t> 
 	m_auxiliaryBuiltinHandles.mul = EVMDialect::findBuiltin("mul");
 	m_auxiliaryBuiltinHandles.not_ = EVMDialect::findBuiltin("not");
 	m_auxiliaryBuiltinHandles.shl = EVMDialect::findBuiltin("shl");
+	m_auxiliaryBuiltinHandles.shr = EVMDialect::findBuiltin("shr");
 	m_auxiliaryBuiltinHandles.sub = EVMDialect::findBuiltin("sub");
 }
 

@@ -620,7 +620,7 @@ object \"C_54\" {
             let programSize := datasize(\"C_54\")
             let argSize := sub(codesize(), programSize)
             let newFreePtr := add(_1, and(add(argSize, 31), not(31)))
-            if or(gt(newFreePtr, sub(shl(64, 1), 1)), lt(newFreePtr, _1))
+            if or(gt(newFreePtr, shr(192, not(0))), lt(newFreePtr, _1))
             {
                 mstore(/** @src -1:-1:-1 */ 0, /** @src 0:79:510  \"contract C...\" */ shl(224, 0x4e487b71))
                 mstore(4, 0x41)
@@ -685,7 +685,7 @@ object \"C_54\" {
                         if callvalue() { revert(0, 0) }
                         if slt(add(calldatasize(), not(3)), 0) { revert(0, 0) }
                         let _3 := sload(0)
-                        if eq(_3, sub(shl(255, 1), 1))
+                        if eq(_3, shr(1, not(0)))
                         {
                             mstore(0, shl(224, 0x4e487b71))
                             mstore(4, 0x11)
@@ -1457,7 +1457,7 @@ object \"D_72\" {
             let programSize := datasize(\"D_72\")
             let argSize := sub(codesize(), programSize)
             let newFreePtr := add(_1, and(add(argSize, 31), not(31)))
-            if or(gt(newFreePtr, sub(shl(64, 1), 1)), lt(newFreePtr, _1))
+            if or(gt(newFreePtr, shr(192, not(0))), lt(newFreePtr, _1))
             {
                 mstore(/** @src -1:-1:-1 */ 0, /** @src 1:91:181  \"contract D is C(3)...\" */ shl(224, 0x4e487b71))
                 mstore(4, 0x41)
@@ -1529,7 +1529,7 @@ object \"D_72\" {
                         if callvalue() { revert(0, 0) }
                         if slt(add(calldatasize(), not(3)), 0) { revert(0, 0) }
                         let _3 := sload(0)
-                        if eq(_3, sub(shl(255, 1), 1))
+                        if eq(_3, shr(1, not(0)))
                         {
                             mstore(0, shl(224, 0x4e487b71))
                             mstore(4, 0x11)

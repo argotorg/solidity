@@ -18,7 +18,7 @@ contract C is B layout at 7 {
 }
 // ----
 // constructor(): 1, 2, 3
-// gas irOptimized: 104118
+// gas irOptimized: 104099
 // gas irOptimized code: 30000
 // gas legacy: 114749
 // gas legacy code: 71400

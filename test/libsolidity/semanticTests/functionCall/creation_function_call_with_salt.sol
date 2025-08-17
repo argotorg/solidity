@@ -17,7 +17,7 @@ contract D {
 // EVMVersion: >=constantinople
 // ----
 // constructor(): 2 ->
-// gas irOptimized: 138774
+// gas irOptimized: 138640
 // gas irOptimized code: 53200
 // gas legacy: 145935
 // gas legacy code: 95600
