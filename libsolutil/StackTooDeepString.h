@@ -23,6 +23,6 @@ namespace solidity::util
 {
 	static std::string stackTooDeepString =
 		"Stack too deep. "
-		"Try compiling with `--via-ir` (cli) or the equivalent `viaIR: true` (standard JSON) "
+		"Try compiling with `--experimental-via-ir` (cli) or the equivalent `viaIR: true` (standard JSON) "
 		"while enabling the optimizer. Otherwise, try removing local variables.";
 }

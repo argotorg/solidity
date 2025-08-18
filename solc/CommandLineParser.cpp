@@ -1428,7 +1428,7 @@ void CommandLineParser::processArgs()
 	if (m_args.count(g_strViaIR) > 0) {
 		solThrow(
 			CommandLineValidationError,
-			"Compilation mode via the IR is experimental now. Use --"  + g_strExperimentalViaIR + "."
+			"Compilation mode via the IR of TRON`s Solidity compiler is experimental now. Use --"  + g_strExperimentalViaIR + " instead."
 		);
 	}
 	m_options.output.viaIR = (m_args.count(g_strExperimentalViaIR) > 0 || m_args.count(g_strViaIR) > 0);
