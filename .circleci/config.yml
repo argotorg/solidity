@@ -779,7 +779,7 @@ defaults:
       name: t_native_test_ext_ens
       project: ens
       binary_type: native
-      image: cimg/node:18.16
+      image: cimg/node:lts
 
   - job_native_compile_ext_trident: &job_native_compile_ext_trident
       <<: *requires_b_ubu_static

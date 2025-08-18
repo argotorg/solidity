@@ -131,7 +131,7 @@ This contract introduces some new concepts, let us go through them one by one.
 The line ``address public minter;`` declares a state variable of type :ref:`address<address>`.
 The ``address`` type is a 160-bit value that does not allow any arithmetic operations.
 It is suitable for storing addresses of contracts, or a hash of the public half
-of a keypair belonging to :ref:`external accounts<accounts>`.
+of a keypair belonging to :ref:`externally-owned accounts<accounts>`.
 
 The keyword ``public`` automatically generates a function that allows you to access the current value of the state
 variable from outside of the contract. Without this keyword, other contracts have no way to access the variable.
@@ -338,11 +338,11 @@ Accounts
 ========
 
 There are two kinds of accounts in Ethereum which share the same
-address space: **External accounts** that are controlled by
+address space: **Externally-owned accounts** that are controlled by
 public-private key pairs (i.e. humans) and **contract accounts** which are
 controlled by the code stored together with the account.
 
-The address of an external account is determined from
+The address of an externally-owned account is determined from
 the public key while the address of a contract is
 determined at the time the contract is created
 (it is derived from the creator address and the number

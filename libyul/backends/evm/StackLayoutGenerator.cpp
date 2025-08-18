@@ -308,7 +308,7 @@ Stack StackLayoutGenerator::propagateStackThroughOperation(Stack _exitStack, CFG
 	// generated on the fly), s.t. shuffling the `stack + _operation.output` to _exitLayout is cheap.
 	Stack stack = createIdealLayout(_operation.output, _exitStack, generateSlotOnTheFly, reachableStackDepth());
 
-	// Make sure the resulting previous slots do not overlap with any assignmed variables.
+	// Make sure the resulting previous slots do not overlap with any assigned variables.
 	if (auto const* assignment = std::get_if<CFG::Assignment>(&_operation.operation))
 		for (auto& stackSlot: stack)
 			if (auto const* varSlot = std::get_if<VariableSlot>(&stackSlot))

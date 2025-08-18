@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # This script reads a syntaxTest file and writes all
-# sources into their own files. If one source-name specifies subdirectories
+# sources into separate files. If a source name specifies subdirectories,
 # those will be created too.
 
 # Usage: scripts/splitSources.py pathToTestfile
@@ -18,7 +18,7 @@ def uncaught_exception_hook(exc_type, exc_value, exc_traceback):
     # The script `scripts/ASTImportTest.sh` will interpret return code 3
     # as a critical error (because of the uncaught exception) and will
     # terminate further execution.
-    print("Unhandled exception: %s", "".join(traceback.format_exception(exc_type, exc_value, exc_traceback)))
+    print("Unhandled exception: " + "".join(traceback.format_exception(exc_type, exc_value, exc_traceback)))
     sys.exit(3)
 
 
@@ -42,7 +42,7 @@ def writeSourceToFile(lines):
     with open(srcName, mode='a+', encoding='utf8', newline='') as f:
         for idx, line in enumerate(lines[1:]):
             # write to file
-            if line[:12] != "==== Source:":
+            if not line.startswith("==== Source:"):
                 f.write(line + '\n')
 
             # recursive call if there is another source

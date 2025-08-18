@@ -22,15 +22,15 @@ class PrintDotsThread:
         thread.start()
 
     def run(self):
-        """ Runs until the main Python thread exits. """
-        ## Print a newline at the very beginning.
+        """ Run indefinitely until the main Python thread exits. """
+        ## Print an initial newline at the very beginning.
         print("")
         while True:
             # Print dot
             print(".")
             time.sleep(self.interval)
 
-class regressor:
+class Regressor:
     _re_sanitizer_log = re.compile(r"""ERROR: (libFuzzer|UndefinedBehaviorSanitizer)""")
 
     def __init__(self, description, args):
@@ -87,7 +87,7 @@ class regressor:
                 False      -> Failure
         """
 
-        ## Log may contain non ASCII characters, so we simply stringify them
+        ## Log may contain non-ASCII characters, so we simply stringify them
         ## since they don't matter for regular expression matching
         with open(logfile, 'rb', encoding=None) as f:
             rawtext = str(f.read())
@@ -122,5 +122,5 @@ class regressor:
 
 if __name__ == '__main__':
     dotprinter = PrintDotsThread()
-    tool = regressor(DESCRIPTION, sys.argv[1:])
+    tool = Regressor(DESCRIPTION, sys.argv[1:])
     sys.exit(not tool.run())
