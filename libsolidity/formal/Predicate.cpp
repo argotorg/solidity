@@ -303,7 +303,13 @@ std::string Predicate::formatSummaryCall(
 			functionArgs.emplace_back(*functionArgsCex.at(i));
 		else {
 			paramNameInsteadOfValue = true;
-			functionArgs.emplace_back(params[i]->name());
+			if (params.at(i))
+			{
+				auto const& paramName = params.at(i)->name();
+				functionArgs.emplace_back(paramName.empty() ? ("param_" + std::to_string(i)) : paramName);
+			}
+			else
+				functionArgs.emplace_back("param_" + std::to_string(i));
 		}
 
 	std::string fName = fun->isConstructor() ? "constructor" :
