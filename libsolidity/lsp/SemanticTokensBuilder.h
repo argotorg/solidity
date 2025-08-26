@@ -15,11 +15,10 @@
 	along with solidity.  If not, see <http://www.gnu.org/licenses/>.
 */
 // SPDX-License-Identifier: GPL-3.0
+#pragma once
 #include <libsolidity/ast/AST.h>
 #include <libsolidity/ast/ASTVisitor.h>
 #include <libsolutil/JSON.h>
-
-#include <fmt/format.h>
 
 namespace solidity::langutil
 {
