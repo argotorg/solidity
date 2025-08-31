@@ -123,7 +123,6 @@ bool ErrorReporter::checkForExcessiveErrors(Error::Type _type)
 
 		if (m_errorCount > c_maxErrorsAllowed)
 		{
-			m_errorList.push_back(std::make_shared<Error>(4013_error, Error::Type::Warning, "There are more than 256 errors. Aborting."));
 			solThrow(FatalError, "There are more than 256 errors. Aborting.");
 		}
 	}
