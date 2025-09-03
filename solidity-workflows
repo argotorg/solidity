@@ -1,0 +1,2 @@
+- name: solidity-workflows
+  uses: The-Poolz/solidity-workflows@v0.6.0
