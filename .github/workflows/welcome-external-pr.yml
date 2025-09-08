@@ -5,6 +5,11 @@ on:
     types:
       - opened
 
+permissions:
+  pull-requests: write
+  issues: write
+  contents: read
+
 env:
   DRY_RUN: false
 
