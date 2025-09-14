@@ -1910,9 +1910,9 @@ std::string ArrayType::canonicalName() const
 	return ret;
 }
 
-string ArrayType::eip712TypeName() const
+std::string ArrayType::eip712TypeName() const
 {
-	string ret;
+	std::string ret;
 	if (isString())
 		ret = "string";
 	else if (isByteArrayOrString())
@@ -2565,7 +2565,7 @@ std::string StructType::canonicalName() const
 	return *m_struct.annotation().canonicalName;
 }
 
-string StructType::eip712TypeName() const
+std::string StructType::eip712TypeName() const
 {
 	return this->typeDefinition()->name();
 }
