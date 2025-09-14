@@ -1,6 +1,7 @@
 ### 0.8.32 (unreleased)
 
 Language Features:
+ * Support for EIP-712 struct typehash via ``type(S).typehash`` for computing the keccak256 hash of the EIP-712 encoding of struct type ``S``.
 
 Compiler Features:
 
