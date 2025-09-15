@@ -3332,14 +3332,8 @@ bool TypeChecker::visit(MemberAccess const& _memberAccess)
 			auto accessedStructType = dynamic_cast<StructType const*>(magicType->typeArgument());
 			solAssert(accessedStructType, "typehash requested on a non struct type.");
 
-			if (accessedStructType->recursive())
-			{
-				m_errorReporter.typeError(
-					9298_error,
-					_memberAccess.location(),
-					"\"typehash\" cannot be used for recursive structs."
-				);
-			}
+			// Direct recursion is already rejected by DeclarationTypeChecker,
+			// so only dynamic array based recursion can reach here. which is valid.
 
 			for (auto const& member: accessedStructType->members(currentDefinitionScope()))
 			{

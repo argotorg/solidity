@@ -413,6 +413,17 @@ std::vector<std::pair<ASTPointer<IdentifierPath>, std::optional<Token>>> UsingFo
 
 void StructDefinition::insertEip712EncodedSubtypes(std::set<std::string>& subtypes) const
 {
+	std::set<StructDefinition const*> processedStructs;
+	collectEip712SubtypesWithCycleTracking(subtypes, processedStructs);
+}
+
+void StructDefinition::collectEip712SubtypesWithCycleTracking(std::set<std::string>& subtypes, std::set<StructDefinition const*>& processedStructs) const
+{
+	if (processedStructs.count(this))
+		return;
+
+	processedStructs.insert(this);
+
 	for (auto const& member: m_members)
 	{
 		Declaration const* declaration = nullptr;
@@ -441,7 +452,7 @@ void StructDefinition::insertEip712EncodedSubtypes(std::set<std::string>& subtyp
 		if (auto const* structDef = dynamic_cast<StructDefinition const*>(declaration))
 		{
 			subtypes.insert(structDef->eip712EncodeTypeWithoutSubtypes());
-			structDef->insertEip712EncodedSubtypes(subtypes);
+			structDef->collectEip712SubtypesWithCycleTracking(subtypes, processedStructs);
 		}
 	}
 }

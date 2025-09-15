@@ -780,6 +780,11 @@ public:
 	/// Fills set with the EIP-712 compatible struct encodings without subtypes concatenated.
 	void insertEip712EncodedSubtypes(std::set<std::string>& subtypes) const;
 
+private:
+	void collectEip712SubtypesWithCycleTracking(std::set<std::string>& subtypes, std::set<StructDefinition const*>& processedStructs) const;
+
+public:
+
 	/// @returns the EIP-712 compatible struct encoding but without subtypes concatenated.
 	std::string eip712EncodeTypeWithoutSubtypes() const;
 
