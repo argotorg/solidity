@@ -445,15 +445,14 @@ void StructDefinition::collectEip712SubtypesWithCycleTracking(std::set<std::stri
 		}
 
 		if (!declaration)
-		{
 			continue;
-		}
 
 		if (auto const* structDef = dynamic_cast<StructDefinition const*>(declaration))
-		{
-			subtypes.insert(structDef->eip712EncodeTypeWithoutSubtypes());
-			structDef->collectEip712SubtypesWithCycleTracking(subtypes, processedStructs);
-		}
+			if (structDef != this)
+			{
+				subtypes.insert(structDef->eip712EncodeTypeWithoutSubtypes());
+				structDef->collectEip712SubtypesWithCycleTracking(subtypes, processedStructs);
+			}
 	}
 }
 
