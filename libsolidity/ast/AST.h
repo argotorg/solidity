@@ -781,7 +781,7 @@ public:
 	void insertEip712EncodedSubtypes(std::set<std::string>& subtypes) const;
 
 private:
-	void collectEip712SubtypesWithCycleTracking(std::set<std::string>& subtypes, std::set<StructDefinition const*>& processedStructs) const;
+	void collectEip712SubtypesWithCycleTracking(std::set<std::string>& subtypes, std::set<StructDefinition const*>& processedStructs, StructDefinition const* rootStruct) const;
 
 public:
 

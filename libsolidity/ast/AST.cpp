@@ -414,10 +414,10 @@ std::vector<std::pair<ASTPointer<IdentifierPath>, std::optional<Token>>> UsingFo
 void StructDefinition::insertEip712EncodedSubtypes(std::set<std::string>& subtypes) const
 {
 	std::set<StructDefinition const*> processedStructs;
-	collectEip712SubtypesWithCycleTracking(subtypes, processedStructs);
+	collectEip712SubtypesWithCycleTracking(subtypes, processedStructs, this);
 }
 
-void StructDefinition::collectEip712SubtypesWithCycleTracking(std::set<std::string>& subtypes, std::set<StructDefinition const*>& processedStructs) const
+void StructDefinition::collectEip712SubtypesWithCycleTracking(std::set<std::string>& subtypes, std::set<StructDefinition const*>& processedStructs, StructDefinition const* rootStruct) const
 {
 	if (processedStructs.count(this))
 		return;
@@ -448,10 +448,10 @@ void StructDefinition::collectEip712SubtypesWithCycleTracking(std::set<std::stri
 			continue;
 
 		if (auto const* structDef = dynamic_cast<StructDefinition const*>(declaration))
-			if (structDef != this)
+			if (structDef != rootStruct)
 			{
 				subtypes.insert(structDef->eip712EncodeTypeWithoutSubtypes());
-				structDef->collectEip712SubtypesWithCycleTracking(subtypes, processedStructs);
+				structDef->collectEip712SubtypesWithCycleTracking(subtypes, processedStructs, rootStruct);
 			}
 	}
 }
