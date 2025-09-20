@@ -2688,6 +2688,11 @@ std::string EnumType::canonicalName() const
 	return *m_enum.annotation().canonicalName;
 }
 
+std::string EnumType::eip712TypeName() const
+{
+	return "uint8";
+}
+
 size_t EnumType::numberOfMembers() const
 {
 	return m_enum.members().size();

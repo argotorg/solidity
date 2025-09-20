@@ -1125,9 +1125,10 @@ public:
 	}
 	unsigned storageBytes() const override;
 	bool leftAligned() const override { return false; }
+	bool isEIP712AllowedStructMemberType() const override { return true; }
 	std::string toString(bool _withoutDataLocation) const override;
 	std::string canonicalName() const override;
-	std::string eip712TypeName() const override { solAssert(false, "EIP-712 is not supported for struct members of Enum type"); }
+	std::string eip712TypeName() const override;
 	bool isValueType() const override { return true; }
 	bool nameable() const override { return true; }
 

@@ -11,4 +11,3 @@ contract C {
 }
 
 // ----
-// TypeError 9518: (98-114): "typehash" cannot be used for structs with members of "enum C.E" type.
