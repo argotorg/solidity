@@ -29,7 +29,7 @@
 #include <liblangutil/DebugInfoSelection.h>
 #include <liblangutil/EVMVersion.h>
 
-#include <json/json.h>
+#include <libsolutil/JSON.h>
 
 #include <string>
 
@@ -63,8 +63,8 @@ private:
 	langutil::EVMVersion const m_evmVersion;
 	std::optional<uint8_t> const m_eofVersion;
 	OptimiserSettings const m_optimiserSettings;
-//	langutil::DebugInfoSelection m_debugInfoSelection = {};
-//	langutil::CharStreamProvider const* m_soliditySourceProvider = nullptr;
+	//langutil::DebugInfoSelection m_debugInfoSelection = {};
+	//langutil::CharStreamProvider const* m_soliditySourceProvider = nullptr;
 	TypeEnvironment m_env;
 	IRGenerationContext m_context;
 };

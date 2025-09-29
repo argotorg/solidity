@@ -157,7 +157,7 @@ std::map<std::string, Builtin> SemanticTest::makeBuiltins()
 			{
 				soltestAssert(_call.arguments.parameters.empty(), "No arguments expected.");
 				return toBigEndian(u256(storageEmpty(m_contractAddress) ? 1 : 0));
-		 	}
+			}
 		},
 		{
 			"account",
@@ -429,7 +429,7 @@ TestCase::TestResult SemanticTest::runTest(
 			{
 				soltestAssert(
 					m_allowNonExistingFunctions ||
-					m_compiler.interfaceSymbols(m_compiler.lastContractName(m_sources.mainSourceFile))["methods"].isMember(test.call().signature),
+					m_compiler.interfaceSymbols(m_compiler.lastContractName(m_sources.mainSourceFile))["methods"].contains(test.call().signature),
 					"The function " + test.call().signature + " is not known to the compiler"
 				);
 

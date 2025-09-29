@@ -9,25 +9,25 @@ version: 2.1
 parameters:
   ubuntu-2004-docker-image:
     type: string
-    # solbuildpackpusher/solidity-buildpack-deps:ubuntu2004-21
-    default: "solbuildpackpusher/solidity-buildpack-deps@sha256:6f64c7b35aabddb416d28f621a3c4bbae768c257d6866f6a7f05f8225acc94f0"
+    # solbuildpackpusher/solidity-buildpack-deps:ubuntu2004-23
+    default: "solbuildpackpusher/solidity-buildpack-deps@sha256:84a1fb8771236e8d9aa5c615a425b8929e56a6e4f150a60078c8d74a1ceaa6c2"
   ubuntu-2204-docker-image:
     type: string
-    # solbuildpackpusher/solidity-buildpack-deps:ubuntu2204-6
-    default: "solbuildpackpusher/solidity-buildpack-deps@sha256:6eee10420382588b274374c6a18cb2e5d4f8a9fef5cf440b3a1acfc32bf52837"
+    # solbuildpackpusher/solidity-buildpack-deps:ubuntu2204-8
+    default: "solbuildpackpusher/solidity-buildpack-deps@sha256:1c3a4118218640b2bf632242979a63d48f3d9c70d48be9574332f2dbbd04b192"
   ubuntu-2204-clang-docker-image:
     type: string
-    # solbuildpackpusher/solidity-buildpack-deps:ubuntu2204.clang-5
-    default: "solbuildpackpusher/solidity-buildpack-deps@sha256:e991421ce9f44d6476b29588fc355da1c3b3fedcc424fd12d844bbe310ad7851"
+    # solbuildpackpusher/solidity-buildpack-deps:ubuntu2204.clang-7
+    default: "solbuildpackpusher/solidity-buildpack-deps@sha256:0f47e733e100080c4174381c262cfcf974bc8e7c3c41b8dff611b9641c82f714"
   ubuntu-clang-ossfuzz-docker-image:
     type: string
-    # solbuildpackpusher/solidity-buildpack-deps:ubuntu.clang.ossfuzz-4
-    default: "solbuildpackpusher/solidity-buildpack-deps@sha256:b122ef9dca71a8f90b74f3ba13cda4453681506e4a4ff047e7bc2130c76b0d1e"
+    # solbuildpackpusher/solidity-buildpack-deps:ubuntu.clang.ossfuzz-6
+    default: "solbuildpackpusher/solidity-buildpack-deps@sha256:8883fa2845bbc1e0922af60439313666e4ba325f67a117e17d78cca3ea6589b3"
   emscripten-docker-image:
     type: string
-    # NOTE: Please remember to update the `build_emscripten.sh` whenever the hash of this image changes.
-    # solbuildpackpusher/solidity-buildpack-deps:emscripten-16
-    default: "solbuildpackpusher/solidity-buildpack-deps@sha256:19fcb5ac029bbc27ec36e10f7d14ea224d8010145f9690562ef084fd16146b0c"
+    # NOTE: Please remember to update the `scripts/build_emscripten.sh` whenever the hash of this image changes.
+    # solbuildpackpusher/solidity-buildpack-deps:emscripten-17
+    default: "solbuildpackpusher/solidity-buildpack-deps@sha256:c57f2bfb8c15d70fe290629358dd1c73dc126e3760f443b54764797556b887d4"
   evm-version:
     type: string
     default: london
@@ -331,9 +331,6 @@ commands:
       - checkout
       - attach_workspace:
           at: build
-      - run:
-          name: Install dependencies
-          command: pip install --user deepdiff colorama
       - run:
           name: Executing solc LSP test suite
           command: test/lsp.py build/solc/solc --non-interactive
@@ -801,13 +798,6 @@ defaults:
       compile_only: 1
       image: cimg/node:18.16
 
-  - job_native_test_ext_perpetual_pools: &job_native_test_ext_perpetual_pools
-      <<: *requires_b_ubu_static
-      name: t_native_test_ext_perpetual_pools
-      project: perpetual-pools
-      binary_type: native
-      image: cimg/node:18.16
-
   - job_native_test_ext_uniswap: &job_native_test_ext_uniswap
       <<: *requires_b_ubu_static
       name: t_native_test_ext_uniswap
@@ -934,19 +924,9 @@ jobs:
       - matrix_notify_failure_unless_pr
 
   chk_pylint:
-    <<: *base_cimg_small
+    <<: *base_ubuntu2204_small
     steps:
       - checkout
-      - install_python3:
-          packages: >
-            pylint
-            z3-solver
-            pygments-lexer-solidity
-            parsec
-            tabulate
-            deepdiff
-            colorama
-            requests
       - run: pylint --version
       - run:
           name: Linting Python Scripts
@@ -983,11 +963,9 @@ jobs:
       - matrix_notify_failure_unless_pr
 
   chk_proofs:
-    <<: *base_cimg_small
+    <<: *base_ubuntu2204_small
     steps:
       - checkout
-      - install_python3:
-          packages: z3-solver
       - run_proofs
       - matrix_notify_failure_unless_pr
 
@@ -1002,10 +980,6 @@ jobs:
     <<: *base_ubuntu2204_small
     steps:
       - checkout
-      - run:
-          # TODO: Add these to the base image
-          name: Install gas_diff_stats.py dependencies
-          command: python3 -m pip install --user parsec tabulate
       - run:
           name: Python unit tests
           command: python3 test/pyscriptTests.py
@@ -1181,7 +1155,7 @@ jobs:
       - run:
           name: Install build dependencies
           command: |
-            pacman --noconfirm -Syu --noprogressbar --needed base-devel boost cmake cvc4 git openssh tar
+            pacman --noconfirm -Syu --noprogressbar --needed base-devel boost cmake git openssh tar
       - checkout
       - run_build
       - store_artifacts_solc
@@ -1308,7 +1282,7 @@ jobs:
       - run:
           name: Install runtime dependencies
           command: |
-            pacman --noconfirm -Syu --noprogressbar --needed base-devel boost cmake z3 cvc4 git openssh tar
+            pacman --noconfirm -Syu --noprogressbar --needed z3
       - soltest
 
   t_ubu_clang_soltest: &t_ubu_clang_soltest
@@ -1461,7 +1435,7 @@ jobs:
           name: Install dependencies
           command: |
             cd hardhat
-            pnpm install
+            pnpm install --no-frozen-lockfile
       - run:
           name: Run hardhat-core test suite
           command: |
@@ -1517,14 +1491,6 @@ jobs:
             if command -v npm &> /dev/null; then
               sudo npm install -g pnpm
             fi
-      - install_python3:
-          packages: requests
-      - run:
-          name: Install lsof
-          command: |
-            # lsof is used by Colony in its stop-blockchain-client.sh script
-            sudo apt update
-            sudo apt-get --quiet --assume-yes --no-install-recommends install lsof
       - when:
           condition: << parameters.python2 >>
           steps:
@@ -1771,8 +1737,8 @@ jobs:
       - run: git config --global core.autocrlf false
       - checkout
       - run:
-          name: Force install python3.12.2
-          command: choco install python3 --pre --force --version=3.12.2
+          name: Force install python3.12
+          command: choco install python312 --pre --force
       - run:
           name: Create a symlink for python3
           command: ln -s /c/ProgramData/chocolatey/bin/python3.12 /c/ProgramData/chocolatey/bin/python3
@@ -1917,7 +1883,6 @@ workflows:
       - t_ext: *job_native_test_ext_zeppelin
       - t_ext: *job_native_test_ext_ens
       - t_ext: *job_native_test_ext_yield_liquidator
-      - t_ext: *job_native_test_ext_perpetual_pools
       - t_ext: *job_native_test_ext_uniswap
       - t_ext: *job_native_test_ext_prb_math
       - t_ext: *job_native_test_ext_elementfi
@@ -1939,7 +1904,6 @@ workflows:
             - t_native_test_ext_zeppelin
             - t_native_test_ext_ens
             - t_native_test_ext_yield_liquidator
-            - t_native_test_ext_perpetual_pools
             - t_native_test_ext_uniswap
             - t_native_test_ext_elementfi
             - t_native_test_ext_brink

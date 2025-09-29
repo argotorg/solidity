@@ -116,7 +116,8 @@ void TypeChecker::checkDoubleStorageAssignment(Assignment const& _assignment)
 		TupleType const& lhsType = dynamic_cast<TupleType const&>(*type(_lhs));
 		TupleExpression const* lhsResolved = dynamic_cast<TupleExpression const*>(resolveOuterUnaryTuples(&_lhs));
 
-		if (lhsType.components().size() != _rhs.components().size() || lhsResolved->components().size() != _rhs.components().size())
+		solAssert(!lhsResolved || lhsResolved->components().size() == lhsType.components().size());
+		if (lhsType.components().size() != _rhs.components().size())
 		{
 			solAssert(m_errorReporter.hasErrors(), "");
 			return;
@@ -3414,7 +3415,7 @@ bool TypeChecker::visit(MemberAccess const& _memberAccess)
 			annotation.isPure = true;
 		else if (
 			magicType->kind() == MagicType::Kind::MetaType &&
-			(memberName == "min" ||	memberName == "max")
+			(memberName == "min" || memberName == "max")
 		)
 			annotation.isPure = true;
 		else if (magicType->kind() == MagicType::Kind::Block)
@@ -3875,7 +3876,7 @@ void TypeChecker::endVisit(Literal const& _literal)
 			5145_error,
 			_literal.location(),
 			"Hexadecimal numbers cannot be used with unit denominations. "
-			"You can use an expression of the form \"0x1234 * 1 day\" instead."
+			"You can use an expression of the form \"0x1234 * 1 days\" instead."
 		);
 
 	if (_literal.subDenomination() == Literal::SubDenomination::Year)

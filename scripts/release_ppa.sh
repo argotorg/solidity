@@ -23,22 +23,22 @@
 ## Additionally the following entries in /etc/dput.cf are required:
 ##
 ##  [ethereum-dev]
-##  fqdn			= ppa.launchpad.net
-##  method			= ftp
-##  incoming		= ~ethereum/ethereum-dev
-##  login			= anonymous
+##  fqdn            = ppa.launchpad.net
+##  method          = ftp
+##  incoming        = ~ethereum/ethereum-dev
+##  login           = anonymous
 ##
 ##  [ethereum]
-##  fqdn			= ppa.launchpad.net
-##  method			= ftp
-##  incoming		= ~ethereum/ethereum
-##  login			= anonymous
+##  fqdn            = ppa.launchpad.net
+##  method          = ftp
+##  incoming        = ~ethereum/ethereum
+##  login           = anonymous
 ##
 ##  [ethereum-static]
-##  fqdn			= ppa.launchpad.net
-##  method			= ftp
-##  incoming		= ~ethereum/ethereum-static
-##  login			= anonymous
+##  fqdn            = ppa.launchpad.net
+##  method          = ftp
+##  incoming        = ~ethereum/ethereum-static
+##  login           = anonymous
 ##
 ##############################################################################
 
@@ -68,7 +68,7 @@ packagename=solc
 # This needs to be a still active release
 static_build_distribution=focal
 
-DISTRIBUTIONS="focal jammy lunar mantic"
+DISTRIBUTIONS="focal jammy mantic noble"
 
 if is_release
 then
@@ -125,7 +125,8 @@ mv solidity solc
 
 # Fetch dependencies
 mkdir -p ./solc/deps/downloads/ 2>/dev/null || true
-wget -O ./solc/deps/downloads/jsoncpp-1.9.3.tar.gz https://github.com/open-source-parsers/jsoncpp/archive/1.9.3.tar.gz
+mkdir -p ./solc/deps/nlohmann/nlohmann/ 2>/dev/null || true
+wget -O ./solc/deps/nlohmann/nlohmann/json.hpp https://github.com/nlohmann/json/releases/download/v3.11.3/json.hpp
 wget -O ./solc/deps/downloads/range-v3-0.12.0.tar.gz https://github.com/ericniebler/range-v3/archive/0.12.0.tar.gz
 wget -O ./solc/deps/downloads/fmt-9.1.0.tar.gz https://github.com/fmtlib/fmt/archive/9.1.0.tar.gz
 
@@ -210,8 +211,8 @@ export DH_OPTIONS
 override_dh_auto_test:
 
 #override_dh_installdocs:
-#	make -C docs html
-#	dh_installdocs docs/_build/html
+#    make -C docs html
+#    dh_installdocs docs/_build/html
 
 override_dh_shlibdeps:
 	dh_shlibdeps --dpkg-shlibdeps-params=--ignore-missing-info
