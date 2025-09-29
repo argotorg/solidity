@@ -42,6 +42,7 @@
 
 #pragma once
 
+#include <cstdint>
 #include <iosfwd>
 #include <string>
 #include <tuple>
@@ -64,11 +65,11 @@ namespace solidity::langutil
 
 #define IGNORE_TOKEN(name, string, precedence)
 
-#define TOKEN_LIST(T, K)												\
-	/* End of source indicator. */										\
-	T(EOS, "EOS", 0)													\
-																		\
-	/* Punctuators (ECMA-262, section 7.7, page 15). */				\
+#define TOKEN_LIST(T, K)                                                \
+	/* End of source indicator. */                                      \
+	T(EOS, "EOS", 0)                                                    \
+	\
+	/* Punctuators (ECMA-262, section 7.7, page 15). */                 \
 	T(LParen, "(", 0)                                                   \
 	T(RParen, ")", 0)                                                   \
 	T(LBrack, "[", 0)                                                   \
@@ -82,9 +83,9 @@ namespace solidity::langutil
 	T(DoubleArrow, "=>", 0)                                             \
 	T(RightArrow, "->", 0)                                              \
 	\
-	/* Assignment operators. */										\
-	/* IsAssignmentOp() relies on this block of enum values being */	\
-	/* contiguous and sorted in the same order!*/						\
+	/* Assignment operators. */                                         \
+	/* IsAssignmentOp() relies on this block of enum values being */    \
+	/* contiguous and sorted in the same order!*/                       \
 	T(Assign, "=", 2)                                                   \
 	/* The following have to be in exactly the same order as the simple binary operators*/ \
 	T(AssignBitOr, "|=", 2)                                           \

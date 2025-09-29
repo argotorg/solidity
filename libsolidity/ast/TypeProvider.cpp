@@ -146,12 +146,13 @@ std::array<std::unique_ptr<FixedBytesType>, 32> const TypeProvider::m_bytesM{{
 	{std::make_unique<FixedBytesType>(32)}
 }};
 
-std::array<std::unique_ptr<MagicType>, 5> const TypeProvider::m_magics{{
+std::array<std::unique_ptr<MagicType>, 6> const TypeProvider::m_magics{{
 	{std::make_unique<MagicType>(MagicType::Kind::Chain)},
 	{std::make_unique<MagicType>(MagicType::Kind::Block)},
 	{std::make_unique<MagicType>(MagicType::Kind::Message)},
 	{std::make_unique<MagicType>(MagicType::Kind::Transaction)},
-	{std::make_unique<MagicType>(MagicType::Kind::ABI)}
+	{std::make_unique<MagicType>(MagicType::Kind::ABI)},
+	{std::make_unique<MagicType>(MagicType::Kind::Error)}
 	// MetaType is stored separately
 }};
 

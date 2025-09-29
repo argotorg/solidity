@@ -28,63 +28,69 @@
 #include <libsolidity/ast/TypeProvider.h>
 #include <libsolidity/ast/Types.h>
 #include <memory>
+#include <unordered_map>
 
 namespace solidity::frontend
 {
 
 namespace
 {
+
 /// Magic variables get negative ids for easy differentiation
 int magicVariableToID(std::string const& _name)
 {
-	if (_name == "abi") return -1;
-	else if (_name == "addmod") return -2;
-	else if (_name == "assert") return -3;
-	else if (_name == "block") return -4;
-	else if (_name == "blockhash") return -5;
-	else if (_name == "ecrecover") return -6;
-	else if (_name == "gasleft") return -7;
-	else if (_name == "keccak256") return -8;
-	else if (_name == "msg") return -15;
-	else if (_name == "mulmod") return -16;
-	else if (_name == "now") return -17;
-	else if (_name == "require") return -18;
-	else if (_name == "revert") return -19;
-	else if (_name == "ripemd160") return -20;
-	else if (_name == "selfdestruct") return -21;
-	else if (_name == "sha256") return -22;
-	else if (_name == "sha3") return -23;
-	else if (_name == "suicide") return -24;
-	else if (_name == "super") return -25;
-	else if (_name == "tx") return -26;
-	else if (_name == "type") return -27;
-	else if (_name == "this") return -28;
-	else if (_name == "verifyMintProof") return -29;
-	else if (_name == "verifyBurnProof") return -30;
-	else if (_name == "verifyTransferProof") return -31;
-	else if (_name == "pedersenHash") return -32;
-	else if (_name == "batchvalidatesign") return -33;
-	else if (_name == "validatemultisign") return -34;
-	else if (_name == "freeze") return -35;
-	else if (_name == "unfreeze") return -36;
-	else if (_name == "freezeExpireTime") return -37;
-	else if (_name == "withdrawreward") return -38;
-	else if (_name == "vote") return -39;
-	else if (_name == "rewardBalance") return -40;
-	else if (_name == "isSrCandidate") return -41;
-	else if (_name == "voteCount") return -42;
-	else if (_name == "totalVoteCount") return -43;
-	else if (_name == "receivedVoteCount") return -44;
-	else if (_name == "usedVoteCount") return -45;
-	else if (_name == "freezebalancev2") return -46;
-	else if (_name == "unfreezebalancev2") return -47;
-	else if (_name == "cancelallunfreezev2") return -48;
-	else if (_name == "withdrawexpireunfreeze") return -49;
-	else if (_name == "chain") return -50;
-	else if (_name == "getchainparameter") return -51;
-	else if (_name == "blobhash") return -52;
-	else
-		solAssert(false, "Unknown magic variable: \"" + _name + "\".");
+	static std::unordered_map<std::string, int> const magicVariables = {
+		{"abi", -1},
+		{"addmod", -2},
+		{"assert", -3},
+		{"block", -4},
+		{"blockhash", -5},
+		{"ecrecover", -6},
+		{"gasleft", -7},
+		{"keccak256", -8},
+		{"msg", -15},
+		{"mulmod", -16},
+		{"now", -17},
+		{"require", -18},
+		{"revert", -19},
+		{"ripemd160", -20},
+		{"selfdestruct", -21},
+		{"sha256", -22},
+		{"sha3", -23},
+		{"suicide", -24},
+		{"super", -25},
+		{"tx", -26},
+		{"type", -27},
+		{"this", -28},
+		{"verifyMintProof", -29},
+		{"verifyBurnProof", -30},
+		{"verifyTransferProof", -31},
+		{"pedersenHash", -32},
+		{"batchvalidatesign", -33},
+		{"validatemultisign", -34},
+		{"freeze", -35},
+		{"unfreeze", -36},
+		{"freezeExpireTime", -37},
+		{"withdrawreward", -38},
+		{"vote", -39},
+		{"rewardBalance", -40},
+		{"isSrCandidate", -41},
+		{"voteCount", -42},
+		{"totalVoteCount", -43},
+		{"receivedVoteCount", -44},
+		{"usedVoteCount", -45},
+		{"freezebalancev2", -46},
+		{"unfreezebalancev2", -47},
+		{"cancelallunfreezev2", -48},
+		{"withdrawexpireunfreeze", -49},
+		{"chain", -50},
+		{"getchainparameter", -51},
+		{"blobhash", -52},
+	};
+
+	if (auto id = magicVariables.find(_name); id != magicVariables.end())
+		return id->second;
+	solAssert(false, "Unknown magic variable: \"" + _name + "\".");
 }
 
 inline std::vector<std::shared_ptr<MagicVariableDeclaration const>> constructMagicVariables(langutil::EVMVersion _evmVersion)
@@ -107,6 +113,7 @@ inline std::vector<std::shared_ptr<MagicVariableDeclaration const>> constructMag
 		magicVarDecl("now", TypeProvider::uint256()),
 		magicVarDecl("require", TypeProvider::function(strings{"bool"}, strings{}, FunctionType::Kind::Require, StateMutability::Pure)),
 		magicVarDecl("require", TypeProvider::function(strings{"bool", "string memory"}, strings{}, FunctionType::Kind::Require, StateMutability::Pure)),
+		magicVarDecl("require", TypeProvider::function(TypePointers{TypeProvider::boolean(), TypeProvider::magic(MagicType::Kind::Error)}, TypePointers{}, strings{2, ""}, strings{}, FunctionType::Kind::Require, StateMutability::Pure)),
 		magicVarDecl("revert", TypeProvider::function(strings(), strings(), FunctionType::Kind::Revert, StateMutability::Pure)),
 		magicVarDecl("revert", TypeProvider::function(strings{"string memory"}, strings(), FunctionType::Kind::Revert, StateMutability::Pure)),
 		magicVarDecl("ripemd160", TypeProvider::function(strings{"bytes memory"}, strings{"bytes20"}, FunctionType::Kind::RIPEMD160, StateMutability::Pure)),

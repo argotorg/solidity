@@ -21,7 +21,7 @@ include(EthPolicy)
 eth_policy()
 
 # project name and version should be set after cmake_policy CMP0048
-set(PROJECT_VERSION "0.8.25")
+set(PROJECT_VERSION "0.8.26")
 # OSX target needed in order to support std::visit
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.14")
 project(solidity VERSION ${PROJECT_VERSION} LANGUAGES C CXX)
@@ -37,16 +37,23 @@ option(SOLC_STATIC_STDLIBS "Link solc against static versions of libgcc and libs
 option(STRICT_Z3_VERSION "Use the latest version of Z3" ON)
 option(PEDANTIC "Enable extra warnings and pedantic build flags. Treat all warnings as errors." ON)
 option(PROFILE_OPTIMIZER_STEPS "Output performance metrics for the optimiser steps." OFF)
+option(USE_SYSTEM_LIBRARIES "Use system libraries" OFF)
+option(ONLY_BUILD_SOLIDITY_LIBRARIES "Only build solidity libraries" OFF)
+option(STRICT_NLOHMANN_JSON_VERSION "Strictly check installed nlohmann json version" ON)
+mark_as_advanced(USE_SYSTEM_LIBRARIES)
+mark_as_advanced(ONLY_BUILD_SOLIDITY_LIBRARIES)
+mark_as_advanced(STRICT_NLOHMANN_JSON_VERSION)
 
 # Setup cccache.
 include(EthCcache)
 
 # Let's find our dependencies
 include(EthDependencies)
-include(fmtlib)
-include(jsoncpp)
-include(range-v3)
-include_directories(SYSTEM ${JSONCPP_INCLUDE_DIR})
+if (NOT USE_SYSTEM_LIBRARIES)
+  include(fmtlib)
+  include(nlohmann-json)
+  include(range-v3)
+endif()
 
 find_package(Threads)
 
@@ -56,6 +63,10 @@ endif()
 
 if (PROFILE_OPTIMIZER_STEPS)
     add_definitions(-DPROFILE_OPTIMIZER_STEPS)
+endif()
+
+if (STRICT_NLOHMANN_JSON_VERSION)
+	add_definitions(-DSTRICT_NLOHMANN_JSON_VERSION_CHECK)
 endif()
 
 # Figure out what compiler and system are we using
@@ -141,12 +152,15 @@ add_subdirectory(libyul)
 add_subdirectory(libsolidity)
 add_subdirectory(libsolc)
 add_subdirectory(libstdlib)
-add_subdirectory(tools)
 
-if (NOT EMSCRIPTEN)
-	add_subdirectory(solc)
-endif()
+if (NOT ONLY_BUILD_SOLIDITY_LIBRARIES)
+	add_subdirectory(tools)
 
-if (TESTS AND NOT EMSCRIPTEN)
-	add_subdirectory(test)
+	if (NOT EMSCRIPTEN)
+		add_subdirectory(solc)
+	endif()
+
+	if (TESTS AND NOT EMSCRIPTEN)
+		add_subdirectory(test)
+	endif()
 endif()
