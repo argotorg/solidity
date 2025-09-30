@@ -1,0 +1,180 @@
+# Solidity
+
+> Solidity is a statically-typed, contract-oriented, high-level language for implementing smart contracts on the Ethereum platform. It is designed to target the Ethereum Virtual Machine (EVM) and is influenced by C++, Python, and JavaScript.
+
+## Project Information
+
+- **Repository**: https://github.com/argotorg/solidity
+- **Documentation**: https://docs.soliditylang.org/
+- **Language Portal**: https://soliditylang.org/
+- **License**: GNU General Public License v3.0
+- **Current Version**: 0.8.x (latest stable)
+- **Supported Versions**: Only the latest version receives security fixes
+
+## Key Documentation
+
+### Core Documentation
+- [Solidity Documentation](https://docs.soliditylang.org/en/latest/): Comprehensive guide to Solidity
+- [Language Description](https://docs.soliditylang.org/en/latest/): Core language concepts and syntax
+- [Security Considerations](https://docs.soliditylang.org/en/latest/security-considerations.html): Critical security guidelines
+- [Style Guide](https://docs.soliditylang.org/en/latest/style-guide.html): Code formatting and best practices
+- [Common Patterns](https://docs.soliditylang.org/en/latest/common-patterns.html): Reusable contract patterns
+
+### Compiler and Development
+- [Using the Compiler](https://docs.soliditylang.org/en/latest/using-the-compiler.html): Compiler usage and options
+- [Installing Solidity](https://docs.soliditylang.org/en/latest/installing-solidity.html): Installation instructions
+- [Analysing Compilation Output](https://docs.soliditylang.org/en/latest/analysing-compilation-output.html): Understanding compiler output
+
+### Advanced Topics
+- [Assembly](https://docs.soliditylang.org/en/latest/assembly.html): Inline assembly for low-level operations
+- [Yul](https://docs.soliditylang.org/en/latest/yul.html): Intermediate language for the Solidity compiler
+- [SMT Checker](https://docs.soliditylang.org/en/latest/smtchecker.html): Formal verification tool
+- [ABI Specification](https://docs.soliditylang.org/en/latest/abi-spec.html): Application Binary Interface
+
+## Security Best Practices
+
+### Critical Security Guidelines
+1. **Never use `tx.origin` for authorization** - Use `msg.sender` instead
+2. **Beware of reentrancy attacks** - Use Checks-Effects-Interactions pattern
+3. **Handle integer overflow/underflow** - Use SafeMath or Solidity 0.8+ built-in checks
+4. **Be careful with external calls** - They can fail and cause DoS
+5. **Avoid gas limit issues** - Be mindful of loops and gas consumption
+6. **Private data is not private** - Everything on blockchain is public
+7. **Use latest compiler version** - Only latest version receives security fixes
+
+### Recommended Patterns
+- **Checks-Effects-Interactions**: Check conditions, modify state, then interact with external contracts
+- **Withdrawal Pattern**: Let users withdraw funds instead of pushing to them
+- **Fail-Safe Mode**: Include mechanisms to pause or recover from issues
+- **Modular Design**: Keep contracts small and focused
+
+## Language Features
+
+### Data Types
+- **Value Types**: bool, uint/int (8-256 bits), address, bytes1-32, string
+- **Reference Types**: arrays, structs, mappings
+- **Function Types**: internal/external functions, function selectors
+
+### Visibility Modifiers
+- `public`: Accessible from anywhere
+- `external`: Only from outside the contract
+- `internal`: Only within contract and derived contracts
+- `private`: Only within the same contract
+
+### State Mutability
+- `pure`: No state access, no side effects
+- `view`: Read-only access to state
+- `payable`: Can receive Ether
+
+### Special Functions
+- `constructor()`: Called once during deployment
+- `receive()`: Called when contract receives Ether
+- `fallback()`: Called when no function matches
+
+## Compiler Versions and Breaking Changes
+
+### Current Version (0.8.x)
+- **Automatic overflow/underflow checks** enabled by default
+- **New error handling** with `revert` and custom errors
+- **Stricter type checking** and improved gas optimization
+
+### Breaking Changes
+- [0.8.0 Breaking Changes](https://docs.soliditylang.org/en/latest/080-breaking-changes.html)
+- [0.7.0 Breaking Changes](https://docs.soliditylang.org/en/latest/070-breaking-changes.html)
+- [0.6.0 Breaking Changes](https://docs.soliditylang.org/en/latest/060-breaking-changes.html)
+- [0.5.0 Breaking Changes](https://docs.soliditylang.org/en/latest/050-breaking-changes.html)
+
+## Development Tools
+
+### IDEs and Editors
+- [Remix IDE](https://remix.ethereum.org/): Browser-based IDE
+- [Hardhat](https://hardhat.org/): Development environment
+- [Foundry](https://book.getfoundry.sh/): Fast, portable toolkit
+- [Truffle](https://trufflesuite.com/): Development framework
+
+### Testing and Security
+- [OpenZeppelin](https://openzeppelin.com/): Secure smart contract library
+- [Slither](https://github.com/crytic/slither): Static analysis tool
+- [Mythril](https://github.com/ConsenSys/mythril): Security analysis tool
+- [Echidna](https://github.com/crytic/echidna): Fuzzing tool
+
+## Example Contract Structure
+
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract ExampleContract {
+    // State variables
+    address public owner;
+    uint256 public value;
+    
+    // Events
+    event ValueChanged(uint256 newValue);
+    
+    // Modifiers
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Not the owner");
+        _;
+    }
+    
+    // Constructor
+    constructor() {
+        owner = msg.sender;
+    }
+    
+    // Functions
+    function setValue(uint256 _value) external onlyOwner {
+        value = _value;
+        emit ValueChanged(_value);
+    }
+    
+    // Receive function
+    receive() external payable {
+        // Handle direct Ether transfers
+    }
+}
+```
+
+## Common Vulnerabilities to Avoid
+
+1. **Reentrancy**: External calls before state updates
+2. **Integer Overflow/Underflow**: Use SafeMath or Solidity 0.8+
+3. **Front-running**: Be aware of transaction ordering
+4. **Timestamp Dependence**: Avoid using `block.timestamp` for randomness
+5. **Gas Limit DoS**: Avoid unbounded loops
+6. **Call Stack Depth**: External calls can fail at depth 1024
+7. **Private Data Exposure**: All data on blockchain is public
+
+## Resources and Community
+
+- **Forum**: https://forum.soliditylang.org/
+- **Stack Exchange**: https://ethereum.stackexchange.com/
+- **Gitter Chat**: https://gitter.im/ethereum/solidity
+- **Matrix Chat**: https://matrix.to/#/#ethereum_solidity:gitter.im
+- **Twitter**: https://twitter.com/solidity_lang
+- **Mastodon**: https://fosstodon.org/@solidity
+
+## Contributing
+
+- **Contributing Guide**: https://docs.soliditylang.org/en/latest/contributing.html
+- **Code of Conduct**: See CODE_OF_CONDUCT.md
+- **Coding Style**: See CODING_STYLE.md
+- **Security Policy**: See SECURITY.md
+
+## Important Notes for AI Tools
+
+When generating Solidity code:
+
+1. **Always specify the pragma version** - Use `pragma solidity ^0.8.0;` for latest
+2. **Include SPDX license identifier** - Use `// SPDX-License-Identifier: MIT`
+3. **Follow security best practices** - Implement checks-effects-interactions pattern
+4. **Use proper visibility modifiers** - Be explicit about function visibility
+5. **Handle errors gracefully** - Use `require()`, `assert()`, or `revert()`
+6. **Consider gas optimization** - Avoid unnecessary storage operations
+7. **Add events for important state changes** - Improve transparency
+8. **Use SafeMath for older versions** - Or rely on Solidity 0.8+ built-in checks
+9. **Avoid deprecated functions** - Use `call()` instead of `send()`/`transfer()`
+10. **Test thoroughly** - Include unit tests and consider formal verification
+
+Remember: Smart contracts are immutable once deployed, so security and correctness are paramount. Always follow the principle of "fail fast and fail safe."
