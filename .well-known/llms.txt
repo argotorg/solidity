@@ -108,27 +108,27 @@ contract ExampleContract {
     // State variables
     address public owner;
     uint256 public value;
-    
+
     // Events
     event ValueChanged(uint256 newValue);
-    
+
     // Modifiers
     modifier onlyOwner() {
         require(msg.sender == owner, "Not the owner");
         _;
     }
-    
+
     // Constructor
     constructor() {
         owner = msg.sender;
     }
-    
+
     // Functions
     function setValue(uint256 _value) external onlyOwner {
         value = _value;
         emit ValueChanged(_value);
     }
-    
+
     // Receive function
     receive() external payable {
         // Handle direct Ether transfers
