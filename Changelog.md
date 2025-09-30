@@ -3,6 +3,9 @@
 Language Features:
 
 Compiler Features:
+
+Documentation:
+* Add `llms.txt` file in `.well-known/` directory to provide AI tools with comprehensive Solidity development context, including security best practices, language features, and current version information.
 * ethdebug: Experimental support for instructions and source locations under EOF.
 
 Bugfixes:
