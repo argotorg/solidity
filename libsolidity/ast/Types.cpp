@@ -2680,6 +2680,11 @@ BoolResult EnumType::isExplicitlyConvertibleTo(Type const& _convertTo) const
 	return false;
 }
 
+TypeResult UserDefinedValueType::unaryOperatorResult(Token _operator) const
+{
+	return _operator == Token::Delete ? TypeProvider::emptyTuple() : nullptr;
+}
+
 unsigned EnumType::memberValue(ASTString const& _member) const
 {
 	unsigned index = 0;
