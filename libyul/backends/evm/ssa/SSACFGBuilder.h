@@ -29,17 +29,17 @@
 */
 #pragma once
 
+#include <libyul/backends/evm/ssa/ControlFlow.h>
 #include <libyul/ControlFlowSideEffectsCollector.h>
-#include <libyul/backends/evm/ControlFlow.h>
-#include <libyul/backends/evm/SSAControlFlowGraph.h>
+#include <libyul/backends/evm/ssa/SSACFG.h>
 #include <stack>
 
-namespace solidity::yul
+namespace solidity::yul::ssa
 {
 
-class SSAControlFlowGraphBuilder
+class SSACFGBuilder
 {
-	SSAControlFlowGraphBuilder(
+	SSACFGBuilder(
 		ControlFlow& _controlFlow,
 		SSACFG& _graph,
 		AsmAnalysisInfo const& _analysisInfo,
@@ -48,8 +48,8 @@ class SSAControlFlowGraphBuilder
 		bool _keepLiteralAssignments
 	);
 public:
-	SSAControlFlowGraphBuilder(SSAControlFlowGraphBuilder const&) = delete;
-	SSAControlFlowGraphBuilder& operator=(SSAControlFlowGraphBuilder const&) = delete;
+	SSACFGBuilder(SSACFGBuilder const&) = delete;
+	SSACFGBuilder& operator=(SSACFGBuilder const&) = delete;
 	static std::unique_ptr<ControlFlow> build(
 		AsmAnalysisInfo const& _analysisInfo,
 		Dialect const& _dialect,

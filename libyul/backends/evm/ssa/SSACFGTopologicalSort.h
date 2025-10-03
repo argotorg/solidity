@@ -18,13 +18,13 @@
 
 #pragma once
 
-#include <libyul/backends/evm/SSAControlFlowGraph.h>
+#include <libyul/backends/evm/ssa/SSACFG.h>
 
 #include <cstddef>
 #include <set>
 #include <vector>
 
-namespace solidity::yul
+namespace solidity::yul::ssa
 {
 
 /// Performs a topological sort on the forward CFG (no back/cross edges)

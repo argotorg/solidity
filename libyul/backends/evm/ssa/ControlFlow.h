@@ -18,12 +18,13 @@
 
 #pragma once
 
+#include <libyul/backends/evm/ssa/LivenessAnalysis.h>
+#include <libyul/backends/evm/ssa/SSACFG.h>
+
 #include <libyul/AST.h>
 #include <libyul/Scope.h>
-#include <libyul/backends/evm/SSACFGLiveness.h>
-#include <libyul/backends/evm/SSAControlFlowGraph.h>
 
-namespace solidity::yul
+namespace solidity::yul::ssa
 {
 
 struct ControlFlow;
@@ -32,8 +33,8 @@ struct ControlFlowLiveness{
 	explicit ControlFlowLiveness(ControlFlow const& _controlFlow);
 
 	std::reference_wrapper<ControlFlow const> controlFlow;
-	std::unique_ptr<SSACFGLiveness> mainLiveness;
-	std::vector<std::unique_ptr<SSACFGLiveness>> functionLiveness;
+	std::unique_ptr<LivenessAnalysis> mainLiveness;
+	std::vector<std::unique_ptr<LivenessAnalysis>> functionLiveness;
 
 	std::string toDot() const;
 };

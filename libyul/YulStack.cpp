@@ -20,7 +20,8 @@
 
 #include <libyul/AsmAnalysis.h>
 #include <libyul/AsmAnalysisInfo.h>
-#include <libyul/backends/evm/SSAControlFlowGraphBuilder.h>
+#include <libyul/backends/evm/ssa/SSACFGBuilder.h>
+#include <libyul/backends/evm/ssa/SSACFGJsonExporter.h>
 #include <libyul/backends/evm/EthAssemblyAdapter.h>
 #include <libyul/backends/evm/EVMCodeTransform.h>
 #include <libyul/backends/evm/EVMDialect.h>
@@ -28,7 +29,6 @@
 #include <libyul/ObjectParser.h>
 #include <libyul/optimiser/Semantics.h>
 #include <libyul/optimiser/Suite.h>
-#include <libyul/YulControlFlowGraphExporter.h>
 #include <libevmasm/Assembly.h>
 #include <libevmasm/Ethdebug.h>
 #include <liblangutil/Scanner.h>
@@ -398,14 +398,14 @@ Json YulStack::cfgJson() const
 		// operations to the control flow graphs
 		bool constexpr keepLiteralAssignments = true;
 		// NOTE: The block Ids are reset for each object
-		std::unique_ptr<ControlFlow> controlFlow = SSAControlFlowGraphBuilder::build(
+		std::unique_ptr<ssa::ControlFlow> controlFlow = ssa::SSACFGBuilder::build(
 			*_object.analysisInfo,
 			languageToDialect(m_language, m_evmVersion, m_eofVersion),
 			_object.code()->root(),
 			keepLiteralAssignments
 		);
-		std::unique_ptr<ControlFlowLiveness> liveness = std::make_unique<ControlFlowLiveness>(*controlFlow);
-		YulControlFlowGraphExporter exporter(*controlFlow, liveness.get());
+		std::unique_ptr<ssa::ControlFlowLiveness> liveness = std::make_unique<ssa::ControlFlowLiveness>(*controlFlow);
+		ssa::SSACFGJsonExporter exporter(*controlFlow, liveness.get());
 		return exporter.run();
 	};
 

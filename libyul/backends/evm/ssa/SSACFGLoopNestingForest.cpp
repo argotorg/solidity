@@ -16,9 +16,9 @@
 */
 // SPDX-License-Identifier: GPL-3.0
 
-#include <libyul/backends/evm/SSACFGLoopNestingForest.h>
+#include <libyul/backends/evm/ssa/SSACFGLoopNestingForest.h>
 
-using namespace solidity::yul;
+using namespace solidity::yul::ssa;
 
 SSACFGLoopNestingForest::SSACFGLoopNestingForest(ForwardSSACFGTopologicalSort const& _sort):
 	m_sort(_sort),

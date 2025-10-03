@@ -16,8 +16,8 @@
 */
 // SPDX-License-Identifier: GPL-3.0
 
+#include <libyul/backends/evm/ssa/SSACFGJsonExporter.h>
 #include <libyul/Utilities.h>
-#include <libyul/YulControlFlowGraphExporter.h>
 
 #include <libsolutil/Algorithms.h>
 #include <libsolutil/Numeric.h>
@@ -27,15 +27,13 @@
 #include <range/v3/view/transform.hpp>
 
 using namespace solidity;
-using namespace solidity::langutil;
-using namespace solidity::util;
-using namespace solidity::yul;
+using namespace solidity::yul::ssa;
 
-YulControlFlowGraphExporter::YulControlFlowGraphExporter(ControlFlow const& _controlFlow, ControlFlowLiveness const* _liveness): m_controlFlow(_controlFlow), m_liveness(_liveness)
+SSACFGJsonExporter::SSACFGJsonExporter(ControlFlow const& _controlFlow, ControlFlowLiveness const* _liveness): m_controlFlow(_controlFlow), m_liveness(_liveness)
 {
 }
 
-std::string YulControlFlowGraphExporter::varToString(SSACFG const& _cfg, SSACFG::ValueId _var)
+std::string SSACFGJsonExporter::varToString(SSACFG const& _cfg, SSACFG::ValueId _var)
 {
 	if (_var.value == std::numeric_limits<size_t>::max())
 		return std::string("INVALID");
@@ -56,7 +54,7 @@ std::string YulControlFlowGraphExporter::varToString(SSACFG const& _cfg, SSACFG:
 	);
 }
 
-Json YulControlFlowGraphExporter::run()
+Json SSACFGJsonExporter::run()
 {
 	if (m_liveness)
 		yulAssert(&m_liveness->controlFlow.get() == &m_controlFlow);
@@ -73,7 +71,7 @@ Json YulControlFlowGraphExporter::run()
 	return yulObjectJson;
 }
 
-Json YulControlFlowGraphExporter::exportFunction(SSACFG const& _cfg, SSACFGLiveness const* _liveness)
+Json SSACFGJsonExporter::exportFunction(SSACFG const& _cfg, LivenessAnalysis const* _liveness)
 {
 	Json functionJson = Json::object();
 	functionJson["type"] = "Function";
@@ -85,7 +83,7 @@ Json YulControlFlowGraphExporter::exportFunction(SSACFG const& _cfg, SSACFGLiven
 	return functionJson;
 }
 
-Json YulControlFlowGraphExporter::exportBlock(SSACFG const& _cfg, SSACFG::BlockId _entryId, SSACFGLiveness const* _liveness)
+Json SSACFGJsonExporter::exportBlock(SSACFG const& _cfg, SSACFG::BlockId _entryId, LivenessAnalysis const* _liveness)
 {
 	Json blocksJson = Json::array();
 	util::BreadthFirstSearch<SSACFG::BlockId> bfs{{{_entryId}}};
@@ -132,9 +130,9 @@ Json YulControlFlowGraphExporter::exportBlock(SSACFG const& _cfg, SSACFG::BlockI
 	return blocksJson;
 }
 
-Json YulControlFlowGraphExporter::toJson(SSACFG const& _cfg, SSACFG::BlockId _blockId, SSACFGLiveness const* _liveness)
+Json SSACFGJsonExporter::toJson(SSACFG const& _cfg, SSACFG::BlockId _blockId, LivenessAnalysis const* _liveness)
 {
-	auto const valueToString = [&](SSACFG::ValueId const& valueId) { return varToString(_cfg, valueId); };
+	auto const valueToString = [&](LivenessAnalysis::LivenessData::LiveCounts::value_type const& _live) { return varToString(_cfg, _live.first); };
 
 	Json blockJson = Json::object();
 	auto const& block = _cfg.block(_blockId);
@@ -174,10 +172,10 @@ Json YulControlFlowGraphExporter::toJson(SSACFG const& _cfg, SSACFG::BlockId _bl
 	return blockJson;
 }
 
-Json YulControlFlowGraphExporter::toJson(Json& _ret, SSACFG const& _cfg, SSACFG::Operation const& _operation)
+Json SSACFGJsonExporter::toJson(Json& _ret, SSACFG const& _cfg, SSACFG::Operation const& _operation)
 {
 	Json opJson = Json::object();
-	std::visit(GenericVisitor{
+	std::visit(util::GenericVisitor{
 		[&](SSACFG::Call const& _call)
 		{
 			_ret["type"] = "FunctionCall";
@@ -222,7 +220,7 @@ Json YulControlFlowGraphExporter::toJson(Json& _ret, SSACFG const& _cfg, SSACFG:
 	return opJson;
 }
 
-Json YulControlFlowGraphExporter::toJson(SSACFG const& _cfg, std::vector<SSACFG::ValueId> const& _values)
+Json SSACFGJsonExporter::toJson(SSACFG const& _cfg, std::vector<SSACFG::ValueId> const& _values)
 {
 	Json ret = Json::array();
 	for (auto const& value: _values)

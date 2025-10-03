@@ -35,9 +35,9 @@
 #include <list>
 #include <vector>
 
-namespace solidity::yul
+namespace solidity::yul::ssa
 {
-class SSACFGLiveness;
+class LivenessAnalysis;
 
 class SSACFG
 {
@@ -227,7 +227,7 @@ public:
 	std::string toDot(
 		bool _includeDiGraphDefinition=true,
 		std::optional<size_t> _functionIndex=std::nullopt,
-		SSACFGLiveness const* _liveness=nullptr
+		LivenessAnalysis const* _liveness=nullptr
 	) const;
 private:
 	std::deque<ValueInfo> m_valueInfos;

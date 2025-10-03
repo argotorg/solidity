@@ -901,8 +901,8 @@ Yul Control Flow Graph:
                             ],
                             "out": [
                                 "v0",
-                                "v18",
-                                "v24"
+                                "v24",
+                                "v18"
                             ]
                         },
                         "type": "BuiltinCall"
@@ -992,8 +992,8 @@ Yul Control Flow Graph:
                         "liveness": {
                             "in": [
                                 "v0",
-                                "v18",
-                                "v24"
+                                "v24",
+                                "v18"
                             ],
                             "out": [
                                 "v41"
@@ -1238,8 +1238,8 @@ Yul Control Flow Graph:
                                 "v59"
                             ],
                             "out": [
-                                "v46",
-                                "v64"
+                                "v64",
+                                "v46"
                             ]
                         }
                     },
@@ -1393,8 +1393,8 @@ Yul Control Flow Graph:
                                 "v46"
                             ],
                             "out": [
-                                "v46",
-                                "v67"
+                                "v67",
+                                "v46"
                             ]
                         },
                         "type": "BuiltinCall"
@@ -1529,8 +1529,8 @@ Yul Control Flow Graph:
                                 "v46"
                             ],
                             "out": [
-                                "v46",
-                                "v70"
+                                "v70",
+                                "v46"
                             ]
                         },
                         "type": "BuiltinCall"

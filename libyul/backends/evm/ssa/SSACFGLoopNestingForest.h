@@ -18,8 +18,8 @@
 
 #pragma once
 
-#include <libyul/backends/evm/SSACFGTopologicalSort.h>
-#include <libyul/backends/evm/SSAControlFlowGraph.h>
+#include <libyul/backends/evm/ssa/SSACFGTopologicalSort.h>
+#include <libyul/backends/evm/ssa/SSACFG.h>
 
 #include <libsolutil/DisjointSet.h>
 
@@ -27,7 +27,7 @@
 #include <set>
 #include <vector>
 
-namespace solidity::yul
+namespace solidity::yul::ssa
 {
 
 /// Constructs a loop nesting forest for an SSACFG using Tarjan's algorithm [1].

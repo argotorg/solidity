@@ -16,9 +16,9 @@
 */
 // SPDX-License-Identifier: GPL-3.0
 
-#include <libyul/backends/evm/SSACFGTopologicalSort.h>
+#include <libyul/backends/evm/ssa/SSACFGTopologicalSort.h>
 
-using namespace solidity::yul;
+using namespace solidity::yul::ssa;
 
 ForwardSSACFGTopologicalSort::ForwardSSACFGTopologicalSort(SSACFG const& _cfg):
 	m_cfg(_cfg),

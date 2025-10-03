@@ -46,8 +46,8 @@
 //  r := f(v0, v1)"];
 // FunctionEntry_f_0 -> Block1_0;
 // Block1_0 [label="\
-// Block 0; (0, max 0)\nLiveIn: v0,v1\l\
-// LiveOut: v4\l\nv3 := add(v1, v0)\l\
+// Block 0; (0, max 0)\nLiveIn: v0[2], v1[1]\l\
+// LiveOut: v4[1]\l\nv3 := add(v1, v0)\l\
 // v4 := sub(v0, v3)\l\
 // "];
 // Block1_0Exit [label="FunctionReturn[v4]"];
@@ -69,7 +69,7 @@
 // FunctionEntry_z_0 -> Block3_0;
 // Block3_0 [label="\
 // Block 0; (0, max 0)\nLiveIn: \l\
-// LiveOut: v1\l\nv1 := w()\l\
+// LiveOut: v1[1]\l\nv1 := w()\l\
 // "];
 // Block3_0Exit [label="FunctionReturn[v1]"];
 // Block3_0 -> Block3_0Exit;
@@ -78,7 +78,7 @@
 // FunctionEntry_w_0 -> Block4_0;
 // Block4_0 [label="\
 // Block 0; (0, max 0)\nLiveIn: \l\
-// LiveOut: v2\l\nv2 := 1\l\
+// LiveOut: v2[1]\l\nv2 := 1\l\
 // "];
 // Block4_0Exit [label="FunctionReturn[v2]"];
 // Block4_0 -> Block4_0Exit;
@@ -87,7 +87,7 @@
 // FunctionEntry_v_0 -> Block5_0;
 // Block5_0 [label="\
 // Block 0; (0, max 0)\nLiveIn: \l\
-// LiveOut: v1\l\nv1 := w()\l\
+// LiveOut: v1[1]\l\nv1 := w()\l\
 // "];
 // Block5_0Exit [label="FunctionReturn[v1]"];
 // Block5_0 -> Block5_0Exit;
@@ -96,7 +96,7 @@
 // FunctionEntry_w_0 -> Block6_0;
 // Block6_0 [label="\
 // Block 0; (0, max 0)\nLiveIn: \l\
-// LiveOut: v2\l\nv2 := 17\l\
+// LiveOut: v2[1]\l\nv2 := 17\l\
 // "];
 // Block6_0Exit [label="FunctionReturn[v2]"];
 // Block6_0 -> Block6_0Exit;
@@ -113,14 +113,14 @@
 // Block7_0Exit:1 -> Block7_1 [style="solid"];
 // Block7_1 [label="\
 // Block 1; (1, max 2)\nLiveIn: \l\
-// LiveOut: v3\l\nv3 := cycle2()\l\
+// LiveOut: v3[1]\l\nv3 := cycle2()\l\
 // "];
 // Block7_1 -> Block7_1Exit [arrowhead=none];
 // Block7_1Exit [label="Jump" shape=oval];
 // Block7_1Exit -> Block7_2 [style="solid"];
 // Block7_2 [label="\
-// Block 2; (2, max 2)\nLiveIn: v4\l\
-// LiveOut: v4\l\nv4 := φ(\l\
+// Block 2; (2, max 2)\nLiveIn: v4[3]\l\
+// LiveOut: v4[1]\l\nv4 := φ(\l\
 // 	Block 0 => 0,\l\
 // 	Block 1 => v3\l\
 // )\l\
@@ -140,14 +140,14 @@
 // Block8_0Exit:1 -> Block8_1 [style="solid"];
 // Block8_1 [label="\
 // Block 1; (1, max 2)\nLiveIn: \l\
-// LiveOut: v3\l\nv3 := cycle1()\l\
+// LiveOut: v3[1]\l\nv3 := cycle1()\l\
 // "];
 // Block8_1 -> Block8_1Exit [arrowhead=none];
 // Block8_1Exit [label="Jump" shape=oval];
 // Block8_1Exit -> Block8_2 [style="solid"];
 // Block8_2 [label="\
-// Block 2; (2, max 2)\nLiveIn: v4\l\
-// LiveOut: v4\l\nv4 := φ(\l\
+// Block 2; (2, max 2)\nLiveIn: v4[3]\l\
+// LiveOut: v4[1]\l\nv4 := φ(\l\
 // 	Block 0 => 0,\l\
 // 	Block 1 => v3\l\
 // )\l\

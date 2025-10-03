@@ -19,9 +19,10 @@
  * Transformation of a Yul AST into a control flow graph.
  */
 
-#include <libyul/backends/evm/SSAControlFlowGraphBuilder.h>
+#include <libyul/backends/evm/ssa/SSACFGBuilder.h>
 
-#include <libyul/backends/evm/ControlFlow.h>
+#include <libyul/backends/evm/ssa/ControlFlow.h>
+
 #include <libyul/AST.h>
 #include <libyul/ControlFlowSideEffectsCollector.h>
 #include <libyul/Exceptions.h>
@@ -42,11 +43,9 @@
 
 using namespace solidity;
 using namespace solidity::yul;
+using namespace solidity::yul::ssa;
 
-namespace solidity::yul
-{
-
-SSAControlFlowGraphBuilder::SSAControlFlowGraphBuilder(
+SSACFGBuilder::SSACFGBuilder(
 	ControlFlow& _controlFlow,
 	SSACFG& _graph,
 	AsmAnalysisInfo const& _analysisInfo,
@@ -63,7 +62,7 @@ SSAControlFlowGraphBuilder::SSAControlFlowGraphBuilder(
 {
 }
 
-std::unique_ptr<ControlFlow> SSAControlFlowGraphBuilder::build(
+std::unique_ptr<ControlFlow> SSACFGBuilder::build(
 	AsmAnalysisInfo const& _analysisInfo,
 	Dialect const& _dialect,
 	Block const& _block,
@@ -73,7 +72,7 @@ std::unique_ptr<ControlFlow> SSAControlFlowGraphBuilder::build(
 	ControlFlowSideEffectsCollector sideEffects(_dialect, _block);
 
 	auto controlFlow = std::make_unique<ControlFlow>();
-	SSAControlFlowGraphBuilder builder(*controlFlow, *controlFlow->mainGraph, _analysisInfo, sideEffects, _dialect, _keepLiteralAssignments);
+	SSACFGBuilder builder(*controlFlow, *controlFlow->mainGraph, _analysisInfo, sideEffects, _dialect, _keepLiteralAssignments);
 	builder.m_currentBlock = controlFlow->mainGraph->makeBlock(debugDataOf(_block));
 	builder.sealBlock(builder.m_currentBlock);
 	builder(_block);
@@ -84,7 +83,7 @@ std::unique_ptr<ControlFlow> SSAControlFlowGraphBuilder::build(
 	return controlFlow;
 }
 
-SSACFG::ValueId SSAControlFlowGraphBuilder::tryRemoveTrivialPhi(SSACFG::ValueId _phi)
+SSACFG::ValueId SSACFGBuilder::tryRemoveTrivialPhi(SSACFG::ValueId _phi)
 {
 	// TODO: double-check if this is sane
 	auto const* phiInfo = std::get_if<SSACFG::PhiValue>(&m_graph.valueInfo(_phi));
@@ -157,7 +156,7 @@ SSACFG::ValueId SSAControlFlowGraphBuilder::tryRemoveTrivialPhi(SSACFG::ValueId 
 }
 
 /// Removes edges to blocks that are not reachable.
-void SSAControlFlowGraphBuilder::cleanUnreachable()
+void SSACFGBuilder::cleanUnreachable()
 {
 	// Determine which blocks are reachable from the entry.
 	util::BreadthFirstSearch<SSACFG::BlockId> reachabilityCheck{{m_graph.entry}};
@@ -201,7 +200,7 @@ void SSAControlFlowGraphBuilder::cleanUnreachable()
 	}
 }
 
-void SSAControlFlowGraphBuilder::buildFunctionGraph(
+void SSACFGBuilder::buildFunctionGraph(
 	Scope::Function const* _function,
 	FunctionDefinition const* _functionDefinition
 )
@@ -230,7 +229,7 @@ void SSAControlFlowGraphBuilder::buildFunctionGraph(
 	cfg.arguments = arguments;
 	cfg.returns = returns;
 
-	SSAControlFlowGraphBuilder builder(m_controlFlow, cfg, m_info, m_sideEffects, m_dialect, m_keepLiteralAssignments);
+	SSACFGBuilder builder(m_controlFlow, cfg, m_info, m_sideEffects, m_dialect, m_keepLiteralAssignments);
 	builder.m_currentBlock = cfg.entry;
 	builder.m_functionDefinitions = m_functionDefinitions;
 	for (auto&& [var, varId]: cfg.arguments)
@@ -245,7 +244,7 @@ void SSAControlFlowGraphBuilder::buildFunctionGraph(
 	builder.cleanUnreachable();
 }
 
-void SSAControlFlowGraphBuilder::operator()(ExpressionStatement const& _expressionStatement)
+void SSACFGBuilder::operator()(ExpressionStatement const& _expressionStatement)
 {
 	auto const* functionCall = std::get_if<FunctionCall>(&_expressionStatement.expression);
 	yulAssert(functionCall);
@@ -253,7 +252,7 @@ void SSAControlFlowGraphBuilder::operator()(ExpressionStatement const& _expressi
 	yulAssert(results.empty());
 }
 
-void SSAControlFlowGraphBuilder::operator()(Assignment const& _assignment)
+void SSACFGBuilder::operator()(Assignment const& _assignment)
 {
 	assign(
 		_assignment.variableNames | ranges::views::transform([&](auto& _var) { return std::ref(lookupVariable(_var.name)); }) | ranges::to<std::vector>,
@@ -261,7 +260,7 @@ void SSAControlFlowGraphBuilder::operator()(Assignment const& _assignment)
 	);
 }
 
-void SSAControlFlowGraphBuilder::operator()(VariableDeclaration const& _variableDeclaration)
+void SSACFGBuilder::operator()(VariableDeclaration const& _variableDeclaration)
 {
 	assign(
 		_variableDeclaration.variables | ranges::views::transform([&](auto& _var) { return std::ref(lookupVariable(_var.name)); }) | ranges::to<std::vector>,
@@ -269,13 +268,13 @@ void SSAControlFlowGraphBuilder::operator()(VariableDeclaration const& _variable
 	);
 }
 
-void SSAControlFlowGraphBuilder::operator()(FunctionDefinition const& _functionDefinition)
+void SSACFGBuilder::operator()(FunctionDefinition const& _functionDefinition)
 {
 	Scope::Function const& function = lookupFunction(_functionDefinition.name);
 	buildFunctionGraph(&function, &_functionDefinition);
 }
 
-void SSAControlFlowGraphBuilder::operator()(If const& _if)
+void SSACFGBuilder::operator()(If const& _if)
 {
 	std::optional<bool> constantCondition;
 	if (auto const* literalCondition = std::get_if<Literal>(_if.condition.get()))
@@ -306,7 +305,7 @@ void SSAControlFlowGraphBuilder::operator()(If const& _if)
 	}
 }
 
-void SSAControlFlowGraphBuilder::operator()(Switch const& _switch)
+void SSACFGBuilder::operator()(Switch const& _switch)
 {
 	auto expression = std::visit(*this, *_switch.expression);
 
@@ -418,7 +417,7 @@ void SSAControlFlowGraphBuilder::operator()(Switch const& _switch)
 		sealBlock(afterSwitch);
 	}
 }
-void SSAControlFlowGraphBuilder::operator()(ForLoop const& _loop)
+void SSACFGBuilder::operator()(ForLoop const& _loop)
 {
 	ScopedSaveAndRestore scopeRestore(m_scope, m_info.scopes.at(&_loop.pre).get());
 	(*this)(_loop.pre);
@@ -481,7 +480,7 @@ void SSAControlFlowGraphBuilder::operator()(ForLoop const& _loop)
 	m_currentBlock = afterLoop;
 }
 
-void SSAControlFlowGraphBuilder::operator()(Break const& _break)
+void SSACFGBuilder::operator()(Break const& _break)
 {
 	yulAssert(!m_forLoopInfo.empty());
 	auto currentBlockDebugData = debugDataOf(currentBlock());
@@ -490,7 +489,7 @@ void SSAControlFlowGraphBuilder::operator()(Break const& _break)
 	sealBlock(m_currentBlock);
 }
 
-void SSAControlFlowGraphBuilder::operator()(Continue const& _continue)
+void SSACFGBuilder::operator()(Continue const& _continue)
 {
 	yulAssert(!m_forLoopInfo.empty());
 	auto currentBlockDebugData = debugDataOf(currentBlock());
@@ -499,7 +498,7 @@ void SSAControlFlowGraphBuilder::operator()(Continue const& _continue)
 	sealBlock(m_currentBlock);
 }
 
-void SSAControlFlowGraphBuilder::operator()(Leave const& _leaveStatement)
+void SSACFGBuilder::operator()(Leave const& _leaveStatement)
 {
 	auto currentBlockDebugData = debugDataOf(currentBlock());
 	currentBlock().exit = SSACFG::BasicBlock::FunctionReturn{
@@ -512,7 +511,7 @@ void SSAControlFlowGraphBuilder::operator()(Leave const& _leaveStatement)
 	sealBlock(m_currentBlock);
 }
 
-void SSAControlFlowGraphBuilder::registerFunctionDefinition(FunctionDefinition const& _functionDefinition)
+void SSACFGBuilder::registerFunctionDefinition(FunctionDefinition const& _functionDefinition)
 {
 	yulAssert(m_scope, "");
 	yulAssert(m_scope->identifiers.count(_functionDefinition.name), "");
@@ -521,7 +520,7 @@ void SSAControlFlowGraphBuilder::registerFunctionDefinition(FunctionDefinition c
 	m_functionDefinitions.emplace_back(&function, &_functionDefinition);
 }
 
-void SSAControlFlowGraphBuilder::operator()(Block const& _block)
+void SSACFGBuilder::operator()(Block const& _block)
 {
 	ScopedSaveAndRestore saveScope(m_scope, m_info.scopes.at(&_block).get());
 	// gather all function definitions so that they are visible to each other's subgraphs
@@ -535,25 +534,25 @@ void SSAControlFlowGraphBuilder::operator()(Block const& _block)
 		std::visit(*this, statement);
 }
 
-SSACFG::ValueId SSAControlFlowGraphBuilder::operator()(FunctionCall const& _call)
+SSACFG::ValueId SSACFGBuilder::operator()(FunctionCall const& _call)
 {
 	auto results = visitFunctionCall(_call);
 	yulAssert(results.size() == 1);
 	return results.front();
 }
 
-SSACFG::ValueId SSAControlFlowGraphBuilder::operator()(Identifier const& _identifier)
+SSACFG::ValueId SSACFGBuilder::operator()(Identifier const& _identifier)
 {
 	auto const& var = lookupVariable(_identifier.name);
 	return readVariable(var, m_currentBlock);
 }
 
-SSACFG::ValueId SSAControlFlowGraphBuilder::operator()(Literal const& _literal)
+SSACFG::ValueId SSACFGBuilder::operator()(Literal const& _literal)
 {
 	return m_graph.newLiteral(debugDataOf(currentBlock()), _literal.value.value());
 }
 
-void SSAControlFlowGraphBuilder::assign(std::vector<std::reference_wrapper<Scope::Variable const>> _variables, Expression const* _expression)
+void SSACFGBuilder::assign(std::vector<std::reference_wrapper<Scope::Variable const>> _variables, Expression const* _expression)
 {
 	auto rhs = [&]() -> std::vector<SSACFG::ValueId> {
 		if (auto const* functionCall = std::get_if<FunctionCall>(_expression))
@@ -582,7 +581,7 @@ void SSAControlFlowGraphBuilder::assign(std::vector<std::reference_wrapper<Scope
 
 }
 
-std::vector<SSACFG::ValueId> SSAControlFlowGraphBuilder::visitFunctionCall(FunctionCall const& _call)
+std::vector<SSACFG::ValueId> SSACFGBuilder::visitFunctionCall(FunctionCall const& _call)
 {
 	bool canContinue = true;
 	SSACFG::Operation operation = std::visit(util::GenericVisitor{
@@ -624,19 +623,19 @@ std::vector<SSACFG::ValueId> SSAControlFlowGraphBuilder::visitFunctionCall(Funct
 	return results;
 }
 
-SSACFG::ValueId SSAControlFlowGraphBuilder::zero()
+SSACFG::ValueId SSACFGBuilder::zero()
 {
 	return m_graph.newLiteral(debugDataOf(currentBlock()), 0u);
 }
 
-SSACFG::ValueId SSAControlFlowGraphBuilder::readVariable(Scope::Variable const& _variable, SSACFG::BlockId _block)
+SSACFG::ValueId SSACFGBuilder::readVariable(Scope::Variable const& _variable, SSACFG::BlockId _block)
 {
 	if (auto const& def = currentDef(_variable, _block))
 		return *def;
 	return readVariableRecursive(_variable, _block);
 }
 
-SSACFG::ValueId SSAControlFlowGraphBuilder::readVariableRecursive(Scope::Variable const& _variable, SSACFG::BlockId _block)
+SSACFG::ValueId SSACFGBuilder::readVariableRecursive(Scope::Variable const& _variable, SSACFG::BlockId _block)
 {
 	auto& block = m_graph.block(_block);
 	auto& info = blockInfo(_block);
@@ -666,7 +665,7 @@ SSACFG::ValueId SSAControlFlowGraphBuilder::readVariableRecursive(Scope::Variabl
 	return val;
 }
 
-SSACFG::ValueId SSAControlFlowGraphBuilder::addPhiOperands(Scope::Variable const& _variable, SSACFG::ValueId _phi)
+SSACFG::ValueId SSACFGBuilder::addPhiOperands(Scope::Variable const& _variable, SSACFG::ValueId _phi)
 {
 	yulAssert(std::holds_alternative<SSACFG::PhiValue>(m_graph.valueInfo(_phi)));
 	auto& phi = std::get<SSACFG::PhiValue>(m_graph.valueInfo(_phi));
@@ -676,12 +675,12 @@ SSACFG::ValueId SSAControlFlowGraphBuilder::addPhiOperands(Scope::Variable const
 	return _phi;
 }
 
-void SSAControlFlowGraphBuilder::writeVariable(Scope::Variable const& _variable, SSACFG::BlockId _block, SSACFG::ValueId _value)
+void SSACFGBuilder::writeVariable(Scope::Variable const& _variable, SSACFG::BlockId _block, SSACFG::ValueId _value)
 {
 	currentDef(_variable, _block) = _value;
 }
 
-Scope::Function const& SSAControlFlowGraphBuilder::lookupFunction(YulName _name) const
+Scope::Function const& SSACFGBuilder::lookupFunction(YulName _name) const
 {
 	Scope::Function const* function = nullptr;
 	yulAssert(m_scope->lookup(_name, util::GenericVisitor{
@@ -692,7 +691,7 @@ Scope::Function const& SSAControlFlowGraphBuilder::lookupFunction(YulName _name)
 	return *function;
 }
 
-Scope::Variable const& SSAControlFlowGraphBuilder::lookupVariable(YulName _name) const
+Scope::Variable const& SSACFGBuilder::lookupVariable(YulName _name) const
 {
 	yulAssert(m_scope, "");
 	Scope::Variable const* var = nullptr;
@@ -710,7 +709,7 @@ Scope::Variable const& SSAControlFlowGraphBuilder::lookupVariable(YulName _name)
 	yulAssert(false, "External identifier access unimplemented.");
 }
 
-void SSAControlFlowGraphBuilder::sealBlock(SSACFG::BlockId _block)
+void SSACFGBuilder::sealBlock(SSACFG::BlockId _block)
 {
 	// this method deviates from Algorithm 4 in the reference paper,
 	// as it would lead to tryRemoveTrivialPhi being called on unsealed blocks
@@ -724,7 +723,7 @@ void SSAControlFlowGraphBuilder::sealBlock(SSACFG::BlockId _block)
 }
 
 
-void SSAControlFlowGraphBuilder::conditionalJump(
+void SSACFGBuilder::conditionalJump(
 	langutil::DebugData::ConstPtr _debugData,
 	SSACFG::ValueId _condition,
 	SSACFG::BlockId _nonZero,
@@ -742,7 +741,7 @@ void SSAControlFlowGraphBuilder::conditionalJump(
 	m_currentBlock = {};
 }
 
-void SSAControlFlowGraphBuilder::jump(
+void SSACFGBuilder::jump(
 	langutil::DebugData::ConstPtr _debugData,
 	SSACFG::BlockId _target
 )
@@ -753,7 +752,7 @@ void SSAControlFlowGraphBuilder::jump(
 	m_currentBlock = _target;
 }
 
-void SSAControlFlowGraphBuilder::tableJump(
+void SSACFGBuilder::tableJump(
 	langutil::DebugData::ConstPtr _debugData,
 	SSACFG::ValueId _value,
 	std::map<u256, SSACFG::BlockId> _cases,
@@ -770,7 +769,7 @@ void SSAControlFlowGraphBuilder::tableJump(
 	m_currentBlock = {};
 }
 
-FunctionDefinition const* SSAControlFlowGraphBuilder::findFunctionDefinition(Scope::Function const* _function) const
+FunctionDefinition const* SSACFGBuilder::findFunctionDefinition(Scope::Function const* _function) const
 {
 	auto it = std::find_if(
 			m_functionDefinitions.begin(),
@@ -780,6 +779,4 @@ FunctionDefinition const* SSAControlFlowGraphBuilder::findFunctionDefinition(Sco
 	if (it != m_functionDefinitions.end())
 		return std::get<1>(*it);
 	return nullptr;
-}
-
 }
