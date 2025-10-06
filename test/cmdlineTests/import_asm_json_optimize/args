@@ -1,1 +1,1 @@
---optimize --import-asm-json - --asm
+--experimental --optimize --import-asm-json - --asm

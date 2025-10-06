@@ -117,7 +117,7 @@ function test_ast_import_export_equivalence
     local input_files=( "${@:2}" )
 
     local export_command=("$SOLC" --combined-json ast --pretty-json --json-indent 4 "${input_files[@]}")
-    local import_command=("$SOLC" --import-ast --combined-json ast --pretty-json --json-indent 4 expected.json)
+    local import_command=("$SOLC" --experimental --import-ast --combined-json ast --pretty-json --json-indent 4 expected.json)
     local import_via_standard_json_command=("$SOLC" --combined-json ast --pretty-json --json-indent 4 --standard-json standard_json_input.json)
 
     # export ast - save ast json as expected result (silently)
@@ -228,7 +228,7 @@ function test_evmjson_import_export_equivalence
         local bin_file_from_asm_import
         bin_file_from_asm_import="import/$(basename "${asm_json_file}" .json).bin"
 
-        local import_options=(--bin --import-asm-json "${asm_json_file}")
+        local import_options=(--experimental --bin --import-asm-json "${asm_json_file}")
         run_solc_store_stdout "${bin_file_from_asm_import}" "${import_options[@]}"
 
         stripCLIDecorations < "$bin_file_from_asm_import" > tmpfile

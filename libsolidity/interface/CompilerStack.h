@@ -223,6 +223,9 @@ public:
 	/// Must be set before parsing.
 	void setViaIR(bool _viaIR);
 
+	/// Sets the experimental toggle to allow usage of experimental features.
+	void setExperimental(bool _experimental);
+
 	/// Set the EVM version used before running compile.
 	/// When called without an argument it will revert to the default version.
 	/// Must be set before parsing.
@@ -607,6 +610,7 @@ private:
 	RevertStrings m_revertStrings = RevertStrings::Default;
 	State m_stopAfter = State::CompilationSuccessful;
 	bool m_viaIR = false;
+	bool m_experimental = false;
 	langutil::EVMVersion m_evmVersion;
 	std::optional<uint8_t> m_eofVersion;
 	ModelCheckerSettings m_modelCheckerSettings;

@@ -1,0 +1,1 @@
+Error: The following options are only available in experimental mode: --lsp, --import-ast, --import-asm-json, --ir-ast-json, --ir-optimized-ast-json, --yul-cfg-json, --ethdebug, --ethdebug-runtime, --experimental-eof-version. To enable experimental mode, use the --experimental flag.

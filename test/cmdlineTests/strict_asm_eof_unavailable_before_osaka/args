@@ -1,1 +1,1 @@
---strict-assembly --experimental-eof-version 1 --evm-version cancun
+--experimental --strict-assembly --experimental-eof-version 1 --evm-version cancun

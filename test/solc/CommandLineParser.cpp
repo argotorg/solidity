@@ -110,6 +110,7 @@ BOOST_AUTO_TEST_CASE(cli_mode_options)
 			"/tmp=/usr/lib/",
 			"a:b=c/d",
 			":contract.sol=",
+			"--experimental",
 			"--base-path=/home/user/",
 			"--include-path=/usr/lib/include/",
 			"--include-path=/home/user/include",
@@ -163,6 +164,7 @@ BOOST_AUTO_TEST_CASE(cli_mode_options)
 			};
 
 		CommandLineOptions expectedOptions;
+		expectedOptions.experimental = true;
 		expectedOptions.input.mode = inputMode;
 		expectedOptions.input.paths = {"contract.sol", "/tmp/projects/token.sol", "/home/user/lib/dex.sol", "file", "input.json"};
 		expectedOptions.input.remappings = {
@@ -249,7 +251,7 @@ BOOST_AUTO_TEST_CASE(no_import_callback)
 		{"solc", "--standard-json", "--no-import-callback", "input.json"},
 		{"solc", "--assemble", "--no-import-callback", "input.yul"},
 		{"solc", "--strict-assembly", "--no-import-callback", "input.yul"},
-		{"solc", "--import-ast", "--no-import-callback", "ast.json"},
+		{"solc", "--experimental", "--import-ast", "--no-import-callback", "ast.json"},
 		{"solc", "--link", "--no-import-callback", "input.bin"},
 	};
 
@@ -482,6 +484,8 @@ BOOST_AUTO_TEST_CASE(optimizer_flags)
 		for (auto const& [optimizerFlags, expectedOptimizerSettings]: settingsMap)
 		{
 			std::vector<std::string> commandLine = {"solc", inputModeFlag, "file"};
+			if (inputMode == InputMode::CompilerWithASTImport)
+				commandLine.emplace_back("--experimental");
 			commandLine += optimizerFlags;
 			BOOST_CHECK(parseCommandLine(commandLine).optimiserSettings() == expectedOptimizerSettings);
 		}
@@ -630,39 +634,91 @@ BOOST_AUTO_TEST_CASE(invalid_optimizer_sequence_without_optimize)
 
 BOOST_AUTO_TEST_CASE(ethdebug)
 {
-	CommandLineOptions commandLineOptions = parseCommandLine({"solc", "contract.sol", "--debug-info", "ethdebug", "--ethdebug", "--via-ir"});
+	CommandLineOptions commandLineOptions = parseCommandLine({"solc", "contract.sol", "--experimental", "--debug-info", "ethdebug", "--ethdebug", "--via-ir"});
 	BOOST_CHECK_EQUAL(commandLineOptions.compiler.outputs.ethdebug, true);
 	BOOST_CHECK_EQUAL(commandLineOptions.compiler.outputs.ethdebugRuntime, false);
 	BOOST_CHECK_EQUAL(commandLineOptions.output.debugInfoSelection.has_value(), true);
 	BOOST_CHECK_EQUAL(commandLineOptions.output.debugInfoSelection->ethdebug, true);
-	commandLineOptions = parseCommandLine({"solc", "contract.sol", "--debug-info", "ethdebug", "--ethdebug-runtime", "--via-ir"});
+	commandLineOptions = parseCommandLine({"solc", "contract.sol", "--experimental", "--debug-info", "ethdebug", "--ethdebug-runtime", "--via-ir"});
 	BOOST_CHECK_EQUAL(commandLineOptions.compiler.outputs.ethdebug, false);
 	BOOST_CHECK_EQUAL(commandLineOptions.compiler.outputs.ethdebugRuntime, true);
 	BOOST_CHECK_EQUAL(commandLineOptions.output.debugInfoSelection.has_value(), true);
 	BOOST_CHECK_EQUAL(commandLineOptions.output.debugInfoSelection->ethdebug, true);
-	commandLineOptions = parseCommandLine({"solc", "contract.sol", "--ethdebug", "--via-ir"});
+	commandLineOptions = parseCommandLine({"solc", "contract.sol", "--experimental", "--ethdebug", "--via-ir"});
 	BOOST_CHECK_EQUAL(commandLineOptions.compiler.outputs.ethdebug, true);
 	BOOST_CHECK_EQUAL(commandLineOptions.compiler.outputs.ethdebugRuntime, false);
 	// debug-info "ethdebug" selected implicitly,
 	// if compiled with --ethdebug or --ethdebug-runtime and no debug-info was selected.
 	BOOST_CHECK_EQUAL(commandLineOptions.output.debugInfoSelection.has_value(), true);
 	BOOST_CHECK_EQUAL(commandLineOptions.output.debugInfoSelection->ethdebug, true);
-	commandLineOptions = parseCommandLine({"solc", "contract.sol", "--ethdebug-runtime", "--via-ir"});
+	commandLineOptions = parseCommandLine({"solc", "contract.sol", "--experimental", "--ethdebug-runtime", "--via-ir"});
 	BOOST_CHECK_EQUAL(commandLineOptions.compiler.outputs.ethdebug, false);
 	BOOST_CHECK_EQUAL(commandLineOptions.compiler.outputs.ethdebugRuntime, true);
 	BOOST_CHECK_EQUAL(commandLineOptions.output.debugInfoSelection.has_value(), true);
 	BOOST_CHECK_EQUAL(commandLineOptions.output.debugInfoSelection->ethdebug, true);
-	commandLineOptions = parseCommandLine({"solc", "contract.sol", "--ethdebug", "--ethdebug-runtime", "--via-ir"});
+	commandLineOptions = parseCommandLine({"solc", "contract.sol", "--experimental", "--ethdebug", "--ethdebug-runtime", "--via-ir"});
 	BOOST_CHECK_EQUAL(commandLineOptions.compiler.outputs.ethdebug, true);
 	BOOST_CHECK_EQUAL(commandLineOptions.compiler.outputs.ethdebugRuntime, true);
 	BOOST_CHECK_EQUAL(commandLineOptions.output.debugInfoSelection.has_value(), true);
 	BOOST_CHECK_EQUAL(commandLineOptions.output.debugInfoSelection->ethdebug, true);
-	commandLineOptions = parseCommandLine({"solc", "contract.sol", "--debug-info", "ethdebug", "--ir"});
+	commandLineOptions = parseCommandLine({"solc", "contract.sol", "--experimental", "--debug-info", "ethdebug", "--ir"});
 	BOOST_CHECK_EQUAL(commandLineOptions.compiler.outputs.ethdebug, false);
 	BOOST_CHECK_EQUAL(commandLineOptions.compiler.outputs.ethdebugRuntime, false);
 	BOOST_CHECK_EQUAL(commandLineOptions.compiler.outputs.ir, true);
 	BOOST_CHECK_EQUAL(commandLineOptions.output.debugInfoSelection.has_value(), true);
 	BOOST_CHECK_EQUAL(commandLineOptions.output.debugInfoSelection->ethdebug, true);
+}
+
+BOOST_AUTO_TEST_CASE(experimental_features_without_experimental_flag)
+{
+	std::vector<std::string> const experimentalFeatures {
+		"--lsp",
+		"--import-ast",
+		"--import-asm-json",
+		"--ir-ast-json",
+		"--ir-optimized-ast-json",
+		"--yul-cfg-json",
+		"--ethdebug",
+		"--ethdebug-runtime"
+	};
+
+	std::string const expectedErrorMessage {
+		"The following options are only available in experimental mode: --lsp, --import-ast, --import-asm-json, "
+		"--ir-ast-json, --ir-optimized-ast-json, --yul-cfg-json, --ethdebug, --ethdebug-runtime, --experimental-eof-version. "
+		"To enable experimental mode, use the --experimental flag."
+	};
+
+	auto hasCorrectMessage = [&](CommandLineValidationError const& _exception) { return _exception.what() == expectedErrorMessage; };
+
+	for (auto const& experimentalFeature: experimentalFeatures)
+	{
+		std::vector<std::string> const commandLineOptions{"solc", experimentalFeature, "contract.sol"};
+		BOOST_CHECK_EXCEPTION(parseCommandLine(commandLineOptions), CommandLineValidationError, hasCorrectMessage);
+	}
+
+	std::vector<std::string> const commandLineOptions{"solc", "--experimental-eof-version", "1", "contract.sol"};
+	BOOST_CHECK_EXCEPTION(parseCommandLine(commandLineOptions), CommandLineValidationError, hasCorrectMessage);
+}
+
+BOOST_AUTO_TEST_CASE(debug_info_ethdebug_without_experimental_flag)
+{
+	std::string const expectedErrorMessage { "--debug-info ethdebug can only be used by toggling the --experimental flag." };
+	auto hasCorrectMessage = [&](CommandLineValidationError const& _exception) { return _exception.what() == expectedErrorMessage; };
+
+	std::vector<std::string> const commandLineOptions{"solc", "--debug-info", "ethdebug", "contract.sol"};
+	BOOST_CHECK_EXCEPTION(parseCommandLine(commandLineOptions), CommandLineValidationError, hasCorrectMessage);
+}
+
+BOOST_AUTO_TEST_CASE(experimental_flag_with_standard_json)
+{
+	std::string const expectedErrorMessage {
+		"Standard JSON input mode is incompatible with the --experimental flag. "
+		"Instead, please use the 'settings.experimental' setting in your Standard JSON input file to enable experimental mode."
+	};
+	auto hasCorrectMessage = [&](CommandLineValidationError const& _exception) { return _exception.what() == expectedErrorMessage; };
+
+	std::vector<std::string> const commandLineOptions{"solc", "--experimental", "--standard-json", "input.json"};
+	BOOST_CHECK_EXCEPTION(parseCommandLine(commandLineOptions), CommandLineValidationError, hasCorrectMessage);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

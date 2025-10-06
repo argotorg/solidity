@@ -1534,61 +1534,62 @@ BOOST_AUTO_TEST_CASE(cli_ethdebug_debug_info_ethdebug)
 	createFilesWithParentDirs({tempDir.path() / "input.yul"}, "{}");
 	static std::vector<std::vector<std::string>> erroneousCLIFlagCombinations{
 		{
-			{"solc", "--debug-info", "ethdebug", tempDir.path().string() + "/input.sol"},
+			{"solc", "--experimental", "--debug-info", "ethdebug", tempDir.path().string() + "/input.sol"},
 		},
 		{
-			{"solc", "--debug-info", "ethdebug", "--ir-optimized", tempDir.path().string() + "/input.sol"},
+			{"solc", "--experimental", "--debug-info", "ethdebug", "--ir-optimized", tempDir.path().string() + "/input.sol"},
 		},
 		{
-			{"solc", "--debug-info", "ethdebug", "--optimize", tempDir.path().string() + "/input.sol"},
+			{"solc", "--experimental", "--debug-info", "ethdebug", "--optimize", tempDir.path().string() + "/input.sol"},
 		},
 		{
-			{"solc", "--debug-info", "ethdebug", "--ethdebug", tempDir.path().string() + "/input.sol"},
+			{"solc", "--experimental", "--debug-info", "ethdebug", "--ethdebug", tempDir.path().string() + "/input.sol"},
 		},
 		{
-			{"solc",  "--ethdebug-runtime", "--strict-assembly", tempDir.path().string() + "/input.yul"},
+			{"solc",  "--experimental", "--ethdebug-runtime", "--strict-assembly", tempDir.path().string() + "/input.yul"},
 		},
 		{
-			{"solc",  "--ethdebug", "--ethdebug-runtime", "--strict-assembly", tempDir.path().string() + "/input.yul"},
+			{"solc",  "--experimental", "--ethdebug", "--ethdebug-runtime", "--strict-assembly", tempDir.path().string() + "/input.yul"},
 		},
 		{
-			{"solc", "--debug-info", "ethdebug", "--ethdebug", tempDir.path().string() + "/input.sol"},
+			{"solc", "--experimental", "--debug-info", "ethdebug", "--ethdebug", tempDir.path().string() + "/input.sol"},
 		},
 		{
-			{"solc", "--debug-info", "ethdebug", "--ethdebug-runtime", tempDir.path().string() + "/input.sol"},
+			{"solc", "--experimental", "--debug-info", "ethdebug", "--ethdebug-runtime", tempDir.path().string() + "/input.sol"},
 		},
 		{
-			{"solc", "--debug-info", "ethdebug", "--ethdebug", "--ethdebug-runtime", tempDir.path().string() + "/input.sol"},
+			{"solc", "--experimental", "--debug-info", "ethdebug", "--ethdebug", "--ethdebug-runtime", tempDir.path().string() + "/input.sol"},
 		},
 		{
-			{"solc", "--debug-info", "location", "--ethdebug", "--via-ir", tempDir.path().string() + "/input.sol"},
+			{"solc", "--experimental", "--debug-info", "location", "--ethdebug", "--via-ir", tempDir.path().string() + "/input.sol"},
 		},
 		{
-			{"solc", "--debug-info", "location", "--ethdebug-runtime", "--via-ir", tempDir.path().string() + "/input.sol"},
+			{"solc", "--experimental", "--debug-info", "location", "--ethdebug-runtime", "--via-ir", tempDir.path().string() + "/input.sol"},
 		},
 		{
-			{"solc", "--debug-info", "location", "--ethdebug", "--ethdebug-runtime", "--via-ir", tempDir.path().string() + "/input.sol"},
+			{"solc", "--experimental", "--debug-info", "location", "--ethdebug", "--ethdebug-runtime", "--via-ir", tempDir.path().string() + "/input.sol"},
 		},
 		{
-			{"solc", "--debug-info", "all", "--ethdebug", "--via-ir", tempDir.path().string() + "/input.sol"},
+			{"solc", "--experimental", "--debug-info", "all", "--ethdebug", "--via-ir", tempDir.path().string() + "/input.sol"},
 		},
 		{
-			{"solc", "--debug-info", "all", "--ethdebug-runtime", "--via-ir", tempDir.path().string() + "/input.sol"},
+			{"solc", "--experimental", "--debug-info", "all", "--ethdebug-runtime", "--via-ir", tempDir.path().string() + "/input.sol"},
 		},
 		{
-			{"solc", "--debug-info", "all", "--ethdebug", "--ethdebug-runtime", "--via-ir", tempDir.path().string() + "/input.sol"},
+			{"solc", "--experimental", "--debug-info", "all", "--ethdebug", "--ethdebug-runtime", "--via-ir", tempDir.path().string() + "/input.sol"},
 		},
 	};
 	static std::vector<std::vector<std::string>> supportedCLIFlagCombinations{
 		{
-			{"solc", "--debug-info", "ethdebug", "--ir", tempDir.path().string() + "/input.sol"},
+			{"solc", "--experimental", "--debug-info", "ethdebug", "--ir", tempDir.path().string() + "/input.sol"},
 		},
 		{
-			{"solc", "--debug-info", "ethdebug", "--ethdebug", "--via-ir", tempDir.path().string() + "/input.sol"},
+			{"solc", "--experimental", "--debug-info", "ethdebug", "--ethdebug", "--via-ir", tempDir.path().string() + "/input.sol"},
 		},
 		{
 			{
 				"solc",
+				"--experimental",
 				"--debug-info",
 				"ethdebug",
 				"--ethdebug-runtime",
@@ -1597,14 +1598,15 @@ BOOST_AUTO_TEST_CASE(cli_ethdebug_debug_info_ethdebug)
 			},
 		},
 		{
-			{"solc", "--debug-info", "ethdebug", "--strict-assembly", tempDir.path().string() + "/input.yul"},
+			{"solc", "--experimental", "--debug-info", "ethdebug", "--strict-assembly", tempDir.path().string() + "/input.yul"},
 		},
 		{
-			{"solc", "--ethdebug", "--strict-assembly", tempDir.path().string() + "/input.yul"},
+			{"solc", "--experimental", "--ethdebug", "--strict-assembly", tempDir.path().string() + "/input.yul"},
 		},
 		{
 			{
 				"solc",
+				"--experimental",
 				"--debug-info",
 				"ethdebug",
 				"--ethdebug",
@@ -1633,11 +1635,12 @@ BOOST_AUTO_TEST_CASE(cli_ethdebug_ethdebug_output)
 	createFilesWithParentDirs({tempDir.path() / "input.sol"}, "pragma solidity >=0.0; contract C { function f() public pure {} }");
 	static std::vector<std::vector<std::string>> erroneousCLIFlagCombinations{
 		{
-			{"solc", "--ethdebug", "--ethdebug-runtime", "--via-ir", "--ir-optimized", "--optimize", tempDir.path().string() + "/input.sol"},
+			{"solc", "--experimental", "--ethdebug", "--ethdebug-runtime", "--via-ir", "--ir-optimized", "--optimize", tempDir.path().string() + "/input.sol"},
 		},
 		{
 			{
 				"solc",
+				"--experimental",
 				"--ethdebug-runtime",
 				"--via-ir",
 				"--ir-optimized",
@@ -1646,42 +1649,42 @@ BOOST_AUTO_TEST_CASE(cli_ethdebug_ethdebug_output)
 			},
 		},
 		{
-			{"solc", "--ethdebug", "--via-ir", "--ir-optimized", "--optimize", tempDir.path().string() + "/input.sol"},
+			{"solc", "--experimental", "--ethdebug", "--via-ir", "--ir-optimized", "--optimize", tempDir.path().string() + "/input.sol"},
 		},
 		{
-			{"solc", "--ethdebug", tempDir.path().string() + "/input.sol"},
+			{"solc", "--experimental", "--ethdebug", tempDir.path().string() + "/input.sol"},
 		},
 		{
-			{"solc", "--ethdebug", "--ethdebug-runtime", tempDir.path().string() + "/input.sol"},
+			{"solc", "--experimental", "--ethdebug", "--ethdebug-runtime", tempDir.path().string() + "/input.sol"},
 		},
 		{
-			{"solc", "--ethdebug-runtime", tempDir.path().string() + "/input.sol"},
+			{"solc", "--experimental", "--ethdebug-runtime", tempDir.path().string() + "/input.sol"},
 		},
 	};
 	static std::vector<std::vector<std::string>> supportedCLIFlagCombinations{
 		{
-			{"solc", "--ethdebug", "--via-ir", tempDir.path().string() + "/input.sol"},
+			{"solc", "--experimental", "--ethdebug", "--via-ir", tempDir.path().string() + "/input.sol"},
 		},
 		{
-			{"solc", "--ethdebug-runtime", "--via-ir", tempDir.path().string() + "/input.sol"},
+			{"solc", "--experimental", "--ethdebug-runtime", "--via-ir", tempDir.path().string() + "/input.sol"},
 		},
 		{
-			{"solc", "--ethdebug", "--ethdebug-runtime", "--via-ir", tempDir.path().string() + "/input.sol"},
+			{"solc", "--experimental", "--ethdebug", "--ethdebug-runtime", "--via-ir", tempDir.path().string() + "/input.sol"},
 		},
 		{
-			{"solc", "--ethdebug", "--via-ir", "--ir", tempDir.path().string() + "/input.sol"},
+			{"solc", "--experimental", "--ethdebug", "--via-ir", "--ir", tempDir.path().string() + "/input.sol"},
 		},
 		{
-			{"solc", "--ethdebug-runtime", "--via-ir", "--ir", tempDir.path().string() + "/input.sol"},
+			{"solc", "--experimental", "--ethdebug-runtime", "--via-ir", "--ir", tempDir.path().string() + "/input.sol"},
 		},
 		{
-			{"solc", "--ethdebug", "--ethdebug-runtime", "--via-ir", "--ir", tempDir.path().string() + "/input.sol"},
+			{"solc", "--experimental", "--ethdebug", "--ethdebug-runtime", "--via-ir", "--ir", tempDir.path().string() + "/input.sol"},
 		},
 		{
-			{"solc", "--ethdebug", "--via-ir", "--ir-optimized", tempDir.path().string() + "/input.sol"},
+			{"solc", "--experimental", "--ethdebug", "--via-ir", "--ir-optimized", tempDir.path().string() + "/input.sol"},
 		},
 		{
-			{"solc", "--ethdebug-runtime", "--via-ir", "--ir-optimized", tempDir.path().string() + "/input.sol"},
+			{"solc", "--experimental", "--ethdebug-runtime", "--via-ir", "--ir-optimized", tempDir.path().string() + "/input.sol"},
 		},
 	};
 

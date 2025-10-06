@@ -229,6 +229,12 @@ void CompilerStack::setViaIR(bool _viaIR)
 	m_viaIR = _viaIR;
 }
 
+void CompilerStack::setExperimental(bool _experimental)
+{
+	solAssert(m_stackState < ParsedAndImported, "Must set experimental before parsing.");
+	m_experimental = _experimental;
+}
+
 void CompilerStack::setEVMVersion(langutil::EVMVersion _version)
 {
 	solAssert(m_stackState < ParsedAndImported, "Must set EVM version before parsing.");

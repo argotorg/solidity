@@ -927,6 +927,7 @@ void CommandLineInterface::compile()
 
 	try
 	{
+		m_compiler->setExperimental(m_options.experimental);
 		if (m_options.metadata.literalSources)
 			m_compiler->useMetadataLiteralSources(true);
 		m_compiler->setMetadataFormat(m_options.metadata.format);
