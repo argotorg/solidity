@@ -43,7 +43,7 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
+ */
 /**
  * Character stream / input file.
  */
@@ -71,19 +71,20 @@ class CharStream
 {
 public:
 	CharStream() = default;
-	CharStream(std::string _source, std::string _name):
-		m_source(std::move(_source)), m_name(std::move(_name)) {}
-	CharStream(std::string _source, std::string _name, bool _importedFromAST):
-		m_source(std::move(_source)),
-		m_name(std::move(_name)),
-		m_importedFromAST(_importedFromAST)
-	{ }
+	CharStream(std::string _source, std::string _name): m_source(std::move(_source)), m_name(std::move(_name)) {}
+	CharStream(std::string _source, std::string _name, bool _importedFromAST)
+		: m_source(std::move(_source)), m_name(std::move(_name)), m_importedFromAST(_importedFromAST)
+	{
+	}
 
 	size_t position() const { return m_position; }
 	bool isPastEndOfInput(size_t _charsForward = 0) const { return (m_position + _charsForward) >= m_source.size(); }
 	bool isImportedFromAST() const { return m_importedFromAST; }
 
-	char get(size_t _charsForward = 0) const { return m_source[m_position + _charsForward]; }
+	char get(size_t _charsForward = 0) const
+	{
+		return isPastEndOfInput(_charsForward) ? '\0' : m_source[m_position + _charsForward];
+	}
 	char advanceAndGet(size_t _chars = 1);
 	/// Sets scanner position to @ _amount characters backwards in source text.
 	/// @returns The character of the current location after update is returned.
