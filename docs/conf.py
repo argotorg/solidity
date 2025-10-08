@@ -218,7 +218,7 @@ html_static_path = ['_static']
 
 html_css_files = ["css/toggle.css"]
 
-html_js_files = ["js/constants.js", "js/initialize.js", "js/toggle.js"]
+html_js_files = ["js/constants.js", "js/initialize.js", "js/toggle.js", 'js/timezone.js']
 
 # Add any extra paths that contain custom files (such as robots.txt or
 # .htaccess) here, relative to this directory. These files are copied

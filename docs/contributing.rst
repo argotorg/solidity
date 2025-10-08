@@ -30,9 +30,12 @@ Team Calls
 If you have issues or pull requests to discuss, or are interested in hearing what
 the team and contributors are working on, you can join our public team call:
 
-- Wednesdays at 3PM CET/CEST.
-
 The call takes place on `Jitsi <https://meet.solidity.org>`_.
+
+.. raw:: html
+
+   <p id="community-call-time">Community calls are held on Wednesdays at 3PM CET/CEST.</p>
+
 
 How to Report Issues
 ====================
