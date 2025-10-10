@@ -6,6 +6,8 @@ Compiler Features:
 
 Bugfixes:
 
+Build System:
+* Docker: Discontinue DockerHub as a binary distribution channel.
 
 ### 0.8.33 (2025-12-18)
 

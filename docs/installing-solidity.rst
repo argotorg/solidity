@@ -71,44 +71,14 @@ Please refer to the solc-js repository for instructions.
 Docker
 ======
 
-Docker images of Solidity builds are available using the `solc <https://github.com/argotorg/solidity/pkgs/container/solc>`_ image from the argotorg organization on ghcr.io.
-Use the ``stable`` tag for the latest released version, and ``nightly`` for potentially unstable changes in the ``develop`` branch.
+Docker images containing Solidity builds up to version 0.8.31 are available in Github's container
+registry as `solc <https://github.com/argotorg/solidity/pkgs/container/solc>`_ under the ``argotorg`` organization.
+However, we have discontinued this distribution method and future versions will not be added there.
 
-The Docker image runs the compiler executable so that you can pass all compiler arguments to it.
-For example, the command below pulls the stable version of the ``solc`` image (if you do not have it already),
-and runs it in a new container, passing the ``--help`` argument.
-
-.. code-block:: bash
-
-    docker run ghcr.io/argotorg/solc:stable --help
-
-.. note::
-
-    Specific compiler versions are supported as the Docker image tag such as ``ghcr.io/argotorg/solc:0.8.23``.
-    We will be passing the ``stable`` tag here instead of specific version tag to ensure that users get
-    the latest version by default and avoid the issue of an out-of-date version.
-
-To use the Docker image to compile Solidity files on the host machine, mount a
-local folder for input and output, and specify the contract to compile. For example:
-
-.. code-block:: bash
-
-    docker run \
-        --volume "/tmp/some/local/path/:/sources/" \
-        ghcr.io/argotorg/solc:stable \
-            /sources/Contract.sol \
-            --abi \
-            --bin \
-            --output-dir /sources/output/
-
-You can also use the standard JSON interface (which is recommended when using the compiler with tooling).
-When using this interface, it is not necessary to mount any directories as long as the JSON input is
-self-contained (i.e. it does not refer to any external files that would have to be
-:ref:`loaded by the import callback <initial-vfs-content-standard-json-with-import-callback>`).
-
-.. code-block:: bash
-
-    docker run ghcr.io/argotorg/solc:stable --standard-json < input.json > output.json
+The images contain only a statically-linked compiler binary and were provided merely for convenience,
+as a way to download and manage multiple versions using Docker.
+On systems with Docker already installed this made it possible to use any version of the
+compiler with a simple ``docker run ethereum/solc:<version>`` command.
 
 Linux Packages
 ==============
