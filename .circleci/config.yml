@@ -496,7 +496,7 @@ defaults:
 
   - base_osx: &base_osx
       macos:
-        xcode: "15.0.0"
+        xcode: 15.4.0
       resource_class: macos.m1.medium.gen1
       environment: &base_osx_env
         TERM: xterm
