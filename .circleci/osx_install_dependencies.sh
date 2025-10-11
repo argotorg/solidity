@@ -61,7 +61,7 @@ then
 
   # install historical cmake
   chmod +x .circleci/install_cmake.sh
-  .circleci/install_cmake.sh 3.28.3
+  .circleci/install_cmake.sh 3.29.3
 
   # boost
   boost_version="1.84.0"
