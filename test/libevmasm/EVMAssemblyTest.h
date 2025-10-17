@@ -24,10 +24,11 @@
 
 #include <libevmasm/Assembly.h>
 
+#include <map>
 #include <memory>
 #include <ostream>
+#include <set>
 #include <string>
-#include <vector>
 
 namespace solidity::evmasm::test
 {
@@ -48,10 +49,19 @@ private:
 		Plain,
 	};
 
-	static std::vector<std::string> const c_outputLabels;
+	enum class Output
+	{
+		InputAssemblyJSON,
+		Assembly,
+		Bytecode,
+		Opcodes,
+		SourceMappings,
+	};
+
+	static std::map<Output, std::string> const c_outputLabels;
 
 	AssemblyFormat m_assemblyFormat{};
-	std::string m_selectedOutputs;
+	std::set<Output> m_selectedOutputs;
 	evmasm::Assembly::OptimiserSettings m_optimizerSettings;
 };
 

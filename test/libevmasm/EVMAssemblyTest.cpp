@@ -25,7 +25,6 @@
 #include <libevmasm/EVMAssemblyStack.h>
 
 #include <boost/algorithm/string/predicate.hpp>
-#include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/trim.hpp>
 
 #include <range/v3/view/map.hpp>
@@ -40,12 +39,12 @@ using namespace solidity::frontend::test;
 using namespace solidity::langutil;
 using namespace solidity::util;
 
-std::vector<std::string> const EVMAssemblyTest::c_outputLabels = {
-	"InputAssemblyJSON",
-	"Assembly",
-	"Bytecode",
-	"Opcodes",
-	"SourceMappings",
+std::map<EVMAssemblyTest::Output, std::string> const EVMAssemblyTest::c_outputLabels = {
+	{EVMAssemblyTest::Output::InputAssemblyJSON, "InputAssemblyJSON"},
+	{EVMAssemblyTest::Output::Assembly, "Assembly"},
+	{EVMAssemblyTest::Output::Bytecode, "Bytecode"},
+	{EVMAssemblyTest::Output::Opcodes, "Opcodes"},
+	{EVMAssemblyTest::Output::SourceMappings, "SourceMappings"},
 };
 
 std::unique_ptr<TestCase> EVMAssemblyTest::create(Config const& _config)
@@ -66,7 +65,11 @@ EVMAssemblyTest::EVMAssemblyTest(std::string const& _filename):
 	else
 		solThrow(ValidationError, "Not an assembly test: \"" + _filename + "\". Allowed extensions: .asm, .asmjson.");
 
-	m_selectedOutputs = m_reader.stringSetting("outputs", "Assembly,Bytecode,Opcodes,SourceMappings");
+	m_selectedOutputs = m_reader.enumSetSetting(
+		"outputs",
+		c_outputLabels,
+		{Output::Assembly, Output::Bytecode, Output::Opcodes, Output::SourceMappings}
+	);
 	OptimisationPreset optimizationPreset = m_reader.enumSetting<OptimisationPreset>(
 		"optimizationPreset",
 		{
@@ -145,25 +148,20 @@ TestCase::TestResult EVMAssemblyTest::run(std::ostream& _stream, std::string con
 	}
 	soltestAssert(evmAssemblyStack.compilationSuccessful());
 
-	auto const produceOutput = [&](std::string const& _output) {
-		if (_output == "InputAssemblyJSON")
-			return assemblyJSON;
-		if (_output == "Assembly")
-			return evmAssemblyStack.assemblyString({{m_reader.fileName().filename().string(), m_source}});
-		if (_output == "Bytecode")
-			return util::toHex(evmAssemblyStack.object().bytecode);
-		if (_output == "Opcodes")
-			return disassemble(evmAssemblyStack.object().bytecode, CommonOptions::get().evmVersion());
-		if (_output == "SourceMappings")
-			return evmAssemblyStack.sourceMapping();
-		soltestAssert(false);
+	auto const produceOutput = [&](Output _output) {
+		switch (_output)
+		{
+		case Output::InputAssemblyJSON: return assemblyJSON;
+		case Output::Assembly: return evmAssemblyStack.assemblyString({{m_reader.fileName().filename().string(), m_source}});
+		case Output::Bytecode: return util::toHex(evmAssemblyStack.object().bytecode);
+		case Output::Opcodes: return disassemble(evmAssemblyStack.object().bytecode, CommonOptions::get().evmVersion());
+		case Output::SourceMappings: return evmAssemblyStack.sourceMapping();
+		}
 		unreachable();
 	};
 
-	std::set<std::string> selectedOutputSet;
-	boost::split(selectedOutputSet, m_selectedOutputs, boost::is_any_of(","));
-	for (std::string const& output: c_outputLabels)
-		if (selectedOutputSet.contains(output))
+	for (Output output: c_outputLabels | ranges::views::keys)
+		if (m_selectedOutputs.contains(output))
 		{
 			if (!m_obtainedResult.empty() && m_obtainedResult.back() != '\n')
 				m_obtainedResult += "\n";
@@ -171,8 +169,8 @@ TestCase::TestResult EVMAssemblyTest::run(std::ostream& _stream, std::string con
 			// Don't trim on the left to avoid stripping indentation.
 			std::string content = produceOutput(output);
 			boost::trim_right(content);
-			std::string separator = (content.empty() ? "" : (output == "Assembly" ? "\n" : " "));
-			m_obtainedResult += output + ":" + separator + content;
+			std::string separator = (content.empty() ? "" : (output == Output::Assembly ? "\n" : " "));
+			m_obtainedResult += c_outputLabels.at(output) + ":" + separator + content;
 		}
 
 	return checkResult(_stream, _linePrefix, _formatted);

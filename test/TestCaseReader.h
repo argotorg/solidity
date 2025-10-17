@@ -22,14 +22,19 @@
 
 #include <test/libsolidity/util/SoltestErrors.h>
 
+#include <libsolutil/CommonData.h>
 #include <libsolutil/StringUtils.h>
 
+#include <boost/algorithm/string/split.hpp>
+#include <boost/algorithm/string/trim.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/throw_exception.hpp>
 
 #include <fmt/format.h>
 
+#include <range/v3/range/conversion.hpp>
 #include <range/v3/view/map.hpp>
+#include <range/v3/view/transform.hpp>
 
 #include <fstream>
 #include <map>
@@ -73,6 +78,10 @@ public:
 
 	template <typename E>
 	E enumSetting(std::string const& _name, std::map<std::string, E> const& _choices, std::string const& _defaultChoice);
+	template <typename E>
+	std::vector<E> enumListSetting(std::string const& _name, std::map<E, std::string> const& _choices, std::vector<E> const& _defaultValue);
+	template <typename E>
+	std::set<E> enumSetSetting(std::string const& _name, std::map<E, std::string> const& _choices, std::set<E> const& _defaultValue);
 
 	void ensureAllSettingsRead() const;
 
@@ -103,6 +112,54 @@ E TestCaseReader::enumSetting(std::string const& _name, std::map<std::string, E>
 	));
 
 	return _choices.at(value);
+}
+
+template <typename E>
+std::vector<E> TestCaseReader::enumListSetting(std::string const& _name, std::map<E, std::string> const& _choices, std::vector<E> const& _defaultValue)
+{
+	std::map<std::string, E> const labelToItem = util::invertMap(_choices);
+	auto const translateToLabel = [&](E _item) { return _choices.at(_item); };
+
+	for (std::string const& label: labelToItem | ranges::views::keys)
+		soltestAssert(label.find(",") == std::string::npos && boost::algorithm::trim_copy(label) == label);
+
+	for (E item: _defaultValue)
+		soltestAssert(_choices.contains(item));
+
+	std::string value = stringSetting(
+		_name,
+		util::joinHumanReadable(_defaultValue | ranges::views::transform(translateToLabel) |  ranges::to<std::vector>)
+	);
+
+	std::vector<std::string> selectedLabels;
+	boost::split(selectedLabels, value, boost::is_any_of(","));
+
+	std::vector<E> selectedItems;
+	std::vector<std::string> invalidLabels;
+	for (std::string const& label: selectedLabels)
+	{
+		std::string trimmedLabel = boost::trim_copy(label);
+		if (labelToItem.contains(trimmedLabel))
+			selectedItems.push_back(labelToItem.at(trimmedLabel));
+		else
+			invalidLabels.push_back(trimmedLabel);
+	}
+
+	if (!invalidLabels.empty())
+		solThrow(solidity::test::ValidationError, fmt::format(
+			"Invalid choices in '{}' setting: {}.\nAvailable choices: {}.",
+			_name,
+			util::joinHumanReadable(invalidLabels),
+			util::joinHumanReadable(labelToItem | ranges::views::keys)
+		));
+
+	return selectedItems;
+}
+
+template <typename E>
+std::set<E> TestCaseReader::enumSetSetting(std::string const& _name, std::map<E, std::string> const& _choices, std::set<E> const& _defaultValue)
+{
+	return enumListSetting(_name, _choices, _defaultValue | ranges::to<std::vector>) | ranges::to<std::set>;
 }
 
 }

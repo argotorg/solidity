@@ -51,10 +51,20 @@ public:
 	TestResult run(std::ostream& _stream, std::string const& _linePrefix = "", bool const _formatted = false) override;
 
 private:
+	enum class Output
+	{
+		Assembly,
+		Bytecode,
+		Opcodes,
+		SourceMappings,
+	};
+
 	void disambiguate();
 
+	static std::map<Output, std::string> const c_outputLabels;
+
 	frontend::OptimisationPreset m_optimisationPreset;
-	std::vector<std::string> m_outputSetting;
+	std::set<Output> m_selectedOutputs;
 };
 
 }

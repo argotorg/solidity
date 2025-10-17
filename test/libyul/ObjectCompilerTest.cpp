@@ -44,6 +44,13 @@ using namespace solidity::frontend;
 using namespace solidity::frontend::test;
 using namespace solidity::test;
 
+std::map<ObjectCompilerTest::Output, std::string> const ObjectCompilerTest::c_outputLabels = {
+	{ObjectCompilerTest::Output::Assembly, "Assembly"},
+	{ObjectCompilerTest::Output::Bytecode, "Bytecode"},
+	{ObjectCompilerTest::Output::Opcodes, "Opcodes"},
+	{ObjectCompilerTest::Output::SourceMappings, "SourceMappings"},
+};
+
 ObjectCompilerTest::ObjectCompilerTest(std::string const& _filename):
 	EVMVersionRestrictedTestCase(_filename)
 {
@@ -59,11 +66,11 @@ ObjectCompilerTest::ObjectCompilerTest(std::string const& _filename):
 		"minimal"
 	);
 
-	constexpr std::array allowedOutputs = {"Assembly", "Bytecode", "Opcodes", "SourceMappings"};
-	boost::split(m_outputSetting, m_reader.stringSetting("outputs", "Assembly,Bytecode,Opcodes,SourceMappings"), boost::is_any_of(","));
-	for (auto const& output: m_outputSetting)
-		if (std::find(allowedOutputs.begin(), allowedOutputs.end(), output) == allowedOutputs.end())
-			solThrow(ValidationError, "Invalid output type: \"" + output + "\"");
+	m_selectedOutputs = m_reader.enumSetSetting(
+		"outputs",
+		c_outputLabels,
+		c_outputLabels | ranges::views::keys | ranges::to<std::set>
+	);
 
 	m_expectation = m_reader.simpleExpectations();
 }
@@ -86,26 +93,29 @@ TestCase::TestResult ObjectCompilerTest::run(std::ostream& _stream, std::string 
 	solAssert(obj.bytecode);
 	solAssert(obj.sourceMappings);
 
-	if (std::find(m_outputSetting.begin(), m_outputSetting.end(), "Assembly") != m_outputSetting.end())
-		m_obtainedResult = "Assembly:\n" + obj.assembly->assemblyString(yulStack.debugInfoSelection());
-	if (obj.bytecode->bytecode.empty())
-		m_obtainedResult += "-- empty bytecode --\n";
-	else
-	{
-		if (std::find(m_outputSetting.begin(), m_outputSetting.end(), "Bytecode") != m_outputSetting.end())
-			m_obtainedResult += "Bytecode: " + util::toHex(obj.bytecode->bytecode);
-		if (std::find(m_outputSetting.begin(), m_outputSetting.end(), "Opcodes") != m_outputSetting.end())
+	auto const produceOutput = [&](Output _output) {
+		switch (_output)
 		{
-			m_obtainedResult += (!m_obtainedResult.empty() && m_obtainedResult.back() != '\n') ? "\n" : "";
-			m_obtainedResult += "Opcodes: " +
-				boost::trim_copy(evmasm::disassemble(obj.bytecode->bytecode, CommonOptions::get().evmVersion()));
+		case Output::Assembly: return obj.assembly->assemblyString(yulStack.debugInfoSelection());
+		case Output::Bytecode: return util::toHex(obj.bytecode->bytecode);
+		case Output::Opcodes: return evmasm::disassemble(obj.bytecode->bytecode, CommonOptions::get().evmVersion());
+		case Output::SourceMappings: return *obj.sourceMappings;
 		}
-		if (std::find(m_outputSetting.begin(), m_outputSetting.end(), "SourceMappings") != m_outputSetting.end())
+		unreachable();
+	};
+
+	for (Output output: c_outputLabels | ranges::views::keys)
+		if (m_selectedOutputs.contains(output))
 		{
-			m_obtainedResult += (!m_obtainedResult.empty() && m_obtainedResult.back() != '\n') ? "\n" : "";
-			m_obtainedResult += "SourceMappings:" + (obj.sourceMappings->empty() ? "" : " " + *obj.sourceMappings) + "\n";
+			if (!m_obtainedResult.empty() && m_obtainedResult.back() != '\n')
+				m_obtainedResult += "\n";
+
+			// Don't trim on the left to avoid stripping indentation.
+			std::string content = produceOutput(output);
+			boost::trim_right(content);
+			std::string separator = (content.empty() ? "" : (output == Output::Assembly ? "\n" : " "));
+			m_obtainedResult += c_outputLabels.at(output) + ":" + separator + content;
 		}
-	}
 
 	return checkResult(_stream, _linePrefix, _formatted);
 }
