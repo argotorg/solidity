@@ -174,7 +174,7 @@ void EnumValue::accept(ASTConstVisitor& _visitor) const
 	_visitor.endVisit(*this);
 }
 
-void UserDefinedValueTypeDefinition::accept(ASTConstVisitor& _visitor) const
+void UserDefinedValueTypeDefinition::accept(ASTVisitor& _visitor)
 {
 	if (_visitor.visit(*this))
 	{
@@ -184,7 +184,7 @@ void UserDefinedValueTypeDefinition::accept(ASTConstVisitor& _visitor) const
 	_visitor.endVisit(*this);
 }
 
-void UserDefinedValueTypeDefinition::accept(ASTVisitor& _visitor)
+void UserDefinedValueTypeDefinition::accept(ASTConstVisitor& _visitor) const
 {
 	if (_visitor.visit(*this))
 	{
