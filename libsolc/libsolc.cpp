@@ -33,7 +33,6 @@
 #include "license.h"
 
 using namespace solidity;
-using namespace solidity::util;
 
 using solidity::frontend::ReadCallback;
 using solidity::frontend::StandardCompiler;
