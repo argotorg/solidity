@@ -42,6 +42,8 @@ TestCase::TestResult FunctionDependencyGraphTest::run(std::ostream& _stream, std
 	compiler().setSources(StringMap{{"", m_source}});
 	compiler().setViaIR(true);
 	compiler().setOptimiserSettings(OptimiserSettings::none());
+	// Experimental on by default as this is an extension of the initial experimental Solidity
+	compiler().setExperimental(true);
 	if (!compiler().compile(CompilerStack::AnalysisSuccessful))
 	{
 		printPrefixed(_stream, formatErrors(filteredErrors(), _formatted), _linePrefix);

@@ -51,13 +51,14 @@ SyntaxTest::SyntaxTest(
 	auto const eofEnabled = solidity::test::CommonOptions::get().eofVersion().has_value();
 
 	m_compileViaYul = m_reader.stringSetting("compileViaYul", eofEnabled ? "true" : "false");
-	if (!util::contains(compileViaYulAllowedValues, m_compileViaYul))
+	if (!compileViaYulAllowedValues.contains(m_compileViaYul))
 		BOOST_THROW_EXCEPTION(std::runtime_error("Invalid compileViaYul value: " + m_compileViaYul + "."));
 
 	if (m_compileViaYul == "false" && eofEnabled)
 		m_shouldRun = false;
 
 	m_optimiseYul = m_reader.boolSetting("optimize-yul", true);
+	m_experimental = m_reader.boolSetting("experimental", false);
 
 	static std::map<std::string, PipelineStage> const pipelineStages = {
 		{"parsing", PipelineStage::Parsing},
@@ -81,6 +82,7 @@ void SyntaxTest::setupCompiler(CompilerStack& _compiler)
 		OptimiserSettings::minimal()
 	);
 	_compiler.setViaIR(m_compileViaYul == "true");
+	_compiler.setExperimental(m_experimental);
 	_compiler.setMetadataFormat(CompilerStack::MetadataFormat::NoMetadata);
 	_compiler.setMetadataHash(CompilerStack::MetadataHash::None);
 }

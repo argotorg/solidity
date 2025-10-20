@@ -104,6 +104,7 @@ BOOST_AUTO_TEST_CASE(metadata_stamp)
 			compilerStack.setEVMVersion(solidity::test::CommonOptions::get().evmVersion());
 			compilerStack.setOptimiserSettings(solidity::test::CommonOptions::get().optimize);
 			compilerStack.setMetadataHash(metadataHash);
+			compilerStack.setExperimental(true); // Experimental pragma requires it
 			BOOST_REQUIRE_MESSAGE(compilerStack.compile(), "Compiling contract failed");
 			bytes const& bytecode = compilerStack.runtimeObject("test").bytecode;
 			std::string const& metadata = compilerStack.metadata("test");
@@ -177,6 +178,7 @@ BOOST_AUTO_TEST_CASE(metadata_stamp_experimental)
 			compilerStack.setEVMVersion(solidity::test::CommonOptions::get().evmVersion());
 			compilerStack.setOptimiserSettings(solidity::test::CommonOptions::get().optimize);
 			compilerStack.setMetadataHash(metadataHash);
+			compilerStack.setExperimental(true); // Experimental pragma requires it
 			BOOST_REQUIRE_MESSAGE(compilerStack.compile(), "Compiling contract failed");
 			bytes const& bytecode = compilerStack.runtimeObject("test").bytecode;
 			std::string const& metadata = compilerStack.metadata("test");

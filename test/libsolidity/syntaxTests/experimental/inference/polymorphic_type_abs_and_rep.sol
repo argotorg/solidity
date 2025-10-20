@@ -18,6 +18,7 @@ function fun() {
     U.abs(t);
 }
 // ====
+// experimental: true
 // EVMVersion: >=constantinople
 // compileViaYul: true
 // ----

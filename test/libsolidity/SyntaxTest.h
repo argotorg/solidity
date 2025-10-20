@@ -53,6 +53,7 @@ protected:
 	virtual void filterObtainedErrors();
 
 	bool m_optimiseYul{};
+	bool m_experimental{false};
 	std::string m_compileViaYul{};
 	langutil::Error::Severity m_minSeverity{};
 	PipelineStage m_stopAfter;

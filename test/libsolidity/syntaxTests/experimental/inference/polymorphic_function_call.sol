@@ -11,6 +11,7 @@ function run(a: T, b: U(T), c: U(U(T))) {
     f(b, b, c);
 }
 // ====
+// experimental: true
 // EVMVersion: >=constantinople
 // compileViaYul: true
 // ----

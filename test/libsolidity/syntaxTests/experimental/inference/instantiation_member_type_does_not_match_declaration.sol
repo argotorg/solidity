@@ -11,6 +11,7 @@ instantiation T: C {
     function f(self: U) {}
 }
 // ====
+// experimental: true
 // EVMVersion: >=constantinople
 // compileViaYul: true
 // ----

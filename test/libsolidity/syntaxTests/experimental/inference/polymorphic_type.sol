@@ -13,6 +13,7 @@ function run() {
     let y: T(V, Y, Z: D);
 }
 // ====
+// experimental: true
 // EVMVersion: >=constantinople
 // compileViaYul: true
 // ----

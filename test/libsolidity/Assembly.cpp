@@ -66,7 +66,7 @@ evmasm::AssemblyItems compileContract(std::shared_ptr<CharStream> _sourceCode)
 	BOOST_CHECK(!!sourceUnit);
 
 	Scoper::assignScopes(*sourceUnit);
-	BOOST_REQUIRE(SyntaxChecker(errorReporter, false).checkSyntax(*sourceUnit));
+	BOOST_REQUIRE(SyntaxChecker(errorReporter, false, false).checkSyntax(*sourceUnit));
 	GlobalContext globalContext(solidity::test::CommonOptions::get().evmVersion());
 	NameAndTypeResolver resolver(globalContext, solidity::test::CommonOptions::get().evmVersion(), errorReporter, false);
 	DeclarationTypeChecker declarationTypeChecker(errorReporter, solidity::test::CommonOptions::get().evmVersion());

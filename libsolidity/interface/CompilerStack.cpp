@@ -473,7 +473,7 @@ bool CompilerStack::analyze()
 	{
 		bool experimentalSolidity = isExperimentalSolidity();
 
-		SyntaxChecker syntaxChecker(m_errorReporter, m_optimiserSettings.runYulOptimiser);
+		SyntaxChecker syntaxChecker(m_errorReporter, m_optimiserSettings.runYulOptimiser, m_experimental);
 		for (Source const* source: m_sourceOrder)
 			if (source->ast && !syntaxChecker.checkSyntax(*source->ast))
 				noErrors = false;
@@ -767,6 +767,10 @@ bool CompilerStack::compile(State _stopAfter)
 	std::map<ContractDefinition const*, std::shared_ptr<Compiler const>> otherCompilers;
 
 	for (Source const* source: m_sourceOrder)
+	{
+		if (source->ast && !m_experimental)
+			solAssert(source->ast->annotation().experimentalFeatures.empty());
+
 		for (ASTPointer<ASTNode> const& node: source->ast->nodes())
 			if (auto contract = dynamic_cast<ContractDefinition const*>(node.get()))
 				if (isRequestedContract(*contract))
@@ -801,6 +805,7 @@ bool CompilerStack::compile(State _stopAfter)
 					if (m_errorReporter.hasErrors())
 						return false;
 				}
+	}
 
 	solAssert(!m_errorReporter.hasErrors());
 	m_stackState = CompilationSuccessful;

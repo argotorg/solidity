@@ -9,6 +9,7 @@ function f(a: A: Class1, b: B: Class1) {}
 forall A: Class1
 function g(a: A) {}
 // ====
+// experimental: true
 // EVMVersion: >=constantinople
 // compileViaYul: true
 // ----

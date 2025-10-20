@@ -83,6 +83,12 @@ bool SyntaxChecker::visit(PragmaDirective const& _pragma)
 	else if (_pragma.literals()[0] == "experimental")
 	{
 		solAssert(m_sourceUnit, "");
+		if (!m_experimental)
+			m_errorReporter.syntaxError(
+				2816_error,
+				_pragma.location(),
+				"Experimental pragmas can only be used if the experimental mode has been enabled."
+			);
 		std::vector<std::string> literals(_pragma.literals().begin() + 1, _pragma.literals().end());
 		if (literals.empty())
 			m_errorReporter.syntaxError(

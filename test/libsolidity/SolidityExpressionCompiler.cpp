@@ -126,7 +126,7 @@ bytes compileFirstExpression(
 	ErrorReporter errorReporter(errors);
 	GlobalContext globalContext(solidity::test::CommonOptions::get().evmVersion());
 	Scoper::assignScopes(*sourceUnit);
-	BOOST_REQUIRE(SyntaxChecker(errorReporter, false).checkSyntax(*sourceUnit));
+	BOOST_REQUIRE(SyntaxChecker(errorReporter, false, false).checkSyntax(*sourceUnit));
 	NameAndTypeResolver resolver(globalContext, solidity::test::CommonOptions::get().evmVersion(), errorReporter, false);
 	resolver.registerDeclarations(*sourceUnit);
 	BOOST_REQUIRE_MESSAGE(resolver.resolveNamesAndTypes(*sourceUnit), "Resolving names failed");

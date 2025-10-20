@@ -1,5 +1,6 @@
 pragma experimental solidity;
 // ====
+// experimental: true
 // EVMVersion: >=constantinople
 // compileViaYul: true
 // ----

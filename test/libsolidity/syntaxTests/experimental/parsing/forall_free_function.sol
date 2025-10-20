@@ -6,6 +6,7 @@ function f(a: A) {}
 forall (A, B)
 function g(a: A, b: B) {}
 // ====
+// experimental: true
 // EVMVersion: >=constantinople
 // compileViaYul: true
 // ----

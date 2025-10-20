@@ -11,6 +11,7 @@ contract C
 }
 
 // ====
+// experimental: true
 // EVMVersion: >=constantinople
 // compileViaYul: true
 // bytecodeFormat: legacy

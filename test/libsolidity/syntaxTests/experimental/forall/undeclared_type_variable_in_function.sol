@@ -7,6 +7,7 @@ function f(p: P, q: T(Q)) {
     let s: S;
 }
 // ====
+// experimental: true
 // EVMVersion: >=constantinople
 // ----
 // Warning 2264: (0-29): Experimental features are turned on. Do not use experimental features on live deployments.
