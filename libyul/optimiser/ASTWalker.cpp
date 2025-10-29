@@ -148,8 +148,8 @@ void ASTModifier::operator()(ForLoop& _for)
 {
 	(*this)(_for.pre);
 	visit(*_for.condition);
-	(*this)(_for.post);
 	(*this)(_for.body);
+	(*this)(_for.post);
 }
 
 void ASTModifier::operator()(Break&)
