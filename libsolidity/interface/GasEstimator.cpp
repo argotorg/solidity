@@ -33,7 +33,6 @@
 #include <libsolutil/FunctionSelector.h>
 #include <libsolutil/Keccak256.h>
 
-#include <functional>
 #include <map>
 #include <memory>
 
