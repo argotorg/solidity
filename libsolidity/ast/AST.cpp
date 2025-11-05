@@ -27,16 +27,12 @@
 #include <libsolidity/ast/ASTVisitor.h>
 #include <libsolidity/ast/AST_accept.h>
 #include <libsolidity/ast/TypeProvider.h>
-#include <libsolutil/FunctionSelector.h>
-#include <libsolutil/Keccak256.h>
-
 #include <range/v3/range/conversion.hpp>
 #include <range/v3/view/tail.hpp>
 #include <range/v3/view/zip.hpp>
 
 #include <boost/algorithm/string.hpp>
 
-#include <functional>
 #include <utility>
 
 using namespace solidity;
