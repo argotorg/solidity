@@ -66,7 +66,8 @@ function gp2_test
     force_hardhat_compiler_settings "$config_file" "$(first_word "$SELECTED_PRESETS")" "$config_var"
     force_hardhat_unlimited_contract_size "$config_file" "$config_var"
     yarn
-    yarn add hardhat
+    # Hardhat 3.0+ breaks the test suite
+    yarn add hardhat@2.26.3
 
     # Ignore bench directory which fails to compile with current hardhat and ethers versions.
     # bench/trace/gas.ts:123:19 - error TS2339: Property 'equals' does not exist on type 'Uint8Array'.
@@ -93,7 +94,7 @@ function gp2_test
         src/contracts/GPv2Settlement.sol
 
     # This test is not supposed to work. The compiler is supposed to enforce zero padding since
-    # at least 0.5.8 (see https://github.com/ethereum/solidity/pull/5815). For some reason the
+    # at least 0.5.8 (see https://github.com/argotorg/solidity/pull/5815). For some reason the
     # test worked on 0.7.6 but no longer works on 0.8.x.
     sed -i 's|it\(("invalid EVM transaction encoding does not change order hash"\)|it.skip\1|g' test/GPv2Signing.test.ts
 

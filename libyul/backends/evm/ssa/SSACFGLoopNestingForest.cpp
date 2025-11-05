@@ -16,19 +16,21 @@
 */
 // SPDX-License-Identifier: GPL-3.0
 
-#include <libyul/backends/evm/SSACFGLoopNestingForest.h>
+#include <libyul/backends/evm/ssa/SSACFGLoopNestingForest.h>
 
-using namespace solidity::yul;
+#include <range/v3/algorithm/reverse.hpp>
+
+using namespace solidity::yul::ssa;
 
 SSACFGLoopNestingForest::SSACFGLoopNestingForest(ForwardSSACFGTopologicalSort const& _sort):
 	m_sort(_sort),
 	m_cfg(_sort.cfg()),
 	m_vertexPartition(m_cfg.numBlocks()),
-	m_loopParents(m_cfg.numBlocks(), std::numeric_limits<size_t>::max())
+	m_loopParents(m_cfg.numBlocks(), std::numeric_limits<BlockIdValue>::max())
 {
 	auto dfsOrder = m_sort.preOrder();
 	// we go from innermost to outermost
-	std::reverse(dfsOrder.begin(), dfsOrder.end());
+	ranges::reverse(dfsOrder);
 
 	for (auto const& blockId: dfsOrder)
 		findLoop(blockId);
@@ -36,18 +38,18 @@ SSACFGLoopNestingForest::SSACFGLoopNestingForest(ForwardSSACFGTopologicalSort co
 	// get the root nodes
 	for (auto loopHeader: m_loopNodes)
 	{
-		while (m_loopParents[loopHeader] != std::numeric_limits<size_t>::max())
+		while (m_loopParents[loopHeader] != std::numeric_limits<BlockIdValue>::max())
 			loopHeader = m_loopParents[loopHeader];
 		m_loopRootNodes.insert(loopHeader);
 	}
 }
 
-void SSACFGLoopNestingForest::findLoop(size_t const _potentialHeader)
+void SSACFGLoopNestingForest::findLoop(BlockIdValue const _potentialHeader)
 {
-	if (m_sort.backEdgeTargets().count(_potentialHeader) > 0)
+	if (m_sort.backEdgeTargets().contains(_potentialHeader))
 	{
-		std::set<size_t> loopBody;
-		std::set<size_t> workList;
+		std::set<BlockIdValue> loopBody;
+		std::set<BlockIdValue> workList;
 		for (auto const pred: m_cfg.block(SSACFG::BlockId{_potentialHeader}).entries)
 		{
 			auto const representative = m_vertexPartition.find(pred.value);
@@ -78,7 +80,7 @@ void SSACFGLoopNestingForest::findLoop(size_t const _potentialHeader)
 			collapse(loopBody, _potentialHeader);
 	}
 }
-void SSACFGLoopNestingForest::collapse(std::set<size_t> const& _loopBody, size_t _loopHeader)
+void SSACFGLoopNestingForest::collapse(std::set<BlockIdValue> const& _loopBody, BlockIdValue _loopHeader)
 {
 	for (auto const z: _loopBody)
 	{

@@ -33,26 +33,29 @@
 # Using $(em-config CACHE)/sysroot/usr seems to work, though, and still has cmake find the
 # dependencies automatically.
 FROM emscripten/emsdk:3.1.19 AS base
-LABEL version="20"
+LABEL version="21"
 
 ADD emscripten.jam /usr/src
-RUN set -ex && \
-	apt-get update && \
+RUN <<-EOF
+    set -ex
+	apt-get update
 	apt-get install -qqy --no-install-recommends \
 		lsof \
 		lz4 \
 		python3 \
 		python3-pip \
 		sudo && \
-	pip3 install requests;
+	pip3 install requests
+EOF
 
 # Install Z3
-RUN set -ex && \
-	cd /usr/src && \
-	git clone https://github.com/Z3Prover/z3.git -b z3-4.13.3 --depth 1 && \
-	cd z3 && \
-	mkdir build && \
-	cd build && \
+RUN <<-EOF
+    set -ex
+	cd /usr/src
+	git clone https://github.com/Z3Prover/z3.git -b z3-4.13.3 --depth 1
+	cd z3
+	mkdir build
+	cd build
 	emcmake cmake \
 		-DCMAKE_INSTALL_PREFIX=$(em-config CACHE)/sysroot/usr \
 		-DCMAKE_BUILD_TYPE=MinSizeRel \
@@ -62,33 +65,38 @@ RUN set -ex && \
 		-DZ3_BUILD_EXECUTABLE=OFF \
 		-DZ3_SINGLE_THREADED=ON \
 		-DCMAKE_CXX_FLAGS="-s DISABLE_EXCEPTION_CATCHING=0" \
-		.. && \
-	make && \
-	make install && \
+		..
+	make
+	make install
 	rm -r /usr/src/z3
+EOF
 
 # Install Boost
-RUN set -ex && \
-	cd /usr/src && \
-	wget -q 'https://archives.boost.io/release/1.75.0/source/boost_1_75_0.tar.bz2' -O boost.tar.bz2 && \
-	test "$(sha256sum boost.tar.bz2)" = "953db31e016db7bb207f11432bef7df100516eeb746843fa0486a222e3fd49cb  boost.tar.bz2" && \
-	tar -xf boost.tar.bz2 && \
-	rm boost.tar.bz2 && \
-	cd boost_1_75_0 && \
-	mv ../emscripten.jam . && \
-	./bootstrap.sh && \
-	echo "using emscripten : : em++ ;" >> project-config.jam && \
+RUN <<-EOF
+    set -ex
+	cd /usr/src
+	wget -q 'https://archives.boost.io/release/1.83.0/source/boost_1_83_0.tar.bz2' -O boost.tar.bz2
+	test "$(sha256sum boost.tar.bz2)" = "6478edfe2f3305127cffe8caf73ea0176c53769f4bf1585be237eb30798c3b8e  boost.tar.bz2"
+	tar -xf boost.tar.bz2
+	rm boost.tar.bz2
+	cd boost_1_83_0
+	mv ../emscripten.jam .
+	./bootstrap.sh
+	echo "using emscripten : : em++ ;" >> project-config.jam
 	./b2 toolset=emscripten link=static variant=release threading=single runtime-link=static \
 		--with-system --with-filesystem --with-test --with-program_options \
 		cxxflags="-s DISABLE_EXCEPTION_CATCHING=0 -Wno-unused-local-typedef -Wno-variadic-macros -Wno-c99-extensions -Wno-all" \
-	       --prefix=$(em-config CACHE)/sysroot/usr install && \
-	rm -r /usr/src/boost_1_75_0
+	       --prefix=$(em-config CACHE)/sysroot/usr install
+	rm -r /usr/src/boost_1_83_0
+EOF
 
 # CVC5
-RUN set -ex; \
-        cvc5_version="1.2.0"; \
-        cvc5_archive_name="cvc5-Linux-x86_64-static"; \
-        wget "https://github.com/cvc5/cvc5/releases/download/cvc5-${cvc5_version}/${cvc5_archive_name}.zip" -O /opt/cvc5.zip; \
-        test "$(sha256sum /opt/cvc5.zip)" = "d18f174ff9a11923c32c3f871f844ed16bd77a28f51050b8e7c8d821c98a1c2e  /opt/cvc5.zip"; \
-        unzip -j /opt/cvc5.zip "${cvc5_archive_name}/bin/cvc5" -d /usr/bin; \
-        rm -f /opt/cvc5.zip;
+RUN <<-EOF
+    set -ex
+    cvc5_version="1.2.0"
+    cvc5_archive_name="cvc5-Linux-x86_64-static"
+    wget "https://github.com/cvc5/cvc5/releases/download/cvc5-${cvc5_version}/${cvc5_archive_name}.zip" -O /opt/cvc5.zip
+    test "$(sha256sum /opt/cvc5.zip)" = "d18f174ff9a11923c32c3f871f844ed16bd77a28f51050b8e7c8d821c98a1c2e  /opt/cvc5.zip"
+    unzip -j /opt/cvc5.zip "${cvc5_archive_name}/bin/cvc5" -d /usr/bin
+    rm -f /opt/cvc5.zip
+EOF

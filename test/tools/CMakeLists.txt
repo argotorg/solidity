@@ -5,10 +5,10 @@ add_executable(yulrun yulrun.cpp)
 target_link_libraries(yulrun PRIVATE yulInterpreter libsolc evmasm Boost::boost Boost::program_options)
 
 add_executable(solfuzzer afl_fuzzer.cpp fuzzer_common.cpp)
-target_link_libraries(solfuzzer PRIVATE libsolc evmasm Boost::boost Boost::program_options Boost::system)
+target_link_libraries(solfuzzer PRIVATE libsolc evmasm Boost::boost Boost::program_options ${Boost_SYSTEM_LIBRARY})
 
 add_executable(yulopti yulopti.cpp)
-target_link_libraries(yulopti PRIVATE solidity Boost::boost Boost::program_options Boost::system)
+target_link_libraries(yulopti PRIVATE solidity Boost::boost Boost::program_options ${Boost_SYSTEM_LIBRARY})
 
 add_executable(isoltest
 	isoltest.cpp

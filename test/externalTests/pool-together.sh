@@ -66,7 +66,8 @@ function pool_together_test
     force_hardhat_compiler_binary "$config_file" "$BINARY_TYPE" "$BINARY_PATH"
     force_hardhat_compiler_settings "$config_file" "$(first_word "$SELECTED_PRESETS")" "$config_var"
     yarn install
-    yarn add hardhat
+    # Hardhat 3.0+ breaks the test suite
+    yarn add hardhat@2.26.3
 
     # These come with already compiled artifacts. We want them recompiled with latest compiler.
     rm -r node_modules/@pooltogether/yield-source-interface/artifacts/

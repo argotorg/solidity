@@ -8,13 +8,14 @@ General Resources
 * `Ethereum.org Developers page <https://ethereum.org/en/developers/>`_
 * `Ethereum StackExchange <https://ethereum.stackexchange.com/>`_
 * `Solidity website <https://soliditylang.org/>`_
-* `Solidity changelog <https://github.com/ethereum/solidity/blob/develop/Changelog.md>`_
-* `Solidity codebase on GitHub <https://github.com/ethereum/solidity/>`_
+* `Solidity changelog <https://github.com/argotorg/solidity/blob/develop/Changelog.md>`_
+* `Solidity codebase on GitHub <https://github.com/argotorg/solidity/>`_
 * `Solidity language users chat <https://matrix.to/#/#ethereum_solidity:gitter.im>`_
 * `Solidity compiler developers chat <https://matrix.to/#/#ethereum_solidity-dev:gitter.im>`_
 * `awesome-solidity <https://github.com/bkrem/awesome-solidity>`_
 * `Solidity by Example <https://solidity-by-example.org/>`_
 * `Solidity documentation community translations <https://github.com/solidity-docs>`_
+* `Solidity and Smart Contract Glossary <https://www.cyfrin.io/glossary>`_
 
 Integrated (Ethereum) Development Environments
 ==============================================

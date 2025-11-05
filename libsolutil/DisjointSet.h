@@ -31,11 +31,12 @@ namespace solidity::util
 /// [1] https://en.wikipedia.org/wiki/Disjoint-set_data_structure
 /// [2] Tarjan, Robert E., and Jan Van Leeuwen. "Worst-case analysis of set union algorithms."
 ///     Journal of the ACM (JACM) 31.2 (1984): 245-281.
+template<typename ValueType>
 class ContiguousDisjointSet
 {
 public:
 	using size_type = size_t;
-	using value_type = size_t;
+	using value_type = ValueType;
 
 	/// Constructs a new disjoint set datastructure with `_numNodes` elements and each element in its own individual set
 	explicit ContiguousDisjointSet(size_t _numNodes);

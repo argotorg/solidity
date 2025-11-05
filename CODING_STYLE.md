@@ -46,7 +46,7 @@ foo->bar(someLongVariableName,
 cout << "some very long string that contains completely irrelevant text that talks about this and that and contains the words \"lorem\" and \"ipsum\"" << endl;
 ```
 
-To set indentation and tab width settings uniformly, the repository contains an [EditorConfig](https://editorconfig.org/) [`.editorconfig`](https://github.com/ethereum/solidity/blob/develop/.editorconfig) file, which describes some of the styles used and which is recognized by many IDE's and editors.
+To set indentation and tab width settings uniformly, the repository contains an [EditorConfig](https://editorconfig.org/) [`.editorconfig`](https://github.com/argotorg/solidity/blob/develop/.editorconfig) file, which describes some of the styles used and which is recognized by many IDE's and editors.
 
 ## 1. Namespaces
 

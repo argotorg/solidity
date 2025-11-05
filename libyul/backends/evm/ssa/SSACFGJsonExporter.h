@@ -16,18 +16,14 @@
 */
 // SPDX-License-Identifier: GPL-3.0
 
-#include <libyul/backends/evm/ControlFlow.h>
-#include <range/v3/range/conversion.hpp>
+#pragma once
 
-using namespace solidity::yul;
+#include <libyul/backends/evm/ssa/ControlFlow.h>
+#include <libsolutil/JSON.h>
 
-ControlFlowLiveness::ControlFlowLiveness(ControlFlow const& _controlFlow):
-	controlFlow(_controlFlow),
-	mainLiveness(std::make_unique<SSACFGLiveness>(*_controlFlow.mainGraph)),
-	functionLiveness(_controlFlow.functionGraphs | ranges::views::transform([](auto const& _cfg) { return std::make_unique<SSACFGLiveness>(*_cfg); }) | ranges::to<std::vector>)
-{ }
-
-std::string ControlFlowLiveness::toDot() const
+namespace solidity::yul::ssa::json
 {
-	return controlFlow.get().toDot(this);
+
+Json exportControlFlow(ControlFlow const& _controlFlow, ControlFlowLiveness const* _liveness);
+
 }

@@ -752,8 +752,8 @@ This document does not want to be a full description of the Ethereum virtual mac
 Please refer to a different document if you are interested in the precise semantics.
 
 Opcodes marked with ``-`` do not return a result and all others return exactly one value.
-Opcodes marked with ``F``, ``H``, ``B``, ``C``, ``I``, ``L``, ``P`` and ``N`` are present since Frontier,
-Homestead, Byzantium, Constantinople, Istanbul, London, Paris or Cancun respectively.
+Opcodes marked with ``F``, ``H``, ``B``, ``C``, ``I``, ``L``, ``P``, ``N`` and ``O`` are present since
+Frontier, Homestead, Byzantium, Constantinople, Istanbul, London, Paris, Cancun or Osaka respectively.
 
 In the following, ``mem[a...b)`` signifies the bytes of memory starting at position ``a`` up to
 but not including position ``b``, ``storage[p]`` signifies the storage contents at slot ``p``, and
@@ -811,6 +811,8 @@ the ``dup`` and ``swap`` instructions as well as ``jump`` instructions, labels a
 | shr(x, y)               |     | C | logical shift right y by x bits                                 |
 +-------------------------+-----+---+-----------------------------------------------------------------+
 | sar(x, y)               |     | C | signed arithmetic shift right y by x bits                       |
++-------------------------+-----+---+-----------------------------------------------------------------+
+| clz(x)                  |     | O | number of leading zero bits of x, 256 if x == 0                 |
 +-------------------------+-----+---+-----------------------------------------------------------------+
 | addmod(x, y, m)         |     | F | (x + y) % m with arbitrary precision arithmetic, 0 if m == 0    |
 +-------------------------+-----+---+-----------------------------------------------------------------+

@@ -133,6 +133,7 @@ public:
 	bool supportsReturndata() const { return *this >= byzantium(); }
 	bool hasStaticCall() const { return *this >= byzantium(); }
 	bool hasBitwiseShifting() const { return *this >= constantinople(); }
+	bool hasCLZ() const { return *this >= osaka(); }
 	bool hasCreate2() const { return *this >= constantinople(); }
 	bool hasExtCodeHash() const { return *this >= constantinople(); }
 	bool hasChainID() const { return *this >= istanbul(); }

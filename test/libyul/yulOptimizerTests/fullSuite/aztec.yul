@@ -12,7 +12,7 @@
  * Stay tuned for updates!
  *
  * Permission to use as test case in the Solidity compiler granted by the author:
- * https://github.com/ethereum/solidity/pull/5713#issuecomment-449042830
+ * https://github.com/argotorg/solidity/pull/5713#issuecomment-449042830
 **/
 {
     validateJoinSplit()

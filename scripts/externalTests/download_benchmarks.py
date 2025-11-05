@@ -123,8 +123,8 @@ def download_benchmarks(
     debug_requests: bool = False,
     silent: bool = False,
 ) -> Status:
-    github = Github('ethereum/solidity', debug_requests)
-    circleci = CircleCI('ethereum/solidity', debug_requests)
+    github = Github('argotorg/solidity', debug_requests)
+    circleci = CircleCI('argotorg/solidity', debug_requests)
 
     expected_commit_hash = None
     if branch is None and pull_request_id is None and base_of_pr is None:

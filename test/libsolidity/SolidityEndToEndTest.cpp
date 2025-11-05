@@ -1691,7 +1691,7 @@ BOOST_AUTO_TEST_CASE(array_copy_storage_abi)
 //    ABI_CHECK(callContractFunction("f()"), encodeArgs(1 + 2 + 3));
 //}
 
-// Disabled until https://github.com/ethereum/solidity/issues/715 is implemented
+// Disabled until https://github.com/argotorg/solidity/issues/715 is implemented
 //BOOST_AUTO_TEST_CASE(constant_struct)
 //{
 //    char const* sourceCode = R"(

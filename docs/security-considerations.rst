@@ -144,7 +144,7 @@ Please be explicit about such cases in the documentation of your contracts.
 Sending and Receiving Ether
 ===========================
 
-- Neither contracts nor "external accounts" are currently able to prevent someone from sending them Ether.
+- Neither contracts nor "externally-owned accounts" are currently able to prevent someone from sending them Ether.
   Contracts can react on and reject a regular transfer, but there are ways to move Ether without creating a message call.
   One way is to simply "mine to" the contract address and the second way is using ``selfdestruct(x)``.
 

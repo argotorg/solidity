@@ -42,6 +42,8 @@ bool EVMVersion::hasOpcode(Instruction _opcode, std::optional<uint8_t> _eofVersi
 	case Instruction::SHR:
 	case Instruction::SAR:
 		return hasBitwiseShifting();
+	case Instruction::CLZ:
+		return hasCLZ();
 	case Instruction::CREATE2:
 		return !_eofVersion.has_value() && hasCreate2();
 	case Instruction::EXTCODEHASH:

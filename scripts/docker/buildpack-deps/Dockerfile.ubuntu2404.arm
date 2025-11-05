@@ -1,0 +1,111 @@
+# vim:syntax=dockerfile
+#------------------------------------------------------------------------------
+# Dockerfile for building and testing Solidity Compiler on CI
+# Target: Ubuntu 24.04 (Noble)
+# URL: https://hub.docker.com/r/ethereum/solidity-buildpack-deps
+#
+# This file is part of solidity.
+#
+# solidity is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# solidity is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with solidity.  If not, see <http://www.gnu.org/licenses/>
+#
+# (c) 2016-2025 solidity contributors.
+#------------------------------------------------------------------------------
+FROM --platform=linux/arm64 buildpack-deps:noble AS base
+LABEL version="1"
+
+ARG DEBIAN_FRONTEND=noninteractive
+
+# From Python3.11, pip requires a virtual environment, and will thus terminate when installing packages globally.
+# Since we're building this image from scratch, it's perfectly fine to use the below flag.
+ENV PIP_BREAK_SYSTEM_PACKAGES=1
+
+RUN <<-EOF
+    set -ex
+    z3_version="4.13.3"
+    dist=$(grep DISTRIB_CODENAME /etc/lsb-release | cut -d= -f2)
+    echo "deb http://ppa.launchpad.net/ethereum/cpp-build-deps/ubuntu $dist main" >> /etc/apt/sources.list
+    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 1c52189c923f6ca9
+    apt-get update
+    apt-get install --quiet=2 --no-install-recommends \
+        build-essential \
+        cmake \
+        jq \
+        libboost-filesystem-dev \
+        libboost-program-options-dev \
+        libboost-system-dev \
+        libboost-test-dev \
+        libcln-dev \
+        locales-all \
+        lsof \
+        ninja-build \
+        python3-pip \
+        python3-sphinx \
+        software-properties-common \
+        sudo \
+        unzip \
+        zip
+    pip3 install \
+        codecov \
+        colorama \
+        deepdiff \
+        parsec \
+        pygments-lexer-solidity \
+        pylint \
+        requests \
+        tabulate \
+        z3-solver=="${z3_version}"
+EOF
+
+# Eldarica
+RUN <<-EOF
+    set -ex
+    apt-get update
+    apt-get install --quiet=2 openjdk-11-jre
+    eldarica_version="2.1"
+    wget "https://github.com/uuverifiers/eldarica/releases/download/v${eldarica_version}/eldarica-bin-${eldarica_version}.zip" -O /opt/eld_binaries.zip
+    test "$(sha256sum /opt/eld_binaries.zip)" = "0ac43f45c0925383c9d2077f62bbb515fd792375f3b2b101b30c9e81dcd7785c  /opt/eld_binaries.zip"
+    unzip /opt/eld_binaries.zip -d /opt
+    rm -f /opt/eld_binaries.zip
+EOF
+
+# CVC5
+RUN <<-EOF
+    set -ex
+    cvc5_version="1.2.0"
+    cvc5_archive_name="cvc5-Linux-arm64-static"
+    wget "https://github.com/cvc5/cvc5/releases/download/cvc5-${cvc5_version}/${cvc5_archive_name}.zip" -O /opt/cvc5.zip
+    test "$(sha256sum /opt/cvc5.zip)" = "142ac177af1ce37922308f69fe519d06e6cb4d0a62a312f28c25001e94c2fb56  /opt/cvc5.zip"
+    unzip -j /opt/cvc5.zip "${cvc5_archive_name}/bin/cvc5" -d /usr/bin
+    rm -f /opt/cvc5.zip
+EOF
+
+FROM base AS libraries
+
+# EVMONE (built from source, no arm release available)
+RUN <<-EOF
+    set -ex
+    git clone --depth=1 --recurse-submodules --branch v0.16.0 https://github.com/ipsilon/evmone.git /tmp/evmone
+    mkdir -p /tmp/evmone/build
+    cd /tmp/evmone/build
+    cmake ..
+    make -j
+    make install
+EOF
+
+FROM base
+COPY --from=libraries /usr/lib /usr/lib
+COPY --from=libraries /usr/bin /usr/bin
+COPY --from=libraries /usr/include /usr/include
+COPY --from=libraries /opt/eldarica /opt/eldarica
+ENV PATH="$PATH:/opt/eldarica"

@@ -84,10 +84,13 @@ class Github:
         self.debug_requests = debug_requests
 
     def pull_request(self, pr_id: int) -> dict:
+        # GITHUB_READ_TOKEN should be a PAT with read-only permissions
+        # This is used by CircleCI and local scripts to avoid GitHub API rate limits
+        headers = {'Authorization': f'Bearer {environ.get("GITHUB_READ_TOKEN")}'} if 'GITHUB_READ_TOKEN' in environ else {}
         return query_api(
             f'{self.BASE_URL}/repos/{self.project_slug}/pulls/{pr_id}',
             {},
-            {},
+            headers,
             self.debug_requests
         )
 

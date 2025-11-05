@@ -29,8 +29,8 @@ BOOST_AUTO_TEST_SUITE(DisjointSetTest)
 
 BOOST_AUTO_TEST_CASE(full_union)
 {
-	ContiguousDisjointSet ds(10);
-	for (size_t i = 1; i < 10; ++i)
+	ContiguousDisjointSet<std::uint32_t> ds(10);
+	for (std::uint32_t i = 1; i < 10; ++i)
 	{
 		BOOST_CHECK(!ds.sameSubset(0, i));
 		ds.merge(0, i);
@@ -42,16 +42,16 @@ BOOST_AUTO_TEST_CASE(full_union)
 	std::set<size_t> fullSet{0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
 	BOOST_CHECK_EQUAL_COLLECTIONS(subsets[0].begin(), subsets[0].end(), fullSet.begin(), fullSet.end());
 
-	for (size_t i = 1; i < 10; ++i) BOOST_CHECK_EQUAL(ds.find(0), ds.find(i));
+	for (std::uint32_t i = 1; i < 10; ++i) BOOST_CHECK_EQUAL(ds.find(0), ds.find(i));
 }
 
 BOOST_AUTO_TEST_CASE(pairs)
 {
-	ContiguousDisjointSet ds(10);
+	ContiguousDisjointSet<std::uint32_t> ds(10);
 	BOOST_CHECK_EQUAL(ds.numSets(), 10);
 	BOOST_CHECK_EQUAL(ds.subsets().size(), 10);
 
-	auto const checkPair = [&](size_t expectedNumSubsets, size_t x, size_t y)
+	auto const checkPair = [&](size_t expectedNumSubsets, std::uint32_t x, std::uint32_t y)
 	{
 		BOOST_CHECK_EQUAL(ds.numSets(), expectedNumSubsets);
 		BOOST_CHECK_EQUAL(ds.subsets().size(), expectedNumSubsets);
@@ -84,7 +84,7 @@ BOOST_AUTO_TEST_CASE(pairs)
 
 BOOST_AUTO_TEST_CASE(merge_with_fixed_representative)
 {
-	ContiguousDisjointSet ds(10);
+	ContiguousDisjointSet<std::uint32_t> ds(10);
 	ds.merge(5, 3, false);
 	BOOST_CHECK_EQUAL(ds.find(5), 5);
 	ds.merge(1, 2);

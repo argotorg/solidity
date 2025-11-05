@@ -26,9 +26,9 @@
 //
 // Entry0 [label="Entry"];
 // Entry0 -> Block0_0;
-// Block0_0 [label="\
+// Block0_0 [fillcolor="#FF746C", style=filled, label="\
 // Block 0; (0, max 0)\nLiveIn: \l\
-// LiveOut: \l\nv0, v1 := i()\l\
+// LiveOut: \l\nUsed: \l\nv0, v1 := i()\l\
 // h(v0)\l\
 // "];
 // Block0_0Exit [label="Terminated"];
@@ -37,28 +37,28 @@
 //  r := f(v0, v1)"];
 // FunctionEntry_f_0 -> Block1_0;
 // Block1_0 [label="\
-// Block 0; (0, max 0)\nLiveIn: v0,v1\l\
-// LiveOut: v4\l\nv3 := add(v1, v0)\l\
-// v4 := sub(v0, v3)\l\
+// Block 0; (0, max 0)\nLiveIn: v0[2], v1[1]\l\
+// LiveOut: v3[1]\l\nUsed: v0[2], v1[1]\l\nv2 := add(v1, v0)\l\
+// v3 := sub(v0, v2)\l\
 // "];
-// Block1_0Exit [label="FunctionReturn[v4]"];
+// Block1_0Exit [label="FunctionReturn[v3]"];
 // Block1_0 -> Block1_0Exit;
 // FunctionEntry_g_0 [label="function g:
 //  g()"];
 // FunctionEntry_g_0 -> Block2_0;
 // Block2_0 [label="\
 // Block 0; (0, max 0)\nLiveIn: \l\
-// LiveOut: \l\nsstore(257, 1)\l\
+// LiveOut: \l\nUsed: \l\nsstore(0x0101, 0x01)\l\
 // "];
 // Block2_0Exit [label="FunctionReturn[]"];
 // Block2_0 -> Block2_0Exit;
 // FunctionEntry_h_0 [label="function h:
 //  h(v0)"];
 // FunctionEntry_h_0 -> Block3_0;
-// Block3_0 [label="\
-// Block 0; (0, max 0)\nLiveIn: v0\l\
-// LiveOut: \l\nv2 := f(0, v0)\l\
-// h(v2)\l\
+// Block3_0 [fillcolor="#FF746C", style=filled, label="\
+// Block 0; (0, max 0)\nLiveIn: v0[1]\l\
+// LiveOut: \l\nUsed: v0[1]\l\nv1 := f(0x00, v0)\l\
+// h(v1)\l\
 // "];
 // Block3_0Exit [label="Terminated"];
 // Block3_0 -> Block3_0Exit;
@@ -67,9 +67,9 @@
 // FunctionEntry_i_0 -> Block4_0;
 // Block4_0 [label="\
 // Block 0; (0, max 0)\nLiveIn: \l\
-// LiveOut: v2,v4\l\nv2 := 514\l\
-// v4 := 771\l\
+// LiveOut: v0[1], v1[1]\l\nUsed: \l\nv0 := 0x0202\l\
+// v1 := 0x0303\l\
 // "];
-// Block4_0Exit [label="FunctionReturn[v2, v4]"];
+// Block4_0Exit [label="FunctionReturn[v0, v1]"];
 // Block4_0 -> Block4_0Exit;
 // }

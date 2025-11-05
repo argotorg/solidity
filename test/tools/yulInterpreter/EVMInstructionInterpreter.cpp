@@ -181,6 +181,8 @@ u256 EVMInstructionInterpreter::eval(
 			return v;
 		}
 	}
+	case Instruction::CLZ:
+		return arg[0] == 0 ? 256 : 255 - msb(arg[0]);
 	case Instruction::ADDMOD:
 		return arg[2] == 0 ? 0 : u256((u512(arg[0]) + u512(arg[1])) % arg[2]);
 	case Instruction::MULMOD:
@@ -532,7 +534,8 @@ u256 EVMInstructionInterpreter::evalBuiltin(
 			return u256(keccak256(arg)) & 0xfff;
 		}
 	}
-	else if (fun == "datacopy")
+
+	if (fun == "datacopy")
 	{
 		// This is identical to codecopy.
 		if (
@@ -548,11 +551,21 @@ u256 EVMInstructionInterpreter::evalBuiltin(
 			);
 		return 0;
 	}
-	else if (fun == "memoryguard")
+
+	if (fun == "memoryguard")
 		return _evaluatedArguments.at(0);
-	else
-		yulAssert(false, "Unknown builtin: " + fun);
-	return 0;
+
+	if (fun == "linkersymbol")
+	{
+		yulAssert(_arguments.size() == 1);
+		yulAssert(std::holds_alternative<Literal>(_arguments[0]));
+		std::string const placeholder = formatLiteral(std::get<Literal>(_arguments[0]));
+		h256 const identifier(keccak256(placeholder));
+		m_linkerSymbols.emplace(identifier, placeholder);
+		return 0;
+	}
+
+	yulAssert(false, "Unknown builtin: " + fun);
 }
 
 

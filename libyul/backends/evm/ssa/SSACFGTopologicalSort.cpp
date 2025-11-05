@@ -16,9 +16,9 @@
 */
 // SPDX-License-Identifier: GPL-3.0
 
-#include <libyul/backends/evm/SSACFGTopologicalSort.h>
+#include <libyul/backends/evm/ssa/SSACFGTopologicalSort.h>
 
-using namespace solidity::yul;
+using namespace solidity::yul::ssa;
 
 ForwardSSACFGTopologicalSort::ForwardSSACFGTopologicalSort(SSACFG const& _cfg):
 	m_cfg(_cfg),
@@ -35,10 +35,10 @@ ForwardSSACFGTopologicalSort::ForwardSSACFGTopologicalSort(SSACFG const& _cfg):
 			m_backEdgeTargets.insert(v2);
 }
 
-void ForwardSSACFGTopologicalSort::dfs(size_t const _vertex) {
+void ForwardSSACFGTopologicalSort::dfs(SSACFG::BlockId::ValueType const _vertex) {
 	yulAssert(!m_explored[_vertex]);
 	m_explored[_vertex] = true;
-	m_blockWisePreOrder[_vertex] = m_preOrder.size();
+	m_blockWisePreOrder[_vertex] = static_cast<SSACFG::BlockId::ValueType>(m_preOrder.size());
 	m_blockWiseMaxSubtreePreOrder[_vertex] = m_blockWisePreOrder[_vertex];
 	m_preOrder.push_back(_vertex);
 
@@ -55,7 +55,7 @@ void ForwardSSACFGTopologicalSort::dfs(size_t const _vertex) {
 	m_postOrder.push_back(_vertex);
 }
 
-bool ForwardSSACFGTopologicalSort::ancestor(size_t const _block1, size_t const _block2) const {
+bool ForwardSSACFGTopologicalSort::ancestor(SSACFG::BlockId::ValueType const _block1, SSACFG::BlockId::ValueType const _block2) const {
 	yulAssert(_block1 < m_blockWisePreOrder.size());
 	yulAssert(_block2 < m_blockWisePreOrder.size());
 

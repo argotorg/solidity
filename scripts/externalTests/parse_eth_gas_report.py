@@ -115,12 +115,10 @@ class GasReport:
 
 
 def parse_bool(input_string: str) -> bool:
-    if input_string == 'true':
-        return True
-    elif input_string == 'false':
-        return True
-    else:
+    if input_string not in ('true', 'false'):
         raise ValueError(f"Invalid boolean value: '{input_string}'")
+
+    return input_string == 'true'
 
 
 def parse_optional_int(input_string: str, default: Optional[int] = None) -> Optional[int]:

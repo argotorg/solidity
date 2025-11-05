@@ -59,7 +59,7 @@ bool fitsPrecisionExp(bigint const& _base, bigint const& _exp)
 	return bitsNeeded <= bitsMax;
 }
 
-/// Checks whether _mantissa * (2 ** _expBase10) fits into 4096 bits.
+/// Checks whether _mantissa * (2 ** _expBase2) fits into 4096 bits.
 bool fitsPrecisionBase2(bigint const& _mantissa, uint32_t _expBase2)
 {
 	return fitsPrecisionBaseX(_mantissa, 1.0, _expBase2);

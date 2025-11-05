@@ -132,6 +132,12 @@ std::set<std::string, std::less<>> createReservedIdentifiers(langutil::EVMVersio
 			_evmVersion < langutil::EVMVersion::cancun() &&
 			(_instr == evmasm::Instruction::TSTORE || _instr == evmasm::Instruction::TLOAD);
 	};
+	// TODO remove this in 0.9.0. We allow creating functions or identifiers in Yul with the name
+	// clz for VMs before osaka.
+	auto clzException = [&](evmasm::Instruction _instr) -> bool
+	{
+		return _instr == evmasm::Instruction::CLZ && !_evmVersion.hasCLZ();
+	};
 
 	auto eofIdentifiersException = [&](evmasm::Instruction _instr) -> bool
 	{
@@ -154,6 +160,7 @@ std::set<std::string, std::less<>> createReservedIdentifiers(langutil::EVMVersio
 			!blobBaseFeeException(instr.second) &&
 			!mcopyException(instr.second) &&
 			!transientStorageException(instr.second) &&
+			!clzException(instr.second) &&
 			!eofIdentifiersException(instr.second)
 		)
 			reserved.emplace(name);

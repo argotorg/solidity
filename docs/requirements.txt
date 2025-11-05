@@ -2,12 +2,11 @@
 # which could result in it being installed anyway and the style (especially bullet points) being broken.
 # See https://github.com/readthedocs/sphinx_rtd_theme/issues/1115
 # theme >=3.0.0 removes the display_version option in favor of version_selector and language_selector
-sphinx_rtd_theme>=0.5.2, <3.0.0
+# Use rtd theme version that supports sphinx>=8.0
+sphinx_rtd_theme>=3.0.0
 
 pygments-lexer-solidity>=0.7.0
-sphinx-a4doc>=1.6.0; python_version < '3.13'
-# todo remove this once there is a version > 1.6.0
-sphinx-a4doc @ git+https://github.com/taminomara/sphinx-a4doc@f63d3b2; python_version >= '3.13'
+sphinx-syntax>=1.0.1
 
-# Sphinx 2.1.0 is the oldest version that accepts a lexer class in add_lexer()
-sphinx>=2.1.0, <9.0
+# Sphinx version constraints for sphinx-syntax compatibility
+sphinx>=8.0.0, <9.0.0

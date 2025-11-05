@@ -29,7 +29,7 @@ if (WIN32)
 	option(Boost_USE_STATIC_RUNTIME "Link Boost against static C++ runtime libraries" ON)
 endif()
 
-set(BOOST_COMPONENTS "filesystem;unit_test_framework;program_options;system")
+set(BOOST_COMPONENTS "filesystem;unit_test_framework;program_options")
 
 # CMake >= 3.30 should not use the vendored boost
 if(POLICY CMP0167)
@@ -42,16 +42,11 @@ if (WIN32)
 else()
 	# Boost 1.65 is the first to also provide boost::get for rvalue-references (#5787).
 	# Boost 1.67 moved container_hash into is own module.
+	# Boost 1.69 boost::system is header-only and no longer needs to be fetched as component
 	# Boost 1.70 comes with its own BoostConfig.cmake and is the new (non-deprecated) behavior
-	find_package(Boost 1.70.0 QUIET COMPONENTS ${BOOST_COMPONENTS})
-	if (NOT ${Boost_FOUND})
-		# If the boost version is < 1.70.0, there is no boost config delivered with it, revert to old behavior
-		# todo drop this once cmake minimum version >= 3.30 is reached
-		if(POLICY CMP0167)
-			cmake_policy(SET CMP0167 OLD)
-		endif()
-		find_package(Boost 1.67.0 QUIET REQUIRED COMPONENTS ${BOOST_COMPONENTS})
-	endif()
+	# Boost 1.75 fixes infinite recursion on `boost::rational` comparison with GCC<14.0 under C++20
+	# Boost 1.83 is the version that comes with Ubuntu 24.04.
+	find_package(Boost 1.83.0 QUIET REQUIRED COMPONENTS ${BOOST_COMPONENTS})
 endif()
 
 # If cmake is older than boost and boost is older than 1.70,

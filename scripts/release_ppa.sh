@@ -105,7 +105,7 @@ fi
 ppafilesurl=https://launchpad.net/~ethereum/+archive/ubuntu/${pparepo}/+files
 
 # Fetch source
-git clone --depth 2 --recursive https://github.com/ethereum/solidity.git -b "$branch"
+git clone --depth 2 --recursive https://github.com/argotorg/solidity.git -b "$branch"
 mv solidity solc
 
 # Determine version
@@ -152,8 +152,8 @@ Build-Depends: debhelper (>= 9.0.0),
                scons
 Standards-Version: 3.9.5
 Homepage: https://ethereum.org
-Vcs-Git: https://github.com/ethereum/solidity.git
-Vcs-Browser: https://github.com/ethereum/solidity
+Vcs-Git: https://github.com/argotorg/solidity.git
+Vcs-Browser: https://github.com/argotorg/solidity
 
 Package: solc
 Architecture: any-amd64
@@ -201,7 +201,7 @@ EOF
 cat <<EOF > debian/copyright
 Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: solc
-Source: https://github.com/ethereum/solidity
+Source: https://github.com/argotorg/solidity
 
 Files: *
 Copyright: 2014-2016 Ethereum

@@ -834,6 +834,8 @@ bool AsmAnalyzer::validateInstructions(evmasm::Instruction _instr, SourceLocatio
 		errorForVM(7458_error, "only available for Constantinople-compatible");
 	else if (_instr == evmasm::Instruction::SAR && !m_evmVersion.hasBitwiseShifting())
 		errorForVM(2054_error, "only available for Constantinople-compatible");
+	else if (_instr == evmasm::Instruction::CLZ && !m_evmVersion.hasCLZ())
+		errorForVM(4948_error, "only available for Osaka-compatible");
 	else if (_instr == evmasm::Instruction::CREATE2 && !m_evmVersion.hasCreate2())
 		errorForVM(6166_error, "only available for Constantinople-compatible");
 	else if (_instr == evmasm::Instruction::EXTCODEHASH && !m_evmVersion.hasExtCodeHash())

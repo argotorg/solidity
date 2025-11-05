@@ -85,7 +85,7 @@ The difficult part is providing a fairly representative set of input files.
 If the files you give do not need certain optimisations the tool will find sequences that do not use these optimisations and perform badly for programs that could benefit from them.
 If all the provided files greatly benefit from a specific optimisation, the sequence may not work well for programs that do not.
 
-We have conducted [a set of rough experiments](https://github.com/ethereum/solidity/issues/7806#issuecomment-598644491) to evaluate some combinations of parameter values.
+We have conducted [a set of rough experiments](https://github.com/argotorg/solidity/issues/7806#issuecomment-598644491) to evaluate some combinations of parameter values.
 The conclusions were used to adjust the defaults but you might still benefit from some general observations:
 
 1. The algorithm that performed the best was `GEWEP`.

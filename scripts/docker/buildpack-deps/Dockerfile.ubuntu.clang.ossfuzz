@@ -22,7 +22,7 @@
 # (c) 2016-2021 solidity contributors.
 #------------------------------------------------------------------------------
 FROM gcr.io/oss-fuzz-base/base-builder AS base
-LABEL version="10"
+LABEL version="12"
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -64,10 +64,6 @@ RUN apt-get update; \
 		requests \
 		tabulate;
 
-# Ensure that the expected version of Clang is installed, as the base image may update it in the future:
-# https://github.com/google/oss-fuzz/blob/5e96edbdf285045cc82dbca5600cbe994a3b1a74/infra/base-images/base-clang/checkout_build_install_llvm.sh#L57
-RUN test "$(clang -dumpversion | cut -d. -f1)" = "18" || (echo "Error: Clang 18 not found!" && exit 1)
-
 FROM base AS libraries
 
 # Boost
@@ -78,8 +74,8 @@ RUN set -ex; \
 	tar -xf boost.tar.bz2; \
 	rm boost.tar.bz2; \
 	cd boost_1_83_0; \
-	export CXXFLAGS="-std=c++20 -nostdinc++ -I/usr/lib/llvm-18/include/c++/v1 -pthread"; \
-	export LDFLAGS="-stdlib=libc++ -L/usr/lib/llvm-18/lib"; \
+	export CXXFLAGS="$CXXFLAGS -std=c++20 -nostdinc++ -I/usr/local/include/c++/v1 -I/usr/local/include/x86_64-unknown-linux-gnu/c++/v1 -pthread"; \
+	export LDFLAGS="$LDFLAGS -stdlib=libc++ -lpthread"; \
 	./bootstrap.sh --with-toolset=clang --prefix=/usr; \
 	./b2 toolset=clang \
 		cxxflags="${CXXFLAGS}" \
@@ -143,7 +139,7 @@ RUN set -ex; \
 # EVMONE
 RUN set -ex; \
 	cd /usr/src; \
-	git clone --branch="v0.13.0" --recurse-submodules https://github.com/ethereum/evmone.git; \
+	git clone --branch="v0.16.0" --recurse-submodules https://github.com/ipsilon/evmone.git; \
 	cd evmone; \
 	mkdir build; \
 	cd build; \

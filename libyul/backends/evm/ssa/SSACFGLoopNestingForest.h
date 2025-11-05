@@ -18,8 +18,8 @@
 
 #pragma once
 
-#include <libyul/backends/evm/SSACFGTopologicalSort.h>
-#include <libyul/backends/evm/SSAControlFlowGraph.h>
+#include <libyul/backends/evm/ssa/SSACFGTopologicalSort.h>
+#include <libyul/backends/evm/ssa/SSACFG.h>
 
 #include <libsolutil/DisjointSet.h>
 
@@ -27,7 +27,7 @@
 #include <set>
 #include <vector>
 
-namespace solidity::yul
+namespace solidity::yul::ssa
 {
 
 /// Constructs a loop nesting forest for an SSACFG using Tarjan's algorithm [1].
@@ -36,26 +36,28 @@ namespace solidity::yul
 ///     ACM Transactions on Programming Languages and Systems (TOPLAS) 21.2 (1999): 175-188.
 class SSACFGLoopNestingForest
 {
+	using BlockIdValue = SSACFG::BlockId::ValueType;
+
 public:
 	explicit SSACFGLoopNestingForest(ForwardSSACFGTopologicalSort const& _sort);
 
 	/// blocks which are not contained in a loop get assigned the loop parent numeric_limit<size_t>::max()
-	std::vector<size_t> const& loopParents() const { return m_loopParents; }
+	std::vector<BlockIdValue> const& loopParents() const { return m_loopParents; }
 	/// all loop nodes (entry blocks for loops), also nested ones
-	std::set<size_t> const& loopNodes() const { return m_loopNodes; }
+	std::set<BlockIdValue> const& loopNodes() const { return m_loopNodes; }
 	/// root loop nodes in the forest for outer-most loops
-	std::set<size_t> const& loopRootNodes() const { return m_loopRootNodes; }
+	std::set<BlockIdValue> const& loopRootNodes() const { return m_loopRootNodes; }
 private:
-	void findLoop(size_t _potentialHeader);
-	void collapse(std::set<size_t> const& _loopBody, size_t _loopHeader);
+	void findLoop(BlockIdValue _potentialHeader);
+	void collapse(std::set<BlockIdValue> const& _loopBody, BlockIdValue _loopHeader);
 
 	ForwardSSACFGTopologicalSort const& m_sort;
 	SSACFG const& m_cfg;
 
-	util::ContiguousDisjointSet m_vertexPartition;
-	std::vector<size_t> m_loopParents;
-	std::set<size_t> m_loopNodes;
-	std::set<size_t> m_loopRootNodes;
+	util::ContiguousDisjointSet<BlockIdValue> m_vertexPartition;
+	std::vector<BlockIdValue> m_loopParents;
+	std::set<BlockIdValue> m_loopNodes;
+	std::set<BlockIdValue> m_loopRootNodes;
 };
 
 }

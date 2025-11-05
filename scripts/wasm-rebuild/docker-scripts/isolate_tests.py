@@ -7,8 +7,7 @@ import sys
 import re
 import os
 import hashlib
-# Pylint for some reason insists that isfile() is unused
-from os.path import join, isfile  # pylint: disable=unused-import
+from os.path import join
 
 
 def extract_test_cases(path):

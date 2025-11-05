@@ -159,7 +159,7 @@ The :ref:`build instructions<smt_solvers_build>` explain how to activate this op
 It is activated for the Ubuntu PPA releases in most versions,
 but not for the Docker images, Windows binaries or the
 statically-built Linux binaries. It can be activated for solc-js via the
-`smtCallback <https://github.com/ethereum/solc-js#example-usage-with-smtsolver-callback>`_ if you have an SMT solver
+`smtCallback <https://github.com/argotorg/solc-js#example-usage-with-smtsolver-callback>`_ if you have an SMT solver
 installed locally and run solc-js via node (not via the browser).
 
 If you use ``pragma experimental SMTChecker;``, then you get additional

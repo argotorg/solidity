@@ -131,6 +131,8 @@ done < <(
       # Skipping a test with "let blobhash := ..."
       grep -v -E 'inlineAssembly/blobhash_pre_cancun.sol' |
       grep -v -E 'inlineAssembly/blobhash_pre_cancun_not_reserved.sol' |
+      # Skipping a test with "let clz := ..."
+      grep -v -E 'inlineAssembly/clz_pre_osaka.sol' |
       # Skipping tests with "let tstore/tload := ..."
       grep -v -E 'inlineAssembly/tload_tstore_not_reserved_before_cancun.sol' |
       # Skipping license error, unrelated to the grammar

@@ -25,6 +25,7 @@
 #include <libyul/optimiser/SimplificationRules.h>
 #include <libyul/optimiser/OptimiserStep.h>
 #include <libyul/optimiser/OptimizerUtilities.h>
+#include <libyul/optimiser/Semantics.h>
 #include <libyul/AST.h>
 #include <libyul/Utilities.h>
 
@@ -45,7 +46,19 @@ void ExpressionSimplifier::visit(Expression& _expression)
 	while (auto const* match = SimplificationRules::findFirstMatch(
 		_expression,
 		m_dialect,
-		[this](YulName _var) { return variableValue(_var); }
+		[this](YulName const& _var) -> AssignedValue const* {
+			AssignedValue const* value = variableValue(_var);
+			if (!value || !value->value)
+				return nullptr;
+
+			// check that all variables in the value expression are in current scope
+			MovableChecker const checker(m_dialect, *value->value);
+			for (YulName const& referencedVar: checker.referencedVariables())
+				if (!inScope(referencedVar))
+					return nullptr;  // don't substitute if any referenced var is out of scope
+
+			return value;
+		}
 	))
 	{
 		auto const* evmDialect = dynamic_cast<EVMDialect const*>(&m_dialect);

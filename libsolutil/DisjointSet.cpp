@@ -24,7 +24,8 @@
 
 using namespace solidity::util;
 
-ContiguousDisjointSet::ContiguousDisjointSet(size_t const _numNodes):
+template<typename ValueType>
+ContiguousDisjointSet<ValueType>::ContiguousDisjointSet(size_t const _numNodes):
 	m_parents(_numNodes),
 	m_neighbors(_numNodes),
 	m_sizes(_numNodes, static_cast<value_type>(1)),
@@ -35,9 +36,11 @@ ContiguousDisjointSet::ContiguousDisjointSet(size_t const _numNodes):
 	std::iota(m_neighbors.begin(), m_neighbors.end(), 0);
 }
 
-size_t ContiguousDisjointSet::numSets() const { return m_numSets; }
+template<typename ValueType>
+size_t ContiguousDisjointSet<ValueType>::numSets() const { return m_numSets; }
 
-ContiguousDisjointSet::value_type ContiguousDisjointSet::find(value_type const _element) const
+template<typename ValueType>
+typename ContiguousDisjointSet<ValueType>::value_type ContiguousDisjointSet<ValueType>::find(value_type const _element) const
 {
 	solAssert(_element < m_parents.size());
 	// path halving
@@ -50,7 +53,8 @@ ContiguousDisjointSet::value_type ContiguousDisjointSet::find(value_type const _
 	return rootElement;
 }
 
-void ContiguousDisjointSet::merge(value_type const _x, value_type const _y, bool const _mergeBySize)
+template<typename ValueType>
+void ContiguousDisjointSet<ValueType>::merge(value_type const _x, value_type const _y, bool const _mergeBySize)
 {
 	auto xRoot = find(_x);
 	auto yRoot = find(_y);
@@ -69,17 +73,20 @@ void ContiguousDisjointSet::merge(value_type const _x, value_type const _y, bool
 	--m_numSets;
 }
 
-bool ContiguousDisjointSet::sameSubset(value_type const _x, value_type const _y) const
+template<typename ValueType>
+bool ContiguousDisjointSet<ValueType>::sameSubset(value_type const _x, value_type const _y) const
 {
 	return find(_x) == find(_y);
 }
 
-ContiguousDisjointSet::size_type ContiguousDisjointSet::sizeOfSubset(value_type const _x) const
+template<typename ValueType>
+typename  ContiguousDisjointSet<ValueType>::size_type ContiguousDisjointSet<ValueType>::sizeOfSubset(value_type const _x) const
 {
 	return m_sizes[find(_x)];
 }
 
-std::set<ContiguousDisjointSet::value_type> ContiguousDisjointSet::subset(value_type const _x) const
+template<typename ValueType>
+std::set<typename ContiguousDisjointSet<ValueType>::value_type> ContiguousDisjointSet<ValueType>::subset(value_type const _x) const
 {
 	solAssert(_x < m_parents.size());
 	std::set<value_type> result{_x};
@@ -92,7 +99,8 @@ std::set<ContiguousDisjointSet::value_type> ContiguousDisjointSet::subset(value_
 	return result;
 }
 
-std::vector<std::set<ContiguousDisjointSet::value_type>> ContiguousDisjointSet::subsets() const
+template<typename ValueType>
+std::vector<std::set<typename ContiguousDisjointSet<ValueType>::value_type>> ContiguousDisjointSet<ValueType>::subsets() const
 {
 	std::vector<std::set<value_type>> result;
 	std::vector<std::uint8_t> visited(m_parents.size(), false);
@@ -107,3 +115,5 @@ std::vector<std::set<ContiguousDisjointSet::value_type>> ContiguousDisjointSet::
 	}
 	return result;
 }
+
+template class solidity::util::ContiguousDisjointSet<std::uint32_t>;
