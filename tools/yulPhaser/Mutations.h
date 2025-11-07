@@ -65,7 +65,7 @@ std::function<Mutation> mutationSequence(std::vector<std::function<Mutation>> _m
 // CROSSOVER
 
 /// Creates a crossover operator that randomly selects a number between 0 and 1 and uses it as the
-/// position at which to perform perform @a fixedPointCrossover.
+/// position at which to perform @a fixedPointCrossover.
 std::function<Crossover> randomPointCrossover();
 
 /// Symmetric version of @a randomPointCrossover(). Creates an operator that returns a pair
