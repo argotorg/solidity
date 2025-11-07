@@ -35,7 +35,6 @@ jobs:
         with:
           name: solc-windows
           path: build\solc\Release\solc.exe
-          compression-level: 0
 
   b_macos:
     runs-on: [ self-hosted, macOS ]
@@ -52,7 +51,6 @@ jobs:
         with:
           name: solc-macos
           path: build/solc/solc
-          compression-level: 0
 
   b_linux:
     runs-on: [ self-hosted, Linux, for-linux ]
@@ -80,7 +78,6 @@ jobs:
         with:
           name: solc-linux
           path: build/solc/solc
-          compression-level: 0
 
   b_ems:
     runs-on: [ self-hosted, Linux, for-ems ]
@@ -107,7 +104,6 @@ jobs:
         with:
           name: solc-ems
           path: upload/soljson.js
-          compression-level: 0
 
   upload-to-s3:
     needs: [ b_windows, b_macos, b_linux, b_ems ]
