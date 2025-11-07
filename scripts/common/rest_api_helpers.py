@@ -1,9 +1,7 @@
 from os import environ
 from pathlib import Path
 from typing import List, Mapping, Optional
-import functools
 import json
-import operator
 import shutil
 
 import requests
@@ -127,7 +125,11 @@ class CircleCI:
                 break
 
     def paginated_query_api(self, url: str, params: Mapping[str, str], max_pages: int = DEFAULT_MAX_PAGES):
-        return functools.reduce(operator.add, self.paginated_query_api_iterator(url, params, max_pages), [])
+        return [
+            item
+            for page in self.paginated_query_api_iterator(url, params, max_pages)
+            for item in page
+        ]
 
     def pipelines(
         self,
@@ -151,7 +153,7 @@ class CircleCI:
                     item['trigger']['type'] not in excluded_trigger_types
                 )
             ]
-            if len(matching_items) > 0:
+            if matching_items:
                 return matching_items
 
         return []
