@@ -1297,7 +1297,7 @@ void SMTEncoder::endVisit(Literal const& _literal)
 	if (smt::isNumber(type))
 		defineExpr(_literal, smtutil::Expression(type.literalValue(&_literal)));
 	else if (smt::isBool(type))
-		defineExpr(_literal, smtutil::Expression(_literal.token() == Token::TrueLiteral ? true : false));
+		defineExpr(_literal, smtutil::Expression(_literal.token() == Token::TrueLiteral));
 	else if (smt::isStringLiteral(type))
 	{
 		createExpr(_literal);
