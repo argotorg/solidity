@@ -30,10 +30,16 @@ jobs:
         shell: bash
         run: powershell.exe .github/workflows/build_win.ps1
 
+      - name: Prepare artifact for caching
+        shell: bash
+        run: |
+          mkdir github/
+          cp build/solc/Release/solc.exe github/solc-windows.exe
+
       - name: Save artifact to cache
         uses: actions/cache/save@v4
         with:
-          path: build\solc\Release\solc.exe
+          path: github/solc-windows.exe
           key: solc-windows-${{ github.run_id }}
           enableCrossOsArchive: true
 
@@ -55,10 +61,16 @@ jobs:
         shell: bash -el {0}
         run: .github/workflows/build.sh
 
+      - name: Prepare artifact for caching
+        shell: bash
+        run: |
+          mkdir github/
+          cp build/solc/solc github/solc-macos
+
       - name: Save artifact to cache
         uses: actions/cache/save@v4
         with:
-          path: build/solc/solc
+          path: github/solc-macos
           key: solc-macos-${{ github.run_id }}
           enableCrossOsArchive: true
 
@@ -83,10 +95,16 @@ jobs:
       - name: Run build script
         run: .github/workflows/build.sh
 
+      - name: Prepare artifact for caching
+        shell: bash
+        run: |
+          mkdir github/
+          cp build/solc/solc github/solc-static-linux
+
       - name: Save artifact to cache
         uses: actions/cache/save@v4
         with:
-          path: build/solc/solc
+          path: github/solc-static-linux
           key: solc-linux-${{ github.run_id }}
 
   b_ems:
@@ -109,10 +127,16 @@ jobs:
       - name: Run build script
         run: .github/workflows/build_ems.sh
 
+      - name: Prepare artifact for caching
+        shell: bash
+        run: |
+          mkdir github/
+          cp upload/soljson.js github/soljson.js
+
       - name: Save artifact to cache
         uses: actions/cache/save@v4
         with:
-          path: upload/soljson.js
+          path: github/soljson.js
           key: solc-ems-${{ github.run_id }}
 
   upload-to-s3:
@@ -128,41 +152,35 @@ jobs:
       - name: Restore solc-windows
         uses: actions/cache/restore@v4
         with:
-          path: artifacts/solc-windows/solc.exe
+          path: github/solc-windows.exe
           key: solc-windows-${{ github.run_id }}
           enableCrossOsArchive: true
 
       - name: Restore solc-macos
         uses: actions/cache/restore@v4
         with:
-          path: artifacts/solc-macos/solc
+          path: github/solc-macos
           key: solc-macos-${{ github.run_id }}
           enableCrossOsArchive: true
 
       - name: Restore solc-linux
         uses: actions/cache/restore@v4
         with:
-          path: artifacts/solc-linux/solc
+          path: github/solc-static-linux
           key: solc-linux-${{ github.run_id }}
 
       - name: Restore solc-ems
         uses: actions/cache/restore@v4
         with:
-          path: artifacts/solc-ems/soljson.js
+          path: github/soljson.js
           key: solc-ems-${{ github.run_id }}
 
       - name: List all artifacts
         run: |
-          ls -R artifacts/
+          ls -R github/
 
-      - name: Gather and rename binaries from dependent jobs
+      - name: Create tarball for use on github
         run: |
-          mkdir github/
-          cp artifacts/solc-linux/solc        github/solc-static-linux
-          cp artifacts/solc-macos/solc        github/solc-macos
-          cp artifacts/solc-windows/solc.exe  github/solc-windows.exe
-          cp artifacts/solc-ems/soljson.js    github/soljson.js
-          
           cd github
           tar --create --file ../github-binaries.tar *
 
@@ -175,10 +193,10 @@ jobs:
 
           mkdir -p solc-bin/{linux-amd64,macosx-amd64,windows-amd64,bin}
 
-          mv github/solc-static-linux "solc-bin/linux-amd64/solc-linux-amd64-v${full_version}"
-          mv github/solc-macos        "solc-bin/macosx-amd64/solc-macosx-amd64-v${full_version}"
-          mv github/solc-windows.exe  "solc-bin/windows-amd64/solc-windows-amd64-v${full_version}.exe"
-          mv github/soljson.js        "solc-bin/bin/soljson-v${full_version}.js"
+          cp github/solc-static-linux "solc-bin/linux-amd64/solc-linux-amd64-v${full_version}"
+          cp github/solc-macos        "solc-bin/macosx-amd64/solc-macosx-amd64-v${full_version}"
+          cp github/solc-windows.exe  "solc-bin/windows-amd64/solc-windows-amd64-v${full_version}.exe"
+          cp github/soljson.js        "solc-bin/bin/soljson-v${full_version}.js"
 
           cd solc-bin/
           tar --create --file ../solc-bin-binaries.tar *
@@ -195,3 +213,9 @@ jobs:
           
           aws s3 cp github-binaries.tar "s3://${bucket}/${{ github.sha }}/" --only-show-errors
           aws s3 cp solc-bin-binaries.tar "s3://${bucket}/${{ github.sha }}/" --only-show-errors
+          
+          cd github
+          aws s3 cp solc-windows.exe "s3://${bucket}/${{ github.sha }}/" --only-show-errors
+          aws s3 cp solc-macos "s3://${bucket}/${{ github.sha }}/" --only-show-errors
+          aws s3 cp solc-static-linux "s3://${bucket}/${{ github.sha }}/" --only-show-errors
+          aws s3 cp soljson.js "s3://${bucket}/${{ github.sha }}/" --only-show-errors
