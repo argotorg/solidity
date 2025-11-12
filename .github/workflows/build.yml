@@ -130,12 +130,14 @@ jobs:
         with:
           path: artifacts/solc-windows/solc.exe
           key: solc-windows-${{ github.run_id }}
+          enableCrossOsArchive: true
 
       - name: Restore solc-macos
         uses: actions/cache/restore@v4
         with:
           path: artifacts/solc-macos/solc
           key: solc-macos-${{ github.run_id }}
+          enableCrossOsArchive: true
 
       - name: Restore solc-linux
         uses: actions/cache/restore@v4
