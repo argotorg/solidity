@@ -5,20 +5,10 @@ ROOTDIR="$(dirname "$0")/../.."
 # shellcheck source=scripts/common.sh
 source "${ROOTDIR}/scripts/common.sh"
 
-prerelease_source="${1:-ga}"
-
 cd "${ROOTDIR}"
 
-# shellcheck disable=SC2166
-if [ "$GITHUB_REF_NAME" == "develop"  ]
-then
-    echo -n >prerelease.txt
-else
-    # Use last commit date rather than build date to avoid ending up with builds for
-    # different platforms having different version strings (and therefore producing different bytecode)
-    # if the CI is triggered just before midnight.
-    TZ=UTC git show --quiet --date="format-local:%Y.%-m.%-d" --format="${prerelease_source}.%cd" >prerelease.txt
-fi
+# Build release version
+echo -n >prerelease.txt
 
 mkdir -p build
 cd build
