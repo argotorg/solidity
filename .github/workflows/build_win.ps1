@@ -2,18 +2,8 @@ $ErrorActionPreference = "Stop"
 
 cd "$PSScriptRoot\..\.."
 
-if ($Env:GITHUB_REF_NAME -eq 'develop') {
-	New-Item prerelease.txt -type file
-	Write-Host "Building release version."
-}
-else {
-	# Use last commit date rather than build date to avoid ending up with builds for
-	# different platforms having different version strings (and therefore producing different bytecode)
-	# if the CI is triggered just before midnight.
-	$last_commit_timestamp = git log -1 --date=unix --format=%cd HEAD
-	$last_commit_date = (Get-Date -Date "1970-01-01 00:00:00Z").toUniversalTime().addSeconds($last_commit_timestamp).ToString("yyyy.M.d")
-	-join("ga.", $last_commit_date) | out-file -encoding ascii prerelease.txt
-}
+New-Item prerelease.txt -type file
+Write-Host "Building release version."
 
 mkdir build
 cd build
