@@ -10,7 +10,7 @@ prerelease_source="${1:-ga}"
 cd "${ROOTDIR}"
 
 # shellcheck disable=SC2166
-if [[ -n "$FORCE_RELEASE" || "$(git tag --points-at HEAD 2>/dev/null)" == tv* ]]
+if [ "$GITHUB_REF_NAME" == "develop" ]
 then
     echo -n >prerelease.txt
 else

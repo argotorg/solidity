@@ -30,14 +30,21 @@ jobs:
         shell: bash
         run: powershell.exe .github/workflows/build_win.ps1
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
+      - name: Save artifact to cache
+        uses: actions/cache/save@v4
         with:
-          name: solc-windows
           path: build\solc\Release\solc.exe
+          key: solc-windows-${{ github.run_id }}
 
   b_macos:
     runs-on: [ self-hosted, macOS ]
+
+    env:
+      CMAKE_BUILD_TYPE: Release
+      CMAKE_OPTIONS: -DCMAKE_OSX_ARCHITECTURES:STRING=x86_64;arm64
+      TERM: xterm
+      MAKEFLAGS: -j5
+      CPUs: 5
 
     steps:
       - name: Checkout code
@@ -47,11 +54,11 @@ jobs:
         shell: bash -el {0}
         run: .github/workflows/build.sh
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
+      - name: Save artifact to cache
+        uses: actions/cache/save@v4
         with:
-          name: solc-macos
           path: build/solc/solc
+          key: solc-macos-${{ github.run_id }}
 
   b_linux:
     runs-on: [ self-hosted, Linux, for-linux ]
@@ -74,11 +81,11 @@ jobs:
       - name: Run build script
         run: .github/workflows/build.sh
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
+      - name: Save artifact to cache
+        uses: actions/cache/save@v4
         with:
-          name: solc-linux
           path: build/solc/solc
+          key: solc-linux-${{ github.run_id }}
 
   b_ems:
     runs-on: [ self-hosted, Linux, for-ems ]
@@ -100,20 +107,39 @@ jobs:
       - name: Run build script
         run: .github/workflows/build_ems.sh
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
+      - name: Save artifact to cache
+        uses: actions/cache/save@v4
         with:
-          name: solc-ems
           path: upload/soljson.js
+          key: solc-ems-${{ github.run_id }}
 
   upload-to-s3:
     needs: [ b_windows, b_macos, b_linux, b_ems ]
     runs-on: [ self-hosted, Linux ]
     steps:
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
+      - name: Restore solc-windows
+        uses: actions/cache/restore@v4
         with:
-          path: artifacts
+          path: artifacts/solc-windows/solc.exe
+          key: solc-windows-${{ github.run_id }}
+
+      - name: Restore solc-macos
+        uses: actions/cache/restore@v4
+        with:
+          path: artifacts/solc-macos/solc
+          key: solc-macos-${{ github.run_id }}
+
+      - name: Restore solc-linux
+        uses: actions/cache/restore@v4
+        with:
+          path: artifacts/solc-linux/solc
+          key: solc-linux-${{ github.run_id }}
+
+      - name: Restore solc-ems
+        uses: actions/cache/restore@v4
+        with:
+          path: artifacts/solc-ems/soljson.js
+          key: solc-ems-${{ github.run_id }}
 
       - name: List all artifacts
         run: |
