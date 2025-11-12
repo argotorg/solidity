@@ -142,7 +142,7 @@ jobs:
   upload-to-s3:
     needs: [ b_windows, b_macos, b_linux, b_ems ]
 
-    runs-on: [ self-hosted, Linux ]
+    runs-on: [ self-hosted, macOS ]
 
     permissions:
       actions: read
@@ -219,3 +219,5 @@ jobs:
           aws s3 cp solc-macos "s3://${bucket}/${{ github.sha }}/" --only-show-errors
           aws s3 cp solc-static-linux "s3://${bucket}/${{ github.sha }}/" --only-show-errors
           aws s3 cp soljson.js "s3://${bucket}/${{ github.sha }}/" --only-show-errors
+          
+          cd .. && rm -rf github solc-bin *.tar
