@@ -62,7 +62,6 @@ jobs:
         run: .github/workflows/build.sh
 
       - name: Prepare artifact for caching
-        shell: bash
         run: |
           mkdir github/
           cp build/solc/solc github/solc-macos
@@ -96,7 +95,6 @@ jobs:
         run: .github/workflows/build.sh
 
       - name: Prepare artifact for caching
-        shell: bash
         run: |
           mkdir github/
           cp build/solc/solc github/solc-static-linux
@@ -128,7 +126,6 @@ jobs:
         run: .github/workflows/build_ems.sh
 
       - name: Prepare artifact for caching
-        shell: bash
         run: |
           mkdir github/
           cp upload/soljson.js github/soljson.js
@@ -202,7 +199,7 @@ jobs:
           tar --create --file ../solc-bin-binaries.tar *
 
       - name: Upload to S3
-        shell: bash -el {0}
+        shell: zsh -el {0}
         env:
           S3_BUCKET_PROD: ${{ secrets.S3_BUCKET_PROD }}
           S3_BUCKET_TEST: ${{ secrets.S3_BUCKET_TEST }}
