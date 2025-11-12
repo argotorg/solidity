@@ -202,6 +202,7 @@ jobs:
           tar --create --file ../solc-bin-binaries.tar *
 
       - name: Upload to S3
+        shell: bash -el {0}
         env:
           S3_BUCKET_PROD: ${{ secrets.S3_BUCKET_PROD }}
           S3_BUCKET_TEST: ${{ secrets.S3_BUCKET_TEST }}
