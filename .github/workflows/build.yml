@@ -184,7 +184,7 @@ jobs:
       - name: Rename binaries to solc-bin naming convention
         run: |
           full_version=$(
-            github/solc-static-linux --version |
+            github/solc-macos --version |
             sed -En 's/^Version: ([0-9.]+.*\+commit\.[0-9a-f]+(\.mod)?).*$/\1/p'
           )
 
