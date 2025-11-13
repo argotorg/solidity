@@ -25,7 +25,6 @@
 
 #include <string>
 #include <tuple>
-#include <optional>
 
 #if defined(_MSC_VER)
 #pragma warning(push)
