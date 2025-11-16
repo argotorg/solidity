@@ -1300,11 +1300,15 @@ public:
 		SourceLocation _nameLocation,
 		ASTPointer<StructuredDocumentation> const& _documentation,
 		ASTPointer<ParameterList> const& _parameters,
-		bool _anonymous = false
+		bool _anonymous = false,
+		bool _subscribable = false,
+		std::optional<std::string> _gasHint = std::nullopt
 	):
 		CallableDeclaration(_id, _location, _name, std::move(_nameLocation), Visibility::Default, _parameters),
 		StructurallyDocumented(_documentation),
-		m_anonymous(_anonymous)
+		m_anonymous(_anonymous),
+		m_subscribable(_subscribable),
+		m_gasHint(_gasHint)
 	{
 	}
 
@@ -1312,6 +1316,8 @@ public:
 	void accept(ASTConstVisitor& _visitor) const override;
 
 	bool isAnonymous() const { return m_anonymous; }
+	bool isSubscribable() const { return m_subscribable; }
+	std::optional<std::string> gasHint() const { return m_gasHint; }
 
 	Type const* type() const override;
 	FunctionTypePointer functionType(bool /*_internal*/) const override;
@@ -1331,6 +1337,8 @@ public:
 
 private:
 	bool m_anonymous = false;
+	bool m_subscribable = false;
+	std::optional<std::string> m_gasHint;
 };
 
 /**
@@ -1969,6 +1977,73 @@ public:
 private:
 	ASTPointer<FunctionCall> m_eventCall;
 };
+/**
+ * Statement for subscribing to an event.
+ * Example: subscribe targetContract.Transfer(from, to, value)
+ *            with onTransfer
+ *            gasLimit 150000
+ *            gasPrice 20 gwei;
+ */
+class SubscribeStatement: public Statement
+{
+public:
+	SubscribeStatement(
+		int64_t _id,
+		SourceLocation const& _location,
+		ASTPointer<ASTString> const& _docString,
+		ASTPointer<FunctionCall> const& _eventCall,
+		ASTPointer<Identifier> const& _callbackFunction,
+		ASTPointer<Expression> const& _gasLimit,
+		ASTPointer<Expression> const& _gasPrice
+	):
+		Statement(_id, _location, _docString),
+		m_eventCall(_eventCall),
+		m_callbackFunction(_callbackFunction),
+		m_gasLimit(_gasLimit),
+		m_gasPrice(_gasPrice)
+	{}
+
+	void accept(ASTVisitor& _visitor) override;
+	void accept(ASTConstVisitor& _visitor) const override;
+
+	FunctionCall const& eventCall() const { return *m_eventCall; }
+	Identifier const& callbackFunction() const { return *m_callbackFunction; }
+	Expression const& gasLimit() const { return *m_gasLimit; }
+	Expression const& gasPrice() const { return *m_gasPrice; }
+
+private:
+	ASTPointer<FunctionCall> m_eventCall;
+	ASTPointer<Identifier> m_callbackFunction;
+	ASTPointer<Expression> m_gasLimit;
+	ASTPointer<Expression> m_gasPrice;
+};
+
+/**
+ * Statement for unsubscribing from an event.
+ * Example: unsubscribe targetContract.Transfer;
+ */
+class UnsubscribeStatement: public Statement
+{
+public:
+	UnsubscribeStatement(
+		int64_t _id,
+		SourceLocation const& _location,
+		ASTPointer<ASTString> const& _docString,
+		ASTPointer<Expression> const& _eventReference
+	):
+		Statement(_id, _location, _docString),
+		m_eventReference(_eventReference)
+	{}
+
+	void accept(ASTVisitor& _visitor) override;
+	void accept(ASTConstVisitor& _visitor) const override;
+
+	Expression const& eventReference() const { return *m_eventReference; }
+
+private:
+	ASTPointer<Expression> m_eventReference;
+};
+
 
 /**
  * Definition of one or more variables as a statement inside a function.

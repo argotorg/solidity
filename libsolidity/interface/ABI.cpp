@@ -108,6 +108,15 @@ Json ABI::generate(ContractDefinition const& _contractDef)
 		event["type"] = "event";
 		event["name"] = it->name();
 		event["anonymous"] = it->isAnonymous();
+		
+		// Add subscribable flag and gasHint if applicable
+		if (it->isSubscribable())
+		{
+			event["subscribable"] = true;
+			if (it->gasHint().has_value())
+				event["gasHint"] = it->gasHint().value();
+		}
+		
 		Json params = Json::array();
 		for (auto const& p: it->parameters())
 		{

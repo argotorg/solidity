@@ -749,6 +749,44 @@ void EmitStatement::accept(ASTConstVisitor& _visitor) const
 }
 
 void ExpressionStatement::accept(ASTVisitor& _visitor)
+
+void SubscribeStatement::accept(ASTVisitor& _visitor)
+{
+	if (_visitor.visit(*this))
+	{
+		m_eventCall->accept(_visitor);
+		m_callbackFunction->accept(_visitor);
+		m_gasLimit->accept(_visitor);
+		m_gasPrice->accept(_visitor);
+	}
+	_visitor.endVisit(*this);
+}
+
+void SubscribeStatement::accept(ASTConstVisitor& _visitor) const
+{
+	if (_visitor.visit(*this))
+	{
+		m_eventCall->accept(_visitor);
+		m_callbackFunction->accept(_visitor);
+		m_gasLimit->accept(_visitor);
+		m_gasPrice->accept(_visitor);
+	}
+	_visitor.endVisit(*this);
+}
+
+void UnsubscribeStatement::accept(ASTVisitor& _visitor)
+{
+	if (_visitor.visit(*this))
+		m_eventReference->accept(_visitor);
+	_visitor.endVisit(*this);
+}
+
+void UnsubscribeStatement::accept(ASTConstVisitor& _visitor) const
+{
+	if (_visitor.visit(*this))
+		m_eventReference->accept(_visitor);
+	_visitor.endVisit(*this);
+}
 {
 	if (_visitor.visit(*this))
 		if (m_expression)
