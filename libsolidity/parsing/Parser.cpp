@@ -1077,6 +1077,14 @@ ASTPointer<EventDefinition> Parser::parseEventDefinition()
 	ASTNodeFactory nodeFactory(*this);
 	ASTPointer<StructuredDocumentation> documentation = parseStructuredDocumentation();
 
+	// Check for subscribable keyword
+	bool subscribable = false;
+	if (m_scanner->currentToken() == Token::Subscribable)
+	{
+		subscribable = true;
+		advance();
+	}
+
 	expectToken(Token::Event);
 	auto [name, nameLocation] = expectIdentifierWithLocation();
 
@@ -1090,9 +1098,25 @@ ASTPointer<EventDefinition> Parser::parseEventDefinition()
 		anonymous = true;
 		advance();
 	}
+
+	// Parse gasHint annotation
+	std::optional<std::string> gasHint;
+	if (m_scanner->currentToken() == Token::GasHint)
+	{
+		advance();
+		expectToken(Token::LParen);
+		// Parse the gas hint value (should be a number literal)
+		if (m_scanner->currentToken() == Token::Number)
+		{
+			gasHint = m_scanner->currentLiteral();
+			advance();
+		}
+		expectToken(Token::RParen);
+	}
+
 	nodeFactory.markEndPosition();
 	expectToken(Token::Semicolon);
-	return nodeFactory.createNode<EventDefinition>(name, nameLocation, documentation, parameters, anonymous);
+	return nodeFactory.createNode<EventDefinition>(name, nameLocation, documentation, parameters, anonymous, subscribable, gasHint);
 }
 
 ASTPointer<ErrorDefinition> Parser::parseErrorDefinition()

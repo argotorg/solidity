@@ -160,6 +160,7 @@ namespace solidity::langutil
 	K(Fallback, "fallback", 0)                                         \
 	K(For, "for", 0)                                                   \
 	K(Function, "function", 0)                                         \
+	K(GasHint, "gasHint", 0)                                           \
 	K(Hex, "hex", 0)                                                   \
 	K(If, "if", 0)                                                     \
 	K(Indexed, "indexed", 0)                                           \
@@ -185,10 +186,13 @@ namespace solidity::langutil
 	K(Storage, "storage", 0)                                           \
 	K(CallData, "calldata", 0)                                         \
 	K(Struct, "struct", 0)                                             \
+	K(Subscribe, "subscribe", 0)                                       \
+	K(Subscribable, "subscribable", 0)                                 \
 	K(Throw, "throw", 0)                                               \
 	K(Try, "try", 0)                                                   \
 	K(Type, "type", 0)                                                 \
 	K(Unchecked, "unchecked", 0)                                       \
+	K(Unsubscribe, "unsubscribe", 0)                                   \
 	K(Unicode, "unicode", 0)                                           \
 	K(Using, "using", 0)                                               \
 	K(View, "view", 0)                                                 \
