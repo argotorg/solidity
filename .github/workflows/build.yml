@@ -1,0 +1,221 @@
+name: Build binaries on multi platform
+on:
+  push:
+    branches:
+      - develop
+      - "release_*"
+
+jobs:
+  b_windows:
+    runs-on: [ self-hosted, Windows ]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Cache dependencies
+        id: cache-deps
+        uses: actions/cache@v4
+        with:
+          path: .\deps
+          key: dependencies-win-${{ runner.arch }}-${{ hashFiles('scripts/install_deps.ps1') }}
+          restore-keys: dependencies-win-${{ runner.arch }}-
+
+      - name: Installing dependencies
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+        shell: powershell
+        run: .\scripts\install_deps.ps1
+
+      - name: Run build script
+        shell: bash
+        run: powershell.exe .github/workflows/build_win.ps1
+
+      - name: Prepare artifact for caching
+        shell: bash
+        run: |
+          mkdir github/
+          cp build/solc/Release/solc.exe github/solc-windows.exe
+
+      - name: Save artifact to cache
+        uses: actions/cache/save@v4
+        with:
+          path: github/solc-windows.exe
+          key: solc-windows-${{ github.run_id }}
+          enableCrossOsArchive: true
+
+  b_macos:
+    runs-on: [ self-hosted, macOS ]
+
+    env:
+      CMAKE_BUILD_TYPE: Release
+      CMAKE_OPTIONS: -DCMAKE_OSX_ARCHITECTURES:STRING=x86_64;arm64
+      TERM: xterm
+      MAKEFLAGS: -j5
+      CPUs: 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Run build script
+        shell: bash -el {0}
+        run: .github/workflows/build.sh
+
+      - name: Prepare artifact for caching
+        run: |
+          mkdir github/
+          cp build/solc/solc github/solc-macos
+
+      - name: Save artifact to cache
+        uses: actions/cache/save@v4
+        with:
+          path: github/solc-macos
+          key: solc-macos-${{ github.run_id }}
+          enableCrossOsArchive: true
+
+  b_linux:
+    runs-on: [ self-hosted, Linux, for-linux ]
+
+    env:
+      CMAKE_OPTIONS: -DCMAKE_BUILD_TYPE=Release -DUSE_Z3_DLOPEN=ON -DUSE_CVC4=OFF -DSOLC_STATIC_STDLIBS=ON
+      MAKEFLAGS: -j 10
+      CPUs: 10
+
+    container:
+      image: solbuildpackpusher/solidity-buildpack-deps@sha256:84a1fb8771236e8d9aa5c615a425b8929e56a6e4f150a60078c8d74a1ceaa6c2
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Fix git safe directory
+        run: git config --global --add safe.directory '*'
+
+      - name: Run build script
+        run: .github/workflows/build.sh
+
+      - name: Prepare artifact for caching
+        run: |
+          mkdir github/
+          cp build/solc/solc github/solc-static-linux
+
+      - name: Save artifact to cache
+        uses: actions/cache/save@v4
+        with:
+          path: github/solc-static-linux
+          key: solc-linux-${{ github.run_id }}
+
+  b_ems:
+    runs-on: [ self-hosted, Linux, for-ems ]
+
+    env:
+      MAKEFLAGS: -j 10
+      CPUs: 5
+
+    container:
+      image: solbuildpackpusher/solidity-buildpack-deps@sha256:c57f2bfb8c15d70fe290629358dd1c73dc126e3760f443b54764797556b887d4
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Fix git safe directory
+        run: git config --global --add safe.directory '*'
+
+      - name: Run build script
+        run: .github/workflows/build_ems.sh
+
+      - name: Prepare artifact for caching
+        run: |
+          mkdir github/
+          cp upload/soljson.js github/soljson.js
+
+      - name: Save artifact to cache
+        uses: actions/cache/save@v4
+        with:
+          path: github/soljson.js
+          key: solc-ems-${{ github.run_id }}
+
+  upload-to-s3:
+    needs: [ b_windows, b_macos, b_linux, b_ems ]
+
+    runs-on: [ self-hosted, macOS ]
+
+    permissions:
+      actions: read
+      contents: read
+
+    steps:
+      - name: Restore solc-windows
+        uses: actions/cache/restore@v4
+        with:
+          path: github/solc-windows.exe
+          key: solc-windows-${{ github.run_id }}
+          enableCrossOsArchive: true
+
+      - name: Restore solc-macos
+        uses: actions/cache/restore@v4
+        with:
+          path: github/solc-macos
+          key: solc-macos-${{ github.run_id }}
+          enableCrossOsArchive: true
+
+      - name: Restore solc-linux
+        uses: actions/cache/restore@v4
+        with:
+          path: github/solc-static-linux
+          key: solc-linux-${{ github.run_id }}
+
+      - name: Restore solc-ems
+        uses: actions/cache/restore@v4
+        with:
+          path: github/soljson.js
+          key: solc-ems-${{ github.run_id }}
+
+      - name: List all artifacts
+        run: |
+          ls -R github/
+
+      - name: Create tarball for use on github
+        run: |
+          cd github
+          tar --create --file ../github-binaries.tar *
+
+      - name: Rename binaries to solc-bin naming convention
+        run: |
+          full_version=$(
+            github/solc-macos --version |
+            sed -En 's/^Version: ([0-9.]+.*\+commit\.[0-9a-f]+(\.mod)?).*$/\1/p'
+          )
+
+          mkdir -p solc-bin/{linux-amd64,macosx-amd64,windows-amd64,bin}
+
+          cp github/solc-static-linux "solc-bin/linux-amd64/solc-linux-amd64-v${full_version}"
+          cp github/solc-macos        "solc-bin/macosx-amd64/solc-macosx-amd64-v${full_version}"
+          cp github/solc-windows.exe  "solc-bin/windows-amd64/solc-windows-amd64-v${full_version}.exe"
+          cp github/soljson.js        "solc-bin/bin/soljson-v${full_version}.js"
+
+          cd solc-bin/
+          tar --create --file ../solc-bin-binaries.tar *
+
+      - name: Upload to S3
+        shell: zsh -el {0}
+        env:
+          S3_BUCKET_PROD: ${{ secrets.S3_BUCKET_PROD }}
+          S3_BUCKET_TEST: ${{ secrets.S3_BUCKET_TEST }}
+        run: |
+          case "${GITHUB_REF_NAME}" in
+            develop)   bucket="${S3_BUCKET_PROD}" ;;
+            release_*) bucket="${S3_BUCKET_TEST}" ;;
+          esac
+          
+          aws s3 cp github-binaries.tar "s3://${bucket}/${{ github.sha }}/" --only-show-errors
+          aws s3 cp solc-bin-binaries.tar "s3://${bucket}/${{ github.sha }}/" --only-show-errors
+          
+          cd github
+          aws s3 cp solc-windows.exe "s3://${bucket}/${{ github.sha }}/" --only-show-errors
+          aws s3 cp solc-macos "s3://${bucket}/${{ github.sha }}/" --only-show-errors
+          aws s3 cp solc-static-linux "s3://${bucket}/${{ github.sha }}/" --only-show-errors
+          aws s3 cp soljson.js "s3://${bucket}/${{ github.sha }}/" --only-show-errors
+          
+          cd .. && rm -rf github solc-bin *.tar
