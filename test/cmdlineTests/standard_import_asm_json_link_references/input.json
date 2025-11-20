@@ -26,6 +26,7 @@
         }
     },
     "settings": {
+        "experimental": true,
         "outputSelection": {
             "*": {
                 "": [

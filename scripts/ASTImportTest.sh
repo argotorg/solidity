@@ -139,7 +139,7 @@ function test_ast_import_export_equivalence
     echo ". += {\"sources\":" > _ast_json.json
     jq .sources expected.json >> _ast_json.json
     echo "}" >> _ast_json.json
-    echo "{\"language\": \"SolidityAST\", \"settings\": {\"outputSelection\": {\"*\": {\"\": [\"ast\"]}}}}" > standard_json.json
+    echo "{\"language\": \"SolidityAST\", \"settings\": {\"experimental\": true, \"outputSelection\": {\"*\": {\"\": [\"ast\"]}}}}" > standard_json.json
     jq --from-file _ast_json.json standard_json.json > standard_json_input.json
 
     # (re)import ast via standard json - and export it again as obtained result (silently)

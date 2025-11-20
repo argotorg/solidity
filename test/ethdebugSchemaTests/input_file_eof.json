@@ -9,6 +9,7 @@
     }
   },
   "settings": {
+    "experimental": true,
     "eofVersion": 1,
     "evmVersion": "osaka",
     "viaIR": true,

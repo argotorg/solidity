@@ -83,6 +83,7 @@
 		}
 	},
 	"settings": {
+		"experimental": true,
 		"outputSelection": {
 			"*": {
 				"": [

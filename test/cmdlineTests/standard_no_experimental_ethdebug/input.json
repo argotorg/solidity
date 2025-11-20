@@ -1,0 +1,19 @@
+{
+    "language": "Solidity",
+    "sources": {
+        "A.sol": {
+            "content": "contract A { constructor() { uint x = 2; { uint y = 3; } } }"
+        }
+    },
+    "settings": {
+        "viaIR": true,
+        "debug": {
+            "debugInfo": ["ethdebug"]
+        },
+        "outputSelection": {
+            "A.sol": {
+                "A": ["evm.bytecode.ethdebug", "evm.deployedBytecode.ethdebug"]
+            }
+        }
+    }
+}

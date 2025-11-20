@@ -1,0 +1,11 @@
+{
+    "errors": [
+        {
+            "component": "general",
+            "formattedMessage": "'irAst', 'irOptimizedAst', 'yulCFGJson' and 'debugInfo.ethdebug' outputs are experimental, and can only be used by toggling the 'settings.experimental' option.",
+            "message": "'irAst', 'irOptimizedAst', 'yulCFGJson' and 'debugInfo.ethdebug' outputs are experimental, and can only be used by toggling the 'settings.experimental' option.",
+            "severity": "error",
+            "type": "FatalError"
+        }
+    ]
+}
