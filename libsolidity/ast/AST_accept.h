@@ -749,6 +749,20 @@ void EmitStatement::accept(ASTConstVisitor& _visitor) const
 }
 
 void ExpressionStatement::accept(ASTVisitor& _visitor)
+{
+	if (_visitor.visit(*this))
+		if (m_expression)
+			m_expression->accept(_visitor);
+	_visitor.endVisit(*this);
+}
+
+void ExpressionStatement::accept(ASTConstVisitor& _visitor) const
+{
+	if (_visitor.visit(*this))
+		if (m_expression)
+			m_expression->accept(_visitor);
+	_visitor.endVisit(*this);
+}
 
 void SubscribeStatement::accept(ASTVisitor& _visitor)
 {
@@ -785,20 +799,6 @@ void UnsubscribeStatement::accept(ASTConstVisitor& _visitor) const
 {
 	if (_visitor.visit(*this))
 		m_eventReference->accept(_visitor);
-	_visitor.endVisit(*this);
-}
-{
-	if (_visitor.visit(*this))
-		if (m_expression)
-			m_expression->accept(_visitor);
-	_visitor.endVisit(*this);
-}
-
-void ExpressionStatement::accept(ASTConstVisitor& _visitor) const
-{
-	if (_visitor.visit(*this))
-		if (m_expression)
-			m_expression->accept(_visitor);
 	_visitor.endVisit(*this);
 }
 
