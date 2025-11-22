@@ -1077,7 +1077,9 @@ ASTPointer<EventDefinition> Parser::parseEventDefinition()
 	ASTNodeFactory nodeFactory(*this);
 	ASTPointer<StructuredDocumentation> documentation = parseStructuredDocumentation();
 
-	// Check for subscribable keyword
+	expectToken(Token::Event);
+
+	// Check for subscribable keyword (after 'event')
 	bool subscribable = false;
 	if (m_scanner->currentToken() == Token::Subscribable)
 	{
@@ -1085,7 +1087,6 @@ ASTPointer<EventDefinition> Parser::parseEventDefinition()
 		advance();
 	}
 
-	expectToken(Token::Event);
 	auto [name, nameLocation] = expectIdentifierWithLocation();
 
 	VarDeclParserOptions options;
