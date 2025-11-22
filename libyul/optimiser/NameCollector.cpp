@@ -64,21 +64,21 @@ std::map<FunctionHandle, size_t> ReferencesCounter::countReferences(Block const&
 {
 	ReferencesCounter counter;
 	counter(_block);
-	return std::move(counter.m_references);
+	return counter.m_references;
 }
 
 std::map<FunctionHandle, size_t> ReferencesCounter::countReferences(FunctionDefinition const& _function)
 {
 	ReferencesCounter counter;
 	counter(_function);
-	return std::move(counter.m_references);
+	return counter.m_references;
 }
 
 std::map<FunctionHandle, size_t> ReferencesCounter::countReferences(Expression const& _expression)
 {
 	ReferencesCounter counter;
 	counter.visit(_expression);
-	return std::move(counter.m_references);
+	return counter.m_references;
 }
 
 void VariableReferencesCounter::operator()(Identifier const& _identifier)
@@ -90,28 +90,28 @@ std::map<YulName, size_t> VariableReferencesCounter::countReferences(Block const
 {
 	VariableReferencesCounter counter;
 	counter(_block);
-	return std::move(counter.m_references);
+	return counter.m_references;
 }
 
 std::map<YulName, size_t> VariableReferencesCounter::countReferences(FunctionDefinition const& _function)
 {
 	VariableReferencesCounter counter;
 	counter(_function);
-	return std::move(counter.m_references);
+	return counter.m_references;
 }
 
 std::map<YulName, size_t> VariableReferencesCounter::countReferences(Expression const& _expression)
 {
 	VariableReferencesCounter counter;
 	counter.visit(_expression);
-	return std::move(counter.m_references);
+	return counter.m_references;
 }
 
 std::map<YulName, size_t> VariableReferencesCounter::countReferences(Statement const& _statement)
 {
 	VariableReferencesCounter counter;
 	counter.visit(_statement);
-	return std::move(counter.m_references);
+	return counter.m_references;
 }
 
 void AssignmentsSinceContinue::operator()(ForLoop const& _forLoop)
