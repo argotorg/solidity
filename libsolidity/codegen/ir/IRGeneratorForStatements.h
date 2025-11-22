@@ -133,6 +133,8 @@ public:
 	void endVisit(Identifier const& _identifier) override;
 	bool visit(Literal const& _literal) override;
 	void endVisit(RevertStatement const& _revertStatement) override;
+	void endVisit(SubscribeStatement const& _subscribeStatement) override;
+	void endVisit(UnsubscribeStatement const& _unsubscribeStatement) override;
 
 	bool visit(TryStatement const& _tryStatement) override;
 	bool visit(TryCatchClause const& _tryCatchClause) override;

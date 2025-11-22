@@ -815,6 +815,99 @@ void IRGeneratorForStatements::endVisit(RevertStatement const& _revertStatement)
 	);
 }
 
+void IRGeneratorForStatements::endVisit(SubscribeStatement const& _subscribeStatement)
+{
+	setLocation(_subscribeStatement);
+
+	// Get the event call details
+	FunctionCall const& eventCall = _subscribeStatement.eventCall();
+	FunctionType const* functionType = dynamic_cast<FunctionType const*>(eventCall.expression().annotation().type);
+	solAssert(functionType && functionType->kind() == FunctionType::Kind::Event, "Subscribe target must be an event");
+
+	EventDefinition const& event = dynamic_cast<EventDefinition const&>(functionType->declaration());
+
+	// Extract target contract address from event call (contract.EventName)
+	MemberAccess const* memberAccess = dynamic_cast<MemberAccess const*>(&eventCall.expression());
+	solAssert(memberAccess, "Event must be accessed via contract.EventName");
+
+	Expression const& targetContract = memberAccess->expression();
+	targetContract.accept(*this);
+	std::string targetAddress = IRVariable(targetContract).commaSeparatedList();
+
+	// Get event signature hash
+	std::string eventSig = formatNumber(u256(h256::Arith(keccak256(functionType->externalSignature()))));
+
+	// Get callback function selector
+	Identifier const& callback = _subscribeStatement.callbackFunction();
+	std::string callbackSelector = formatNumber(u256(h256::Arith(keccak256(callback.name() + "()"))));
+
+	// Get gas limit and gas price
+	_subscribeStatement.gasLimit().accept(*this);
+	std::string gasLimit = IRVariable(_subscribeStatement.gasLimit()).commaSeparatedList();
+
+	_subscribeStatement.gasPrice().accept(*this);
+	std::string gasPrice = IRVariable(_subscribeStatement.gasPrice()).commaSeparatedList();
+
+	// Generate SUBSCRIBE opcode call (0x5c)
+	// Stack: [targetAddress, eventSig, subscriberAddress, callbackSelector, gasLimit, gasPrice] -> [subscriptionId]
+	Whiskers templ(R"({
+		let subscriptionId := verbatim_6i_1o(
+			hex"5c",
+			<targetAddress>,
+			<eventSig>,
+			address(),
+			<callbackSelector>,
+			<gasLimit>,
+			<gasPrice>
+		)
+	})");
+	templ("targetAddress", targetAddress);
+	templ("eventSig", eventSig);
+	templ("callbackSelector", callbackSelector);
+	templ("gasLimit", gasLimit);
+	templ("gasPrice", gasPrice);
+
+	appendCode() << templ.render();
+}
+
+void IRGeneratorForStatements::endVisit(UnsubscribeStatement const& _unsubscribeStatement)
+{
+	setLocation(_unsubscribeStatement);
+
+	// Get the event reference (contract.EventName)
+	Expression const& eventRef = _unsubscribeStatement.eventReference();
+	MemberAccess const* memberAccess = dynamic_cast<MemberAccess const*>(&eventRef);
+	solAssert(memberAccess, "Event must be accessed via contract.EventName");
+
+	// Get target contract address
+	Expression const& targetContract = memberAccess->expression();
+	targetContract.accept(*this);
+	std::string targetAddress = IRVariable(targetContract).commaSeparatedList();
+
+	// Get event from member access
+	EventDefinition const* event = dynamic_cast<EventDefinition const*>(memberAccess->annotation().referencedDeclaration);
+	solAssert(event, "Unsubscribe target must be an event");
+
+	FunctionType const* functionType = event->functionType(false);
+	std::string eventSig = formatNumber(u256(h256::Arith(keccak256(functionType->externalSignature()))));
+
+	// Calculate subscription ID: keccak256(targetAddress, eventSig, subscriberAddress)
+	// For now, we generate UNSUBSCRIBE opcode (0x5d)
+	// Stack: [targetAddress, eventSig, subscriberAddress] -> [success]
+	Whiskers templ(R"({
+		let success := verbatim_3i_1o(
+			hex"5d",
+			<targetAddress>,
+			<eventSig>,
+			address()
+		)
+	})");
+	templ("targetAddress", targetAddress);
+	templ("eventSig", eventSig);
+
+	appendCode() << templ.render();
+}
+
 bool IRGeneratorForStatements::visit(BinaryOperation const& _binOp)
 {
 	setLocation(_binOp);
