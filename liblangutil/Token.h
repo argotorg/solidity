@@ -161,6 +161,8 @@ namespace solidity::langutil
 	K(For, "for", 0)                                                   \
 	K(Function, "function", 0)                                         \
 	K(GasHint, "gasHint", 0)                                           \
+	K(GasLimit, "gasLimit", 0)                                         \
+	K(GasPrice, "gasPrice", 0)                                         \
 	K(Hex, "hex", 0)                                                   \
 	K(If, "if", 0)                                                     \
 	K(Indexed, "indexed", 0)                                           \
@@ -198,6 +200,7 @@ namespace solidity::langutil
 	K(View, "view", 0)                                                 \
 	K(Virtual, "virtual", 0)                                           \
 	K(While, "while", 0)                                               \
+	K(With, "with", 0)                                                 \
 	\
 	/* Ether subdenominations */                                       \
 	K(SubWei, "wei", 0)                                                \
