@@ -142,6 +142,8 @@ private:
 	ASTPointer<ForStatement> parseForStatement(ASTPointer<ASTString> const& _docString);
 	ASTPointer<EmitStatement> parseEmitStatement(ASTPointer<ASTString> const& docString);
 	ASTPointer<RevertStatement> parseRevertStatement(ASTPointer<ASTString> const& docString);
+	ASTPointer<SubscribeStatement> parseSubscribeStatement(ASTPointer<ASTString> const& docString);
+	ASTPointer<UnsubscribeStatement> parseUnsubscribeStatement(ASTPointer<ASTString> const& docString);
 	/// A "simple statement" can be a variable declaration statement or an expression statement.
 	ASTPointer<Statement> parseSimpleStatement(ASTPointer<ASTString> const& _docString);
 	ASTPointer<VariableDeclarationStatement> parseVariableDeclarationStatement(

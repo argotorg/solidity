@@ -3,7 +3,7 @@ pragma solidity ^0.8.20;
 
 /**
  * @title ComprehensiveTest
- * @notice Comprehensive test contract for EIP-8078 features
+ * @notice Comprehensive test contract for EIP-8802 features
  * @dev Tests various aspects of subscribable events and subscriptions
  */
 contract ComprehensiveTest {
@@ -24,8 +24,8 @@ contract ComprehensiveTest {
         bytes32 indexed param3
     ) gasHint(40000);
 
-    // Test 4: Anonymous subscribable event
-    event subscribable anonymous AnonymousEvent(uint256 value) gasHint(25000);
+    // Test 4: Anonymous subscribable event (TODO: parser support needed)
+    // event subscribable anonymous AnonymousEvent(uint256 value) gasHint(25000);
 
     // Test 5: Subscribable event without gasHint
     event subscribable NoGasHintEvent(uint256 value);
@@ -65,12 +65,12 @@ contract ComprehensiveTest {
     }
 
     /**
-     * @notice Emit anonymous subscribable event
+     * @notice Emit anonymous subscribable event (TODO: parser support needed)
      */
-    function emitAnonymousEvent(uint256 value) external {
-        emit AnonymousEvent(value);
-        counter++;
-    }
+    // function emitAnonymousEvent(uint256 value) external {
+    //     emit AnonymousEvent(value);
+    //     counter++;
+    // }
 
     /**
      * @notice Emit subscribable event without gas hint

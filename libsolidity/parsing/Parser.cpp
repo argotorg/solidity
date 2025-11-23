@@ -1077,7 +1077,9 @@ ASTPointer<EventDefinition> Parser::parseEventDefinition()
 	ASTNodeFactory nodeFactory(*this);
 	ASTPointer<StructuredDocumentation> documentation = parseStructuredDocumentation();
 
-	// Check for subscribable keyword
+	expectToken(Token::Event);
+
+	// Check for subscribable keyword (after 'event')
 	bool subscribable = false;
 	if (m_scanner->currentToken() == Token::Subscribable)
 	{
@@ -1085,7 +1087,6 @@ ASTPointer<EventDefinition> Parser::parseEventDefinition()
 		advance();
 	}
 
-	expectToken(Token::Event);
 	auto [name, nameLocation] = expectIdentifierWithLocation();
 
 	VarDeclParserOptions options;
@@ -1517,6 +1518,12 @@ ASTPointer<Statement> Parser::parseStatement(bool _allowUnchecked)
 	case Token::Emit:
 		statement = parseEmitStatement(docString);
 		break;
+	case Token::Subscribe:
+		statement = parseSubscribeStatement(docString);
+		break;
+	case Token::Unsubscribe:
+		statement = parseUnsubscribeStatement(docString);
+		break;
 	case Token::Identifier:
 		if (m_scanner->currentLiteral() == "revert" && m_scanner->peekNextToken() == Token::Identifier)
 			statement = parseRevertStatement(docString);
@@ -1783,6 +1790,89 @@ ASTPointer<RevertStatement> Parser::parseRevertStatement(ASTPointer<ASTString> c
 		functionCallArguments.parameterNameLocations
 	);
 	return nodeFactory.createNode<RevertStatement>(_docString, errorCall);
+}
+
+ASTPointer<SubscribeStatement> Parser::parseSubscribeStatement(ASTPointer<ASTString> const& _docString)
+{
+	RecursionGuard recursionGuard(*this);
+	ASTNodeFactory nodeFactory(*this);
+
+	expectToken(Token::Subscribe);
+
+	// Parse event call: targetContract.EventName(params)
+	ASTNodeFactory eventCallNodeFactory(*this);
+
+	if (m_scanner->currentToken() != Token::Identifier)
+		fatalParserError(9999_error, "Expected event name or path.");
+
+	IndexAccessedPath iap;
+	while (true)
+	{
+		iap.path.push_back(parseIdentifier());
+		if (m_scanner->currentToken() != Token::Period)
+			break;
+		advance();
+	}
+
+	auto eventName = expressionFromIndexAccessStructure(iap);
+	expectToken(Token::LParen);
+
+	auto functionCallArguments = parseFunctionCallArguments();
+	eventCallNodeFactory.markEndPosition();
+	expectToken(Token::RParen);
+
+	auto eventCall = eventCallNodeFactory.createNode<FunctionCall>(
+		eventName,
+		functionCallArguments.arguments,
+		functionCallArguments.parameterNames,
+		functionCallArguments.parameterNameLocations
+	);
+
+	// Parse: with callbackFunction
+	expectToken(Token::With);
+	ASTPointer<Identifier> callbackFunction = parseIdentifier();
+
+	// Expect callback parameters (must match event parameters)
+	expectToken(Token::LParen);
+	parseFunctionCallArguments(); // Parse but don't use - just for syntax validation
+	expectToken(Token::RParen);
+
+	// Parse: gasLimit <value>
+	expectToken(Token::GasLimit);
+	ASTPointer<Expression> gasLimit = parseExpression();
+
+	// Parse: gasPrice <value>
+	expectToken(Token::GasPrice);
+	ASTPointer<Expression> gasPrice = parseExpression();
+
+	nodeFactory.markEndPosition();
+	return nodeFactory.createNode<SubscribeStatement>(_docString, eventCall, callbackFunction, gasLimit, gasPrice);
+}
+
+ASTPointer<UnsubscribeStatement> Parser::parseUnsubscribeStatement(ASTPointer<ASTString> const& _docString)
+{
+	RecursionGuard recursionGuard(*this);
+	ASTNodeFactory nodeFactory(*this);
+
+	expectToken(Token::Unsubscribe);
+
+	// Parse event reference: targetContract.EventName
+	if (m_scanner->currentToken() != Token::Identifier)
+		fatalParserError(9998_error, "Expected event name or path.");
+
+	IndexAccessedPath iap;
+	while (true)
+	{
+		iap.path.push_back(parseIdentifier());
+		if (m_scanner->currentToken() != Token::Period)
+			break;
+		advance();
+	}
+
+	auto eventReference = expressionFromIndexAccessStructure(iap);
+
+	nodeFactory.markEndPosition();
+	return nodeFactory.createNode<UnsubscribeStatement>(_docString, eventReference);
 }
 
 ASTPointer<VariableDeclarationStatement> Parser::parsePostfixVariableDeclarationStatement(

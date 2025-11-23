@@ -6,7 +6,7 @@ import "./PriceOracle.sol";
 /**
  * @title DerivedProtocol
  * @notice Example contract that subscribes to PriceOracle events
- * @dev Demonstrates EIP-8078 subscription functionality
+ * @dev Demonstrates EIP-8802 subscription functionality
  */
 contract DerivedProtocol {
     PriceOracle public oracle;
@@ -34,7 +34,7 @@ contract DerivedProtocol {
         oracle = PriceOracle(_oracle);
 
         // Subscribe to price updates
-        // Note: This is the syntax defined in EIP-8078
+        // Note: This is the syntax defined in EIP-8802
         // subscribe oracle.PriceUpdated(newPrice)
         //     with onPriceUpdate(newPrice)
         //     gasLimit 100000
