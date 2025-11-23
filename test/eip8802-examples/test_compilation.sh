@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Test script for EIP-8078 example contracts compilation
+# Test script for EIP-8802 example contracts compilation
 # This script tests that all example contracts compile successfully
 # and verifies the ABI contains subscribable metadata
 
@@ -11,7 +11,7 @@ BUILD_DIR="${BUILD_DIR:-$SCRIPT_DIR/../../build}"
 SOLC="${SOLC:-$BUILD_DIR/solc/solc}"
 
 echo "==================================="
-echo "EIP-8078 Compilation Test Suite"
+echo "EIP-8802 Compilation Test Suite"
 echo "==================================="
 echo ""
 

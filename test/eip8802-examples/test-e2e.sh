@@ -1,11 +1,11 @@
 #!/bin/bash
 
 #==============================================================================
-# EIP-8078 End-to-End Test Script
+# EIP-8802 End-to-End Test Script
 #==============================================================================
 # This script:
 # 1. Compiles PriceOracle and DerivedProtocol contracts
-# 2. Starts a modified Geth node with EIP-8078 support
+# 2. Starts a modified Geth node with EIP-8802 support
 # 3. Deploys both contracts
 # 4. Creates a subscription
 # 5. Triggers the subscription by emitting an event
@@ -44,7 +44,7 @@ PREFUNDED_ADDRESS="0x123463a4b065722e99115d6c222f267d9cabb524"
 PREFUNDED_KEY="2e0834786285daccd064ca17f1654f67b4aef298acbb82cef9ec422fb4975622"
 
 echo -e "${BLUE}╔════════════════════════════════════════════════════════╗${NC}"
-echo -e "${BLUE}║  EIP-8078 Contract Event Subscription Test Suite      ║${NC}"
+echo -e "${BLUE}║  EIP-8802 Contract Event Subscription Test Suite      ║${NC}"
 echo -e "${BLUE}╚════════════════════════════════════════════════════════╝${NC}"
 echo ""
 
@@ -65,7 +65,7 @@ echo -e "${GREEN}✓ Solidity compiler found${NC}"
 
 # Ask for Geth binary location
 if [ -z "$GETH_BIN" ]; then
-    read -p "Enter path to your EIP-8078 modified Geth binary: " GETH_BIN
+    read -p "Enter path to your EIP-8802 modified Geth binary: " GETH_BIN
 fi
 
 if [ ! -f "$GETH_BIN" ]; then
@@ -73,11 +73,11 @@ if [ ! -f "$GETH_BIN" ]; then
     exit 1
 fi
 
-# Verify Geth has EIP-8078 opcodes
-echo -e "${YELLOW}  Verifying Geth supports EIP-8078 opcodes...${NC}"
+# Verify Geth has EIP-8802 opcodes
+echo -e "${YELLOW}  Verifying Geth supports EIP-8802 opcodes...${NC}"
 GETH_VERSION=$("$GETH_BIN" version | head -1)
 echo -e "${BLUE}  Geth version: $GETH_VERSION${NC}"
-echo -e "${YELLOW}  ⚠ Make sure this is your EIP-8078 fork!${NC}"
+echo -e "${YELLOW}  ⚠ Make sure this is your EIP-8802 fork!${NC}"
 
 echo -e "${GREEN}✓ Geth binary found${NC}"
 

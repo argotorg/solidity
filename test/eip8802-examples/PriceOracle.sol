@@ -3,7 +3,7 @@ pragma solidity ^0.8.20;
 
 /**
  * @title PriceOracle
- * @notice Example contract demonstrating EIP-8078 subscribable events
+ * @notice Example contract demonstrating EIP-8802 subscribable events
  * @dev This oracle emits price updates that other contracts can subscribe to
  */
 contract PriceOracle {
@@ -31,7 +31,7 @@ contract PriceOracle {
      * @param _price The new price value
      */
     function updatePrice(uint256 _price) external onlyOwner {
-        uint256 oldPrice = price;
+        // uint256 oldPrice = price;
         price = _price;
         emit PriceUpdated(_price);
     }

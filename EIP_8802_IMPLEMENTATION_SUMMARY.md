@@ -1,4 +1,4 @@
-# EIP-8078 Solidity Compiler Implementation - Complete Summary
+# EIP-8802 Solidity Compiler Implementation - Complete Summary
 
 **Branch:** `claude/verify-solidity-eip-alignment-013A1gVMfHnkNGYriiDHGLKf`
 **Status:** ✅ **COMPLETE** - Ready for integration with modified Geth
@@ -6,7 +6,7 @@
 
 ## 🎉 Implementation Complete
 
-The Solidity compiler now has **full support** for EIP-8078 Contract Event Subscriptions, including:
+The Solidity compiler now has **full support** for EIP-8802 Contract Event Subscriptions, including:
 
 1. ✅ **Syntax parsing** - subscribable events, subscribe/unsubscribe statements
 2. ✅ **ABI generation** - subscribable metadata in JSON ABI
@@ -101,11 +101,11 @@ let success := verbatim_3i_1o(
 ### 4. Example Contracts
 
 **Complete working examples:**
-- `test/eip8078-examples/PriceOracle.sol` - Event emitter
-- `test/eip8078-examples/DerivedProtocol.sol` - Event subscriber
-- `test/eip8078-examples/SimpleToken.sol` - ERC20-like with subscribable events
-- `test/eip8078-examples/TokenWatcher.sol` - Token activity monitor
-- `test/eip8078-examples/ComprehensiveTest.sol` - Full test suite
+- `test/eip8802-examples/PriceOracle.sol` - Event emitter
+- `test/eip8802-examples/DerivedProtocol.sol` - Event subscriber
+- `test/eip8802-examples/SimpleToken.sol` - ERC20-like with subscribable events
+- `test/eip8802-examples/TokenWatcher.sol` - Token activity monitor
+- `test/eip8802-examples/ComprehensiveTest.sol` - Full test suite
 
 ### 5. Testing Infrastructure
 
@@ -117,7 +117,7 @@ let success := verbatim_3i_1o(
 - `test/libsolidity/semanticTests/events/event_subscribable_multiple_params.sol`
 
 #### End-to-End Test Script
-- `test/eip8078-examples/test-e2e.sh` - Automated full-stack test
+- `test/eip8802-examples/test-e2e.sh` - Automated full-stack test
   - Compiles contracts
   - Starts Geth node
   - Deploys contracts
@@ -130,10 +130,10 @@ let success := verbatim_3i_1o(
 - `BUILD_MACOS.md` - macOS (Intel & M1) build instructions
 - `QUICK_BUILD.md` - Quick start guide
 - `TESTING_GUIDE.md` - How to run tests
-- `test/eip8078-examples/README.md` - Example contracts guide
-- `test/eip8078-examples/EIP_ALIGNMENT_REPORT.md` - 60-page alignment analysis
-- `test/eip8078-examples/OPCODE_GENERATION.md` - Bytecode generation details
-- `test/eip8078-examples/E2E_TESTING.md` - End-to-end testing guide
+- `test/eip8802-examples/README.md` - Example contracts guide
+- `test/eip8802-examples/EIP_ALIGNMENT_REPORT.md` - 60-page alignment analysis
+- `test/eip8802-examples/OPCODE_GENERATION.md` - Bytecode generation details
+- `test/eip8802-examples/E2E_TESTING.md` - End-to-end testing guide
 
 ## 🔧 How to Build
 
@@ -186,9 +186,9 @@ make -j$(sysctl -n hw.ncpu)
 
 ### 4. Run End-to-End Test
 ```bash
-cd test/eip8078-examples
+cd test/eip8802-examples
 ./test-e2e.sh
-# Enter path to your EIP-8078 Geth binary when prompted
+# Enter path to your EIP-8802 Geth binary when prompted
 ```
 
 ## 🔗 Integration with Geth
@@ -254,7 +254,7 @@ func opSubscribe(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) (
 }
 ```
 
-See `test/eip8078-examples/OPCODE_GENERATION.md` for complete implementation guide.
+See `test/eip8802-examples/OPCODE_GENERATION.md` for complete implementation guide.
 
 ### Required RPC Methods
 
@@ -270,7 +270,7 @@ eth_getCallbackHistory(subscriptionId, fromBlock, toBlock) -> CallbackLog[]
 
 ### Compilation Tests
 ```bash
-cd test/eip8078-examples
+cd test/eip8802-examples
 BUILD_DIR=../../build ./test_compilation.sh
 ```
 
@@ -375,11 +375,11 @@ Compiler warnings for:
 ### Examples & Tests (13 files)
 
 **Example Contracts:**
-- `test/eip8078-examples/PriceOracle.sol`
-- `test/eip8078-examples/DerivedProtocol.sol`
-- `test/eip8078-examples/SimpleToken.sol`
-- `test/eip8078-examples/TokenWatcher.sol`
-- `test/eip8078-examples/ComprehensiveTest.sol`
+- `test/eip8802-examples/PriceOracle.sol`
+- `test/eip8802-examples/DerivedProtocol.sol`
+- `test/eip8802-examples/SimpleToken.sol`
+- `test/eip8802-examples/TokenWatcher.sol`
+- `test/eip8802-examples/ComprehensiveTest.sol`
 
 **Semantic Tests:**
 - `test/libsolidity/semanticTests/events/event_subscribable_basic.sol`
@@ -389,8 +389,8 @@ Compiler warnings for:
 - `test/libsolidity/semanticTests/events/event_subscribable_multiple_params.sol`
 
 **Test Scripts:**
-- `test/eip8078-examples/test_compilation.sh`
-- `test/eip8078-examples/test-e2e.sh`
+- `test/eip8802-examples/test_compilation.sh`
+- `test/eip8802-examples/test-e2e.sh`
 
 ### Documentation (10 files)
 
@@ -401,11 +401,11 @@ Compiler warnings for:
 - `TESTING_GUIDE.md`
 
 **Implementation Docs:**
-- `test/eip8078-examples/README.md`
-- `test/eip8078-examples/EIP_ALIGNMENT_REPORT.md`
-- `test/eip8078-examples/OPCODE_GENERATION.md`
-- `test/eip8078-examples/E2E_TESTING.md`
-- `EIP_8078_IMPLEMENTATION_SUMMARY.md` (this file)
+- `test/eip8802-examples/README.md`
+- `test/eip8802-examples/EIP_ALIGNMENT_REPORT.md`
+- `test/eip8802-examples/OPCODE_GENERATION.md`
+- `test/eip8802-examples/E2E_TESTING.md`
+- `EIP_8802_IMPLEMENTATION_SUMMARY.md` (this file)
 
 ## 🔍 Alignment with EIP Specification
 
@@ -499,9 +499,9 @@ contract TokenWatcher {
 
 ## 🎓 Learning Resources
 
-1. **Start Here:** `test/eip8078-examples/README.md`
+1. **Start Here:** `test/eip8802-examples/README.md`
 2. **Build:** `BUILD_MACOS.md` or `BUILD_GUIDE.md`
-3. **Examples:** `test/eip8078-examples/*.sol`
+3. **Examples:** `test/eip8802-examples/*.sol`
 4. **Testing:** `E2E_TESTING.md`
 5. **Deep Dive:** `EIP_ALIGNMENT_REPORT.md`
 6. **Opcodes:** `OPCODE_GENERATION.md`
@@ -521,18 +521,18 @@ To extend this implementation:
 For questions about:
 - **Compilation:** See `BUILD_GUIDE.md`
 - **Testing:** See `TESTING_GUIDE.md`
-- **Examples:** See `test/eip8078-examples/README.md`
+- **Examples:** See `test/eip8802-examples/README.md`
 - **Geth Integration:** See `OPCODE_GENERATION.md`
 
 ## 🎉 Summary
 
-This implementation provides **complete Solidity compiler support** for EIP-8078. Contracts can now:
+This implementation provides **complete Solidity compiler support** for EIP-8802. Contracts can now:
 
 1. ✅ Declare subscribable events with gas hints
 2. ✅ Subscribe to events in constructors or functions
 3. ✅ Unsubscribe when needed
 4. ✅ Compile to bytecode with SUBSCRIBE/UNSUBSCRIBE opcodes
-5. ✅ Deploy and test on EIP-8078 enabled networks
+5. ✅ Deploy and test on EIP-8802 enabled networks
 
 **The compiler is production-ready and waiting for Geth opcode implementation!**
 
@@ -541,4 +541,4 @@ This implementation provides **complete Solidity compiler support** for EIP-8078
 **Implementation by:** Claude (Anthropic)
 **Repository:** https://github.com/bitcoinbrisbane/solidity
 **Branch:** `claude/verify-solidity-eip-alignment-013A1gVMfHnkNGYriiDHGLKf`
-**EIP Reference:** EIP-8078 (referenced as EIP-8082 in some docs)
+**EIP Reference:** EIP-8802

@@ -1,4 +1,4 @@
-# Quick Build Guide for Solidity with EIP-8078 Support
+# Quick Build Guide for Solidity with EIP-8802 Support
 
 ## TL;DR - Three Commands to Build
 
@@ -52,11 +52,11 @@ make -j4
 # Check version
 ./build/solc/solc --version
 
-# Compile an EIP-8078 example
-./build/solc/solc --abi test/eip8078-examples/PriceOracle.sol
+# Compile an EIP-8802 example
+./build/solc/solc --abi test/eip8802-examples/PriceOracle.sol
 
 # Verify subscribable metadata in ABI
-./build/solc/solc --abi test/eip8078-examples/PriceOracle.sol | grep subscribable
+./build/solc/solc --abi test/eip8802-examples/PriceOracle.sol | grep subscribable
 ```
 
 Expected output from last command:
@@ -109,10 +109,10 @@ After building, you'll have:
 ./build/solc/solc --bin --abi MyContract.sol
 ```
 
-### Test EIP-8078 features:
+### Test EIP-8802 features:
 
 ```bash
-cd test/eip8078-examples
+cd test/eip8802-examples
 
 # Set build directory
 export BUILD_DIR=../../build
@@ -156,12 +156,12 @@ rm -rf build
 ## Next Steps
 
 1. ✅ Build the compiler
-2. ✅ Test with EIP-8078 examples
-3. 📖 Read `test/eip8078-examples/README.md`
-4. 📊 Check `test/eip8078-examples/EIP_ALIGNMENT_REPORT.md`
+2. ✅ Test with EIP-8802 examples
+3. 📖 Read `test/eip8802-examples/README.md`
+4. 📊 Check `test/eip8802-examples/EIP_ALIGNMENT_REPORT.md`
 
 ## Need Help?
 
 - Full guide: `BUILD_GUIDE.md`
-- Example contracts: `test/eip8078-examples/`
-- Alignment report: `test/eip8078-examples/EIP_ALIGNMENT_REPORT.md`
+- Example contracts: `test/eip8802-examples/`
+- Alignment report: `test/eip8802-examples/EIP_ALIGNMENT_REPORT.md`

@@ -1,18 +1,18 @@
-# EIP-8078 Implementation Alignment Report
+# EIP-8802 Implementation Alignment Report
 
 **Date:** 2025-11-22
 **Solidity Branch:** claude/verify-solidity-eip-alignment-013A1gVMfHnkNGYriiDHGLKf
-**Base Commit:** 721e99a (Add EIP-8078 support for subscribable events)
+**Base Commit:** 721e99a (Add EIP-8802 support for subscribable events)
 
 ## Executive Summary
 
-This document analyzes the alignment between the EIP-8078/8082 specification and the current Solidity compiler implementation. The compiler successfully implements the **syntactic foundation** for subscribable events, but runtime execution features require EVM-level changes.
+This document analyzes the alignment between the EIP-8802/8082 specification and the current Solidity compiler implementation. The compiler successfully implements the **syntactic foundation** for subscribable events, but runtime execution features require EVM-level changes.
 
 ### Key Finding: EIP Number Discrepancy
 
-**IMPORTANT:** The EIP document is labeled as "EIP-8082" but the implementation and commit messages reference "EIP-8078". This needs clarification:
+**IMPORTANT:** The EIP document is labeled as "EIP-8082" but the implementation and commit messages reference "EIP-8802". This needs clarification:
 
-- Implementation commits reference: **EIP-8078**
+- Implementation commits reference: **EIP-8802**
 - Specification document header says: **EIP-8082**
 - Recommended action: Standardize on one EIP number
 
@@ -36,8 +36,8 @@ event subscribable EventName(params) gasHint(value);
 - `libsolidity/parsing/Parser.cpp:1080-1115` - Parser correctly handles both keywords
 
 **Test Coverage:**
-- `test/eip8078-examples/PriceOracle.sol` - Basic subscribable event
-- `test/eip8078-examples/SimpleToken.sol` - Subscribable events with indexed params
+- `test/eip8802-examples/PriceOracle.sol` - Basic subscribable event
+- `test/eip8802-examples/SimpleToken.sol` - Subscribable events with indexed params
 - `test/libsolidity/semanticTests/events/event_subscribable_basic.sol`
 - `test/libsolidity/semanticTests/events/event_subscribable_with_gashint.sol`
 
@@ -125,7 +125,7 @@ subscribe targetContract.EventName(params)
 - Add tokens for `with`, `gasLimit`, `gasPrice` keywords
 
 **Example Contracts:**
-- `test/eip8078-examples/DerivedProtocol.sol` - Shows expected syntax in comments
+- `test/eip8802-examples/DerivedProtocol.sol` - Shows expected syntax in comments
 - Actual subscribe statements are commented out pending parser implementation
 
 #### 6. Unsubscribe Statement Parsing
@@ -281,7 +281,7 @@ All EVM changes require go-ethereum implementation:
 
 ### 1. EIP Number Confusion ⚠️
 
-**Issue:** Documentation inconsistency between EIP-8078 and EIP-8082
+**Issue:** Documentation inconsistency between EIP-8802 and EIP-8082
 
 **Impact:** Low (implementation vs documentation)
 
@@ -358,7 +358,7 @@ All EVM changes require go-ethereum implementation:
 
 ## Conclusion
 
-The Solidity compiler implementation provides a **solid foundation** for EIP-8078 event subscriptions:
+The Solidity compiler implementation provides a **solid foundation** for EIP-8802 event subscriptions:
 
 - ✅ **Syntax support** for subscribable events is complete and functional
 - ✅ **ABI generation** correctly includes metadata
@@ -386,14 +386,14 @@ The implementation correctly aligns with the EIP specification for all features 
 - `libsolidity/parsing/Parser.cpp` - Extended event parsing
 
 ### New Test Files (created in this review)
-- `test/eip8078-examples/PriceOracle.sol`
-- `test/eip8078-examples/DerivedProtocol.sol`
-- `test/eip8078-examples/SimpleToken.sol`
-- `test/eip8078-examples/TokenWatcher.sol`
-- `test/eip8078-examples/ComprehensiveTest.sol`
+- `test/eip8802-examples/PriceOracle.sol`
+- `test/eip8802-examples/DerivedProtocol.sol`
+- `test/eip8802-examples/SimpleToken.sol`
+- `test/eip8802-examples/TokenWatcher.sol`
+- `test/eip8802-examples/ComprehensiveTest.sol`
 - `test/libsolidity/semanticTests/events/event_subscribable_*.sol` (5 files)
 
 ### Documentation Files
-- `test/eip8078-examples/README.md`
-- `test/eip8078-examples/EIP_ALIGNMENT_REPORT.md` (this file)
-- `test/eip8078-examples/test_compilation.sh`
+- `test/eip8802-examples/README.md`
+- `test/eip8802-examples/EIP_ALIGNMENT_REPORT.md` (this file)
+- `test/eip8802-examples/test_compilation.sh`

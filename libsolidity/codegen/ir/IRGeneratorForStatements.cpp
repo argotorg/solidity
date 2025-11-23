@@ -824,8 +824,6 @@ void IRGeneratorForStatements::endVisit(SubscribeStatement const& _subscribeStat
 	FunctionType const* functionType = dynamic_cast<FunctionType const*>(eventCall.expression().annotation().type);
 	solAssert(functionType && functionType->kind() == FunctionType::Kind::Event, "Subscribe target must be an event");
 
-	EventDefinition const& event = dynamic_cast<EventDefinition const&>(functionType->declaration());
-
 	// Extract target contract address from event call (contract.EventName)
 	MemberAccess const* memberAccess = dynamic_cast<MemberAccess const*>(&eventCall.expression());
 	solAssert(memberAccess, "Event must be accessed via contract.EventName");

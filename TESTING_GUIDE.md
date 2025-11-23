@@ -1,6 +1,6 @@
 # Solidity Testing Guide - Running Unit Tests
 
-This guide explains how to run Solidity unit tests, especially for the EIP-8078 features.
+This guide explains how to run Solidity unit tests, especially for the EIP-8802 features.
 
 ## Quick Start
 
@@ -22,7 +22,7 @@ This guide explains how to run Solidity unit tests, especially for the EIP-8078 
 ### 1. Semantic Tests (Contract Behavior)
 - **Location:** `test/libsolidity/semanticTests/`
 - **What they test:** Contract compilation and execution
-- **EIP-8078 tests:** `test/libsolidity/semanticTests/events/event_subscribable_*.sol`
+- **EIP-8802 tests:** `test/libsolidity/semanticTests/events/event_subscribable_*.sol`
 
 ### 2. Syntax Tests (Parser/Compiler)
 - **Location:** `test/libsolidity/syntaxTests/`
@@ -60,7 +60,7 @@ build/test/soltest --run_test libsolidity/semanticTests -- --testpath test
 build/test/soltest --run_test libsolidity/semanticTests/events -- --testpath test
 ```
 
-#### Run only EIP-8078 subscribable event tests:
+#### Run only EIP-8802 subscribable event tests:
 ```bash
 build/test/soltest --run_test libsolidity/semanticTests/events/event_subscribable* -- --testpath test
 ```
@@ -86,12 +86,12 @@ build/test/soltest --run_test libsolidity/syntaxTests -- --testpath test
 
 ---
 
-## Testing EIP-8078 Features
+## Testing EIP-8802 Features
 
 ### Test Subscribable Event Compilation
 
 ```bash
-# Run all EIP-8078 semantic tests
+# Run all EIP-8802 semantic tests
 build/test/soltest --run_test libsolidity/semanticTests/events/event_subscribable -- --testpath test
 
 # Expected output:
@@ -107,7 +107,7 @@ build/test/soltest --run_test libsolidity/semanticTests/events/event_subscribabl
 ### Test Example Contracts Compilation
 
 ```bash
-cd test/eip8078-examples
+cd test/eip8802-examples
 BUILD_DIR=../../build ./test_compilation.sh
 
 # Expected output:
@@ -127,7 +127,7 @@ build/solc/solc --abi test/libsolidity/semanticTests/events/event_subscribable_b
 build/solc/solc --abi test/libsolidity/semanticTests/events/event_subscribable_with_gashint.sol
 
 # Verify ABI includes subscribable metadata
-build/solc/solc --abi test/eip8078-examples/PriceOracle.sol | grep -A 10 subscribable
+build/solc/solc --abi test/eip8802-examples/PriceOracle.sol | grep -A 10 subscribable
 ```
 
 ---
@@ -160,7 +160,7 @@ Got: "subscribable": false
 
 ## Semantic Test Format
 
-EIP-8078 semantic tests follow this format:
+EIP-8802 semantic tests follow this format:
 
 ```solidity
 contract Test {
@@ -214,7 +214,7 @@ test/cmdlineTests.sh
 
 ## Test File Locations
 
-### EIP-8078 Semantic Tests:
+### EIP-8802 Semantic Tests:
 ```
 test/libsolidity/semanticTests/events/
 ├── event_subscribable_basic.sol
@@ -224,9 +224,9 @@ test/libsolidity/semanticTests/events/
 └── event_subscribable_multiple_params.sol
 ```
 
-### EIP-8078 Example Contracts:
+### EIP-8802 Example Contracts:
 ```
-test/eip8078-examples/
+test/eip8802-examples/
 ├── PriceOracle.sol
 ├── DerivedProtocol.sol
 ├── SimpleToken.sol
@@ -313,7 +313,7 @@ build/test/soltest --run_test libsolidity/semanticTests/events/my_new_test -- --
 - **All tests:** 30-60 minutes
 - **Semantic tests only:** 10-20 minutes
 - **Event semantic tests:** 1-2 minutes
-- **EIP-8078 tests only:** < 30 seconds
+- **EIP-8802 tests only:** < 30 seconds
 - **Single test:** < 1 second
 
 ### Speed Up Tests
@@ -401,11 +401,11 @@ build/test/soltest --run_test libsolidity/semanticTests/events -- --testpath tes
 # Run semantic tests only
 build/test/soltest --run_test libsolidity/semanticTests -- --testpath test
 
-# Run EIP-8078 tests only
+# Run EIP-8802 tests only
 build/test/soltest --run_test libsolidity/semanticTests/events/event_subscribable -- --testpath test
 
 # Run example contract tests
-cd test/eip8078-examples && BUILD_DIR=../../build ./test_compilation.sh
+cd test/eip8802-examples && BUILD_DIR=../../build ./test_compilation.sh
 
 # Run with progress
 ./scripts/soltest.sh --show-progress --run_test libsolidity/semanticTests/events
@@ -424,11 +424,11 @@ For CI pipelines, recommended sequence:
 # 1. Build compiler
 ./scripts/build.sh
 
-# 2. Run quick smoke tests (EIP-8078 specific)
+# 2. Run quick smoke tests (EIP-8802 specific)
 build/test/soltest --run_test libsolidity/semanticTests/events/event_subscribable -- --testpath test
 
 # 3. Run example compilation tests
-cd test/eip8078-examples && BUILD_DIR=../../build ./test_compilation.sh && cd ../..
+cd test/eip8802-examples && BUILD_DIR=../../build ./test_compilation.sh && cd ../..
 
 # 4. Optional: Run full test suite
 # ./scripts/tests.sh --no-smt
@@ -442,4 +442,4 @@ cd test/eip8078-examples && BUILD_DIR=../../build ./test_compilation.sh && cd ..
 - **Semantic Test Examples:** `test/libsolidity/semanticTests/`
 - **Test Scripts:** `scripts/tests.sh`, `scripts/soltest.sh`
 - **Build Guide:** `BUILD_GUIDE.md`
-- **EIP-8078 Examples:** `test/eip8078-examples/README.md`
+- **EIP-8802 Examples:** `test/eip8802-examples/README.md`

@@ -1,10 +1,10 @@
-# EIP-8078 Event Subscription Examples
+# EIP-8802 Event Subscription Examples
 
-This directory contains example contracts demonstrating EIP-8078 (Contract Event Subscription) features implemented in the Solidity compiler.
+This directory contains example contracts demonstrating EIP-8802 (Contract Event Subscription) features implemented in the Solidity compiler.
 
 ## Overview
 
-EIP-8078 introduces a mechanism for smart contracts to subscribe to events emitted by other contracts and automatically execute callback functions when those events occur.
+EIP-8802 introduces a mechanism for smart contracts to subscribe to events emitted by other contracts and automatically execute callback functions when those events occur.
 
 ## Example Contracts
 
@@ -54,7 +54,7 @@ Monitors token transfers by subscribing to Transfer events.
 - Real-time transaction monitoring without off-chain infrastructure
 
 ### 5. ComprehensiveTest.sol
-Comprehensive test contract covering all EIP-8078 features.
+Comprehensive test contract covering all EIP-8802 features.
 
 **Features:**
 - Basic subscribable events
@@ -121,9 +121,9 @@ Subscriptions can be removed:
 unsubscribe targetContract.EventName;
 ```
 
-## Alignment with EIP-8078 Specification
+## Alignment with EIP-8802 Specification
 
-**Note:** The EIP document references "EIP-8082" but the implementation uses "EIP-8078". This appears to be a documentation discrepancy.
+**Note:** The EIP document references "EIP-8082" but the implementation uses "EIP-8802". This appears to be a documentation discrepancy.
 
 ### Implemented Features
 
@@ -175,13 +175,13 @@ The example contracts demonstrate:
 To compile the example contracts:
 
 ```bash
-solc --bin --abi test/eip8078-examples/*.sol
+solc --bin --abi test/eip8802-examples/*.sol
 ```
 
 To view the ABI with subscribable metadata:
 
 ```bash
-solc --abi test/eip8078-examples/PriceOracle.sol | jq '.[] | select(.name=="PriceUpdated")'
+solc --abi test/eip8802-examples/PriceOracle.sol | jq '.[] | select(.name=="PriceUpdated")'
 ```
 
 Expected output:
@@ -204,7 +204,7 @@ Expected output:
 
 ## Future Work
 
-For full EIP-8078 support, the following components need implementation:
+For full EIP-8802 support, the following components need implementation:
 
 1. **Go-Ethereum (Geth)**
    - New opcodes (SUBSCRIBE, UNSUBSCRIBE, NOTIFYSUBSCRIBERS)
@@ -224,6 +224,6 @@ For full EIP-8078 support, the following components need implementation:
 
 ## References
 
-- EIP-8078 Specification (referenced as EIP-8082 in some documents)
+- EIP-8802 Specification (referenced as EIP-8082 in some documents)
 - Pull Request: https://github.com/argotorg/solidity/pull/16289
 - Implementation Discussion: https://ethereum-magicians.org/t/eip-to-be-assigned-contract-event-subscription/26575

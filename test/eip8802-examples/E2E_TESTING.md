@@ -1,6 +1,6 @@
-# EIP-8078 End-to-End Testing Guide
+# EIP-8802 End-to-End Testing Guide
 
-This guide explains how to test the complete EIP-8078 implementation from contract compilation through subscription execution.
+This guide explains how to test the complete EIP-8802 implementation from contract compilation through subscription execution.
 
 ## Prerequisites
 
@@ -10,7 +10,7 @@ cd /path/to/solidity
 ./scripts/build.sh
 ```
 
-### 2. Modified Geth with EIP-8078 Support
+### 2. Modified Geth with EIP-8802 Support
 Your Geth fork must implement these opcodes:
 - `SUBSCRIBE` (0x5c)
 - `UNSUBSCRIBE` (0x5d)
@@ -25,13 +25,13 @@ node --version  # Should be v14+
 
 ### 1. Run the automated test:
 ```bash
-cd test/eip8078-examples
+cd test/eip8802-examples
 ./test-e2e.sh
 ```
 
 ### 2. When prompted, enter the path to your Geth binary:
 ```
-Enter path to your EIP-8078 modified Geth binary: /path/to/geth
+Enter path to your EIP-8802 modified Geth binary: /path/to/geth
 ```
 
 ### 3. The script will automatically:

@@ -1,6 +1,6 @@
 # How to Build the Solidity Compiler
 
-This guide explains how to compile the Solidity compiler from source with EIP-8078 support.
+This guide explains how to compile the Solidity compiler from source with EIP-8802 support.
 
 ## System Requirements
 
@@ -135,18 +135,18 @@ sudo make install
 # Version: 0.8.x+commit.xxxxxxxx.Linux.g++
 ```
 
-### Step 6: Test EIP-8078 Features
+### Step 6: Test EIP-8802 Features
 
 ```bash
 # Compile one of the example contracts
-./build/solc/solc --bin --abi test/eip8078-examples/PriceOracle.sol
+./build/solc/solc --bin --abi test/eip8802-examples/PriceOracle.sol
 
 # Check that ABI includes subscribable metadata
-./build/solc/solc --abi test/eip8078-examples/PriceOracle.sol | grep subscribable
+./build/solc/solc --abi test/eip8802-examples/PriceOracle.sol | grep subscribable
 # Should output: "subscribable": true
 
 # Run the automated test suite
-cd test/eip8078-examples
+cd test/eip8802-examples
 BUILD_DIR=../../build ./test_compilation.sh
 ```
 
@@ -305,14 +305,14 @@ alias solc=/home/user/solidity/build/solc/solc
 /home/user/solidity/build/solc/solc --version
 ```
 
-## Testing EIP-8078 Examples
+## Testing EIP-8802 Examples
 
 ```bash
 # Set the build directory
 export BUILD_DIR=/home/user/solidity/build
 
 # Run the test script
-cd test/eip8078-examples
+cd test/eip8802-examples
 ./test_compilation.sh
 
 # Expected output:
@@ -360,16 +360,16 @@ make -j4
 - **Official Build Docs:** https://docs.soliditylang.org/en/latest/installing-solidity.html#building-from-source
 - **Minimum Requirements Script:** `scripts/ci/install_and_check_minimum_requirements.sh`
 - **Build Script:** `scripts/build.sh`
-- **EIP-8078 Examples:** `test/eip8078-examples/`
+- **EIP-8802 Examples:** `test/eip8802-examples/`
 
 ## Next Steps After Building
 
 1. Test basic compilation: `./build/solc/solc --version`
-2. Compile EIP-8078 examples: `cd test/eip8078-examples && ../../build/solc/solc PriceOracle.sol`
-3. Check ABI output: `./build/solc/solc --abi test/eip8078-examples/PriceOracle.sol`
-4. Run test suite: `cd test/eip8078-examples && BUILD_DIR=../../build ./test_compilation.sh`
+2. Compile EIP-8802 examples: `cd test/eip8802-examples && ../../build/solc/solc PriceOracle.sol`
+3. Check ABI output: `./build/solc/solc --abi test/eip8802-examples/PriceOracle.sol`
+4. Run test suite: `cd test/eip8802-examples && BUILD_DIR=../../build ./test_compilation.sh`
 
-## EIP-8078 Specific Notes
+## EIP-8802 Specific Notes
 
 This branch includes support for:
 - ✅ `subscribable` keyword on events
@@ -377,4 +377,4 @@ This branch includes support for:
 - ✅ Extended ABI with subscribable metadata
 - ⏳ Subscribe/unsubscribe statement syntax (AST only, parser pending)
 
-See `test/eip8078-examples/README.md` for detailed examples and `EIP_ALIGNMENT_REPORT.md` for implementation status.
+See `test/eip8802-examples/README.md` for detailed examples and `EIP_ALIGNMENT_REPORT.md` for implementation status.

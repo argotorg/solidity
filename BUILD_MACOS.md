@@ -77,7 +77,7 @@ brew install boost@1.83
 git clone https://github.com/bitcoinbrisbane/solidity.git
 cd solidity
 
-# Checkout the EIP-8078 branch
+# Checkout the EIP-8802 branch
 git checkout claude/verify-solidity-eip-alignment-013A1gVMfHnkNGYriiDHGLKf
 
 # Initialize submodules
@@ -139,8 +139,8 @@ make -j8
 # Check compiler version
 ./solc/solc --version
 
-# Test EIP-8078 features
-./solc/solc --abi ../test/eip8078-examples/PriceOracle.sol | grep subscribable
+# Test EIP-8802 features
+./solc/solc --abi ../test/eip8802-examples/PriceOracle.sol | grep subscribable
 ```
 
 Expected output:
@@ -425,9 +425,9 @@ cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=/usr/local
 make -j$(sysctl -n hw.ncpu)
 ```
 
-### Test EIP-8078:
+### Test EIP-8802:
 ```bash
-./solc/solc --abi ../test/eip8078-examples/PriceOracle.sol | grep subscribable
+./solc/solc --abi ../test/eip8802-examples/PriceOracle.sol | grep subscribable
 ```
 
 ---
@@ -477,6 +477,6 @@ docker run -v $(pwd):/src -w /src ubuntu:24.04 bash -c "
 ## Next Steps After Building
 
 1. ✅ Verify build: `./solc/solc --version`
-2. ✅ Test EIP-8078: See `TESTING_GUIDE.md`
-3. ✅ Run examples: See `test/eip8078-examples/README.md`
-4. 📖 Read alignment report: `test/eip8078-examples/EIP_ALIGNMENT_REPORT.md`
+2. ✅ Test EIP-8802: See `TESTING_GUIDE.md`
+3. ✅ Run examples: See `test/eip8802-examples/README.md`
+4. 📖 Read alignment report: `test/eip8802-examples/EIP_ALIGNMENT_REPORT.md`

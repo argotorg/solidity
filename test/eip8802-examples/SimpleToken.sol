@@ -4,7 +4,7 @@ pragma solidity ^0.8.20;
 /**
  * @title SimpleToken
  * @notice Example ERC20-like token with subscribable Transfer events
- * @dev Demonstrates EIP-8078 with multi-parameter events
+ * @dev Demonstrates EIP-8802 with multi-parameter events
  */
 contract SimpleToken {
     string public name;
