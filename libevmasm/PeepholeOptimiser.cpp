@@ -222,8 +222,7 @@ struct DoublePush
 			_state.i += windowSize;
 			return true;
 		}
-		else
-			return false;
+		return false;
 	}
 };
 
