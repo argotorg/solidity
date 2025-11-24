@@ -281,22 +281,6 @@ BOOST_AUTO_TEST_CASE(immutables_and_its_source_maps, *boost::unit_test::precondi
 			std::string const disassembly = disassemble(obj.bytecode, evmVersion, "\n");
 			auto const numberOfOpcodes = std::count(disassembly.begin(), disassembly.end(), '\n');
 
-			#if 0 // {{{ debug prints
-			{
-				LinkerObject const& subObj = assembly.sub(0).assemble();
-				std::string const subDisassembly = disassemble(subObj.bytecode, "\n");
-				std::cout << '\n';
-				std::cout << "### immutables: " << numImmutables << ", refs: " << numActualRefs << '\n';
-				std::cout << " - srcmap: \"" << sourceMappings << "\"\n";
-				std::cout << " - src mappings: " << numberOfMappings << '\n';
-				std::cout << " - opcodes: " << numberOfOpcodes << '\n';
-				std::cout << " - subs: " << assembly.numSubs() << '\n';
-				std::cout << " - sub opcodes " << std::count(subDisassembly.begin(), subDisassembly.end(), '\n') << '\n';
-				std::cout << " - sub srcmaps " << AssemblyItem::computeSourceMapping(subAsm->items(), indices) << '\n';
-				std::cout << " - main bytecode:\n\t" << disassemble(obj.bytecode, "\n\t");
-				std::cout << "\r - sub bytecode:\n\t" << disassemble(subObj.bytecode, "\n\t");
-			}
-			#endif // }}}
 
 			BOOST_REQUIRE_EQUAL(NumExpectedMappings, numberOfMappings);
 			BOOST_REQUIRE_EQUAL(NumExpectedMappings, numberOfOpcodes - NumOpcodesWithoutMappings);
