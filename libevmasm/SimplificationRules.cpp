@@ -130,8 +130,7 @@ AssemblyItem Pattern::toAssemblyItem(langutil::DebugData::ConstPtr _debugData) c
 {
 	if (m_type == Operation)
 		return AssemblyItem(m_instruction, std::move(_debugData));
-	else
-		return AssemblyItem(m_type, data(), std::move(_debugData));
+	return AssemblyItem(m_type, data(), std::move(_debugData));
 }
 
 std::string Pattern::toString() const
