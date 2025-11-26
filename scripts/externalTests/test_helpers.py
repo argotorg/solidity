@@ -140,10 +140,6 @@ def get_solc_short_version(solc_full_version: str) -> str:
     return solc_short_version_match.group(1)
 
 
-def store_benchmark_report(self):
-    raise NotImplementedError()
-
-
 def replace_version_pragmas(test_dir: Path):
     """
     Replace fixed-version pragmas (part of Consensys best practice).
