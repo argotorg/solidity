@@ -27,7 +27,6 @@
 #include <libsolidity/ast/TypeProvider.h>
 #include <libsolidity/interface/DebugSettings.h>
 #include <libsolidity/codegen/CompilerContext.h>
-#include <libsolidity/codegen/CompilerContext.h>
 
 namespace solidity::frontend
 {
