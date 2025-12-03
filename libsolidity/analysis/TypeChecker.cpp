@@ -3280,18 +3280,31 @@ bool TypeChecker::visit(MemberAccess const& _memberAccess)
 		auto const* functionType = dynamic_cast<FunctionType const*>(exprType);
 		functionType &&
 		functionType->hasDeclaration() &&
-		dynamic_cast<FunctionDefinition const*>(&functionType->declaration()) &&
 		memberName == "selector"
 	)
-		if (auto const* parentAccess = dynamic_cast<MemberAccess const*>(&_memberAccess.expression()))
+	{
+		if (dynamic_cast<FunctionDefinition const*>(&functionType->declaration()))
 		{
-			bool isPure = *parentAccess->expression().annotation().isPure;
-			if (auto const* exprInt = dynamic_cast<Identifier const*>(&parentAccess->expression()))
-				if (exprInt->name() == "this" || exprInt->name() == "super")
-					isPure = true;
+			if (auto const* parentAccess = dynamic_cast<MemberAccess const*>(&_memberAccess.expression()))
+			{
+				bool isPure = *parentAccess->expression().annotation().isPure;
+				// Accessing a function selector using `super|this.f.selector`.
+				if (auto const* exprInt = dynamic_cast<Identifier const*>(&parentAccess->expression()))
+					if (exprInt->name() == "this" || exprInt->name() == "super")
+						isPure = true;
 
-			annotation.isPure = isPure;
+				annotation.isPure = isPure;
+			}
 		}
+		// In case of event or error definition the selector is always compile-time constant, as it can be
+		// a keccak256 hash of the event signature or a function selector in case of an error.
+		else if (
+			dynamic_cast<EventDefinition const*>(&functionType->declaration()) ||
+			dynamic_cast<ErrorDefinition const*>(&functionType->declaration())
+		)
+			annotation.isPure = true;
+	}
+
 	if (
 		auto const* varDecl = dynamic_cast<VariableDeclaration const*>(annotation.referencedDeclaration);
 		!annotation.isPure.set() &&
