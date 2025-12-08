@@ -1829,6 +1829,16 @@ void TypeChecker::endVisit(BinaryOperation const& _operation)
 				)
 			);
 	}
+	if (
+		TokenTraits::isCompareOp(_operation.getOperator()) &&
+		commonType->category() == Type::Category::Contract
+	)
+		m_errorReporter.warning(
+			9170_error,
+			_operation.location(),
+			"Comparison of variables of contract type is deprecated and scheduled for removal. "
+			"Use an explicit cast to address type and compare the addresses instead."
+		);
 }
 
 Type const* TypeChecker::typeCheckTypeConversionAndRetrieveReturnType(
@@ -3212,6 +3222,19 @@ bool TypeChecker::visit(MemberAccess const& _memberAccess)
 				if (contractType && contractType->isSuper())
 					requiredLookup = VirtualLookup::Super;
 			}
+
+		if (
+			funType->kind() == FunctionType::Kind::Send ||
+			funType->kind() == FunctionType::Kind::Transfer
+		)
+			m_errorReporter.warning(
+				9207_error,
+				_memberAccess.location(),
+				fmt::format(
+					"'{}' is deprecated and scheduled for removal. Use 'call{{value: <amount>}}(\"\")' instead.",
+					funType->kind() == FunctionType::Kind::Send ? "send" : "transfer"
+				)
+			);
 	}
 
 	annotation.requiredLookup = requiredLookup;

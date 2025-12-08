@@ -16,9 +16,9 @@
 */
 // SPDX-License-Identifier: GPL-3.0
 
-#include <libyul/backends/evm/SSAControlFlowGraph.h>
+#include <libyul/backends/evm/ssa/SSACFG.h>
 
-#include <libyul/backends/evm/SSACFGLiveness.h>
+#include <libyul/backends/evm/ssa/LivenessAnalysis.h>
 
 #include <libsolutil/StringUtils.h>
 #include <libsolutil/Visitor.h>
@@ -28,55 +28,40 @@
 #include <fmt/ranges.h>
 #pragma GCC diagnostic pop
 
+#include <libyul/backends/evm/ssa/JunkAdmittingBlocksFinder.h>
+
 #include <range/v3/view/zip.hpp>
 
 using namespace solidity;
 using namespace solidity::util;
 using namespace solidity::yul;
+using namespace solidity::yul::ssa;
 
 namespace
 {
 class SSACFGPrinter
 {
 public:
-	SSACFGPrinter(SSACFG const& _cfg, SSACFG::BlockId _blockId, SSACFGLiveness const* _liveness):
+	SSACFGPrinter(SSACFG const& _cfg, SSACFG::BlockId _blockId, LivenessAnalysis const* _liveness):
 		m_cfg(_cfg), m_functionIndex(0), m_liveness(_liveness)
 	{
+		if (_liveness)
+			m_junkAdmittingBlocks = std::make_unique<JunkAdmittingBlocksFinder>(_cfg, _liveness->topologicalSort());
 		printBlock(_blockId);
 	}
-	SSACFGPrinter(SSACFG const& _cfg, size_t _functionIndex, Scope::Function const& _function, SSACFGLiveness const* _liveness):
+	SSACFGPrinter(SSACFG const& _cfg, size_t _functionIndex, Scope::Function const& _function, LivenessAnalysis const* _liveness):
 		m_cfg(_cfg), m_functionIndex(_functionIndex), m_liveness(_liveness)
 	{
+		if (_liveness)
+			m_junkAdmittingBlocks = std::make_unique<JunkAdmittingBlocksFinder>(_cfg, _liveness->topologicalSort());
 		printFunction(_function);
 	}
 	friend std::ostream& operator<<(std::ostream& stream, SSACFGPrinter const& printer) {
 		stream << printer.m_result.str();
 		return stream;
 	}
-private:
-	static std::string varToString(SSACFG const& _cfg, SSACFG::ValueId _var) {
-		if (_var.value == std::numeric_limits<size_t>::max())
-			return "INVALID";
-		auto const& info = _cfg.valueInfo(_var);
-		return std::visit(
-			GenericVisitor{
-				[&](SSACFG::UnreachableValue const&) -> std::string {
-					return "[unreachable]";
-				},
-				[&](SSACFG::PhiValue const&) -> std::string {
-					return fmt::format("v{}", _var.value);
-				},
-				[&](SSACFG::VariableValue const&) -> std::string {
-					return fmt::format("v{}", _var.value);
-				},
-				[&](SSACFG::LiteralValue const& _literal) -> std::string {
-					return formatNumberReadable(_literal.value);
-				}
-			},
-			info
-		);
-	}
 
+private:
 	static std::string escape(std::string_view const str)
 	{
 		using namespace std::literals;
@@ -112,7 +97,7 @@ private:
 
 	static std::string formatPhi(SSACFG const& _cfg, SSACFG::PhiValue const& _phiValue)
 	{
-		auto const transform = [&](SSACFG::ValueId const& valueId) { return varToString(_cfg, valueId); };
+		auto const transform = [&](SSACFG::ValueId const& valueId) { return valueId.str(_cfg); };
 		std::vector<std::string> formattedArgs;
 		formattedArgs.reserve(_phiValue.arguments.size());
 		for (auto const& [arg, entry]: ranges::zip_view(_phiValue.arguments | ranges::views::transform(transform), _cfg.block(_phiValue.block).entries))
@@ -125,7 +110,7 @@ private:
 
 	void writeBlock(SSACFG::BlockId const& _id, SSACFG::BasicBlock const& _block)
 	{
-		auto const valueToString = [&](SSACFG::ValueId const& valueId) { return varToString(m_cfg, valueId); };
+		auto const valueToString = [&](SSACFG::ValueId const& valueId) { return valueId.str(m_cfg); };
 		bool entryBlock = _id.value == 0 && m_functionIndex == 0;
 		if (entryBlock)
 		{
@@ -133,31 +118,40 @@ private:
 			m_result << fmt::format("Entry{} -> {};\n", m_functionIndex, formatBlockHandle(_id));
 		}
 		{
+			std::string revertPathInfo;
+			if (m_junkAdmittingBlocks)
+				revertPathInfo = m_junkAdmittingBlocks->allowsAdditionOfJunk(_id) ? "fillcolor=\"#FF746C\", style=filled, " : "";
 			if (m_liveness)
 			{
 				m_result << fmt::format(
-					"{} [label=\"\\\nBlock {}; ({}, max {})\\n",
+					"{} [{}label=\"\\\nBlock {}; ({}, max {})\\n",
 					formatBlockHandle(_id),
+					revertPathInfo,
 					_id.value,
 					m_liveness->topologicalSort().preOrderIndexOf(_id.value),
 					m_liveness->topologicalSort().maxSubtreePreOrderIndexOf(_id.value)
 				);
 				m_result << fmt::format(
 					"LiveIn: {}\\l\\\n",
-					fmt::join(m_liveness->liveIn(_id) | ranges::views::transform(valueToString), ",")
+					fmt::join(m_liveness->liveIn(_id) | ranges::views::transform([&](auto const& liveIn) { return valueToString(SSACFG::ValueId{liveIn.first}) + fmt::format("[{}]", liveIn.second); }), ", ")
 				);
 				m_result << fmt::format(
 					"LiveOut: {}\\l\\n",
-					fmt::join(m_liveness->liveOut(_id) | ranges::views::transform(valueToString), ",")
+					fmt::join(m_liveness->liveOut(_id) | ranges::views::transform([&](auto const& liveOut) { return valueToString(SSACFG::ValueId{liveOut.first}) + fmt::format("[{}]", liveOut.second); }), ", ")
+				);
+				auto const usedVariables = m_liveness->used(_id);
+				m_result << fmt::format(
+					"Used: {}\\l\\n",
+					fmt::join(usedVariables | ranges::views::transform([&](auto const& used) { return valueToString(SSACFG::ValueId{used.first}) + fmt::format("[{}]", used.second); }), ", ")
 				);
 			}
 			else
-				m_result << fmt::format("{} [label=\"\\\nBlock {}\\n", formatBlockHandle(_id), _id.value);
+				m_result << fmt::format("{} [{}label=\"\\\nBlock {}\\n", formatBlockHandle(_id), revertPathInfo, _id.value);
+
 			for (auto const& phi: _block.phis)
 			{
-				auto const* phiValue = std::get_if<SSACFG::PhiValue>(&m_cfg.valueInfo(phi));
-				solAssert(phiValue);
-				m_result << fmt::format("v{} := {}\\l\\\n", phi.value, formatPhi(m_cfg, *phiValue));
+				auto const& phiInfo = m_cfg.phiInfo(phi);
+				m_result << fmt::format("phi{} := {}\\l\\\n", phi.value(), formatPhi(m_cfg, phiInfo));
 			}
 			for (auto const& operation: _block.operations)
 			{
@@ -171,7 +165,7 @@ private:
 					[&](SSACFG::LiteralAssignment const&)
 					{
 						yulAssert(operation.inputs.size() == 1);
-						return varToString(m_cfg, operation.inputs.back());
+						return operation.inputs.back().str(m_cfg);
 					}
 				}, operation.kind);
 				if (!operation.outputs.empty())
@@ -209,7 +203,7 @@ private:
 					m_result << fmt::format("{} -> {}Exit;\n", formatBlockHandle(_id), formatBlockHandle(_id));
 					m_result << fmt::format(
 						"{}Exit [label=\"{{ If {} | {{ <0> Zero | <1> NonZero }}}}\" shape=Mrecord];\n",
-						formatBlockHandle(_id), varToString(m_cfg, _conditionalJump.condition)
+						formatBlockHandle(_id), _conditionalJump.condition.str(m_cfg)
 					);
 					m_result << formatEdge(_id, _conditionalJump.zero, "0");
 					m_result << formatEdge(_id, _conditionalJump.nonZero, "1");
@@ -278,7 +272,7 @@ private:
 	void printFunction(Scope::Function const& _fun)
 	{
 		static auto constexpr returnsTransform = [](auto const& functionReturnValue) { return escape(functionReturnValue.get().name.str()); };
-		static auto constexpr argsTransform = [](auto const& arg) { return fmt::format("v{}", std::get<1>(arg).value); };
+		static auto constexpr argsTransform = [](auto const& arg) { return fmt::format("v{}", std::get<1>(arg).value()); };
 		m_result << "FunctionEntry_" << escape(_fun.name.str()) << "_" << m_cfg.entry.value << " [label=\"";
 		if (!m_cfg.returns.empty())
 			m_result << fmt::format("function {0}:\n {1} := {0}({2})", escape(_fun.name.str()), fmt::join(m_cfg.returns | ranges::views::transform(returnsTransform), ", "), fmt::join(m_cfg.arguments | ranges::views::transform(argsTransform), ", "));
@@ -290,21 +284,37 @@ private:
 	}
 
 	SSACFG const& m_cfg;
+	std::unique_ptr<JunkAdmittingBlocksFinder> m_junkAdmittingBlocks;
 	size_t m_functionIndex;
-	SSACFGLiveness const* m_liveness;
+	LivenessAnalysis const* m_liveness;
 	std::stringstream m_result{};
 };
 }
 
+std::string SSACFG::ValueId::str(SSACFG const& _cfg) const
+{
+	if (!hasValue())
+		return "INVALID";
+	switch (kind())
+	{
+		case Kind::Literal:  return toCompactHexWithPrefix(_cfg.literalInfo(*this).value);
+		case Kind::Variable: return fmt::format("v{}", value());
+		case Kind::Phi: return fmt::format("phi{}", value());
+		case Kind::Unreachable: return "[unreachable]";
+	}
+	unreachable();
+}
+
+
 std::string SSACFG::toDot(
 	bool _includeDiGraphDefinition,
 	std::optional<size_t> _functionIndex,
-	SSACFGLiveness const* _liveness
+	LivenessAnalysis const* _liveness
 ) const
 {
 	std::ostringstream output;
 	if (_includeDiGraphDefinition)
-		output << "digraph SSACFG {\nnodesep=0.7;\ngraph[fontname=\"DejaVu Sans\"]\nnode[shape=box,fontname=\"DejaVu Sans\"];\n\n";
+		output << "digraph SSACFG {\nnodesep=0.7;\ngraph[fontname=\"DejaVu Sans\", rankdir=LR]\nnode[shape=box,fontname=\"DejaVu Sans\"];\n\n";
 	if (function)
 		output << SSACFGPrinter(*this, _functionIndex ? *_functionIndex : static_cast<size_t>(1), *function, _liveness);
 	else

@@ -1,0 +1,5 @@
+Warning: 'transfer' is deprecated and scheduled for removal. Use 'call{value: <amount>}("")' instead.
+  --> input.sol:11:3:
+   |
+11 | 		a.transfer(x);
+   | 		^^^^^^^^^^

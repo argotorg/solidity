@@ -21,4 +21,6 @@ contract C {
 // ====
 // bytecodeFormat: legacy
 // ----
+// Warning 9207: (47-69): 'transfer' is deprecated and scheduled for removal. Use 'call{value: <amount>}("")' instead.
+// Warning 9207: (90-108): 'send' is deprecated and scheduled for removal. Use 'call{value: <amount>}("")' instead.
 // Warning 5159: (122-134): "selfdestruct" has been deprecated. Note that, starting from the Cancun hard fork, the underlying opcode no longer deletes the code and data associated with an account and only transfers its Ether to the beneficiary, unless executed in the same transaction in which the contract was created (see EIP-6780). Any use in newly deployed contracts is strongly discouraged even if the new behavior is taken into account. Future changes to the EVM might further reduce the functionality of the opcode.

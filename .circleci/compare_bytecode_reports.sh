@@ -28,6 +28,7 @@ no_cli_platforms=(
 )
 native_platforms=(
     ubuntu2004-static
+    ubuntu_arm
     ubuntu
     osx
     osx_intel

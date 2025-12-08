@@ -39,7 +39,7 @@ compilation fails.
 By default, the command-line compiler provides the *Host Filesystem Loader* - a rudimentary callback
 that interprets a source unit name as a path in the local filesystem.
 This callback can be disabled using the ``--no-import-callback`` command-line option.
-The `JavaScript interface <https://github.com/ethereum/solc-js>`_ does not provide any by default,
+The `JavaScript interface <https://github.com/argotorg/solc-js>`_ does not provide any by default,
 but one can be provided by the user.
 This mechanism can be used to obtain source code from locations other than the local filesystem
 (which may not even be accessible, e.g. when the compiler is running in a browser).
@@ -83,7 +83,7 @@ The initial content of the VFS depends on how you invoke the compiler:
 #. **Standard JSON**
 
    When using the :ref:`Standard JSON <compiler-api>` API (via either the `JavaScript interface
-   <https://github.com/ethereum/solc-js>`_ or the ``--standard-json`` command-line option)
+   <https://github.com/argotorg/solc-js>`_ or the ``--standard-json`` command-line option)
    you provide input in JSON format, containing, among other things, the content of all your source
    files:
 

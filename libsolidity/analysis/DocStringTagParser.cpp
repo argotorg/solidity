@@ -206,11 +206,18 @@ bool DocStringTagParser::visit(InlineAssembly const& _assembly)
 							m_errorReporter.warning(
 								8544_error,
 								_assembly.location(),
-								"Inline assembly marked as memory safe using both a NatSpec tag and an assembly flag. "
-								"If you are not concerned with backwards compatibility, only use the assembly flag, "
+								"Inline assembly marked as memory safe using both a NatSpec tag and an assembly block annotation. "
+								"If you are not concerned with backwards compatibility, only use the assembly block annotation, "
 								"otherwise only use the NatSpec tag."
 							);
 						_assembly.annotation().markedMemorySafe = true;
+						m_errorReporter.warning(
+							2424_error,
+							_assembly.location(),
+							"Natspec memory-safe-assembly special comment for inline assembly is deprecated and "
+							"scheduled for removal. "
+							"Use the memory-safe block annotation instead."
+						);
 					}
 					else
 						m_errorReporter.warning(

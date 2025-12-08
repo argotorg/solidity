@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-// reproducing https://github.com/ethereum/solidity/issues/16155
+// reproducing https://github.com/argotorg/solidity/issues/16155
 
 pragma solidity ^0.8.19;
 

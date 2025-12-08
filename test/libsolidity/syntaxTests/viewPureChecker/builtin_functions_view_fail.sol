@@ -20,6 +20,8 @@ contract C {
     }
 }
 // ----
+// Warning 9207: (52-74): 'transfer' is deprecated and scheduled for removal. Use 'call{value: <amount>}("")' instead.
+// Warning 9207: (132-150): 'send' is deprecated and scheduled for removal. Use 'call{value: <amount>}("")' instead.
 // Warning 5159: (201-213): "selfdestruct" has been deprecated. Note that, starting from the Cancun hard fork, the underlying opcode no longer deletes the code and data associated with an account and only transfers its Ether to the beneficiary, unless executed in the same transaction in which the contract was created (see EIP-6780). Any use in newly deployed contracts is strongly discouraged even if the new behavior is taken into account. Future changes to the EVM might further reduce the functionality of the opcode.
 // TypeError 8961: (52-77): Function cannot be declared as view because this expression (potentially) modifies the state.
 // TypeError 8961: (132-153): Function cannot be declared as view because this expression (potentially) modifies the state.

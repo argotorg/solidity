@@ -24,8 +24,8 @@ while (( "$#" )); do
   shift
 done
 
-SOLIDITY_REPO_URL="https://github.com/ethereum/solidity"
-SOLC_JS_REPO_URL="https://github.com/ethereum/solc-js"
+SOLIDITY_REPO_URL="https://github.com/argotorg/solidity"
+SOLC_JS_REPO_URL="https://github.com/argotorg/solc-js"
 SOLC_JS_BRANCH=wasmRebuildTests
 RELEASE_URL="https://binaries.soliditylang.org/bin"
 RELEASE_COMMIT_LIST_URL="$RELEASE_URL/list.txt"

@@ -26,6 +26,7 @@ contract E is A {
   modifier mod() override { _;}
 }
 // ----
+// Warning 8429: (110-133): Virtual modifiers are deprecated and scheduled for removal.
 // TypeError 3656: (137-254): Contract "B" should be marked as abstract.
 // TypeError 3656: (256-344): Contract "C" should be marked as abstract.
 // TypeError 3656: (346-466): Contract "D" should be marked as abstract.

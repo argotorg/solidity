@@ -256,7 +256,7 @@ BOOST_AUTO_TEST_CASE(storage_write_in_loops)
 	compareVersions("f(uint256)", 36);
 }
 
-// Test disabled with https://github.com/ethereum/solidity/pull/762
+// Test disabled with https://github.com/argotorg/solidity/pull/762
 // Information in joining branches is not retained anymore.
 BOOST_AUTO_TEST_CASE(retain_information_in_branches)
 {

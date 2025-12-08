@@ -15,9 +15,11 @@ function f() pure {
 // Warning 6269: (189-200): Unexpected NatSpec tag "after" with value "bogus-value" in inline assembly.
 // Warning 6269: (189-200): Unexpected NatSpec tag "before" with value "bogus-value" in inline assembly.
 // Warning 8787: (189-200): Unexpected value for @solidity tag in inline assembly: a
+// Warning 2424: (189-200): Natspec memory-safe-assembly special comment for inline assembly is deprecated and scheduled for removal. Use the memory-safe block annotation instead.
 // Warning 8787: (189-200): Unexpected value for @solidity tag in inline assembly: b
 // Warning 8787: (189-200): Unexpected value for @solidity tag in inline assembly: c
 // Warning 8787: (189-200): Unexpected value for @solidity tag in inline assembly: d
+// Warning 2424: (289-300): Natspec memory-safe-assembly special comment for inline assembly is deprecated and scheduled for removal. Use the memory-safe block annotation instead.
 // Warning 8787: (289-300): Unexpected value for @solidity tag in inline assembly: a
 // Warning 4377: (289-300): Value for @solidity tag in inline assembly specified multiple times: a
 // Warning 4377: (289-300): Value for @solidity tag in inline assembly specified multiple times: memory-safe-assembly

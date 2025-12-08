@@ -44,7 +44,9 @@ else()
 	# Boost 1.67 moved container_hash into is own module.
 	# Boost 1.69 boost::system is header-only and no longer needs to be fetched as component
 	# Boost 1.70 comes with its own BoostConfig.cmake and is the new (non-deprecated) behavior
-	find_package(Boost 1.70.0 QUIET REQUIRED COMPONENTS ${BOOST_COMPONENTS})
+	# Boost 1.75 fixes infinite recursion on `boost::rational` comparison with GCC<14.0 under C++20
+	# Boost 1.83 is the version that comes with Ubuntu 24.04.
+	find_package(Boost 1.83.0 QUIET REQUIRED COMPONENTS ${BOOST_COMPONENTS})
 endif()
 
 # If cmake is older than boost and boost is older than 1.70,

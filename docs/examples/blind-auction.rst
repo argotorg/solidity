@@ -118,13 +118,14 @@ to receive their Ether - contracts cannot activate themselves.
             if (amount > 0) {
                 // It is important to set this to zero because the recipient
                 // can call this function again as part of the receiving call
-                // before `send` returns.
+                // before `call` returns.
                 pendingReturns[msg.sender] = 0;
 
                 // msg.sender is not of type `address payable` and must be
                 // explicitly converted using `payable(msg.sender)` in order
-                // use the member function `send()`.
-                if (!payable(msg.sender).send(amount)) {
+                // use the member function `call()`.
+                (bool success, ) = payable(msg.sender).call{value: amount}("");
+                if (!success) {
                     // No need to call throw here, just reset the amount owing
                     pendingReturns[msg.sender] = amount;
                     return false;
@@ -160,7 +161,8 @@ to receive their Ether - contracts cannot activate themselves.
             emit AuctionEnded(highestBidder, highestBid);
 
             // 3. Interaction
-            beneficiary.transfer(highestBid);
+            (bool success, ) = beneficiary.call{value: highestBid}("");
+            require(success);
         }
     }
 
@@ -310,7 +312,8 @@ invalid bids.
                 // the same deposit.
                 bidToCheck.blindedBid = bytes32(0);
             }
-            payable(msg.sender).transfer(refund);
+            (bool success, ) = payable(msg.sender).call{value: refund}("");
+            require(success);
         }
 
         /// Withdraw a bid that was overbid.
@@ -319,11 +322,12 @@ invalid bids.
             if (amount > 0) {
                 // It is important to set this to zero because the recipient
                 // can call this function again as part of the receiving call
-                // before `transfer` returns (see the remark above about
+                // before `call` returns (see the remark above about
                 // conditions -> effects -> interaction).
                 pendingReturns[msg.sender] = 0;
 
-                payable(msg.sender).transfer(amount);
+                (bool success, ) = payable(msg.sender).call{value: amount}("");
+                require(success);
             }
         }
 
@@ -336,7 +340,8 @@ invalid bids.
             if (ended) revert AuctionEndAlreadyCalled();
             emit AuctionEnded(highestBidder, highestBid);
             ended = true;
-            beneficiary.transfer(highestBid);
+            (bool success, ) = beneficiary.call{value: highestBid}("");
+            require(success);
         }
 
         // This is an "internal" function which means that it

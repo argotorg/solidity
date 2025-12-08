@@ -181,9 +181,9 @@ at each version. Backward compatibility is not guaranteed between each version.
    - Introduces ``blobhash()`` in inline assembly and a corresponding global function to retrieve versioned hashes of blobs associated with the transaction (see `EIP-4844 <https://eips.ethereum.org/EIPS/eip-4844>`_).
    - Opcode ``mcopy`` is available in assembly (see `EIP-5656 <https://eips.ethereum.org/EIPS/eip-5656>`_).
    - Opcodes ``tstore`` and ``tload`` are available in assembly (see `EIP-1153 <https://eips.ethereum.org/EIPS/eip-1153>`_).
-- ``prague`` (**default**)
-- ``osaka`` (**experimental**)
-   - Experimental compilation to EOF is available starting from this version. (`EIP-7692 <https://eips.ethereum.org/EIPS/eip-7692>`_)
+- ``prague``
+- ``osaka`` (**default**)
+   - ``clz`` builtin function is available in inline assembly. (`EIP-7939 <https://eips.ethereum.org/EIPS/eip-7939>`_)
 
 .. index:: ! standard JSON, ! --standard-json
 .. _compiler-api:
@@ -356,10 +356,11 @@ Input Description
         // Version of the EVM to compile for (optional).
         // Affects type checking and code generation. Can be homestead,
         // tangerineWhistle, spuriousDragon, byzantium, constantinople,
-        // petersburg, istanbul, berlin, london, paris, shanghai, cancun, prague (default) or osaka (experimental).
-        "evmVersion": "prague",
+        // petersburg, istanbul, berlin, london, paris, shanghai, cancun, prague or osaka (default).
+        "evmVersion": "osaka",
         // EVM Object Format version to compile for (optional, experimental).
         // Currently the only valid value is 1. If not specified, legacy non-EOF bytecode will be generated.
+        // Requires `evmVersion` >= osaka.
         "eofVersion": null,
         // Optional: Change compilation pipeline to go through the Yul intermediate representation.
         // This is false by default.

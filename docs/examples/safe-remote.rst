@@ -93,11 +93,12 @@ you can use state machine-like constructs inside a contract.
         {
             emit Aborted();
             state = State.Inactive;
-            // We use transfer here directly. It is
+            // We use call here directly. It is
             // reentrancy-safe, because it is the
             // last call in this function and we
             // already changed the state.
-            seller.transfer(address(this).balance);
+            (bool success, ) = seller.call{value: address(this).balance}("");
+            require(success);
         }
 
         /// Confirm the purchase as buyer.
@@ -124,11 +125,12 @@ you can use state machine-like constructs inside a contract.
         {
             emit ItemReceived();
             // It is important to change the state first because
-            // otherwise, the contracts called using `send` below
+            // otherwise, the contracts called using `call` below
             // can call in again here.
             state = State.Release;
 
-            buyer.transfer(value);
+            (bool success, ) = buyer.call{value: value}("");
+            require(success);
         }
 
         /// This function refunds the seller, i.e.
@@ -140,10 +142,11 @@ you can use state machine-like constructs inside a contract.
         {
             emit SellerRefunded();
             // It is important to change the state first because
-            // otherwise, the contracts called using `send` below
+            // otherwise, the contracts called using `call` below
             // can call in again here.
             state = State.Inactive;
 
-            seller.transfer(3 * value);
+            (bool success, ) = seller.call{value: 3 * value}("");
+            require(success);
         }
     }

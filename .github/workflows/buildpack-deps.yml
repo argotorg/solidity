@@ -1,46 +1,61 @@
 name: buildpack-deps
 
+permissions:
+  packages: write
+  pull-requests: write
+
 on:
   pull_request:
     branches: [ develop ]
     paths:
       - 'scripts/docker/buildpack-deps/Dockerfile.emscripten'
       - 'scripts/docker/buildpack-deps/Dockerfile.ubuntu.clang.ossfuzz'
-      - 'scripts/docker/buildpack-deps/Dockerfile.ubuntu2204'
       - 'scripts/docker/buildpack-deps/Dockerfile.ubuntu2404'
       - 'scripts/docker/buildpack-deps/Dockerfile.ubuntu2404.clang'
+      - 'scripts/docker/buildpack-deps/Dockerfile.ubuntu2404.arm'
 
 jobs:
   buildpack-deps:
+    runs-on: ${{ matrix.runs-on }}
+
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
-      DOCKER_REPOSITORY: solbuildpackpusher/solidity-buildpack-deps
+      DOCKER_REPOSITORY: ghcr.io/argotorg/solidity-buildpack-deps
       IMAGE_NAME: buildpack-deps
-
-    runs-on: ubuntu-latest
 
     strategy:
       fail-fast: false
       matrix:
-        image_variant: [emscripten, ubuntu.clang.ossfuzz, ubuntu2004, ubuntu2204, ubuntu2404, ubuntu2404.clang]
+        include:
+          - image_variant: emscripten
+            runs-on: ubuntu-latest
+          - image_variant: ubuntu.clang.ossfuzz
+            runs-on: ubuntu-latest
+          - image_variant: ubuntu2404
+            runs-on: ubuntu-latest
+          - image_variant: ubuntu2404.clang
+            runs-on: ubuntu-latest
+          - image_variant: ubuntu2404.arm
+            runs-on: ubuntu-24.04-arm
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
           fetch-depth: 0
 
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Upgrade ${{ env.IMAGE_NAME }}-${{ matrix.image_variant }}
         run: |
-          echo ${DOCKERHUB_TOKEN} | docker login -u solbuildpackpusher --password-stdin
           scripts/ci/docker_upgrade.sh ${{ env.IMAGE_NAME }} ${{ matrix.image_variant }} ${{ env.DOCKER_REPOSITORY }}
-          docker logout
 
       - name: comment PR
         if: "env.DOCKER_IMAGE"
-        # NOTE: Can't update to v1.3.1 due to an error: `/entrypoint.sh:5:in 'require_relative': cannot load such file -- /lib/github (LoadError)`
-        uses: unsplash/comment-on-pr@ffe8f97ccc63ce12c3c23c6885b169db67958d3b #v1.3.0
+        uses: thollander/actions-comment-pull-request@24bffb9b452ba05a4f3f77933840a6a841d1b32b # v3.0.1
         with:
-          msg: "`${{ env.DOCKER_IMAGE }} ${{ env.DOCKER_REPO_DIGEST }}`."
-          check_for_duplicate_msg: false
-
+          message: "`${{ env.DOCKER_IMAGE }} ${{ env.DOCKER_REPO_DIGEST }}`."

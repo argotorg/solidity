@@ -7,7 +7,7 @@ Yul Control Flow Graph:
         "blocks": [
             {
                 "exit": {
-                    "cond": "v2",
+                    "cond": "v1",
                     "targets": [
                         "Block2",
                         "Block1"
@@ -38,7 +38,7 @@ Yul Control Flow Graph:
                         "in": [],
                         "op": "callvalue",
                         "out": [
-                            "v2"
+                            "v1"
                         ]
                     }
                 ],
@@ -63,7 +63,7 @@ Yul Control Flow Graph:
                         ],
                         "op": "datasize",
                         "out": [
-                            "v4"
+                            "v2"
                         ]
                     },
                     {
@@ -73,13 +73,13 @@ Yul Control Flow Graph:
                         ],
                         "op": "dataoffset",
                         "out": [
-                            "v5"
+                            "v3"
                         ]
                     },
                     {
                         "in": [
-                            "v4",
-                            "v5",
+                            "v2",
+                            "v3",
                             "v0"
                         ],
                         "op": "codecopy",
@@ -87,7 +87,7 @@ Yul Control Flow Graph:
                     },
                     {
                         "in": [
-                            "v4",
+                            "v2",
                             "v0"
                         ],
                         "op": "return",
@@ -130,7 +130,7 @@ Yul Control Flow Graph:
                 "blocks": [
                     {
                         "exit": {
-                            "cond": "v5",
+                            "cond": "v3",
                             "targets": [
                                 "Block2",
                                 "Block1"
@@ -161,26 +161,26 @@ Yul Control Flow Graph:
                                 "in": [],
                                 "op": "calldatasize",
                                 "out": [
-                                    "v3"
+                                    "v1"
                                 ]
                             },
                             {
                                 "in": [
                                     "0x04",
-                                    "v3"
+                                    "v1"
                                 ],
                                 "op": "lt",
                                 "out": [
-                                    "v4"
+                                    "v2"
                                 ]
                             },
                             {
                                 "in": [
-                                    "v4"
+                                    "v2"
                                 ],
                                 "op": "iszero",
                                 "out": [
-                                    "v5"
+                                    "v3"
                                 ]
                             }
                         ],
@@ -215,7 +215,7 @@ Yul Control Flow Graph:
                     },
                     {
                         "exit": {
-                            "cond": "v11",
+                            "cond": "v6",
                             "targets": [
                                 "Block4",
                                 "Block3"
@@ -230,27 +230,27 @@ Yul Control Flow Graph:
                                 ],
                                 "op": "calldataload",
                                 "out": [
-                                    "v7"
+                                    "v4"
                                 ]
                             },
                             {
                                 "in": [
-                                    "v7",
+                                    "v4",
                                     "0xe0"
                                 ],
                                 "op": "shr",
                                 "out": [
-                                    "v9"
+                                    "v5"
                                 ]
                             },
                             {
                                 "in": [
-                                    "v9",
+                                    "v5",
                                     "0x26121ff0"
                                 ],
                                 "op": "eq",
                                 "out": [
-                                    "v11"
+                                    "v6"
                                 ]
                             }
                         ],
@@ -280,7 +280,7 @@ Yul Control Flow Graph:
                     },
                     {
                         "exit": {
-                            "cond": "v12",
+                            "cond": "v7",
                             "targets": [
                                 "Block6",
                                 "Block5"
@@ -293,7 +293,7 @@ Yul Control Flow Graph:
                                 "in": [],
                                 "op": "callvalue",
                                 "out": [
-                                    "v12"
+                                    "v7"
                                 ]
                             }
                         ],
@@ -309,7 +309,7 @@ Yul Control Flow Graph:
                     },
                     {
                         "exit": {
-                            "cond": "v17",
+                            "cond": "v11",
                             "targets": [
                                 "Block9",
                                 "Block8"
@@ -324,34 +324,34 @@ Yul Control Flow Graph:
                                 ],
                                 "op": "not",
                                 "out": [
-                                    "v14"
+                                    "v8"
                                 ]
                             },
                             {
                                 "in": [],
                                 "op": "calldatasize",
                                 "out": [
-                                    "v15"
+                                    "v9"
                                 ]
                             },
                             {
                                 "in": [
-                                    "v14",
-                                    "v15"
+                                    "v8",
+                                    "v9"
                                 ],
                                 "op": "add",
                                 "out": [
-                                    "v16"
+                                    "v10"
                                 ]
                             },
                             {
                                 "in": [
                                     "0x00",
-                                    "v16"
+                                    "v10"
                                 ],
                                 "op": "slt",
                                 "out": [
-                                    "v17"
+                                    "v11"
                                 ]
                             }
                         ],

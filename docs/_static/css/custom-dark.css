@@ -590,6 +590,6 @@
   stroke: white;
 }
 
-:root[style*=dark] .a4 .sig-name {
+:root[style*=dark] .sig-name {
   background-color: transparent !important;
 }

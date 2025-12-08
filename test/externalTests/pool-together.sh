@@ -67,7 +67,8 @@ function pool_together_test
     force_hardhat_compiler_settings "$config_file" "$(first_word "$SELECTED_PRESETS")" "$config_var"
     yarn install
     # Hardhat 3.0+ breaks the test suite
-    yarn add hardhat@2.26.3
+    # v2.27.1 is the last v2 Hardhat (introduces Osaka support)
+    yarn add hardhat@2.27.1
 
     # These come with already compiled artifacts. We want them recompiled with latest compiler.
     rm -r node_modules/@pooltogether/yield-source-interface/artifacts/

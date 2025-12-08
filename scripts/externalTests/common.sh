@@ -22,7 +22,7 @@ set -e
 
 # Requires $REPO_ROOT to be defined and "${REPO_ROOT}/scripts/common.sh" to be included before.
 
-CURRENT_EVM_VERSION=prague
+CURRENT_EVM_VERSION=osaka
 
 AVAILABLE_PRESETS=(
     legacy-no-optimize
@@ -83,7 +83,7 @@ function setup_solc
         printLog "Setting up solc-js..."
         if [[ $solcjs_dir == "" ]]; then
             printLog "Cloning branch ${solcjs_branch}..."
-            git clone --depth 1 -b "$solcjs_branch" https://github.com/ethereum/solc-js.git "$install_dir"
+            git clone --depth 1 -b "$solcjs_branch" https://github.com/argotorg/solc-js.git "$install_dir"
         else
             printLog "Using local solc-js from ${solcjs_dir}..."
             cp -ra "$solcjs_dir" solc
@@ -334,6 +334,12 @@ function force_hardhat_compiler_settings
         echo "module.exports.solidity = ${compiler_settings};"
         echo "module.exports.networks.hardhat = module.exports.networks.hardhat || { hardfork: '${evm_version}' }"
         echo "module.exports.networks.hardhat.hardfork = '${evm_version}'"
+        if [[ $evm_version == "osaka" ]]; then
+            # Transaction gas limit introduced by EIP-7825; the default value is 30_000_000
+            # and should be automatically handled by EDR - however, EDR with the relevant change
+            # was not released in time.
+            echo "module.exports.networks.hardhat.blockGasLimit = 16_777_216"
+        fi
     else
         [[ $config_file == *\.ts ]] || assertFail
         [[ $config_var_name != "" ]] || assertFail
@@ -342,6 +348,12 @@ function force_hardhat_compiler_settings
         echo "${config_var_name}.solidity = {compilers: [${compiler_settings}]};"
         echo "${config_var_name}.networks!.hardhat = ${config_var_name}.networks!.hardhat ?? { hardfork: '${evm_version}' };"
         echo "${config_var_name}.networks!.hardhat!.hardfork = '${evm_version}'"
+        if [[ $evm_version == "osaka" ]]; then
+            # Transaction gas limit introduced by EIP-7825; the default value is 30_000_000
+            # and should be automatically handled by EDR - however, EDR with the relevant change
+            # was not released in time.
+            echo "${config_var_name}.networks!.hardhat!.blockGasLimit = 16_777_216"
+        fi
     fi >> "$config_file"
 }
 

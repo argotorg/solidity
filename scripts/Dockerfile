@@ -1,6 +1,4 @@
 FROM alpine AS build
-MAINTAINER chriseth <chris@ethereum.org>
-#Official solidity docker image
 
 #Establish working directory as solidity
 WORKDIR /solidity
@@ -8,8 +6,8 @@ WORKDIR /solidity
 # Build dependencies
 RUN apk update && apk add boost-dev boost-static build-base cmake git clang
 
-#Copy working directory on travis to the image
-COPY / $WORKDIR
+#Copy working directory to the image
+COPY . /solidity
 
 # Number of parallel jobs during build
 # or 0 for auto-computing (max(1, CPU_core_count * 2/3), a greedy value)
@@ -34,5 +32,7 @@ RUN make solc \
 RUN strip solc/solc
 
 FROM scratch
+LABEL org.opencontainers.image.source=https://github.com/argotorg/solidity
+LABEL maintainer="Solidity Team <solidity@argot.org>"
 COPY --from=build /solidity/solc/solc /usr/bin/solc
 ENTRYPOINT ["/usr/bin/solc"]

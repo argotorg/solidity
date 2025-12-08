@@ -1,4 +1,4 @@
-// regression test for https://github.com/ethereum/solidity/issues/16155
+// regression test for https://github.com/argotorg/solidity/issues/16155
 {
     function identity(value) -> ret { ret := value }
 

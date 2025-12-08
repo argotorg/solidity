@@ -1,3 +1,9 @@
+Warning: 'transfer' is deprecated and scheduled for removal. Use 'call{value: <amount>}("")' instead.
+  --> input.sol:10:3:
+   |
+10 | 		a.transfer(x);
+   | 		^^^^^^^^^^
+
 Warning: BMC: Division by zero happens here.
  --> input.sol:9:3:
   |

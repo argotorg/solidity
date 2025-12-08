@@ -18,5 +18,7 @@ contract B is A {
 // ====
 // SMTEngine: all
 // ----
-// Warning 6328: (94-104): CHC: Assertion violation happens here.
+// Warning 8429: (125-148): Virtual modifiers are deprecated and scheduled for removal.
+// Warning 8429: (171-238): Virtual modifiers are deprecated and scheduled for removal.
+// Warning 6328: (94-104): CHC: Assertion violation happens here.\nCounterexample:\ns = true\nx = true\n\nTransaction trace:\nB.constructor()\nState: s = false\nA.f()
 // Info 1391: CHC: 1 verification condition(s) proved safe! Enable the model checker option "show proved safe" to see all of them.

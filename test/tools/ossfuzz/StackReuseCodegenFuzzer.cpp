@@ -80,7 +80,7 @@ DEFINE_PROTO_FUZZER(Program const& _input)
 	);
 	std::string yul_source = converter.programToString(_input);
 	// Do not fuzz the EVM Version field.
-	// See https://github.com/ethereum/solidity/issues/12590
+	// See https://github.com/argotorg/solidity/issues/12590
 	langutil::EVMVersion version;
 	EVMHost hostContext(version, evmone);
 	hostContext.reset();

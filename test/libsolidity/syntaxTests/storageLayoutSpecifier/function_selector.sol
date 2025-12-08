@@ -3,4 +3,4 @@ contract A {
 }
 contract C is A layout at uint32(this.f.selector) {}
 // ----
-// TypeError 6396: (68-91): The base slot of the storage layout must evaluate to a rational number.
+// TypeError 1505: (68-91): The base slot expression contains elements that are not yet supported by the internal constant evaluator and therefore cannot be evaluated at compilation time.

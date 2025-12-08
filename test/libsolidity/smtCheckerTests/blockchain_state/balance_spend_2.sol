@@ -17,6 +17,7 @@ contract C {
 // SMTIgnoreCex: yes
 // SMTIgnoreOS: macos
 // ----
+// Warning 9207: (141-152): 'transfer' is deprecated and scheduled for removal. Use 'call{value: <amount>}("")' instead.
 // Warning 8656: (141-156): CHC: Insufficient funds happens here.
 // Warning 6328: (193-226): CHC: Assertion violation happens here.
 // Warning 6328: (245-279): CHC: Assertion violation happens here.

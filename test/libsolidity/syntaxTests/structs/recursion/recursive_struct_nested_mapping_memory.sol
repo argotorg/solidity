@@ -2,7 +2,7 @@ library a {
     struct b {
         mapping (uint => b) c ;
     }
-    // Segfaults in https://github.com/ethereum/solidity/issues/9443
+    // Segfaults in https://github.com/argotorg/solidity/issues/9443
     function d(b memory) public {}
 }
 // ----

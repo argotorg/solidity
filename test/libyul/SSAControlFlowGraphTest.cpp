@@ -20,7 +20,7 @@
 #include <test/libyul/Common.h>
 #include <test/Common.h>
 
-#include <libyul/backends/evm/SSAControlFlowGraphBuilder.h>
+#include <libyul/backends/evm/ssa/SSACFGBuilder.h>
 #include <libyul/backends/evm/StackHelpers.h>
 
 #include <libyul/AsmAnalysis.h>
@@ -70,13 +70,13 @@ TestCase::TestResult SSAControlFlowGraphTest::run(std::ostream& _stream, std::st
 		return TestResult::FatalError;
 	}
 
-	std::unique_ptr<ControlFlow> controlFlow = SSAControlFlowGraphBuilder::build(
+	std::unique_ptr<ssa::ControlFlow> controlFlow = ssa::SSACFGBuilder::build(
 		*yulStack.parserResult()->analysisInfo,
 		yulStack.dialect(),
 		yulStack.parserResult()->code()->root(),
 		true
 	);
-	ControlFlowLiveness liveness(*controlFlow);
+	ssa::ControlFlowLiveness liveness(*controlFlow);
 	m_obtainedResult = controlFlow->toDot(&liveness);
 
 	auto result = checkResult(_stream, _linePrefix, _formatted);

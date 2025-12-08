@@ -35,7 +35,7 @@ def test_bytecode_equivalence():
             )
         )
 
-    # Repro for https://github.com/ethereum/solidity/issues/14829
+    # Repro for https://github.com/argotorg/solidity/issues/14829
     save_bytecode(
         Path("B.bin"),
         solc_bin_report(

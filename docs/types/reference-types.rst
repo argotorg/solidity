@@ -680,7 +680,7 @@ shown in the following example:
 .. code-block:: solidity
 
     // SPDX-License-Identifier: GPL-3.0
-    pragma solidity >=0.6.0 <0.9.0;
+    pragma solidity >=0.6.2 <0.9.0;
 
     // Defines a new type with two fields.
     // Declaring a struct outside of a contract allows
@@ -729,8 +729,8 @@ shown in the following example:
                 return false;
             uint amount = c.amount;
             c.amount = 0;
-            c.beneficiary.transfer(amount);
-            return true;
+            (bool success, ) = c.beneficiary.call{value: amount}("");
+            return success;
         }
     }
 

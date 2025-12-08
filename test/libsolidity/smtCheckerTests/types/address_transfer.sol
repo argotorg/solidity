@@ -11,5 +11,6 @@ contract C
 // ====
 // SMTEngine: all
 // ----
-// Warning 8656: (98-113): CHC: Insufficient funds happens here.
-// Warning 6328: (162-186): CHC: Assertion violation happens here.
+// Warning 9207: (98-108): 'transfer' is deprecated and scheduled for removal. Use 'call{value: <amount>}("")' instead.
+// Warning 8656: (98-113): CHC: Insufficient funds happens here.\nCounterexample:\n\na = 0x51f0\nx = 100\n\nTransaction trace:\nC.constructor()\nC.f(0x51f0)
+// Warning 6328: (162-186): CHC: Assertion violation happens here.\nCounterexample:\n\na = 0x0\nx = 100\n\nTransaction trace:\nC.constructor()\nC.f(0x0)

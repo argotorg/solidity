@@ -11,7 +11,7 @@ The Solidity compiler involves optimizations at three different levels (in order
 - Optimizing transformations on the Yul IR code.
 - Optimizations at the opcode level.
 
-The opcode-based optimizer applies a set of `simplification rules <https://github.com/ethereum/solidity/blob/develop/libevmasm/RuleList.h>`_
+The opcode-based optimizer applies a set of `simplification rules <https://github.com/argotorg/solidity/blob/develop/libevmasm/RuleList.h>`_
 to opcodes. It also combines equal code sets and removes unused code.
 
 The Yul-based optimizer is much more powerful, because it can work across function

@@ -3,6 +3,6 @@ $ErrorActionPreference = "Stop"
 # Needed for Invoke-WebRequest to work via CI.
 $progressPreference = "silentlyContinue"
 
-Invoke-WebRequest -URI "https://github.com/ethereum/evmone/releases/download/v0.13.0/evmone-0.13.0-windows-amd64.zip" -OutFile "evmone.zip"
+Invoke-WebRequest -URI "https://github.com/ipsilon/evmone/releases/download/v0.16.0/evmone-0.16.0-windows-amd64.zip" -OutFile "evmone.zip"
 tar -xf evmone.zip "bin/evmone.dll"
 mv bin/evmone.dll deps/

@@ -66,6 +66,8 @@
 
 #include <libsolidity/interface/OptimiserSettings.h>
 
+#include <range/v3/view/enumerate.hpp>
+
 #include <random>
 
 using namespace solidity;
@@ -80,15 +82,6 @@ YulOptimizerTestCommon::YulOptimizerTestCommon(std::shared_ptr<Object const> _ob
 	m_optimizedObject(std::make_shared<Object>(*_obj))
 {
 	soltestAssert(m_object && m_optimizedObject);
-
-	if (
-		std::any_of(
-			m_object->subObjects.begin(),
-			m_object->subObjects.end(),
-			[](auto const& subObject) { return dynamic_cast<Data*>(subObject.get()) == nullptr;}
-		)
-	)
-		solUnimplemented("The current implementation of YulOptimizerTests ignores subobjects that are not Data.");
 
 	m_namedSteps = {
 		{"disambiguator", [&]() { return disambiguate(); }},
@@ -496,8 +489,19 @@ void YulOptimizerTestCommon::setStep(std::string const& _optimizerStep)
 
 bool YulOptimizerTestCommon::runStep()
 {
-	if (m_namedSteps.count(m_optimizerStep))
+	if (m_namedSteps.contains(m_optimizerStep))
 	{
+		for (auto const& [ix, subNode]: m_object->subObjects | ranges::views::enumerate)
+			if (auto const subObject = std::dynamic_pointer_cast<Object const>(subNode))
+			{
+				YulOptimizerTestCommon subTest(subObject);
+				subTest.setStep(m_optimizerStep);
+				subTest.run();
+				auto const optimizedSubObject = std::dynamic_pointer_cast<Object>(m_optimizedObject->subObjects[ix]);
+				yulAssert(optimizedSubObject);
+				optimizedSubObject->setCode(subTest.m_optimizedObject->code());
+			}
+
 		auto block = m_namedSteps[m_optimizerStep]();
 		m_optimizedObject->setCode(std::make_shared<AST>(*m_object->dialect(), std::move(block)));
 	}

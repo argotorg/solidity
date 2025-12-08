@@ -23,6 +23,7 @@
 #include <libsolidity/analysis/PostTypeContractLevelChecker.h>
 
 #include <fmt/format.h>
+#include <libsolidity/analysis/ConstantEvaluator.h>
 #include <libsolidity/ast/AST.h>
 #include <libsolidity/ast/ASTUtils.h>
 #include <libsolidity/ast/TypeProvider.h>
@@ -101,29 +102,71 @@ void PostTypeContractLevelChecker::checkStorageLayoutSpecifier(ContractDefinitio
 	}
 
 	auto const* baseSlotExpressionType = type(baseSlotExpression);
+	auto const* integerType = dynamic_cast<IntegerType const*>(baseSlotExpressionType);
 	auto const* rationalType = dynamic_cast<RationalNumberType const*>(baseSlotExpressionType);
-	if (!rationalType)
+	if (
+		!integerType &&
+		!rationalType
+	)
 	{
-		m_errorReporter.typeError(
-			6396_error,
-			baseSlotExpression.location(),
-			"The base slot of the storage layout must evaluate to a rational number."
-		);
-		return;
-	}
+		std::string errorMsg = "The base slot of the storage layout must evaluate to an integer";
+		if (dynamic_cast<AddressType const*>(baseSlotExpressionType))
+			errorMsg += " (the type is 'address' instead)";
+		else if (auto const* fixedBytesType = dynamic_cast<FixedBytesType const*>(baseSlotExpressionType))
+			errorMsg += fmt::format(
+				" (the type is 'bytes{}' instead)",
+				fixedBytesType->numBytes()
+				)
+			;
+		else if (auto const* userDefinedType = dynamic_cast<UserDefinedValueType const*>(baseSlotExpressionType))
+			errorMsg += fmt::format(
+				" (the type is '{}' instead)",
+				userDefinedType->canonicalName()
+				)
+			;
+		errorMsg += ".";
 
-	if (rationalType->isFractional())
-	{
 		m_errorReporter.typeError(
 			1763_error,
 			baseSlotExpression.location(),
-			"The base slot of the storage layout must evaluate to an integer."
+			errorMsg
 		);
 		return;
 	}
-	solAssert(rationalType->value().denominator() == 1);
 
-	bigint baseSlot = rationalType->value().numerator();
+	rational baseSlotRationalValue;
+	if (integerType)
+	{
+		std::optional<ConstantEvaluator::TypedRational> typedRational = ConstantEvaluator::evaluate(m_errorReporter, baseSlotExpression);
+		if (!typedRational)
+		{
+			m_errorReporter.typeError(
+				1505_error,
+				baseSlotExpression.location(),
+				"The base slot expression contains elements that are not yet supported "
+				"by the internal constant evaluator and therefore cannot be evaluated at compilation time."
+			);
+			return;
+		}
+		baseSlotRationalValue = typedRational->value;
+	}
+	else
+	{
+		solAssert(rationalType);
+		if (rationalType->isFractional())
+		{
+			m_errorReporter.typeError(
+				ErrorId{1763},
+				baseSlotExpression.location(),
+				"The base slot of the storage layout must evaluate to an integer."
+			);
+			return;
+		}
+		baseSlotRationalValue = rationalType->value();
+	}
+
+	solAssert(baseSlotRationalValue.denominator() == 1);
+	bigint baseSlot = baseSlotRationalValue.numerator();
 	if (!(0 <= baseSlot && baseSlot <= std::numeric_limits<u256>::max()))
 	{
 		m_errorReporter.typeError(
@@ -137,7 +180,18 @@ void PostTypeContractLevelChecker::checkStorageLayoutSpecifier(ContractDefinitio
 		return;
 	}
 
-	solAssert(baseSlotExpressionType->isImplicitlyConvertibleTo(*TypeProvider::uint256()));
+	if (!baseSlotExpressionType->isImplicitlyConvertibleTo(*TypeProvider::uint256()))
+	{
+		m_errorReporter.typeError(
+			1481_error,
+			baseSlotExpression.location(),
+			fmt::format(
+				"Base slot expression of type '{}' is not convertible to uint256.",
+				baseSlotExpressionType->humanReadableName()
+			)
+		);
+		return;
+	}
 	storageLayoutSpecifier->annotation().baseSlot = u256(baseSlot);
 
 	bigint size = contractStorageSizeUpperBound(_contract, VariableDeclaration::Location::Unspecified);
