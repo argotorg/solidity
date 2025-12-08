@@ -5,6 +5,7 @@ Language Features:
 Compiler Features:
 
 Bugfixes:
+* TypeChecker: Allow assignment of `string.concat` or `bytes.concat` to constant variables.
 
 
 ### 0.8.31 (2025-12-03)
