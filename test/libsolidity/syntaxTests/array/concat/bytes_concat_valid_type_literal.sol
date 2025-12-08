@@ -1,6 +1,6 @@
 contract C {
-    function f() public pure {
-        bytes.concat(
+    function f() public pure returns (bytes memory) {
+        return bytes.concat(
             hex"00",
             hex"aabbcc",
             unicode"abc",
