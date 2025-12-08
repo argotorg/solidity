@@ -3713,7 +3713,9 @@ bool FunctionType::isPure() const
 		m_kind == Kind::ABIDecode ||
 		m_kind == Kind::MetaType ||
 		m_kind == Kind::Wrap ||
-		m_kind == Kind::Unwrap;
+		m_kind == Kind::Unwrap ||
+		m_kind == Kind::BytesConcat ||
+		m_kind == Kind::StringConcat;
 }
 
 TypePointers FunctionType::parseElementaryTypeVector(strings const& _types)
