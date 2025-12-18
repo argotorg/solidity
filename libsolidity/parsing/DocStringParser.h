@@ -25,6 +25,7 @@
 
 #include <libsolidity/ast/ASTAnnotations.h>
 #include <liblangutil/SourceLocation.h>
+#include <set>
 #include <string>
 
 namespace solidity::langutil
@@ -41,9 +42,15 @@ class DocStringParser
 {
 public:
 	/// @param _documentedNode the node whose documentation is parsed.
-	DocStringParser(StructuredDocumentation const& _documentedNode, langutil::ErrorReporter& _errorReporter):
+	/// @param _validTags set of valid tags for this node type (used to determine if implicit @notice should be added).
+	DocStringParser(
+		StructuredDocumentation const& _documentedNode,
+		langutil::ErrorReporter& _errorReporter,
+		std::set<std::string> const& _validTags = {}
+	):
 		m_node(_documentedNode),
-		m_errorReporter(_errorReporter)
+		m_errorReporter(_errorReporter),
+		m_validTags(_validTags)
 	{}
 	std::multimap<std::string, DocTag> parse();
 
@@ -62,6 +69,7 @@ private:
 
 	StructuredDocumentation const& m_node;
 	langutil::ErrorReporter& m_errorReporter;
+	std::set<std::string> m_validTags;
 	/// Mapping tag name -> content.
 	std::multimap<std::string, DocTag> m_docTags;
 	DocTag* m_lastTag = nullptr;

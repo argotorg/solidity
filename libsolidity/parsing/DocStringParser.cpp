@@ -103,13 +103,17 @@ std::multimap<std::string, DocTag> DocStringParser::parse()
 			currPos = parseDocTagLine(currPos, end, true);
 		else if (currPos != end)
 		{
-			// if it begins without a tag then consider it as @notice
+			// if it begins without a tag then consider it as @notice (only if @notice is valid for this node type)
 			if (currPos == m_node.text()->begin())
 			{
-				currPos = parseDocTag(currPos, end, "notice");
-				continue;
+				if (m_validTags.empty() || m_validTags.count("notice"))
+				{
+					currPos = parseDocTag(currPos, end, "notice");
+					continue;
+				}
+				// If notice is not valid, fall through to skip this line
 			}
-			else if (nlPos == end) //end of text
+			if (nlPos == end) //end of text
 				break;
 			// else skip the line if a newline was found and we get here
 			currPos = nlPos + 1;
