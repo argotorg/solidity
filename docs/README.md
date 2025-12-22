@@ -2,8 +2,8 @@
 
 ## Local environment setup
 
-1. Install python https://www.python.org/downloads/
-1. Install sphinx (the tool used to generate the docs) https://www.sphinx-doc.org/en/master/usage/installation.html
+1. Install Python https://www.python.org/downloads/
+1. Install Sphinx (the tool used to generate the docs) https://www.sphinx-doc.org/en/master/usage/installation.html
 
 Go to `/docs` and run `./docs.sh` to install dependencies and build the project:
 
@@ -12,9 +12,9 @@ cd docs
 ./docs.sh
 ```
 
-That will output the generated htmls under _build/
+That will output the generated HTML files under _build/
 
-## Serve environment
+## Serving environment
 
 ```py
 python3 -m http.server -d _build/html --cgi 8080
