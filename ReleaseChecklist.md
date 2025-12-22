@@ -3,7 +3,7 @@
 ## Requirements
 - GitHub account with access to [solidity](https://github.com/argotorg/solidity), [solc-js](https://github.com/argotorg/solc-js),
       [solc-bin](https://github.com/argotorg/solc-bin), [solidity-website](https://github.com/argotorg/solidity-website).
-- Personal Access Token (PAT) with `write:packages` scope to access Github's container registry.
+- Personal Access Token (PAT) with `write:packages` scope to access GitHub's container registry.
     You can generate one by visiting https://github.com/settings/tokens/new?scopes=write:packages.
 - Ubuntu/Debian dependencies of the Docker script: `docker-buildx`.
 - [npm Registry](https://www.npmjs.com) account added as a collaborator for the [`solc` package](https://www.npmjs.com/package/solc).
@@ -31,7 +31,7 @@ At least a day before the release:
 - [ ] Create a draft PR to sort the changelog.
 - [ ] Create draft PRs to bump version in `solidity` and `solc-js`.
       **Note**: The `solc-js` PR won't pass CI checks yet because it depends on the soljson binary from `solc-bin`.
-- [ ] Create a draft of the release on github.
+- [ ] Create a draft of the release on GitHub.
 - [ ] Create a draft PR to update soliditylang.org.
 - [ ] Create drafts of blog posts.
 - [ ] Prepare drafts of Twitter, Reddit and Solidity Forum announcements.
@@ -72,7 +72,7 @@ At least a day before the release:
 - [ ] Run `npm run update -- --reuse-hashes` in `solc-bin` and verify that the script has updated `list.js`, `list.txt` and `list.json` files correctly and that symlinks to the new release have been added in `solc-bin/wasm/` and `solc-bin/emscripten-wasm32/`.
 - [ ] Create a pull request in solc-bin and merge.
 
-### Homebrew and MacOS
+### Homebrew and macOS
 - [ ] Update the version and the hash (`sha256sum solidity_$VERSION.tar.gz`) in the [`solidity` formula in Homebrew core repository](https://github.com/Homebrew/homebrew-core/blob/master/Formula/s/solidity.rb).
 
 ### Docker
