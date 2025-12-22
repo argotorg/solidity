@@ -22,7 +22,7 @@ It is also meant to serve as a final checklist for reviewers to go through befor
 - [ ] **Is this a breaking change?** Breaking changes should be based on the `breaking` branch rather than on the `develop` branch.
 - [ ] **Does the PR actually address the issue?**
     - [ ] Mention the issue number in the PR description.
-        If the PR solves it completely, use the `Fixes #<issue number>` form so that Github will close the issue automatically.
+        If the PR solves it completely, use the `Fixes #<issue number>` form so that GitHub will close the issue automatically.
     - [ ] Do not include the issue number in the PR title, branch name or commit description.
 - [ ] When submitting a PR from a fork **create a branch and give it a descriptive name.**
     E.g. `fix-array-abi-encoding-bug`.
