@@ -45,7 +45,7 @@ source code (e.g. `pragma once <https://en.wikipedia.org/wiki/Pragma_once>`_).
 A contract in the sense of Solidity is a collection of code (its *functions*) and
 data (its *state*) that resides at a specific address on the Ethereum
 blockchain. The line ``uint storedData;`` declares a state variable called ``storedData`` of
-type ``uint`` (*u*\nsigned *int*\eger of *256* bits). You can think of it as a single slot
+type ``uint`` (unsigned integer of *256* bits). You can think of it as a single slot
 in a database that you can query and alter by calling functions of the
 code that manages the database. In this example, the contract defines the
 functions ``set`` and ``get`` that can be used to modify
