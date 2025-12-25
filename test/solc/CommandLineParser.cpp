@@ -462,6 +462,7 @@ BOOST_AUTO_TEST_CASE(optimizer_flags)
 
 	OptimiserSettings evmasmOnly = OptimiserSettings::standard();
 	evmasmOnly.runYulOptimiser = false;
+	evmasmOnly.optimizeStackAllocation = false;
 
 	std::map<std::vector<std::string>, OptimiserSettings> settingsMap = {
 		{{}, OptimiserSettings::minimal()},
