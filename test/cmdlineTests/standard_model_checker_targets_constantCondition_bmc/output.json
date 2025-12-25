@@ -2,6 +2,25 @@
     "errors": [
         {
             "component": "general",
+            "errorCode": "9207",
+            "formattedMessage": "Warning: 'transfer' is deprecated and scheduled for removal. Use 'call{value: <amount>}(\"\")' instead.
+  --> A:11:7:
+   |
+11 | \t\t\t\t\t\ta.transfer(x);
+   | \t\t\t\t\t\t^^^^^^^^^^
+
+",
+            "message": "'transfer' is deprecated and scheduled for removal. Use 'call{value: <amount>}(\"\")' instead.",
+            "severity": "warning",
+            "sourceLocation": {
+                "end": 234,
+                "file": "A",
+                "start": 224
+            },
+            "type": "Warning"
+        },
+        {
+            "component": "general",
             "errorCode": "6838",
             "formattedMessage": "Warning: BMC: Condition is always true.
  --> A:7:15:

@@ -1,3 +1,3 @@
 contract at layout at type(uint).max { }
 // ----
-// TypeError 6396: (22-36): The base slot of the storage layout must evaluate to a rational number.
+// TypeError 1505: (22-36): The base slot expression contains elements that are not yet supported by the internal constant evaluator and therefore cannot be evaluated at compilation time.

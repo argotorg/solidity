@@ -10,8 +10,8 @@ import sys
 REPORT_HEADER_REGEX = re.compile(r'''
     ^[|\s]+ Solc[ ]version:\s*(?P<solc_version>[\w\d.]+)
     [|\s]+ Optimizer[ ]enabled:\s*(?P<optimize>[\w]+)
-    [|\s]+ Runs:\s*(?P<runs>[\d]+)
-    [|\s]+ Block[ ]limit:\s*(?P<block_limit>[\d]+)\s*gas
+    [|\s]+ Runs:\s*(?P<runs>[\d,]+)
+    [|\s]+ Block[ ]limit:\s*(?P<block_limit>[\d,]+)\s*gas
     [|\s]+$
 ''', re.VERBOSE)
 METHOD_HEADER_REGEX = re.compile(r'^[|\s]+Methods[|\s]+$')
@@ -122,10 +122,11 @@ def parse_bool(input_string: str) -> bool:
 
 
 def parse_optional_int(input_string: str, default: Optional[int] = None) -> Optional[int]:
-    if input_string.strip() == '-':
+    stripped = input_string.strip().replace(',', '')
+    if stripped == '-':
         return default
 
-    return int(input_string)
+    return int(stripped)
 
 
 def parse_report_header(line: str) -> Optional[dict]:
@@ -136,8 +137,8 @@ def parse_report_header(line: str) -> Optional[dict]:
     return {
         'solc_version': match.group('solc_version'),
         'optimize': parse_bool(match.group('optimize')),
-        'runs': int(match.group('runs')),
-        'block_limit': int(match.group('block_limit')),
+        'runs': int(match.group('runs').replace(',', '')),
+        'block_limit': int(match.group('block_limit').replace(',', '')),
     }
 
 
@@ -147,7 +148,7 @@ def parse_method_row(line: str, line_number: int) -> Optional[Tuple[str, str, Me
         raise ReportParsingError("Expected a table row with method details.", line, line_number)
 
     avg_gas = parse_optional_int(match['avg'])
-    call_count = int(match['call_count'])
+    call_count = int(match['call_count'].strip().replace(',', ''))
 
     if avg_gas is None and call_count == 0:
         # No calls, no gas values. Uninteresting. Skip the row.
@@ -174,7 +175,7 @@ def parse_deployment_row(line: str, line_number: int) -> Tuple[str, int, int, in
         match['contract'].strip(),
         parse_optional_int(match['min'].strip()),
         parse_optional_int(match['max'].strip()),
-        int(match['avg'].strip()),
+        int(match['avg'].strip().replace(',', '')),
     )
 
 

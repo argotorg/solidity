@@ -57,7 +57,8 @@ you receive the funds of the person who is now the richest.
             // Remember to zero the pending refund before
             // sending to prevent reentrancy attacks
             pendingWithdrawals[msg.sender] = 0;
-            payable(msg.sender).transfer(amount);
+            (bool success, ) = payable(msg.sender).call{value: amount}("");
+            require(success);
         }
     }
 
@@ -84,7 +85,8 @@ This is as opposed to the more intuitive sending pattern:
         function becomeRichest() public payable {
             if (msg.value <= mostSent) revert NotEnoughEther();
             // This line can cause problems (explained below).
-            richest.transfer(msg.value);
+            (bool success, ) = richest.call{value: msg.value}("");
+            require(success);
             richest = payable(msg.sender);
             mostSent = msg.value;
         }
@@ -210,8 +212,10 @@ restrictions highly readable.
                 revert NotEnoughEther();
 
             _;
-            if (msg.value > amount)
-                payable(msg.sender).transfer(msg.value - amount);
+            if (msg.value > amount) {
+                (bool success, ) = payable(msg.sender).call{value: msg.value - amount}("");
+                require(success);
+            }
         }
 
         function forceOwnerChange(address newOwner)

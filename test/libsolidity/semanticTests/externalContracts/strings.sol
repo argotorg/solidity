@@ -56,21 +56,21 @@ contract test {
 // gas legacyOptimized: 102639
 // gas legacyOptimized code: 612400
 // toSlice(string): 0x20, 11, "hello world" -> 11, 0xa0
-// gas irOptimized: 22660
-// gas legacy: 23190
-// gas legacyOptimized: 22508
+// gas irOptimized: 22646
+// gas legacy: 23168
+// gas legacyOptimized: 22488
 // roundtrip(string): 0x20, 11, "hello world" -> 0x20, 11, "hello world"
-// gas irOptimized: 23408
-// gas legacy: 23820
-// gas legacyOptimized: 23123
+// gas irOptimized: 23225
+// gas legacy: 23674
+// gas legacyOptimized: 22991
 // utf8len(string): 0x20, 16, "\xf0\x9f\x98\x83\xf0\x9f\x98\x83\xf0\x9f\x98\x83\xf0\x9f\x98\x83" -> 4 # Input: "😃😃😃😃" #
-// gas irOptimized: 24026
-// gas legacy: 25716
-// gas legacyOptimized: 24115
+// gas irOptimized: 23956
+// gas legacy: 25621
+// gas legacyOptimized: 24096
 // multiconcat(string,uint256): 0x40, 3, 11, "hello world" -> 0x20, 0x58, 0x68656c6c6f20776f726c6468656c6c6f20776f726c6468656c6c6f20776f726c, 0x6468656c6c6f20776f726c6468656c6c6f20776f726c6468656c6c6f20776f72, 49027192869463622675296414541903001712009715982962058146354235762728281047040 # concatenating 3 times #
-// gas irOptimized: 28440
-// gas legacy: 31621
-// gas legacyOptimized: 27914
+// gas irOptimized: 27630
+// gas legacy: 30778
+// gas legacyOptimized: 27519
 // benchmark(string,bytes32): 0x40, 0x0842021, 8, "solidity" -> 0x2020
 // gas irOptimized: 1976778
 // gas legacy: 4234020

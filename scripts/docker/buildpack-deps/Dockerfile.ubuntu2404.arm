@@ -22,7 +22,7 @@
 # (c) 2016-2025 solidity contributors.
 #------------------------------------------------------------------------------
 FROM --platform=linux/arm64 buildpack-deps:noble AS base
-LABEL version="1"
+LABEL version="2"
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -104,6 +104,7 @@ RUN <<-EOF
 EOF
 
 FROM base
+COPY --from=libraries /usr/local/lib/libevmone* /usr/lib
 COPY --from=libraries /usr/lib /usr/lib
 COPY --from=libraries /usr/bin /usr/bin
 COPY --from=libraries /usr/include /usr/include

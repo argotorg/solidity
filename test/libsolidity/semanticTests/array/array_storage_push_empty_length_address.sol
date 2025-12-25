@@ -17,9 +17,9 @@ contract C {
 // set_get_length(uint256): 10 -> 10
 // set_get_length(uint256): 20 -> 20
 // set_get_length(uint256): 0 -> 0
-// gas irOptimized: 77628
-// gas legacy: 77730
-// gas legacyOptimized: 77162
+// gas irOptimized: 76123
+// gas legacy: 75618
+// gas legacyOptimized: 75076
 // set_get_length(uint256): 0xFF -> 0xFF
 // gas irOptimized: 168565
 // gas legacy: 696850

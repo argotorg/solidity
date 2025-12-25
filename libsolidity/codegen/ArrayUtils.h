@@ -61,10 +61,6 @@ public:
 	/// Stack pre: reference (excludes byte offset)
 	/// Stack post:
 	void clearDynamicArray(ArrayType const& _type) const;
-	/// Changes the size of a dynamic array and clears the tail if it is shortened.
-	/// Stack pre: reference (excludes byte offset) new_length
-	/// Stack post:
-	void resizeDynamicArray(ArrayType const& _type) const;
 	/// Increments the size of a dynamic array by one.
 	/// Does not touch the new data element. In case of a byte array, this might move the
 	/// data.
@@ -76,9 +72,9 @@ public:
 	/// Stack pre: reference
 	/// Stack post:
 	void popStorageArrayElement(ArrayType const& _type) const;
-	/// Appends a loop that clears a sequence of storage slots of the given type (excluding end).
-	/// Stack pre: end_ref start_ref
-	/// Stack post: end_ref
+	/// Appends a loop that clears a sequence of storage slots of the given type.
+	/// Stack pre: start_ref slot_count
+	/// Stack post: start_ref
 	void clearStorageLoop(Type const* _type) const;
 	/// Converts length to size (number of storage slots or calldata/memory bytes).
 	/// if @a _pad then add padding to multiples of 32 bytes for calldata/memory.

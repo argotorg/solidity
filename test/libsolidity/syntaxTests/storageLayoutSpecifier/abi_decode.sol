@@ -1,3 +1,3 @@
 contract C layout at abi.decode(abi.encode(42), (uint)) {}
 // ----
-// TypeError 6396: (21-55): The base slot of the storage layout must evaluate to a rational number.
+// TypeError 1505: (21-55): The base slot expression contains elements that are not yet supported by the internal constant evaluator and therefore cannot be evaluated at compilation time.

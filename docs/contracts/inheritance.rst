@@ -377,8 +377,8 @@ of the variable:
 
 .. _modifier-overriding:
 
-Modifier Overriding
-===================
+Modifier Overriding (deprecated)
+================================
 
 Function modifiers can override each other. This works in the same way as
 :ref:`function overriding <function-overriding>` (except that there is no overloading for modifiers). The
@@ -392,6 +392,7 @@ and the ``override`` keyword must be used in the overriding modifier:
 
     contract Base
     {
+        // This will report a warning (deprecation)
         modifier foo() virtual {_;}
     }
 
@@ -411,11 +412,13 @@ explicitly:
 
     contract Base1
     {
+        // This will report a warning (deprecation)
         modifier foo() virtual {_;}
     }
 
     contract Base2
     {
+        // This will report a warning (deprecation)
         modifier foo() virtual {_;}
     }
 
@@ -424,6 +427,8 @@ explicitly:
         modifier foo() override(Base1, Base2) {_;}
     }
 
+.. warning::
+    ``virtual`` modifiers are deprecated and scheduled for removal.
 
 
 .. index:: ! constructor

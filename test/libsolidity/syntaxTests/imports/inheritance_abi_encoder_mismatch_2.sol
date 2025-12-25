@@ -16,4 +16,6 @@ pragma abicoder v1;
 import "./B.sol";
 contract C is B { }
 // ----
+// Warning 9511: (B.sol:0-19): ABI coder v1 is deprecated and scheduled for removal. Use ABI coder v2 instead.
+// Warning 9511: (C.sol:0-19): ABI coder v1 is deprecated and scheduled for removal. Use ABI coder v2 instead.
 // TypeError 6594: (B.sol:38-57): Contract "B" does not use ABI coder v2 but wants to inherit from a contract which uses types that require it. Use "pragma abicoder v2;" for the inheriting contract as well to enable the feature.

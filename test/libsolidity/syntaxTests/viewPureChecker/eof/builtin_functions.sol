@@ -20,3 +20,5 @@ contract C {
 // ====
 // bytecodeFormat: >=EOFv1
 // ----
+// Warning 9207: (47-69): 'transfer' is deprecated and scheduled for removal. Use 'call{value: <amount>}("")' instead.
+// Warning 9207: (90-108): 'send' is deprecated and scheduled for removal. Use 'call{value: <amount>}("")' instead.

@@ -21,7 +21,8 @@ contract C {
 // EVMVersion: >=constantinople
 // ----
 // constructor(), 23 wei ->
-// gas legacy: 100517
+// gas legacy: 56667
+// gas legacy code: 42000
 // f() -> 0
 // g() -> 1
 // h() -> 23

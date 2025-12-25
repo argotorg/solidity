@@ -46,256 +46,65 @@ void ArrayUtils::copyArrayToStorage(ArrayType const& _targetType, ArrayType cons
 	// this copies source to target and also clears target if it was larger
 	// need to leave "target_ref target_byte_off" on the stack at the end
 
-	// stack layout: [source_ref] [source length] target_ref (top)
+	// stack layout: source_ref [source length] target_ref (top)
 	solAssert(_targetType.location() == DataLocation::Storage, "");
-
-	Type const* targetBaseType = _targetType.baseType();
-	Type const* sourceBaseType = _sourceType.baseType();
 
 	// TODO unroll loop for small sizes
 
-	bool sourceIsStorage = _sourceType.location() == DataLocation::Storage;
 	bool fromCalldata = _sourceType.location() == DataLocation::CallData;
-	bool directCopy = sourceIsStorage && sourceBaseType->isValueType() && *sourceBaseType == *targetBaseType;
-	bool haveByteOffsetSource = !directCopy && sourceIsStorage && sourceBaseType->storageBytes() <= 16;
-	bool haveByteOffsetTarget = !directCopy && targetBaseType->storageBytes() <= 16;
-	unsigned byteOffsetSize = (haveByteOffsetSource ? 1u : 0u) + (haveByteOffsetTarget ? 1u : 0u);
+	bool haveSourceLengthOnStack = fromCalldata && _sourceType.isDynamicallySized();
 
-	// stack: source_ref [source_length] target_ref
-	// store target_ref
 	for (unsigned i = _sourceType.sizeOnStack(); i > 0; --i)
 		m_context << swapInstruction(i);
 	// stack: target_ref source_ref [source_length]
 
-	if (_targetType.isByteArrayOrString())
+	if (_sourceType.baseType()->category() == Type::Category::Array)
 	{
-		// stack: target_ref source_ref [source_length]
-		if (fromCalldata && _sourceType.isDynamicallySized())
-		{
-			// stack: target_ref source_ref source_length
-			m_context << Instruction::SWAP1;
-			// stack: target_ref source_length source_ref
-			m_context << Instruction::DUP3;
-			// stack: target_ref source_length source_ref target_ref
-			m_context.callYulFunction(
-				m_context.utilFunctions().copyByteArrayToStorageFunction(_sourceType, _targetType),
-				3,
-				0
-			);
-		}
-		else
-		{
-			// stack: target_ref source_ref
-			m_context << Instruction::DUP2;
-			// stack: target_ref source_ref target_ref
-			m_context.callYulFunction(
-				m_context.utilFunctions().copyByteArrayToStorageFunction(_sourceType, _targetType),
-				2,
-				0
-			);
-		}
-		// stack: target_ref
-		return;
+		// TODO: This limitation can now be removed since we use Yul utility functions that handle nested arrays correctly.
+		// The old inline assembly implementation couldn't handle nested calldata dynamic arrays, but the Yul functions
+		// support them through recursive calls. We keep this check temporarily for backward compatibility.
+		auto const& sourceBaseArrayType = dynamic_cast<ArrayType const&>(*_sourceType.baseType());
+		solUnimplementedAssert(
+			!fromCalldata ||
+			!_sourceType.isDynamicallyEncoded() ||
+			!sourceBaseArrayType.isDynamicallySized(),
+			"Copying nested calldata dynamic arrays to storage is not implemented in the old code generator."
+		);
+	}
+	else
+	{
+		// TODO: This limitation can now be removed since we use Yul utility functions that handle non-value types correctly.
+		// The old inline assembly implementation couldn't handle copying arrays of non-value types from memory or calldata to storage,
+		// but the Yul functions support them. We keep this check temporarily for backward compatibility.
+		bool fromMemoryOrCalldata = _sourceType.location() == DataLocation::Memory || _sourceType.location() == DataLocation::CallData;
+		solUnimplementedAssert(
+			_sourceType.baseType()->isValueType() || !fromMemoryOrCalldata,
+			"Copying of type " + _sourceType.toString(false) + " to storage is not supported in legacy (only supported by the IR pipeline). " +
+			"Hint: try compiling with `--via-ir` (CLI) or the equivalent `viaIR: true` (Standard JSON)."
+		);
 	}
 
-	// retrieve source length
-	if (_sourceType.location() != DataLocation::CallData || !_sourceType.isDynamicallySized())
-		retrieveLength(_sourceType); // otherwise, length is already there
-	if (_sourceType.location() == DataLocation::Memory && _sourceType.isDynamicallySized())
+	if (haveSourceLengthOnStack)
 	{
-		// increment source pointer to point to data
-		m_context << Instruction::SWAP1 << u256(0x20);
-		m_context << Instruction::ADD << Instruction::SWAP1;
+		// stack: target_ref source_ref source_length
+		m_context << Instruction::SWAP1;
+		// stack: target_ref source_length source_ref
+		m_context << Instruction::DUP3;
+		// stack: target_ref source_length source_ref target_ref
+	}
+	else
+	{
+		// stack: target_ref source_ref
+		m_context << Instruction::DUP2;
+		// stack: target_ref source_ref target_ref
 	}
 
-	// stack: target_ref source_ref source_length
-	Type const* targetType = &_targetType;
-	Type const* sourceType = &_sourceType;
-	m_context.callLowLevelFunction(
-		"$copyArrayToStorage_" + sourceType->identifier() + "_to_" + targetType->identifier(),
-		3,
-		1,
-		[=](CompilerContext& _context)
-		{
-			ArrayUtils utils(_context);
-			ArrayType const& _sourceType = dynamic_cast<ArrayType const&>(*sourceType);
-			ArrayType const& _targetType = dynamic_cast<ArrayType const&>(*targetType);
-			// stack: target_ref source_ref source_length
-			_context << Instruction::DUP3;
-			// stack: target_ref source_ref source_length target_ref
-			utils.retrieveLength(_targetType);
-			// stack: target_ref source_ref source_length target_ref target_length
-			if (_targetType.isDynamicallySized())
-			{
-				// store new target length
-				solAssert(!_targetType.isByteArrayOrString());
-				_context << Instruction::DUP3 << Instruction::DUP3 << Instruction::SSTORE;
-			}
-			if (sourceBaseType->category() == Type::Category::Mapping)
-			{
-				solAssert(targetBaseType->category() == Type::Category::Mapping, "");
-				solAssert(_sourceType.location() == DataLocation::Storage, "");
-				// nothing to copy
-				_context
-					<< Instruction::POP << Instruction::POP
-					<< Instruction::POP << Instruction::POP;
-				return;
-			}
-			// stack: target_ref source_ref source_length target_ref target_length
-			// compute hashes (data positions)
-			_context << Instruction::SWAP1;
-			if (_targetType.isDynamicallySized())
-				CompilerUtils(_context).computeHashStatic();
-			// stack: target_ref source_ref source_length target_length target_data_pos
-			_context << Instruction::SWAP1;
-			utils.convertLengthToSize(_targetType);
-			_context << Instruction::DUP2 << Instruction::ADD;
-			// stack: target_ref source_ref source_length target_data_pos target_data_end
-			_context << Instruction::SWAP3;
-			// stack: target_ref target_data_end source_length target_data_pos source_ref
-
-			evmasm::AssemblyItem copyLoopEndWithoutByteOffset = _context.newTag();
-			solAssert(!_targetType.isByteArrayOrString());
-			// skip copying if source length is zero
-			_context << Instruction::DUP3 << Instruction::ISZERO;
-			_context.appendConditionalJumpTo(copyLoopEndWithoutByteOffset);
-
-			if (_sourceType.location() == DataLocation::Storage && _sourceType.isDynamicallySized())
-				CompilerUtils(_context).computeHashStatic();
-			// stack: target_ref target_data_end source_length target_data_pos source_data_pos
-			_context << Instruction::SWAP2;
-			utils.convertLengthToSize(_sourceType);
-			_context << Instruction::DUP3 << Instruction::ADD;
-			// stack: target_ref target_data_end source_data_pos target_data_pos source_data_end
-			if (haveByteOffsetTarget)
-				_context << u256(0);
-			if (haveByteOffsetSource)
-				_context << u256(0);
-			// stack: target_ref target_data_end source_data_pos target_data_pos source_data_end [target_byte_offset] [source_byte_offset]
-			evmasm::AssemblyItem copyLoopStart = _context.newTag();
-			_context << copyLoopStart;
-			// check for loop condition
-			_context
-				<< dupInstruction(3 + byteOffsetSize) << dupInstruction(2 + byteOffsetSize)
-				<< Instruction::GT << Instruction::ISZERO;
-			evmasm::AssemblyItem copyLoopEnd = _context.appendConditionalJump();
-			// stack: target_ref target_data_end source_data_pos target_data_pos source_data_end [target_byte_offset] [source_byte_offset]
-			// copy
-			if (sourceBaseType->category() == Type::Category::Array)
-			{
-				solAssert(byteOffsetSize == 0, "Byte offset for array as base type.");
-				auto const& sourceBaseArrayType = dynamic_cast<ArrayType const&>(*sourceBaseType);
-
-				solUnimplementedAssert(
-					_sourceType.location() != DataLocation::CallData ||
-					!_sourceType.isDynamicallyEncoded() ||
-					!sourceBaseArrayType.isDynamicallySized(),
-					"Copying nested calldata dynamic arrays to storage is not implemented in the old code generator."
-				);
-				_context << Instruction::DUP3;
-				if (sourceBaseArrayType.location() == DataLocation::Memory)
-					_context << Instruction::MLOAD;
-				_context << Instruction::DUP3;
-				utils.copyArrayToStorage(dynamic_cast<ArrayType const&>(*targetBaseType), sourceBaseArrayType);
-				_context << Instruction::POP;
-			}
-			else if (directCopy)
-			{
-				solAssert(byteOffsetSize == 0, "Byte offset for direct copy.");
-				_context
-					<< Instruction::DUP3 << Instruction::SLOAD
-					<< Instruction::DUP3 << Instruction::SSTORE;
-			}
-			else
-			{
-				// Note that we have to copy each element on its own in case conversion is involved.
-				// We might copy too much if there is padding at the last element, but this way end
-				// checking is easier.
-				// stack: target_ref target_data_end source_data_pos target_data_pos source_data_end [target_byte_offset] [source_byte_offset]
-				_context << dupInstruction(3 + byteOffsetSize);
-				if (_sourceType.location() == DataLocation::Storage)
-				{
-					if (haveByteOffsetSource)
-						_context << Instruction::DUP2;
-					else
-						_context << u256(0);
-					StorageItem(_context, *sourceBaseType).retrieveValue(SourceLocation(), true);
-				}
-				else if (sourceBaseType->isValueType())
-					CompilerUtils(_context).loadFromMemoryDynamic(*sourceBaseType, fromCalldata, true, false);
-				else
-					solUnimplemented("Copying of type " + _sourceType.toString(false) + " to storage is not supported in legacy (only supported by the IR pipeline). Hint: try compiling with `--via-ir` (CLI) or the equivalent `viaIR: true` (Standard JSON)");
-				// stack: target_ref target_data_end source_data_pos target_data_pos source_data_end [target_byte_offset] [source_byte_offset] <source_value>...
-				assertThrow(
-					2 + byteOffsetSize + sourceBaseType->sizeOnStack() <= 16,
-					StackTooDeepError,
-					util::stackTooDeepString
-				);
-				// fetch target storage reference
-				_context << dupInstruction(2 + byteOffsetSize + sourceBaseType->sizeOnStack());
-				if (haveByteOffsetTarget)
-					_context << dupInstruction(1 + byteOffsetSize + sourceBaseType->sizeOnStack());
-				else
-					_context << u256(0);
-				StorageItem(_context, *targetBaseType).storeValue(*sourceBaseType, SourceLocation(), true);
-			}
-			// stack: target_ref target_data_end source_data_pos target_data_pos source_data_end [target_byte_offset] [source_byte_offset]
-			// increment source
-			if (haveByteOffsetSource)
-				utils.incrementByteOffset(sourceBaseType->storageBytes(), 1, haveByteOffsetTarget ? 5 : 4);
-			else
-			{
-				_context << swapInstruction(2 + byteOffsetSize);
-				if (sourceIsStorage)
-					_context << sourceBaseType->storageSize();
-				else if (_sourceType.location() == DataLocation::Memory)
-					_context << sourceBaseType->memoryHeadSize();
-				else
-					_context << sourceBaseType->calldataHeadSize();
-				_context
-					<< Instruction::ADD
-					<< swapInstruction(2 + byteOffsetSize);
-			}
-			// increment target
-			if (haveByteOffsetTarget)
-				utils.incrementByteOffset(targetBaseType->storageBytes(), byteOffsetSize, byteOffsetSize + 2);
-			else
-				_context
-					<< swapInstruction(1 + byteOffsetSize)
-					<< targetBaseType->storageSize()
-					<< Instruction::ADD
-					<< swapInstruction(1 + byteOffsetSize);
-			_context.appendJumpTo(copyLoopStart);
-			_context << copyLoopEnd;
-			if (haveByteOffsetTarget)
-			{
-				// clear elements that might be left over in the current slot in target
-				// stack: target_ref target_data_end source_data_pos target_data_pos source_data_end target_byte_offset [source_byte_offset]
-				_context << dupInstruction(byteOffsetSize) << Instruction::ISZERO;
-				evmasm::AssemblyItem copyCleanupLoopEnd = _context.appendConditionalJump();
-				_context << dupInstruction(2 + byteOffsetSize) << dupInstruction(1 + byteOffsetSize);
-				StorageItem(_context, *targetBaseType).setToZero(SourceLocation(), true);
-				utils.incrementByteOffset(targetBaseType->storageBytes(), byteOffsetSize, byteOffsetSize + 2);
-				_context.appendJumpTo(copyLoopEnd);
-
-				_context << copyCleanupLoopEnd;
-				_context << Instruction::POP; // might pop the source, but then target is popped next
-			}
-			if (haveByteOffsetSource)
-				_context << Instruction::POP;
-			_context << copyLoopEndWithoutByteOffset;
-
-			// zero-out leftovers in target
-			// stack: target_ref target_data_end source_data_pos target_data_pos_updated source_data_end
-			_context << Instruction::POP << Instruction::SWAP1 << Instruction::POP;
-			// stack: target_ref target_data_end target_data_pos_updated
-			if (targetBaseType->storageBytes() < 32)
-				utils.clearStorageLoop(TypeProvider::uint256());
-			else
-				utils.clearStorageLoop(targetBaseType);
-			_context << Instruction::POP;
-		}
+	m_context.callYulFunction(
+		m_context.utilFunctions().copyArrayToStorageFunction(_sourceType, _targetType),
+		haveSourceLengthOnStack ? 3 : 2,
+		0
 	);
+	// stack: target_ref
 }
 
 void ArrayUtils::copyArrayToMemory(ArrayType const& _sourceType, bool _padToWordBoundaries) const
@@ -586,9 +395,9 @@ void ArrayUtils::clearArray(ArrayType const& _typeIn) const
 			}
 			else
 			{
-				_context << Instruction::DUP1 << _type.length();
+				_context << _type.length();
 				ArrayUtils(_context).convertLengthToSize(_type);
-				_context << Instruction::ADD << Instruction::SWAP1;
+				// stack: storage_ref slot_count
 				if (_type.baseType()->storageBytes() < 32)
 					ArrayUtils(_context).clearStorageLoop(TypeProvider::uint256());
 				else
@@ -623,13 +432,12 @@ void ArrayUtils::clearDynamicArray(ArrayType const& _type) const
 	}
 	// stack: ref old_length
 	convertLengthToSize(_type);
-	// compute data positions
+	// stack: ref slot_count
 	m_context << Instruction::SWAP1;
 	CompilerUtils(m_context).computeHashStatic();
-	// stack: len data_pos
-	m_context << Instruction::SWAP1 << Instruction::DUP2 << Instruction::ADD
-		<< Instruction::SWAP1;
-	// stack: data_pos_end data_pos
+	// stack: slot_count data_pos
+	m_context << Instruction::SWAP1;
+	// stack: data_pos slot_count
 	if (_type.storageStride() < 32)
 		clearStorageLoop(TypeProvider::uint256());
 	else
@@ -637,156 +445,6 @@ void ArrayUtils::clearDynamicArray(ArrayType const& _type) const
 	// cleanup
 	m_context << endTag;
 	m_context << Instruction::POP;
-}
-
-void ArrayUtils::resizeDynamicArray(ArrayType const& _typeIn) const
-{
-	Type const* type = &_typeIn;
-	m_context.callLowLevelFunction(
-		"$resizeDynamicArray_" + _typeIn.identifier(),
-		2,
-		0,
-		[type](CompilerContext& _context)
-		{
-			ArrayType const& _type = dynamic_cast<ArrayType const&>(*type);
-			solAssert(_type.location() == DataLocation::Storage, "");
-			solAssert(_type.isDynamicallySized(), "");
-			if (!_type.isByteArrayOrString() && _type.baseType()->storageBytes() < 32)
-				solAssert(_type.baseType()->isValueType(), "Invalid storage size for non-value type.");
-
-			unsigned stackHeightStart = _context.stackHeight();
-			evmasm::AssemblyItem resizeEnd = _context.newTag();
-
-			// stack: ref new_length
-			// fetch old length
-			ArrayUtils(_context).retrieveLength(_type, 1);
-			// stack: ref new_length old_length
-			solAssert(_context.stackHeight() - stackHeightStart == 3 - 2, "2");
-
-			// Special case for short byte arrays, they are stored together with their length
-			if (_type.isByteArrayOrString())
-			{
-				evmasm::AssemblyItem regularPath = _context.newTag();
-				// We start by a large case-distinction about the old and new length of the byte array.
-
-				_context << Instruction::DUP3 << Instruction::SLOAD;
-				// stack: ref new_length current_length ref_value
-
-				solAssert(_context.stackHeight() - stackHeightStart == 4 - 2, "3");
-				_context << Instruction::DUP2 << u256(31) << Instruction::LT;
-				evmasm::AssemblyItem currentIsLong = _context.appendConditionalJump();
-				_context << Instruction::DUP3 << u256(31) << Instruction::LT;
-				evmasm::AssemblyItem newIsLong = _context.appendConditionalJump();
-
-				// Here: short -> short
-
-				// Compute 1 << (256 - 8 * new_size)
-				evmasm::AssemblyItem shortToShort = _context.newTag();
-				_context << shortToShort;
-				_context << Instruction::DUP3 << u256(8) << Instruction::MUL;
-				_context << u256(0x100) << Instruction::SUB;
-				_context << u256(2) << Instruction::EXP;
-				// Divide and multiply by that value, clearing bits.
-				_context << Instruction::DUP1 << Instruction::SWAP2;
-				_context << Instruction::DIV << Instruction::MUL;
-				// Insert 2*length.
-				_context << Instruction::DUP3 << Instruction::DUP1 << Instruction::ADD;
-				_context << Instruction::OR;
-				// Store.
-				_context << Instruction::DUP4 << Instruction::SSTORE;
-				solAssert(_context.stackHeight() - stackHeightStart == 3 - 2, "3");
-				_context.appendJumpTo(resizeEnd);
-
-				_context.adjustStackOffset(1); // we have to do that because of the jumps
-				// Here: short -> long
-
-				_context << newIsLong;
-				// stack: ref new_length current_length ref_value
-				solAssert(_context.stackHeight() - stackHeightStart == 4 - 2, "3");
-				// Zero out lower-order byte.
-				_context << u256(0xff) << Instruction::NOT << Instruction::AND;
-				// Store at data location.
-				_context << Instruction::DUP4;
-				CompilerUtils(_context).computeHashStatic();
-				_context << Instruction::SSTORE;
-				// stack: ref new_length current_length
-				// Store new length: Compute 2*length + 1 and store it.
-				_context << Instruction::DUP2 << Instruction::DUP1 << Instruction::ADD;
-				_context << u256(1) << Instruction::ADD;
-				// stack: ref new_length current_length 2*new_length+1
-				_context << Instruction::DUP4 << Instruction::SSTORE;
-				solAssert(_context.stackHeight() - stackHeightStart == 3 - 2, "3");
-				_context.appendJumpTo(resizeEnd);
-
-				_context.adjustStackOffset(1); // we have to do that because of the jumps
-
-				_context << currentIsLong;
-				_context << Instruction::DUP3 << u256(31) << Instruction::LT;
-				_context.appendConditionalJumpTo(regularPath);
-
-				// Here: long -> short
-				// Read the first word of the data and store it on the stack. Clear the data location and
-				// then jump to the short -> short case.
-
-				// stack: ref new_length current_length ref_value
-				solAssert(_context.stackHeight() - stackHeightStart == 4 - 2, "3");
-				_context << Instruction::POP << Instruction::DUP3;
-				CompilerUtils(_context).computeHashStatic();
-				_context << Instruction::DUP1 << Instruction::SLOAD << Instruction::SWAP1;
-				// stack: ref new_length current_length first_word data_location
-				_context << Instruction::DUP3;
-				ArrayUtils(_context).convertLengthToSize(_type);
-				_context << Instruction::DUP2 << Instruction::ADD << Instruction::SWAP1;
-				// stack: ref new_length current_length first_word data_location_end data_location
-				ArrayUtils(_context).clearStorageLoop(TypeProvider::uint256());
-				_context << Instruction::POP;
-				// stack: ref new_length current_length first_word
-				solAssert(_context.stackHeight() - stackHeightStart == 4 - 2, "3");
-				_context.appendJumpTo(shortToShort);
-
-				_context << regularPath;
-				// stack: ref new_length current_length ref_value
-				_context << Instruction::POP;
-			}
-
-			// Change of length for a regular array (i.e. length at location, data at KECCAK256(location)).
-			// stack: ref new_length old_length
-			// store new length
-			_context << Instruction::DUP2;
-			if (_type.isByteArrayOrString())
-				// For a "long" byte array, store length as 2*length+1
-				_context << Instruction::DUP1 << Instruction::ADD << u256(1) << Instruction::ADD;
-			_context << Instruction::DUP4 << Instruction::SSTORE;
-			// skip if size is not reduced
-			_context << Instruction::DUP2 << Instruction::DUP2
-				<< Instruction::GT << Instruction::ISZERO;
-			_context.appendConditionalJumpTo(resizeEnd);
-
-			// size reduced, clear the end of the array
-			// stack: ref new_length old_length
-			ArrayUtils(_context).convertLengthToSize(_type);
-			_context << Instruction::DUP2;
-			ArrayUtils(_context).convertLengthToSize(_type);
-			// stack: ref new_length old_size new_size
-			// compute data positions
-			_context << Instruction::DUP4;
-			CompilerUtils(_context).computeHashStatic();
-			// stack: ref new_length old_size new_size data_pos
-			_context << Instruction::SWAP2 << Instruction::DUP3 << Instruction::ADD;
-			// stack: ref new_length data_pos new_size delete_end
-			_context << Instruction::SWAP2 << Instruction::ADD;
-			// stack: ref new_length delete_end delete_start
-			if (_type.storageStride() < 32)
-				ArrayUtils(_context).clearStorageLoop(TypeProvider::uint256());
-			else
-				ArrayUtils(_context).clearStorageLoop(_type.baseType());
-
-			_context << resizeEnd;
-			// cleanup
-			_context << Instruction::POP << Instruction::POP << Instruction::POP;
-			solAssert(_context.stackHeight() == stackHeightStart - 2, "");
-		}
-	);
 }
 
 void ArrayUtils::incrementDynamicArraySize(ArrayType const& _type) const
@@ -936,29 +594,32 @@ void ArrayUtils::clearStorageLoop(Type const* _type) const
 				_context << Instruction::POP;
 				return;
 			}
-			// stack: end_pos pos
-
+			// stack: start_pos slot_count
+			// Initialize loop counter i = 0
+			_context << u256(0);
+			// stack: start_pos slot_count i
 			evmasm::AssemblyItem loopStart = _context.appendJumpToNew();
 			_context << loopStart;
-			// check for loop condition
-			_context <<
-				Instruction::DUP1 <<
-				Instruction::DUP3 <<
-				Instruction::GT <<
-				Instruction::ISZERO;
+			// check for loop condition: !(slot_count > i) = (i >= slot_count)
+			_context << Instruction::DUP1 << Instruction::DUP3 << Instruction::GT << Instruction::ISZERO;
 			evmasm::AssemblyItem zeroLoopEnd = _context.newTag();
 			_context.appendConditionalJumpTo(zeroLoopEnd);
-			// delete
+			// stack: start_pos slot_count i
+			// compute storage position: start_pos + i
+			_context << Instruction::DUP3 << Instruction::DUP2 << Instruction::ADD;
+			// stack: start_pos slot_count i (start_pos+i)
+			// delete storage slot
 			_context << u256(0);
-			StorageItem(_context, *_type).setToZero(SourceLocation(), false);
-			_context << Instruction::POP;
-			// increment
+			StorageItem(_context, *_type).setToZero(SourceLocation(), /* _removeReference = */ true);
+			// stack: start_pos slot_count i
+			// increment counter: i += storageSize
 			_context << _type->storageSize() << Instruction::ADD;
 			_context.appendJumpTo(loopStart);
 			// cleanup
 			_context << zeroLoopEnd;
-			_context << Instruction::POP;
-
+			// stack: start_pos slot_count i
+			_context << Instruction::POP << Instruction::POP;
+			// stack: start_pos
 			solAssert(_context.stackHeight() == stackHeightStart - 1, "");
 		}
 	);

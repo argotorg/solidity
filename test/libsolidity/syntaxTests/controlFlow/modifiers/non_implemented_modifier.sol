@@ -4,3 +4,5 @@ abstract contract A {
     }
     modifier mod() virtual;
 }
+// ----
+// Warning 8429: (106-129): Virtual modifiers are deprecated and scheduled for removal.

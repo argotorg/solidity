@@ -692,16 +692,16 @@ and ``assert`` for internal error checking.
     :force:
 
     // SPDX-License-Identifier: GPL-3.0
-    pragma solidity >=0.5.0 <0.9.0;
+    pragma solidity >=0.6.2 <0.9.0;
 
     contract Sharer {
         function sendHalf(address payable addr) public payable returns (uint balance) {
             require(msg.value % 2 == 0, "Even value required.");
             uint balanceBeforeTransfer = address(this).balance;
-            addr.transfer(msg.value / 2);
-            // Since transfer throws an exception on failure and
-            // cannot call back here, there should be no way for us to
-            // still have half of the Ether.
+            (bool success, ) = addr.call{value: msg.value / 2}("");
+            require(success);
+            // Since require will stop execution and revert if success is false,
+            // there should be no way for us to still have half of the Ether.
             assert(address(this).balance == balanceBeforeTransfer - msg.value / 2);
             return address(this).balance;
         }
@@ -775,7 +775,8 @@ together with ``revert`` and the equivalent ``require``:
             if (msg.sender != owner)
                 revert Unauthorized();
 
-            payable(msg.sender).transfer(address(this).balance);
+            (bool success, ) = payable(msg.sender).call{value: address(this).balance}("");
+            require(success);
         }
     }
 

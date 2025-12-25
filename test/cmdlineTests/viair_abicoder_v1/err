@@ -1,3 +1,9 @@
+Warning (9511): ABI coder v1 is deprecated and scheduled for removal. Use ABI coder v2 instead.
+ --> input.sol:3:1:
+  |
+3 | pragma abicoder v1;
+  | ^^^^^^^^^^^^^^^^^^^
+
 Warning (2066): Contract requests the ABI coder v1, which is incompatible with the IR. Using ABI coder v2 instead.
  --> input.sol:4:1:
   |

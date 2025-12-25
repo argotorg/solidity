@@ -34,6 +34,9 @@ the team and contributors are working on, you can join our public team call:
 
 The call takes place on `Jitsi <https://meet.solidity.org>`_.
 
+New topics can be freely added to the `agenda <https://notes.argot.org/@solidity-design-call-agenda>`_
+and will be scheduled for discussion on the nearest call.
+
 How to Report Issues
 ====================
 

@@ -1,16 +1,14 @@
 # Checklist for making a Solidity release
 
 ## Requirements
-- [ ] GitHub account with access to [solidity](https://github.com/argotorg/solidity), [solc-js](https://github.com/argotorg/solc-js),
+- GitHub account with access to [solidity](https://github.com/argotorg/solidity), [solc-js](https://github.com/argotorg/solc-js),
       [solc-bin](https://github.com/argotorg/solc-bin), [solidity-website](https://github.com/argotorg/solidity-website).
-- [ ] DockerHub account with push rights to the [`solc` image](https://hub.docker.com/r/ethereum/solc).
-- [ ] Launchpad (Ubuntu One) account with a membership in the ["Ethereum" team](https://launchpad.net/~ethereum) and
-      a gnupg key for your email in the `ethereum.org` domain (has to be version 1, gpg2 won't work).
-- [ ] Ubuntu/Debian dependencies of the Docker script: `docker-buildx`.
-- [ ] Ubuntu/Debian dependencies of the PPA scripts: `devscripts`, `debhelper`, `dput`, `git`, `wget`, `ca-certificates`.
-- [ ] [npm Registry](https://www.npmjs.com) account added as a collaborator for the [`solc` package](https://www.npmjs.com/package/solc).
-- [ ] Access to the [solidity_lang Twitter account](https://twitter.com/solidity_lang).
-- [ ] [Reddit](https://www.reddit.com) account that is at least 10 days old with a minimum of 20 comment karma (`/r/ethereum` requirements).
+- Personal Access Token (PAT) with `write:packages` scope to access Github's container registry.
+    You can generate one by visiting https://github.com/settings/tokens/new?scopes=write:packages.
+- Ubuntu/Debian dependencies of the Docker script: `docker-buildx`.
+- [npm Registry](https://www.npmjs.com) account added as a collaborator for the [`solc` package](https://www.npmjs.com/package/solc).
+- Access to the [solidity_lang Twitter account](https://twitter.com/solidity_lang).
+- [Reddit](https://www.reddit.com) account that is at least 10 days old with a minimum of 20 comment karma (`/r/ethereum` requirements).
 
 ## Full release
 
@@ -24,8 +22,6 @@ At least a day before the release:
 - [ ] Rerun CI on the top commits of main branches in all repositories that do not have daily activity by creating a test branch or PR:
      - [ ] `solc-js`
      - [ ] `solc-bin` (make sure the bytecode comparison check did run)
-- [ ] (Optional) Create a prerelease in our Ubuntu PPA by following the steps in the PPA section below on `develop` rather than on a tag.
-      This is recommended especially when dealing with PPA for the first time, when we add a new Ubuntu version or when the PPA scripts were modified in this release cycle.
 - [ ] Verify that the release tarball of `solc-js` works.
       Bump version locally, add `soljson.js` from CI, build it, compare the file structure with the previous version, install it locally and try to use it.
 - [ ] Review [Learning from Past Releases](https://notes.argot.org/@solidity-release-mistakes) to make sure you don't repeat the same mistakes.
@@ -46,6 +42,7 @@ At least a day before the release:
 - [ ] Get the posts reviewed and approved **before the release starts**.
 
 ### Changelog
+- [ ] Ensure that all changelog entries are correctly classified as language or compiler features.
 - [ ] Sort the changelog entries alphabetically and correct any errors you notice. Commit it.
 - [ ] Update the changelog to include a release date.
 - [ ] Run `scripts/update_bugs_by_version.py` to regenerate `bugs_by_version.json` from the changelog and `bugs.json`.
@@ -80,20 +77,8 @@ At least a day before the release:
 
 ### Docker
 - [ ] Make sure `docker-buildx` is installed.
+- [ ] Run `echo $GHCR_TOKEN | docker login ghcr.io --username $GH_USERNAME --password-stdin` where `$GH_USERNAME` is your GitHub username and `$GHCR_TOKEN` is a PAT with `write:packages` scope.
 - [ ] Run `./scripts/docker_deploy_manual.sh v$VERSION`.
-
-### PPA
-- [ ] Create `.release_ppa_auth` at the root of your local Solidity checkout and set `LAUNCHPAD_EMAIL` and `LAUNCHPAD_KEYID` to your key's email and key id.
-- [ ] Double-check that the `DISTRIBUTIONS` list in `scripts/release_ppa.sh` contains the most recent versions of Ubuntu.
-- [ ] Run `scripts/release_ppa.sh v$VERSION` to create the PPA release.
-      This will create a single package containing static binary for older Ubuntu versions in the [`~ethereum/ethereum-static` PPA](https://launchpad.net/~ethereum/+archive/ubuntu/ethereum-static)
-      and separate packages with dynamically-linked binaries for recent versions (those listed in `DISTRIBUTIONS`) in the [`~ethereum/ethereum` PPA](https://launchpad.net/~ethereum/+archive/ubuntu/ethereum).
-- [ ] Wait for the build to be finished and published for *all architectures* (currently we only build for `amd64`, but we may add `arm` in the future).
-      **SERIOUSLY: DO NOT PROCEED EARLIER!!!**
-- [ ] *After* the package with the static build is *published*, use it to create packages for older Ubuntu versions.
-      Copy the static package to the [`~ethereum/ethereum` PPA](https://launchpad.net/~ethereum/+archive/ubuntu/ethereum)
-      for the destination series `Trusty`, `Xenial`, `Bionic`, and `Focal`
-      while selecting `Copy existing binaries`.
 
 ### Release solc-js
 - [ ] Wait until solc-bin was properly deployed. You can test this via remix - a test run through remix is advisable anyway.

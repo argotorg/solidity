@@ -43,6 +43,11 @@ git checkout-index --all --prefix="$SOLDIR"
 # shellcheck disable=SC2016
 SOLDIR="$SOLDIR" git submodule foreach 'git checkout-index --all --prefix="${SOLDIR}/${sm_path}/"'
 
+# Documentation is pretty heavy and not necessary to build the compiler.
+# Especially nlohmann-json has several huge images, which blow up the size of the compressed tarball.
+# shellcheck disable=SC2016
+SOLDIR="$SOLDIR" git submodule foreach 'rm -rf "${SOLDIR}/${sm_path}/"doc/; rm -rf "${SOLDIR}/${sm_path}/"docs/'
+
 # Include the commit hash and prerelease suffix in the tarball
 echo "$commit_hash" > "${SOLDIR}/commit_hash.txt"
 [[ -e prerelease.txt ]] && cp prerelease.txt "${SOLDIR}/"

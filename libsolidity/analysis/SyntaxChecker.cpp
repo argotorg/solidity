@@ -149,6 +149,16 @@ bool SyntaxChecker::visit(PragmaDirective const& _pragma)
 			);
 		else
 			m_sourceUnit->annotation().useABICoderV2 = (_pragma.literals()[1] == "v2");
+
+		if (
+			_pragma.literals().size() > 1 &&
+			_pragma.literals()[1] == "v1"
+		)
+			m_errorReporter.warning(
+				9511_error,
+				_pragma.location(),
+				"ABI coder v1 is deprecated and scheduled for removal. Use ABI coder v2 instead."
+			);
 	}
 	else if (_pragma.literals()[0] == "solidity")
 	{
@@ -184,6 +194,14 @@ void SyntaxChecker::endVisit(ModifierDefinition const& _modifier)
 {
 	if (_modifier.isImplemented() && !m_placeholderFound)
 		m_errorReporter.syntaxError(2883_error, _modifier.body().location(), "Modifier body does not contain '_'.");
+
+	if (_modifier.markedVirtual())
+		m_errorReporter.warning(
+			8429_error,
+			_modifier.location(),
+			"Virtual modifiers are deprecated and scheduled for removal."
+		);
+
 	m_placeholderFound = false;
 }
 

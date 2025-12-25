@@ -1,3 +1,9 @@
+Warning: 'transfer' is deprecated and scheduled for removal. Use 'call{value: <amount>}("")' instead.
+  --> input.sol:10:3:
+   |
+10 | 		a.transfer(x);
+   | 		^^^^^^^^^^
+
 Warning: CHC: Overflow (resulting value larger than 2**256 - 1) happens here.
 Counterexample:
 arr = []

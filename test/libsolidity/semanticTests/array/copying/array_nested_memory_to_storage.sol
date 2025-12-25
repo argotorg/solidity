@@ -38,12 +38,14 @@ contract Test {
 }
 // ----
 // test() -> 24
-// gas irOptimized: 226734
-// gas legacy: 227083
-// gas legacyOptimized: 226529
+// gas irOptimized: 226647
+// gas legacy: 229060
+// gas legacyOptimized: 226495
 // test1() -> 3
 // test2() -> 6
+// gas irOptimized: 95905
+// gas legacy: 100519
 // test3() -> 24
-// gas irOptimized: 141319
-// gas legacy: 142238
-// gas legacyOptimized: 141365
+// gas irOptimized: 141297
+// gas legacy: 146668
+// gas legacyOptimized: 141331

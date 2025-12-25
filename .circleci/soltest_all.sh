@@ -31,14 +31,14 @@ REPODIR="$(realpath "$(dirname "$0")"/..)"
 # shellcheck source=scripts/common.sh
 source "${REPODIR}/scripts/common.sh"
 
-DEFAULT_EVM_VALUES=(constantinople petersburg istanbul berlin london paris shanghai cancun prague osaka)
+DEFAULT_EVM_VALUES=(istanbul berlin london paris shanghai cancun prague osaka)
 EVMS_WITH_EOF=(osaka)
 
 # Deserialize the EVM_VALUES array if it was provided as argument or
 # set EVM_VALUES to the default values.
 IFS=" " read -ra EVM_VALUES <<< "${1:-${DEFAULT_EVM_VALUES[@]}}"
 
-DEFAULT_EVM=prague
+DEFAULT_EVM=osaka
 OPTIMIZE_VALUES=(0 1)
 # TODO: EOF is marked as experimental in evmone. Reenable when proper handling for that is added here.
 EOF_VERSIONS=(0)

@@ -38,6 +38,7 @@
 #include <utility>
 
 using namespace solidity::evmasm;
+using namespace solidity::langutil;
 using namespace std::string_literals;
 
 namespace solidity::frontend::test
@@ -46,15 +47,15 @@ namespace solidity::frontend::test
 namespace
 {
 
-langutil::Error::Severity str2Severity(std::string const& _cat)
+Error::Severity str2Severity(std::string const& _cat)
 {
-	std::map<std::string, langutil::Error::Severity> cats{
-		{"info", langutil::Error::Severity::Info},
-		{"Info", langutil::Error::Severity::Info},
-		{"warning", langutil::Error::Severity::Warning},
-		{"Warning", langutil::Error::Severity::Warning},
-		{"error", langutil::Error::Severity::Error},
-		{"Error", langutil::Error::Severity::Error}
+	std::map<std::string, Error::Severity> cats{
+		{"info", Error::Severity::Info},
+		{"Info", Error::Severity::Info},
+		{"warning", Error::Severity::Warning},
+		{"Warning", Error::Severity::Warning},
+		{"error", Error::Severity::Error},
+		{"Error", Error::Severity::Error}
 	};
 	return cats.at(_cat);
 }
@@ -86,7 +87,7 @@ bool containsAtMostWarnings(Json const& _compilerResult)
 	{
 		BOOST_REQUIRE(error.is_object());
 		BOOST_REQUIRE(error["severity"].is_string());
-		if (langutil::Error::isError(str2Severity(error["severity"].get<std::string>())))
+		if (Error::isError(str2Severity(error["severity"].get<std::string>())))
 			return false;
 	}
 
@@ -1171,14 +1172,14 @@ BOOST_AUTO_TEST_CASE(evm_version)
 		)";
 	};
 	Json result;
-	for (auto const& version: langutil::EVMVersion::allVersions())
+	for (auto const& version: EVMVersion::allVersions())
 	{
 		result = compile(inputForVersion(fmt::format("\"evmVersion\": \"{}\",", version.name())));
 		BOOST_CHECK(result["contracts"]["fileA"]["A"]["metadata"].get<std::string>().find(fmt::format("\"evmVersion\":\"{}\"", version.name())) != std::string::npos);
 	}
 	// test default
 	result = compile(inputForVersion(""));
-	BOOST_CHECK(result["contracts"]["fileA"]["A"]["metadata"].get<std::string>().find("\"evmVersion\":\"prague\"") != std::string::npos);
+	BOOST_CHECK(result["contracts"]["fileA"]["A"]["metadata"].get<std::string>().find(fmt::format("\"evmVersion\":\"{}\"", EVMVersion::current().name())) != std::string::npos);
 	// test invalid
 	result = compile(inputForVersion("\"evmVersion\": \"invalid\","));
 	BOOST_CHECK(result["errors"][0]["message"].get<std::string>() == "Invalid EVM version requested.");

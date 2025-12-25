@@ -381,8 +381,9 @@ of Solidity, you can use a special comment to annotate an assembly block as memo
         ...
     }
 
-Note that we will disallow the annotation via comment in a future breaking release; so, if you are not concerned with
-backward-compatibility with older compiler versions, prefer using the dialect string.
+.. warning::
+    The ``memory-safe-assembly`` special comment is deprecated and scheduled for removal.
+    In new code targeting recent compilers, use the assembly block annotation.
 
 Advanced Safe Use of Memory
 ---------------------------

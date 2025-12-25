@@ -2133,6 +2133,7 @@ bool ExpressionCompiler::visit(MemberAccess const& _memberAccess)
 			dynamic_cast<VariableDeclaration const*>(_memberAccess.annotation().referencedDeclaration) ||
 			dynamic_cast<FunctionDefinition const*>(_memberAccess.annotation().referencedDeclaration) ||
 			dynamic_cast<ErrorDefinition const*>(_memberAccess.annotation().referencedDeclaration) ||
+			dynamic_cast<EventDefinition const*>(_memberAccess.annotation().referencedDeclaration) ||
 			category == Type::Category::TypeType ||
 			category == Type::Category::Module,
 			""

@@ -47,7 +47,7 @@ contract C {
 // ====
 // SMTEngine: chc
 // SMTExtCalls: trusted
-// SMTIgnoreOS: macos
+// SMTSolvers: eld
 // ----
 // Warning 6328: (434-455): CHC: Assertion violation happens here.
 // Warning 6328: (1270-1291): CHC: Assertion violation happens here.

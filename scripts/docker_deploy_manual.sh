@@ -25,7 +25,7 @@ fi
 # NOTE: Login to GHCR before running this script with a PAT:
 # echo $GHCR_TOKEN | docker login ghcr.io -u USERNAME --password-stdin
 #
-# Create a classic PAT with write:packages scope only visiting the following url:
+# Create a classic PAT with write:packages scope by visiting the following URL:
 # https://github.com/settings/tokens/new?scopes=write:packages
 
 DIR=$(mktemp -d)

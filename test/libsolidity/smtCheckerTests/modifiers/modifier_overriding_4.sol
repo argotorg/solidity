@@ -36,6 +36,10 @@ contract D is B,C {
 // ====
 // SMTEngine: all
 // ----
+// Warning 8429: (262-294): Virtual modifiers are deprecated and scheduled for removal.
+// Warning 8429: (317-367): Virtual modifiers are deprecated and scheduled for removal.
+// Warning 8429: (390-440): Virtual modifiers are deprecated and scheduled for removal.
+// Warning 8429: (465-520): Virtual modifiers are deprecated and scheduled for removal.
 // Warning 6328: (160-174): CHC: Assertion violation happens here.\nCounterexample:\nx = 1\n\nTransaction trace:\nB.constructor()\nState: x = 0\nA.f()
 // Warning 6328: (193-207): CHC: Assertion violation happens here.\nCounterexample:\nx = 2\n\nTransaction trace:\nC.constructor()\nState: x = 0\nA.f()
 // Warning 6328: (226-240): CHC: Assertion violation happens here.\nCounterexample:\nx = 3\n\nTransaction trace:\nD.constructor()\nState: x = 0\nA.f()

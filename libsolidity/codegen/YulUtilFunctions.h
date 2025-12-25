@@ -266,8 +266,11 @@ public:
 	std::string storageArrayPushZeroFunction(ArrayType const& _type);
 
 	/// @returns the name of a function that will clear the storage area given
-	/// by the start and end (exclusive) parameters (slots).
-	/// signature: (start, end)
+	/// by the start position and number of slots to clear. The start position is in terms of storage slots and we
+	/// assume that the beginning of the clear range starts at the beginning of the start slot.
+	/// `slot_count` is assumed to be a multiple of `_type.storageSize()`. The function clears storage in increments
+	/// of `_type.storageSize()` and does not perform any runtime checks.
+	/// signature: (start_slot, slot_count)
 	std::string clearStorageRangeFunction(Type const& _type);
 
 	/// @returns the name of a function that will clear the given storage array
@@ -297,7 +300,7 @@ public:
 	/// The function reverts for too large lengths.
 	std::string arrayAllocationSizeFunction(ArrayType const& _type);
 
-	/// @returns the name of a function that converts a storage slot number
+	/// @returns the name of a function that converts a storage slot number,
 	/// a memory pointer or a calldata pointer to the slot number / memory pointer / calldata pointer
 	/// for the data position of an array which is stored in that slot / memory area / calldata area.
 	std::string arrayDataAreaFunction(ArrayType const& _type);
@@ -618,7 +621,7 @@ private:
 	std::string cleanUpDynamicByteArrayEndSlotsFunction(ArrayType const& _type);
 
 	/// @returns the name of a function that increases size of byte array
-	/// when we resize byte array frextractUsedSetLenom < 32 elements to >= 32 elements or we push to byte array of size 31 copying of data will  occur
+	/// when we resize byte array from < 32 elements to >= 32 elements or we push to byte array of size 31 copying of data will occur
 	/// signature: (array, data, oldLen, newLen)
 	std::string increaseByteArraySizeFunction(ArrayType const& _type);
 

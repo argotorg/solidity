@@ -185,7 +185,8 @@ The full contract
             // this recreates the message that was signed on the client
             bytes32 message = prefixed(keccak256(abi.encodePacked(msg.sender, amount, nonce, this)));
             require(recoverSigner(message, signature) == owner);
-            payable(msg.sender).transfer(amount);
+            (bool success, ) = payable(msg.sender).call{value: amount}("");
+            require(success);
         }
 
         /// freeze the contract and reclaim the leftover funds.
@@ -195,7 +196,8 @@ The full contract
         {
             require(msg.sender == owner);
             freeze();
-            payable(msg.sender).transfer(address(this).balance);
+            (bool success, ) = payable(msg.sender).call{value: address(this).balance}("");
+            require(success);
         }
 
         /// signature methods.
@@ -406,9 +408,11 @@ The full contract
             require(msg.sender == recipient);
             require(isValidSignature(amount, signature));
 
-            recipient.transfer(amount);
+            (bool success, ) = recipient.call{value: amount}("");
+            require(success);
             freeze();
-            sender.transfer(address(this).balance);
+            (success, ) = sender.call{value: address(this).balance}("");
+            require(success);
         }
 
         /// the sender can extend the expiration at any time
@@ -430,7 +434,8 @@ The full contract
         {
             require(block.timestamp >= expiration);
             freeze();
-            sender.transfer(address(this).balance);
+            (bool success, ) = sender.call{value: address(this).balance}("");
+            require(success);
         }
 
         function isValidSignature(uint256 amount, bytes memory signature)

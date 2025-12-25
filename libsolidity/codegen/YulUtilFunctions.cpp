@@ -1419,14 +1419,13 @@ std::string YulUtilFunctions::cleanUpStorageArrayEndFunction(ArrayType const& _t
 				let newSlotCount := <convertToSize>(startIndex)
 				let arrayDataStart := <dataPosition>(array)
 				let deleteStart := add(arrayDataStart, newSlotCount)
-				let deleteEnd := add(arrayDataStart, oldSlotCount)
 				<?packed>
 					// if we are dealing with packed array and offset is greater than zero
 					// we have  to partially clear last slot that is still used, so decreasing start by one
 					let offset := mul(mod(startIndex, <itemsPerSlot>), <storageBytes>)
 					if gt(offset, 0) { <partialClearStorageSlot>(sub(deleteStart, 1), offset) }
 				</packed>
-				<clearStorageRange>(deleteStart, deleteEnd)
+				<clearStorageRange>(deleteStart, sub(oldSlotCount, newSlotCount))
 			}
 		)")
 		("convertToSize", arrayConvertLengthToSize(_type))
@@ -1474,11 +1473,17 @@ std::string YulUtilFunctions::cleanUpDynamicByteArrayEndSlotsFunction(ArrayType 
 		_args = {"array", "len", "startIndex"};
 		return Whiskers(R"(
 			if gt(len, 31) {
-				let dataArea := <dataLocation>(array)
-				let deleteStart := add(dataArea, <div32Ceil>(startIndex))
-				// If we are clearing array to be short byte array, we want to clear only data starting from array data area.
-				if lt(startIndex, 32) { deleteStart := dataArea }
-				<clearStorageRange>(deleteStart, add(dataArea, <div32Ceil>(len)))
+				if gt(len, startIndex) {
+					let dataArea := <dataLocation>(array)
+					let oldSlotCount := <div32Ceil>(len)
+					let newSlotCount := <div32Ceil>(startIndex)
+					// If we are clearing array to be short byte array, we want to clear only data starting from array data area.
+					if lt(startIndex, 32) {
+						newSlotCount := 0
+					}
+					let deleteStart := add(dataArea, newSlotCount)
+					<clearStorageRange>(deleteStart, sub(oldSlotCount, newSlotCount))
+				}
 			}
 		)")
 		("dataLocation", arrayDataAreaFunction(_type))
@@ -1496,14 +1501,21 @@ std::string YulUtilFunctions::decreaseByteArraySizeFunction(ArrayType const& _ty
 			function <functionName>(array, data, oldLen, newLen) {
 				switch lt(newLen, 32)
 				case  0 {
+					// NOTE: This branch (newLen >= 32) is currently unreachable from Solidity code.
+					// All delete operations use newLen=0, and assignment uses copyByteArrayToStorageFunction.
+					// However, we maintain correct logic here for future-proofing and consistency.
+					let newSlots := <div32Ceil>(newLen)
+					let oldSlots := <div32Ceil>(oldLen)
 					let arrayDataStart := <dataPosition>(array)
-					let deleteStart := add(arrayDataStart, <div32Ceil>(newLen))
+					let deleteStart := add(arrayDataStart, newSlots)
 
 					// we have to partially clear last slot that is still used
 					let offset := and(newLen, 0x1f)
 					if offset { <partialClearStorageSlot>(sub(deleteStart, 1), offset) }
 
-					<clearStorageRange>(deleteStart, add(arrayDataStart, <div32Ceil>(oldLen)))
+					if gt(oldSlots, newSlots) {
+						<clearStorageRange>(deleteStart, sub(oldSlots, newSlots))
+					}
 
 					sstore(array, or(mul(2, newLen), 1))
 				}
@@ -1511,8 +1523,9 @@ std::string YulUtilFunctions::decreaseByteArraySizeFunction(ArrayType const& _ty
 					switch gt(oldLen, 31)
 					case 1 {
 						let arrayDataStart := <dataPosition>(array)
-						// clear whole old array, as we are transforming to short bytes array
-						<clearStorageRange>(add(arrayDataStart, 1), add(arrayDataStart, <div32Ceil>(oldLen)))
+						// Clear whole old array, as we are transforming to short bytes array.
+						// <transitLongToShort>() will clear the first slot after copying its content.
+						<clearStorageRange>(add(arrayDataStart, 1), sub(<div32Ceil>(oldLen), 1))
 						<transitLongToShort>(array, newLen)
 					}
 					default {
@@ -1826,10 +1839,10 @@ std::string YulUtilFunctions::clearStorageRangeFunction(Type const& _type)
 
 	return m_functionCollector.createFunction(functionName, [&]() {
 		return Whiskers(R"(
-			function <functionName>(start, end) {
-				for {} lt(start, end) { start := add(start, <increment>) }
+			function <functionName>(startSlot, slotCount) {
+				for { let i := 0 } lt(i, slotCount) { i := add(i, <increment>) }
 				{
-					<setToZero>(start, 0)
+					<setToZero>(add(startSlot, i), 0)
 				}
 			}
 		)")
@@ -1861,7 +1874,7 @@ std::string YulUtilFunctions::clearStorageArrayFunction(ArrayType const& _type)
 				<?dynamic>
 					<resizeArray>(slot, 0)
 				<!dynamic>
-					<?+clearRange><clearRange>(slot, add(slot, <lenToSize>(<len>)))</+clearRange>
+					<?+clearRange><clearRange>(slot, <lenToSize>(<len>))</+clearRange>
 				</dynamic>
 			}
 		)")

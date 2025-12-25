@@ -242,118 +242,148 @@ Members of Addresses
 
 For a quick reference of all members of address, see :ref:`address_related`.
 
+.. _balance-transfer-address-members:
+
 * ``balance`` and ``transfer``
 
-It is possible to query the balance of an address using the property ``balance``
-and to send Ether (in units of wei) to a payable address using the ``transfer`` function:
+    It is possible to query the balance of an address using the property ``balance``
+    and to send Ether (in units of wei) to a payable address using the ``transfer`` function:
 
-.. code-block:: solidity
-    :force:
+    .. code-block:: solidity
+        :force:
 
-    address payable x = payable(0x123);
-    address myAddress = address(this);
-    if (x.balance < 10 && myAddress.balance >= 10) x.transfer(10);
+        address payable x = payable(0x123);
+        address myAddress = address(this);
+        if (x.balance < 10 && myAddress.balance >= 10) x.transfer(10);
 
-The ``transfer`` function fails if the balance of the current contract is not large enough
-or if the Ether transfer is rejected by the receiving account. The ``transfer`` function
-reverts on failure.
+    The ``transfer`` function fails if the balance of the current contract is not large enough
+    or if the Ether transfer is rejected by the receiving account. The ``transfer`` function
+    reverts on failure.
 
-.. note::
-    If ``x`` is a contract address, its code (more specifically: its :ref:`receive-ether-function`, if present, or otherwise its :ref:`fallback-function`, if present) will be executed together with the ``transfer`` call (this is a feature of the EVM and cannot be prevented). If that execution runs out of gas or fails in any way, the Ether transfer will be reverted and the current contract will stop with an exception.
+    .. note::
+        If ``x`` is a contract address, its code (more specifically: its :ref:`receive-ether-function`, if present, or otherwise its :ref:`fallback-function`, if present) will be executed together with the ``transfer`` call (this is a feature of the EVM and cannot be prevented). If that execution runs out of gas or fails in any way, the Ether transfer will be reverted and the current contract will stop with an exception.
+
+    .. warning::
+        ``transfer`` is deprecated and scheduled for removal.
+        Simple ether transfers can still be performed using the :ref:`call function <address_call_functions>`
+        with with an optionally provided maximum amount of gas and empty payload, i.e., ``call{value: <amount>}("")``.
+        By default this forwards all the remaining gas, subject to additional limits imposed by some EVM versions
+        (such as the `63/64th rule <https://eips.ethereum.org/EIPS/eip-150>`_ introduced by ``tangerineWhistle``).
+        As with any external call, the ``gas`` call option can be used to set a lower limit.
+
+        While it is possible to recreate the functionality by explicitly setting the limit to the value of the stipend (2300 gas),
+        this value no longer holds its original meaning due to changing opcode costs.
+        It is recommended to use different means to protect against reentrancy.
+
+.. _send-address-member:
 
 * ``send``
 
-``send`` is the low-level counterpart of ``transfer``. If the execution fails, the current contract will not stop with an exception, but ``send`` will return ``false``.
+    ``send`` is the low-level counterpart of ``transfer``. If the execution fails, the current contract will not stop with an exception, but ``send`` will return ``false``.
 
-.. warning::
-    There are some dangers in using ``send``: The transfer fails if the call stack depth is at 1024
-    (this can always be forced by the caller) and it also fails if the recipient runs out of gas. So in order
-    to make safe Ether transfers, always check the return value of ``send``, use ``transfer`` or even better:
-    use a pattern where the recipient withdraws the Ether.
+    .. warning::
+        There are some dangers in using ``send``: The transfer fails if the call stack depth is at 1024
+        (this can always be forced by the caller) and it also fails if the recipient runs out of gas. So in order
+        to make safe Ether transfers, always check the return value of ``send``, use ``transfer`` or even better:
+        use a pattern where the recipient withdraws the Ether.
+
+    .. warning::
+        ``send`` is deprecated and scheduled for removal.
+        Simple ether transfers can still be performed using the :ref:`call function <address_call_functions>`
+        with with an optionally provided maximum amount of gas and empty payload, i.e., ``call{value: <amount>}("")``.
+        By default this forwards all the remaining gas, subject to additional limits imposed by some EVM versions
+        (such as the `63/64th rule <https://eips.ethereum.org/EIPS/eip-150>`_ introduced by ``tangerineWhistle``).
+        As with any external call, the ``gas`` call option can be used to set a lower limit.
+
+        While it is possible to recreate the functionality by explicitly setting the limit to the value of the stipend (2300 gas),
+        this value no longer holds its original meaning due to changing opcode costs.
+        It is recommended to use different means to protect against reentrancy.
+
+.. _address_call_functions:
 
 * ``call``, ``delegatecall`` and ``staticcall``
 
-In order to interface with contracts that do not adhere to the ABI,
-or to get more direct control over the encoding,
-the functions ``call``, ``delegatecall`` and ``staticcall`` are provided.
-They all take a single ``bytes memory`` parameter and
-return the success condition (as a ``bool``) and the returned data
-(``bytes memory``).
-The functions ``abi.encode``, ``abi.encodePacked``, ``abi.encodeWithSelector``
-and ``abi.encodeWithSignature`` can be used to encode structured data.
+    In order to interface with contracts that do not adhere to the ABI,
+    or to get more direct control over the encoding,
+    the functions ``call``, ``delegatecall`` and ``staticcall`` are provided.
+    They all take a single ``bytes memory`` parameter and
+    return the success condition (as a ``bool``) and the returned data
+    (``bytes memory``).
+    The functions ``abi.encode``, ``abi.encodePacked``, ``abi.encodeWithSelector``
+    and ``abi.encodeWithSignature`` can be used to encode structured data.
 
-Example:
+    Example:
 
-.. code-block:: solidity
+    .. code-block:: solidity
 
-    bytes memory payload = abi.encodeWithSignature("register(string)", "MyName");
-    (bool success, bytes memory returnData) = address(nameReg).call(payload);
-    require(success);
+        bytes memory payload = abi.encodeWithSignature("register(string)", "MyName");
+        (bool success, bytes memory returnData) = address(nameReg).call(payload);
+        require(success);
 
-.. warning::
-    All these functions are low-level functions and should be used with care.
-    Specifically, any unknown contract might be malicious and if you call it, you
-    hand over control to that contract which could in turn call back into
-    your contract, so be prepared for changes to your state variables
-    when the call returns. The regular way to interact with other contracts
-    is to call a function on a contract object (``x.f()``).
+    .. warning::
+        All these functions are low-level functions and should be used with care.
+        Specifically, any unknown contract might be malicious and if you call it, you
+        hand over control to that contract which could in turn call back into
+        your contract, so be prepared for changes to your state variables
+        when the call returns. The regular way to interact with other contracts
+        is to call a function on a contract object (``x.f()``).
 
-.. note::
-    Previous versions of Solidity allowed these functions to receive
-    arbitrary arguments and would also handle a first argument of type
-    ``bytes4`` differently. These edge cases were removed in version 0.5.0.
+    .. note::
+        Previous versions of Solidity allowed these functions to receive
+        arbitrary arguments and would also handle a first argument of type
+        ``bytes4`` differently. These edge cases were removed in version 0.5.0.
 
-It is possible to adjust the supplied gas with the ``gas`` modifier:
+    It is possible to adjust the supplied gas with the ``gas`` modifier:
 
-.. code-block:: solidity
+    .. code-block:: solidity
 
-    address(nameReg).call{gas: 1000000}(abi.encodeWithSignature("register(string)", "MyName"));
+        address(nameReg).call{gas: 1000000}(abi.encodeWithSignature("register(string)", "MyName"));
 
-Similarly, the supplied Ether value can be controlled too:
+    Similarly, the supplied Ether value can be controlled too:
 
-.. code-block:: solidity
+    .. code-block:: solidity
 
-    address(nameReg).call{value: 1 ether}(abi.encodeWithSignature("register(string)", "MyName"));
+        address(nameReg).call{value: 1 ether}(abi.encodeWithSignature("register(string)", "MyName"));
 
-Lastly, these modifiers can be combined. Their order does not matter:
+    Lastly, these modifiers can be combined. Their order does not matter:
 
-.. code-block:: solidity
+    .. code-block:: solidity
 
-    address(nameReg).call{gas: 1000000, value: 1 ether}(abi.encodeWithSignature("register(string)", "MyName"));
+        address(nameReg).call{gas: 1000000, value: 1 ether}(abi.encodeWithSignature("register(string)", "MyName"));
 
-In a similar way, the function ``delegatecall`` can be used: the difference is that only the code of the given address is used, all other aspects (storage, balance, ...) are taken from the current contract. The purpose of ``delegatecall`` is to use library code which is stored in another contract. The user has to ensure that the layout of storage in both contracts is suitable for delegatecall to be used.
+    In a similar way, the function ``delegatecall`` can be used: the difference is that only the code of the given address is used, all other aspects (storage, balance, ...) are taken from the current contract. The purpose of ``delegatecall`` is to use library code which is stored in another contract. The user has to ensure that the layout of storage in both contracts is suitable for delegatecall to be used.
 
-.. note::
-    Prior to homestead, only a limited variant called ``callcode`` was available that did not provide access to the original ``msg.sender`` and ``msg.value`` values. This function was removed in version 0.5.0.
+    .. note::
+        Prior to homestead, only a limited variant called ``callcode`` was available that did not provide access to the original ``msg.sender`` and ``msg.value`` values. This function was removed in version 0.5.0.
 
-Since byzantium ``staticcall`` can be used as well. This is basically the same as ``call``, but will revert if the called function modifies the state in any way.
+    Since byzantium ``staticcall`` can be used as well. This is basically the same as ``call``, but will revert if the called function modifies the state in any way.
 
-All three functions ``call``, ``delegatecall`` and ``staticcall`` are very low-level functions and should only be used as a *last resort* as they break the type-safety of Solidity.
+    All three functions ``call``, ``delegatecall`` and ``staticcall`` are very low-level functions and should only be used as a *last resort* as they break the type-safety of Solidity.
 
-The ``gas`` option is available on all three methods, while the ``value`` option is only available
-on ``call``.
+    The ``gas`` option is available on all three methods, while the ``value`` option is only available
+    on ``call``.
 
-.. note::
-    It is best to avoid relying on hardcoded gas values in your smart contract code,
-    regardless of whether state is read from or written to, as this can have many pitfalls.
-    Also, access to gas might change in the future.
+    .. note::
+        It is best to avoid relying on hardcoded gas values in your smart contract code,
+        regardless of whether state is read from or written to, as this can have many pitfalls.
+        Also, access to gas might change in the future.
 
 * ``code`` and ``codehash``
 
-You can query the deployed code for any smart contract. Use ``.code`` to get the EVM bytecode as a
-``bytes memory``, which might be empty. Use ``.codehash`` to get the Keccak-256 hash of that code
-(as a ``bytes32``). Note that ``addr.codehash`` is cheaper than using ``keccak256(addr.code)``.
+    You can query the deployed code for any smart contract. Use ``.code`` to get the EVM bytecode as a
+    ``bytes memory``, which might be empty. Use ``.codehash`` to get the Keccak-256 hash of that code
+    (as a ``bytes32``). Note that ``addr.codehash`` is cheaper than using ``keccak256(addr.code)``.
 
-.. warning::
-    The output of ``addr.codehash`` may be ``0`` if the account associated with ``addr`` is empty or non-existent
-    (i.e., it has no code, zero balance, and zero nonce as defined by `EIP-161 <https://eips.ethereum.org/EIPS/eip-161>`_).
-    If the account has no code but a non-zero balance or nonce, then ``addr.codehash`` will output the Keccak-256 hash of empty data
-    (i.e., ``keccak256("")`` which is equal to ``c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470``), as defined by
-    `EIP-1052 <https://eips.ethereum.org/EIPS/eip-1052>`_.
+    .. warning::
+        The output of ``addr.codehash`` may be ``0`` if the account associated with ``addr`` is empty or non-existent
+        (i.e., it has no code, zero balance, and zero nonce as defined by `EIP-161 <https://eips.ethereum.org/EIPS/eip-161>`_).
+        If the account has no code but a non-zero balance or nonce, then ``addr.codehash`` will output the Keccak-256 hash of empty data
+        (i.e., ``keccak256("")`` which is equal to ``c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470``), as defined by
+        `EIP-1052 <https://eips.ethereum.org/EIPS/eip-1052>`_.
 
-.. note::
-    All contracts can be converted to ``address`` type, so it is possible to query the balance of the
-    current contract using ``address(this).balance``.
+    .. note::
+        All contracts can be converted to ``address`` type, so it is possible to query the balance of the
+        current contract using ``address(this).balance``.
 
 .. index:: ! contract type, ! type; contract
 

@@ -17,8 +17,8 @@ parameters:
     default: "ghcr.io/argotorg/solidity-buildpack-deps@sha256:c0412c53e59ce0c96bde4c08e7332ea12e4cadba9bbac829621947897fa21272"
   ubuntu-2404-arm-docker-image:
     type: string
-    # ghcr.io/argotorg/solidity-buildpack-deps:ubuntu2404.arm-1
-    default: "ghcr.io/argotorg/solidity-buildpack-deps@sha256:6cdb928fa8743d0b5d515c2c489b8d545c541f2370af28d5d3a71532056a0f22"
+    # ghcr.io/argotorg/solidity-buildpack-deps:ubuntu2404.arm-2
+    default: "ghcr.io/argotorg/solidity-buildpack-deps@sha256:27b03c1c4688e5d69b10e0539460346a3dee3b10b0e04fb406b9707c6f0dd95e"
   ubuntu-2404-clang-docker-image:
     type: string
     # ghcr.io/argotorg/solidity-buildpack-deps:ubuntu2404.clang-7
@@ -34,7 +34,7 @@ parameters:
     default: "ghcr.io/argotorg/solidity-buildpack-deps@sha256:fc53d68a4680ffa7d5f70164e13a903478964f15bcc07434d74833a05f4fbc19"
   evm-version:
     type: string
-    default: prague
+    default: osaka
 
 orbs:
   win: circleci/windows@2.2.0
@@ -701,6 +701,11 @@ defaults:
       requires:
         - b_ubu_static
 
+  - requires_b_ubu_static_arm: &requires_b_ubu_static_arm
+      <<: *on_all_tags_and_branches
+      requires:
+        - b_ubu_static_arm
+
   - requires_b_archlinux: &requires_b_archlinux
       <<: *on_all_tags_and_branches
       requires:
@@ -831,7 +836,7 @@ defaults:
       project: uniswap
       binary_type: native
       image: cimg/node:lts
-      resource_class: medium # Tests run out of memory on a smaller machine
+      resource_class: large # Tests run out of memory on a smaller machine
 
   - job_native_test_ext_prb_math: &job_native_test_ext_prb_math
       <<: *requires_b_ubu_static
@@ -1104,7 +1109,7 @@ jobs:
             - solc/solc-static-linux
       - matrix_notify_failure_unless_pr
 
-  b_ubu_static_arm:
+  b_ubu_static_arm: &b_ubu_static_arm
     <<: *base_ubuntu2404_arm_large
     environment:
       <<: *base_ubuntu2404_arm_large_env
@@ -1293,6 +1298,28 @@ jobs:
     steps:
       - soltest_all
 
+  t_ubu_arm_soltest: &t_ubu_arm_soltest
+    <<: *base_ubuntu2404_arm_medium
+    parallelism: 20
+    environment:
+      <<: *base_ubuntu2404_arm_medium_env
+      EVM: << pipeline.parameters.evm-version >>
+      EOF_VERSION: 0
+      OPTIMIZE: 0
+    steps:
+      - checkout
+      - attach_workspace:
+          at: build
+      - run:
+          name: Create symbolic link with expected soltest binary name
+          command: |
+            ln --symbolic --relative build/test/soltest-linux-arm build/test/soltest
+      - run_soltest
+      - store_test_results:
+          path: test_results/
+      - store_artifacts_test_results
+      - matrix_notify_failure_unless_pr
+
   t_ubu_soltest_deprecated_evm_versions: &t_ubu_soltest_deprecated_evm_versions
     <<: *base_ubuntu2404_large
     parallelism: 50
@@ -1301,7 +1328,7 @@ jobs:
       - attach_workspace:
           at: build
       - run_soltest_all:
-          evm_versions: homestead byzantium
+          evm_versions: homestead byzantium constantinople petersburg
       - store_test_results:
           path: test_results/
       - store_artifacts_test_results
@@ -1354,6 +1381,24 @@ jobs:
     parallelism: 8 # Should match number of tests in .circleci/parallel_cli_tests.py
     steps:
       - cmdline_tests
+
+  t_ubu_arm_cli: &t_ubu_arm_cli
+    <<: *base_ubuntu2404_arm_medium
+    parallelism: 8 # Should match number of tests in .circleci/parallel_cli_tests.py
+    steps:
+      - checkout
+      - attach_workspace:
+          at: build
+      - run:
+          name: Create symbolic link with expected solc and solfuzzer binaries name
+          command: |
+            ln --symbolic --relative build/solc/solc-static-linux-arm build/solc/solc
+            ln --symbolic --relative build/test/tools/solfuzzer-linux-arm build/test/tools/solfuzzer
+      - run_cmdline_tests
+      - store_test_results:
+          path: test_results/
+      - store_artifacts_test_results
+      - matrix_notify_failure_unless_pr
 
   t_ubu_force_release_cli: &t_ubu_force_release_cli
     <<: *t_ubu_cli
@@ -1932,6 +1977,12 @@ jobs:
           docker_layer_caching: false
       - checkout
       - run:
+          name: Disable partial clone and fetch all objects
+          command: |
+            git config remote.origin.promisor false
+            git config --unset remote.origin.partialclonefilter
+            git fetch --refetch origin
+      - run:
           name: Build and tag the container
           command: scripts/docker_deploy_manual.sh develop "file://$PWD" --no-push
       - run:
@@ -1985,8 +2036,10 @@ workflows:
       # Ubuntu build and tests
       - b_ubu: *requires_nothing
       - t_ubu_cli: *requires_b_ubu
+      - t_ubu_arm_cli: *requires_b_ubu_static_arm
       - t_ubu_locale: *requires_b_ubu
       - t_ubu_soltest_all: *requires_b_ubu
+      - t_ubu_arm_soltest: *requires_b_ubu_static_arm
       - b_ubu_clang: *requires_nothing
       - t_ubu_clang_soltest: *requires_b_ubu_clang
       - t_ubu_lsp: *requires_b_ubu

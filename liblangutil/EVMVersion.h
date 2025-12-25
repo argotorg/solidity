@@ -170,7 +170,7 @@ private:
 		Prague,
 		Osaka,
 	};
-	static auto constexpr currentVersion = Version::Prague;
+	static auto constexpr currentVersion = Version::Osaka;
 
 	constexpr EVMVersion(Version _version): m_version(_version) {}
 

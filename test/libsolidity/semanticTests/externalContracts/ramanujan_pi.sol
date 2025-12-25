@@ -40,6 +40,6 @@ contract test {
 // gas legacyOptimized: 82667
 // gas legacyOptimized code: 369200
 // prb_pi() -> 3141592656369545286
-// gas irOptimized: 57478
+// gas irOptimized: 55036
 // gas legacy: 100657
-// gas legacyOptimized: 75735
+// gas legacyOptimized: 74311

@@ -20,6 +20,7 @@ contract sender {
 // forward() -> true
 // val() -> 8
 // clear() -> true
+// gas irOptimized: 29243
 // val() -> 8
 // forward() -> true
 // val() -> 0x80
