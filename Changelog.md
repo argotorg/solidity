@@ -5,6 +5,7 @@ Language Features:
 Compiler Features:
 
 Bugfixes:
+ * Name Resolver: Fix incorrect shadowing warning for variables declared in non-overlapping scopes.
 
 
 ### 0.8.33 (2025-12-18)
