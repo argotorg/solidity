@@ -51,6 +51,7 @@ then
   brew update
   brew upgrade
   brew install cmake
+  brew install ccache
   brew install wget
   brew install coreutils
   brew install diffutils
