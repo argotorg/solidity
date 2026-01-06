@@ -1922,6 +1922,11 @@ jobs:
                   mkdir -p "$CCACHE_DIR"
                   WIN_PWD="$(pwd -W | tr '\\\\' '/')"
                   export CMAKE_OPTIONS="${CMAKE_OPTIONS:-} -DCMAKE_VS_GLOBALS=CLToolExe=ccache.exe\;CLToolPath=${WIN_PWD}/deps/ccache"
+                  echo "WIN_PWD=$WIN_PWD"
+                  echo "CCACHE_COMPILER=$CCACHE_COMPILER"
+                  command -v ccache || true
+                  ccache --version || true
+                  if [[ -x "$CCACHE_COMPILER" ]]; then echo "ccache compiler exists"; else echo "ccache compiler missing"; fi
                   ccache -z
 
                   scripts/ci/build_win.sh
