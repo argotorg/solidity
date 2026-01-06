@@ -209,23 +209,23 @@ commands:
   run_build:
     steps:
       # TODO: remove the line below
-      # Before merging this PR we need to use an alternative develop branch to test the functionality, `ci-cache`
+      # Before merging this PR we need to use an alternative develop branch to test the functionality, `ci-ccache`
 
-      # On `ci-cache` and `breaking` we intentionally do NOT restore any ccache, so every run starts from scratch.
-      # Tags always skip ccache. Other branches restore the most recent cache produced on `ci-cache`.
+      # On `ci-ccache` and `breaking` we intentionally do NOT restore any ccache, so every run starts from scratch.
+      # Tags always skip ccache. Other branches restore the most recent cache produced on `ci-ccache`.
       - when:
           condition:
             and:
               - equal: ["", << pipeline.git.tag >>]
               - not:
                   or:
-                    - equal: ["ci-cache", << pipeline.git.branch >>]
+                    - equal: ["ci-ccache", << pipeline.git.branch >>]
                     - equal: ["breaking", << pipeline.git.branch >>]
           steps:
             - restore_cache:
                 keys:
-                  # Reuse cache produced on ci-cache (prefix match; restores the most recent).
-                  - v1-{{ .Environment.CCACHE_KEY }}-ccache-{{ .Environment.CIRCLE_JOB }}-ci-cache-
+                  # Reuse cache produced on ci-ccache (prefix match; restores the most recent).
+                  - v1-{{ .Environment.CCACHE_KEY }}-ccache-{{ .Environment.CIRCLE_JOB }}-ci-ccache-
       # WARNING! If you edit anything between here and save_cache, remember to bump version or invalidate the cache manually.
       - when:
           condition:
@@ -255,13 +255,13 @@ commands:
                 name: Build (no ccache)
                 command: scripts/ci/build.sh
 
-      # On `ci-cache` we always generate a fresh cache by never restoring and by saving under a unique key.
+      # On `ci-ccache` we always generate a fresh cache by never restoring and by saving under a unique key.
       - when:
           condition:
-            equal: ["ci-cache", << pipeline.git.branch >>]
+            equal: ["ci-ccache", << pipeline.git.branch >>]
           steps:
             - save_cache:
-                key: v1-{{ .Environment.CCACHE_KEY }}-ccache-{{ .Environment.CIRCLE_JOB }}-ci-cache-{{ .Revision }}
+                key: v1-{{ .Environment.CCACHE_KEY }}-ccache-{{ .Environment.CIRCLE_JOB }}-ci-ccache-{{ .Revision }}
                 paths:
                   - ~/.ccache
 
