@@ -1920,7 +1920,8 @@ jobs:
                   export CCACHE_COMPILER=cl.exe
                   export PATH="$(pwd)/deps/ccache:$PATH"
                   mkdir -p "$CCACHE_DIR"
-                  export CMAKE_OPTIONS="${CMAKE_OPTIONS:-} -DCMAKE_VS_GLOBALS=CLToolExe=ccache.exe\\;CLToolPath=$(pwd)/deps/ccache"
+                  WIN_PWD="$(pwd -W)"
+                  export CMAKE_OPTIONS="${CMAKE_OPTIONS:-} -DCMAKE_VS_GLOBALS=CLToolExe=ccache.exe\\;CLToolPath=${WIN_PWD}/deps/ccache"
                   ccache -z
 
                   scripts/ci/build_win.sh
