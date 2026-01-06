@@ -136,6 +136,7 @@ BOOST_AUTO_TEST_CASE(function_natspec_documentation)
 		}
 	)";
 	BOOST_CHECK(successParse(text));
+	BOOST_CHECK(successParse(text));
 	ErrorList errors;
 	ASTPointer<ContractDefinition> contract = parseText(text, errors);
 	FunctionDefinition const* function = nullptr;
