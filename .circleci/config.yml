@@ -1917,11 +1917,11 @@ jobs:
                   export CCACHE_BASEDIR="$(pwd)"
                   export CCACHE_NOHASHDIR=1
                   export CCACHE_COMPILERTYPE=msvc
-                  export CCACHE_COMPILER=cl.exe
+                  export CCACHE_COMPILER="$(powershell.exe -NoProfile -Command '& "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath | % { (Get-ChildItem "$($_)\VC\Tools\MSVC" | Sort-Object Name -Descending | Select-Object -First 1).FullName + "\bin\Hostx64\x64\cl.exe" }')"
                   export PATH="$(pwd)/deps/ccache:$PATH"
                   mkdir -p "$CCACHE_DIR"
-                  WIN_PWD="$(pwd -W)"
-                  export CMAKE_OPTIONS="${CMAKE_OPTIONS:-} -DCMAKE_VS_GLOBALS=CLToolExe=ccache.exe\\;CLToolPath=${WIN_PWD}/deps/ccache"
+                  WIN_PWD="$(pwd -W | tr '\\\\' '/')"
+                  export CMAKE_OPTIONS="${CMAKE_OPTIONS:-} -DCMAKE_VS_GLOBALS=CLToolExe=ccache.exe\;CLToolPath=${WIN_PWD}/deps/ccache"
                   ccache -z
 
                   scripts/ci/build_win.sh
