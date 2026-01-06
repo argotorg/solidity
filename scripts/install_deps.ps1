@@ -20,6 +20,7 @@ if ( -not (Test-Path "$PSScriptRoot\..\deps\boost") ) {
   }
   tar -xf ccache.zip
   mv ccache-4.12.2-windows-x86_64 "$PSScriptRoot\..\deps\ccache"
+  Copy-Item -Force "$PSScriptRoot\..\deps\ccache\ccache.exe" "$PSScriptRoot\..\deps\ccache\cl.exe"
   Remove-Item ccache.zip
 
   # FIXME: The default user agent results in Artifactory treating Invoke-WebRequest as a browser
