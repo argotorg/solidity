@@ -16,11 +16,13 @@ cd build/
 # NOTE: Using an array to force Bash to do wildcard expansion
 boost_dir=("${ROOTDIR}/deps/boost/lib/cmake/Boost-"*)
 
-"${ROOTDIR}/deps/cmake/bin/cmake" \
+ # shellcheck disable=SC2086
+ "${ROOTDIR}/deps/cmake/bin/cmake" \
     -G "Visual Studio 16 2019" \
     -DBoost_DIR="${boost_dir[*]}" \
     -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded \
     -DCMAKE_INSTALL_PREFIX="${ROOTDIR}/uploads/" \
+    ${CMAKE_OPTIONS:-} \
     ..
 MSBuild.exe solidity.sln \
     -property:Configuration=Release \

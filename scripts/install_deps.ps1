@@ -14,6 +14,14 @@ if ( -not (Test-Path "$PSScriptRoot\..\deps\boost") ) {
   mv cmake-3.27.4-windows-x86_64 "$PSScriptRoot\..\deps\cmake"
   Remove-Item cmake.zip
 
+  Invoke-WebRequest -URI "https://github.com/ccache/ccache/releases/download/v4.12.2/ccache-4.12.2-windows-x86_64.zip" -OutFile ccache.zip
+  if ((Get-FileHash ccache.zip).Hash -ne "82c1b130b25cc162531dc7a062dc5ea99349cd536bc9eba8a66d976802d66516") {
+    throw 'Downloaded ccache package has wrong checksum.'
+  }
+  tar -xf ccache.zip
+  mv ccache-4.12.2-windows-x86_64 "$PSScriptRoot\..\deps\ccache"
+  Remove-Item ccache.zip
+
   # FIXME: The default user agent results in Artifactory treating Invoke-WebRequest as a browser
   # and serving it a page that requires JavaScript.
   Invoke-WebRequest -URI "https://archives.boost.io/release/1.83.0/source/boost_1_83_0.zip" -OutFile boost.zip -UserAgent ""

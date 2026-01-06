@@ -18,6 +18,7 @@ function generate_protobuf_bindings
 function build_fuzzers
 {
   cd "${BUILDDIR}"
+  # shellcheck disable=SC2086
   cmake .. -DCMAKE_BUILD_TYPE="${CMAKE_BUILD_TYPE:-Release}" \
     -DCMAKE_TOOLCHAIN_FILE="${ROOTDIR}"/cmake/toolchains/libfuzzer.cmake \
     $CMAKE_OPTIONS
