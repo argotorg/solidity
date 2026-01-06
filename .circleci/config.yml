@@ -1916,9 +1916,11 @@ jobs:
                   export CCACHE_DIR="$HOME/.ccache"
                   export CCACHE_BASEDIR="$(pwd)"
                   export CCACHE_NOHASHDIR=1
+                  export CCACHE_COMPILERTYPE=msvc
+                  export CCACHE_COMPILER=cl.exe
                   export PATH="$(pwd)/deps/ccache:$PATH"
                   mkdir -p "$CCACHE_DIR"
-                  export CMAKE_OPTIONS="${CMAKE_OPTIONS:-} -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache"
+                  export CMAKE_OPTIONS="${CMAKE_OPTIONS:-} -DCMAKE_VS_GLOBALS=CLToolExe=ccache.exe\\;CLToolPath=$(pwd)/deps/ccache"
                   ccache -z
 
                   scripts/ci/build_win.sh
