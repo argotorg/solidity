@@ -14,24 +14,24 @@ parameters:
   ubuntu-2404-docker-image:
     type: string
     # ghcr.io/argotorg/solidity-buildpack-deps:ubuntu2404-7
-    default: "ghcr.io/argotorg/solidity-buildpack-deps@sha256:bf3c7dac5f613d220757d9e32ee6855648b98bdb460a984ade214f8fe6920d63"
+    default: "ghcr.io/argotorg/solidity-buildpack-deps@sha256:e52bd8fbb38908f203c6866e39562548faf26e5b7a5174f9860b44aae2b8f0cd"
   ubuntu-2404-arm-docker-image:
     type: string
     # ghcr.io/argotorg/solidity-buildpack-deps:ubuntu2404.arm-3
-    default: "ghcr.io/argotorg/solidity-buildpack-deps@sha256:c4f7da98bc922e8ff2e58d5cfc0216b698ca1ee3ed84f1a0561bbf3641905b4a"
+    default: "ghcr.io/argotorg/solidity-buildpack-deps@sha256:1e6dbf9a9173f2645449281a1e11918a95ca6dc04e59aa9d70824cffc44697ed"
   ubuntu-2404-clang-docker-image:
     type: string
     # ghcr.io/argotorg/solidity-buildpack-deps:ubuntu2404.clang-8
-    default: "ghcr.io/argotorg/solidity-buildpack-deps@sha256:4c936d31b0eaebb770ea72e6fb8af002dfbdb920604858afa0c8cd055aa49664"
+    default: "ghcr.io/argotorg/solidity-buildpack-deps@sha256:e283c8ec6a59c76565c89b856d8019af2fa5beb96f27d3064fc4dda42bf3524d"
   ubuntu-clang-ossfuzz-docker-image:
     type: string
     # ghcr.io/argotorg/solidity-buildpack-deps:ubuntu.clang.ossfuzz-13
-    default: "ghcr.io/argotorg/solidity-buildpack-deps@sha256:ed197b3d083aa05526ec40d6d3d1f2bc3e8856bd23c1a7037becb4d3a15b3529"
+    default: "ghcr.io/argotorg/solidity-buildpack-deps@sha256:2acb5d6f254ece25a96096f26960b5fe114eb86ceca92312cd20d59c096bf6e4"
   emscripten-docker-image:
     type: string
     # NOTE: Please remember to update the `scripts/build_emscripten.sh` whenever the hash of this image changes.
     # ghcr.io/argotorg/solidity-buildpack-deps:emscripten-22
-    default: "ghcr.io/argotorg/solidity-buildpack-deps@sha256:e7ca70baa048d4307124f22670f38db4205d57689661feb8e92ea50a31d8fdbe"
+    default: "ghcr.io/argotorg/solidity-buildpack-deps@sha256:b9c953144d82cca5553f65626bc43b8af456dbc8966f8732ff9522f33ca8d722"
   evm-version:
     type: string
     default: osaka
