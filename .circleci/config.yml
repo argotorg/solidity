@@ -267,9 +267,59 @@ commands:
 
   run_build_ossfuzz:
     steps:
-      - run:
-          name: Build_ossfuzz
-          command: scripts/ci/build_ossfuzz.sh
+      # On `ci-ccache` and `breaking` we intentionally do NOT restore any ccache, so every run starts from scratch.
+      # Tags always skip ccache. Other branches restore the most recent cache produced on `ci-ccache`.
+      - when:
+          condition:
+            and:
+              - equal: ["", << pipeline.git.tag >>]
+              - not:
+                  or:
+                    - equal: ["ci-ccache", << pipeline.git.branch >>]
+                    - equal: ["breaking", << pipeline.git.branch >>]
+          steps:
+            - restore_cache:
+                keys:
+                  # Reuse cache produced on ci-ccache (prefix match; restores the most recent).
+                  - v1-{{ .Environment.CCACHE_KEY }}-ccache-{{ .Environment.CIRCLE_JOB }}-ci-ccache-
+      # WARNING! If you edit anything between here and save_cache, remember to bump version or invalidate the cache manually.
+      - when:
+          condition:
+            and:
+              - equal: ["", << pipeline.git.tag >>]
+          steps:
+            - run:
+                name: Build_ossfuzz (ccache)
+                command: |
+                  export CCACHE_DIR="$HOME/.ccache"
+                  export CCACHE_BASEDIR="$(pwd)"
+                  export CCACHE_NOHASHDIR=1
+                  mkdir -p "$CCACHE_DIR"
+                  export CMAKE_OPTIONS="${CMAKE_OPTIONS:-} -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache"
+                  ccache -z
+
+                  scripts/ci/build_ossfuzz.sh
+
+                  ccache -s
+      - when:
+          condition:
+            or:
+              - not:
+                  equal: ["", << pipeline.git.tag >>]
+          steps:
+            - run:
+                name: Build_ossfuzz (no ccache)
+                command: scripts/ci/build_ossfuzz.sh
+
+      # On `ci-ccache` we always generate a fresh cache by never restoring and by saving under a unique key.
+      - when:
+          condition:
+            equal: ["ci-ccache", << pipeline.git.branch >>]
+          steps:
+            - save_cache:
+                key: v1-{{ .Environment.CCACHE_KEY }}-ccache-{{ .Environment.CIRCLE_JOB }}-ci-ccache-{{ .Revision }}
+                paths:
+                  - ~/.ccache
 
   run_proofs:
     steps:
@@ -1310,10 +1360,59 @@ jobs:
       MAKEFLAGS: -j 10
     steps:
       - checkout
-      - run:
-          name: Build
-          command: |
-            scripts/ci/build_emscripten.sh
+      # On `ci-ccache` and `breaking` we intentionally do NOT restore any ccache, so every run starts from scratch.
+      # Tags always skip ccache. Other branches restore the most recent cache produced on `ci-ccache`.
+      - when:
+          condition:
+            and:
+              - equal: ["", << pipeline.git.tag >>]
+              - not:
+                  or:
+                    - equal: ["ci-ccache", << pipeline.git.branch >>]
+                    - equal: ["breaking", << pipeline.git.branch >>]
+          steps:
+            - restore_cache:
+                keys:
+                  # Reuse cache produced on ci-ccache (prefix match; restores the most recent).
+                  - v1-{{ .Environment.CCACHE_KEY }}-ccache-{{ .Environment.CIRCLE_JOB }}-ci-ccache-
+      # WARNING! If you edit anything between here and save_cache, remember to bump version or invalidate the cache manually.
+      - when:
+          condition:
+            and:
+              - equal: ["", << pipeline.git.tag >>]
+          steps:
+            - run:
+                name: Build (ccache)
+                command: |
+                  export CCACHE_DIR="$HOME/.ccache"
+                  export CCACHE_BASEDIR="$(pwd)"
+                  export CCACHE_NOHASHDIR=1
+                  mkdir -p "$CCACHE_DIR"
+                  ccache -z
+
+                  scripts/ci/build_emscripten.sh
+
+                  ccache -s
+      - when:
+          condition:
+            or:
+              - not:
+                  equal: ["", << pipeline.git.tag >>]
+          steps:
+            - run:
+                name: Build (no ccache)
+                command: |
+                  scripts/ci/build_emscripten.sh
+
+      # On `ci-ccache` we always generate a fresh cache by never restoring and by saving under a unique key.
+      - when:
+          condition:
+            equal: ["ci-ccache", << pipeline.git.branch >>]
+          steps:
+            - save_cache:
+                key: v1-{{ .Environment.CCACHE_KEY }}-ccache-{{ .Environment.CIRCLE_JOB }}-ci-ccache-{{ .Revision }}
+                paths:
+                  - ~/.ccache
       - store_artifacts:
           path: upload/soljson.js
           destination: soljson.js
