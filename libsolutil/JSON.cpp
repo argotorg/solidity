@@ -149,7 +149,6 @@ bool jsonParseStrict(std::string const& _input, Json& _json, std::string* _errs 
 			/* allow exceptions */ true,
 			/* ignore_comments */true
 		);
-		_errs = {};
 		return true;
 	}
 	catch (Json::parse_error const& e)

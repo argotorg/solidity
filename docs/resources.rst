@@ -133,6 +133,9 @@ Solidity Tools
 * `Scaffold-ETH 2 <https://github.com/scaffold-eth/scaffold-eth-2>`_
     Forkable Ethereum development stack focused on fast product iterations.
 
+* `Slippy <https://github.com/fvictorio/slippy>`_
+    A simple and powerful linter for Solidity.
+
 * `sol2uml <https://www.npmjs.com/package/sol2uml>`_
     Unified Modeling Language (UML) class diagram generator for Solidity contracts.
 

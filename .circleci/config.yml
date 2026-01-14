@@ -1292,11 +1292,16 @@ jobs:
           destination: docs-html
       - matrix_notify_failure_unless_pr
 
-  t_ubu_soltest_all: &t_ubu_soltest_all
+  t_ubu_soltest: &t_ubu_soltest
     <<: *base_ubuntu2404_large
-    parallelism: 50
+    parallelism: 20
+    environment:
+      <<: *base_ubuntu2404_large_env
+      EVM: << pipeline.parameters.evm-version >>
+      EOF_VERSION: 0
+      OPTIMIZE: 0
     steps:
-      - soltest_all
+      - soltest
 
   t_ubu_arm_soltest: &t_ubu_arm_soltest
     <<: *base_ubuntu2404_arm_medium
@@ -1372,9 +1377,10 @@ jobs:
       - soltest
 
   t_ubu_force_release_soltest_all: &t_ubu_force_release_soltest_all
-    # NOTE: This definition is identical to t_ubu_soltest_all but in the workflow we make it depend on
-    # a different job (b_ubu_force_release) so the workspace it attaches contains a different executable.
-    <<: *t_ubu_soltest_all
+    <<: *base_ubuntu2404_large
+    parallelism: 50
+    steps:
+      - soltest_all
 
   t_ubu_cli: &t_ubu_cli
     <<: *base_ubuntu2404_small
@@ -2038,7 +2044,7 @@ workflows:
       - t_ubu_cli: *requires_b_ubu
       - t_ubu_arm_cli: *requires_b_ubu_static_arm
       - t_ubu_locale: *requires_b_ubu
-      - t_ubu_soltest_all: *requires_b_ubu
+      - t_ubu_soltest: *requires_b_ubu
       - t_ubu_arm_soltest: *requires_b_ubu_static_arm
       - b_ubu_clang: *requires_nothing
       - t_ubu_clang_soltest: *requires_b_ubu_clang
