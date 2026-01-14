@@ -2,7 +2,11 @@
 
 Language Features:
 
+* General: Restrict the existing experimental features (`generic-solidity`, `lsp`, `ethdebug`, `eof`, `evm`, `ast-import`, `evmasm-import`, `ir-ast`, `yul-ssa-cfg-exporter`) to experimental mode.
+
 Compiler Features:
+* Commandline Interface: Introduce `--experimental` flag required for toggling the experimental mode.
+* Standard JSON Interface: Introduce `settings.experimental` setting required for toggling the experimental mode.
 * Yul Optimizer: Remove redundant prerequisite steps from the default optimizer sequence.
 
 Bugfixes:
