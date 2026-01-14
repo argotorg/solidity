@@ -281,6 +281,8 @@ Input Description
         "stopAfter": "parsing",
         // Optional: List of remappings
         "remappings": [ ":g=/dir" ],
+        // Optional: Experimental mode toggle (Default: false)
+        "experimental": false,
         // Optional: Optimizer settings
         "optimizer": {
           // Turn on the optimizer. Optional. Default: false.
@@ -696,3 +698,42 @@ Error Types
 13. ``YulException``: Error during Yul code generation - this should be reported as an issue.
 14. ``Warning``: A warning, which didn't stop the compilation, but should be addressed if possible.
 15. ``Info``: Information that the compiler thinks the user might find useful, but is not dangerous and does not necessarily need to be addressed.
+
+.. index:: ! Experimental mode, ! --experimental
+.. _experimental-mode:
+
+Experimental Mode
+*****************
+
+Experimental mode has been introduced as of version 0.8.34 as an additional safeguard when using experimental features.
+Prior to version 0.8.34, all experimental features not requiring an explicit ``pragma experimental ...`` in source file(s)
+were freely available to be used without any additional safeguards. Given that experimental features are sparsely documented,
+if at all, often not adequately tested, and thus not intended for production use, we decided to add  the ``--experimental``
+flag to the command line interface, and the analogous ``settings.experimental`` boolean setting to the Standard JSON interface.
+Going forward, usage of any experimental feature will require the experimental mode to be toggled.
+
+The table below details all currently available experimental features.
+
++-----------------------+--------------------------+------------------+-------------------------------------------------------------------+
+| Feature               | ID                       | Affects bytecode | Flag/pragma                                                       |
++=======================+==========================+==================+===================================================================+
+| AST import            | ``ast-import``           | yes              | ``--import-ast``                                                  |
++-----------------------+--------------------------+------------------+-------------------------------------------------------------------+
+| LSP                   | ``lsp``                  | yes              | ``--lsp``                                                         |
++-----------------------+--------------------------+------------------+-------------------------------------------------------------------+
+| EVM Assembly import   | ``evmasm-import``        | yes              | ``--import-asm-json``                                             |
++-----------------------+--------------------------+------------------+-------------------------------------------------------------------+
+| Generic Solidity      | ``generic-solidity``     | yes              | ``pragma experimental solidity``                                  |
++-----------------------+--------------------------+------------------+-------------------------------------------------------------------+
+| IR AST                | ``ir-ast``               | no               | ``--ir-ast-json``, ``--ir-optimized-ast-json``                    |
++-----------------------+--------------------------+------------------+-------------------------------------------------------------------+
+| EOF                   | ``eof``                  | yes              | ``--eof-version``                                                 |
++-----------------------+--------------------------+------------------+-------------------------------------------------------------------+
+| Osaka EVM             | ``evm-osaka``            | yes              | ``--evm-version osaka``                                           |
++-----------------------+--------------------------+------------------+-------------------------------------------------------------------+
+| Ethdebug              | ``ethdebug``             | no               | ``--ethdebug``, ``--ethdebug-runtime``, ``--debug-info ethdebug`` |
++-----------------------+--------------------------+------------------+-------------------------------------------------------------------+
+| Yul SSA CFG exporter  | ``yul-ssa-cfg-exporter`` | no               | ``--yul-cfg-json``                                                |
++-----------------------+--------------------------+------------------+-------------------------------------------------------------------+
+| SSA CFG codegen       | ``ssa-cfg-codegen``      | yes              | ``--ssa-cfg-codegen`` (not yet on ``develop``)                    |
++-----------------------+--------------------------+------------------+-------------------------------------------------------------------+
