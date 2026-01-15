@@ -47,6 +47,16 @@ class PRBMathRunner(FoundryRunner):
             env=self.env,
             check=True
         )
+        subprocess.run(
+            [
+                "find", ".", "-name", "*.sol", "-type", "f",
+                "-exec", "sed", "-i",
+                r"/pragma experimental \"\?ABIEncoderV2\"\?;/d",
+                "{}", ";"
+            ],
+            env=self.env,
+            check=True
+        )
 
 test_config = TestConfig(
     name="PRBMath",

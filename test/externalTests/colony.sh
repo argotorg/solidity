@@ -61,6 +61,7 @@ function colony_test
 
     neutralize_package_json_hooks
     force_truffle_compiler_settings "$config_file" "$BINARY_TYPE" "${DIR}/solc/dist" "$(first_word "$SELECTED_PRESETS")"
+    find . -name "*.sol" -type f -exec sed -i '/pragma experimental "\?ABIEncoderV2"\?;/d' {} \;
     yarn install
     git submodule update --init
 

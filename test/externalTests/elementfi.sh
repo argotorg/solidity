@@ -106,6 +106,8 @@ function elementfi_test
     force_hardhat_unlimited_contract_size "$config_file" "$config_var"
     npm install
 
+    find . -name "*.sol" -type f -exec sed -i '/pragma experimental "\?ABIEncoderV2"\?;/d' {} \;
+
     replace_version_pragmas
 
     for preset in $SELECTED_PRESETS; do
