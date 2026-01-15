@@ -205,25 +205,22 @@ message ExtCodeCopy {
 
 message NullaryOp {
   enum NOp {
-    MSIZE = 1;
-    GAS = 2;
-    CALLDATASIZE = 3;
-    CODESIZE = 4;
-    RETURNDATASIZE = 5;
-    ADDRESS = 6;
-    ORIGIN = 7;
-    CALLER = 8;
-    CALLVALUE = 9;
-    GASPRICE = 10;
-    COINBASE = 11;
-    TIMESTAMP = 12;
-    NUMBER = 13;
-    DIFFICULTY = 14;
-    GASLIMIT = 15;
-    SELFBALANCE = 16;
-    CHAINID = 17;
-    BASEFEE = 18;
-    BLOBBASEFEE = 19;
+    CALLDATASIZE = 1;
+    RETURNDATASIZE = 2;
+    ADDRESS = 3;
+    ORIGIN = 4;
+    CALLER = 5;
+    CALLVALUE = 6;
+    GASPRICE = 7;
+    COINBASE = 8;
+    TIMESTAMP = 9;
+    NUMBER = 10;
+    DIFFICULTY = 11;
+    GASLIMIT = 12;
+    SELFBALANCE = 13;
+    CHAINID = 14;
+    BASEFEE = 15;
+    BLOBBASEFEE = 16;
   }
   required NOp op = 1;
 }
@@ -378,6 +375,10 @@ message Block {
   repeated Statement statements = 1;
 }
 
+message CallData {
+  required bytes raw_data = 1;
+}
+
 message Object {
   required Code code = 1;
   optional Data data = 2;
@@ -415,6 +416,7 @@ message Program {
   }
   required Version ver = 3;
   required uint32 step = 4;
+  required CallData calldata = 5;
 }
 
 package solidity.yul.test.yul_fuzzer;

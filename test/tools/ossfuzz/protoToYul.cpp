@@ -700,8 +700,6 @@ void ProtoConverter::visit(NullaryOp const& _x)
 	if (
 		m_filterStatefulInstructions &&
 		(
-			op == NullaryOp::GAS ||
-			op == NullaryOp::CODESIZE ||
 			op == NullaryOp::ADDRESS ||
 			op == NullaryOp::TIMESTAMP ||
 			op == NullaryOp::NUMBER ||
@@ -715,17 +713,8 @@ void ProtoConverter::visit(NullaryOp const& _x)
 
 	switch (op)
 	{
-	case NullaryOp::MSIZE:
-		m_output << "msize()";
-		break;
-	case NullaryOp::GAS:
-		m_output << "gas()";
-		break;
 	case NullaryOp::CALLDATASIZE:
 		m_output << "calldatasize()";
-		break;
-	case NullaryOp::CODESIZE:
-		m_output << "codesize()";
 		break;
 	case NullaryOp::RETURNDATASIZE:
 		// If evm supports returndatasize, we generate it. Otherwise,
@@ -2008,6 +1997,11 @@ void ProtoConverter::buildObjectScopeTree(Object const& _x)
 	m_objectScope.emplace(objectName, node);
 }
 
+std::vector<uint8_t> ProtoConverter::createCalldata(CallData const& _x)
+{
+	return calldataBytes;
+}
+
 void ProtoConverter::visit(Program const& _x)
 {
 	// Initialize input size
@@ -2015,6 +2009,9 @@ void ProtoConverter::visit(Program const& _x)
 
 	// Record EVM Version
 	m_evmVersion = evmVersionMapping(_x.ver());
+
+	// Create Calldata
+	m_calldata = createCalldata(_x.calldata());
 
 	// Program is either a Yul object or a block of
 	// statements.

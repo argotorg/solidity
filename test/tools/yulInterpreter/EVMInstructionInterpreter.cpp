@@ -77,8 +77,9 @@ u256 readZeroExtended(bytes const& _data, u256 const& _offset)
 namespace solidity::yul::test
 {
 
+template<typename T>
 void copyZeroExtended(
-	std::map<u256, uint8_t>& _target,
+	T& _target,
 	bytes const& _source,
 	size_t _targetOffset,
 	size_t _sourceOffset,
@@ -89,9 +90,10 @@ void copyZeroExtended(
 		_target[_targetOffset + i] = (_sourceOffset + i < _source.size() ? _source[_sourceOffset + i] : 0);
 }
 
+template<typename T, typename T2>
 void copyZeroExtendedWithOverlap(
-	std::map<u256, uint8_t>& _target,
-	std::map<u256, uint8_t> const& _source,
+	T& _target,
+	T2 const& _source,
 	size_t _targetOffset,
 	size_t _sourceOffset,
 	size_t _size

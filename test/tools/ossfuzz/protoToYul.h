@@ -69,6 +69,10 @@ public:
 	{
 		return m_evmVersion;
 	}
+	const std::vector<uint8_t>& calldata() const
+	{
+		return m_calldata;
+	}
 private:
 	void visit(BinaryOp const&);
 
@@ -260,6 +264,9 @@ private:
 	/// @param _x root object of the Yul protobuf specification.
 	void buildObjectScopeTree(Object const& _x);
 
+	/// Creates calldata
+	std::vector<uint8_t> createCalldata(CallData const& _x);
+
 	/// Returns a pseudo-random dictionary token.
 	/// @param _p Enum that decides if the returned token is hex prefixed ("0x") or not
 	/// @return Dictionary token at the index computed using a
@@ -314,6 +321,7 @@ private:
 		return m_objectId - 1;
 	}
 
+	bytes m_calldata;
 	std::ostringstream m_output;
 	/// Variables in all function definitions
 	std::vector<std::vector<std::vector<std::string>>> m_funcVars;

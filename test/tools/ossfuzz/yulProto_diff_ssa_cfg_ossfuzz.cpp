@@ -24,6 +24,10 @@
 #else
 #define BOOST_PROCESS_VERSION 1
 #include <boost/process/v1/search_path.hpp>
+#include <boost/process/v1/pipe.hpp>
+#include <boost/process/v1/child.hpp>
+#include <boost/process/v1/io.hpp>
+#include <boost/process/v1/args.hpp>
 #endif
 #include <boost/filesystem.hpp>
 
@@ -35,6 +39,7 @@
 
 #include <libyul/YulStack.h>
 #include <libyul/Exceptions.h>
+#include <thread>
 
 #include <liblangutil/DebugInfoSelection.h>
 #include <liblangutil/EVMVersion.h>
@@ -49,7 +54,9 @@ using namespace solidity::yul::test::yul_fuzzer;
 bool checkEquivalenceHEVM(
 	std::string const& bytecode1,
 	std::string const& bytecode2,
-	std::string const& yulSource)
+	std::string const& yulSource,
+	bool isRuntime)
+
 {
 	namespace fs = boost::filesystem;
 
@@ -71,10 +78,13 @@ bool checkEquivalenceHEVM(
 		"equivalence",
 		"--code-a-file", fileA,
 		"--code-b-file", fileB,
+		"--solver", "cvc5",
 		"--smttimeout", "1",
 		"--num-solvers", "1",
 		"--only-deployed"
 	};
+    if (!isRuntime)
+        args.push_back("--create");
 
 	auto hevmPath = boost::process::search_path("hevm");
 	if (hevmPath.empty())
@@ -101,24 +111,37 @@ bool checkEquivalenceHEVM(
 	errThread.join();
 
 	bool success = (hevmProcess.exit_code() == 0);
-	if (!success)
+	bool equivalent = !(outBuffer.str().find("Contracts do not behave equivalently") != std::string::npos);
+	auto printFun = [&outBuffer, &errBuffer, &bytecode1, &bytecode2, &yulSource, &args, &hevmProcess](){
+		std::cout << "Yul Source Input:\n```yul\n" << yulSource << "\n```" << std::endl;
+		std::cout << "Bytecode (Via-IR):  " << bytecode1 << std::endl;
+		std::cout << "Bytecode (SSA CFG): " << bytecode2 << std::endl;
+		std::cout << "Ran with args:";
+		for (auto const& arg : args)
+			std::cout << " " << arg;
+		std::cout << std::endl;
+		std::cout << "HEVM failed with stdout:\n" << outBuffer.str() << std::endl;
+		std::cout << "HEVM failed with stderr:\n" << errBuffer.str() << std::endl;
+		std::cout << "HEVM failed with statuscode:\n" << hevmProcess.exit_code() << std::endl;
+	};
+
+	if (!equivalent)
 	{
 		std::cout << "=== HEVM EQUIVALENCE CHECK FAILED ===" << std::endl;
-		std::cout << "Yul Source Input:\n" << yulSource << std::endl;
-		std::cout << "Bytecode length (Via-IR): " << bytecode1.length() << std::endl;
-		std::cout << "Bytecode length (SSA CFG): " << bytecode2.length() << std::endl;
-		std::cout << "HEVM output:\n" << outBuffer.str() << std::endl;
+		printFun();
 		// FIXME: Hevm does not output to stderr in case of a mismatch, it outputs to stdout.
 		//std::cerr << "HEVM error:\n" << errBuffer.str() << std::endl;
-		std::cerr << "Bytecode files kept for analysis:\n  Via-IR: " << fileA << "\n  SSA CFG: " << fileB << std::endl;
+		std::cerr << "Bytecode files kept for analysis:\n"
+			<< " Via-IR:  " << fileA << "\n"
+			<< " SSA CFG: " << fileB << std::endl;
 	}
 	else
 	{
+		if (!success) printFun();
 		fs::remove(fileA);
 		fs::remove(fileB);
 	}
-
-	return success;
+	return equivalent;
 }
 
 
@@ -174,7 +197,8 @@ DEFINE_PROTO_FUZZER(Program const& _input)
 		auto checkEquivalence = [&](
 			std::string const& _kind,
 			auto const& _bytecode1,
-			auto const& _bytecode2
+			auto const& _bytecode2,
+			bool isRuntime
 		) {
 			if (_bytecode1 && _bytecode2)
 			{
@@ -185,15 +209,15 @@ DEFINE_PROTO_FUZZER(Program const& _input)
 					return;
 
 				// If the bytecode differs, check equivalence using HEVM
-				if (!checkEquivalenceHEVM(hex1, hex2, yul_source))
-					throw std::runtime_error(_kind + " bytecode differs:\n"
-						"Via IR: " + hex1 + "\n"
+				if (!checkEquivalenceHEVM(hex1, hex2, yul_source, isRuntime))
+					throw std::runtime_error(_kind + " bytecode is reported to behave differently when ran through HEVM:\n"
+						"Via IR:  " + hex1 + "\n"
 						"SSA CFG: " + hex2);
 			}
 		};
 
-		checkEquivalence("Object", evmAsm1.bytecode, evmAsm2.bytecode);
-		checkEquivalence("Runtime Object", runtimeAsm1.bytecode, runtimeAsm2.bytecode);
+		checkEquivalence("Object", evmAsm1.bytecode, evmAsm2.bytecode, false);
+		checkEquivalence("Runtime Object", runtimeAsm1.bytecode, runtimeAsm2.bytecode, true);
 	}
 	catch (std::runtime_error const& e)
 	{

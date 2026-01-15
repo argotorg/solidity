@@ -67,3 +67,10 @@ emscripten_build/
 # OS specific local files
 .DS_Store
 Thumbs.db
+
+# OSS-Fuzz
+fuzzer-build/
+test/tools/ossfuzz/src
+test/tools/ossfuzz/port
+test/tools/ossfuzz/*.pb.h
+test/tools/ossfuzz/*.pb.cc
