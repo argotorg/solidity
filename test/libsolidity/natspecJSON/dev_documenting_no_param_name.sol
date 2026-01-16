@@ -6,4 +6,4 @@ contract test {
 }
 
 // ----
-// DocstringParsingError 3335: (20-149): No param name given
+// DocstringParsingError 3335: (20-149): No param name given.

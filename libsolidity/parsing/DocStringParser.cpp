@@ -136,7 +136,7 @@ DocStringParser::iter DocStringParser::parseDocTagParam(iter _pos, iter _end)
 	auto nameStartPos = skipWhitespace(_pos, _end);
 	if (nameStartPos == _end)
 	{
-		m_errorReporter.docstringParsingError(3335_error, m_node.location(), "No param name given");
+		m_errorReporter.docstringParsingError(3335_error, m_node.location(), "No param name given.");
 		return _end;
 	}
 	auto nameEndPos = firstNonIdentifier(nameStartPos, _end);

@@ -435,13 +435,13 @@ void NameAndTypeResolver::linearizeBaseContracts(ContractDefinition& _contract)
 		input.back().push_front(base);
 		std::vector<ContractDefinition const*> const& basesBases = base->annotation().linearizedBaseContracts;
 		if (basesBases.empty())
-			m_errorReporter.fatalTypeError(2449_error, baseName.location(), "Definition of base has to precede definition of derived contract");
+			m_errorReporter.fatalTypeError(2449_error, baseName.location(), "Definition of base has to precede definition of derived contract.");
 		input.push_front(std::list<ContractDefinition const*>(basesBases.begin(), basesBases.end()));
 	}
 	input.back().push_front(&_contract);
 	std::vector<ContractDefinition const*> result = cThreeMerge(input);
 	if (result.empty())
-		m_errorReporter.fatalTypeError(5005_error, _contract.location(), "Linearization of inheritance graph impossible");
+		m_errorReporter.fatalTypeError(5005_error, _contract.location(), "Linearization of inheritance graph impossible.");
 	_contract.annotation().linearizedBaseContracts = result;
 }
 

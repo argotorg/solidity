@@ -314,7 +314,7 @@ bool TypeChecker::visit(FunctionDefinition const& _function)
 		else if (_function.isConstructor())
 			m_errorReporter.typeError(7001_error, _function.location(), "Constructors cannot be virtual.");
 		else if (_function.annotation().contract->isInterface())
-			m_errorReporter.warning(5815_error, _function.location(), "Interface functions are implicitly \"virtual\"");
+			m_errorReporter.warning(5815_error, _function.location(), "Interface functions are implicitly \"virtual\".");
 		else if (_function.visibility() == Visibility::Private)
 			m_errorReporter.typeError(3942_error, _function.location(), "\"virtual\" and \"private\" cannot be used together.");
 		else if (_function.libraryFunction())
