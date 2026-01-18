@@ -804,17 +804,18 @@ std::pair<std::string, std::map<ContractDefinition const*, std::vector<std::stri
 	ContractDefinition const& _contract
 )
 {
+	std::unordered_map<ContractDefinition const*, size_t> contractIndex;
+	for (size_t i = 0; i < _contract.annotation().linearizedBaseContracts.size(); ++i)
+		contractIndex[_contract.annotation().linearizedBaseContracts[i]] = i;
+
 	struct InheritanceOrder
 	{
 		bool operator()(ContractDefinition const* _c1, ContractDefinition const* _c2) const
 		{
-			solAssert(util::contains(linearizedBaseContracts, _c1) && util::contains(linearizedBaseContracts, _c2), "");
-			auto it1 = find(linearizedBaseContracts.begin(), linearizedBaseContracts.end(), _c1);
-			auto it2 = find(linearizedBaseContracts.begin(), linearizedBaseContracts.end(), _c2);
-			return it1 < it2;
+			return indexMap.at(_c1) < indexMap.at(_c2);
 		}
-		std::vector<ContractDefinition const*> const& linearizedBaseContracts;
-	} inheritanceOrder{_contract.annotation().linearizedBaseContracts};
+		std::unordered_map<ContractDefinition const*, size_t> const& indexMap;
+	} inheritanceOrder{contractIndex};
 
 	std::map<ContractDefinition const*, std::vector<std::string>> constructorParams;
 
