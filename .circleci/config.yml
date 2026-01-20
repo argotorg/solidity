@@ -146,6 +146,7 @@ commands:
             FOUNDRY_REPO="foundry-rs/foundry"
             FOUNDRY_VERSION="<< parameters.version >>"
             # Make authenticated requests when the Github token is available
+            EXTRA_HEADERS=()
             if [[ -n "$GITHUB_READ_TOKEN" ]]; then
               EXTRA_HEADERS=(--header 'Authorization: Bearer '"${GITHUB_READ_TOKEN}")
             fi
@@ -1517,6 +1518,7 @@ jobs:
           name: Retrieve EDR latest release tag
           command: |
             # Make authenticated requests when the Github token is available
+            EXTRA_HEADERS=()
             if [[ -n "$GITHUB_READ_TOKEN" ]]; then
               EXTRA_HEADERS=(--header "Authorization: Bearer ${GITHUB_READ_TOKEN}")
             fi
