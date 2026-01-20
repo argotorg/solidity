@@ -62,8 +62,8 @@ enum class InputMode
 
 struct CompilerOutputs
 {
-	bool operator!=(CompilerOutputs const& _other) const noexcept { return !(*this == _other); }
-	bool operator==(CompilerOutputs const& _other) const noexcept;
+	bool operator!=(CompilerOutputs const& _other) const noexcept = default;
+	bool operator==(CompilerOutputs const& _other) const noexcept = default;
 	friend std::ostream& operator<<(std::ostream& _out, CompilerOutputs const& _requests);
 
 	static std::string const& componentName(bool CompilerOutputs::* _component);
@@ -118,8 +118,8 @@ struct CompilerOutputs
 
 struct CombinedJsonRequests
 {
-	bool operator!=(CombinedJsonRequests const& _other) const noexcept { return !(*this == _other); }
-	bool operator==(CombinedJsonRequests const& _other) const noexcept;
+	bool operator!=(CombinedJsonRequests const& _other) const noexcept = default;
+	bool operator==(CombinedJsonRequests const& _other) const noexcept = default;
 	friend std::ostream& operator<<(std::ostream& _out, CombinedJsonRequests const& _requests);
 
 	static std::string const& componentName(bool CombinedJsonRequests::* _component);
@@ -170,13 +170,16 @@ struct CombinedJsonRequests
 
 struct CommandLineOptions
 {
-	bool operator==(CommandLineOptions const& _other) const noexcept;
-	bool operator!=(CommandLineOptions const& _other) const noexcept { return !(*this == _other); }
+	bool operator==(CommandLineOptions const& _other) const noexcept = default;
+	bool operator!=(CommandLineOptions const& _other) const noexcept = default;
 
 	OptimiserSettings optimiserSettings() const;
 
-	struct
+	struct Input
 	{
+		bool operator==(Input const&) const noexcept = default;
+		bool operator!=(Input const&) const noexcept = default;
+
 		InputMode mode = InputMode::Compiler;
 		std::set<boost::filesystem::path> paths;
 		std::vector<ImportRemapper::Remapping> remappings;
@@ -188,8 +191,11 @@ struct CommandLineOptions
 		bool noImportCallback = false;
 	} input;
 
-	struct
+	struct Output
 	{
+		bool operator==(Output const&) const noexcept = default;
+		bool operator!=(Output const&) const noexcept = default;
+
 		boost::filesystem::path dir;
 		bool overwriteFiles = false;
 		langutil::EVMVersion evmVersion;
@@ -200,48 +206,69 @@ struct CommandLineOptions
 		std::optional<uint8_t> eofVersion;
 	} output;
 
-	struct
+	struct Assembly
 	{
+		bool operator==(Assembly const&) const noexcept = default;
+		bool operator!=(Assembly const&) const noexcept = default;
+
 		yul::YulStack::Machine targetMachine = yul::YulStack::Machine::EVM;
 		yul::YulStack::Language inputLanguage = yul::YulStack::Language::StrictAssembly;
 	} assembly;
 
-	struct
+	struct Linker
 	{
+		bool operator==(Linker const&) const noexcept = default;
+		bool operator!=(Linker const&) const noexcept = default;
+
 		std::map<std::string, util::h160> libraries; // library name -> address
 	} linker;
 
-	struct
+	struct Formatting
 	{
+		bool operator==(Formatting const&) const noexcept = default;
+		bool operator!=(Formatting const&) const noexcept = default;
+
 		util::JsonFormat json;
 		std::optional<bool> coloredOutput;
 		bool withErrorIds = false;
 	} formatting;
 
-	struct
+	struct Compiler
 	{
+		bool operator==(Compiler const&) const noexcept = default;
+		bool operator!=(Compiler const&) const noexcept = default;
+
 		CompilerOutputs outputs;
 		bool estimateGas = false;
 		std::optional<CombinedJsonRequests> combinedJsonRequests;
 	} compiler;
 
-	struct
+	struct Metadata
 	{
+		bool operator==(Metadata const&) const noexcept = default;
+		bool operator!=(Metadata const&) const noexcept = default;
+
 		CompilerStack::MetadataFormat format = CompilerStack::defaultMetadataFormat();
 		CompilerStack::MetadataHash hash = CompilerStack::MetadataHash::IPFS;
 		bool literalSources = false;
 	} metadata;
 
-	struct
+	struct Optimizer
 	{
+		bool operator==(Optimizer const&) const noexcept = default;
+		bool operator!=(Optimizer const&) const noexcept = default;
+
 		bool optimizeEvmasm = false;
 		bool optimizeYul = false;
 		std::optional<unsigned> expectedExecutionsPerDeployment;
 		std::optional<std::string> yulSteps;
 	} optimizer;
 
-	struct
+	struct ModelChecker
 	{
+		bool operator==(ModelChecker const&) const noexcept = default;
+		bool operator!=(ModelChecker const&) const noexcept = default;
+
 		bool initialize = false;
 		ModelCheckerSettings settings;
 	} modelChecker;

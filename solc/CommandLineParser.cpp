@@ -157,14 +157,6 @@ void CommandLineParser::checkMutuallyExclusive(std::vector<std::string> const& _
 	}
 }
 
-bool CompilerOutputs::operator==(CompilerOutputs const& _other) const noexcept
-{
-	for (bool CompilerOutputs::* member: componentMap() | ranges::views::values)
-		if (this->*member != _other.*member)
-			return false;
-	return true;
-}
-
 std::ostream& operator<<(std::ostream& _out, CompilerOutputs const& _selection)
 {
 	std::vector<std::string> serializedSelection;
@@ -187,15 +179,6 @@ std::string const& CompilerOutputs::componentName(bool CompilerOutputs::* _compo
 	solAssert(false, "");
 }
 
-bool CombinedJsonRequests::operator==(CombinedJsonRequests const& _other) const noexcept
-{
-	for (bool CombinedJsonRequests::* member: componentMap() | ranges::views::values)
-		if (this->*member != _other.*member)
-			return false;
-	return true;
-}
-
-
 std::ostream& operator<<(std::ostream& _out, CombinedJsonRequests const& _requests)
 {
 	std::vector<std::string> serializedRequests;
@@ -215,46 +198,6 @@ std::string const& CombinedJsonRequests::componentName(bool CombinedJsonRequests
 			return componentName;
 
 	solAssert(false, "");
-}
-
-bool CommandLineOptions::operator==(CommandLineOptions const& _other) const noexcept
-{
-	return
-		input.paths == _other.input.paths &&
-		input.remappings == _other.input.remappings &&
-		input.addStdin == _other.input.addStdin &&
-		input.basePath == _other.input.basePath &&
-		input.includePaths == _other.input.includePaths &&
-		input.allowedDirectories == _other.input.allowedDirectories &&
-		input.ignoreMissingFiles == _other.input.ignoreMissingFiles &&
-		input.noImportCallback == _other.input.noImportCallback &&
-		output.dir == _other.output.dir &&
-		output.overwriteFiles == _other.output.overwriteFiles &&
-		output.evmVersion == _other.output.evmVersion &&
-		output.viaIR == _other.output.viaIR &&
-		output.revertStrings == _other.output.revertStrings &&
-		output.debugInfoSelection == _other.output.debugInfoSelection &&
-		output.stopAfter == _other.output.stopAfter &&
-		output.eofVersion == _other.output.eofVersion &&
-		input.mode == _other.input.mode &&
-		assembly.targetMachine == _other.assembly.targetMachine &&
-		assembly.inputLanguage == _other.assembly.inputLanguage &&
-		linker.libraries == _other.linker.libraries &&
-		formatting.json == _other.formatting.json &&
-		formatting.coloredOutput == _other.formatting.coloredOutput &&
-		formatting.withErrorIds == _other.formatting.withErrorIds &&
-		compiler.outputs == _other.compiler.outputs &&
-		compiler.estimateGas == _other.compiler.estimateGas &&
-		compiler.combinedJsonRequests == _other.compiler.combinedJsonRequests &&
-		metadata.format == _other.metadata.format &&
-		metadata.hash == _other.metadata.hash &&
-		metadata.literalSources == _other.metadata.literalSources &&
-		optimizer.optimizeEvmasm == _other.optimizer.optimizeEvmasm &&
-		optimizer.optimizeYul == _other.optimizer.optimizeYul &&
-		optimizer.expectedExecutionsPerDeployment == _other.optimizer.expectedExecutionsPerDeployment &&
-		optimizer.yulSteps == _other.optimizer.yulSteps &&
-		modelChecker.initialize == _other.modelChecker.initialize &&
-		modelChecker.settings == _other.modelChecker.settings;
 }
 
 OptimiserSettings CommandLineOptions::optimiserSettings() const

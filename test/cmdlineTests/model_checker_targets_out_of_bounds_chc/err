@@ -1,20 +1,16 @@
-Warning: 'transfer' is deprecated and scheduled for removal. Use 'call{value: <amount>}("")' instead.
-  --> input.sol:10:3:
-   |
-10 | 		a.transfer(x);
-   | 		^^^^^^^^^^
-
 Warning: CHC: Out of bounds access happens here.
 Counterexample:
 arr = []
 a = 0x0
 x = 0
+success = true
 
 Transaction trace:
 test.constructor()
 State: arr = []
 test.f(0x0, 1)
-  --> input.sol:13:3:
+    a.call{value: x}("") -- untrusted external call
+  --> input.sol:14:3:
    |
-13 | 		arr[x];
+14 | 		arr[x];
    | 		^^^^^^

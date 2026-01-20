@@ -2,31 +2,13 @@
     "errors": [
         {
             "component": "general",
-            "errorCode": "9207",
-            "formattedMessage": "Warning: 'transfer' is deprecated and scheduled for removal. Use 'call{value: <amount>}(\"\")' instead.
-  --> A:11:7:
-   |
-11 | \t\t\t\t\t\ta.transfer(x);
-   | \t\t\t\t\t\t^^^^^^^^^^
-
-",
-            "message": "'transfer' is deprecated and scheduled for removal. Use 'call{value: <amount>}(\"\")' instead.",
-            "severity": "warning",
-            "sourceLocation": {
-                "end": 234,
-                "file": "A",
-                "start": 224
-            },
-            "type": "Warning"
-        },
-        {
-            "component": "general",
             "errorCode": "3944",
             "formattedMessage": "Warning: CHC: Underflow (resulting value less than 0) happens here.
 Counterexample:
 arr = []
 a = 0x0
 x = 0
+success = false
 
 Transaction trace:
 test.constructor()
@@ -43,6 +25,7 @@ Counterexample:
 arr = []
 a = 0x0
 x = 0
+success = false
 
 Transaction trace:
 test.constructor()
@@ -64,6 +47,7 @@ Counterexample:
 arr = []
 a = 0x0
 x = 1
+success = false
 
 Transaction trace:
 test.constructor()
@@ -80,6 +64,7 @@ Counterexample:
 arr = []
 a = 0x0
 x = 1
+success = false
 
 Transaction trace:
 test.constructor()

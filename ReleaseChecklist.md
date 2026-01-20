@@ -36,10 +36,11 @@ At least a day before the release:
 - [ ] Create drafts of blog posts.
 - [ ] Prepare drafts of Twitter, Reddit and Solidity Forum announcements.
 
-### Blog Post
+### Website/Blog Updates
 - [ ] Create a post on [solidity-website](https://github.com/argotorg/solidity-website/tree/main/src/posts) in the `Releases` category and explain some of the new features or concepts.
 - [ ] Create a post on [solidity-website](https://github.com/argotorg/solidity-website/tree/main/src/posts) in the `Security Alerts` category in case of important bug(s).
-- [ ] Get the posts reviewed and approved **before the release starts**.
+- [ ] Update the release information section [in the source of soliditylang.org](https://github.com/argotorg/solidity-website/blob/main/src/pages/index.tsx).
+- [ ] Get the PR(s) for the above reviewed and approved **before the release starts**, but don't merge them yet.
 
 ### Changelog
 - [ ] Ensure that all changelog entries are correctly classified as language or compiler features.
@@ -89,19 +90,23 @@ At least a day before the release:
       Inspect the tarball to ensure that it contains an up-to-date compiler binary (`soljson.js`).
 - [ ] Run `npm publish solc-x.y.z.tgz` to publish the newly created tarball.
 
-### Post-release
+### Documentation
 - [ ] Make sure the documentation for the new release has been published successfully.
       Go to the [documentation status page at ReadTheDocs](https://readthedocs.org/projects/solidity/) and verify that the new version is listed, works and is marked as default.
 - [ ] Remove "still in progress" warning from the [release notes](https://github.com/argotorg/solidity/releases).
-- [ ] Merge the [blog posts](https://github.com/argotorg/solidity-website/pulls) related to the release.
-- [ ] Create a commit to increase the version number on `develop` in `CMakeLists.txt` and add a new skeleton changelog entry.
-- [ ] Update the release information section [in the source of soliditylang.org](https://github.com/argotorg/solidity-website/blob/main/src/pages/index.tsx).
+
+### Comms
+- [ ] Merge the blog posts and website updates prepared for the release.
+- [ ] Verify that the link to the blog post in [release notes](https://github.com/argotorg/solidity/releases) is not broken.
 - [ ] Announce on [Twitter](https://twitter.com/solidity_lang), including links to the release and the blog post.
 - [ ] Announce on [Fosstodon](https://fosstodon.org/@solidity/), including links to the release and the blog post.
 - [ ] Share the announcement on Reddit in [`/r/ethdev`](https://reddit.com/r/ethdev/), cross-posted to [`/r/ethereum`](https://reddit.com/r/ethereum/).
 - [ ] Share the announcement on the [Solidity forum](https://forum.soliditylang.org) in the `Announcements` category.
 - [ ] Share the announcement on [`#solidity` channel on Matrix](https://matrix.to/#/#ethereum_solidity:gitter.im).
 - [ ] Share the announcement on [`#solc-tooling`](https://matrix.to/#/#solc-tooling:matrix.org).
+
+### Post-release
+- [ ] Create a commit to increase the version number on `develop` in `CMakeLists.txt` and add a new skeleton changelog entry.
 - [ ] If anything went wrong this time, mention it in [Learning from Past Releases](https://notes.argot.org/@solidity-release-mistakes).
 - [ ] Bump vendored dependencies.
 - [ ] Lean back, wait for bug reports and repeat from step 1 :).

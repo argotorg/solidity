@@ -349,7 +349,7 @@ Input Description
               // In particular if the whole value consists only of the delimiter, both sequences are empty.
               // Note that there are several hard-coded steps that always run, even when both sequences are empty.
               // For more information see "The Optimizer > Selecting Optimizations".
-              "optimizerSteps": "dhfoDgvulfnTUtnIf..."
+              "optimizerSteps": "dfDvulfnTUtnIf..."
             }
           }
         },

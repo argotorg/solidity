@@ -2,39 +2,22 @@
     "errors": [
         {
             "component": "general",
-            "errorCode": "9207",
-            "formattedMessage": "Warning: 'transfer' is deprecated and scheduled for removal. Use 'call{value: <amount>}(\"\")' instead.
-  --> A:11:7:
-   |
-11 | \t\t\t\t\t\ta.transfer(x);
-   | \t\t\t\t\t\t^^^^^^^^^^
-
-",
-            "message": "'transfer' is deprecated and scheduled for removal. Use 'call{value: <amount>}(\"\")' instead.",
-            "severity": "warning",
-            "sourceLocation": {
-                "end": 234,
-                "file": "A",
-                "start": 224
-            },
-            "type": "Warning"
-        },
-        {
-            "component": "general",
             "errorCode": "6328",
             "formattedMessage": "Warning: CHC: Assertion violation happens here.
 Counterexample:
 arr = []
 a = 0x0
 x = 0
+success = true
 
 Transaction trace:
 test.constructor()
 State: arr = []
 test.f(0x0, 1)
-  --> A:12:7:
+    a.call{value: x}(\"\") -- untrusted external call
+  --> A:13:7:
    |
-12 | \t\t\t\t\t\tassert(x > 0);
+13 | \t\t\t\t\t\tassert(x > 0);
    | \t\t\t\t\t\t^^^^^^^^^^^^^
 
 ",
@@ -43,16 +26,18 @@ Counterexample:
 arr = []
 a = 0x0
 x = 0
+success = true
 
 Transaction trace:
 test.constructor()
 State: arr = []
-test.f(0x0, 1)",
+test.f(0x0, 1)
+    a.call{value: x}(\"\") -- untrusted external call",
             "severity": "warning",
             "sourceLocation": {
-                "end": 258,
+                "end": 308,
                 "file": "A",
-                "start": 245
+                "start": 295
             },
             "type": "Warning"
         }

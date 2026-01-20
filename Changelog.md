@@ -3,6 +3,7 @@
 Language Features:
 
 Compiler Features:
+* Yul Optimizer: Remove redundant prerequisite steps from the default optimizer sequence.
 
 Bugfixes:
 
