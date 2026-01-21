@@ -3175,12 +3175,18 @@ bool TypeChecker::visit(MemberAccess const& _memberAccess)
 	size_t const initialMemberCount = possibleMembers.size();
 	if (initialMemberCount > 1 && arguments)
 	{
-		// do overload resolution
+		// Do overload resolution, and filter out non-functions when called with parentheses.
+		// This allows library functions like OpenZeppelin's Address.isContract() to work
+		// alongside Tron's native address.isContract property.
+		// Mirrors the identifier resolution pattern at lines 3693-3745 where
+		// VariableDeclarations are preferred without parentheses.
 		for (auto it = possibleMembers.begin(); it != possibleMembers.end();)
 			if (
 				it->type->category() == Type::Category::Function &&
 				!dynamic_cast<FunctionType const&>(*it->type).canTakeArguments(*arguments, exprType)
 			)
+				it = possibleMembers.erase(it);
+			else if (it->type->category() != Type::Category::Function)
 				it = possibleMembers.erase(it);
 			else
 				++it;
