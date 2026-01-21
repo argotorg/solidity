@@ -3074,12 +3074,18 @@ bool TypeChecker::visit(MemberAccess const& _memberAccess)
 	size_t const initialMemberCount = possibleMembers.size();
 	if (initialMemberCount > 1 && arguments)
 	{
-		// do overload resolution
+		// Do overload resolution, and filter out non-functions when called with parentheses.
+		// This allows library functions to work alongside native properties with the same name
+		// (e.g., a library function `balance()` alongside the native `address.balance` property).
+		// Mirrors the identifier resolution pattern in visit(Identifier) where
+		// VariableDeclarations are preferred without parentheses.
 		for (auto it = possibleMembers.begin(); it != possibleMembers.end();)
 			if (
 				it->type->category() == Type::Category::Function &&
 				!dynamic_cast<FunctionType const&>(*it->type).canTakeArguments(*arguments, exprType)
 			)
+				it = possibleMembers.erase(it);
+			else if (it->type->category() != Type::Category::Function)
 				it = possibleMembers.erase(it);
 			else
 				++it;
