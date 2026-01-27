@@ -57,6 +57,15 @@ using namespace solidity::util;
 namespace
 {
 
+uint8_t encodeDupSwapNImmediate(size_t _depth)
+{
+	solAssert(_depth >= 17 && _depth <= 235);
+	if (_depth <= 107)
+		return static_cast<uint8_t>(_depth - 17);
+	else
+		return static_cast<uint8_t>(_depth + 20);
+}
+
 /// Produces instruction location info in RAII style. When an assembly instruction is added to the bytecode,
 /// this class can be instantiated in that scope. It will record the current bytecode size (before addition)
 /// and, at destruction time, record the new bytecode size. This information is then added to an external
@@ -1344,6 +1353,11 @@ LinkerObject const& Assembly::assembleLegacy() const
 		{
 		case Operation:
 			ret.bytecode += assembleOperation(item);
+			break;
+		case SwapN:
+		case DupN:
+			ret.bytecode.push_back(static_cast<uint8_t>(item.instruction()));
+			ret.bytecode.push_back(encodeDupSwapNImmediate(static_cast<size_t>(item.data())));
 			break;
 		case Push:
 			ret.bytecode += assemblePush(item);

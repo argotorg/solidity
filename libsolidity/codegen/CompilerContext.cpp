@@ -61,6 +61,32 @@ using namespace solidity::evmasm;
 using namespace solidity::frontend;
 using namespace solidity::langutil;
 
+evmasm::AssemblyItem CompilerContext::dupInstruction(unsigned _depth) const
+{
+	assertThrow(
+		_depth >= 1 && _depth <= m_evmVersion.reachableStackDepth(),
+		StackTooDeepError,
+		util::stackTooDeepString
+	);
+	if (_depth <= 16)
+		return evmasm::AssemblyItem(evmasm::dupInstruction(_depth));
+	else
+		return evmasm::AssemblyItem::dupN(_depth);
+}
+
+evmasm::AssemblyItem CompilerContext::swapInstruction(unsigned _depth) const
+{
+	assertThrow(
+		_depth >= 1 && _depth <= m_evmVersion.reachableStackDepth(),
+		StackTooDeepError,
+		util::stackTooDeepString
+	);
+	if (_depth <= 16)
+		return evmasm::AssemblyItem(evmasm::swapInstruction(_depth));
+	else
+		return evmasm::AssemblyItem::swapN(_depth);
+}
+
 void CompilerContext::addStateVariable(
 	VariableDeclaration const& _declaration,
 	u256 const& _storageOffset,
@@ -425,10 +451,18 @@ void CompilerContext::appendInlineAssembly(
 				util::errinfo_comment(util::stackTooDeepString)
 			);
 		if (_context == yul::IdentifierContext::RValue)
-			_assembly.appendInstruction(dupInstruction(static_cast<unsigned>(stackDiff)));
+		{
+			if (stackDiff <= 16)
+				_assembly.appendInstruction(evmasm::dupInstruction(static_cast<unsigned>(stackDiff)));
+			else
+				_assembly.appendDupN(stackDiff);
+		}
 		else
 		{
-			_assembly.appendInstruction(swapInstruction(static_cast<unsigned>(stackDiff)));
+			if (stackDiff <= 16)
+				_assembly.appendInstruction(evmasm::swapInstruction(static_cast<unsigned>(stackDiff)));
+			else
+				_assembly.appendSwapN(stackDiff);
 			_assembly.appendInstruction(Instruction::POP);
 		}
 	};

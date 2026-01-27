@@ -138,6 +138,15 @@ std::set<std::string, std::less<>> createReservedIdentifiers(langutil::EVMVersio
 	{
 		return _instr == evmasm::Instruction::CLZ && !_evmVersion.hasCLZ();
 	};
+	// TODO remove this in 0.9.0. We allow creating functions or identifiers in Yul with the names
+	// swapn or dupn for VMs before amsterdam.
+	auto swapnDupnException = [&](evmasm::Instruction _instr) -> bool
+	{
+		return
+			!_eofVersion.has_value() &&
+			!_evmVersion.hasDupSwapN() &&
+			(_instr == evmasm::Instruction::SWAPN || _instr == evmasm::Instruction::DUPN);
+	};
 
 	auto eofIdentifiersException = [&](evmasm::Instruction _instr) -> bool
 	{
@@ -161,6 +170,7 @@ std::set<std::string, std::less<>> createReservedIdentifiers(langutil::EVMVersio
 			!mcopyException(instr.second) &&
 			!transientStorageException(instr.second) &&
 			!clzException(instr.second) &&
+			!swapnDupnException(instr.second) &&
 			!eofIdentifiersException(instr.second)
 		)
 			reserved.emplace(name);

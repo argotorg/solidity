@@ -26,6 +26,7 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <cstddef>
 #include <optional>
 #include <string>
 
@@ -64,6 +65,7 @@ public:
 	static EVMVersion constexpr cancun() { return {Version::Cancun}; }
 	static EVMVersion constexpr prague() { return {Version::Prague}; }
 	static EVMVersion constexpr osaka() { return {Version::Osaka}; }
+	static EVMVersion constexpr amsterdam() { return {Version::Amsterdam}; }
 
 	static auto constexpr allVersions() {
 		return std::array{
@@ -81,6 +83,7 @@ public:
 			cancun(),
 			prague(),
 			osaka(),
+			amsterdam(),
 		};
 	}
 
@@ -126,6 +129,7 @@ public:
 		case Version::Cancun: return "cancun";
 		case Version::Prague: return "prague";
 		case Version::Osaka: return "osaka";
+		case Version::Amsterdam: return "amsterdam";
 		}
 		util::unreachable();
 	}
@@ -147,7 +151,8 @@ public:
 	bool hasMcopy() const { return *this >= cancun(); }
 	bool supportsTransientStorage() const { return *this >= cancun(); }
 	bool supportsEOF() const { return *this >= firstWithEOF(); }
-	constexpr size_t reachableStackDepth() const { return 16; }
+	constexpr bool hasDupSwapN() const { return *this >= amsterdam(); }
+	constexpr size_t reachableStackDepth() const { return hasDupSwapN() ? 235 : 16; }
 
 	bool hasOpcode(evmasm::Instruction _opcode, std::optional<uint8_t> _eofVersion) const;
 
@@ -171,6 +176,7 @@ private:
 		Cancun,
 		Prague,
 		Osaka,
+		Amsterdam,
 	};
 	static auto constexpr currentVersion = Version::Osaka;
 

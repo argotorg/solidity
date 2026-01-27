@@ -109,6 +109,8 @@ public:
 	void adjustStackOffset(int _adjustment) { m_asm->adjustDeposit(_adjustment); }
 	unsigned stackHeight() const { solAssert(m_asm->deposit() >= 0, ""); return unsigned(m_asm->deposit()); }
 	size_t reachableStackDepth() const { return m_evmVersion.reachableStackDepth(); }
+	evmasm::AssemblyItem dupInstruction(unsigned _depth) const;
+	evmasm::AssemblyItem swapInstruction(unsigned _depth) const;
 
 	bool isLocalVariable(Declaration const* _declaration) const;
 	bool isStateVariable(Declaration const* _declaration) const { return m_stateVariables.count(_declaration) != 0; }

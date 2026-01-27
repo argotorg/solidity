@@ -86,13 +86,14 @@ bool EVMVersion::hasOpcode(Instruction _opcode, std::optional<uint8_t> _eofVersi
 	case Instruction::RJUMPI:
 	case Instruction::CALLF:
 	case Instruction::JUMPF:
-	case Instruction::DUPN:
-	case Instruction::SWAPN:
 	case Instruction::RETF:
 	case Instruction::EXTCALL:
 	case Instruction::EXTSTATICCALL:
 	case Instruction::EXTDELEGATECALL:
 		return _eofVersion.has_value();
+	case Instruction::DUPN:
+	case Instruction::SWAPN:
+		return _eofVersion.has_value() || hasDupSwapN();
 	default:
 		return true;
 	}

@@ -52,6 +52,8 @@ enum AssemblyItemType
 	PushDeployTimeAddress, ///< Push an address to be filled at deploy time. Should not be touched by the optimizer.
 	PushImmutable, ///< Push the currently unknown value of an immutable variable. The actual value will be filled in by the constructor.
 	AssignImmutable, ///< Assigns the current value on the stack to an immutable variable. Only valid during creation code.
+	SwapN, ///< SWAPN with immediate argument.
+	DupN, ///< DUPN with immediate argument.
 
 	/// Loads 32 bytes from static auxiliary data of EOF data section. The offset does *not* have to be always from the beginning
 	/// of the data EOF section. More details here: https://github.com/ipsilon/eof/blob/main/spec/eof.md#data-section-lifecycle
@@ -64,8 +66,6 @@ enum AssemblyItemType
 	JumpF, ///< Jumps to a returning or non-returning EOF function without changing the return stack.
 	RetF, ///< Returns from an EOF function, removing a frame from the return stack.
 	VerbatimBytecode, ///< Contains data that is inserted into the bytecode code section without modification.
-	SwapN, ///< EOF SWAPN with immediate argument.
-	DupN, ///< EOF DUPN with immediate argument.
 };
 
 enum class Precision { Precise , Approximate };

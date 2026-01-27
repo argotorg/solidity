@@ -137,6 +137,8 @@ EVMHost::EVMHost(langutil::EVMVersion _evmVersion, evmc::VM& _vm):
 		m_evmRevision = EVMC_PRAGUE;
 	else if (_evmVersion == langutil::EVMVersion::osaka())
 		m_evmRevision = EVMC_OSAKA;
+	else if (_evmVersion == langutil::EVMVersion::amsterdam())
+		m_evmRevision = EVMC_EXPERIMENTAL;
 	else
 		solRequire(false, Exception, "Unsupported EVM version");
 

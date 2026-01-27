@@ -184,6 +184,8 @@ at each version. Backward compatibility is not guaranteed between each version.
 - ``prague``
 - ``osaka`` (**default**)
    - ``clz`` builtin function is available in inline assembly. (`EIP-7939 <https://eips.ethereum.org/EIPS/eip-7939>`_)
+- ``amsterdam``
+   - Makes ``swapn``/``dupn`` available and used to prevent stack too deep errors.
 
 .. index:: ! standard JSON, ! --standard-json
 .. _compiler-api:
@@ -360,7 +362,7 @@ Input Description
         // Version of the EVM to compile for (optional).
         // Affects type checking and code generation. Can be homestead,
         // tangerineWhistle, spuriousDragon, byzantium, constantinople,
-        // petersburg, istanbul, berlin, london, paris, shanghai, cancun, prague or osaka (default).
+        // petersburg, istanbul, berlin, london, paris, shanghai, cancun, prague, osaka (default) or amsterdam.
         "evmVersion": "osaka",
         // EVM Object Format version to compile for (optional, experimental).
         // Currently the only valid value is 1. If not specified, legacy non-EOF bytecode will be generated.

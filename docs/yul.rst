@@ -753,7 +753,7 @@ Please refer to a different document if you are interested in the precise semant
 
 Opcodes marked with ``-`` do not return a result and all others return exactly one value.
 Opcodes marked with ``F``, ``H``, ``B``, ``C``, ``I``, ``L``, ``P``, ``N`` and ``O`` are present since
-Frontier, Homestead, Byzantium, Constantinople, Istanbul, London, Paris, Cancun or Osaka respectively.
+Frontier, Homestead, Byzantium, Constantinople, Istanbul, London, Paris, Cancun, Osaka or Amsterdam respectively.
 
 In the following, ``mem[a...b)`` signifies the bytes of memory starting at position ``a`` up to
 but not including position ``b``, ``storage[p]`` signifies the storage contents at slot ``p``, and

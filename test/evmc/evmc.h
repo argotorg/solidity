@@ -1046,8 +1046,14 @@ enum evmc_revision
      */
     EVMC_OSAKA = 14,
 
+	/**
+     * The unspecified EVM revision used for EVM implementations to expose
+     * experimental features.
+     */
+    EVMC_EXPERIMENTAL = 15,
+
     /** The maximum EVM revision supported. */
-    EVMC_MAX_REVISION = EVMC_OSAKA,
+    EVMC_MAX_REVISION = EVMC_EXPERIMENTAL,
 
     /**
      * The latest known EVM revision with finalized specification.
