@@ -45,7 +45,7 @@ void EVMAssemblyStack::analyze(std::string const& _sourceName, Json const& _asse
 {
 	solAssert(!m_evmAssembly);
 	m_name = _sourceName;
-	std::tie(m_evmAssembly, m_sourceList) = evmasm::Assembly::fromJSON(_assemblyJson);
+	std::tie(m_evmAssembly, m_sourceList) = evmasm::Assembly::fromJSON(_assemblyJson, {}, 0, m_eofVersion);
 	solRequire(m_evmAssembly != nullptr, AssemblyImportException, "Could not create evm assembly object.");
 }
 
@@ -55,13 +55,18 @@ void EVMAssemblyStack::assemble()
 	solAssert(m_evmAssembly->isCreation());
 	solAssert(!m_evmRuntimeAssembly);
 
+	m_evmAssembly->optimise(m_optimiserSettings);
 	m_object = m_evmAssembly->assemble();
-	m_sourceMapping = AssemblyItem::computeSourceMapping(m_evmAssembly->items(), sourceIndices());
+	// TODO: Check for EOF
+	solAssert(m_evmAssembly->codeSections().size() == 1);
+	m_sourceMapping = AssemblyItem::computeSourceMapping(m_evmAssembly->codeSections().front().items, sourceIndices());
 	if (m_evmAssembly->numSubs() > 0)
 	{
-		m_evmRuntimeAssembly = std::make_shared<evmasm::Assembly>(m_evmAssembly->sub(0));
+		m_evmRuntimeAssembly = std::make_shared<evmasm::Assembly>(m_evmAssembly->sub(SubAssemblyID{0}));
 		solAssert(m_evmRuntimeAssembly && !m_evmRuntimeAssembly->isCreation());
-		m_runtimeSourceMapping = AssemblyItem::computeSourceMapping(m_evmRuntimeAssembly->items(), sourceIndices());
+		// TODO: Check for EOF
+		solAssert(m_evmRuntimeAssembly->codeSections().size() == 1);
+		m_runtimeSourceMapping = AssemblyItem::computeSourceMapping(m_evmRuntimeAssembly->codeSections().front().items, sourceIndices());
 		m_runtimeObject = m_evmRuntimeAssembly->assemble();
 	}
 }
@@ -69,13 +74,13 @@ void EVMAssemblyStack::assemble()
 LinkerObject const& EVMAssemblyStack::object(std::string const& _contractName) const
 {
 	solAssert(_contractName == m_name);
-	return m_object;
+	return object();
 }
 
 LinkerObject const& EVMAssemblyStack::runtimeObject(std::string const& _contractName) const
 {
 	solAssert(_contractName == m_name);
-	return m_runtimeObject;
+	return runtimeObject();
 }
 
 std::map<std::string, unsigned> EVMAssemblyStack::sourceIndices() const
@@ -90,27 +95,56 @@ std::map<std::string, unsigned> EVMAssemblyStack::sourceIndices() const
 std::string const* EVMAssemblyStack::sourceMapping(std::string const& _contractName) const
 {
 	solAssert(_contractName == m_name);
-	return &m_sourceMapping;
+	return &sourceMapping();
 }
 
 std::string const* EVMAssemblyStack::runtimeSourceMapping(std::string const& _contractName) const
 {
 	solAssert(_contractName == m_name);
-	return &m_runtimeSourceMapping;
+	return &runtimeSourceMapping();
+}
+
+Json EVMAssemblyStack::ethdebug(std::string const& _contractName) const
+{
+	solAssert(_contractName == m_name);
+	solAssert(m_ethdebug != nullptr);
+	return *m_ethdebug;
+}
+
+Json EVMAssemblyStack::ethdebugRuntime(std::string const& _contractName) const
+{
+	solAssert(_contractName == m_name);
+	solAssert(m_ethdebugRuntime != nullptr);
+	return *m_ethdebugRuntime;
+}
+
+Json EVMAssemblyStack::ethdebug() const
+{
+	return {};
+}
+
+Json EVMAssemblyStack::assemblyJSON() const
+{
+	solAssert(m_evmAssembly);
+	return m_evmAssembly->assemblyJSON(sourceIndices());
 }
 
 Json EVMAssemblyStack::assemblyJSON(std::string const& _contractName) const
 {
 	solAssert(_contractName == m_name);
+	return assemblyJSON();
+}
+
+std::string EVMAssemblyStack::assemblyString(StringMap const& _sourceCodes) const
+{
 	solAssert(m_evmAssembly);
-	return m_evmAssembly->assemblyJSON(sourceIndices());
+	return m_evmAssembly->assemblyString(m_debugInfoSelection, _sourceCodes);
 }
 
 std::string EVMAssemblyStack::assemblyString(std::string const& _contractName, StringMap const& _sourceCodes) const
 {
 	solAssert(_contractName == m_name);
-	solAssert(m_evmAssembly);
-	return m_evmAssembly->assemblyString(m_debugInfoSelection, _sourceCodes);
+	return assemblyString(_sourceCodes);
 }
 
 std::string const EVMAssemblyStack::filesystemFriendlyName(std::string const& _contractName) const

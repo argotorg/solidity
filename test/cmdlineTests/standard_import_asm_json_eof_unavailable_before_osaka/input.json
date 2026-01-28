@@ -1,0 +1,10 @@
+{
+    "language": "EVMAssembly",
+    "sources": {
+        "C.sol": {"assemblyJson": {}}
+    },
+    "settings": {
+        "eofVersion": 1,
+        "evmVersion": "cancun"
+    }
+}

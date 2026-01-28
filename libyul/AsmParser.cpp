@@ -24,13 +24,13 @@
 #include <libyul/AST.h>
 #include <libyul/AsmParser.h>
 #include <libyul/Exceptions.h>
+#include <libyul/Utilities.h>
 #include <liblangutil/ErrorReporter.h>
 #include <liblangutil/Exceptions.h>
 #include <liblangutil/Scanner.h>
+#include <liblangutil/Common.h>
 #include <libsolutil/Common.h>
 #include <libsolutil/Visitor.h>
-
-#include <range/v3/view/subrange.hpp>
 
 #include <boost/algorithm/string.hpp>
 
@@ -52,7 +52,7 @@ std::optional<int> toInt(std::string const& _value)
 	{
 		return stoi(_value);
 	}
-	catch (...)
+	catch (std::out_of_range const&)
 	{
 		return std::nullopt;
 	}
@@ -104,15 +104,15 @@ void Parser::updateLocationEndFrom(
 	}
 }
 
-std::unique_ptr<Block> Parser::parse(CharStream& _charStream)
+std::unique_ptr<AST> Parser::parse(CharStream& _charStream)
 {
 	m_scanner = std::make_shared<Scanner>(_charStream);
-	std::unique_ptr<Block> block = parseInline(m_scanner);
+	std::unique_ptr<AST> ast = parseInline(m_scanner);
 	expectToken(Token::EOS);
-	return block;
+	return ast;
 }
 
-std::unique_ptr<Block> Parser::parseInline(std::shared_ptr<Scanner> const& _scanner)
+std::unique_ptr<AST> Parser::parseInline(std::shared_ptr<Scanner> const& _scanner)
 {
 	m_recursionDepth = 0;
 
@@ -125,11 +125,16 @@ std::unique_ptr<Block> Parser::parseInline(std::shared_ptr<Scanner> const& _scan
 		m_scanner = _scanner;
 		if (m_useSourceLocationFrom == UseSourceLocationFrom::Comments)
 			fetchDebugDataFromComment();
-		return std::make_unique<Block>(parseBlock());
+		return std::make_unique<AST>(m_dialect, parseBlock());
 	}
-	catch (FatalError const& error)
+	catch (FatalError const&)
 	{
-		yulAssert(m_errorReporter.hasErrors(), "Unreported fatal error: "s + error.what());
+		if (!m_errorReporter.hasErrors())
+		{
+			std::cerr << "Unreported fatal error:" << std::endl;
+			std::cerr << boost::current_exception_diagnostic_information() << std::endl;
+			yulAssert(false, "Unreported fatal error.");
+		}
 	}
 
 	return nullptr;
@@ -147,12 +152,17 @@ void Parser::fetchDebugDataFromComment()
 {
 	solAssert(m_sourceNames.has_value(), "");
 
+	std::string_view commentLiteral = m_scanner->currentCommentLiteral();
+	if (commentLiteral.empty())
+	{
+		m_astIDFromComment = std::nullopt;
+		return;
+	}
 	static std::regex const tagRegex = std::regex(
 		R"~~((?:^|\s+)(@[a-zA-Z0-9\-_]+)(?:\s+|$))~~", // tag, e.g: @src
 		std::regex_constants::ECMAScript | std::regex_constants::optimize
 	);
 
-	std::string_view commentLiteral = m_scanner->currentCommentLiteral();
 	std::match_results<std::string_view::const_iterator> match;
 
 	langutil::SourceLocation originLocation = m_locationFromComment;
@@ -192,13 +202,41 @@ std::optional<std::pair<std::string_view, SourceLocation>> Parser::parseSrcComme
 	langutil::SourceLocation const& _commentLocation
 )
 {
-	static std::regex const argsRegex = std::regex(
-		R"~~(^(-1|\d+):(-1|\d+):(-1|\d+)(?:\s+|$))~~"  // index and location, e.g.: 1:234:-1
-		R"~~(("(?:[^"\\]|\\.)*"?)?)~~",                // optional code snippet, e.g.: "string memory s = \"abc\";..."
-		std::regex_constants::ECMAScript | std::regex_constants::optimize
-	);
-	std::match_results<std::string_view::const_iterator> match;
-	if (!regex_search(_arguments.cbegin(), _arguments.cend(), match, argsRegex))
+	CharStream argumentStream(std::string(_arguments), "");
+	Scanner scanner(argumentStream, ScannerKind::SpecialComment);
+
+	std::string_view tail{_arguments.substr(_arguments.size())};
+	auto const parseLocationComponent = [](Scanner& _scanner, bool expectTrailingColon) -> std::optional<std::string>
+	{
+		bool negative = false;
+		if (_scanner.currentToken() == Token::Sub)
+		{
+			negative = true;
+			_scanner.next();
+		}
+		if (_scanner.currentToken() != Token::Number)
+			return std::nullopt;
+		if (expectTrailingColon && _scanner.peekNextToken() != Token::Colon)
+			return std::nullopt;
+		if (!isValidDecimal(_scanner.currentLiteral()))
+			return std::nullopt;
+		std::string decimal = (negative ? "-" : "") + _scanner.currentLiteral();
+		_scanner.next();
+		if (expectTrailingColon)
+			_scanner.next();
+		return decimal;
+	};
+	std::optional<std::string> rawSourceIndex = parseLocationComponent(scanner, true);
+	std::optional<std::string> rawStart = parseLocationComponent(scanner, true);
+	std::optional<std::string> rawEnd = parseLocationComponent(scanner, false);
+
+	size_t const snippetStart = static_cast<size_t>(scanner.currentLocation().start);
+	bool const locationScannedSuccessfully = rawSourceIndex && rawStart && rawEnd;
+	bool const locationIsWhitespaceSeparated =
+		scanner.peekNextToken() == Token::EOS ||
+		(snippetStart > 0 && langutil::isWhiteSpace(_arguments[snippetStart - 1]));
+
+	if (!locationScannedSuccessfully || !locationIsWhitespaceSeparated)
 	{
 		m_errorReporter.syntaxError(
 			8387_error,
@@ -208,13 +246,16 @@ std::optional<std::pair<std::string_view, SourceLocation>> Parser::parseSrcComme
 		return std::nullopt;
 	}
 
-	solAssert(match.size() == 5, "");
-	std::string_view tail = _arguments.substr(static_cast<size_t>(match.position() + match.length()));
+	// captures error cases `"test` (illegal end quote) and `"test\` (illegal escape sequence / dangling backslash)
+	bool const illegalLiteral = scanner.currentToken() == Token::Illegal && (scanner.currentError() == ScannerError::IllegalStringEndQuote || scanner.currentError() == ScannerError::IllegalEscapeSequence);
+	if (scanner.currentToken() == Token::StringLiteral || illegalLiteral)
+		tail = _arguments.substr(static_cast<size_t>(scanner.currentLocation().end));
+	else
+		tail = _arguments.substr(static_cast<size_t>(scanner.currentLocation().start));
 
-	if (match[4].matched && (
-		!boost::algorithm::ends_with(match[4].str(), "\"") ||
-		boost::algorithm::ends_with(match[4].str(), "\\\"")
-	))
+	// Other scanner errors may occur if there is no string literal which follows
+	// (f.ex. IllegalHexDigit, IllegalCommentTerminator), but these are ignored
+	if (illegalLiteral)
 	{
 		m_errorReporter.syntaxError(
 			1544_error,
@@ -224,11 +265,15 @@ std::optional<std::pair<std::string_view, SourceLocation>> Parser::parseSrcComme
 		return {{tail, SourceLocation{}}};
 	}
 
-	std::optional<int> const sourceIndex = toInt(match[1].str());
-	std::optional<int> const start = toInt(match[2].str());
-	std::optional<int> const end = toInt(match[3].str());
+	std::optional<int> const sourceIndex = toInt(*rawSourceIndex);
+	std::optional<int> const start = toInt(*rawStart);
+	std::optional<int> const end = toInt(*rawEnd);
 
-	if (!sourceIndex.has_value() || !start.has_value() || !end.has_value())
+	if (
+		!sourceIndex.has_value() || *sourceIndex < -1 ||
+		!start.has_value() || *start < -1 ||
+		!end.has_value() || *end < -1
+	)
 		m_errorReporter.syntaxError(
 			6367_error,
 			_commentLocation,
@@ -236,8 +281,8 @@ std::optional<std::pair<std::string_view, SourceLocation>> Parser::parseSrcComme
 			"Expected non-negative integer values or -1 for source index and location."
 		);
 	else if (sourceIndex == -1)
-		return {{tail, SourceLocation{start.value(), end.value(), nullptr}}};
-	else if (!(sourceIndex >= 0 && m_sourceNames->count(static_cast<unsigned>(sourceIndex.value()))))
+		return {{tail, SourceLocation{*start, *end, nullptr}}};
+	else if (!(sourceIndex >= 0 && m_sourceNames->count(static_cast<unsigned>(*sourceIndex))))
 		m_errorReporter.syntaxError(
 			2674_error,
 			_commentLocation,
@@ -245,9 +290,9 @@ std::optional<std::pair<std::string_view, SourceLocation>> Parser::parseSrcComme
 		);
 	else
 	{
-		std::shared_ptr<std::string const> sourceName = m_sourceNames->at(static_cast<unsigned>(sourceIndex.value()));
+		std::shared_ptr<std::string const> sourceName = m_sourceNames->at(static_cast<unsigned>(*sourceIndex));
 		solAssert(sourceName, "");
-		return {{tail, SourceLocation{start.value(), end.value(), std::move(sourceName)}}};
+		return {{tail, SourceLocation{*start, *end, std::move(sourceName)}}};
 	}
 	return {{tail, SourceLocation{}}};
 }
@@ -365,7 +410,7 @@ Statement Parser::parseStatement()
 	// Options left:
 	// Expression/FunctionCall
 	// Assignment
-	std::variant<Literal, Identifier> elementary(parseLiteralOrIdentifier());
+	std::variant<Literal, Identifier, BuiltinName> elementary(parseLiteralOrIdentifier());
 
 	switch (currentToken())
 	{
@@ -380,35 +425,47 @@ Statement Parser::parseStatement()
 		Assignment assignment;
 		assignment.debugData = debugDataOf(elementary);
 
-		while (true)
+		bool foundListEnd = false;
+		do
 		{
-			if (!std::holds_alternative<Identifier>(elementary))
-			{
-				auto const token = currentToken() == Token::Comma ? "," : ":=";
+			std::visit(GenericVisitor{
+				[&](Literal const&)
+				{
+					auto const token = currentToken() == Token::Comma ? "," : ":=";
 
-				fatalParserError(
-					2856_error,
-					std::string("Variable name must precede \"") +
-					token +
-					"\"" +
-					(currentToken() == Token::Comma ? " in multiple assignment." : " in assignment.")
-				);
-			}
+					fatalParserError(
+						2856_error,
+						std::string("Variable name must precede \"") +
+						token +
+						"\"" +
+						(currentToken() == Token::Comma ? " in multiple assignment." : " in assignment.")
+					);
+				},
+				[&](BuiltinName const& _builtin)
+				{
+					fatalParserError(
+						6272_error,
+						fmt::format(
+							"Cannot assign to builtin function \"{}\".",
+							m_dialect.builtin(_builtin.handle).name
+						)
+					);
+				},
+				[&](Identifier const& _identifier)
+				{
+					assignment.variableNames.emplace_back(_identifier);
 
-			auto const& identifier = std::get<Identifier>(elementary);
+					if (currentToken() != Token::Comma)
+						foundListEnd = true;
+					else
+					{
+						expectToken(Token::Comma);
+						elementary = parseLiteralOrIdentifier();
+					}
+				}
+			}, elementary);
 
-			if (m_dialect.builtin(identifier.name))
-				fatalParserError(6272_error, "Cannot assign to builtin function \"" + identifier.name.str() + "\".");
-
-			assignment.variableNames.emplace_back(identifier);
-
-			if (currentToken() != Token::Comma)
-				break;
-
-			expectToken(Token::Comma);
-
-			elementary = parseLiteralOrIdentifier();
-		}
+		} while (!foundListEnd);
 
 		expectToken(Token::AssemblyAssign);
 
@@ -435,7 +492,7 @@ Case Parser::parseCase()
 	else if (currentToken() == Token::Case)
 	{
 		advance();
-		std::variant<Literal, Identifier> literal = parseLiteralOrIdentifier();
+		std::variant<Literal, Identifier, BuiltinName> literal = parseLiteralOrIdentifier();
 		if (!std::holds_alternative<Literal>(literal))
 			fatalParserError(4805_error, "Literal expected.");
 		_case.value = std::make_unique<Literal>(std::get<Literal>(std::move(literal)));
@@ -470,23 +527,28 @@ ForLoop Parser::parseForLoop()
 	return forLoop;
 }
 
-Expression Parser::parseExpression()
+Expression Parser::parseExpression(bool _unlimitedLiteralArgument)
 {
 	RecursionGuard recursionGuard(*this);
 
-	std::variant<Literal, Identifier> operation = parseLiteralOrIdentifier();
+	std::variant<Literal, Identifier, BuiltinName> operation = parseLiteralOrIdentifier(_unlimitedLiteralArgument);
 	return visit(GenericVisitor{
 		[&](Identifier& _identifier) -> Expression
 		{
 			if (currentToken() == Token::LParen)
 				return parseCall(std::move(operation));
-			if (m_dialect.builtin(_identifier.name))
-				fatalParserError(
-					7104_error,
-					nativeLocationOf(_identifier),
-					"Builtin function \"" + _identifier.name.str() + "\" must be called."
-				);
 			return std::move(_identifier);
+		},
+		[&](BuiltinName& _builtin) -> Expression
+		{
+			if (currentToken() == Token::LParen)
+				return parseCall(std::move(operation));
+			fatalParserError(
+				7104_error,
+				nativeLocationOf(_builtin),
+				"Builtin function \"" + m_dialect.builtin(_builtin.handle).name + "\" must be called."
+			);
+			unreachable();
 		},
 		[&](Literal& _literal) -> Expression
 		{
@@ -495,16 +557,20 @@ Expression Parser::parseExpression()
 	}, operation);
 }
 
-std::variant<Literal, Identifier> Parser::parseLiteralOrIdentifier()
+std::variant<Literal, Identifier, BuiltinName> Parser::parseLiteralOrIdentifier(bool _unlimitedLiteralArgument)
 {
 	RecursionGuard recursionGuard(*this);
 	switch (currentToken())
 	{
 	case Token::Identifier:
 	{
-		Identifier identifier{createDebugData(), YulString{currentLiteral()}};
+		std::variant<Literal, Identifier, BuiltinName> literalOrIdentifier;
+		if (std::optional<BuiltinHandle> const builtinHandle = m_dialect.findBuiltin(currentLiteral()))
+			literalOrIdentifier = BuiltinName{createDebugData(), *builtinHandle};
+		else
+			literalOrIdentifier = Identifier{createDebugData(), YulName{currentLiteral()}};
 		advance();
-		return identifier;
+		return literalOrIdentifier;
 	}
 	case Token::StringLiteral:
 	case Token::HexStringLiteral:
@@ -532,18 +598,20 @@ std::variant<Literal, Identifier> Parser::parseLiteralOrIdentifier()
 			break;
 		}
 
+		auto const literalLocation = currentLocation();
 		Literal literal{
 			createDebugData(),
 			kind,
-			YulString{currentLiteral()},
-			kind == LiteralKind::Boolean ? m_dialect.boolType : m_dialect.defaultType
+			valueOfLiteral(currentLiteral(), kind, _unlimitedLiteralArgument && kind == LiteralKind::String)
 		};
 		advance();
 		if (currentToken() == Token::Colon)
 		{
 			expectToken(Token::Colon);
 			updateLocationEndFrom(literal.debugData, currentLocation());
-			literal.type = expectAsmIdentifier();
+			auto const typedLiteralLocation = SourceLocation::smallestCovering(literalLocation, currentLocation());
+			std::ignore = expectAsmIdentifier();
+			raiseUnsupportedTypesError(typedLiteralLocation);
 		}
 
 		return literal;
@@ -564,7 +632,7 @@ VariableDeclaration Parser::parseVariableDeclaration()
 	expectToken(Token::Let);
 	while (true)
 	{
-		varDecl.variables.emplace_back(parseTypedName());
+		varDecl.variables.emplace_back(parseNameWithDebugData());
 		if (currentToken() == Token::Comma)
 			expectToken(Token::Comma);
 		else
@@ -602,7 +670,7 @@ FunctionDefinition Parser::parseFunctionDefinition()
 	expectToken(Token::LParen);
 	while (currentToken() != Token::RParen)
 	{
-		funDef.parameters.emplace_back(parseTypedName());
+		funDef.parameters.emplace_back(parseNameWithDebugData());
 		if (currentToken() == Token::RParen)
 			break;
 		expectToken(Token::Comma);
@@ -613,7 +681,7 @@ FunctionDefinition Parser::parseFunctionDefinition()
 		expectToken(Token::RightArrow);
 		while (true)
 		{
-			funDef.returnVariables.emplace_back(parseTypedName());
+			funDef.returnVariables.emplace_back(parseNameWithDebugData());
 			if (currentToken() == Token::LBrace)
 				break;
 			expectToken(Token::Comma);
@@ -629,54 +697,76 @@ FunctionDefinition Parser::parseFunctionDefinition()
 	return funDef;
 }
 
-FunctionCall Parser::parseCall(std::variant<Literal, Identifier>&& _initialOp)
+FunctionCall Parser::parseCall(std::variant<Literal, Identifier, BuiltinName>&& _initialOp)
 {
 	RecursionGuard recursionGuard(*this);
 
-	if (!std::holds_alternative<Identifier>(_initialOp))
-		fatalParserError(9980_error, "Function name expected.");
+	std::function isUnlimitedLiteralArgument = [](size_t) -> bool { return false; };
+	FunctionCall functionCall;
+	std::visit(GenericVisitor{
+		[&](Literal const&) { fatalParserError(9980_error, "Function name expected."); },
+		[&](Identifier const& _identifier)
+		{
+			functionCall.debugData = _identifier.debugData;
+			functionCall.functionName = _identifier;
+		},
+		[&](BuiltinName const& _builtin)
+		{
+			isUnlimitedLiteralArgument = [builtinFunction=m_dialect.builtin(_builtin.handle)](size_t _index) {
+				if (_index < builtinFunction.literalArguments.size())
+					return builtinFunction.literalArgument(_index).has_value();
+				return false;
+			};
+			functionCall.debugData = _builtin.debugData;
+			functionCall.functionName = _builtin;
+		}
+	}, _initialOp);
 
-	FunctionCall ret;
-	ret.functionName = std::move(std::get<Identifier>(_initialOp));
-	ret.debugData = ret.functionName.debugData;
-
+	size_t argumentIndex {0};
 	expectToken(Token::LParen);
 	if (currentToken() != Token::RParen)
 	{
-		ret.arguments.emplace_back(parseExpression());
+		functionCall.arguments.emplace_back(parseExpression(isUnlimitedLiteralArgument(argumentIndex++)));
 		while (currentToken() != Token::RParen)
 		{
 			expectToken(Token::Comma);
-			ret.arguments.emplace_back(parseExpression());
+			functionCall.arguments.emplace_back(parseExpression(isUnlimitedLiteralArgument(argumentIndex++)));
 		}
 	}
-	updateLocationEndFrom(ret.debugData, currentLocation());
+	updateLocationEndFrom(functionCall.debugData, currentLocation());
 	expectToken(Token::RParen);
-	return ret;
+	return functionCall;
 }
 
-TypedName Parser::parseTypedName()
+NameWithDebugData Parser::parseNameWithDebugData()
 {
 	RecursionGuard recursionGuard(*this);
-	TypedName typedName = createWithDebugData<TypedName>();
+	NameWithDebugData typedName = createWithDebugData<NameWithDebugData>();
+	auto const nameLocation = currentLocation();
 	typedName.name = expectAsmIdentifier();
 	if (currentToken() == Token::Colon)
 	{
 		expectToken(Token::Colon);
 		updateLocationEndFrom(typedName.debugData, currentLocation());
-		typedName.type = expectAsmIdentifier();
+		auto const typedNameLocation = SourceLocation::smallestCovering(nameLocation, currentLocation());
+		std::ignore = expectAsmIdentifier();
+		raiseUnsupportedTypesError(typedNameLocation);
 	}
-	else
-		typedName.type = m_dialect.defaultType;
 
 	return typedName;
 }
 
-YulString Parser::expectAsmIdentifier()
+YulName Parser::expectAsmIdentifier()
 {
-	YulString name{currentLiteral()};
-	if (currentToken() == Token::Identifier && m_dialect.builtin(name))
-		fatalParserError(5568_error, "Cannot use builtin function name \"" + name.str() + "\" as identifier name.");
+	YulName name{currentLiteral()};
+	if (currentToken() == Token::Identifier && m_dialect.findBuiltin(name.str()))
+		// Non-fatal. We'll continue and wrongly parse it as an identifier. May lead to some spurious
+		// errors after this point, but likely also much more useful ones.
+		m_errorReporter.parserError(
+			5568_error,
+			currentLocation(),
+			"Cannot use builtin function name \"" + name.str() + "\" as identifier name."
+		);
 	// NOTE: We keep the expectation here to ensure the correct source location for the error above.
 	expectToken(Token::Identifier);
 	return name;
@@ -700,7 +790,7 @@ void Parser::checkBreakContinuePosition(std::string const& _which)
 	}
 }
 
-bool Parser::isValidNumberLiteral(std::string const& _literal)
+bool Parser::isValidNumberLiteral(std::string_view const _literal)
 {
 	try
 	{
@@ -714,5 +804,10 @@ bool Parser::isValidNumberLiteral(std::string const& _literal)
 	if (boost::starts_with(_literal, "0x"))
 		return true;
 	else
-		return _literal.find_first_not_of("0123456789") == std::string::npos;
+		return _literal.find_first_not_of("0123456789") == std::string_view::npos;
+}
+
+void Parser::raiseUnsupportedTypesError(SourceLocation const& _location) const
+{
+	m_errorReporter.parserError(5473_error, _location, "Types are not supported in untyped Yul.");
 }

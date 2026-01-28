@@ -108,14 +108,13 @@ bytes compileFirstExpression(
 	{
 		ErrorList errors;
 		ErrorReporter errorReporter(errors);
-		sourceUnit = Parser(errorReporter, solidity::test::CommonOptions::get().evmVersion()).parse(stream);
+		sourceUnit = Parser(
+			errorReporter,
+			solidity::test::CommonOptions::get().evmVersion(),
+			solidity::test::CommonOptions::get().eofVersion()
+		).parse(stream);
 		if (!sourceUnit)
 			return bytes();
-	}
-	catch (boost::exception const& _e)
-	{
-		std::string msg = "Parsing source code failed with:\n" + boost::diagnostic_information(_e);
-		BOOST_FAIL(msg);
 	}
 	catch (...)
 	{
@@ -134,7 +133,11 @@ bytes compileFirstExpression(
 	DeclarationTypeChecker declarationTypeChecker(errorReporter, solidity::test::CommonOptions::get().evmVersion());
 	for (ASTPointer<ASTNode> const& node: sourceUnit->nodes())
 		BOOST_REQUIRE(declarationTypeChecker.check(*node));
-	TypeChecker typeChecker(solidity::test::CommonOptions::get().evmVersion(), errorReporter);
+	TypeChecker typeChecker(
+		solidity::test::CommonOptions::get().evmVersion(),
+		solidity::test::CommonOptions::get().eofVersion(),
+		errorReporter
+	);
 	BOOST_REQUIRE(typeChecker.checkTypeRequirements(*sourceUnit));
 	for (ASTPointer<ASTNode> const& node: sourceUnit->nodes())
 		if (ContractDefinition* contract = dynamic_cast<ContractDefinition*>(node.get()))
@@ -144,6 +147,7 @@ bytes compileFirstExpression(
 
 			CompilerContext context(
 				solidity::test::CommonOptions::get().evmVersion(),
+				solidity::test::CommonOptions::get().eofVersion(),
 				RevertStrings::Default
 			);
 			context.resetVisitedNodes(contract);

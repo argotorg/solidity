@@ -27,11 +27,10 @@
 
 #include <libevmasm/Assembly.h>
 
-#include <liblangutil/SourceReferenceFormatter.h>
-
-#include <libsolutil/AnsiColorized.h>
+#include <libsolutil/CommonIO.h>
 
 using namespace solidity;
+using namespace solidity::test;
 using namespace solidity::util;
 using namespace solidity::langutil;
 using namespace solidity::yul;
@@ -52,34 +51,31 @@ TestCase::TestResult EVMCodeTransformTest::run(std::ostream& _stream, std::strin
 	solidity::frontend::OptimiserSettings settings = solidity::frontend::OptimiserSettings::none();
 	settings.runYulOptimiser = false;
 	settings.optimizeStackAllocation = m_stackOpt;
-	YulStack stack(
-		EVMVersion{},
-		std::nullopt,
+	// Restrict to a single EVM/EOF version combination (the default one) as code generation
+	// can be different from version to version.
+	YulStack yulStack(
+		CommonOptions::get().evmVersion(),
+		CommonOptions::get().eofVersion(),
 		YulStack::Language::StrictAssembly,
 		settings,
-		DebugInfoSelection::All()
+		DebugInfoSelection::AllExceptExperimental()
 	);
-	if (!stack.parseAndAnalyze("", m_source))
+	yulStack.parseAndAnalyze("", m_source);
+	if (yulStack.hasErrors())
 	{
-		AnsiColorized(_stream, _formatted, {formatting::BOLD, formatting::RED}) << _linePrefix << "Error parsing source." << std::endl;
-		SourceReferenceFormatter{_stream, stack, true, false}
-			.printErrorInformation(stack.errors());
+		printYulErrors(yulStack, _stream, _linePrefix, _formatted);
 		return TestResult::FatalError;
 	}
 
-	evmasm::Assembly assembly{solidity::test::CommonOptions::get().evmVersion(), false, {}};
+	evmasm::Assembly assembly{CommonOptions::get().evmVersion(), false, CommonOptions::get().eofVersion(), {}};
 	EthAssemblyAdapter adapter(assembly);
 	EVMObjectCompiler::compile(
-		*stack.parserResult(),
+		*yulStack.parserResult(),
 		adapter,
-		EVMDialect::strictAssemblyForEVMObjects(EVMVersion{}),
-		m_stackOpt,
-		std::nullopt
+		m_stackOpt
 	);
 
-	std::ostringstream output;
-	output << assembly;
-	m_obtainedResult = output.str();
+	m_obtainedResult = toString(assembly);
 
 	return checkResult(_stream, _linePrefix, _formatted);
 }

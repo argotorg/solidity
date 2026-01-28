@@ -8,12 +8,12 @@ List of Known Bugs
 
 Below, you can find a JSON-formatted list of some of the known security-relevant bugs in the
 Solidity compiler. The file itself is hosted in the `GitHub repository
-<https://github.com/ethereum/solidity/blob/develop/docs/bugs.json>`_.
+<https://github.com/argotorg/solidity/blob/develop/docs/bugs.json>`_.
 The list stretches back as far as version 0.3.0, bugs known to be present only
 in versions preceding that are not listed.
 
 There is another file called `bugs_by_version.json
-<https://github.com/ethereum/solidity/blob/develop/docs/bugs_by_version.json>`_,
+<https://github.com/argotorg/solidity/blob/develop/docs/bugs_by_version.json>`_,
 which can be used to check which bugs affect a specific version of the compiler.
 
 Contract source verification tools and also other tools interacting with

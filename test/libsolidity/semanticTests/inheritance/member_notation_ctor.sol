@@ -13,14 +13,16 @@ contract D is M.C {
 
 contract A {
 	function g(int p) public returns (int) {
-		D d = new D(p);
+		D d = new D{salt: bytes32(uint256(p))}(p);
 		return d.getX();
 	}
 }
+// ====
+// EVMVersion: >=constantinople
 // ----
 // g(int256): -1 -> -1
-// gas legacy: 77878
+// gas legacy: 77955
 // gas legacy code: 24200
 // g(int256): 10 -> 10
-// gas legacy: 77506
+// gas legacy: 77583
 // gas legacy code: 24200

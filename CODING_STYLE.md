@@ -46,7 +46,7 @@ foo->bar(someLongVariableName,
 cout << "some very long string that contains completely irrelevant text that talks about this and that and contains the words \"lorem\" and \"ipsum\"" << endl;
 ```
 
-To set indentation and tab width settings uniformly, the repository contains an [EditorConfig](https://editorconfig.org/) [`.editorconfig`](https://github.com/ethereum/solidity/blob/develop/.editorconfig) file, which describes some of the styles used and which is recognized by many IDE's and editors.
+To set indentation and tab width settings uniformly, the repository contains an [EditorConfig](https://editorconfig.org/) [`.editorconfig`](https://github.com/argotorg/solidity/blob/develop/.editorconfig) file, which describes some of the styles used and which is recognized by many IDE's and editors.
 
 ## 1. Namespaces
 
@@ -110,9 +110,9 @@ Use `solAssert` and `solUnimplementedAssert` generously to check assumptions tha
 4. Favour declarations close to use; do not habitually declare at top of scope ala C.
 5. Pass non-trivial parameters as const reference, unless the data is to be copied into the function, then either pass by const reference or by value and use std::move.
 6. If a function returns multiple values, use std::tuple (std::pair acceptable) or better introduce a struct type. Do not use */& arguments.
-7. Use parameters of pointer type only if ``nullptr`` is a valid argument, use references otherwise. Often, ``std::optional`` is better suited than a raw pointer.
+7. Use parameters of pointer type only if `nullptr` is a valid argument, use references otherwise. Often, `std::optional` is better suited than a raw pointer.
 8. Never use a macro where adequate non-preprocessor C++ can be written.
-9. Only use ``auto`` if the type is very long and rather irrelevant.
+9. Only use `auto` if the type is very long and rather irrelevant.
 10. Do not pass bools: prefer enumerations instead.
 11. Prefer enum class to straight enum.
 12. Always initialize POD variables, even if their value is overwritten later.

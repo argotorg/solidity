@@ -7,6 +7,8 @@ contract test {
         c; d;
     }
 }
+// ====
+// compileViaYul: true
 // ----
 // Warning 2018: (20-147): Function state mutability can be restricted to pure
-// UnimplementedFeatureError 1834: Not yet implemented - FixedPointType.
+// UnimplementedFeatureError 1834: (93-104): Fixed point types not implemented.

@@ -5,6 +5,10 @@ on:
     types:
       - opened
 
+permissions:
+  pull-requests: write
+  contents: read
+
 env:
   DRY_RUN: false
 
@@ -27,7 +31,7 @@ jobs:
               "Thank you for your contribution to the Solidity compiler! A team member will follow up shortly."
               "\n\n"
               "If you haven't read our [contributing guidelines](https://docs.soliditylang.org/en/latest/contributing.html) and our "
-              "[review checklist](https://github.com/ethereum/solidity/blob/develop/ReviewChecklist.md) before, "
+              "[review checklist](https://github.com/argotorg/solidity/blob/develop/ReviewChecklist.md) before, "
               "please do it now, this makes the reviewing process and accepting your contribution smoother."
               "\n\n"
               "If you have any questions or need our help, feel free to post them in the PR or talk to us directly on the "

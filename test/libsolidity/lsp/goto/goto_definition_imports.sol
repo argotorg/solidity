@@ -2,7 +2,7 @@
 pragma solidity >=0.8.0;
 
 import {Weather as Wetter} from "./lib.sol";
-//       ^ @wheatherImportCursor
+//       ^ @weatherImportCursor
 import "./lib.sol" as That;
 //                    ^^^^ @ThatImport
 
@@ -25,7 +25,7 @@ contract C
 // ----
 // lib: @diagnostics 2072
 // -> textDocument/definition {
-//     "position": @wheatherImportCursor
+//     "position": @weatherImportCursor
 // }
 // <- [
 //     {

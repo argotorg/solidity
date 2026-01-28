@@ -111,21 +111,34 @@ otherwise, the ``value`` option would not be available.
   the ``value`` and ``gas`` settings are lost, only
   ``feed.info{value: 10, gas: 800}()`` performs the function call.
 
-Due to the fact that the EVM considers a call to a non-existing contract to
-always succeed, Solidity uses the ``extcodesize`` opcode to check that
-the contract that is about to be called actually exists (it contains code)
-and causes an exception if it does not. This check is skipped if the return
-data will be decoded after the call and thus the ABI decoder will catch the
-case of a non-existing contract.
+.. warning::
+    Due to the fact that the EVM considers a call to a non-existing contract to
+    always succeed, Solidity uses the ``extcodesize`` opcode to check that
+    the contract that is about to be called actually exists (it contains code)
+    and causes an exception if it does not. This check is skipped if the return
+    data will be decoded after the call and thus the ABI decoder will catch the
+    case of a non-existing contract.
 
-Note that this check is not performed in case of :ref:`low-level calls <address_related>` which
-operate on addresses rather than contract instances.
+    This check is not performed in case of :ref:`low-level calls <address_related>` which
+    operate on addresses rather than contract instances.
 
-.. note::
+.. warning::
     Be careful when using high-level calls to
     :ref:`precompiled contracts <precompiledContracts>`,
     since the compiler considers them non-existing according to the
     above logic even though they execute code and can return data.
+
+.. note::
+    Since the version 0.8.10, the compiler does not check ``extcodesize`` on
+    high-level external calls if return data is expected, because an empty code
+    will be unable to return data, and the ABI decoder will revert.
+    As a consequence, this allows high-level external calls to precompiled
+    contracts, since they can return data despite having no code
+    associated with their addresses.
+
+    Read about :ref:`precompiled contracts <precompiledContracts>` and
+    :ref:`low-level calls <address_related>`
+    for more information.
 
 Function calls also cause exceptions if the called contract itself
 throws an exception or goes out of gas.
@@ -238,6 +251,8 @@ an instance of ``D`` using the ``value`` option, but it is not possible
 to limit the amount of gas.
 If the creation fails (due to out-of-stack, not enough balance or other problems),
 an exception is thrown.
+
+.. _salted-contract-creations:
 
 Salted contract creations / create2
 -----------------------------------
@@ -639,10 +654,6 @@ The ``require`` function provides three overloads:
     For example, in ``require(condition, CustomError(f()));`` and ``require(condition, f());``,
     function ``f()`` will be called regardless of whether the supplied condition is ``true`` or ``false``.
 
-.. note::
-    Using custom errors with ``require`` is only supported by the via IR pipeline, i.e. compilation via Yul.
-    For the legacy pipeline, please use ``if (!condition) revert CustomError();`` instead.
-
 An ``Error(string)`` exception (or an exception without data) is generated
 by the compiler in the following situations:
 
@@ -681,16 +692,16 @@ and ``assert`` for internal error checking.
     :force:
 
     // SPDX-License-Identifier: GPL-3.0
-    pragma solidity >=0.5.0 <0.9.0;
+    pragma solidity >=0.6.2 <0.9.0;
 
     contract Sharer {
         function sendHalf(address payable addr) public payable returns (uint balance) {
             require(msg.value % 2 == 0, "Even value required.");
             uint balanceBeforeTransfer = address(this).balance;
-            addr.transfer(msg.value / 2);
-            // Since transfer throws an exception on failure and
-            // cannot call back here, there should be no way for us to
-            // still have half of the Ether.
+            (bool success, ) = addr.call{value: msg.value / 2}("");
+            require(success);
+            // Since require will stop execution and revert if success is false,
+            // there should be no way for us to still have half of the Ether.
             assert(address(this).balance == balanceBeforeTransfer - msg.value / 2);
             return address(this).balance;
         }
@@ -764,7 +775,8 @@ together with ``revert`` and the equivalent ``require``:
             if (msg.sender != owner)
                 revert Unauthorized();
 
-            payable(msg.sender).transfer(address(this).balance);
+            (bool success, ) = payable(msg.sender).call{value: address(this).balance}("");
+            require(success);
         }
     }
 

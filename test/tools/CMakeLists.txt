@@ -5,10 +5,10 @@ add_executable(yulrun yulrun.cpp)
 target_link_libraries(yulrun PRIVATE yulInterpreter libsolc evmasm Boost::boost Boost::program_options)
 
 add_executable(solfuzzer afl_fuzzer.cpp fuzzer_common.cpp)
-target_link_libraries(solfuzzer PRIVATE libsolc evmasm Boost::boost Boost::program_options Boost::system)
+target_link_libraries(solfuzzer PRIVATE libsolc evmasm Boost::boost Boost::program_options ${Boost_SYSTEM_LIBRARY})
 
 add_executable(yulopti yulopti.cpp)
-target_link_libraries(yulopti PRIVATE solidity Boost::boost Boost::program_options Boost::system)
+target_link_libraries(yulopti PRIVATE solidity Boost::boost Boost::program_options ${Boost_SYSTEM_LIBRARY})
 
 add_executable(isoltest
 	isoltest.cpp
@@ -18,6 +18,8 @@ add_executable(isoltest
 	../EVMHost.cpp
 	../TestCase.cpp
 	../TestCaseReader.cpp
+	../libevmasm/EVMAssemblyTest.cpp
+	../libevmasm/PlainAssemblyParser.cpp
 	../libsolidity/util/BytesUtils.cpp
 	../libsolidity/util/Common.cpp
 	../libsolidity/util/ContractABIUtils.cpp
@@ -26,6 +28,8 @@ add_executable(isoltest
 	../libsolidity/GasTest.cpp
 	../libsolidity/MemoryGuardTest.cpp
 	../libsolidity/NatspecJSONTest.cpp
+	../libsolidity/OptimizedIRCachingTest.cpp
+	../libsolidity/OptimizedIRCachingTest.h
 	../libsolidity/SyntaxTest.cpp
 	../libsolidity/SemanticTest.cpp
 	../libsolidity/AnalysisFramework.cpp
@@ -38,6 +42,7 @@ add_executable(isoltest
 	../libsolidity/SMTCheckerTest.cpp
 	../libyul/Common.cpp
 	../libyul/ControlFlowGraphTest.cpp
+	../libyul/SSAControlFlowGraphTest.cpp
 	../libyul/ControlFlowSideEffectsTest.cpp
 	../libyul/EVMCodeTransformTest.cpp
 	../libyul/FunctionSideEffects.cpp

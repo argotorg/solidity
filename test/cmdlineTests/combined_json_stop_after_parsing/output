@@ -1,14 +1,14 @@
 {
     "contracts": {
-        "combined_json_stop_after_parsing/input.sol:C": {}
+        "input.sol:C": {}
     },
     "sourceList": [
-        "combined_json_stop_after_parsing/input.sol"
+        "input.sol"
     ],
     "sources": {
-        "combined_json_stop_after_parsing/input.sol": {
+        "input.sol": {
             "AST": {
-                "absolutePath": "combined_json_stop_after_parsing/input.sol",
+                "absolutePath": "input.sol",
                 "id": 3,
                 "license": "GPL-3.0",
                 "nodeType": "SourceUnit",

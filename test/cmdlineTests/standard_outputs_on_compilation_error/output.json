@@ -32,8 +32,12 @@
                         "x()": "0c55699c"
                     }
                 },
-                "metadata": "{\"compiler\":{\"version\":\"<VERSION REMOVED>\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"inputs\":[],\"name\":\"x\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"C\":\"C\"},\"evmVersion\":\"cancun\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"C\":{\"keccak256\":\"0x67a13ebd685e4c6f792e71eb747dac57edb99e94d04d841ee6c979ae517934ce\",\"license\":\"GPL-3.0\",\"urls\":[\"bzz-raw://665b000da768823654f680d02686c1e59d682a0b3882e43a77fed9f80ce64ae8\",\"dweb:/ipfs/QmVnKvuidH6KiCdNQpoAQUtDbB8hXkafVLXWMNitUcxnqC\"]}},\"version\":1}",
+                "metadata": "{\"compiler\":{\"version\":\"<VERSION REMOVED>\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"inputs\":[],\"name\":\"x\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"C\":\"C\"},\"evmVersion\":\"osaka\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"C\":{\"keccak256\":\"0x67a13ebd685e4c6f792e71eb747dac57edb99e94d04d841ee6c979ae517934ce\",\"license\":\"GPL-3.0\",\"urls\":[\"bzz-raw://665b000da768823654f680d02686c1e59d682a0b3882e43a77fed9f80ce64ae8\",\"dweb:/ipfs/QmVnKvuidH6KiCdNQpoAQUtDbB8hXkafVLXWMNitUcxnqC\"]}},\"version\":1}",
                 "storageLayout": {
+                    "storage": [],
+                    "types": null
+                },
+                "transientStorageLayout": {
                     "storage": [],
                     "types": null
                 },
@@ -50,10 +54,19 @@
             "component": "general",
             "errorCode": "1284",
             "formattedMessage": "CodeGenerationError: Some immutables were read from but never assigned, possibly because of optimization.
+ --> C:4:1:
+  |
+4 | contract C {
+  | ^ (Relevant source part starts here and spans across multiple lines).
 
 ",
             "message": "Some immutables were read from but never assigned, possibly because of optimization.",
             "severity": "error",
+            "sourceLocation": {
+                "end": 320,
+                "file": "C",
+                "start": 56
+            },
             "type": "CodeGenerationError"
         }
     ],

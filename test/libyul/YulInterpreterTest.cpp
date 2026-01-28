@@ -18,19 +18,18 @@
 
 #include <test/libyul/YulInterpreterTest.h>
 
+#include <test/libyul/Common.h>
+
 #include <test/tools/yulInterpreter/Interpreter.h>
 
 #include <test/Common.h>
 
-#include <libyul/backends/evm/EVMDialect.h>
 #include <libyul/YulStack.h>
 #include <libyul/AsmAnalysisInfo.h>
+#include <libyul/AST.h>
 
 #include <liblangutil/DebugInfoSelection.h>
 #include <liblangutil/ErrorReporter.h>
-#include <liblangutil/SourceReferenceFormatter.h>
-
-#include <libsolutil/AnsiColorized.h>
 
 #include <boost/test/unit_test.hpp>
 #include <boost/algorithm/string.hpp>
@@ -38,6 +37,7 @@
 #include <fstream>
 
 using namespace solidity;
+using namespace solidity::test;
 using namespace solidity::util;
 using namespace solidity::langutil;
 using namespace solidity::yul;
@@ -55,40 +55,23 @@ YulInterpreterTest::YulInterpreterTest(std::string const& _filename):
 
 TestCase::TestResult YulInterpreterTest::run(std::ostream& _stream, std::string const& _linePrefix, bool const _formatted)
 {
-	if (!parse(_stream, _linePrefix, _formatted))
-		return TestResult::FatalError;
+	YulStack yulStack = parseYul(m_source, "", solidity::frontend::OptimiserSettings::none());
 
-	m_obtainedResult = interpret();
+	if (yulStack.hasErrors())
+	{
+		printYulErrors(yulStack, _stream, _linePrefix, _formatted);
+		return TestResult::FatalError;
+	}
+
+	m_obtainedResult = interpret(yulStack.parserResult());
 
 	return checkResult(_stream, _linePrefix, _formatted);
 }
 
-bool YulInterpreterTest::parse(std::ostream& _stream, std::string const& _linePrefix, bool const _formatted)
+std::string YulInterpreterTest::interpret(std::shared_ptr<Object const> const& _object)
 {
-	YulStack stack(
-		solidity::test::CommonOptions::get().evmVersion(),
-		solidity::test::CommonOptions::get().eofVersion(),
-		YulStack::Language::StrictAssembly,
-		solidity::frontend::OptimiserSettings::none(),
-		DebugInfoSelection::All()
-	);
-	if (stack.parseAndAnalyze("", m_source))
-	{
-		m_ast = stack.parserResult()->code;
-		m_analysisInfo = stack.parserResult()->analysisInfo;
-		return true;
-	}
-	else
-	{
-		AnsiColorized(_stream, _formatted, {formatting::BOLD, formatting::RED}) << _linePrefix << "Error parsing source." << std::endl;
-		SourceReferenceFormatter{_stream, stack, true, false}
-			.printErrorInformation(stack.errors());
-		return false;
-	}
-}
+	solAssert(_object && _object->hasCode());
 
-std::string YulInterpreterTest::interpret()
-{
 	InterpreterState state;
 	state.maxTraceSize = 32;
 	state.maxSteps = 512;
@@ -97,8 +80,7 @@ std::string YulInterpreterTest::interpret()
 	{
 		Interpreter::run(
 			state,
-			EVMDialect::strictAssemblyForEVMObjects(solidity::test::CommonOptions::get().evmVersion()),
-			*m_ast,
+			*_object->code(),
 			/*disableExternalCalls=*/ !m_simulateExternalCallsToSelf,
 			/*disableMemoryTracing=*/ false
 		);

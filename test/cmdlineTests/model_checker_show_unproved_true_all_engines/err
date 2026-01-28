@@ -1,12 +1,7 @@
 Warning: CHC: Assertion violation might happen here.
-  --> model_checker_show_unproved_true_all_engines/input.sol:10:9:
+  --> input.sol:10:9:
    |
 10 |         assert(s.x > 0);
    |         ^^^^^^^^^^^^^^^
 
-Warning: BMC: Assertion violation might happen here.
-  --> model_checker_show_unproved_true_all_engines/input.sol:10:9:
-   |
-10 |         assert(s.x > 0);
-   |         ^^^^^^^^^^^^^^^
-Note:
+Info: BMC: 1 verification condition(s) proved safe! Enable the model checker option "show proved safe" to see all of them.

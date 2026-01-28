@@ -65,7 +65,8 @@ void RenameSymbol::operator()(MessageID _id, Json const& _args)
 		.translateLineColumnToPosition(lineColumn);
 	solAssert(cursorBytePosition.has_value(), "Expected source pos");
 
-	extractNameAndDeclaration(*sourceNode, *cursorBytePosition);
+	if (sourceNode != nullptr)
+		extractNameAndDeclaration(*sourceNode, *cursorBytePosition);
 
 	// Find all source units using this symbol
 	for (auto const& [name, content]: fileRepository().sourceUnits())
@@ -156,7 +157,8 @@ void RenameSymbol::extractNameAndDeclaration(ASTNode const& _node, int _cursorBy
 	else
 		solAssert(false, "Unexpected ASTNODE id: " + std::to_string(_node.id()));
 
-	lspDebug(fmt::format("Goal: rename '{}', loc: {}-{}", m_symbolName, m_declarationToRename->nameLocation().start, m_declarationToRename->nameLocation().end));
+	if (m_declarationToRename != nullptr)
+		lspDebug(fmt::format("Goal: rename '{}', loc: {}-{}", m_symbolName, m_declarationToRename->nameLocation().start, m_declarationToRename->nameLocation().end));
 }
 
 void RenameSymbol::extractNameAndDeclaration(ImportDirective const& _importDirective, int _cursorBytePosition)

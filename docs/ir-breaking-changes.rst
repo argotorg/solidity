@@ -258,6 +258,8 @@ hiding new and different behavior in existing code.
 Internals
 =========
 
+.. _internal-function-pointers-in-ir:
+
 Internal function pointers
 --------------------------
 
@@ -275,6 +277,12 @@ The ID ``0`` is reserved for uninitialized function pointers which then cause a 
 
 In the old code generator, internal function pointers are initialized with a special function that always causes a panic.
 This causes a storage write at construction time for internal function pointers in storage.
+
+.. note::
+    The compiler is free to omit internal functions that are never explicitly referenced by name.
+    As a consequence, assigning to a function type variable in inline assembly does not guarantee
+    that the assigned value will be included in the internal dispatch.
+    The function must also be explicitly referenced elsewhere in the code.
 
 Cleanup
 -------

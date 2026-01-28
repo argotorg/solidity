@@ -19,3 +19,4 @@ contract C {
 // EVMVersion: >=cancun
 // ----
 // ParserError 5568: (101-106): Cannot use builtin function name "mcopy" as identifier name.
+// ParserError 7104: (134-139): Builtin function "mcopy" must be called.

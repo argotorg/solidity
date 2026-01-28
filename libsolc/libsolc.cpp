@@ -24,7 +24,7 @@
 #include <libsolc/libsolc.h>
 #include <libsolidity/interface/StandardCompiler.h>
 #include <libsolidity/interface/Version.h>
-#include <libyul/YulString.h>
+#include <libyul/YulName.h>
 
 #include <cstdlib>
 #include <list>
@@ -63,7 +63,7 @@ std::string takeOverAllocation(char const* _data)
 	abort();
 }
 
-/// Resizes a std::std::string to the proper length based on the occurrence of a zero terminator.
+/// Resizes a std::string to the proper length based on the occurrence of a zero terminator.
 void truncateCString(std::string& _data)
 {
 	size_t pos = _data.find('\0');

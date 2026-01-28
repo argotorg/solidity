@@ -32,7 +32,7 @@
 namespace solidity::frontend::test
 {
 
-class GasTest: AnalysisFramework, public TestCase
+class GasTest: AnalysisFramework, public EVMVersionRestrictedTestCase
 {
 public:
 	static std::unique_ptr<TestCase> create(Config const& _config)

@@ -20,16 +20,18 @@
 
 #include <test/Common.h>
 
+#include <test/libsolidity/util/SoltestErrors.h>
+
 #include <test/libyul/Common.h>
 
 #include <libyul/Object.h>
+#include <libyul/YulStack.h>
+#include <libyul/optimiser/ASTCopier.h>
 #include <libyul/optimiser/KnowledgeBase.h>
 #include <libyul/optimiser/SSAValueTracker.h>
 #include <libyul/optimiser/NameDispenser.h>
 #include <libyul/optimiser/CommonSubexpressionEliminator.h>
 #include <libyul/backends/evm/EVMDialect.h>
-
-#include <liblangutil/ErrorReporter.h>
 
 #include <boost/test/unit_test.hpp>
 
@@ -43,27 +45,31 @@ class KnowledgeBaseTest
 protected:
 	KnowledgeBase constructKnowledgeBase(std::string const& _source)
 	{
-		ErrorList errorList;
-		std::shared_ptr<AsmAnalysisInfo> analysisInfo;
-		std::tie(m_object, analysisInfo) = yul::test::parse(_source, m_dialect, errorList);
-		BOOST_REQUIRE(m_object && errorList.empty() && m_object->code);
+		YulStack yulStack = parseYul(_source);
+		solUnimplementedAssert(yulStack.parserResult()->subObjects.empty(), "Tests with subobjects not supported.");
+		soltestAssert(!yulStack.hasErrors());
+		m_object = yulStack.parserResult();
 
-		NameDispenser dispenser(m_dialect, *m_object->code);
-		std::set<YulString> reserved;
-		OptimiserStepContext context{m_dialect, dispenser, reserved, 0};
-		CommonSubexpressionEliminator::run(context, *m_object->code);
+		auto astRoot = std::get<Block>(yul::ASTCopier{}(m_object->code()->root()));
+		NameDispenser dispenser(*m_object->dialect(), astRoot);
+		std::set<YulName> reserved;
+		OptimiserStepContext context{*m_object->dialect(), dispenser, reserved, 0};
+		CommonSubexpressionEliminator::run(context, astRoot);
 
-		m_ssaValues(*m_object->code);
+		m_ssaValues(astRoot);
 		for (auto const& [name, expression]: m_ssaValues.values())
 			m_values[name].value = expression;
 
-		return KnowledgeBase([this](YulString _var) { return util::valueOrNullptr(m_values, _var); });
+		m_object->setCode(std::make_shared<AST>(*m_object->dialect(), std::move(astRoot)));
+		return KnowledgeBase(
+			[this](YulName _var) { return util::valueOrNullptr(m_values, _var); },
+			*m_object->dialect()
+		);
 	}
 
-	EVMDialect m_dialect{EVMVersion{}, true};
 	std::shared_ptr<Object> m_object;
 	SSAValueTracker m_ssaValues;
-	std::map<YulString, AssignedValue> m_values;
+	std::map<YulName, AssignedValue> m_values;
 };
 
 BOOST_FIXTURE_TEST_SUITE(KnowledgeBase, KnowledgeBaseTest)
@@ -79,14 +85,14 @@ BOOST_AUTO_TEST_CASE(basic)
 		let e := sub(a, b)
 	})");
 
-	BOOST_CHECK(!kb.knownToBeDifferent("a"_yulstring, "b"_yulstring));
+	BOOST_CHECK(!kb.knownToBeDifferent("a"_yulname, "b"_yulname));
 	// This only works if the variable names are the same.
 	// It assumes that SSA+CSE+Simplifier actually replaces the variables.
-	BOOST_CHECK(!kb.valueIfKnownConstant("a"_yulstring));
-	BOOST_CHECK(kb.valueIfKnownConstant("zero"_yulstring) == u256(0));
-	BOOST_CHECK(kb.differenceIfKnownConstant("a"_yulstring, "b"_yulstring) == u256(0));
-	BOOST_CHECK(kb.differenceIfKnownConstant("a"_yulstring, "c"_yulstring) == u256(0));
-	BOOST_CHECK(kb.valueIfKnownConstant("e"_yulstring) == u256(0));
+	BOOST_CHECK(!kb.valueIfKnownConstant("a"_yulname));
+	BOOST_CHECK(kb.valueIfKnownConstant("zero"_yulname) == u256(0));
+	BOOST_CHECK(kb.differenceIfKnownConstant("a"_yulname, "b"_yulname) == u256(0));
+	BOOST_CHECK(kb.differenceIfKnownConstant("a"_yulname, "c"_yulname) == u256(0));
+	BOOST_CHECK(kb.valueIfKnownConstant("e"_yulname) == u256(0));
 }
 
 BOOST_AUTO_TEST_CASE(difference)
@@ -99,31 +105,21 @@ BOOST_AUTO_TEST_CASE(difference)
 		let e := sub(c, 12)
 	})");
 
-	BOOST_CHECK(
-		kb.differenceIfKnownConstant("c"_yulstring, "b"_yulstring) ==
+	BOOST_CHECK(kb.differenceIfKnownConstant("c"_yulname, "b"_yulname) ==
 		u256(20)
 	);
-	BOOST_CHECK(
-		kb.differenceIfKnownConstant("b"_yulstring, "c"_yulstring) ==
+	BOOST_CHECK(kb.differenceIfKnownConstant("b"_yulname, "c"_yulname) ==
 		u256(-20)
 	);
-	BOOST_CHECK(!kb.knownToBeDifferentByAtLeast32("b"_yulstring, "c"_yulstring));
-	BOOST_CHECK(kb.knownToBeDifferentByAtLeast32("b"_yulstring, "d"_yulstring));
-	BOOST_CHECK(kb.knownToBeDifferentByAtLeast32("a"_yulstring, "b"_yulstring));
-	BOOST_CHECK(kb.knownToBeDifferentByAtLeast32("b"_yulstring, "a"_yulstring));
+	BOOST_CHECK(!kb.knownToBeDifferentByAtLeast32("b"_yulname, "c"_yulname));
+	BOOST_CHECK(kb.knownToBeDifferentByAtLeast32("b"_yulname, "d"_yulname));
+	BOOST_CHECK(kb.knownToBeDifferentByAtLeast32("a"_yulname, "b"_yulname));
+	BOOST_CHECK(kb.knownToBeDifferentByAtLeast32("b"_yulname, "a"_yulname));
 
-	BOOST_CHECK(
-		kb.differenceIfKnownConstant("e"_yulstring, "a"_yulstring) == u256(208)
-	);
-	BOOST_CHECK(
-		kb.differenceIfKnownConstant("e"_yulstring, "b"_yulstring) == u256(8)
-	);
-	BOOST_CHECK(
-		kb.differenceIfKnownConstant("a"_yulstring, "e"_yulstring) == u256(-208)
-	);
-	BOOST_CHECK(
-		kb.differenceIfKnownConstant("b"_yulstring, "e"_yulstring) == u256(-8)
-	);
+	BOOST_CHECK(kb.differenceIfKnownConstant("e"_yulname, "a"_yulname) == u256(208));
+	BOOST_CHECK(kb.differenceIfKnownConstant("e"_yulname, "b"_yulname) == u256(8));
+	BOOST_CHECK(kb.differenceIfKnownConstant("a"_yulname, "e"_yulname) == u256(-208));
+	BOOST_CHECK(kb.differenceIfKnownConstant("b"_yulname, "e"_yulname) == u256(-8));
 }
 
 

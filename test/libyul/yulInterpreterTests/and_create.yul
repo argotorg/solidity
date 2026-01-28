@@ -4,6 +4,8 @@
     let b := and(u160max, create(0, u160max, 0))
     mstore(0, eq(a, b))
 }
+// ====
+// bytecodeFormat: legacy
 // ----
 // Trace:
 //   CREATE(0, 0, 0)

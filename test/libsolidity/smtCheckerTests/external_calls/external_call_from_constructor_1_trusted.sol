@@ -1,6 +1,6 @@
 contract State {
 	function f(uint _x) public pure returns (uint) {
-		assert(_x < 100); // should fail
+		assert(_x < 100); // should hold when analyzing only contract C (can fail only when analyzing State as standalone contract)
 		return _x;
 	}
 }
@@ -18,5 +18,4 @@ contract C {
 // SMTExtCalls: trusted
 // SMTIgnoreInv: yes
 // ----
-// Warning 6328: (69-85): CHC: Assertion violation happens here.
-// Info 1391: CHC: 1 verification condition(s) proved safe! Enable the model checker option "show proved safe" to see all of them.
+// Info 1391: CHC: 2 verification condition(s) proved safe! Enable the model checker option "show proved safe" to see all of them.

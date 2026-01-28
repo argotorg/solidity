@@ -1,9 +1,6 @@
 /commit_hash.txt
 /prerelease.txt
 
-# Auth config for ppa release
-/.release_ppa_auth
-
 # Compiled Object files
 *.slo
 *.lo
@@ -36,6 +33,7 @@ __pycache__/
 *.app
 
 # Build directory
+/cmake-build-*/
 /build*/
 emscripten_build/
 /docs/_build/

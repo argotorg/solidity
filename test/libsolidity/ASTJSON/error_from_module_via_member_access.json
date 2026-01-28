@@ -1,0 +1,544 @@
+[
+{
+  "absolutePath": "A.sol",
+  "exportedSymbols": {
+    "AContract": [
+      9
+    ],
+    "ErrorA": [
+      4
+    ]
+  },
+  "id": 10,
+  "nodeType": "SourceUnit",
+  "nodes": [
+    {
+      "errorSelector": "23b0db14",
+      "id": 4,
+      "name": "ErrorA",
+      "nameLocation": "6:6:1",
+      "nodeType": "ErrorDefinition",
+      "parameters": {
+        "id": 3,
+        "nodeType": "ParameterList",
+        "parameters": [
+          {
+            "constant": false,
+            "id": 2,
+            "mutability": "mutable",
+            "name": "msg",
+            "nameLocation": "20:3:1",
+            "nodeType": "VariableDeclaration",
+            "scope": 4,
+            "src": "13:10:1",
+            "stateVariable": false,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_string_memory_ptr",
+              "typeString": "string"
+            },
+            "typeName": {
+              "id": 1,
+              "name": "string",
+              "nodeType": "ElementaryTypeName",
+              "src": "13:6:1",
+              "typeDescriptions": {
+                "typeIdentifier": "t_string_storage_ptr",
+                "typeString": "string"
+              }
+            },
+            "visibility": "internal"
+          }
+        ],
+        "src": "12:12:1"
+      },
+      "src": "0:25:1"
+    },
+    {
+      "abstract": false,
+      "baseContracts": [],
+      "canonicalName": "AContract",
+      "contractDependencies": [],
+      "contractKind": "contract",
+      "fullyImplemented": true,
+      "id": 9,
+      "linearizedBaseContracts": [
+        9
+      ],
+      "name": "AContract",
+      "nameLocation": "35:9:1",
+      "nodeType": "ContractDefinition",
+      "nodes": [
+        {
+          "errorSelector": "e00f4941",
+          "id": 8,
+          "name": "ErrorAContract",
+          "nameLocation": "57:14:1",
+          "nodeType": "ErrorDefinition",
+          "parameters": {
+            "id": 7,
+            "nodeType": "ParameterList",
+            "parameters": [
+              {
+                "constant": false,
+                "id": 6,
+                "mutability": "mutable",
+                "name": "msg",
+                "nameLocation": "79:3:1",
+                "nodeType": "VariableDeclaration",
+                "scope": 8,
+                "src": "72:10:1",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_string_memory_ptr",
+                  "typeString": "string"
+                },
+                "typeName": {
+                  "id": 5,
+                  "name": "string",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "72:6:1",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_string_storage_ptr",
+                    "typeString": "string"
+                  }
+                },
+                "visibility": "internal"
+              }
+            ],
+            "src": "71:12:1"
+          },
+          "src": "51:33:1"
+        }
+      ],
+      "scope": 10,
+      "src": "26:60:1",
+      "usedErrors": [
+        8
+      ],
+      "usedEvents": []
+    }
+  ],
+  "src": "0:87:1"
+},
+{
+  "absolutePath": "B.sol",
+  "exportedSymbols": {
+    "A": [
+      11
+    ],
+    "BContract": [
+      46
+    ]
+  },
+  "id": 47,
+  "nodeType": "SourceUnit",
+  "nodes": [
+    {
+      "absolutePath": "A.sol",
+      "file": "A.sol",
+      "id": 11,
+      "nameLocation": "12:1:2",
+      "nodeType": "ImportDirective",
+      "scope": 47,
+      "sourceUnit": 10,
+      "src": "0:27:2",
+      "symbolAliases": [],
+      "unitAlias": "A"
+    },
+    {
+      "abstract": false,
+      "baseContracts": [],
+      "canonicalName": "BContract",
+      "contractDependencies": [],
+      "contractKind": "contract",
+      "fullyImplemented": true,
+      "id": 46,
+      "linearizedBaseContracts": [
+        46
+      ],
+      "name": "BContract",
+      "nameLocation": "37:9:2",
+      "nodeType": "ContractDefinition",
+      "nodes": [
+        {
+          "errorSelector": "1e012d26",
+          "id": 15,
+          "name": "ErrorBContract",
+          "nameLocation": "59:14:2",
+          "nodeType": "ErrorDefinition",
+          "parameters": {
+            "id": 14,
+            "nodeType": "ParameterList",
+            "parameters": [
+              {
+                "constant": false,
+                "id": 13,
+                "mutability": "mutable",
+                "name": "msg",
+                "nameLocation": "81:3:2",
+                "nodeType": "VariableDeclaration",
+                "scope": 15,
+                "src": "74:10:2",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_string_memory_ptr",
+                  "typeString": "string"
+                },
+                "typeName": {
+                  "id": 12,
+                  "name": "string",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "74:6:2",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_string_storage_ptr",
+                    "typeString": "string"
+                  }
+                },
+                "visibility": "internal"
+              }
+            ],
+            "src": "73:12:2"
+          },
+          "src": "53:33:2"
+        },
+        {
+          "body": {
+            "id": 22,
+            "nodeType": "Block",
+            "src": "113:52:2",
+            "statements": [
+              {
+                "errorCall": {
+                  "arguments": [
+                    {
+                      "hexValue": "736f6d65206572726f72",
+                      "id": 19,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": true,
+                      "kind": "string",
+                      "lValueRequested": false,
+                      "nodeType": "Literal",
+                      "src": "145:12:2",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_stringliteral_b4ae9cd779cde5df80ff601d28c3fa893d24133d1b4e6fdffbb3a05b40d7a577",
+                        "typeString": "literal_string \"some error\""
+                      },
+                      "value": "some error"
+                    }
+                  ],
+                  "expression": {
+                    "argumentTypes": [
+                      {
+                        "typeIdentifier": "t_stringliteral_b4ae9cd779cde5df80ff601d28c3fa893d24133d1b4e6fdffbb3a05b40d7a577",
+                        "typeString": "literal_string \"some error\""
+                      }
+                    ],
+                    "id": 18,
+                    "name": "ErrorBContract",
+                    "nodeType": "Identifier",
+                    "overloadedDeclarations": [],
+                    "referencedDeclaration": 15,
+                    "src": "130:14:2",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_function_error_pure$_t_string_memory_ptr_$returns$_t_error_$",
+                      "typeString": "function (string memory) pure returns (error)"
+                    }
+                  },
+                  "id": 20,
+                  "isConstant": false,
+                  "isLValue": false,
+                  "isPure": false,
+                  "kind": "functionCall",
+                  "lValueRequested": false,
+                  "nameLocations": [],
+                  "names": [],
+                  "nodeType": "FunctionCall",
+                  "src": "130:28:2",
+                  "tryCall": false,
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_error",
+                    "typeString": "error"
+                  }
+                },
+                "id": 21,
+                "nodeType": "RevertStatement",
+                "src": "123:35:2"
+              }
+            ]
+          },
+          "functionSelector": "c27fc305",
+          "id": 23,
+          "implemented": true,
+          "kind": "function",
+          "modifiers": [],
+          "name": "f1",
+          "nameLocation": "100:2:2",
+          "nodeType": "FunctionDefinition",
+          "parameters": {
+            "id": 16,
+            "nodeType": "ParameterList",
+            "parameters": [],
+            "src": "103:2:2"
+          },
+          "returnParameters": {
+            "id": 17,
+            "nodeType": "ParameterList",
+            "parameters": [],
+            "src": "113:0:2"
+          },
+          "scope": 46,
+          "src": "91:74:2",
+          "stateMutability": "nonpayable",
+          "virtual": false,
+          "visibility": "public"
+        },
+        {
+          "body": {
+            "id": 32,
+            "nodeType": "Block",
+            "src": "192:46:2",
+            "statements": [
+              {
+                "errorCall": {
+                  "arguments": [
+                    {
+                      "hexValue": "736f6d65206572726f72",
+                      "id": 29,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": true,
+                      "kind": "string",
+                      "lValueRequested": false,
+                      "nodeType": "Literal",
+                      "src": "218:12:2",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_stringliteral_b4ae9cd779cde5df80ff601d28c3fa893d24133d1b4e6fdffbb3a05b40d7a577",
+                        "typeString": "literal_string \"some error\""
+                      },
+                      "value": "some error"
+                    }
+                  ],
+                  "expression": {
+                    "argumentTypes": [
+                      {
+                        "typeIdentifier": "t_stringliteral_b4ae9cd779cde5df80ff601d28c3fa893d24133d1b4e6fdffbb3a05b40d7a577",
+                        "typeString": "literal_string \"some error\""
+                      }
+                    ],
+                    "expression": {
+                      "id": 26,
+                      "name": "A",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": 11,
+                      "src": "209:1:2",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_module_10",
+                        "typeString": "module \"A.sol\""
+                      }
+                    },
+                    "id": 28,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": true,
+                    "lValueRequested": false,
+                    "memberLocation": "211:6:2",
+                    "memberName": "ErrorA",
+                    "nodeType": "MemberAccess",
+                    "referencedDeclaration": 4,
+                    "src": "209:8:2",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_function_error_pure$_t_string_memory_ptr_$returns$_t_error_$",
+                      "typeString": "function (string memory) pure returns (error)"
+                    }
+                  },
+                  "id": 30,
+                  "isConstant": false,
+                  "isLValue": false,
+                  "isPure": false,
+                  "kind": "functionCall",
+                  "lValueRequested": false,
+                  "nameLocations": [],
+                  "names": [],
+                  "nodeType": "FunctionCall",
+                  "src": "209:22:2",
+                  "tryCall": false,
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_error",
+                    "typeString": "error"
+                  }
+                },
+                "id": 31,
+                "nodeType": "RevertStatement",
+                "src": "202:29:2"
+              }
+            ]
+          },
+          "functionSelector": "9942ec6f",
+          "id": 33,
+          "implemented": true,
+          "kind": "function",
+          "modifiers": [],
+          "name": "f2",
+          "nameLocation": "179:2:2",
+          "nodeType": "FunctionDefinition",
+          "parameters": {
+            "id": 24,
+            "nodeType": "ParameterList",
+            "parameters": [],
+            "src": "182:2:2"
+          },
+          "returnParameters": {
+            "id": 25,
+            "nodeType": "ParameterList",
+            "parameters": [],
+            "src": "192:0:2"
+          },
+          "scope": 46,
+          "src": "170:68:2",
+          "stateMutability": "nonpayable",
+          "virtual": false,
+          "visibility": "public"
+        },
+        {
+          "body": {
+            "id": 44,
+            "nodeType": "Block",
+            "src": "265:64:2",
+            "statements": [
+              {
+                "errorCall": {
+                  "arguments": [
+                    {
+                      "hexValue": "736f6d65206572726f72",
+                      "id": 41,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": true,
+                      "kind": "string",
+                      "lValueRequested": false,
+                      "nodeType": "Literal",
+                      "src": "309:12:2",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_stringliteral_b4ae9cd779cde5df80ff601d28c3fa893d24133d1b4e6fdffbb3a05b40d7a577",
+                        "typeString": "literal_string \"some error\""
+                      },
+                      "value": "some error"
+                    }
+                  ],
+                  "expression": {
+                    "argumentTypes": [
+                      {
+                        "typeIdentifier": "t_stringliteral_b4ae9cd779cde5df80ff601d28c3fa893d24133d1b4e6fdffbb3a05b40d7a577",
+                        "typeString": "literal_string \"some error\""
+                      }
+                    ],
+                    "expression": {
+                      "expression": {
+                        "id": 36,
+                        "name": "A",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 11,
+                        "src": "282:1:2",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_module_10",
+                          "typeString": "module \"A.sol\""
+                        }
+                      },
+                      "id": 39,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": true,
+                      "lValueRequested": false,
+                      "memberLocation": "284:9:2",
+                      "memberName": "AContract",
+                      "nodeType": "MemberAccess",
+                      "referencedDeclaration": 9,
+                      "src": "282:11:2",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_type$_t_contract$_AContract_$9_$",
+                        "typeString": "type(contract AContract)"
+                      }
+                    },
+                    "id": 40,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "lValueRequested": false,
+                    "memberLocation": "294:14:2",
+                    "memberName": "ErrorAContract",
+                    "nodeType": "MemberAccess",
+                    "referencedDeclaration": 8,
+                    "src": "282:26:2",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_function_error_pure$_t_string_memory_ptr_$returns$_t_error_$",
+                      "typeString": "function (string memory) pure returns (error)"
+                    }
+                  },
+                  "id": 42,
+                  "isConstant": false,
+                  "isLValue": false,
+                  "isPure": false,
+                  "kind": "functionCall",
+                  "lValueRequested": false,
+                  "nameLocations": [],
+                  "names": [],
+                  "nodeType": "FunctionCall",
+                  "src": "282:40:2",
+                  "tryCall": false,
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_error",
+                    "typeString": "error"
+                  }
+                },
+                "id": 43,
+                "nodeType": "RevertStatement",
+                "src": "275:47:2"
+              }
+            ]
+          },
+          "functionSelector": "aaf05f3d",
+          "id": 45,
+          "implemented": true,
+          "kind": "function",
+          "modifiers": [],
+          "name": "f3",
+          "nameLocation": "252:2:2",
+          "nodeType": "FunctionDefinition",
+          "parameters": {
+            "id": 34,
+            "nodeType": "ParameterList",
+            "parameters": [],
+            "src": "255:2:2"
+          },
+          "returnParameters": {
+            "id": 35,
+            "nodeType": "ParameterList",
+            "parameters": [],
+            "src": "265:0:2"
+          },
+          "scope": 46,
+          "src": "243:86:2",
+          "stateMutability": "nonpayable",
+          "virtual": false,
+          "visibility": "public"
+        }
+      ],
+      "scope": 47,
+      "src": "28:303:2",
+      "usedErrors": [
+        4,
+        8,
+        15
+      ],
+      "usedEvents": []
+    }
+  ],
+  "src": "0:332:2"
+}
+]

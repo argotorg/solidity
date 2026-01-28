@@ -23,8 +23,9 @@
 
 #include <libyul/backends/evm/EVMDialect.h>
 
-#include <libyul/Dialect.h>
 #include <libyul/AST.h>
+#include <libyul/Dialect.h>
+#include <libyul/Utilities.h>
 
 #include <liblangutil/Token.h>
 #include <libsolutil/CommonData.h>
@@ -55,15 +56,15 @@ void yul::removeEmptyBlocks(Block& _block)
 	ranges::actions::remove_if(_block.statements, isEmptyBlock);
 }
 
-bool yul::isRestrictedIdentifier(Dialect const& _dialect, YulString const& _identifier)
+bool yul::isRestrictedIdentifier(Dialect const& _dialect, std::string_view const _identifier)
 {
-	return _identifier.empty() || hasLeadingOrTrailingDot(_identifier.str()) || TokenTraits::isYulKeyword(_identifier.str()) || _dialect.reservedIdentifier(_identifier);
+	return _identifier.empty() || hasLeadingOrTrailingDot(_identifier) || TokenTraits::isYulKeyword(_identifier) || _dialect.reservedIdentifier(_identifier);
 }
 
-std::optional<evmasm::Instruction> yul::toEVMInstruction(Dialect const& _dialect, YulString const& _name)
+std::optional<evmasm::Instruction> yul::toEVMInstruction(Dialect const& _dialect, FunctionName const& _name)
 {
 	if (auto const* dialect = dynamic_cast<EVMDialect const*>(&_dialect))
-		if (BuiltinFunctionForEVM const* builtin = dialect->builtin(_name))
+		if (BuiltinFunctionForEVM const* builtin = resolveBuiltinFunctionForEVM(_name, *dialect))
 			return builtin->instruction;
 	return std::nullopt;
 }

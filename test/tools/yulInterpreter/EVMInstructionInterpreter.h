@@ -168,6 +168,10 @@ private:
 	InterpreterState& m_state;
 	/// Flag to disable trace of instructions that write to memory.
 	bool m_disableMemoryWriteInstructions;
+	/// mapping from linker identifier (hash of literal) to original string representation, populated by linkersymbol
+	/// calls
+	std::map<util::h256, std::string> m_linkerSymbols;
+
 public:
 	/// Maximum length for range-based memory access operations.
 	static constexpr unsigned s_maxRangeSize = 0xffff;

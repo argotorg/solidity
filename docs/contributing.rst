@@ -8,8 +8,8 @@ In particular, we appreciate support in the following areas:
 
 * Reporting issues.
 * Fixing and responding to `Solidity's GitHub issues
-  <https://github.com/ethereum/solidity/issues>`_, especially those tagged as
-  `"good first issue" <https://github.com/ethereum/solidity/labels/good%20first%20issue>`_ which are
+  <https://github.com/argotorg/solidity/issues>`_, especially those tagged as
+  `"good first issue" <https://github.com/argotorg/solidity/labels/good%20first%20issue>`_ which are
   meant as introductory issues for external contributors.
 * Improving the documentation.
 * `Translating <https://github.com/solidity-docs>`_ the documentation into more languages.
@@ -32,13 +32,16 @@ the team and contributors are working on, you can join our public team call:
 
 - Wednesdays at 3PM CET/CEST.
 
-The call takes place on `Jitsi <https://meet.ethereum.org/solidity>`_.
+The call takes place on `Jitsi <https://meet.solidity.org>`_.
+
+New topics can be freely added to the `agenda <https://notes.argot.org/@solidity-design-call-agenda>`_
+and will be scheduled for discussion on the nearest call.
 
 How to Report Issues
 ====================
 
 To report an issue, please use the
-`GitHub issues tracker <https://github.com/ethereum/solidity/issues>`_. When
+`GitHub issues tracker <https://github.com/argotorg/solidity/issues>`_. When
 reporting issues, please mention the following details:
 
 * Solidity version.
@@ -76,11 +79,11 @@ New features and bugfixes should be added to the ``Changelog.md`` file: please
 follow the style of previous entries, when applicable.
 
 Finally, please make sure you respect the `coding style
-<https://github.com/ethereum/solidity/blob/develop/CODING_STYLE.md>`_
+<https://github.com/argotorg/solidity/blob/develop/CODING_STYLE.md>`_
 for this project. Also, even though we do CI testing, please test your code and
 ensure that it builds locally before submitting a pull request.
 
-We highly recommend going through our `review checklist <https://github.com/ethereum/solidity/blob/develop/ReviewChecklist.md>`_ before submitting the pull request.
+We highly recommend going through our `review checklist <https://github.com/argotorg/solidity/blob/develop/ReviewChecklist.md>`_ before submitting the pull request.
 We thoroughly review every PR and will help you get it right, but there are many common problems that can be easily avoided, making the review much smoother.
 
 Thank you for your help!
@@ -92,8 +95,9 @@ Prerequisites
 -------------
 
 For running all compiler tests you may want to optionally install a few
-dependencies (`evmone <https://github.com/ethereum/evmone/releases>`_,
-`libz3 <https://github.com/Z3Prover/z3>`_).
+dependencies (`evmone <https://github.com/ipsilon/evmone/releases>`_,
+`z3 <https://github.com/Z3Prover/z3>`_, `Eldarica <https://github.com/uuverifiers/eldarica/>`_,
+`cvc5 <https://github.com/cvc5/cvc5>`).
 
 On macOS systems, some of the testing scripts expect GNU coreutils to be installed.
 This can be easiest accomplished using Homebrew: ``brew install coreutils``.
@@ -118,7 +122,7 @@ application ``soltest`` (or its wrapper ``scripts/soltest.sh``), as well as comm
 compilation tests.
 
 The test system automatically tries to discover the location of
-the `evmone <https://github.com/ethereum/evmone/releases>`_ for running the semantic tests.
+the `evmone <https://github.com/ipsilon/evmone/releases>`_ for running the semantic tests.
 
 The ``evmone`` library must be located in the ``deps`` or ``deps/lib`` directory relative to the
 current working directory, to its parent or its parent's parent. Alternatively, an explicit location
@@ -131,13 +135,15 @@ flag to ``scripts/soltest.sh``.
 The ``evmone`` library should end with the file name
 extension ``.so`` on Linux, ``.dll`` on Windows systems and ``.dylib`` on macOS.
 
-For running SMT tests, the ``libz3`` library must be installed and locatable
-by ``cmake`` during compiler configure stage.
+For running SMT tests, the ``z3`` executable must be present in ``PATH``.
+A few SMT tests use ``Eldarica`` instead of ``z3``.
+These require its executable (``eld``) to be present in ``PATH`` for the tests to pass.
+However, if ``Eldarica`` is not found, these tests will be automatically skipped.
 
-If the ``libz3`` library is not installed on your system, you should disable the
+If ``z3`` is not present on your system, you should disable the
 SMT tests by exporting ``SMT_FLAGS=--no-smt`` before running ``./scripts/tests.sh`` or
 running ``./scripts/soltest.sh --no-smt``.
-These tests are ``libsolidity/smtCheckerTests`` and ``libsolidity/smtCheckerTestsJSON``.
+These tests are ``libsolidity/smtCheckerTests``.
 
 .. note::
 
@@ -163,7 +169,7 @@ See especially:
 .. note::
 
     Those working in a Windows environment wanting to run the above basic sets
-    without libz3. Using Git Bash, you use: ``./build/test/Release/soltest.exe -- --no-smt``.
+    without z3. Using Git Bash, you use: ``./build/test/Release/soltest.exe -- --no-smt``.
     If you are running this in plain Command Prompt, use ``.\build\test\Release\soltest.exe -- --no-smt``.
 
 If you want to debug using GDB, make sure you build differently than the "usual".
@@ -274,7 +280,7 @@ Command-line Tests
 
 Our suite of end-to-end command-line tests checks the behaviour of the compiler binary as a whole
 in various scenarios.
-These tests are located in `test/cmdlineTests/ <https://github.com/ethereum/solidity/tree/develop/test/cmdlineTests>`_,
+These tests are located in `test/cmdlineTests/ <https://github.com/argotorg/solidity/tree/develop/test/cmdlineTests>`_,
 one per subdirectory, and can be executed using the ``cmdlineTests.sh`` script.
 
 By default the script runs all available tests.
@@ -544,7 +550,7 @@ The Solidity forum serves as the place to propose and discuss new language featu
 the early stages of ideation or modifications of existing features.
 
 As soon as proposals get more tangible, their
-implementation will also be discussed in the `Solidity GitHub repository <https://github.com/ethereum/solidity>`_
+implementation will also be discussed in the `Solidity GitHub repository <https://github.com/argotorg/solidity>`_
 in the form of issues.
 
 In addition to the forum and issue discussions, we regularly host language design discussion calls in which selected
@@ -552,9 +558,9 @@ topics, issues or feature implementations are debated in detail. The invitation 
 
 We are also sharing feedback surveys and other content that is relevant to language design in the forum.
 
-If you want to know where the team is standing in terms or implementing new features, you can follow the implementation status in the `Solidity GitHub project <https://github.com/ethereum/solidity/projects/43>`_.
+If you want to know where the team is standing in terms of implementing new features, you can follow the implementation status in the `Solidity GitHub project <https://github.com/orgs/argotorg/projects/38>`_.
 Issues in the design backlog need further specification and will either be discussed in a language design call or in a regular team call. You can
-see the upcoming changes for the next breaking release by changing from the default branch (`develop`) to the `breaking branch <https://github.com/ethereum/solidity/tree/breaking>`_.
+see the upcoming changes for the next breaking release by changing from the default branch (`develop`) to the `breaking branch <https://github.com/argotorg/solidity/tree/breaking>`_.
 
 For ad-hoc cases and questions, you can reach out to us via the `Solidity-dev Gitter channel <https://gitter.im/ethereum/solidity-dev>`_ — a
 dedicated chatroom for conversations around the Solidity compiler and language development.

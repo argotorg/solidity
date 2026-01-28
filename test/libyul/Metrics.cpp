@@ -20,10 +20,14 @@
 
 #include <test/Common.h>
 
+#include <test/libsolidity/util/SoltestErrors.h>
+
 #include <test/libyul/Common.h>
 
 #include <libyul/optimiser/Metrics.h>
 #include <libyul/AST.h>
+#include <libyul/Object.h>
+#include <libyul/YulStack.h>
 
 #include <boost/test/unit_test.hpp>
 
@@ -37,9 +41,10 @@ namespace
 
 size_t codeSize(std::string const& _source, CodeWeights const _weights = {})
 {
-	std::shared_ptr<Block> ast = parse(_source, false).first;
-	BOOST_REQUIRE(ast);
-	return CodeSize::codeSize(*ast, _weights);
+	YulStack yulStack = parseYul(_source);
+	solUnimplementedAssert(yulStack.parserResult()->subObjects.empty(), "Tests with subobjects not supported.");
+	soltestAssert(!yulStack.hasErrors());
+	return CodeSize::codeSize(yulStack.parserResult()->code()->root(), _weights);
 }
 
 }

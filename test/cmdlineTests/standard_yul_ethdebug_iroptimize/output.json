@@ -1,0 +1,14 @@
+{
+    "contracts": {
+        "C": {
+            "C_6_deployed": {
+                "evm": {
+                    "bytecode": {
+                        "ethdebug": "<ETHDEBUG DEBUG DATA REMOVED>"
+                    }
+                }
+            }
+        }
+    },
+    "ethdebug": "<ETHDEBUG DEBUG DATA REMOVED>"
+}

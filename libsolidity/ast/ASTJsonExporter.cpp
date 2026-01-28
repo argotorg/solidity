@@ -210,6 +210,13 @@ Json ASTJsonExporter::toJson(ASTNode const& _node)
 	return util::removeNullMembers(std::move(m_currentValue));
 }
 
+Json ASTJsonExporter::toJson(ASTNode const* _node)
+{
+	if (!_node)
+		return Json();
+	return toJson(*_node);
+}
+
 bool ASTJsonExporter::visit(SourceUnit const& _node)
 {
 	std::vector<std::pair<std::string, Json>> attributes = {
@@ -279,6 +286,14 @@ bool ASTJsonExporter::visit(ImportDirective const& _node)
 	return false;
 }
 
+bool ASTJsonExporter::visit(StorageLayoutSpecifier const& _node)
+{
+	setJsonNode(_node, "StorageLayoutSpecifier", {
+		{"baseSlotExpression", toJson(_node.baseSlotExpression())}
+	});
+	return false;
+}
+
 bool ASTJsonExporter::visit(ContractDefinition const& _node)
 {
 	std::vector<std::pair<std::string, Json>> attributes = {
@@ -293,7 +308,8 @@ bool ASTJsonExporter::visit(ContractDefinition const& _node)
 		std::make_pair("usedEvents", getContainerIds(_node.interfaceEvents(false))),
 		std::make_pair("usedErrors", getContainerIds(_node.interfaceErrors(false))),
 		std::make_pair("nodes", toJson(_node.subNodes())),
-		std::make_pair("scope", idOrNull(_node.scope()))
+		std::make_pair("scope", idOrNull(_node.scope())),
+		std::make_pair("storageLayout", toJson(_node.storageLayoutSpecifier()))
 	};
 	addIfSet(attributes, "canonicalName", _node.annotation().canonicalName);
 
@@ -414,6 +430,7 @@ bool ASTJsonExporter::visit(EnumValue const& _node)
 	setJsonNode(_node, "EnumValue", {
 		std::make_pair("name", _node.name()),
 		std::make_pair("nameLocation", sourceLocationToString(_node.nameLocation())),
+		std::make_pair("documentation", toJson(_node.documentation().get())),
 	});
 	return false;
 }
@@ -664,11 +681,20 @@ bool ASTJsonExporter::visit(InlineAssembly const& _node)
 	for (Json& it: externalReferences | ranges::views::values)
 		externalReferencesJson.emplace_back(std::move(it));
 
+	auto const& evmDialect = dynamic_cast<solidity::yul::EVMDialect const&>(_node.dialect());
+
 	std::vector<std::pair<std::string, Json>> attributes = {
-		std::make_pair("AST", Json(yul::AsmJsonConverter(sourceIndexFromLocation(_node.location()))(_node.operations()))),
+		std::make_pair("AST", Json(yul::AsmJsonConverter(evmDialect, sourceIndexFromLocation(_node.location()))(_node.operations().root()))),
 		std::make_pair("externalReferences", std::move(externalReferencesJson)),
-		std::make_pair("evmVersion", dynamic_cast<solidity::yul::EVMDialect const&>(_node.dialect()).evmVersion().name())
+		std::make_pair("evmVersion", evmDialect.evmVersion().name())
 	};
+
+	// TODO: Add test in test/linsolidity/ASTJSON/assembly. This requires adding support for eofVersion in ASTJSONTest
+	if (evmDialect.eofVersion())
+	{
+		solAssert(*evmDialect.eofVersion() > 0);
+		attributes.push_back(std::make_pair("eofVersion", *evmDialect.eofVersion()));
+	}
 
 	if (_node.flags())
 	{
@@ -1058,6 +1084,8 @@ std::string ASTJsonExporter::location(VariableDeclaration::Location _location)
 		return "memory";
 	case VariableDeclaration::Location::CallData:
 		return "calldata";
+	case VariableDeclaration::Location::Transient:
+		return "transient";
 	}
 	// To make the compiler happy
 	return {};

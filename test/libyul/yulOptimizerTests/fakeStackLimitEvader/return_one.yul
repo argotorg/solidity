@@ -12,6 +12,8 @@
     }
 
 }
+// ====
+// bytecodeFormat: legacy
 // ----
 // step: fakeStackLimitEvader
 //

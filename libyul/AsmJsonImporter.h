@@ -32,17 +32,20 @@
 namespace solidity::yul
 {
 
+class Dialect;
+
 /**
  * Component that imports an AST from json format to the internal format
  */
 class AsmJsonImporter
 {
 public:
-	explicit AsmJsonImporter(std::vector<std::shared_ptr<std::string const>> const& _sourceNames):
+	explicit AsmJsonImporter(Dialect const& _dialect, std::vector<std::shared_ptr<std::string const>> const& _sourceNames):
+		m_dialect(_dialect),
 		m_sourceNames(_sourceNames)
 	{}
-	yul::Block createBlock(Json const& _node);
 
+	yul::AST createAST(Json const& node);
 private:
 	langutil::SourceLocation const createSourceLocation(Json const& _node);
 	template <class T>
@@ -51,12 +54,13 @@ private:
 	/// and throw an error if it does not exist
 	Json member(Json const& _node, std::string const& _name);
 
+	yul::Block createBlock(Json const& _node);
 	yul::Statement createStatement(Json const& _node);
 	yul::Expression createExpression(Json const& _node);
 	std::vector<yul::Statement> createStatementVector(Json const& _array);
 	std::vector<yul::Expression> createExpressionVector(Json const& _array);
 
-	yul::TypedName createTypedName(Json const& _node);
+	yul::NameWithDebugData createNameWithDebugData(Json const& _node);
 	yul::Literal createLiteral(Json const& _node);
 	yul::Leave createLeave(Json const& _node);
 	yul::Identifier createIdentifier(Json const& _node);
@@ -72,6 +76,7 @@ private:
 	yul::Break createBreak(Json const& _node);
 	yul::Continue createContinue(Json const& _node);
 
+	Dialect const& m_dialect;
 	std::vector<std::shared_ptr<std::string const>> const& m_sourceNames;
 };
 

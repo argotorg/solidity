@@ -18,6 +18,8 @@
 
 #include <libsolidity/formal/SymbolicVariables.h>
 
+#include <libsolidity/ast/AST.h>
+
 #include <libsolidity/formal/EncodingContext.h>
 #include <libsolidity/formal/SymbolicTypes.h>
 
@@ -203,7 +205,7 @@ smtutil::Expression SymbolicFunctionVariable::increaseIndex()
 	return m_abstract.currentValue();
 }
 
-smtutil::Expression SymbolicFunctionVariable::operator()(std::vector<smtutil::Expression> _arguments) const
+smtutil::Expression SymbolicFunctionVariable::operator()(std::vector<smtutil::Expression> const& _arguments) const
 {
 	return m_declaration(_arguments);
 }

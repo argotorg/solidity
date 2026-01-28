@@ -169,6 +169,26 @@ std::vector<SemanticInformation::Operation> SemanticInformation::readWriteOperat
 		});
 		return operations;
 	}
+	case Instruction::EXTCALL:
+	case Instruction::EXTSTATICCALL:
+	case Instruction::EXTDELEGATECALL:
+	{
+		size_t paramCount = static_cast<size_t>(instructionInfo(_instruction, langutil::EVMVersion()).args);
+		size_t const memoryStartParam = _instruction == Instruction::EXTCALL ? paramCount - 3 : paramCount - 2;
+		size_t const memoryLengthParam = _instruction == Instruction::EXTCALL ? paramCount - 2 : paramCount - 1;
+		std::vector<Operation> operations{
+			Operation{Location::Memory, Effect::Read, memoryStartParam, memoryLengthParam, {}},
+			Operation{Location::Storage, Effect::Read, {}, {}, {}},
+			Operation{Location::TransientStorage, Effect::Read, {}, {}, {}}
+		};
+		if (_instruction == Instruction::EXTDELEGATECALL)
+		{
+			operations.emplace_back(Operation{Location::Storage, Effect::Write, {}, {}, {}});
+			operations.emplace_back(Operation{Location::TransientStorage, Effect::Write, {}, {}, {}});
+		}
+
+		return operations;
+	}
 	case Instruction::CREATE:
 	case Instruction::CREATE2:
 		return std::vector<Operation>{
@@ -177,6 +197,34 @@ std::vector<SemanticInformation::Operation> SemanticInformation::readWriteOperat
 				Effect::Read,
 				1,
 				2,
+				{}
+			},
+			Operation{Location::Storage, Effect::Read, {}, {}, {}},
+			Operation{Location::Storage, Effect::Write, {}, {}, {}},
+			Operation{Location::TransientStorage, Effect::Read, {}, {}, {}},
+			Operation{Location::TransientStorage, Effect::Write, {}, {}, {}}
+		};
+	case Instruction::EOFCREATE:
+		return std::vector<Operation>{
+			Operation{
+				Location::Memory,
+				Effect::Read,
+				2,
+				3,
+				{}
+			},
+			Operation{Location::Storage, Effect::Read, {}, {}, {}},
+			Operation{Location::Storage, Effect::Write, {}, {}, {}},
+			Operation{Location::TransientStorage, Effect::Read, {}, {}, {}},
+			Operation{Location::TransientStorage, Effect::Write, {}, {}, {}}
+		};
+	case Instruction::RETURNCONTRACT:
+		return std::vector<Operation>{
+			Operation{
+				Location::Memory,
+				Effect::Read,
+				0,
+				1,
 				{}
 			},
 			Operation{Location::Storage, Effect::Read, {}, {}, {}},
@@ -203,6 +251,9 @@ bool SemanticInformation::breaksCSEAnalysisBlock(AssemblyItem const& _item, bool
 	case PushDeployTimeAddress:
 	case AssignImmutable:
 	case VerbatimBytecode:
+	case CallF:
+	case JumpF:
+	case RetF:
 		return true;
 	case Push:
 	case PushTag:
@@ -261,42 +312,57 @@ bool SemanticInformation::isCommutativeOperation(AssemblyItem const& _item)
 
 bool SemanticInformation::isDupInstruction(AssemblyItem const& _item)
 {
+	if (_item.type() == evmasm::DupN)
+		return true;
 	if (_item.type() != evmasm::Operation)
 		return false;
-	return evmasm::isDupInstruction(_item.instruction());
+	auto inst = _item.instruction();
+	return Instruction::DUP1 <= inst && inst <= Instruction::DUP16;
 }
 
 bool SemanticInformation::isSwapInstruction(AssemblyItem const& _item)
 {
+	if (_item.type() == evmasm::SwapN)
+		return true;
 	if (_item.type() != evmasm::Operation)
 		return false;
-	return evmasm::isSwapInstruction(_item.instruction());
-}
-
-bool SemanticInformation::isJumpInstruction(AssemblyItem const& _item)
-{
-	return _item == Instruction::JUMP || _item == Instruction::JUMPI;
+	auto inst = _item.instruction();
+	return Instruction::SWAP1 <= inst && inst <= Instruction::SWAP16;
 }
 
 bool SemanticInformation::altersControlFlow(AssemblyItem const& _item)
 {
-	if (_item.type() != evmasm::Operation)
+	if (!_item.hasInstruction())
 		return false;
+
 	switch (_item.instruction())
 	{
 	// note that CALL, CALLCODE and CREATE do not really alter the control flow, because we
 	// continue on the next instruction
 	case Instruction::JUMP:
 	case Instruction::JUMPI:
+	case Instruction::RJUMP:
+	case Instruction::RJUMPI:
 	case Instruction::RETURN:
 	case Instruction::SELFDESTRUCT:
 	case Instruction::STOP:
 	case Instruction::INVALID:
 	case Instruction::REVERT:
+	case Instruction::RETURNCONTRACT:
+	case Instruction::CALLF:
+	case Instruction::JUMPF:
+	case Instruction::RETF:
 		return true;
 	default:
 		return false;
 	}
+}
+
+bool SemanticInformation::terminatesControlFlow(AssemblyItem const& _item)
+{
+	if (!_item.hasInstruction())
+		return false;
+	return terminatesControlFlow(_item.instruction());
 }
 
 bool SemanticInformation::terminatesControlFlow(Instruction _instruction)
@@ -308,6 +374,7 @@ bool SemanticInformation::terminatesControlFlow(Instruction _instruction)
 	case Instruction::STOP:
 	case Instruction::INVALID:
 	case Instruction::REVERT:
+	case Instruction::RETURNCONTRACT:
 		return true;
 	default:
 		return false;
@@ -326,11 +393,29 @@ bool SemanticInformation::reverts(Instruction _instruction)
 	}
 }
 
+size_t SemanticInformation::getDupNumber(AssemblyItem const& _item)
+{
+	assertThrow(isDupInstruction(_item), OptimizerException, "Not a DUP instruction.");
+	if (_item.type() == evmasm::DupN)
+		return static_cast<size_t>(_item.data());
+	auto inst = _item.instruction();
+	return static_cast<uint8_t>(inst) - static_cast<size_t>(Instruction::DUP1) + 1;
+}
+
+size_t SemanticInformation::getSwapNumber(AssemblyItem const& _item)
+{
+	assertThrow(isSwapInstruction(_item), OptimizerException, "Not a swap instruction.");
+	if (_item.type() == evmasm::SwapN)
+		return static_cast<size_t>(_item.data());
+	auto inst = _item.instruction();
+	return static_cast<uint8_t>(inst) - static_cast<size_t>(Instruction::SWAP1) + 1;
+}
+
 bool SemanticInformation::isDeterministic(AssemblyItem const& _item)
 {
 	assertThrow(_item.type() != VerbatimBytecode, AssemblyException, "");
 
-	if (_item.type() != evmasm::Operation)
+	if (!_item.hasInstruction())
 		return true;
 
 	switch (_item.instruction())
@@ -339,6 +424,9 @@ bool SemanticInformation::isDeterministic(AssemblyItem const& _item)
 	case Instruction::CALLCODE:
 	case Instruction::DELEGATECALL:
 	case Instruction::STATICCALL:
+	case Instruction::EXTCALL:
+	case Instruction::EXTDELEGATECALL:
+	case Instruction::EXTSTATICCALL:
 	case Instruction::CREATE:
 	case Instruction::CREATE2:
 	case Instruction::GAS:
@@ -350,6 +438,9 @@ bool SemanticInformation::isDeterministic(AssemblyItem const& _item)
 	case Instruction::EXTCODEHASH:
 	case Instruction::RETURNDATACOPY: // depends on previous calls
 	case Instruction::RETURNDATASIZE:
+	case Instruction::EOFCREATE:
+	case Instruction::CALLF:
+	case Instruction::JUMPF:
 		return false;
 	default:
 		return true;
@@ -429,6 +520,11 @@ SemanticInformation::Effect SemanticInformation::memory(Instruction _instruction
 	case Instruction::LOG2:
 	case Instruction::LOG3:
 	case Instruction::LOG4:
+	case Instruction::EOFCREATE:
+	case Instruction::RETURNCONTRACT:
+	case Instruction::EXTCALL:
+	case Instruction::EXTDELEGATECALL:
+	case Instruction::EXTSTATICCALL:
 		return SemanticInformation::Read;
 
 	default:
@@ -466,10 +562,15 @@ SemanticInformation::Effect SemanticInformation::storage(Instruction _instructio
 	case Instruction::CREATE:
 	case Instruction::CREATE2:
 	case Instruction::SSTORE:
+	case Instruction::EOFCREATE:
+	case Instruction::RETURNCONTRACT:
+	case Instruction::EXTCALL:
+	case Instruction::EXTDELEGATECALL:
 		return SemanticInformation::Write;
 
 	case Instruction::SLOAD:
 	case Instruction::STATICCALL:
+	case Instruction::EXTSTATICCALL:
 		return SemanticInformation::Read;
 
 	default:
@@ -487,10 +588,15 @@ SemanticInformation::Effect SemanticInformation::transientStorage(Instruction _i
 	case Instruction::CREATE:
 	case Instruction::CREATE2:
 	case Instruction::TSTORE:
+	case Instruction::EOFCREATE:
+	case Instruction::RETURNCONTRACT:
+	case Instruction::EXTCALL:
+	case Instruction::EXTDELEGATECALL:
 		return SemanticInformation::Write;
 
 	case Instruction::TLOAD:
 	case Instruction::STATICCALL:
+	case Instruction::EXTSTATICCALL:
 		return SemanticInformation::Read;
 
 	default:
@@ -507,7 +613,12 @@ SemanticInformation::Effect SemanticInformation::otherState(Instruction _instruc
 	case Instruction::DELEGATECALL:
 	case Instruction::CREATE:
 	case Instruction::CREATE2:
+	case Instruction::EOFCREATE:
+	case Instruction::RETURNCONTRACT:
+	case Instruction::EXTCALL:
+	case Instruction::EXTDELEGATECALL:
 	case Instruction::SELFDESTRUCT:
+	case Instruction::EXTSTATICCALL:
 	case Instruction::STATICCALL: // because it can affect returndatasize
 		// Strictly speaking, log0, .., log4 writes to the state, but the EVM cannot read it, so they
 		// are just marked as having 'other side effects.'
@@ -554,6 +665,7 @@ bool SemanticInformation::invalidInPureFunctions(Instruction _instruction)
 	case Instruction::NUMBER:
 	case Instruction::PREVRANDAO:
 	case Instruction::GASLIMIT:
+	case Instruction::EXTSTATICCALL:
 	case Instruction::STATICCALL:
 	case Instruction::SLOAD:
 	case Instruction::TLOAD:
@@ -566,6 +678,8 @@ bool SemanticInformation::invalidInPureFunctions(Instruction _instruction)
 
 bool SemanticInformation::invalidInViewFunctions(Instruction _instruction)
 {
+	// Relative jumps cannot jump out of the current code section of EOF so they are valid in view functions
+	// (under the assumption that every Solidity function actually gets its own code section).
 	switch (_instruction)
 	{
 	case Instruction::SSTORE:
@@ -581,6 +695,12 @@ bool SemanticInformation::invalidInViewFunctions(Instruction _instruction)
 	case Instruction::CALL:
 	case Instruction::CALLCODE:
 	case Instruction::DELEGATECALL:
+	case Instruction::EXTCALL:
+	case Instruction::EXTDELEGATECALL:
+	// According to EOF spec https://eips.ethereum.org/EIPS/eip-7620#eofcreate
+	case Instruction::EOFCREATE:
+	// According to EOF spec https://eips.ethereum.org/EIPS/eip-7620#returncontract
+	case Instruction::RETURNCONTRACT:
 	case Instruction::CREATE2:
 	case Instruction::SELFDESTRUCT:
 		return true;

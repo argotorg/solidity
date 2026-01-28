@@ -1,6 +1,6 @@
 {
     "contracts": {
-        "inline_assembly_function_name_clash/input.sol:C": {
+        "input.sol:C": {
             "function-debug-runtime": {
                 "abi_decode": {
                     "entryPoint": 80,
@@ -128,7 +128,7 @@
                     "parameterSlots": 2,
                     "returnSlots": 1
                 },
-                "update_storage_value_offsett_uint256_to_uint256": {
+                "update_storage_value_offset_uint256_to_uint256": {
                     "entryPoint": 307,
                     "parameterSlots": 2,
                     "returnSlots": 0

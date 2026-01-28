@@ -8,7 +8,7 @@
   }
   for { let a := 1 } iszero(eq(a, 10)) { a := add(a, 1) } {
     let inv := add(b, 42)
-    let x := extcodesize(mload(mul(inv, 3)))
+    let x := balance(mload(mul(inv, 3)))
     a := add(x, 1)
   }
 }
@@ -29,7 +29,7 @@
 //     let inv_2 := add(b, 42)
 //     for { } iszero(eq(a_1, 10)) { a_1 := add(a_1, 1) }
 //     {
-//         let x_3 := extcodesize(mload(mul(inv_2, 3)))
+//         let x_3 := balance(mload(mul(inv_2, 3)))
 //         a_1 := add(x_3, 1)
 //     }
 // }

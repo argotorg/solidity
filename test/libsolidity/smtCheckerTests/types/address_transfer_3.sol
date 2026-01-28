@@ -13,4 +13,5 @@ contract C
 // ====
 // SMTEngine: all
 // ----
+// Warning 9207: (126-136): 'transfer' is deprecated and scheduled for removal. Use 'call{value: <amount>}("")' instead.
 // Info 1391: CHC: 2 verification condition(s) proved safe! Enable the model checker option "show proved safe" to see all of them.

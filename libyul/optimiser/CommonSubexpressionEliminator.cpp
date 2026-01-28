@@ -1,4 +1,4 @@
-/*(
+/*
 	This file is part of solidity.
 
 	solidity is free software: you can redistribute it and/or modify
@@ -46,7 +46,7 @@ void CommonSubexpressionEliminator::run(OptimiserStepContext& _context, Block& _
 
 CommonSubexpressionEliminator::CommonSubexpressionEliminator(
 	Dialect const& _dialect,
-	std::map<YulString, SideEffects> _functionSideEffects
+	std::map<FunctionHandle, SideEffects> _functionSideEffects
 ):
 	DataFlowAnalyzer(_dialect, MemoryAndStorage::Ignore, std::move(_functionSideEffects))
 {
@@ -72,7 +72,7 @@ void CommonSubexpressionEliminator::visit(Expression& _e)
 	{
 		FunctionCall& funCall = std::get<FunctionCall>(_e);
 
-		if (BuiltinFunction const* builtin = m_dialect.builtin(funCall.functionName.name))
+		if (BuiltinFunction const* builtin = resolveBuiltinFunction(funCall.functionName, m_dialect))
 		{
 			for (size_t i = funCall.arguments.size(); i > 0; i--)
 				// We should not modify function arguments that have to be literals
@@ -95,7 +95,7 @@ void CommonSubexpressionEliminator::visit(Expression& _e)
 
 	if (Identifier const* identifier = std::get_if<Identifier>(&_e))
 	{
-		YulString identifierName = identifier->name;
+		YulName identifierName = identifier->name;
 		if (AssignedValue const* assignedValue = variableValue(identifierName))
 		{
 			assertThrow(assignedValue->value, OptimizerException, "");
@@ -114,7 +114,7 @@ void CommonSubexpressionEliminator::visit(Expression& _e)
 				if (
 					m_returnVariables.count(variable) &&
 					std::holds_alternative<Literal>(*value->value) &&
-					valueOfLiteral(std::get<Literal>(*value->value)) == 0
+					std::get<Literal>(*value->value).value.value() == 0
 				)
 					continue;
 				// We check for syntactic equality again because the value might have changed.
@@ -126,7 +126,7 @@ void CommonSubexpressionEliminator::visit(Expression& _e)
 			}
 }
 
-void CommonSubexpressionEliminator::assignValue(YulString _variable, Expression const* _value)
+void CommonSubexpressionEliminator::assignValue(YulName _variable, Expression const* _value)
 {
 	if (_value)
 		m_replacementCandidates[*_value].insert(_variable);

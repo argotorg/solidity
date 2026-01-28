@@ -1,0 +1,13 @@
+{
+    "errors": [
+        {
+            "component": "general",
+            "formattedMessage": "CodeGenerationError: Some immutables were read from but never assigned, possibly because of optimization.
+
+",
+            "message": "Some immutables were read from but never assigned, possibly because of optimization.",
+            "severity": "error",
+            "type": "CodeGenerationError"
+        }
+    ]
+}

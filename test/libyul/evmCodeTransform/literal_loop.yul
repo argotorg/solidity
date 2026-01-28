@@ -14,6 +14,7 @@ object "main" {
 }
 // ====
 // stackOptimization: true
+// EVMVersion: =current
 // ----
 //     /* "":62:82   */
 //   dataSize(sub_0)

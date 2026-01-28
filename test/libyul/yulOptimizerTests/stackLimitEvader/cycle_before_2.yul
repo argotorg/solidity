@@ -52,6 +52,8 @@
         sstore(mul(1,4), a1)
     }
 }
+// ====
+// bytecodeFormat: legacy
 // ----
 // step: stackLimitEvader
 //

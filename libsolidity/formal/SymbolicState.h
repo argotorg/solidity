@@ -65,8 +65,10 @@ private:
  *   - array of address => bool representing whether an address is used by a contract
  *   - storage of contracts
  * - block and transaction properties, represented as a tuple of:
+ *   - blobhash
  *   - blockhash
  *   - block basefee
+ *   - block blobbasefee
  *   - block chainid
  *   - block coinbase
  *   - block gaslimit
@@ -148,6 +150,7 @@ public:
 	smtutil::Expression txFunctionConstraints(FunctionDefinition const& _function) const;
 	smtutil::Expression txTypeConstraints() const;
 	smtutil::Expression txNonPayableConstraint() const;
+	smtutil::Expression blobhash(smtutil::Expression _blobIndex) const;
 	smtutil::Expression blockhash(smtutil::Expression _blockNumber) const;
 	smtutil::Expression evmParisConstraints() const;
 	//@}
@@ -236,27 +239,7 @@ private:
 	/// and the element is a tuple containing the state variables of that contract.
 	std::unique_ptr<BlockchainVariable> m_state;
 
-	BlockchainVariable m_tx{
-		"tx",
-		{
-			{"block.basefee", smtutil::SortProvider::uintSort},
-			{"block.chainid", smtutil::SortProvider::uintSort},
-			{"block.coinbase", smt::smtSort(*TypeProvider::address())},
-			{"block.prevrandao", smtutil::SortProvider::uintSort},
-			{"block.gaslimit", smtutil::SortProvider::uintSort},
-			{"block.number", smtutil::SortProvider::uintSort},
-			{"block.timestamp", smtutil::SortProvider::uintSort},
-			{"blockhash", std::make_shared<smtutil::ArraySort>(smtutil::SortProvider::uintSort, smtutil::SortProvider::uintSort)},
-			// TODO gasleft
-			{"msg.data", smt::smtSort(*TypeProvider::bytesMemory())},
-			{"msg.sender", smt::smtSort(*TypeProvider::address())},
-			{"msg.sig", smtutil::SortProvider::uintSort},
-			{"msg.value", smtutil::SortProvider::uintSort},
-			{"tx.gasprice", smtutil::SortProvider::uintSort},
-			{"tx.origin", smt::smtSort(*TypeProvider::address())}
-		},
-		m_context
-	};
+	BlockchainVariable m_tx{"tx", transactionMemberSorts(), m_context};
 
 	BlockchainVariable m_crypto{
 		"crypto",

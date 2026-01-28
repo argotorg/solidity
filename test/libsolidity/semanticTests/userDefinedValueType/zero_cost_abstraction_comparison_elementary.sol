@@ -17,18 +17,18 @@ contract C {
 }
 // ----
 // getX() -> 0
-// gas irOptimized: 23379
-// gas legacy: 23479
-// gas legacyOptimized: 23311
+// gas irOptimized: 23311
+// gas legacy: 23473
+// gas legacyOptimized: 23309
 // setX(int256): 5 ->
-// gas irOptimized: 43510
-// gas legacy: 43724
-// gas legacyOptimized: 43516
+// gas irOptimized: 43464
+// gas legacy: 43718
+// gas legacyOptimized: 43513
 // getX() -> 5
-// gas irOptimized: 23379
-// gas legacy: 23479
-// gas legacyOptimized: 23311
+// gas irOptimized: 23311
+// gas legacy: 23473
+// gas legacyOptimized: 23309
 // add(int256,int256): 200, 99 -> 299
-// gas irOptimized: 21764
-// gas legacy: 22394
-// gas legacyOptimized: 21813
+// gas irOptimized: 21623
+// gas legacy: 22354
+// gas legacyOptimized: 21768

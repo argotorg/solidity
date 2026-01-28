@@ -74,12 +74,12 @@ void ControlFlowAnalyzer::checkUninitializedAccess(CFGNode const* _entry, CFGNod
 		bool propagateFrom(NodeInfo const& _entryNode)
 		{
 			size_t previousUnassignedVariablesAtEntry = unassignedVariablesAtEntry.size();
-			size_t previousUninitializedVariableAccessess = uninitializedVariableAccesses.size();
+			size_t previousUninitializedVariableAccesses = uninitializedVariableAccesses.size();
 			unassignedVariablesAtEntry += _entryNode.unassignedVariablesAtExit;
 			uninitializedVariableAccesses += _entryNode.uninitializedVariableAccesses;
 			return
 				unassignedVariablesAtEntry.size() > previousUnassignedVariablesAtEntry ||
-				uninitializedVariableAccesses.size() > previousUninitializedVariableAccessess
+				uninitializedVariableAccesses.size() > previousUninitializedVariableAccesses
 			;
 		}
 	};

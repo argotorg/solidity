@@ -16,9 +16,9 @@
 */
 // SPDX-License-Identifier: GPL-3.0
 
-#include <libsolidity/formal/EncodingContext.h>
+#pragma once
+
 #include <libsolidity/formal/Predicate.h>
-#include <libsolidity/formal/SymbolicVariables.h>
 
 #include <libsmtutil/Sorts.h>
 

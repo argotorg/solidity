@@ -11,4 +11,4 @@ contract A {
 // Warning 2072: (93-104): Unused local variable.
 // Warning 2072: (114-121): Unused local variable.
 // Warning 2018: (41-128): Function state mutability can be restricted to pure
-// UnimplementedFeatureError 1834: Fixed point types not implemented.
+// UnimplementedFeatureError 1834: (0-130): Fixed point types not implemented.

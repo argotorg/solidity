@@ -23,8 +23,9 @@
 
 #include <libyul/AsmPrinter.h>
 #include <libyul/AST.h>
-#include <libyul/Exceptions.h>
 #include <libyul/Dialect.h>
+#include <libyul/Exceptions.h>
+#include <libyul/Utilities.h>
 
 #include <libsolutil/CommonData.h>
 #include <libsolutil/StringUtils.h>
@@ -34,37 +35,52 @@
 
 #include <range/v3/view/transform.hpp>
 
-#include <memory>
 #include <functional>
+#include <memory>
 
 using namespace solidity;
 using namespace solidity::langutil;
 using namespace solidity::util;
 using namespace solidity::yul;
 
+std::string AsmPrinter::format(
+	AST const& _ast,
+	std::optional<std::map<unsigned, std::shared_ptr<std::string const>>> const& _sourceIndexToName,
+	DebugInfoSelection const& _debugInfoSelection,
+	CharStreamProvider const* _soliditySourceProvider)
+{
+	return AsmPrinter{_ast.dialect(), _sourceIndexToName, _debugInfoSelection, _soliditySourceProvider}(_ast.root());
+}
+
+
 std::string AsmPrinter::operator()(Literal const& _literal)
 {
+	yulAssert(validLiteral(_literal));
+
 	std::string const locationComment = formatDebugData(_literal);
+	std::string const formattedValue = formatLiteral(_literal);
 
 	switch (_literal.kind)
 	{
 	case LiteralKind::Number:
-		yulAssert(isValidDecimal(_literal.value.str()) || isValidHex(_literal.value.str()), "Invalid number literal");
-		return locationComment + _literal.value.str() + appendTypeName(_literal.type);
 	case LiteralKind::Boolean:
-		yulAssert(_literal.value == "true"_yulstring || _literal.value == "false"_yulstring, "Invalid bool literal.");
-		return locationComment + ((_literal.value == "true"_yulstring) ? "true" : "false") + appendTypeName(_literal.type, true);
+		return locationComment + formattedValue;
 	case LiteralKind::String:
 		break;
 	}
 
-	return locationComment + escapeAndQuoteString(_literal.value.str()) + appendTypeName(_literal.type);
+	return locationComment + escapeAndQuoteString(formattedValue);
 }
 
 std::string AsmPrinter::operator()(Identifier const& _identifier)
 {
 	yulAssert(!_identifier.name.empty(), "Invalid identifier.");
 	return formatDebugData(_identifier) + _identifier.name.str();
+}
+
+std::string AsmPrinter::operator()(BuiltinName const& _builtin)
+{
+	return formatDebugData(_builtin) + m_dialect.builtin(_builtin.handle).name;
 }
 
 std::string AsmPrinter::operator()(ExpressionStatement const& _statement)
@@ -93,7 +109,7 @@ std::string AsmPrinter::operator()(VariableDeclaration const& _variableDeclarati
 	out += "let ";
 	out += boost::algorithm::join(
 		_variableDeclaration.variables | ranges::views::transform(
-			[this](TypedName argument) { return formatTypedName(argument); }
+			[this](NameWithDebugData argument) { return formatNameWithDebugData(argument); }
 		),
 		", "
 	);
@@ -113,7 +129,7 @@ std::string AsmPrinter::operator()(FunctionDefinition const& _functionDefinition
 	out += "function " + _functionDefinition.name.str() + "(";
 	out += boost::algorithm::join(
 		_functionDefinition.parameters | ranges::views::transform(
-			[this](TypedName argument) { return formatTypedName(argument); }
+			[this](NameWithDebugData argument) { return formatNameWithDebugData(argument); }
 		),
 		", "
 	);
@@ -123,7 +139,7 @@ std::string AsmPrinter::operator()(FunctionDefinition const& _functionDefinition
 		out += " -> ";
 		out += boost::algorithm::join(
 			_functionDefinition.returnVariables | ranges::views::transform(
-				[this](TypedName argument) { return formatTypedName(argument); }
+				[this](NameWithDebugData argument) { return formatNameWithDebugData(argument); }
 			),
 			", "
 		);
@@ -135,7 +151,7 @@ std::string AsmPrinter::operator()(FunctionDefinition const& _functionDefinition
 std::string AsmPrinter::operator()(FunctionCall const& _functionCall)
 {
 	std::string const locationComment = formatDebugData(_functionCall);
-	std::string const functionName = (*this)(_functionCall.functionName);
+	std::string const functionName = std::visit(*this, _functionCall.functionName);
 	return
 		locationComment +
 		functionName + "(" +
@@ -235,26 +251,10 @@ std::string AsmPrinter::operator()(Block const& _block)
 	}
 }
 
-std::string AsmPrinter::formatTypedName(TypedName _variable)
+std::string AsmPrinter::formatNameWithDebugData(NameWithDebugData _variable)
 {
 	yulAssert(!_variable.name.empty(), "Invalid variable name.");
-	return formatDebugData(_variable) + _variable.name.str() + appendTypeName(_variable.type);
-}
-
-std::string AsmPrinter::appendTypeName(YulString _type, bool _isBoolLiteral) const
-{
-	if (m_dialect && !_type.empty())
-	{
-		if (!_isBoolLiteral && _type == m_dialect->defaultType)
-			_type = {};
-		else if (_isBoolLiteral && _type == m_dialect->boolType && !m_dialect->defaultType.empty())
-			// Special case: If we have a bool type but empty default type, do not remove the type.
-			_type = {};
-	}
-	if (_type.empty())
-		return {};
-	else
-		return ":" + _type.str();
+	return formatDebugData(_variable) + _variable.name.str();
 }
 
 std::string AsmPrinter::formatSourceLocation(

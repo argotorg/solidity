@@ -51,6 +51,12 @@ int main(int argc, char** argv)
 		std::cerr << boost::diagnostic_information(_exception);
 		return 2;
 	}
+	catch (yul::YulAssertion const& _exception)
+	{
+		std::cerr << "Yul assertion failed:" << std::endl;
+		std::cerr << boost::diagnostic_information(_exception);
+		return 2;
+	}
 	catch (...)
 	{
 		std::cerr << "Uncaught exception:" << std::endl;

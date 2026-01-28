@@ -56,7 +56,11 @@ evmasm::AssemblyItems compileContract(std::shared_ptr<CharStream> _sourceCode)
 {
 	ErrorList errors;
 	ErrorReporter errorReporter(errors);
-	Parser parser(errorReporter, solidity::test::CommonOptions::get().evmVersion());
+	Parser parser(
+		errorReporter,
+		solidity::test::CommonOptions::get().evmVersion(),
+		solidity::test::CommonOptions::get().eofVersion()
+	);
 	ASTPointer<SourceUnit> sourceUnit;
 	BOOST_REQUIRE_NO_THROW(sourceUnit = parser.parse(*_sourceCode));
 	BOOST_CHECK(!!sourceUnit);
@@ -77,7 +81,11 @@ evmasm::AssemblyItems compileContract(std::shared_ptr<CharStream> _sourceCode)
 		if (Error::containsErrors(errorReporter.errors()))
 			return AssemblyItems();
 	}
-	TypeChecker checker(solidity::test::CommonOptions::get().evmVersion(), errorReporter);
+	TypeChecker checker(
+		solidity::test::CommonOptions::get().evmVersion(),
+		solidity::test::CommonOptions::get().eofVersion(),
+		errorReporter
+	);
 	BOOST_REQUIRE_NO_THROW(checker.checkTypeRequirements(*sourceUnit));
 	if (Error::containsErrors(errorReporter.errors()))
 		return AssemblyItems();
@@ -86,12 +94,14 @@ evmasm::AssemblyItems compileContract(std::shared_ptr<CharStream> _sourceCode)
 		{
 			Compiler compiler(
 				solidity::test::CommonOptions::get().evmVersion(),
+				solidity::test::CommonOptions::get().eofVersion(),
 				RevertStrings::Default,
 				solidity::test::CommonOptions::get().optimize ? OptimiserSettings::standard() : OptimiserSettings::minimal()
 			);
 			compiler.compileContract(*contract, std::map<ContractDefinition const*, std::shared_ptr<Compiler const>>{}, bytes());
 
-			return compiler.runtimeAssembly().items();
+			BOOST_REQUIRE(compiler.runtimeAssembly().codeSections().size() == 1);
+			return compiler.runtimeAssembly().codeSections().at(0).items;
 		}
 	BOOST_FAIL("No contract found in source.");
 	return AssemblyItems();

@@ -42,10 +42,12 @@ source "${repo_root}/scripts/common.sh"
 # shellcheck source=scripts/common_cmdline.sh
 source "${repo_root}/scripts/common_cmdline.sh"
 
-(( $# <= 1 )) || fail "Too many arguments. Usage: external.sh [<solc-path>]"
+(( $# <= 2 )) || fail "Too many arguments. Usage: external.sh [<solc-path>] [<num-repeats>]"
 
 solc="${1:-${SOLIDITY_BUILD_DIR}/solc/solc}"
+num_repeats="${2:-1}"
 command_available "$solc" --version
+command_available "$(type -P time)" --version
 
 function benchmark_project {
     local pipeline="$1"
@@ -59,40 +61,48 @@ function benchmark_project {
 
     # NOTE: The pipeline may fail with "Stack too deep" in some cases. That's fine.
     # We note the exit code and will later show full output.
-    "$time_bin_path" \
-        --output "$time_file" \
-        --quiet \
-        --format '%e s |         %x' \
-            "${foundry_command[@]}" \
-            > /dev/null \
-            2> "../stderr-${project}-${pipeline}.log" || true
+    gnu_time_to_json_file "$time_file" \
+        "${foundry_command[@]}" \
+        > /dev/null \
+        2> "../stderr-${project}-${pipeline}.log" || true
 
-    printf '| %-20s | %8s | %21s |\n' \
+    printf '| %-21s | %8s | %6.2f s | %9d MiB | %9d |\n' \
         "$project" \
         "$pipeline" \
-        "$(cat "$time_file")"
+        "$(jq '(.user + .sys) * 100 | round / 100' "$time_file")" \
+        "$(jq '.mem / 1024 | round' "$time_file")" \
+        "$(jq '.exit' "$time_file")"
     cd ..
 }
 
 benchmarks=(
     # Fastest ones first so that we get *some* output quickly
-    openzeppelin
-    uniswap-v4
-    eigenlayer
-    seaport
-    sablier-v2
+    uniswap-v4-2022-06-16  # compiles via IR with solc >=0.8.12
+    openzeppelin-5.0.2     # compiles via IR with solc >=0.8.26
+    openzeppelin-4.9.0     # compiles via IR with solc 0.8.10-0.8.14 and >=0.8.26
+    liquity-2024-10-30     # compiles via IR with solc >=0.8.24
+    openzeppelin-4.7.0     # compiles via IR with solc >=0.8.10
+    openzeppelin-4.8.0     # compiles via IR with solc >=0.8.10
+    uniswap-v4-2024-06-06  # compiles via IR with solc >=0.8.24
+    eigenlayer-0.3.0       # compiles via IR with solc >=0.8.18
+    sablier-v2-1.2.0       # compiles via IR with solc >=0.8.28 (maybe >=0.8.26)
+    seaport-1.6            # StackTooDeep via IR
+    farcaster-3.1.0        # StackTooDeep via IR
 )
-time_bin_path=$(type -P time)
 
 mkdir -p "$BENCHMARK_DIR"
 cd "$BENCHMARK_DIR"
 
-echo "| Project              | Pipeline | Time      | Exit code |"
-echo "|----------------------|----------|----------:|----------:|"
+echo "|         File          | Pipeline |   Time   | Memory (peak) | Exit code |"
+echo "|-----------------------|----------|---------:|--------------:|----------:|"
 
 for project in "${benchmarks[@]}"; do
-    benchmark_project legacy "$project"
-    benchmark_project ir     "$project"
+    for ((i=0; i<num_repeats; i++)); do
+        benchmark_project legacy "$project"
+    done
+    for ((i=0; i<num_repeats; i++)); do
+        benchmark_project ir "$project"
+    done
 done
 
 for project in "${benchmarks[@]}"; do

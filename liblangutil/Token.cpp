@@ -134,20 +134,20 @@ std::string friendlyName(Token tok)
 }
 
 
-static Token keywordByName(std::string const& _name)
+static Token keywordByName(std::string_view const _name)
 {
 	// The following macros are used inside TOKEN_LIST and cause non-keyword tokens to be ignored
 	// and keywords to be put inside the keywords variable.
 #define KEYWORD(name, string, precedence) {string, Token::name},
 #define TOKEN(name, string, precedence)
-	static std::map<std::string, Token> const keywords({TOKEN_LIST(TOKEN, KEYWORD)});
+	static std::map<std::string, Token, std::less<>> const keywords({TOKEN_LIST(TOKEN, KEYWORD)});
 #undef KEYWORD
 #undef TOKEN
 	auto it = keywords.find(_name);
 	return it == keywords.end() ? Token::Identifier : it->second;
 }
 
-bool isYulKeyword(std::string const& _literal)
+bool isYulKeyword(std::string_view const _literal)
 {
 	return _literal == "leave" || isYulKeyword(keywordByName(_literal));
 }

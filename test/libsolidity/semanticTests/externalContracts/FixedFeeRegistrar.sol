@@ -82,9 +82,9 @@ contract FixedFeeRegistrar is Registrar {
 // gas legacyOptimized code: 388000
 // reserve(string), 69 ether: 0x20, 3, "abc" ->
 // ~ emit Changed(string): #0x4e03657aea45a94fc7d47ba826c8d667c0d1e6e33a64a036ec44f58fa12d6c45
-// gas irOptimized: 45967
-// gas legacy: 46842
-// gas legacyOptimized: 46091
+// gas irOptimized: 45741
+// gas legacy: 46698
+// gas legacyOptimized: 45948
 // owner(string): 0x20, 3, "abc" -> 0x1212121212121212121212121212120000000012
 // reserve(string), 70 ether: 0x20, 3, "def" ->
 // ~ emit Changed(string): #0x34607c9bbfeb9c23509680f04363f298fdb0b5f9abe327304ecd1daca08cda9c

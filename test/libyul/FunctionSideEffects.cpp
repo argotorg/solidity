@@ -20,20 +20,21 @@
 #include <test/Common.h>
 #include <test/libyul/Common.h>
 
-#include <libsolutil/AnsiColorized.h>
-
 #include <libyul/SideEffects.h>
 #include <libyul/optimiser/CallGraphGenerator.h>
 #include <libyul/optimiser/Semantics.h>
 #include <libyul/Object.h>
+#include <libyul/YulStack.h>
 #include <libyul/backends/evm/EVMDialect.h>
 
 #include <libsolutil/StringUtils.h>
+#include <libsolutil/Visitor.h>
 
 #include <boost/algorithm/string.hpp>
 
 
 using namespace solidity;
+using namespace solidity::test;
 using namespace solidity::util;
 using namespace solidity::langutil;
 using namespace solidity::yul;
@@ -74,7 +75,7 @@ std::string toString(SideEffects const& _sideEffects)
 }
 
 FunctionSideEffects::FunctionSideEffects(std::string const& _filename):
-	TestCase(_filename)
+	EVMVersionRestrictedTestCase(_filename)
 {
 	m_source = m_reader.source();
 	m_expectation = m_reader.simpleExpectations();
@@ -82,19 +83,29 @@ FunctionSideEffects::FunctionSideEffects(std::string const& _filename):
 
 TestCase::TestResult FunctionSideEffects::run(std::ostream& _stream, std::string const& _linePrefix, bool _formatted)
 {
-	Object obj;
-	std::tie(obj.code, obj.analysisInfo) = yul::test::parse(m_source, false);
-	if (!obj.code)
-		BOOST_THROW_EXCEPTION(std::runtime_error("Parsing input failed."));
+	YulStack yulStack = parseYul(m_source);
+	solUnimplementedAssert(yulStack.parserResult()->subObjects.empty(), "Tests with subobjects not supported.");
 
-	std::map<YulString, SideEffects> functionSideEffects = SideEffectsPropagator::sideEffects(
-		EVMDialect::strictAssemblyForEVMObjects(langutil::EVMVersion()),
-		CallGraphGenerator::callGraph(*obj.code)
+	if (yulStack.hasErrors())
+	{
+		printYulErrors(yulStack, _stream, _linePrefix, _formatted);
+		return TestResult::FatalError;
+	}
+
+	std::map<FunctionHandle, SideEffects> functionSideEffects = SideEffectsPropagator::sideEffects(
+		yulStack.dialect(),
+		CallGraphGenerator::callGraph(yulStack.parserResult()->code()->root())
 	);
 
 	std::map<std::string, std::string> functionSideEffectsStr;
 	for (auto const& fun: functionSideEffects)
-		functionSideEffectsStr[fun.first.str()] = toString(fun.second);
+	{
+		auto const& functionNameStr = std::visit(GenericVisitor{
+			[](YulName const& _name) { return _name.str(); },
+			[&](BuiltinHandle const& _builtin) { return yulStack.dialect().builtin(_builtin).name; }
+		}, fun.first);
+		functionSideEffectsStr[functionNameStr] = toString(fun.second);
+	}
 
 	m_obtainedResult.clear();
 	for (auto const& fun: functionSideEffectsStr)

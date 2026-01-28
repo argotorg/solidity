@@ -7,4 +7,5 @@
 }
 // ====
 // dialect: evm
+// bytecodeFormat: legacy
 // ----

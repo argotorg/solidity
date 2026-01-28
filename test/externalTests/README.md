@@ -15,7 +15,7 @@ these projects *can* be upgraded at all.
 #### Adding a new external project
 1. If the upstream code cannot be compiled without modifications, create a fork of the repository
    in https://github.com/solidity-external-tests/.
-2. In our fork, remove all the branches except for main one (`master`, `develop`, `main`, etc).
+2. In our fork, remove all the branches except for the main one (`master`, `develop`, `main`, etc).
     This branch is going to be always kept up to date with the upstream repository and should not
     contain any extra commits.
     - If the project is not up to date with the latest compiler version but has a branch that is,
@@ -88,6 +88,6 @@ branches if they exist. If no changes on our part were necessary, it is complete
 e.g. the `master_060` of an external project in Solidity 0.8.x.
 
 Since each project is handled separately, this approach may result in a mix of version-specific branches
-between different external projects. For example, in one project we could could have `master_050` on
+between different external projects. For example, in one project we could have `master_050` on
 both `develop` and `breaking` and in another `breaking` could use `master_080` while `develop` still
 uses `master_060`.

@@ -10,7 +10,7 @@ git fetch origin
 error=0
 for new_proof in $(git diff origin/develop --name-only test/formal/)
 do
-	if [ -e "$new_proof" ]; then
+	if [[ -e "$new_proof" ]] && [[ "$new_proof" == *.py ]]; then
 		set +e
 		echo "Proving $new_proof..."
 		output=$(python3 "$new_proof")

@@ -1,5 +1,5 @@
 
-======= evmasm_difficulty_pre_paris/input.sol:C =======
+======= input.sol:C =======
 EVM assembly:
   sstore(0x00, difficulty)
   stop

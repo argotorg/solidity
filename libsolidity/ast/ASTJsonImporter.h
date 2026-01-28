@@ -40,8 +40,8 @@ namespace solidity::frontend
 class ASTJsonImporter
 {
 public:
-	ASTJsonImporter(langutil::EVMVersion _evmVersion)
-		:m_evmVersion(_evmVersion)
+	ASTJsonImporter(langutil::EVMVersion _evmVersion, std::optional<uint8_t> _eofVersion)
+		:m_evmVersion(_evmVersion), m_eofVersion(_eofVersion)
 	{}
 
 	/// Converts the AST from JSON-format to ASTPointer
@@ -131,10 +131,11 @@ private:
 	ASTPointer<ElementaryTypeNameExpression> createElementaryTypeNameExpression(Json const& _node);
 	ASTPointer<ASTNode> createLiteral(Json const& _node);
 	ASTPointer<StructuredDocumentation> createDocumentation(Json const& _node);
+	ASTPointer<StorageLayoutSpecifier> createStorageLayoutSpecifier(Json const& _node);
 	///@}
 
 	// =============== general helper functions ===================
-	/// @returns the member of a given JSON object, throws if member does not exist
+	/// @returns the member of a given JSON object or null if member does not exist
 	Json member(Json const& _node, std::string const& _name);
 	/// @returns the appropriate TokenObject used in parsed Strings (pragma directive or operator)
 	Token scanSingleToken(Json const& _node);
@@ -166,6 +167,8 @@ private:
 	std::set<int64_t> m_usedIDs;
 	/// Configured EVM version
 	langutil::EVMVersion m_evmVersion;
+	/// Configured EOF version. Equals std::nullopt if non-EOF
+	std::optional<uint8_t> m_eofVersion;
 };
 
 }

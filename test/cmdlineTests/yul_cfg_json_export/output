@@ -1,0 +1,2153 @@
+
+======= input.sol:C =======
+Yul Control Flow Graph:
+{
+    "C_19": {
+        "blocks": [
+            {
+                "exit": {
+                    "cond": "v1",
+                    "targets": [
+                        "Block2",
+                        "Block1"
+                    ],
+                    "type": "ConditionalJump"
+                },
+                "id": "Block0",
+                "instructions": [
+                    {
+                        "in": [],
+                        "literalArgs": [
+                            "0x80"
+                        ],
+                        "op": "memoryguard",
+                        "out": [
+                            "v0"
+                        ]
+                    },
+                    {
+                        "in": [
+                            "v0",
+                            "0x40"
+                        ],
+                        "op": "mstore",
+                        "out": []
+                    },
+                    {
+                        "in": [],
+                        "op": "callvalue",
+                        "out": [
+                            "v1"
+                        ]
+                    }
+                ],
+                "liveness": {
+                    "in": [],
+                    "out": [
+                        "v0"
+                    ]
+                },
+                "type": "BuiltinCall"
+            },
+            {
+                "exit": {
+                    "type": "Terminated"
+                },
+                "id": "Block2",
+                "instructions": [
+                    {
+                        "in": [],
+                        "literalArgs": [
+                            "C_19_deployed"
+                        ],
+                        "op": "datasize",
+                        "out": [
+                            "v2"
+                        ]
+                    },
+                    {
+                        "in": [],
+                        "literalArgs": [
+                            "C_19_deployed"
+                        ],
+                        "op": "dataoffset",
+                        "out": [
+                            "v3"
+                        ]
+                    },
+                    {
+                        "in": [
+                            "v2",
+                            "v3",
+                            "v0"
+                        ],
+                        "op": "codecopy",
+                        "out": []
+                    },
+                    {
+                        "in": [
+                            "v2",
+                            "v0"
+                        ],
+                        "op": "return",
+                        "out": []
+                    }
+                ],
+                "liveness": {
+                    "in": [
+                        "v0"
+                    ],
+                    "out": []
+                },
+                "type": "BuiltinCall"
+            },
+            {
+                "exit": {
+                    "type": "Terminated"
+                },
+                "id": "Block1",
+                "instructions": [
+                    {
+                        "in": [
+                            "0x00",
+                            "0x00"
+                        ],
+                        "op": "revert",
+                        "out": []
+                    }
+                ],
+                "liveness": {
+                    "in": [],
+                    "out": []
+                },
+                "type": "BuiltinCall"
+            }
+        ],
+        "functions": {},
+        "subObjects": {
+            "C_19_deployed": {
+                "blocks": [
+                    {
+                        "exit": {
+                            "cond": "v3",
+                            "targets": [
+                                "Block2",
+                                "Block1"
+                            ],
+                            "type": "ConditionalJump"
+                        },
+                        "id": "Block0",
+                        "instructions": [
+                            {
+                                "in": [],
+                                "literalArgs": [
+                                    "0x80"
+                                ],
+                                "op": "memoryguard",
+                                "out": [
+                                    "v0"
+                                ]
+                            },
+                            {
+                                "in": [
+                                    "v0",
+                                    "0x40"
+                                ],
+                                "op": "mstore",
+                                "out": []
+                            },
+                            {
+                                "in": [],
+                                "op": "calldatasize",
+                                "out": [
+                                    "v1"
+                                ]
+                            },
+                            {
+                                "in": [
+                                    "0x04",
+                                    "v1"
+                                ],
+                                "op": "lt",
+                                "out": [
+                                    "v2"
+                                ]
+                            },
+                            {
+                                "in": [
+                                    "v2"
+                                ],
+                                "op": "iszero",
+                                "out": [
+                                    "v3"
+                                ]
+                            }
+                        ],
+                        "liveness": {
+                            "in": [],
+                            "out": [
+                                "v0"
+                            ]
+                        },
+                        "type": "BuiltinCall"
+                    },
+                    {
+                        "exit": {
+                            "type": "Terminated"
+                        },
+                        "id": "Block2",
+                        "instructions": [
+                            {
+                                "in": [
+                                    "0x00",
+                                    "0x00"
+                                ],
+                                "op": "revert",
+                                "out": []
+                            }
+                        ],
+                        "liveness": {
+                            "in": [],
+                            "out": []
+                        },
+                        "type": "BuiltinCall"
+                    },
+                    {
+                        "exit": {
+                            "cond": "v6",
+                            "targets": [
+                                "Block4",
+                                "Block3"
+                            ],
+                            "type": "ConditionalJump"
+                        },
+                        "id": "Block1",
+                        "instructions": [
+                            {
+                                "in": [
+                                    "0x00"
+                                ],
+                                "op": "calldataload",
+                                "out": [
+                                    "v4"
+                                ]
+                            },
+                            {
+                                "in": [
+                                    "v4",
+                                    "0xe0"
+                                ],
+                                "op": "shr",
+                                "out": [
+                                    "v5"
+                                ]
+                            },
+                            {
+                                "in": [
+                                    "v5",
+                                    "0x26121ff0"
+                                ],
+                                "op": "eq",
+                                "out": [
+                                    "v6"
+                                ]
+                            }
+                        ],
+                        "liveness": {
+                            "in": [
+                                "v0"
+                            ],
+                            "out": [
+                                "v0"
+                            ]
+                        },
+                        "type": "BuiltinCall"
+                    },
+                    {
+                        "exit": {
+                            "targets": [
+                                "Block2"
+                            ],
+                            "type": "Jump"
+                        },
+                        "id": "Block4",
+                        "instructions": [],
+                        "liveness": {
+                            "in": [],
+                            "out": []
+                        }
+                    },
+                    {
+                        "exit": {
+                            "cond": "v7",
+                            "targets": [
+                                "Block6",
+                                "Block5"
+                            ],
+                            "type": "ConditionalJump"
+                        },
+                        "id": "Block3",
+                        "instructions": [
+                            {
+                                "in": [],
+                                "op": "callvalue",
+                                "out": [
+                                    "v7"
+                                ]
+                            }
+                        ],
+                        "liveness": {
+                            "in": [
+                                "v0"
+                            ],
+                            "out": [
+                                "v0"
+                            ]
+                        },
+                        "type": "BuiltinCall"
+                    },
+                    {
+                        "exit": {
+                            "cond": "v11",
+                            "targets": [
+                                "Block9",
+                                "Block8"
+                            ],
+                            "type": "ConditionalJump"
+                        },
+                        "id": "Block6",
+                        "instructions": [
+                            {
+                                "in": [
+                                    "0x03"
+                                ],
+                                "op": "not",
+                                "out": [
+                                    "v8"
+                                ]
+                            },
+                            {
+                                "in": [],
+                                "op": "calldatasize",
+                                "out": [
+                                    "v9"
+                                ]
+                            },
+                            {
+                                "in": [
+                                    "v8",
+                                    "v9"
+                                ],
+                                "op": "add",
+                                "out": [
+                                    "v10"
+                                ]
+                            },
+                            {
+                                "in": [
+                                    "0x00",
+                                    "v10"
+                                ],
+                                "op": "slt",
+                                "out": [
+                                    "v11"
+                                ]
+                            }
+                        ],
+                        "liveness": {
+                            "in": [
+                                "v0"
+                            ],
+                            "out": [
+                                "v0"
+                            ]
+                        },
+                        "type": "BuiltinCall"
+                    },
+                    {
+                        "exit": {
+                            "type": "Terminated"
+                        },
+                        "id": "Block5",
+                        "instructions": [
+                            {
+                                "in": [
+                                    "0x00",
+                                    "0x00"
+                                ],
+                                "op": "revert",
+                                "out": []
+                            }
+                        ],
+                        "liveness": {
+                            "in": [],
+                            "out": []
+                        },
+                        "type": "BuiltinCall"
+                    },
+                    {
+                        "exit": {
+                            "type": "Terminated"
+                        },
+                        "id": "Block9",
+                        "instructions": [
+                            {
+                                "in": [
+                                    "0x2a",
+                                    "v0"
+                                ],
+                                "op": "mstore",
+                                "out": []
+                            },
+                            {
+                                "in": [
+                                    "0x20",
+                                    "v0"
+                                ],
+                                "op": "return",
+                                "out": []
+                            }
+                        ],
+                        "liveness": {
+                            "in": [
+                                "v0"
+                            ],
+                            "out": []
+                        },
+                        "type": "BuiltinCall"
+                    },
+                    {
+                        "exit": {
+                            "type": "Terminated"
+                        },
+                        "id": "Block8",
+                        "instructions": [
+                            {
+                                "in": [
+                                    "0x00",
+                                    "0x00"
+                                ],
+                                "op": "revert",
+                                "out": []
+                            }
+                        ],
+                        "liveness": {
+                            "in": [],
+                            "out": []
+                        },
+                        "type": "BuiltinCall"
+                    }
+                ],
+                "functions": {},
+                "subObjects": {}
+            },
+            "type": "subObject"
+        }
+    },
+    "type": "Object"
+}
+
+======= input.sol:D =======
+Yul Control Flow Graph:
+{
+    "D_38": {
+        "blocks": [
+            {
+                "exit": {
+                    "cond": "v1",
+                    "targets": [
+                        "Block2",
+                        "Block1"
+                    ],
+                    "type": "ConditionalJump"
+                },
+                "id": "Block0",
+                "instructions": [
+                    {
+                        "in": [],
+                        "literalArgs": [
+                            "0x80"
+                        ],
+                        "op": "memoryguard",
+                        "out": [
+                            "v0"
+                        ]
+                    },
+                    {
+                        "in": [
+                            "v0",
+                            "0x40"
+                        ],
+                        "op": "mstore",
+                        "out": []
+                    },
+                    {
+                        "in": [],
+                        "op": "callvalue",
+                        "out": [
+                            "v1"
+                        ]
+                    }
+                ],
+                "liveness": {
+                    "in": [],
+                    "out": [
+                        "v0"
+                    ]
+                },
+                "type": "BuiltinCall"
+            },
+            {
+                "exit": {
+                    "type": "Terminated"
+                },
+                "id": "Block2",
+                "instructions": [
+                    {
+                        "in": [],
+                        "literalArgs": [
+                            "D_38_deployed"
+                        ],
+                        "op": "datasize",
+                        "out": [
+                            "v2"
+                        ]
+                    },
+                    {
+                        "in": [],
+                        "literalArgs": [
+                            "D_38_deployed"
+                        ],
+                        "op": "dataoffset",
+                        "out": [
+                            "v3"
+                        ]
+                    },
+                    {
+                        "in": [
+                            "v2",
+                            "v3",
+                            "v0"
+                        ],
+                        "op": "codecopy",
+                        "out": []
+                    },
+                    {
+                        "in": [
+                            "v2",
+                            "v0"
+                        ],
+                        "op": "return",
+                        "out": []
+                    }
+                ],
+                "liveness": {
+                    "in": [
+                        "v0"
+                    ],
+                    "out": []
+                },
+                "type": "BuiltinCall"
+            },
+            {
+                "exit": {
+                    "type": "Terminated"
+                },
+                "id": "Block1",
+                "instructions": [
+                    {
+                        "in": [
+                            "0x00",
+                            "0x00"
+                        ],
+                        "op": "revert",
+                        "out": []
+                    }
+                ],
+                "liveness": {
+                    "in": [],
+                    "out": []
+                },
+                "type": "BuiltinCall"
+            }
+        ],
+        "functions": {},
+        "subObjects": {
+            "D_38_deployed": {
+                "blocks": [
+                    {
+                        "exit": {
+                            "cond": "v3",
+                            "targets": [
+                                "Block2",
+                                "Block1"
+                            ],
+                            "type": "ConditionalJump"
+                        },
+                        "id": "Block0",
+                        "instructions": [
+                            {
+                                "in": [],
+                                "literalArgs": [
+                                    "0x80"
+                                ],
+                                "op": "memoryguard",
+                                "out": [
+                                    "v0"
+                                ]
+                            },
+                            {
+                                "in": [
+                                    "v0",
+                                    "0x40"
+                                ],
+                                "op": "mstore",
+                                "out": []
+                            },
+                            {
+                                "in": [],
+                                "op": "calldatasize",
+                                "out": [
+                                    "v1"
+                                ]
+                            },
+                            {
+                                "in": [
+                                    "0x04",
+                                    "v1"
+                                ],
+                                "op": "lt",
+                                "out": [
+                                    "v2"
+                                ]
+                            },
+                            {
+                                "in": [
+                                    "v2"
+                                ],
+                                "op": "iszero",
+                                "out": [
+                                    "v3"
+                                ]
+                            }
+                        ],
+                        "liveness": {
+                            "in": [],
+                            "out": [
+                                "v0"
+                            ]
+                        },
+                        "type": "BuiltinCall"
+                    },
+                    {
+                        "exit": {
+                            "type": "Terminated"
+                        },
+                        "id": "Block2",
+                        "instructions": [
+                            {
+                                "in": [
+                                    "0x00",
+                                    "0x00"
+                                ],
+                                "op": "revert",
+                                "out": []
+                            }
+                        ],
+                        "liveness": {
+                            "in": [],
+                            "out": []
+                        },
+                        "type": "BuiltinCall"
+                    },
+                    {
+                        "exit": {
+                            "cond": "v6",
+                            "targets": [
+                                "Block4",
+                                "Block3"
+                            ],
+                            "type": "ConditionalJump"
+                        },
+                        "id": "Block1",
+                        "instructions": [
+                            {
+                                "in": [
+                                    "0x00"
+                                ],
+                                "op": "calldataload",
+                                "out": [
+                                    "v4"
+                                ]
+                            },
+                            {
+                                "in": [
+                                    "v4",
+                                    "0xe0"
+                                ],
+                                "op": "shr",
+                                "out": [
+                                    "v5"
+                                ]
+                            },
+                            {
+                                "in": [
+                                    "v5",
+                                    "0x26121ff0"
+                                ],
+                                "op": "eq",
+                                "out": [
+                                    "v6"
+                                ]
+                            }
+                        ],
+                        "liveness": {
+                            "in": [
+                                "v0"
+                            ],
+                            "out": [
+                                "v0"
+                            ]
+                        },
+                        "type": "BuiltinCall"
+                    },
+                    {
+                        "exit": {
+                            "targets": [
+                                "Block2"
+                            ],
+                            "type": "Jump"
+                        },
+                        "id": "Block4",
+                        "instructions": [],
+                        "liveness": {
+                            "in": [],
+                            "out": []
+                        }
+                    },
+                    {
+                        "exit": {
+                            "cond": "v7",
+                            "targets": [
+                                "Block6",
+                                "Block5"
+                            ],
+                            "type": "ConditionalJump"
+                        },
+                        "id": "Block3",
+                        "instructions": [
+                            {
+                                "in": [],
+                                "op": "callvalue",
+                                "out": [
+                                    "v7"
+                                ]
+                            }
+                        ],
+                        "liveness": {
+                            "in": [
+                                "v0"
+                            ],
+                            "out": [
+                                "v0"
+                            ]
+                        },
+                        "type": "BuiltinCall"
+                    },
+                    {
+                        "exit": {
+                            "cond": "v11",
+                            "targets": [
+                                "Block9",
+                                "Block8"
+                            ],
+                            "type": "ConditionalJump"
+                        },
+                        "id": "Block6",
+                        "instructions": [
+                            {
+                                "in": [
+                                    "0x03"
+                                ],
+                                "op": "not",
+                                "out": [
+                                    "v8"
+                                ]
+                            },
+                            {
+                                "in": [],
+                                "op": "calldatasize",
+                                "out": [
+                                    "v9"
+                                ]
+                            },
+                            {
+                                "in": [
+                                    "v8",
+                                    "v9"
+                                ],
+                                "op": "add",
+                                "out": [
+                                    "v10"
+                                ]
+                            },
+                            {
+                                "in": [
+                                    "0x00",
+                                    "v10"
+                                ],
+                                "op": "slt",
+                                "out": [
+                                    "v11"
+                                ]
+                            }
+                        ],
+                        "liveness": {
+                            "in": [
+                                "v0"
+                            ],
+                            "out": [
+                                "v0"
+                            ]
+                        },
+                        "type": "BuiltinCall"
+                    },
+                    {
+                        "exit": {
+                            "type": "Terminated"
+                        },
+                        "id": "Block5",
+                        "instructions": [
+                            {
+                                "in": [
+                                    "0x00",
+                                    "0x00"
+                                ],
+                                "op": "revert",
+                                "out": []
+                            }
+                        ],
+                        "liveness": {
+                            "in": [],
+                            "out": []
+                        },
+                        "type": "BuiltinCall"
+                    },
+                    {
+                        "exit": {
+                            "cond": "v16",
+                            "targets": [
+                                "Block12",
+                                "Block11"
+                            ],
+                            "type": "ConditionalJump"
+                        },
+                        "id": "Block9",
+                        "instructions": [
+                            {
+                                "in": [],
+                                "literalArgs": [
+                                    "C_19"
+                                ],
+                                "op": "datasize",
+                                "out": [
+                                    "v12"
+                                ]
+                            },
+                            {
+                                "in": [
+                                    "v12",
+                                    "v0"
+                                ],
+                                "op": "add",
+                                "out": [
+                                    "v13"
+                                ]
+                            },
+                            {
+                                "in": [
+                                    "v0",
+                                    "v13"
+                                ],
+                                "op": "lt",
+                                "out": [
+                                    "v14"
+                                ]
+                            },
+                            {
+                                "in": [
+                                    "0xffffffffffffffff",
+                                    "v13"
+                                ],
+                                "op": "gt",
+                                "out": [
+                                    "v15"
+                                ]
+                            },
+                            {
+                                "in": [
+                                    "v14",
+                                    "v15"
+                                ],
+                                "op": "or",
+                                "out": [
+                                    "v16"
+                                ]
+                            }
+                        ],
+                        "liveness": {
+                            "in": [
+                                "v0"
+                            ],
+                            "out": [
+                                "v0",
+                                "v13",
+                                "v12"
+                            ]
+                        },
+                        "type": "BuiltinCall"
+                    },
+                    {
+                        "exit": {
+                            "type": "Terminated"
+                        },
+                        "id": "Block8",
+                        "instructions": [
+                            {
+                                "in": [
+                                    "0x00",
+                                    "0x00"
+                                ],
+                                "op": "revert",
+                                "out": []
+                            }
+                        ],
+                        "liveness": {
+                            "in": [],
+                            "out": []
+                        },
+                        "type": "BuiltinCall"
+                    },
+                    {
+                        "exit": {
+                            "cond": "v21",
+                            "targets": [
+                                "Block15",
+                                "Block14"
+                            ],
+                            "type": "ConditionalJump"
+                        },
+                        "id": "Block12",
+                        "instructions": [
+                            {
+                                "in": [],
+                                "literalArgs": [
+                                    "C_19"
+                                ],
+                                "op": "dataoffset",
+                                "out": [
+                                    "v18"
+                                ]
+                            },
+                            {
+                                "in": [
+                                    "v12",
+                                    "v18",
+                                    "v0"
+                                ],
+                                "op": "datacopy",
+                                "out": []
+                            },
+                            {
+                                "in": [
+                                    "v0",
+                                    "v13"
+                                ],
+                                "op": "sub",
+                                "out": [
+                                    "v19"
+                                ]
+                            },
+                            {
+                                "in": [
+                                    "v19",
+                                    "v0",
+                                    "0x00"
+                                ],
+                                "op": "create",
+                                "out": [
+                                    "v20"
+                                ]
+                            },
+                            {
+                                "in": [
+                                    "v20"
+                                ],
+                                "op": "iszero",
+                                "out": [
+                                    "v21"
+                                ]
+                            }
+                        ],
+                        "liveness": {
+                            "in": [
+                                "v0",
+                                "v13",
+                                "v12"
+                            ],
+                            "out": [
+                                "v20"
+                            ]
+                        },
+                        "type": "BuiltinCall"
+                    },
+                    {
+                        "exit": {
+                            "type": "Terminated"
+                        },
+                        "id": "Block11",
+                        "instructions": [
+                            {
+                                "in": [
+                                    "0x4e487b71",
+                                    "0xe0"
+                                ],
+                                "op": "shl",
+                                "out": [
+                                    "v17"
+                                ]
+                            },
+                            {
+                                "in": [
+                                    "v17",
+                                    "0x00"
+                                ],
+                                "op": "mstore",
+                                "out": []
+                            },
+                            {
+                                "in": [
+                                    "0x41",
+                                    "0x04"
+                                ],
+                                "op": "mstore",
+                                "out": []
+                            },
+                            {
+                                "in": [
+                                    "0x24",
+                                    "0x00"
+                                ],
+                                "op": "revert",
+                                "out": []
+                            }
+                        ],
+                        "liveness": {
+                            "in": [],
+                            "out": []
+                        },
+                        "type": "BuiltinCall"
+                    },
+                    {
+                        "exit": {
+                            "cond": "v32",
+                            "targets": [
+                                "Block18",
+                                "Block17"
+                            ],
+                            "type": "ConditionalJump"
+                        },
+                        "id": "Block15",
+                        "instructions": [
+                            {
+                                "in": [
+                                    "0x40"
+                                ],
+                                "op": "mload",
+                                "out": [
+                                    "v25"
+                                ]
+                            },
+                            {
+                                "in": [
+                                    "0x026121ff",
+                                    "0xe4"
+                                ],
+                                "op": "shl",
+                                "out": [
+                                    "v26"
+                                ]
+                            },
+                            {
+                                "in": [
+                                    "v26",
+                                    "v25"
+                                ],
+                                "op": "mstore",
+                                "out": []
+                            },
+                            {
+                                "in": [
+                                    "0x01",
+                                    "0xa0"
+                                ],
+                                "op": "shl",
+                                "out": [
+                                    "v27"
+                                ]
+                            },
+                            {
+                                "in": [
+                                    "0x01",
+                                    "v27"
+                                ],
+                                "op": "sub",
+                                "out": [
+                                    "v28"
+                                ]
+                            },
+                            {
+                                "in": [
+                                    "v28",
+                                    "v20"
+                                ],
+                                "op": "and",
+                                "out": [
+                                    "v29"
+                                ]
+                            },
+                            {
+                                "in": [],
+                                "op": "gas",
+                                "out": [
+                                    "v30"
+                                ]
+                            },
+                            {
+                                "in": [
+                                    "0x20",
+                                    "v25",
+                                    "0x04",
+                                    "v25",
+                                    "v29",
+                                    "v30"
+                                ],
+                                "op": "staticcall",
+                                "out": [
+                                    "v31"
+                                ]
+                            },
+                            {
+                                "in": [
+                                    "v31"
+                                ],
+                                "op": "iszero",
+                                "out": [
+                                    "v32"
+                                ]
+                            }
+                        ],
+                        "liveness": {
+                            "in": [
+                                "v20"
+                            ],
+                            "out": [
+                                "v25",
+                                "v31"
+                            ]
+                        },
+                        "type": "BuiltinCall"
+                    },
+                    {
+                        "exit": {
+                            "type": "Terminated"
+                        },
+                        "id": "Block14",
+                        "instructions": [
+                            {
+                                "in": [
+                                    "0x40"
+                                ],
+                                "op": "mload",
+                                "out": [
+                                    "v22"
+                                ]
+                            },
+                            {
+                                "in": [],
+                                "op": "returndatasize",
+                                "out": [
+                                    "v23"
+                                ]
+                            },
+                            {
+                                "in": [
+                                    "v23",
+                                    "0x00",
+                                    "v22"
+                                ],
+                                "op": "returndatacopy",
+                                "out": []
+                            },
+                            {
+                                "in": [],
+                                "op": "returndatasize",
+                                "out": [
+                                    "v24"
+                                ]
+                            },
+                            {
+                                "in": [
+                                    "v24",
+                                    "v22"
+                                ],
+                                "op": "revert",
+                                "out": []
+                            }
+                        ],
+                        "liveness": {
+                            "in": [],
+                            "out": []
+                        },
+                        "type": "BuiltinCall"
+                    },
+                    {
+                        "exit": {
+                            "cond": "v31",
+                            "targets": [
+                                "Block21",
+                                "Block20"
+                            ],
+                            "type": "ConditionalJump"
+                        },
+                        "id": "Block18",
+                        "instructions": [
+                            {
+                                "in": [
+                                    "0x00"
+                                ],
+                                "op": "LiteralAssignment",
+                                "out": [
+                                    "v36"
+                                ]
+                            }
+                        ],
+                        "liveness": {
+                            "in": [
+                                "v25",
+                                "v31"
+                            ],
+                            "out": [
+                                "v36",
+                                "v25"
+                            ]
+                        }
+                    },
+                    {
+                        "exit": {
+                            "type": "Terminated"
+                        },
+                        "id": "Block17",
+                        "instructions": [
+                            {
+                                "in": [
+                                    "0x40"
+                                ],
+                                "op": "mload",
+                                "out": [
+                                    "v33"
+                                ]
+                            },
+                            {
+                                "in": [],
+                                "op": "returndatasize",
+                                "out": [
+                                    "v34"
+                                ]
+                            },
+                            {
+                                "in": [
+                                    "v34",
+                                    "0x00",
+                                    "v33"
+                                ],
+                                "op": "returndatacopy",
+                                "out": []
+                            },
+                            {
+                                "in": [],
+                                "op": "returndatasize",
+                                "out": [
+                                    "v35"
+                                ]
+                            },
+                            {
+                                "in": [
+                                    "v35",
+                                    "v33"
+                                ],
+                                "op": "revert",
+                                "out": []
+                            }
+                        ],
+                        "liveness": {
+                            "in": [],
+                            "out": []
+                        },
+                        "type": "BuiltinCall"
+                    },
+                    {
+                        "entries": [
+                            "Block18",
+                            "Block28"
+                        ],
+                        "exit": {
+                            "type": "Terminated"
+                        },
+                        "id": "Block21",
+                        "instructions": [
+                            {
+                                "in": [
+                                    "v36",
+                                    "v52"
+                                ],
+                                "op": "PhiFunction",
+                                "out": [
+                                    "phi26"
+                                ]
+                            },
+                            {
+                                "in": [
+                                    "0x40"
+                                ],
+                                "op": "mload",
+                                "out": [
+                                    "v53"
+                                ]
+                            },
+                            {
+                                "in": [
+                                    "phi26",
+                                    "v53"
+                                ],
+                                "op": "mstore",
+                                "out": []
+                            },
+                            {
+                                "in": [
+                                    "0x20",
+                                    "v53"
+                                ],
+                                "op": "return",
+                                "out": []
+                            }
+                        ],
+                        "liveness": {
+                            "in": [
+                                "phi26"
+                            ],
+                            "out": []
+                        },
+                        "type": "BuiltinCall"
+                    },
+                    {
+                        "exit": {
+                            "cond": "v39",
+                            "targets": [
+                                "Block23",
+                                "Block22"
+                            ],
+                            "type": "ConditionalJump"
+                        },
+                        "id": "Block20",
+                        "instructions": [
+                            {
+                                "in": [
+                                    "0x20"
+                                ],
+                                "op": "LiteralAssignment",
+                                "out": [
+                                    "v37"
+                                ]
+                            },
+                            {
+                                "in": [],
+                                "op": "returndatasize",
+                                "out": [
+                                    "v38"
+                                ]
+                            },
+                            {
+                                "in": [
+                                    "v38",
+                                    "0x20"
+                                ],
+                                "op": "gt",
+                                "out": [
+                                    "v39"
+                                ]
+                            }
+                        ],
+                        "liveness": {
+                            "in": [
+                                "v25"
+                            ],
+                            "out": [
+                                "v37",
+                                "v25"
+                            ]
+                        },
+                        "type": "BuiltinCall"
+                    },
+                    {
+                        "entries": [
+                            "Block20",
+                            "Block22"
+                        ],
+                        "exit": {
+                            "cond": "v47",
+                            "targets": [
+                                "Block25",
+                                "Block24"
+                            ],
+                            "type": "ConditionalJump"
+                        },
+                        "id": "Block23",
+                        "instructions": [
+                            {
+                                "in": [
+                                    "v37",
+                                    "v40"
+                                ],
+                                "op": "PhiFunction",
+                                "out": [
+                                    "phi14"
+                                ]
+                            },
+                            {
+                                "in": [
+                                    "0x1f"
+                                ],
+                                "op": "not",
+                                "out": [
+                                    "v41"
+                                ]
+                            },
+                            {
+                                "in": [
+                                    "0x1f",
+                                    "phi14"
+                                ],
+                                "op": "add",
+                                "out": [
+                                    "v42"
+                                ]
+                            },
+                            {
+                                "in": [
+                                    "v41",
+                                    "v42"
+                                ],
+                                "op": "and",
+                                "out": [
+                                    "v43"
+                                ]
+                            },
+                            {
+                                "in": [
+                                    "v43",
+                                    "v25"
+                                ],
+                                "op": "add",
+                                "out": [
+                                    "v44"
+                                ]
+                            },
+                            {
+                                "in": [
+                                    "v25",
+                                    "v44"
+                                ],
+                                "op": "lt",
+                                "out": [
+                                    "v45"
+                                ]
+                            },
+                            {
+                                "in": [
+                                    "0xffffffffffffffff",
+                                    "v44"
+                                ],
+                                "op": "gt",
+                                "out": [
+                                    "v46"
+                                ]
+                            },
+                            {
+                                "in": [
+                                    "v45",
+                                    "v46"
+                                ],
+                                "op": "or",
+                                "out": [
+                                    "v47"
+                                ]
+                            }
+                        ],
+                        "liveness": {
+                            "in": [
+                                "v25",
+                                "phi14"
+                            ],
+                            "out": [
+                                "v25",
+                                "phi14",
+                                "v44"
+                            ]
+                        },
+                        "type": "BuiltinCall"
+                    },
+                    {
+                        "exit": {
+                            "targets": [
+                                "Block23"
+                            ],
+                            "type": "Jump"
+                        },
+                        "id": "Block22",
+                        "instructions": [
+                            {
+                                "in": [],
+                                "op": "returndatasize",
+                                "out": [
+                                    "v40"
+                                ]
+                            }
+                        ],
+                        "liveness": {
+                            "in": [
+                                "v25"
+                            ],
+                            "out": [
+                                "v40",
+                                "v25"
+                            ]
+                        },
+                        "type": "BuiltinCall"
+                    },
+                    {
+                        "exit": {
+                            "cond": "v51",
+                            "targets": [
+                                "Block28",
+                                "Block27"
+                            ],
+                            "type": "ConditionalJump"
+                        },
+                        "id": "Block25",
+                        "instructions": [
+                            {
+                                "in": [
+                                    "v44",
+                                    "0x40"
+                                ],
+                                "op": "mstore",
+                                "out": []
+                            },
+                            {
+                                "in": [
+                                    "phi14",
+                                    "v25"
+                                ],
+                                "op": "add",
+                                "out": [
+                                    "v49"
+                                ]
+                            },
+                            {
+                                "in": [
+                                    "v25",
+                                    "v49"
+                                ],
+                                "op": "sub",
+                                "out": [
+                                    "v50"
+                                ]
+                            },
+                            {
+                                "in": [
+                                    "0x20",
+                                    "v50"
+                                ],
+                                "op": "slt",
+                                "out": [
+                                    "v51"
+                                ]
+                            }
+                        ],
+                        "liveness": {
+                            "in": [
+                                "v25",
+                                "phi14",
+                                "v44"
+                            ],
+                            "out": [
+                                "v25"
+                            ]
+                        },
+                        "type": "BuiltinCall"
+                    },
+                    {
+                        "exit": {
+                            "type": "Terminated"
+                        },
+                        "id": "Block24",
+                        "instructions": [
+                            {
+                                "in": [
+                                    "0x4e487b71",
+                                    "0xe0"
+                                ],
+                                "op": "shl",
+                                "out": [
+                                    "v48"
+                                ]
+                            },
+                            {
+                                "in": [
+                                    "v48",
+                                    "0x00"
+                                ],
+                                "op": "mstore",
+                                "out": []
+                            },
+                            {
+                                "in": [
+                                    "0x41",
+                                    "0x04"
+                                ],
+                                "op": "mstore",
+                                "out": []
+                            },
+                            {
+                                "in": [
+                                    "0x24",
+                                    "0x00"
+                                ],
+                                "op": "revert",
+                                "out": []
+                            }
+                        ],
+                        "liveness": {
+                            "in": [],
+                            "out": []
+                        },
+                        "type": "BuiltinCall"
+                    },
+                    {
+                        "exit": {
+                            "targets": [
+                                "Block21"
+                            ],
+                            "type": "Jump"
+                        },
+                        "id": "Block28",
+                        "instructions": [
+                            {
+                                "in": [
+                                    "v25"
+                                ],
+                                "op": "mload",
+                                "out": [
+                                    "v52"
+                                ]
+                            }
+                        ],
+                        "liveness": {
+                            "in": [
+                                "v25"
+                            ],
+                            "out": [
+                                "v52"
+                            ]
+                        },
+                        "type": "BuiltinCall"
+                    },
+                    {
+                        "exit": {
+                            "type": "Terminated"
+                        },
+                        "id": "Block27",
+                        "instructions": [
+                            {
+                                "in": [
+                                    "0x00",
+                                    "0x00"
+                                ],
+                                "op": "revert",
+                                "out": []
+                            }
+                        ],
+                        "liveness": {
+                            "in": [],
+                            "out": []
+                        },
+                        "type": "BuiltinCall"
+                    }
+                ],
+                "functions": {},
+                "subObjects": {
+                    "C_19": {
+                        "blocks": [
+                            {
+                                "exit": {
+                                    "cond": "v1",
+                                    "targets": [
+                                        "Block2",
+                                        "Block1"
+                                    ],
+                                    "type": "ConditionalJump"
+                                },
+                                "id": "Block0",
+                                "instructions": [
+                                    {
+                                        "in": [],
+                                        "literalArgs": [
+                                            "0x80"
+                                        ],
+                                        "op": "memoryguard",
+                                        "out": [
+                                            "v0"
+                                        ]
+                                    },
+                                    {
+                                        "in": [
+                                            "v0",
+                                            "0x40"
+                                        ],
+                                        "op": "mstore",
+                                        "out": []
+                                    },
+                                    {
+                                        "in": [],
+                                        "op": "callvalue",
+                                        "out": [
+                                            "v1"
+                                        ]
+                                    }
+                                ],
+                                "liveness": {
+                                    "in": [],
+                                    "out": [
+                                        "v0"
+                                    ]
+                                },
+                                "type": "BuiltinCall"
+                            },
+                            {
+                                "exit": {
+                                    "type": "Terminated"
+                                },
+                                "id": "Block2",
+                                "instructions": [
+                                    {
+                                        "in": [],
+                                        "literalArgs": [
+                                            "C_19_deployed"
+                                        ],
+                                        "op": "datasize",
+                                        "out": [
+                                            "v2"
+                                        ]
+                                    },
+                                    {
+                                        "in": [],
+                                        "literalArgs": [
+                                            "C_19_deployed"
+                                        ],
+                                        "op": "dataoffset",
+                                        "out": [
+                                            "v3"
+                                        ]
+                                    },
+                                    {
+                                        "in": [
+                                            "v2",
+                                            "v3",
+                                            "v0"
+                                        ],
+                                        "op": "codecopy",
+                                        "out": []
+                                    },
+                                    {
+                                        "in": [
+                                            "v2",
+                                            "v0"
+                                        ],
+                                        "op": "return",
+                                        "out": []
+                                    }
+                                ],
+                                "liveness": {
+                                    "in": [
+                                        "v0"
+                                    ],
+                                    "out": []
+                                },
+                                "type": "BuiltinCall"
+                            },
+                            {
+                                "exit": {
+                                    "type": "Terminated"
+                                },
+                                "id": "Block1",
+                                "instructions": [
+                                    {
+                                        "in": [
+                                            "0x00",
+                                            "0x00"
+                                        ],
+                                        "op": "revert",
+                                        "out": []
+                                    }
+                                ],
+                                "liveness": {
+                                    "in": [],
+                                    "out": []
+                                },
+                                "type": "BuiltinCall"
+                            }
+                        ],
+                        "functions": {},
+                        "subObjects": {
+                            "C_19_deployed": {
+                                "blocks": [
+                                    {
+                                        "exit": {
+                                            "cond": "v3",
+                                            "targets": [
+                                                "Block2",
+                                                "Block1"
+                                            ],
+                                            "type": "ConditionalJump"
+                                        },
+                                        "id": "Block0",
+                                        "instructions": [
+                                            {
+                                                "in": [],
+                                                "literalArgs": [
+                                                    "0x80"
+                                                ],
+                                                "op": "memoryguard",
+                                                "out": [
+                                                    "v0"
+                                                ]
+                                            },
+                                            {
+                                                "in": [
+                                                    "v0",
+                                                    "0x40"
+                                                ],
+                                                "op": "mstore",
+                                                "out": []
+                                            },
+                                            {
+                                                "in": [],
+                                                "op": "calldatasize",
+                                                "out": [
+                                                    "v1"
+                                                ]
+                                            },
+                                            {
+                                                "in": [
+                                                    "0x04",
+                                                    "v1"
+                                                ],
+                                                "op": "lt",
+                                                "out": [
+                                                    "v2"
+                                                ]
+                                            },
+                                            {
+                                                "in": [
+                                                    "v2"
+                                                ],
+                                                "op": "iszero",
+                                                "out": [
+                                                    "v3"
+                                                ]
+                                            }
+                                        ],
+                                        "liveness": {
+                                            "in": [],
+                                            "out": [
+                                                "v0"
+                                            ]
+                                        },
+                                        "type": "BuiltinCall"
+                                    },
+                                    {
+                                        "exit": {
+                                            "type": "Terminated"
+                                        },
+                                        "id": "Block2",
+                                        "instructions": [
+                                            {
+                                                "in": [
+                                                    "0x00",
+                                                    "0x00"
+                                                ],
+                                                "op": "revert",
+                                                "out": []
+                                            }
+                                        ],
+                                        "liveness": {
+                                            "in": [],
+                                            "out": []
+                                        },
+                                        "type": "BuiltinCall"
+                                    },
+                                    {
+                                        "exit": {
+                                            "cond": "v6",
+                                            "targets": [
+                                                "Block4",
+                                                "Block3"
+                                            ],
+                                            "type": "ConditionalJump"
+                                        },
+                                        "id": "Block1",
+                                        "instructions": [
+                                            {
+                                                "in": [
+                                                    "0x00"
+                                                ],
+                                                "op": "calldataload",
+                                                "out": [
+                                                    "v4"
+                                                ]
+                                            },
+                                            {
+                                                "in": [
+                                                    "v4",
+                                                    "0xe0"
+                                                ],
+                                                "op": "shr",
+                                                "out": [
+                                                    "v5"
+                                                ]
+                                            },
+                                            {
+                                                "in": [
+                                                    "v5",
+                                                    "0x26121ff0"
+                                                ],
+                                                "op": "eq",
+                                                "out": [
+                                                    "v6"
+                                                ]
+                                            }
+                                        ],
+                                        "liveness": {
+                                            "in": [
+                                                "v0"
+                                            ],
+                                            "out": [
+                                                "v0"
+                                            ]
+                                        },
+                                        "type": "BuiltinCall"
+                                    },
+                                    {
+                                        "exit": {
+                                            "targets": [
+                                                "Block2"
+                                            ],
+                                            "type": "Jump"
+                                        },
+                                        "id": "Block4",
+                                        "instructions": [],
+                                        "liveness": {
+                                            "in": [],
+                                            "out": []
+                                        }
+                                    },
+                                    {
+                                        "exit": {
+                                            "cond": "v7",
+                                            "targets": [
+                                                "Block6",
+                                                "Block5"
+                                            ],
+                                            "type": "ConditionalJump"
+                                        },
+                                        "id": "Block3",
+                                        "instructions": [
+                                            {
+                                                "in": [],
+                                                "op": "callvalue",
+                                                "out": [
+                                                    "v7"
+                                                ]
+                                            }
+                                        ],
+                                        "liveness": {
+                                            "in": [
+                                                "v0"
+                                            ],
+                                            "out": [
+                                                "v0"
+                                            ]
+                                        },
+                                        "type": "BuiltinCall"
+                                    },
+                                    {
+                                        "exit": {
+                                            "cond": "v11",
+                                            "targets": [
+                                                "Block9",
+                                                "Block8"
+                                            ],
+                                            "type": "ConditionalJump"
+                                        },
+                                        "id": "Block6",
+                                        "instructions": [
+                                            {
+                                                "in": [
+                                                    "0x03"
+                                                ],
+                                                "op": "not",
+                                                "out": [
+                                                    "v8"
+                                                ]
+                                            },
+                                            {
+                                                "in": [],
+                                                "op": "calldatasize",
+                                                "out": [
+                                                    "v9"
+                                                ]
+                                            },
+                                            {
+                                                "in": [
+                                                    "v8",
+                                                    "v9"
+                                                ],
+                                                "op": "add",
+                                                "out": [
+                                                    "v10"
+                                                ]
+                                            },
+                                            {
+                                                "in": [
+                                                    "0x00",
+                                                    "v10"
+                                                ],
+                                                "op": "slt",
+                                                "out": [
+                                                    "v11"
+                                                ]
+                                            }
+                                        ],
+                                        "liveness": {
+                                            "in": [
+                                                "v0"
+                                            ],
+                                            "out": [
+                                                "v0"
+                                            ]
+                                        },
+                                        "type": "BuiltinCall"
+                                    },
+                                    {
+                                        "exit": {
+                                            "type": "Terminated"
+                                        },
+                                        "id": "Block5",
+                                        "instructions": [
+                                            {
+                                                "in": [
+                                                    "0x00",
+                                                    "0x00"
+                                                ],
+                                                "op": "revert",
+                                                "out": []
+                                            }
+                                        ],
+                                        "liveness": {
+                                            "in": [],
+                                            "out": []
+                                        },
+                                        "type": "BuiltinCall"
+                                    },
+                                    {
+                                        "exit": {
+                                            "type": "Terminated"
+                                        },
+                                        "id": "Block9",
+                                        "instructions": [
+                                            {
+                                                "in": [
+                                                    "0x2a",
+                                                    "v0"
+                                                ],
+                                                "op": "mstore",
+                                                "out": []
+                                            },
+                                            {
+                                                "in": [
+                                                    "0x20",
+                                                    "v0"
+                                                ],
+                                                "op": "return",
+                                                "out": []
+                                            }
+                                        ],
+                                        "liveness": {
+                                            "in": [
+                                                "v0"
+                                            ],
+                                            "out": []
+                                        },
+                                        "type": "BuiltinCall"
+                                    },
+                                    {
+                                        "exit": {
+                                            "type": "Terminated"
+                                        },
+                                        "id": "Block8",
+                                        "instructions": [
+                                            {
+                                                "in": [
+                                                    "0x00",
+                                                    "0x00"
+                                                ],
+                                                "op": "revert",
+                                                "out": []
+                                            }
+                                        ],
+                                        "liveness": {
+                                            "in": [],
+                                            "out": []
+                                        },
+                                        "type": "BuiltinCall"
+                                    }
+                                ],
+                                "functions": {},
+                                "subObjects": {}
+                            },
+                            "type": "subObject"
+                        }
+                    },
+                    "type": "subObject"
+                }
+            },
+            "type": "subObject"
+        }
+    },
+    "type": "Object"
+}
+
+======= input.sol:I =======
+Yul Control Flow Graph:
+null

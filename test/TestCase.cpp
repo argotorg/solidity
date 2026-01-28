@@ -51,9 +51,10 @@ void TestCase::printUpdatedSettings(std::ostream& _stream, std::string const& _l
 bool TestCase::isTestFilename(boost::filesystem::path const& _filename)
 {
 	std::string extension = _filename.extension().string();
-	return (extension == ".sol" || extension == ".yul" || extension == ".stack") &&
-		   !boost::starts_with(_filename.string(), "~") &&
-			!boost::starts_with(_filename.string(), ".");
+	// NOTE: .asmjson rather than .json because JSON files that do not represent test cases exist in some test dirs.
+	return (extension == ".sol" || extension == ".yul" || extension == ".asm" || extension == ".asmjson" || extension == ".stack") &&
+		!_filename.string().starts_with('~') &&
+		!_filename.string().starts_with('.');
 }
 
 bool TestCase::shouldRun()
@@ -96,8 +97,7 @@ TestCase::TestResult TestCase::checkResult(std::ostream& _stream, const std::str
 	return TestResult::Success;
 }
 
-EVMVersionRestrictedTestCase::EVMVersionRestrictedTestCase(std::string const& _filename):
-	TestCase(_filename)
+void EVMVersionRestrictedTestCase::processEVMVersionSetting()
 {
 	std::string versionString = m_reader.stringSetting("EVMVersion", "any");
 	if (versionString == "any")
@@ -115,7 +115,11 @@ EVMVersionRestrictedTestCase::EVMVersionRestrictedTestCase(std::string const& _f
 			break;
 
 	versionString = versionString.substr(versionBegin);
-	std::optional<langutil::EVMVersion> version = langutil::EVMVersion::fromString(versionString);
+	std::optional<langutil::EVMVersion> version;
+	if (versionString == "current")
+		version = std::make_optional<langutil::EVMVersion>();
+	else
+		version = langutil::EVMVersion::fromString(versionString);
 	if (!version)
 		BOOST_THROW_EXCEPTION(std::runtime_error{"Invalid EVM version: \"" + versionString + "\""});
 
@@ -138,4 +142,30 @@ EVMVersionRestrictedTestCase::EVMVersionRestrictedTestCase(std::string const& _f
 
 	if (!comparisonResult)
 		m_shouldRun = false;
+}
+
+void EVMVersionRestrictedTestCase::processBytecodeFormatSetting()
+{
+	std::optional<uint8_t> eofVersion = solidity::test::CommonOptions::get().eofVersion();
+	// EOF only available since Osaka
+	solAssert(!eofVersion.has_value() || solidity::test::CommonOptions::get().evmVersion().supportsEOF());
+
+	std::string bytecodeFormatString = m_reader.stringSetting("bytecodeFormat", "legacy,>=EOFv1");
+	if (bytecodeFormatString == "legacy,>=EOFv1" || bytecodeFormatString == ">=EOFv1,legacy")
+		return;
+
+	// TODO: This is naive implementation because for now we support only one EOF version.
+	if (bytecodeFormatString == "legacy" && eofVersion.has_value())
+		m_shouldRun = false;
+	else if (bytecodeFormatString == ">=EOFv1" && !eofVersion.has_value())
+		m_shouldRun = false;
+	else if (bytecodeFormatString != "legacy" && bytecodeFormatString != ">=EOFv1" )
+		BOOST_THROW_EXCEPTION(std::runtime_error{"Invalid bytecodeFormat flag: \"" + bytecodeFormatString + "\""});
+}
+
+EVMVersionRestrictedTestCase::EVMVersionRestrictedTestCase(std::string const& _filename):
+	TestCase(_filename)
+{
+	processEVMVersionSetting();
+	processBytecodeFormatSetting();
 }

@@ -76,10 +76,10 @@ std::pair<bigint, bigint> GasMeterVisitor::instructionCosts(
 void GasMeterVisitor::operator()(FunctionCall const& _funCall)
 {
 	ASTWalker::operator()(_funCall);
-	if (BuiltinFunctionForEVM const* f = m_dialect.builtin(_funCall.functionName.name))
-		if (f->instruction)
+	if (BuiltinFunctionForEVM const* builtin = resolveBuiltinFunctionForEVM(_funCall.functionName, m_dialect))
+		if (builtin->instruction)
 		{
-			instructionCostsInternal(*f->instruction);
+			instructionCostsInternal(*builtin->instruction);
 			return;
 		}
 	yulAssert(false, "Functions not implemented.");
@@ -87,11 +87,12 @@ void GasMeterVisitor::operator()(FunctionCall const& _funCall)
 
 void GasMeterVisitor::operator()(Literal const& _lit)
 {
-	m_runGas += evmasm::GasMeter::runGas(evmasm::Instruction::PUSH1, m_dialect.evmVersion());
-	m_dataGas +=
-		singleByteDataGas() +
-		evmasm::GasMeter::dataGas(
-			toCompactBigEndian(valueOfLiteral(_lit), 1),
+	m_runGas += evmasm::GasMeter::pushGas(_lit.value.value(), m_dialect.evmVersion());
+
+	m_dataGas += singleByteDataGas();
+	if (!m_dialect.evmVersion().hasPush0() || _lit.value.value() != u256(0))
+		m_dataGas += evmasm::GasMeter::dataGas(
+			toCompactBigEndian(_lit.value.value(), 1),
 			m_isCreation,
 			m_dialect.evmVersion()
 		);

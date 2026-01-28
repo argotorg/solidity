@@ -29,18 +29,23 @@
 #include <boost/program_options.hpp>
 #include <boost/test/unit_test.hpp>
 
+namespace solidity::yul
+{
+class EVMDialect;
+}
+
 namespace solidity::test
 {
 
 #ifdef _WIN32
 static constexpr auto evmoneFilename = "evmone.dll";
-static constexpr auto evmoneDownloadLink = "https://github.com/ethereum/evmone/releases/download/v0.11.0/evmone-0.11.0-windows-amd64.zip";
+static constexpr auto evmoneDownloadLink = "https://github.com/ipsilon/evmone/releases/download/v0.16.0/evmone-0.16.0-windows-amd64.zip";
 #elif defined(__APPLE__)
 static constexpr auto evmoneFilename = "libevmone.dylib";
-static constexpr auto evmoneDownloadLink = "https://github.com/ethereum/evmone/releases/download/v0.11.0/evmone-0.11.0-darwin-x86_64.tar.gz";
+static constexpr auto evmoneDownloadLink = "https://github.com/ipsilon/evmone/releases/download/v0.16.0/evmone-0.16.0-darwin-arm64.tar.gz";
 #else
 static constexpr auto evmoneFilename = "libevmone.so";
-static constexpr auto evmoneDownloadLink = "https://github.com/ethereum/evmone/releases/download/v0.11.0/evmone-0.11.0-linux-x86_64.tar.gz";
+static constexpr auto evmoneDownloadLink = "https://github.com/ipsilon/evmone/releases/download/v0.16.0/evmone-0.16.0-linux-x86_64.tar.gz";
 #endif
 
 struct ConfigException: public util::Exception {};
@@ -66,6 +71,7 @@ struct CommonOptions
 
 	langutil::EVMVersion evmVersion() const;
 	std::optional<uint8_t> eofVersion() const { return m_eofVersion; }
+	yul::EVMDialect const& evmDialect() const;
 
 	virtual void addOptions();
 	// @returns true if the program should continue, false if it should exit immediately without
@@ -105,6 +111,14 @@ bool isValidSemanticTestPath(boost::filesystem::path const& _testPath);
 /// is older than @p _minEVMVersion.
 /// @return A predicate (function) that can be passed into @a boost::unit_test::precondition().
 boost::unit_test::precondition::predicate_t minEVMVersionCheck(langutil::EVMVersion _minEVMVersion);
+
+/// Helper that can be used to skip tests when the EOF is not supported by the test case.
+/// @return A predicate (function) that can be passed into @a boost::unit_test::precondition().
+boost::unit_test::precondition::predicate_t nonEOF();
+
+/// Helper that can be used to skip tests when the legacy bytecode is not supported by the test case.
+/// @return A predicate (function) that can be passed into @a boost::unit_test::precondition().
+boost::unit_test::precondition::predicate_t onEOF();
 
 bool loadVMs(CommonOptions const& _options);
 

@@ -13,5 +13,6 @@ contract B is A {
 	}
 }
 // ----
+// Warning 8429: (71-115): Virtual modifiers are deprecated and scheduled for removal.
 // Warning 5740: (65-69): Unreachable code.
 // TypeError 3464: (49-63): This variable is of storage pointer type and can be returned without prior assignment, which would lead to undefined behaviour.

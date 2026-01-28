@@ -1,0 +1,33 @@
+{
+    ".code": [
+        {"name": "PUSH [tag]", "value": "1"},
+        {"name": "PUSH [tag]", "value": "2"},
+        {"name": "JUMP"},
+        {"name": "tag", "value": "1"},
+        {"name": "JUMPDEST"},
+        {"name": "STOP"},
+        {"name": "tag", "value": "2"},
+        {"name": "JUMPDEST"},
+        {"name": "CALLVALUE"},
+        {"name": "SWAP1"},
+        {"name": "JUMP"}
+    ]
+}
+// ====
+// optimizationPreset: none
+// optimizer.inliner: true
+// ----
+// Assembly:
+//   tag_1
+//   callvalue
+//   swap1
+//   jump
+// tag_1:
+//   stop
+// tag_2:
+//   callvalue
+//   swap1
+//   jump
+// Bytecode: 60053490565b005b349056
+// Opcodes: PUSH1 0x5 CALLVALUE SWAP1 JUMP JUMPDEST STOP JUMPDEST CALLVALUE SWAP1 JUMP
+// SourceMappings: :::-:0;;;;;;;;;

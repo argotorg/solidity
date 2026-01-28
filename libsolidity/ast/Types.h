@@ -70,7 +70,7 @@ inline rational makeRational(bigint const& _numerator, bigint const& _denominato
 		return rational(_numerator, _denominator);
 }
 
-enum class DataLocation { Storage, CallData, Memory };
+enum class DataLocation { Storage, Transient, CallData, Memory };
 
 
 /**
@@ -81,7 +81,10 @@ class StorageOffsets
 public:
 	/// Resets the StorageOffsets objects and determines the position in storage for each
 	/// of the elements of @a _types.
-	void computeOffsets(TypePointers const& _types);
+	/// Calculated positions are absolute and start at @a _baseSlot.
+	/// Assumes that @a _types is small enough to fit in the area between @a _baseSlot and the end of storage
+	/// (the caller is responsible for validating that).
+	void computeOffsets(TypePointers const& _types, u256 _baseSlot = 0);
 	/// @returns the offset of the given member, might be null if the member is not part of storage.
 	std::pair<u256, unsigned> const* offset(size_t _index) const;
 	/// @returns the total number of slots occupied by all members.
@@ -495,6 +498,7 @@ public:
 	TypeResult unaryOperatorResult(Token _operator) const override;
 	TypeResult binaryOperatorResult(Token _operator, Type const* _other) const override;
 
+	bool operator==(IntegerType const& _other) const;
 	bool operator==(Type const& _other) const override;
 
 	unsigned calldataEncodedSize(bool _padded = true) const override { return _padded ? 32 : m_bits / 8; }
@@ -854,6 +858,7 @@ public:
 	BoolResult isImplicitlyConvertibleTo(Type const& _convertTo) const override;
 	BoolResult isExplicitlyConvertibleTo(Type const& _convertTo) const override;
 	std::string richIdentifier() const override;
+	bool operator==(ArrayType const& _other) const;
 	bool operator==(Type const& _other) const override;
 	unsigned calldataEncodedSize(bool) const override;
 	unsigned calldataEncodedTailSize() const override;
@@ -1000,9 +1005,12 @@ public:
 	/// Returns the function type of the constructor modified to return an object of the contract's type.
 	FunctionType const* newExpressionType() const;
 
-	/// @returns a list of all state variables (including inherited) of the contract and their
-	/// offsets in storage.
-	std::vector<std::tuple<VariableDeclaration const*, u256, unsigned>> stateVariables() const;
+	/// @returns a list of all state variables in the linearized inheritance hierarchy and
+	/// their respective slots and offsets in storage/transient storage.
+	/// It should only be called for the top level contract in order to get the absolute slots and
+	/// offsets values in storage/transient storage. Otherwise, the slots of the state variables
+	/// will be relative to the contract position in the hierarchy.
+	std::vector<std::tuple<VariableDeclaration const*, u256, unsigned>> linearizedStateVariables(DataLocation _location) const;
 	/// @returns a list of all immutable variables (including inherited) of the contract.
 	std::vector<VariableDeclaration const*> immutableVariables() const;
 protected:
@@ -1148,6 +1156,7 @@ public:
 	Declaration const* typeDefinition() const override;
 
 	std::string richIdentifier() const override;
+	bool operator==(UserDefinedValueType const& _other) const;
 	bool operator==(Type const& _other) const override;
 
 	unsigned calldataEncodedSize(bool _padded) const override { return underlyingType().calldataEncodedSize(_padded); }
@@ -1625,6 +1634,7 @@ public:
 	bool hasSimpleZeroValueInMemory() const override { solAssert(false, ""); }
 	std::string richIdentifier() const override;
 	bool operator==(Type const& _other) const override;
+	bool operator==(ModifierType const& _other) const;
 	std::string toString(bool _withoutDataLocation) const override;
 protected:
 	std::vector<std::tuple<std::string, Type const*>> makeStackItems() const override { return {}; }

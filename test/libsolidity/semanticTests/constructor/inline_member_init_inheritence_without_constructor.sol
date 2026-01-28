@@ -14,6 +14,8 @@ contract Derived is Base {
         return m_derived;
     }
 }
+// ====
+// bytecodeFormat: legacy,>=EOFv1
 // ----
 // getBMember() -> 5
 // getDMember() -> 6

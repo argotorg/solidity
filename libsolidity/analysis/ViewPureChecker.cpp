@@ -18,8 +18,9 @@
 
 #include <libsolidity/analysis/ViewPureChecker.h>
 #include <libsolidity/ast/ExperimentalFeatures.h>
-#include <libyul/AST.h>
 #include <libyul/backends/evm/EVMDialect.h>
+#include <libyul/AST.h>
+#include <libyul/Utilities.h>
 #include <liblangutil/ErrorReporter.h>
 #include <libevmasm/SemanticInformation.h>
 
@@ -66,9 +67,9 @@ public:
 	void operator()(yul::FunctionCall const& _funCall)
 	{
 		if (yul::EVMDialect const* dialect = dynamic_cast<decltype(dialect)>(&m_dialect))
-			if (yul::BuiltinFunctionForEVM const* fun = dialect->builtin(_funCall.functionName.name))
-				if (fun->instruction)
-					checkInstruction(nativeLocationOf(_funCall), *fun->instruction);
+			if (yul::BuiltinFunctionForEVM const* builtin = resolveBuiltinFunctionForEVM(_funCall.functionName, *dialect))
+				if (builtin->instruction)
+					checkInstruction(nativeLocationOf(_funCall), *builtin->instruction);
 
 		for (auto const& arg: _funCall.arguments)
 			std::visit(*this, arg);
@@ -226,7 +227,7 @@ void ViewPureChecker::endVisit(InlineAssembly const& _inlineAssembly)
 	AssemblyViewPureChecker{
 		_inlineAssembly.dialect(),
 		[&](StateMutability _mutability, SourceLocation const& _location) { reportMutability(_mutability, _location); }
-	}(_inlineAssembly.operations());
+	}(_inlineAssembly.operations().root());
 }
 
 void ViewPureChecker::reportMutability(

@@ -103,9 +103,13 @@ select between the two implementations of the ABI encoder and decoder.
 The new ABI coder (v2) is able to encode and decode arbitrarily nested
 arrays and structs. Apart from supporting more types, it involves more extensive
 validation and safety checks, which may result in higher gas costs, but also heightened
-security. It is considered
-non-experimental as of Solidity 0.6.0 and it is enabled by default starting
+security.
+It is considered non-experimental as of Solidity 0.6.0 and it is enabled by default starting
 with Solidity 0.8.0. The old ABI coder can still be selected using ``pragma abicoder v1;``.
+
+.. warning::
+  The ABI coder v1 is deprecated and scheduled for removal.
+  Use ABI coder v2 instead.
 
 The set of types supported by the new encoder is a strict superset of
 the ones supported by the old one. Contracts that use it can interact with ones
@@ -153,21 +157,17 @@ since Solidity 0.7.4.
 SMTChecker
 ~~~~~~~~~~
 
-This component has to be enabled when the Solidity compiler is built
-and therefore it is not available in all Solidity binaries.
-The :ref:`build instructions<smt_solvers_build>` explain how to activate this option.
-It is activated for the Ubuntu PPA releases in most versions,
-but not for the Docker images, Windows binaries or the
-statically-built Linux binaries. It can be activated for solc-js via the
-`smtCallback <https://github.com/ethereum/solc-js#example-usage-with-smtsolver-callback>`_ if you have an SMT solver
-installed locally and run solc-js via node (not via the browser).
-
 If you use ``pragma experimental SMTChecker;``, then you get additional
 :ref:`safety warnings<formal_verification>` which are obtained by querying an
 SMT solver.
 The component does not yet support all features of the Solidity language and
 likely outputs many warnings. In case it reports unsupported features, the
 analysis may not be fully sound.
+
+.. note::
+
+    The ``SMTChecker`` pragma is deprecated and will be removed.
+    To enable SMTChecker, simply select :ref:`select an engine<smtchecker_engines>` when invoking the compiler.
 
 .. index:: source file, ! import, module, source unit
 

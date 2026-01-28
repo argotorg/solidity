@@ -1,0 +1,14 @@
+{
+    ".code": [
+        {"name": "PUSH [$]", "value": "0"}
+    ],
+    ".data": {
+        "0": {
+            ".code": [
+                {"name": "PUSHIMMUTABLE", "value": "x"}
+            ]
+        }
+    }
+}
+// ----
+// CodeGenerationError: Some immutables were read from but never assigned, possibly because of optimization.

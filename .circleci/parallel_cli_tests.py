@@ -37,10 +37,13 @@ if '*' in selected_tests:
 else:
     filters = list(selected_tests)
 
-subprocess.run(
-    ['test/cmdlineTests.sh'] + filters,
-    stdin=sys.stdin,
-    stdout=sys.stdout,
-    stderr=sys.stderr,
-    check=True,
-)
+try:
+    subprocess.run(
+        ['test/cmdlineTests.sh'] + filters,
+        stdin=sys.stdin,
+        stdout=sys.stdout,
+        stderr=sys.stderr,
+        check=True,
+    )
+except subprocess.CalledProcessError as exception:
+    sys.exit(exception)

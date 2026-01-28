@@ -7,11 +7,11 @@ object "AccessControlDefaultAdminRules4233_14" {
         let j := datasize("AccessControlDefaultAdminRules4233_14_deployed")
         codecopy(i, dataoffset("AccessControlDefaultAdminRules4233_14_deployed"), j)
     }
-    object "AccessControlDefaultAdminRules4233_14_deployed" {
-        code {}
-    }
+    data "AccessControlDefaultAdminRules4233_14_deployed" "AccessControlDefaultAdminRules4233_14_deployed"
 
 }
+// ====
+// bytecodeFormat: legacy
 // ----
 // step: commonSubexpressionEliminator
 //
@@ -22,7 +22,5 @@ object "AccessControlDefaultAdminRules4233_14" {
 //         let j := datasize("AccessControlDefaultAdminRules4233_14_deployed")
 //         codecopy(i, dataoffset("AccessControlDefaultAdminRules4233_14_deployed"), j)
 //     }
-//     object "AccessControlDefaultAdminRules4233_14_deployed" {
-//         code { }
-//     }
+//     data "AccessControlDefaultAdminRules4233_14_deployed" hex"416363657373436f6e74726f6c44656661756c7441646d696e52756c6573343233335f31345f6465706c6f796564"
 // }

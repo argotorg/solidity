@@ -164,7 +164,7 @@ bool Analysis::check(std::vector<std::shared_ptr<SourceUnit const>> const& _sour
 		SyntaxRestrictor,
 		TypeClassRegistration,
 		TypeRegistration,
-		// TODO move after step introduced in https://github.com/ethereum/solidity/pull/14578, but before TypeInference
+		// TODO move after step introduced in https://github.com/argotorg/solidity/pull/14578, but before TypeInference
 		FunctionDependencyAnalysis,
 		TypeInference,
 		DebugWarner

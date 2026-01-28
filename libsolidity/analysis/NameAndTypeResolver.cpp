@@ -61,9 +61,14 @@ bool NameAndTypeResolver::registerDeclarations(SourceUnit& _sourceUnit, ASTNode 
 	{
 		DeclarationRegistrationHelper registrar(m_scopes, _sourceUnit, m_errorReporter, m_globalContext, _currentScope);
 	}
-	catch (langutil::FatalError const& error)
+	catch (FatalError const&)
 	{
-		solAssert(m_errorReporter.hasErrors(), "Unreported fatal error: "s + error.what());
+		if (!m_errorReporter.hasErrors())
+		{
+			std::cerr << "Unreported fatal error:" << std::endl;
+			std::cerr << boost::current_exception_diagnostic_information() << std::endl;
+			solAssert(false, "Unreported fatal error.");
+		}
 		return false;
 	}
 	return true;
@@ -135,9 +140,14 @@ bool NameAndTypeResolver::resolveNamesAndTypes(SourceUnit& _source)
 				return false;
 		}
 	}
-	catch (langutil::FatalError const& error)
+	catch (FatalError const&)
 	{
-		solAssert(m_errorReporter.hasErrors(), "Unreported fatal error: "s + error.what());
+		if (!m_errorReporter.hasErrors())
+		{
+			std::cerr << "Unreported fatal error:" << std::endl;
+			std::cerr << boost::current_exception_diagnostic_information() << std::endl;
+			solAssert(false, "Unreported fatal error.");
+		}
 		return false;
 	}
 	return true;
@@ -150,9 +160,14 @@ bool NameAndTypeResolver::updateDeclaration(Declaration const& _declaration)
 		m_scopes[nullptr]->registerDeclaration(_declaration, false, true);
 		solAssert(_declaration.scope() == nullptr, "Updated declaration outside global scope.");
 	}
-	catch (langutil::FatalError const& error)
+	catch (FatalError const&)
 	{
-		solAssert(m_errorReporter.hasErrors(), "Unreported fatal error: "s + error.what());
+		if (!m_errorReporter.hasErrors())
+		{
+			std::cerr << "Unreported fatal error:" << std::endl;
+			std::cerr << boost::current_exception_diagnostic_information() << std::endl;
+			solAssert(false, "Unreported fatal error.");
+		}
 		return false;
 	}
 	return true;
@@ -297,6 +312,10 @@ bool NameAndTypeResolver::resolveNamesAndTypesInternal(ASTNode& _node, bool _res
 
 		for (ASTPointer<InheritanceSpecifier> const& baseContract: contract->baseContracts())
 			if (!resolveNamesAndTypesInternal(*baseContract, true))
+				success = false;
+
+		if (StorageLayoutSpecifier* storageLayoutSpecifier = contract->storageLayoutSpecifier())
+			if (!resolveNamesAndTypesInternal(*storageLayoutSpecifier, true))
 				success = false;
 
 		setScope(contract);
@@ -716,7 +735,7 @@ void DeclarationRegistrationHelper::registerDeclaration(Declaration& _declaratio
 		);
 
 		// NOTE: We're registering the function outside of its scope(). This will only affect
-		// name lookups. An more general alternative would be to modify Scoper to simply assign it
+		// name lookups. A more general alternative would be to modify Scoper to simply assign it
 		// that scope in the first place, but this would complicate the AST traversal here, which
 		// currently assumes that scopes follow ScopeOpener nesting.
 		registerDeclaration(*m_scopes.at(quantifier->scope()), _declaration, nullptr, nullptr, false /* inactive */, m_errorReporter);

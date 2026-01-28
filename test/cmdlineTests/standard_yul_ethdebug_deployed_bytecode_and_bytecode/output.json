@@ -1,0 +1,17 @@
+{
+    "contracts": {
+        "C": {
+            "object": {
+                "evm": {
+                    "bytecode": {
+                        "ethdebug": "<ETHDEBUG DEBUG DATA REMOVED>"
+                    },
+                    "deployedBytecode": {
+                        "ethdebug": "<ETHDEBUG DEBUG DATA REMOVED>"
+                    }
+                }
+            }
+        }
+    },
+    "ethdebug": "<ETHDEBUG DEBUG DATA REMOVED>"
+}

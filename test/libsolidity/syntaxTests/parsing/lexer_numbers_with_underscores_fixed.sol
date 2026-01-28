@@ -6,5 +6,7 @@ contract C {
     f1; f2;
   }
 }
+// ====
+// compileViaYul: true
 // ----
-// UnimplementedFeatureError 1834: Not yet implemented - FixedPointType.
+// UnimplementedFeatureError 1834: (46-64): Fixed point types not implemented.

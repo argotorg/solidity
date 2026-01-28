@@ -26,30 +26,24 @@
 
 namespace solidity::yul
 {
-struct Object;
+class Object;
 class AbstractAssembly;
-struct EVMDialect;
+class EVMDialect;
 
 class EVMObjectCompiler
 {
 public:
 	static void compile(
-		Object& _object,
+		Object const& _object,
 		AbstractAssembly& _assembly,
-		EVMDialect const& _dialect,
-		bool _optimize,
-		std::optional<uint8_t> _eofVersion
+		bool _optimize
 	);
 private:
-	EVMObjectCompiler(AbstractAssembly& _assembly, EVMDialect const& _dialect, std::optional<uint8_t> _eofVersion):
-		m_assembly(_assembly), m_dialect(_dialect), m_eofVersion(_eofVersion)
-	{}
+	EVMObjectCompiler(AbstractAssembly& _assembly): m_assembly(_assembly) {}
 
-	void run(Object& _object, bool _optimize);
+	void run(Object const& _object, bool _optimize);
 
 	AbstractAssembly& m_assembly;
-	EVMDialect const& m_dialect;
-	std::optional<uint8_t> m_eofVersion;
 };
 
 }

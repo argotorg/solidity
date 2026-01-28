@@ -1,11 +1,11 @@
 contract C {
-    function f() public pure {
-        bytes32 h = keccak256(abi.encodePacked(keccak256, f, this.f{gas: 2}, blockhash));
+    function f() payable public {
+        bytes32 h = keccak256(abi.encodePacked(keccak256, f, this.f{value: 2}, blockhash));
         h;
     }
 }
 // ----
-// TypeError 2056: (91-100): This type cannot be encoded.
-// TypeError 2056: (102-103): This type cannot be encoded.
-// TypeError 2056: (105-119): This type cannot be encoded.
-// TypeError 2056: (121-130): This type cannot be encoded.
+// TypeError 2056: (94-103): This type cannot be encoded.
+// TypeError 2056: (105-106): This type cannot be encoded.
+// TypeError 2056: (108-124): This type cannot be encoded.
+// TypeError 2056: (126-135): This type cannot be encoded.

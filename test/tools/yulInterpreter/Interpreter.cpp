@@ -109,14 +109,13 @@ void InterpreterState::dumpTraceAndState(std::ostream& _out, bool _disableMemory
 
 void Interpreter::run(
 	InterpreterState& _state,
-	Dialect const& _dialect,
-	Block const& _ast,
+	AST const& _ast,
 	bool _disableExternalCalls,
 	bool _disableMemoryTrace
 )
 {
 	Scope scope;
-	Interpreter{_state, _dialect, scope, _disableExternalCalls, _disableMemoryTrace}(_ast);
+	Interpreter{_state, _ast.dialect(), scope, _disableExternalCalls, _disableMemoryTrace}(_ast.root());
 }
 
 void Interpreter::operator()(ExpressionStatement const& _expressionStatement)
@@ -131,7 +130,7 @@ void Interpreter::operator()(Assignment const& _assignment)
 	solAssert(values.size() == _assignment.variableNames.size(), "");
 	for (size_t i = 0; i < values.size(); ++i)
 	{
-		YulString varName = _assignment.variableNames.at(i).name;
+		YulName varName = _assignment.variableNames.at(i).name;
 		solAssert(m_variables.count(varName), "");
 		m_variables[varName] = values.at(i);
 	}
@@ -146,7 +145,7 @@ void Interpreter::operator()(VariableDeclaration const& _declaration)
 	solAssert(values.size() == _declaration.variables.size(), "");
 	for (size_t i = 0; i < values.size(); ++i)
 	{
-		YulString varName = _declaration.variables.at(i).name;
+		YulName varName = _declaration.variables.at(i).name;
 		solAssert(!m_variables.count(varName), "");
 		m_variables[varName] = values.at(i);
 		m_scope->names.emplace(varName, nullptr);
@@ -296,10 +295,7 @@ void Interpreter::incrementStep()
 void ExpressionEvaluator::operator()(Literal const& _literal)
 {
 	incrementStep();
-	static YulString const trueString("true");
-	static YulString const falseString("false");
-
-	setValue(valueOfLiteral(_literal));
+	setValue(_literal.value.value());
 }
 
 void ExpressionEvaluator::operator()(Identifier const& _identifier)
@@ -312,14 +308,14 @@ void ExpressionEvaluator::operator()(Identifier const& _identifier)
 void ExpressionEvaluator::operator()(FunctionCall const& _funCall)
 {
 	std::vector<std::optional<LiteralKind>> const* literalArguments = nullptr;
-	if (BuiltinFunction const* builtin = m_dialect.builtin(_funCall.functionName.name))
+	if (BuiltinFunction const* builtin = resolveBuiltinFunction(_funCall.functionName, m_dialect))
 		if (!builtin->literalArguments.empty())
 			literalArguments = &builtin->literalArguments;
 	evaluateArgs(_funCall.arguments, literalArguments);
 
 	if (EVMDialect const* dialect = dynamic_cast<EVMDialect const*>(&m_dialect))
 	{
-		if (BuiltinFunctionForEVM const* fun = dialect->builtin(_funCall.functionName.name))
+		if (BuiltinFunctionForEVM const* fun = resolveBuiltinFunctionForEVM(_funCall.functionName, *dialect))
 		{
 			EVMInstructionInterpreter interpreter(dialect->evmVersion(), m_state, m_disableMemoryTrace);
 
@@ -337,16 +333,17 @@ void ExpressionEvaluator::operator()(FunctionCall const& _funCall)
 		}
 	}
 
+	yulAssert(!isBuiltinFunctionCall(_funCall));
 	Scope* scope = &m_scope;
 	for (; scope; scope = scope->parent)
-		if (scope->names.count(_funCall.functionName.name))
+		if (scope->names.count(std::get<Identifier>(_funCall.functionName).name))
 			break;
 	yulAssert(scope, "");
 
-	FunctionDefinition const* fun = scope->names.at(_funCall.functionName.name);
+	FunctionDefinition const* fun = scope->names.at(std::get<Identifier>(_funCall.functionName).name);
 	yulAssert(fun, "Function not found.");
 	yulAssert(m_values.size() == fun->parameters.size(), "");
-	std::map<YulString, u256> variables;
+	std::map<YulName, u256> variables;
 	for (size_t i = 0; i < fun->parameters.size(); ++i)
 		variables[fun->parameters.at(i).name] = m_values.at(i);
 	for (size_t i = 0; i < fun->returnVariables.size(); ++i)
@@ -389,16 +386,13 @@ void ExpressionEvaluator::evaluateArgs(
 			visit(expr);
 		else
 		{
-			std::string literal = std::get<Literal>(expr).value.str();
-
-			try
+			if (std::get<Literal>(expr).value.unlimited())
 			{
-				m_values = {u256(literal)};
+				yulAssert(std::get<Literal>(expr).kind == LiteralKind::String);
+				m_values = {0xdeadbeef};
 			}
-			catch (std::exception&)
-			{
-				m_values = {u256(0)};
-			}
+			else
+				m_values = {std::get<Literal>(expr).value.value()};
 		}
 
 		values.push_back(value());

@@ -48,9 +48,15 @@ SyntaxTest::SyntaxTest(
 {
 	static std::set<std::string> const compileViaYulAllowedValues{"true", "false"};
 
-	m_compileViaYul = m_reader.stringSetting("compileViaYul", "false");
+	auto const eofEnabled = solidity::test::CommonOptions::get().eofVersion().has_value();
+
+	m_compileViaYul = m_reader.stringSetting("compileViaYul", eofEnabled ? "true" : "false");
 	if (!util::contains(compileViaYulAllowedValues, m_compileViaYul))
 		BOOST_THROW_EXCEPTION(std::runtime_error("Invalid compileViaYul value: " + m_compileViaYul + "."));
+
+	if (m_compileViaYul == "false" && eofEnabled)
+		m_shouldRun = false;
+
 	m_optimiseYul = m_reader.boolSetting("optimize-yul", true);
 
 	static std::map<std::string, PipelineStage> const pipelineStages = {

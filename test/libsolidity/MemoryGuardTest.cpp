@@ -20,12 +20,17 @@
 
 #include <test/Common.h>
 #include <test/libyul/Common.h>
+
 #include <libsolidity/codegen/ir/Common.h>
+
 #include <libsolutil/Algorithms.h>
 #include <libsolutil/StringUtils.h>
+
 #include <libyul/Object.h>
-#include <libyul/backends/evm/EVMDialect.h>
 #include <libyul/optimiser/FunctionCallFinder.h>
+#include <libyul/AST.h>
+#include <libyul/YulStack.h>
+
 #include <fstream>
 #include <memory>
 #include <stdexcept>
@@ -37,6 +42,7 @@ using namespace solidity::langutil;
 using namespace solidity::frontend;
 using namespace solidity::frontend::test;
 using namespace solidity::test;
+using namespace solidity::yul::test;
 using namespace yul;
 
 void MemoryGuardTest::setupCompiler(CompilerStack& _compiler)
@@ -59,30 +65,32 @@ TestCase::TestResult MemoryGuardTest::run(std::ostream& _stream, std::string con
 	for (std::string contractName: compiler().contractNames())
 	{
 		ErrorList errors;
-		auto [object, analysisInfo] = yul::test::parse(
-			compiler().yulIR(contractName),
-			EVMDialect::strictAssemblyForEVMObjects(CommonOptions::get().evmVersion()),
-			errors
-		);
+		std::optional<std::string> const& ir = compiler().yulIR(contractName);
+		soltestAssert(ir);
 
-		if (!object || !analysisInfo || Error::containsErrors(errors))
+		YulStack yulStack = parseYul(*ir);
+		if (yulStack.hasErrors())
 		{
-			AnsiColorized(_stream, _formatted, {formatting::BOLD, formatting::RED}) << _linePrefix << "Error parsing IR:" << std::endl;
-			printPrefixed(_stream, formatErrors(filterErrors(errors), _formatted), _linePrefix);
+			printYulErrors(yulStack, _stream, _linePrefix, _formatted);
 			return TestResult::FatalError;
 		}
 
 		auto handleObject = [&](std::string const& _kind, Object const& _object) {
-			m_obtainedResult += contractName + "(" + _kind + ") " + (FunctionCallFinder::run(
-				*_object.code,
-				"memoryguard"_yulstring
-			).empty() ? "false" : "true") + "\n";
+			auto const memoryGuardHandle = yulStack.dialect().findBuiltin("memoryguard");
+			m_obtainedResult += contractName + "(" + _kind + ") ";
+			if (memoryGuardHandle && !findFunctionCalls(
+				_object.code()->root(),
+				*memoryGuardHandle
+			).empty())
+				m_obtainedResult += "true\n";
+			else
+				m_obtainedResult += "false\n";
 		};
-		handleObject("creation", *object);
-		size_t deployedIndex = object->subIndexByName.at(
-			YulString(IRNames::deployedObject(compiler().contractDefinition(contractName)))
+		handleObject("creation", *yulStack.parserResult());
+		size_t deployedIndex = yulStack.parserResult()->subIndexByName.at(
+			IRNames::deployedObject(compiler().contractDefinition(contractName))
 		);
-		handleObject("runtime", dynamic_cast<Object const&>(*object->subObjects[deployedIndex]));
+		handleObject("runtime", dynamic_cast<Object const&>(*yulStack.parserResult()->subObjects[deployedIndex]));
 	}
 	return checkResult(_stream, _linePrefix, _formatted);
 }

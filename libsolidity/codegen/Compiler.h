@@ -37,10 +37,15 @@ namespace solidity::frontend
 class Compiler
 {
 public:
-	Compiler(langutil::EVMVersion _evmVersion, RevertStrings _revertStrings, OptimiserSettings _optimiserSettings):
+	Compiler(
+		langutil::EVMVersion _evmVersion,
+		std::optional<uint8_t> _eofVersion,
+		RevertStrings _revertStrings,
+		OptimiserSettings _optimiserSettings
+	):
 		m_optimiserSettings(std::move(_optimiserSettings)),
-		m_runtimeContext(_evmVersion, _revertStrings),
-		m_context(_evmVersion, _revertStrings, &m_runtimeContext)
+		m_runtimeContext(_evmVersion, _eofVersion, _revertStrings),
+		m_context(_evmVersion, _eofVersion, _revertStrings, &m_runtimeContext)
 	{ }
 
 	/// Compiles a contract.
@@ -65,7 +70,7 @@ public:
 private:
 	OptimiserSettings const m_optimiserSettings;
 	CompilerContext m_runtimeContext;
-	size_t m_runtimeSub = size_t(-1); ///< Identifier of the runtime sub-assembly, if present.
+	evmasm::SubAssemblyID m_runtimeSub{}; ///< Identifier of the runtime sub-assembly, if present.
 	CompilerContext m_context;
 };
 

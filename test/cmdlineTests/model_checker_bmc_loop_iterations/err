@@ -1,5 +1,5 @@
 Warning: BMC: Assertion violation happens here.
-  --> model_checker_bmc_loop_iterations/input.sol:10:3:
+  --> input.sol:10:3:
    |
 10 | 		assert(x == 3);
    | 		^^^^^^^^^^^^^^

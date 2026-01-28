@@ -27,6 +27,7 @@
 #include <libsolidity/ast/ASTEnums.h>
 #include <libsolidity/ast/ExperimentalFeatures.h>
 
+#include <libsolutil/Numeric.h>
 #include <libsolutil/SetOnce.h>
 
 #include <map>
@@ -39,7 +40,7 @@ namespace solidity::yul
 {
 struct AsmAnalysisInfo;
 struct Identifier;
-struct Dialect;
+class Dialect;
 }
 
 namespace solidity::frontend
@@ -173,6 +174,12 @@ struct ContractDefinitionAnnotation: TypeDeclarationAnnotation, StructurallyDocu
 	std::map<FunctionDefinition const*, uint64_t> internalFunctionIDs;
 };
 
+struct StorageLayoutSpecifierAnnotation: ASTAnnotation
+{
+	// The evaluated value of the expression specifying the contract storage layout base
+	util::SetOnce<u256> baseSlot;
+};
+
 struct CallableDeclarationAnnotation: DeclarationAnnotation
 {
 	/// The set of functions/modifiers/events this callable overrides.
@@ -279,10 +286,6 @@ struct ExpressionAnnotation: ASTAnnotation
 	util::SetOnce<bool> isLValue;
 	/// Whether the expression is used in a context where the LValue is actually required.
 	bool willBeWrittenTo = false;
-	/// Whether the expression is an lvalue that is only assigned.
-	/// Would be false for --, ++, delete, +=, -=, ....
-	/// Only relevant if isLvalue == true
-	bool lValueOfOrdinaryAssignment = false;
 
 	/// Types and - if given - names of arguments if the expr. is a function
 	/// that is called, used for overload resolution

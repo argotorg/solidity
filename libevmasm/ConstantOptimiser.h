@@ -79,7 +79,7 @@ protected:
 	static bigint simpleRunGas(AssemblyItems const& _items, langutil::EVMVersion _evmVersion);
 	/// @returns the gas needed to store the given data literally
 	bigint dataGas(bytes const& _data) const;
-	static size_t bytesRequired(AssemblyItems const& _items);
+	static size_t bytesRequired(AssemblyItems const& _items, langutil::EVMVersion _evmVersion);
 	/// @returns the combined estimated gas usage taking @a m_params into account.
 	bigint combineGas(
 		bigint const& _runGas,
@@ -108,7 +108,7 @@ public:
 	explicit LiteralMethod(Params const& _params, u256 const& _value):
 		ConstantOptimisationMethod(_params, _value) {}
 	bigint gasNeeded() const override;
-	AssemblyItems execute(Assembly&) const override { return AssemblyItems{}; }
+	AssemblyItems execute(Assembly&) const override;
 };
 
 /**
@@ -123,7 +123,7 @@ public:
 	AssemblyItems execute(Assembly& _assembly) const override;
 
 protected:
-	static AssemblyItems const& copyRoutine();
+	AssemblyItems copyRoutine(AssemblyItem* _pushData = nullptr) const;
 };
 
 /**
@@ -132,22 +132,11 @@ protected:
 class ComputeMethod: public ConstantOptimisationMethod
 {
 public:
-	explicit ComputeMethod(Params const& _params, u256 const& _value):
-		ConstantOptimisationMethod(_params, _value)
-	{
-		m_routine = findRepresentation(m_value);
-		assertThrow(
-			checkRepresentation(m_value, m_routine),
-			OptimizerException,
-			"Invalid constant expression created."
-		);
-	}
+	ComputeMethod(Params const& _params, u256 const& _value);
+	~ComputeMethod() override;
 
 	bigint gasNeeded() const override { return gasNeeded(m_routine); }
-	AssemblyItems execute(Assembly&) const override
-	{
-		return m_routine;
-	}
+	AssemblyItems execute(Assembly&) const override;
 
 protected:
 	/// Tries to recursively find a way to compute @a _value.

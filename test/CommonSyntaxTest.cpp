@@ -197,15 +197,15 @@ void CommonSyntaxTest::printErrorList(
 		for (auto const& error: _errorList)
 		{
 			{
-				util::AnsiColorized scope(
+				util::AnsiColorized formattedStream(
 					_stream,
 					_formatted,
 					{BOLD, SourceReferenceFormatter::errorTextColor(Error::errorSeverity(error.type))}
 				);
-				_stream << _linePrefix << Error::formatErrorType(error.type);
+				formattedStream << _linePrefix << Error::formatErrorType(error.type);
 				if (error.errorId.has_value())
-					_stream << ' ' << error.errorId->error;
-				_stream << ": ";
+					formattedStream << ' ' << error.errorId->error;
+				formattedStream << ": ";
 			}
 			if (!error.sourceName.empty() || error.locationStart >= 0 || error.locationEnd >= 0)
 			{

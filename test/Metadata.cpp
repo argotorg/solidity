@@ -20,11 +20,17 @@
  * Metadata processing helpers.
  */
 
-#include <string>
-#include <iostream>
+#include <test/Metadata.h>
+
+#include <test/libsolidity/util/SoltestErrors.h>
+
+#include <liblangutil/Exceptions.h>
+
 #include <libsolutil/Assertions.h>
 #include <libsolutil/CommonData.h>
-#include <test/Metadata.h>
+
+#include <iostream>
+#include <string>
 
 namespace solidity::test
 {
@@ -64,11 +70,11 @@ class TinyCBORParser
 public:
 	explicit TinyCBORParser(bytes const& _metadata): m_pos(0), m_metadata(_metadata)
 	{
-		assertThrow((m_pos + 1) < _metadata.size(), CBORException, "Input too short.");
+		solRequire((m_pos + 1) < _metadata.size(), CBORException, "Input too short.");
 	}
 	unsigned mapItemCount()
 	{
-		assertThrow(nextType() == MajorType::Map, CBORException, "Fixed-length map expected.");
+		solRequire(nextType() == MajorType::Map, CBORException, "Fixed-length map expected.");
 		return readLength();
 	}
 	std::string readKey()
@@ -89,17 +95,14 @@ public:
 				m_pos++;
 				if (value == 20)
 					return "false";
-				else if (value == 21)
+				if (value == 21)
 					return "true";
-				else
-				{
-					assertThrow(false, CBORException, "Unsupported simple value (not a boolean).");
-					return ""; // unreachable, but prevents compiler warning.
-				}
+				solUnimplemented("Unsupported simple value (not a boolean).");
 			}
-			default:
-				assertThrow(false, CBORException, "Unsupported value type.");
+			case MajorType::Map:
+				solUnimplemented("Nested maps not supported.");
 		}
+		util::unreachable();
 	}
 private:
 	enum class MajorType
@@ -118,7 +121,7 @@ private:
 			case 3: return MajorType::TextString;
 			case 5: return MajorType::Map;
 			case 7: return MajorType::SimpleData;
-			default: assertThrow(false, CBORException, "Unsupported major type.");
+			default: solUnimplemented("Unsupported major type.");
 		}
 	}
 	unsigned nextImmediate() const { return m_metadata.at(m_pos) & 0x1f; }
@@ -130,7 +133,7 @@ private:
 		if (length == 24)
 			return m_metadata.at(m_pos++);
 		// Unsupported length kind. (Only by this parser.)
-		assertThrow(false, CBORException, std::string("Unsupported length ") + std::to_string(length));
+		solUnimplemented(std::string("Unsupported length ") + std::to_string(length));
 	}
 	bytes readBytes(unsigned length)
 	{
@@ -141,7 +144,7 @@ private:
 	std::string readString()
 	{
 		// Expect a text string.
-		assertThrow(nextType() == MajorType::TextString, CBORException, "String expected.");
+		soltestAssert(nextType() == MajorType::TextString, "String expected.");
 		bytes tmp{readBytes(readLength())};
 		return std::string{tmp.begin(), tmp.end()};
 	}

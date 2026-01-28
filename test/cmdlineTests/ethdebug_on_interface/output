@@ -1,0 +1,19 @@
+======= Debug Data (ethdebug/format/info/resources) =======
+{
+    "compilation": {
+        "compiler": {
+            "name": "solc",
+            "version": "<VERSION REMOVED>"
+        },
+        "sources": [
+            {
+                "id": 0,
+                "path": "input.sol"
+            }
+        ]
+    }
+}
+
+======= input.sol:C =======
+Debug Data (ethdebug/format/program):
+null

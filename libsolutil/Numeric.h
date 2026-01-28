@@ -45,9 +45,11 @@ namespace solidity
 {
 
 // Numeric types.
-using bigint = boost::multiprecision::number<boost::multiprecision::cpp_int_backend<>>;
-using u256 = boost::multiprecision::number<boost::multiprecision::cpp_int_backend<256, 256, boost::multiprecision::unsigned_magnitude, boost::multiprecision::unchecked, void>>;
-using s256 = boost::multiprecision::number<boost::multiprecision::cpp_int_backend<256, 256, boost::multiprecision::signed_magnitude, boost::multiprecision::unchecked, void>>;
+using bigint = boost::multiprecision::cpp_int;
+using u256 = boost::multiprecision::uint256_t;
+using s256 = boost::multiprecision::int256_t;
+using u512 = boost::multiprecision::uint512_t;
+
 
 /// Interprets @a _u as a two's complement signed number and returns the resulting s256.
 inline s256 u2s(u256 _u)
@@ -96,13 +98,13 @@ bool fitsPrecisionBaseX(bigint const& _mantissa, double _log2OfBase, uint32_t _e
 /// @a Out will typically be either std::string or bytes.
 /// @a T will typically by unsigned, u160, u256 or bigint.
 template <class T, class Out>
-inline void toBigEndian(T _val, Out& o_out)
+inline void toBigEndian(T _val, Out&& o_out)
 {
 	static_assert(std::is_same<bigint, T>::value || !std::numeric_limits<T>::is_signed, "only unsigned types or bigint supported"); //bigint does not carry sign bit on shift
-	for (auto i = o_out.size(); i != 0; _val >>= 8, i--)
+	for (auto i = o_out.size(); i != 0u; _val >>= 8u, i--)
 	{
-		T v = _val & (T)0xff;
-		o_out[i - 1] = (typename Out::value_type)(uint8_t)v;
+		T v = _val & (T)0xffu;
+		o_out[i - 1u] = (typename std::remove_reference_t<Out>::value_type)(uint8_t)v;
 	}
 }
 

@@ -13,5 +13,7 @@ contract C {
         return x();
     }
 }
+// ====
+// bytecodeFormat: legacy,>=EOFv1
 // ----
 // t() -> 7

@@ -1,0 +1,13 @@
+{
+	"language": "Yul",
+	"sources": {
+		"C": {"urls": ["in.yul"]}
+	},
+	"settings": {
+		"eofVersion": 1,
+		"evmVersion": "osaka",
+		"outputSelection": {
+			"*": {"*": ["evm.bytecode.ethdebug", "evm.deployedBytecode.ethdebug", "ir", "irOptimized"]}
+		}
+	}
+}

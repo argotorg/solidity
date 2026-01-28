@@ -1,0 +1,23 @@
+{
+    ".code": [
+        { "name": "PUSH", "value": "0" },
+        { "name": "PUSH", "value": "0" },
+        { "name": "PUSH", "value": "0" },
+        { "name": "PUSH", "value": "0" },
+        { "name": "PUSH", "value": "0" },
+        { "name": "PUSH", "value": "0" },
+        { "name": "PUSH", "value": "0" },
+        { "name": "PUSH", "value": "0" },
+        { "name": "PUSH", "value": "0" },
+        { "name": "PUSH", "value": "0" },
+        { "name": "POP" },
+        { "name": "POP" },
+        { "name": "POP" },
+        { "name": "POP" },
+        { "name": "POP" },
+        { "name": "POP" },
+        { "name": "POP" },
+        { "name": "POP" },
+        { "name": "REVERT" }
+    ]
+}

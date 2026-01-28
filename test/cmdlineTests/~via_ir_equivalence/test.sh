@@ -86,7 +86,7 @@ requiresOptimizer=(
 
 for contractFile in "${externalContracts[@]}"
 do
-    if ! [[ "${requiresOptimizer[*]}" =~ $contractFile ]]
+    if ! [[ " ${requiresOptimizer[*]} " == *" $contractFile "* ]]
     then
         printTask "    - ${contractFile}"
         test_via_ir_equivalence "${REPO_ROOT}/test/${contractFile}"

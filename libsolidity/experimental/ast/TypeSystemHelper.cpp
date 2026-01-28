@@ -26,7 +26,7 @@
 #include <libsolutil/Visitor.h>
 
 #include <range/v3/algorithm/any_of.hpp>
-#include <range/v3/to_container.hpp>
+#include <range/v3/range/conversion.hpp>
 #include <range/v3/view/drop_exactly.hpp>
 #include <range/v3/view/drop_last.hpp>
 #include <range/v3/view/reverse.hpp>

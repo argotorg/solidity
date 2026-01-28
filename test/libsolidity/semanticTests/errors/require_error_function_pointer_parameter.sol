@@ -10,11 +10,9 @@ contract C
     function f() external view
     {
         // more than one stack slot
-        require(false, CustomError(this.e));
+        require(false, CustomError(C(address(0x1234)).e));
     }
 }
 
-// ====
-// compileViaYul: true
 // ----
-// f() -> FAILURE, hex"271b1dfa", hex"c06afe3a8444fc0004668591e8306bfb9968e79ef37cdc8e0000000000000000"
+// f() -> FAILURE, hex"271b1dfa", hex"0000000000000000000000000000000000001234f37cdc8e0000000000000000"

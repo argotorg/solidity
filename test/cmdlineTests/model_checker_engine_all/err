@@ -6,7 +6,7 @@ x = 0
 Transaction trace:
 test.constructor()
 test.f(0)
- --> model_checker_engine_all/input.sol:5:3:
+ --> input.sol:5:3:
   |
 5 | 		assert(x > 0);
   | 		^^^^^^^^^^^^^

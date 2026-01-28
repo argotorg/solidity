@@ -16,39 +16,38 @@
 */
 // SPDX-License-Identifier: GPL-3.0
 
-#include <libyul/AsmAnalysis.h>
-#include <libyul/AsmAnalysisInfo.h>
-
-#include <liblangutil/EVMVersion.h>
-#include <liblangutil/Exceptions.h>
+#include <test/libyul/SyntaxTest.h>
 
 #include <test/libyul/Common.h>
-#include <test/libyul/SyntaxTest.h>
 #include <test/TestCaseReader.h>
 
 #include <test/libsolidity/util/SoltestErrors.h>
 
 #include <test/Common.h>
 
+#include <libyul/YulStack.h>
+
 using namespace solidity;
 using namespace solidity::util;
 using namespace solidity::langutil;
+using namespace solidity::test;
 using namespace solidity::yul::test;
+using namespace solidity::frontend;
 using namespace solidity::frontend::test;
 
 void SyntaxTest::parseAndAnalyze()
 {
-	if (m_sources.sources.size() != 1)
-		BOOST_THROW_EXCEPTION(std::runtime_error{"Expected only one source for yul test."});
+	solUnimplementedAssert(m_sources.sources.size() == 1, "Multi-source Yul tests are not supported.");
+	auto const& [sourceUnitName, source] = *m_sources.sources.begin();
 
-	std::string const& name = m_sources.sources.begin()->first;
-	std::string const& source = m_sources.sources.begin()->second;
-
-	ErrorList errorList{};
-	soltestAssert(m_dialect, "");
-	// Silently ignoring the results.
-	yul::test::parse(source, *m_dialect, errorList);
-	for (auto const& error: errorList)
+	YulStack yulStack = parseYul(source);
+	if (!yulStack.hasErrors())
+	{
+		// Assemble the object so that we can test CodeGenerationErrors too.
+		yulStack.optimize();
+		yulStack.assemble(YulStack::Machine::EVM);
+	}
+	for (auto const& error: yulStack.errors())
 	{
 		int locationStart = -1;
 		int locationEnd = -1;
@@ -63,17 +62,16 @@ void SyntaxTest::parseAndAnalyze()
 			error->type(),
 			error->errorId(),
 			errorMessage(*error),
-			name,
+			sourceUnitName,
 			locationStart,
 			locationEnd
 		});
 	}
-
 }
 
 SyntaxTest::SyntaxTest(std::string const& _filename, langutil::EVMVersion _evmVersion):
 	CommonSyntaxTest(_filename, _evmVersion)
 {
-	std::string dialectName = m_reader.stringSetting("dialect", "evmTyped");
-	m_dialect = &dialect(dialectName, solidity::test::CommonOptions::get().evmVersion());
+	std::string dialectName = m_reader.stringSetting("dialect", "evm");
+	soltestAssert(dialectName == "evm"); // We only have one dialect now
 }

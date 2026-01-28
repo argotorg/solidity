@@ -12,6 +12,9 @@ contract C {
     function f7(uint[31] memory, string[20] memory, C, address) public returns (bytes[] memory, uint16[] memory) {}
     function f8(uint[32] memory, string[] memory, uint32, address) public returns (uint[] memory, uint16[] memory) {}
 }
+// ====
+// EVMVersion: =current
+// bytecodeFormat: legacy
 // ----
 // creation:
 //   codeDepositCost: 1208000

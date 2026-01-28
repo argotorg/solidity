@@ -28,12 +28,6 @@
 
 #include <sstream>
 
-#ifdef STRICT_NLOHMANN_JSON_VERSION_CHECK
-static_assert(
-	(NLOHMANN_JSON_VERSION_MAJOR == 3) && (NLOHMANN_JSON_VERSION_MINOR == 11) && (NLOHMANN_JSON_VERSION_PATCH == 3),
-	"Unexpected nlohmann-json version. Expecting 3.11.3.");
-#endif
-
 namespace solidity::util
 {
 
@@ -155,7 +149,6 @@ bool jsonParseStrict(std::string const& _input, Json& _json, std::string* _errs 
 			/* allow exceptions */ true,
 			/* ignore_comments */true
 		);
-		_errs = {};
 		return true;
 	}
 	catch (Json::parse_error const& e)

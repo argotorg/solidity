@@ -1,5 +1,5 @@
 
-======= abi_via_ir/input.sol:C =======
+======= input.sol:C =======
 Contract JSON ABI
 [
     {
@@ -101,7 +101,7 @@ Contract JSON ABI
     }
 ]
 
-======= abi_via_ir/input.sol:L =======
+======= input.sol:L =======
 Contract JSON ABI
 [
     {

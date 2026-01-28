@@ -1,0 +1,16 @@
+{
+    ".code": [
+        {"name": "PUSH", "value": "0"},
+        {"name": "DUP2"},
+        {"name": "SUB"}
+    ]
+}
+// ====
+// optimizationPreset: none
+// optimizer.cse: true
+// ----
+// Assembly:
+//   dup1
+// Bytecode: 80
+// Opcodes: DUP1
+// SourceMappings: :::-:0

@@ -27,7 +27,6 @@
 #include <libsolidity/formal/EncodingContext.h>
 #include <libsolidity/formal/ModelCheckerSettings.h>
 #include <libsolidity/formal/SymbolicVariables.h>
-#include <libsolidity/formal/VariableUsage.h>
 
 #include <libsolidity/ast/AST.h>
 #include <libsolidity/ast/ASTVisitor.h>
@@ -57,6 +56,7 @@ public:
 		ModelCheckerSettings _settings,
 		langutil::UniqueErrorReporter& _errorReporter,
 		langutil::UniqueErrorReporter& _unsupportedErrorReporter,
+		langutil::ErrorReporter& _provedSafeReporter,
 		langutil::CharStreamProvider const& _charStreamProvider
 	);
 
@@ -70,7 +70,7 @@ public:
 
 	/// @returns the innermost element in a chain of 1-tuples if applicable,
 	/// otherwise _expr.
-	static Expression const* innermostTuple(Expression const& _expr);
+	static Expression const& innermostTuple(Expression const& _expr);
 
 	/// @returns the underlying type if _type is UserDefinedValueType,
 	/// and _type otherwise.
@@ -129,6 +129,19 @@ public:
 	static std::set<SourceUnit const*, ASTNode::CompareByID> sourceDependencies(SourceUnit const& _source);
 
 protected:
+	struct TransientDataLocationChecker: ASTConstVisitor
+	{
+		TransientDataLocationChecker(ContractDefinition const& _contract) { _contract.accept(*this); }
+
+		void endVisit(VariableDeclaration const& _var)
+		{
+			solUnimplementedAssert(
+				_var.referenceLocation() != VariableDeclaration::Location::Transient,
+				"Transient storage variables are not supported."
+			);
+		}
+	};
+
 	void resetSourceAnalysis();
 
 	// TODO: Check that we do not have concurrent reads and writes to a variable,
@@ -215,6 +228,7 @@ protected:
 	void visitBytesConcat(FunctionCall const& _funCall);
 	void visitCryptoFunction(FunctionCall const& _funCall);
 	void visitGasLeft(FunctionCall const& _funCall);
+	void visitBlobHash(FunctionCall const& _funCall);
 	virtual void visitAddMulMod(FunctionCall const& _funCall);
 	void visitWrapUnwrap(FunctionCall const& _funCall);
 	void visitObjectCreation(FunctionCall const& _funCall);
@@ -223,11 +237,12 @@ protected:
 	void visitFunctionIdentifier(Identifier const& _identifier);
 	virtual void visitPublicGetter(FunctionCall const& _funCall);
 
-	/// @returns true if @param _contract is set for analysis in the settings
-	/// and it is not abstract.
-	bool shouldAnalyze(ContractDefinition const& _contract) const;
-	/// @returns true if @param _source is set for analysis in the settings.
-	bool shouldAnalyze(SourceUnit const& _source) const;
+	/// @returns true if symbolic representation of @param _contract is required for verification
+	bool shouldEncode(ContractDefinition const& _contract) const;
+	/// @returns true if the verification targets of @param _contract are actually selected for verification
+	bool shouldAnalyzeVerificationTargetsFor(ContractDefinition const& _contract) const;
+	/// @returns true if we should descend into @param _source to look for contracts that should be verified
+	bool shouldAnalyzeVerificationTargetsFor(SourceUnit const& _source) const;
 
 	/// @returns the state variable returned by a public getter if
 	/// @a _expr is a call to a public getter,
@@ -425,6 +440,9 @@ protected:
 	/// Create symbolic variables for the free constants in all @param _sources.
 	void createFreeConstants(std::set<SourceUnit const*, ASTNode::CompareByID> const& _sources);
 
+	/// Create symbolic variables for all state variables for all contracts in all @param _sources.
+	void createStateVariables(std::set<SourceUnit const*, ASTNode::CompareByID> const& _sources);
+
 	/// @returns a note to be added to warnings.
 	std::string extraComment();
 
@@ -435,7 +453,6 @@ protected:
 		smtutil::Expression constraints;
 	};
 
-	smt::VariableUsage m_variableUsage;
 	bool m_arrayAssignmentHappened = false;
 
 	/// Stores the instances of an Uninterpreted Function applied to arguments.
@@ -450,6 +467,7 @@ protected:
 
 	langutil::UniqueErrorReporter& m_errorReporter;
 	langutil::UniqueErrorReporter& m_unsupportedErrors;
+	langutil::ErrorReporter& m_provedSafeReporter;
 
 	/// Stores the current function/modifier call/invocation path.
 	std::vector<CallStackEntry> m_callStack;
@@ -489,7 +507,7 @@ protected:
 	ContractDefinition const* m_currentContract = nullptr;
 
 	/// Stores the free functions and internal library functions.
-	/// Those need to be encoded repeatedely for every analyzed contract.
+	/// Those need to be encoded repeatedly for every analyzed contract.
 	std::set<FunctionDefinition const*, ASTNode::CompareByID> m_freeFunctions;
 
 	/// Stores the context of the encoding.

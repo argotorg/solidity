@@ -91,7 +91,7 @@ Positive
     0000...0000 0000 0001
     0000...0000 0000 0010
     ....
-    0000...0000 1111 1111
+    0000...0000 0111 1111
 
 The compiler will ``signextend`` the sign bit, which is 1 for negative and 0 for
 positive values, overwriting the higher bits:

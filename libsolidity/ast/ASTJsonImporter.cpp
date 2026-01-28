@@ -37,6 +37,8 @@
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string.hpp>
 
+#include <range/v3/algorithm/find_if.hpp>
+
 namespace solidity::frontend
 {
 
@@ -255,6 +257,8 @@ ASTPointer<ASTNode> ASTJsonImporter::convertJsonToASTNode(Json const& _json)
 		return createLiteral(_json);
 	if (nodeType == "StructuredDocumentation")
 		return createDocumentation(_json);
+	if (nodeType == "StorageLayoutSpecifier")
+		return createStorageLayoutSpecifier(_json);
 	else
 		astAssert(false, "Unknown type of ASTNode: " + nodeType);
 
@@ -348,7 +352,17 @@ ASTPointer<ContractDefinition> ASTJsonImporter::createContractDefinition(Json co
 		baseContracts,
 		subNodes,
 		contractKind(_node),
-		memberAsBool(_node, "abstract")
+		memberAsBool(_node, "abstract"),
+		nullOrCast<StorageLayoutSpecifier>(member(_node, "storageLayout"))
+	);
+}
+
+ASTPointer<StorageLayoutSpecifier> ASTJsonImporter::createStorageLayoutSpecifier(Json const& _node)
+{
+	astAssert(_node.contains("baseSlotExpression"), "Expected field \"baseSlotExpression\" is missing.");
+	return createASTNode<StorageLayoutSpecifier>(
+		_node,
+		convertJsonToASTNode<Expression>(_node["baseSlotExpression"])
 	);
 }
 
@@ -475,7 +489,8 @@ ASTPointer<EnumValue> ASTJsonImporter::createEnumValue(Json const& _node)
 {
 	return createASTNode<EnumValue>(
 		_node,
-		memberAsASTString(_node, "name")
+		memberAsASTString(_node, "name"),
+		_node.contains("documentation") && !_node["documentation"].is_null() ? createDocumentation(member(_node, "documentation")) : nullptr
 	);
 }
 
@@ -720,7 +735,16 @@ ASTPointer<InlineAssembly> ASTJsonImporter::createInlineAssembly(Json const& _no
 	astAssert(evmVersion.has_value(), "Invalid EVM version!");
 	astAssert(m_evmVersion == evmVersion, "Imported tree evm version differs from configured evm version!");
 
-	yul::Dialect const& dialect = yul::EVMDialect::strictAssemblyForEVM(evmVersion.value());
+	// TODO: Add test in test/linsolidity/ASTJSON/assembly. This requires adding support for eofVersion in ASTJSONTest
+	std::optional<uint8_t> eofVersion;
+	if (auto const it = _node.find("eofVersion"); it != _node.end())
+	{
+		eofVersion = it->get<uint8_t>();
+		astAssert(eofVersion > 0);
+	}
+	astAssert(m_eofVersion == eofVersion, "Imported tree EOF version differs from configured EOF version!");
+
+	yul::Dialect const& dialect = yul::EVMDialect::strictAssemblyForEVM(evmVersion.value(), eofVersion);
 	ASTPointer<std::vector<ASTPointer<ASTString>>> flags;
 	if (_node.contains("flags"))
 	{
@@ -733,7 +757,9 @@ ASTPointer<InlineAssembly> ASTJsonImporter::createInlineAssembly(Json const& _no
 			flags->emplace_back(std::make_shared<ASTString>(flag.get<std::string>()));
 		}
 	}
-	std::shared_ptr<yul::Block> operations = std::make_shared<yul::Block>(yul::AsmJsonImporter(m_sourceNames).createBlock(member(_node, "AST")));
+	std::shared_ptr<yul::AST> operations = std::make_shared<yul::AST>(
+		yul::AsmJsonImporter(dialect, m_sourceNames).createAST(member(_node, "AST"))
+	);
 	return createASTNode<InlineAssembly>(
 		_node,
 		nullOrASTString(_node, "documentation"),
@@ -1190,6 +1216,8 @@ VariableDeclaration::Location ASTJsonImporter::location(Json const& _node)
 		return VariableDeclaration::Location::Memory;
 	else if (storageLocStr == "calldata")
 		return VariableDeclaration::Location::CallData;
+	else if (storageLocStr == "transient")
+		return VariableDeclaration::Location::Transient;
 	else
 		astAssert(false, "Unknown location declaration");
 

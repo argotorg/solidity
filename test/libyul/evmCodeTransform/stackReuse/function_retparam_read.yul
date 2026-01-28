@@ -1,10 +1,20 @@
 {
     function f() -> x { pop(address()) sstore(0, x) pop(callvalue()) }
+
+    pop(f())
 }
 // ====
 // stackOptimization: true
+// EVMVersion: =current
 // ----
-//     /* "":0:74   */
+//     /* "":82:85   */
+//   tag_2
+//   tag_1
+//   jump	// in
+// tag_2:
+//     /* "":78:86   */
+//   pop
+//     /* "":0:88   */
 //   stop
 //     /* "":6:72   */
 // tag_1:

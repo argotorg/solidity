@@ -48,8 +48,8 @@
 namespace solidity::yul
 {
 // Forward-declaration to <yul/AST.h>
-struct Block;
-struct Dialect;
+class AST;
+class Dialect;
 }
 
 namespace solidity::frontend
@@ -193,6 +193,12 @@ public:
 	bool experimentalSolidity() const { return m_experimentalSolidity; }
 
 private:
+	void referencedSourceUnits(
+		std::set<SourceUnit const*>& _referencedSourceUnits,
+		bool _recurse,
+		std::set<SourceUnit const*>& _skipList
+	) const;
+
 	std::optional<std::string> m_licenseString;
 	std::vector<ASTPointer<ASTNode>> m_nodes;
 	bool m_experimentalSolidity = false;
@@ -503,14 +509,16 @@ public:
 		std::vector<ASTPointer<InheritanceSpecifier>> _baseContracts,
 		std::vector<ASTPointer<ASTNode>> _subNodes,
 		ContractKind _contractKind = ContractKind::Contract,
-		bool _abstract = false
+		bool _abstract = false,
+		ASTPointer<StorageLayoutSpecifier> _storageLayoutSpecifier = nullptr
 	):
 		Declaration(_id, _location, _name, std::move(_nameLocation)),
 		StructurallyDocumented(_documentation),
 		m_baseContracts(std::move(_baseContracts)),
 		m_subNodes(std::move(_subNodes)),
 		m_contractKind(_contractKind),
-		m_abstract(_abstract)
+		m_abstract(_abstract),
+		m_storageLayoutSpecifier(_storageLayoutSpecifier)
 	{}
 
 	void accept(ASTVisitor& _visitor) override;
@@ -580,6 +588,9 @@ public:
 
 	bool abstract() const { return m_abstract; }
 
+	StorageLayoutSpecifier const* storageLayoutSpecifier() const { return m_storageLayoutSpecifier.get(); }
+	StorageLayoutSpecifier* storageLayoutSpecifier() { return m_storageLayoutSpecifier.get(); }
+
 	ContractDefinition const* superContract(ContractDefinition const& _mostDerivedContract) const;
 	/// @returns the next constructor in the inheritance hierarchy.
 	FunctionDefinition const* nextConstructor(ContractDefinition const& _mostDerivedContract) const;
@@ -591,10 +602,30 @@ private:
 	std::vector<ASTPointer<ASTNode>> m_subNodes;
 	ContractKind m_contractKind;
 	bool m_abstract{false};
+	ASTPointer<StorageLayoutSpecifier> m_storageLayoutSpecifier;
 
 	util::LazyInit<std::vector<std::pair<util::FixedHash<4>, FunctionTypePointer>>> m_interfaceFunctionList[2];
 	util::LazyInit<std::vector<EventDefinition const*>> m_interfaceEvents;
 	util::LazyInit<std::multimap<std::string, FunctionDefinition const*>> m_definedFunctionsByName;
+};
+
+
+class StorageLayoutSpecifier : public ASTNode
+{
+public:
+	StorageLayoutSpecifier(
+		int64_t _id,
+		SourceLocation const& _location,
+		ASTPointer<Expression> _baseSlotExpression
+	);
+	void accept(ASTVisitor& _visitor) override;
+	void accept(ASTConstVisitor& _visitor) const override;
+
+	Expression const& baseSlotExpression() const { solAssert(m_baseSlotExpression); return *m_baseSlotExpression; }
+	StorageLayoutSpecifierAnnotation& annotation() const override;
+
+private:
+	ASTPointer<Expression> m_baseSlotExpression;
 };
 
 /**
@@ -792,11 +823,19 @@ private:
 /**
  * Declaration of an Enum Value
  */
-class EnumValue: public Declaration
+class EnumValue: public Declaration, public StructurallyDocumented
 {
 public:
-	EnumValue(int64_t _id, SourceLocation const& _location, ASTPointer<ASTString> const& _name):
-		Declaration(_id, _location, _name, _location) {}
+	EnumValue(
+		int64_t _id,
+		SourceLocation const& _location,
+		ASTPointer<ASTString> const& _name,
+		ASTPointer<StructuredDocumentation> _documentation
+	):
+		Declaration(_id, _location, _name, _location),
+		StructurallyDocumented(std::move(_documentation))
+	{
+	}
 
 	void accept(ASTVisitor& _visitor) override;
 	void accept(ASTConstVisitor& _visitor) const override;
@@ -1052,7 +1091,7 @@ private:
 class VariableDeclaration: public Declaration, public StructurallyDocumented
 {
 public:
-	enum Location { Unspecified, Storage, Memory, CallData };
+	enum Location { Unspecified, Storage, Transient, Memory, CallData };
 	enum class Mutability { Mutable, Immutable, Constant };
 	static std::string mutabilityToString(Mutability _mutability)
 	{
@@ -1112,7 +1151,7 @@ public:
 	bool isCallableOrCatchParameter() const;
 	/// @returns true if this variable is a return parameter of a function.
 	bool isReturnParameter() const;
-	/// @returns true if this variable is a parameter of the success or failure clausse
+	/// @returns true if this variable is a parameter of the success or failure clause
 	/// of a try/catch statement.
 	bool isTryCatchParameter() const;
 	/// @returns true if this variable is a local variable or return parameter.
@@ -1569,7 +1608,7 @@ public:
 		ASTPointer<ASTString> const& _docString,
 		yul::Dialect const& _dialect,
 		ASTPointer<std::vector<ASTPointer<ASTString>>> _flags,
-		std::shared_ptr<yul::Block> _operations
+		std::shared_ptr<yul::AST> _operations
 	):
 		Statement(_id, _location, _docString),
 		m_dialect(_dialect),
@@ -1580,7 +1619,7 @@ public:
 	void accept(ASTConstVisitor& _visitor) const override;
 
 	yul::Dialect const& dialect() const { return m_dialect; }
-	yul::Block const& operations() const { return *m_operations; }
+	yul::AST const& operations() const { return *m_operations; }
 	ASTPointer<std::vector<ASTPointer<ASTString>>> const& flags() const { return m_flags; }
 
 	InlineAssemblyAnnotation& annotation() const override;
@@ -1588,7 +1627,7 @@ public:
 private:
 	yul::Dialect const& m_dialect;
 	ASTPointer<std::vector<ASTPointer<ASTString>>> m_flags;
-	std::shared_ptr<yul::Block> m_operations;
+	std::shared_ptr<yul::AST> m_operations;
 };
 
 /**
@@ -2048,7 +2087,7 @@ public:
 	):
 		Expression(_id, _location),
 		m_leftHandSide(std::move(_leftHandSide)),
-		m_assigmentOperator(_assignmentOperator),
+		m_assignmentOperator(_assignmentOperator),
 		m_rightHandSide(std::move(_rightHandSide))
 	{
 		solAssert(TokenTraits::isAssignmentOp(_assignmentOperator), "");
@@ -2057,12 +2096,12 @@ public:
 	void accept(ASTConstVisitor& _visitor) const override;
 
 	Expression const& leftHandSide() const { return *m_leftHandSide; }
-	Token assignmentOperator() const { return m_assigmentOperator; }
+	Token assignmentOperator() const { return m_assignmentOperator; }
 	Expression const& rightHandSide() const { return *m_rightHandSide; }
 
 private:
 	ASTPointer<Expression> m_leftHandSide;
-	Token m_assigmentOperator;
+	Token m_assignmentOperator;
 	ASTPointer<Expression> m_rightHandSide;
 };
 

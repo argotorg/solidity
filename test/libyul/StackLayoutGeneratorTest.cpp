@@ -24,16 +24,24 @@
 #include <libyul/backends/evm/ControlFlowGraphBuilder.h>
 #include <libyul/backends/evm/StackHelpers.h>
 #include <libyul/backends/evm/StackLayoutGenerator.h>
+#include <libyul/backends/evm/EVMDialect.h>
 #include <libyul/Object.h>
-#include <liblangutil/SourceReferenceFormatter.h>
+#include <libyul/YulStack.h>
 
-#include <libsolutil/AnsiColorized.h>
 #include <libsolutil/Visitor.h>
 
 #include <range/v3/view/reverse.hpp>
 
 #ifdef ISOLTEST
+#include <boost/version.hpp>
+#if (BOOST_VERSION < 108800)
 #include <boost/process.hpp>
+#else
+#define BOOST_PROCESS_VERSION 1
+#include <boost/process/v1/child.hpp>
+#include <boost/process/v1/io.hpp>
+#include <boost/process/v1/pipe.hpp>
+#endif
 #endif
 
 using namespace solidity;
@@ -45,11 +53,11 @@ using namespace solidity::frontend;
 using namespace solidity::frontend::test;
 
 StackLayoutGeneratorTest::StackLayoutGeneratorTest(std::string const& _filename):
-	TestCase(_filename)
+	EVMVersionRestrictedTestCase(_filename)
 {
 	m_source = m_reader.source();
 	auto dialectName = m_reader.stringSetting("dialect", "evm");
-	m_dialect = &dialect(dialectName, solidity::test::CommonOptions::get().evmVersion());
+	soltestAssert(dialectName == "evm"); // We only have one dialect now
 	m_expectation = m_reader.simpleExpectations();
 }
 
@@ -64,8 +72,8 @@ static std::string variableSlotToString(VariableSlot const& _slot)
 class StackLayoutPrinter
 {
 public:
-	StackLayoutPrinter(std::ostream& _stream, StackLayout const& _stackLayout):
-	m_stream(_stream), m_stackLayout(_stackLayout)
+	StackLayoutPrinter(std::ostream& _stream, StackLayout const& _stackLayout, Dialect const& _dialect):
+	m_stream(_stream), m_stackLayout(_stackLayout), m_dialect(_dialect)
 	{
 	}
 	void operator()(CFG::BasicBlock const& _block, bool _isMainEntry = true)
@@ -99,7 +107,7 @@ public:
 		m_stream << "\\l\\\n";
 		Stack functionEntryStack = {FunctionReturnLabelSlot{_info.function}};
 		functionEntryStack += _info.parameters | ranges::views::reverse;
-		m_stream << stackToString(functionEntryStack) << "\"];\n";
+		m_stream << stackToString(functionEntryStack, m_dialect) << "\"];\n";
 		m_stream << "FunctionEntry_" << _info.function.name.str() << " -> Block" << getBlockId(*_info.entry) << ";\n";
 		(*this)(*_info.entry, false);
 	}
@@ -130,17 +138,17 @@ private:
 			}, entry->exit);
 
 		auto const& blockInfo = m_stackLayout.blockInfos.at(&_block);
-		m_stream << stackToString(blockInfo.entryLayout) << "\\l\\\n";
+		m_stream << stackToString(blockInfo.entryLayout, m_dialect) << "\\l\\\n";
 		for (auto const& operation: _block.operations)
 		{
 			auto entryLayout = m_stackLayout.operationEntryLayout.at(&operation);
-			m_stream << stackToString(m_stackLayout.operationEntryLayout.at(&operation)) << "\\l\\\n";
+			m_stream << stackToString(m_stackLayout.operationEntryLayout.at(&operation), m_dialect) << "\\l\\\n";
 			std::visit(util::GenericVisitor{
 				[&](CFG::FunctionCall const& _call) {
 					m_stream << _call.function.get().name.str();
 				},
 				[&](CFG::BuiltinCall const& _call) {
-					m_stream << _call.functionCall.get().functionName.name.str();
+					m_stream << _call.builtin.get().name;
 
 				},
 				[&](CFG::Assignment const& _assignment) {
@@ -154,9 +162,9 @@ private:
 			for (size_t i = 0; i < operation.input.size(); ++i)
 				entryLayout.pop_back();
 			entryLayout += operation.output;
-			m_stream << stackToString(entryLayout) << "\\l\\\n";
+			m_stream << stackToString(entryLayout, m_dialect) << "\\l\\\n";
 		}
-		m_stream << stackToString(blockInfo.exitLayout) << "\\l\\\n";
+		m_stream << stackToString(blockInfo.exitLayout, m_dialect) << "\\l\\\n";
 		m_stream << "\"];\n";
 		std::visit(util::GenericVisitor{
 			[&](CFG::BasicBlock::MainExit const&)
@@ -177,7 +185,7 @@ private:
 			{
 				m_stream << "Block" << getBlockId(_block) << " -> Block" << getBlockId(_block) << "Exit;\n";
 				m_stream << "Block" << getBlockId(_block) << "Exit [label=\"{ ";
-				m_stream << stackSlotToString(_conditionalJump.condition);
+				m_stream << stackSlotToString(_conditionalJump.condition, m_dialect);
 				m_stream << "| { <0> Zero | <1> NonZero }}\" shape=Mrecord];\n";
 				m_stream << "Block" << getBlockId(_block);
 				m_stream << "Exit:0 -> Block" << getBlockId(*_conditionalJump.zero) << ";\n";
@@ -207,6 +215,7 @@ private:
 	}
 	std::ostream& m_stream;
 	StackLayout const& m_stackLayout;
+	Dialect const& m_dialect;
 	std::map<CFG::BasicBlock const*, size_t> m_blockIds;
 	size_t m_blockCount = 0;
 	std::list<CFG::BasicBlock const*> m_blocksToPrint;
@@ -214,21 +223,30 @@ private:
 
 TestCase::TestResult StackLayoutGeneratorTest::run(std::ostream& _stream, std::string const& _linePrefix, bool const _formatted)
 {
-	ErrorList errors;
-	auto [object, analysisInfo] = parse(m_source, *m_dialect, errors);
-	if (!object || !analysisInfo || Error::containsErrors(errors))
+	YulStack yulStack = parseYul(m_source);
+	solUnimplementedAssert(yulStack.parserResult()->subObjects.empty(), "Tests with subobjects not supported.");
+
+	if (yulStack.hasErrors())
 	{
-		AnsiColorized(_stream, _formatted, {formatting::BOLD, formatting::RED}) << _linePrefix << "Error parsing source." << std::endl;
+		printYulErrors(yulStack, _stream, _linePrefix, _formatted);
 		return TestResult::FatalError;
 	}
 
 	std::ostringstream output;
 
-	std::unique_ptr<CFG> cfg = ControlFlowGraphBuilder::build(*analysisInfo, *m_dialect, *object->code);
-	StackLayout stackLayout = StackLayoutGenerator::run(*cfg);
+	std::unique_ptr<CFG> cfg = ControlFlowGraphBuilder::build(
+		*yulStack.parserResult()->analysisInfo,
+		yulStack.dialect(),
+		yulStack.parserResult()->code()->root()
+	);
+
+	auto const* evmDialect = dynamic_cast<EVMDialect const*>(&yulStack.dialect());
+	solAssert(evmDialect, "StackLayoutGenerator can only be run on EVM dialects.");
+
+	StackLayout stackLayout = StackLayoutGenerator::run(*cfg, *evmDialect);
 
 	output << "digraph CFG {\nnodesep=0.7;\nnode[shape=box];\n\n";
-	StackLayoutPrinter printer{output, stackLayout};
+	StackLayoutPrinter printer{output, stackLayout, yulStack.dialect()};
 	printer(*cfg->entry);
 	for (auto function: cfg->functions)
 		printer(cfg->functionInfo.at(function));

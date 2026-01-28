@@ -56,6 +56,13 @@ public:
 	void appendJumpToIf(LabelID _labelId, JumpType _jumpType) override;
 	void appendAssemblySize() override;
 	std::pair<std::shared_ptr<AbstractAssembly>, SubID> createSubAssembly(bool _creation, std::string _name = {}) override;
+	AbstractAssembly::FunctionID registerFunction(uint8_t _args, uint8_t _rets, bool _nonReturning) override;
+	void beginFunction(AbstractAssembly::FunctionID _functionID) override;
+	void endFunction() override;
+	void appendFunctionCall(FunctionID _functionID) override;
+	void appendFunctionReturn() override;
+	void appendEOFCreate(ContainerID _containerID) override;
+	void appendReturnContract(ContainerID _containerID) override;
 	void appendDataOffset(std::vector<SubID> const& _subPath) override;
 	void appendDataSize(std::vector<SubID> const& _subPath) override;
 	SubID appendData(bytes const& _data) override;
@@ -64,6 +71,11 @@ public:
 
 	void appendImmutable(std::string const& _identifier) override;
 	void appendImmutableAssignment(std::string const& _identifier) override;
+
+	void appendAuxDataLoadN(uint16_t _offset) override;
+
+	void appendSwapN(size_t _depth) override;
+	void appendDupN(size_t _depth) override;
 
 	void markAsInvalid() override;
 
@@ -76,6 +88,6 @@ private:
 
 	evmasm::Assembly& m_assembly;
 	std::map<SubID, u256> m_dataHashBySubId;
-	size_t m_nextDataCounter = std::numeric_limits<size_t>::max() / 2;
+	SubID::ValueType m_nextDataCounter = std::numeric_limits<SubID::ValueType>::max() / 2;
 };
 }

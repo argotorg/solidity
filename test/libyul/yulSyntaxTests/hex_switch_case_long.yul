@@ -1,7 +1,7 @@
 {
-    switch codesize()
+    switch calldataload(0)
     case hex"00" {}
     case hex"112233445566778899001122334455667788990011223344556677889900112233445566778899001122334455667788990011223344556677889900" {}
 }
 // ----
-// TypeError 3069: (53-178): String literal too long (60 > 32)
+// TypeError 3069: (58-183): String literal too long (60 > 32)

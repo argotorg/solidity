@@ -20,6 +20,7 @@
 
 #include <libsolidity/formal/EncodingContext.h>
 
+#include <libsolidity/ast/AST.h>
 #include <libsolidity/ast/TypeProvider.h>
 #include <libsolidity/ast/Types.h>
 #include <libsolutil/CommonData.h>
@@ -28,6 +29,20 @@
 
 using namespace solidity::util;
 using namespace solidity::smtutil;
+
+
+namespace
+{
+	// HACK to get around Z3 bug in printing type names with spaces (https://github.com/Z3Prover/z3/issues/6850)
+	// Should be fixed in Z3 4.13.0
+	// TODO: Remove this afterwards
+	void sanitizeTypeName(std::string& name)
+	{
+		std::replace(name.begin(), name.end(), ' ', '_');
+		std::replace(name.begin(), name.end(), '(', '[');
+		std::replace(name.begin(), name.end(), ')', ']');
+	}
+}
 
 namespace solidity::frontend::smt
 {
@@ -110,6 +125,18 @@ SortPointer smtSort(frontend::Type const& _type)
 			// in the tuple's name.
 			if (auto tupleSort = std::dynamic_pointer_cast<TupleSort>(array->range))
 				tupleName = tupleSort->name;
+			else if (isContract(*baseType))
+				// use a common sort for contracts so inheriting contracts do not cause conflicting SMT types
+				// solc handles types mismatch
+				tupleName = "contract";
+			else if (isFunction(*baseType))
+				// use a common sort for functions so pure and view modifier do not cause conflicting SMT types
+				// solc handles types mismatch
+				tupleName = "function";
+			else if (isAddress(*baseType))
+				// use a common sort for address and address payable so it does not cause conflicting SMT types
+				// solc handles types mismatch
+				tupleName = "address";
 			else if (
 				baseType->category() == frontend::Type::Category::Integer ||
 				baseType->category() == frontend::Type::Category::FixedPoint
@@ -125,6 +152,7 @@ SortPointer smtSort(frontend::Type const& _type)
 		else
 			tupleName = _type.toString(true);
 
+		sanitizeTypeName(tupleName);
 		tupleName += "_tuple";
 
 		return std::make_shared<TupleSort>(
@@ -136,7 +164,8 @@ SortPointer smtSort(frontend::Type const& _type)
 	case Kind::Tuple:
 	{
 		std::vector<std::string> members;
-		auto const& tupleName = _type.toString(true);
+		auto tupleName = _type.toString(true);
+		sanitizeTypeName(tupleName);
 		std::vector<SortPointer> sorts;
 
 		if (auto const* tupleType = dynamic_cast<frontend::TupleType const*>(&_type))
@@ -639,4 +668,41 @@ smtutil::Expression assignMember(smtutil::Expression const _tuple, std::map<std:
 	return smtutil::Expression::tuple_constructor(sortExpr, args);
 }
 
+std::map<std::string, frontend::Type const*> transactionMemberTypes()
+{
+	// TODO: gasleft
+	return {
+		{"block.basefee", TypeProvider::uint256()},
+		{"block.blobbasefee", TypeProvider::uint256()},
+		{"block.chainid", TypeProvider::uint256()},
+		{"block.coinbase", TypeProvider::address()},
+		{"block.prevrandao", TypeProvider::uint256()},
+		{"block.gaslimit", TypeProvider::uint256()},
+		{"block.number", TypeProvider::uint256()},
+		{"block.timestamp", TypeProvider::uint256()},
+		{"blobhash", TypeProvider::array(DataLocation::Memory, TypeProvider::uint256())},
+		{"blockhash", TypeProvider::array(DataLocation::Memory, TypeProvider::uint256())},
+		{"msg.data", TypeProvider::bytesCalldata()},
+		{"msg.sender", TypeProvider::address()},
+		{"msg.sig", TypeProvider::fixedBytes(4)},
+		{"msg.value", TypeProvider::uint256()},
+		{"tx.gasprice", TypeProvider::uint256()},
+		{"tx.origin", TypeProvider::address()}
+	};
+}
+
+std::map<std::string, SortPointer> transactionMemberSorts()
+{
+	// NOTE: `blockhash` and `blobhash` need proper `ArraySort`, `smtSort()` wraps array types into array+length pair
+	auto toSort = [&](auto const& entry) -> SortPointer
+	{
+		if (entry.first == "blockhash" || entry.first == "blobhash")
+			return std::make_shared<ArraySort>(SortProvider::uintSort, SortProvider::uintSort);
+		return smtSort(*entry.second);
+	};
+	auto types = transactionMemberTypes();
+	return types
+	| ranges::views::transform([&](auto const& entry) { return std::make_pair(entry.first, toSort(entry)); })
+	| ranges::to<std::map<std::string, SortPointer>>();
+}
 }

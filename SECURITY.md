@@ -49,4 +49,4 @@ The Solidity team maintains the following JSON-formatted lists of patched securi
 [1]: https://bounty.ethereum.org/
 [2]: https://bounty.ethereum.org/#rules
 [3]: https://docs.soliditylang.org/en/develop/bugs.html
-[4]: https://github.com/ethereum/solidity/blob/develop/docs/bugs_by_version.json
+[4]: https://github.com/argotorg/solidity/blob/develop/docs/bugs_by_version.json

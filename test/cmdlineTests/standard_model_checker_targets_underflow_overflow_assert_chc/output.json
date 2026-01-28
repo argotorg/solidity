@@ -8,6 +8,7 @@ Counterexample:
 arr = []
 a = 0x0
 x = 0
+success = false
 
 Transaction trace:
 test.constructor()
@@ -24,6 +25,7 @@ Counterexample:
 arr = []
 a = 0x0
 x = 0
+success = false
 
 Transaction trace:
 test.constructor()
@@ -45,6 +47,7 @@ Counterexample:
 arr = []
 a = 0x0
 x = 1
+success = false
 
 Transaction trace:
 test.constructor()
@@ -61,6 +64,7 @@ Counterexample:
 arr = []
 a = 0x0
 x = 1
+success = false
 
 Transaction trace:
 test.constructor()
@@ -82,14 +86,16 @@ Counterexample:
 arr = []
 a = 0x0
 x = 0
+success = true
 
 Transaction trace:
 test.constructor()
 State: arr = []
 test.f(0x0, 1)
-  --> A:12:7:
+    a.call{value: x}(\"\") -- untrusted external call
+  --> A:13:7:
    |
-12 | \t\t\t\t\t\tassert(x > 0);
+13 | \t\t\t\t\t\tassert(x > 0);
    | \t\t\t\t\t\t^^^^^^^^^^^^^
 
 ",
@@ -98,16 +104,18 @@ Counterexample:
 arr = []
 a = 0x0
 x = 0
+success = true
 
 Transaction trace:
 test.constructor()
 State: arr = []
-test.f(0x0, 1)",
+test.f(0x0, 1)
+    a.call{value: x}(\"\") -- untrusted external call",
             "severity": "warning",
             "sourceLocation": {
-                "end": 258,
+                "end": 308,
                 "file": "A",
-                "start": 245
+                "start": 295
             },
             "type": "Warning"
         }

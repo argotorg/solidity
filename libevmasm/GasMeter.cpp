@@ -44,12 +44,8 @@ GasMeter::GasConsumption GasMeter::estimateMax(AssemblyItem const& _item, bool _
 	switch (_item.type())
 	{
 	case Push:
-		if (m_evmVersion.hasPush0() && _item.data() == 0)
-		{
-			gas = runGas(Instruction::PUSH0, m_evmVersion);
-			break;
-		}
-		[[fallthrough]];
+		gas = pushGas(_item.data(), m_evmVersion);
+		break;
 	case PushTag:
 	case PushData:
 	case PushSub:
@@ -267,17 +263,21 @@ GasMeter::GasConsumption GasMeter::memoryGas(int _stackPosOffset, int _stackPosS
 		}));
 }
 
-unsigned GasMeter::runGas(Instruction _instruction, langutil::EVMVersion _evmVersion)
+namespace
 {
-	if (_instruction == Instruction::JUMPDEST)
-		return 1;
-
-	switch (instructionInfo(_instruction, _evmVersion).gasPriceTier)
+std::optional<unsigned> gasCostForTier(Tier _tier)
+{
+	switch (_tier)
 	{
 	case Tier::Zero:        return GasCosts::tier0Gas;
 	case Tier::Base:        return GasCosts::tier1Gas;
+	case Tier::RJump:       return GasCosts::tier1Gas;
+	case Tier::RJumpI:      return GasCosts::rjumpiGas;
 	case Tier::VeryLow:     return GasCosts::tier2Gas;
+	case Tier::RetF:        return GasCosts::tier2Gas;
 	case Tier::Low:         return GasCosts::tier3Gas;
+	case Tier::CallF:       return GasCosts::tier3Gas;
+	case Tier::JumpF:       return GasCosts::tier3Gas;
 	case Tier::Mid:         return GasCosts::tier4Gas;
 	case Tier::High:        return GasCosts::tier5Gas;
 	case Tier::BlockHash:   return GasCosts::tier6Gas;
@@ -285,9 +285,46 @@ unsigned GasMeter::runGas(Instruction _instruction, langutil::EVMVersion _evmVer
 
 	case Tier::Special:
 	case Tier::Invalid:
-		assertThrow(false, OptimizerException, "Invalid gas tier for instruction " + instructionInfo(_instruction, _evmVersion).name);
+		return std::nullopt;
 	}
 	util::unreachable();
+}
+}
+
+unsigned GasMeter::runGas(Instruction _instruction, langutil::EVMVersion _evmVersion)
+{
+	if (_instruction == Instruction::JUMPDEST)
+		return 1;
+
+	if (auto gasCost = gasCostForTier(instructionInfo(_instruction, _evmVersion).gasPriceTier))
+		return *gasCost;
+	solAssert(false, "Invalid gas tier for instruction " + instructionInfo(_instruction, _evmVersion).name);
+}
+
+unsigned GasMeter::pushGas(u256 _value, langutil::EVMVersion _evmVersion)
+{
+	return runGas(
+		(_evmVersion.hasPush0() && _value == u256(0)) ? Instruction::PUSH0 : Instruction::PUSH1,
+		_evmVersion
+	);
+}
+
+unsigned GasMeter::swapGas(size_t _depth, langutil::EVMVersion _evmVersion)
+{
+	if (_depth <= 16)
+		return runGas(evmasm::swapInstruction(static_cast<unsigned>(_depth)), _evmVersion);
+	auto gasCost = gasCostForTier(instructionInfo(evmasm::Instruction::SWAPN, _evmVersion).gasPriceTier);
+	solAssert(gasCost.has_value(), "Expected gas cost for SWAPN to be defined.");
+	return *gasCost;
+}
+
+unsigned GasMeter::dupGas(size_t _depth, langutil::EVMVersion _evmVersion)
+{
+	if (_depth <= 16)
+		return runGas(evmasm::swapInstruction(static_cast<unsigned>(_depth)), _evmVersion);
+	auto gasCost = gasCostForTier(instructionInfo(evmasm::Instruction::DUPN, _evmVersion).gasPriceTier);
+	solAssert(gasCost.has_value(), "Expected gas cost for DUPN to be defined.");
+	return *gasCost;
 }
 
 u256 GasMeter::dataGas(bytes const& _data, bool _inCreation, langutil::EVMVersion _evmVersion)
@@ -300,7 +337,7 @@ u256 GasMeter::dataGas(bytes const& _data, bool _inCreation, langutil::EVMVersio
 	}
 	else
 		gas = bigint(GasCosts::createDataGas) * _data.size();
-	assertThrow(gas < bigint(u256(-1)), OptimizerException, "Gas cost exceeds 256 bits.");
+	solAssert(gas < bigint(u256(-1)), "Gas cost exceeds 256 bits.");
 	return u256(gas);
 }
 
@@ -308,6 +345,6 @@ u256 GasMeter::dataGas(bytes const& _data, bool _inCreation, langutil::EVMVersio
 u256 GasMeter::dataGas(uint64_t _length, bool _inCreation, langutil::EVMVersion _evmVersion)
 {
 	bigint gas = bigint(_length) * (_inCreation ? GasCosts::txDataNonZeroGas(_evmVersion) : GasCosts::createDataGas);
-	assertThrow(gas < bigint(u256(-1)), OptimizerException, "Gas cost exceeds 256 bits.");
+	solAssert(gas < bigint(u256(-1)), "Gas cost exceeds 256 bits.");
 	return u256(gas);
 }

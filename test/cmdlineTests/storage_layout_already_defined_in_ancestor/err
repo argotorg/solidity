@@ -1,0 +1,10 @@
+Error: Cannot inherit from a contract with a custom storage layout.
+ --> <stdin>:5:15:
+  |
+5 | contract B is A {}
+  |               ^
+Note: Custom storage layout defined here:
+ --> <stdin>:4:12:
+  |
+4 | contract A layout at 0x1234 {}
+  |            ^^^^^^^^^^^^^^^^

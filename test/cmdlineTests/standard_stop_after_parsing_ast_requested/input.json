@@ -1,7 +1,7 @@
 {
 	"language": "Solidity",
 	"sources": {
-		"C": {"urls": ["standard_stop_after_parsing_ast_requested/in.sol"]}
+		"C": {"urls": ["in.sol"]}
 	},
 	"settings": {
 		"stopAfter": "parsing",

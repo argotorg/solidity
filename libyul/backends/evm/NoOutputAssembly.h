@@ -37,6 +37,13 @@ struct SourceLocation;
 namespace solidity::yul
 {
 
+class NoOutputAssembly;
+
+struct NoOutputAssemblyContext
+{
+	size_t numFunctions = 0;
+	std::map<uint16_t, std::pair<uint8_t, uint8_t>> functionSignatures;
+};
 
 /**
  * Assembly class that just ignores everything and only performs stack counting.
@@ -66,6 +73,11 @@ public:
 
 	void appendAssemblySize() override;
 	std::pair<std::shared_ptr<AbstractAssembly>, SubID> createSubAssembly(bool _creation, std::string _name = "") override;
+	FunctionID registerFunction(uint8_t _args, uint8_t _rets, bool _nonReturning) override;
+	void beginFunction(FunctionID) override;
+	void endFunction() override;
+	void appendFunctionCall(FunctionID _functionID) override;
+	void appendFunctionReturn() override;
 	void appendDataOffset(std::vector<SubID> const& _subPath) override;
 	void appendDataSize(std::vector<SubID> const& _subPath) override;
 	SubID appendData(bytes const& _data) override;
@@ -75,12 +87,20 @@ public:
 	void appendImmutable(std::string const& _identifier) override;
 	void appendImmutableAssignment(std::string const& _identifier) override;
 
+	void appendAuxDataLoadN(uint16_t) override;
+	void appendEOFCreate(ContainerID) override;
+	void appendReturnContract(ContainerID) override;
+	void appendSwapN(size_t) override {}
+	void appendDupN(size_t) override;
+
 	void markAsInvalid() override {}
 
 	langutil::EVMVersion evmVersion() const override { return m_evmVersion; }
 
 private:
+	NoOutputAssemblyContext m_context = {};
 	int m_stackHeight = 0;
+	FunctionID m_currentFunctionID = 0;
 	langutil::EVMVersion m_evmVersion;
 };
 
@@ -88,9 +108,15 @@ private:
 /**
  * EVM dialect that does not generate any code.
  */
-struct NoOutputEVMDialect: public EVMDialect
+class NoOutputEVMDialect: public EVMDialect
 {
+public:
 	explicit NoOutputEVMDialect(EVMDialect const& _copyFrom);
+
+	BuiltinFunctionForEVM const& builtin(BuiltinHandle const& _handle) const override;
+
+private:
+	static std::vector<BuiltinFunctionForEVM> defineNoOutputBuiltins();
 };
 
 

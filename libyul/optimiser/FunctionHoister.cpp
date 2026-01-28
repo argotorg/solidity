@@ -30,6 +30,9 @@
 using namespace solidity;
 using namespace solidity::yul;
 
+FunctionHoister::FunctionHoister() = default;
+FunctionHoister::~FunctionHoister() = default;
+
 void FunctionHoister::operator()(Block& _block)
 {
 	bool topLevel = m_isTopLevel;

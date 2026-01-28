@@ -1,6 +1,7 @@
 contract C {
     function f() public returns (bool) {
-        (bool success, ) = address(1).call("");
+        // Random address, no contract deployed to it.
+        (bool success, ) = address(0xffff).call("");
         return success;
     }
 }

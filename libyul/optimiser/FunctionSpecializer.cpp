@@ -24,7 +24,7 @@
 #include <libyul/optimiser/NameDispenser.h>
 
 #include <libyul/AST.h>
-#include <libyul/YulString.h>
+#include <libyul/YulName.h>
 #include <libsolutil/CommonData.h>
 
 #include <range/v3/algorithm/any_of.hpp>
@@ -55,21 +55,23 @@ void FunctionSpecializer::operator()(FunctionCall& _f)
 
 	// TODO When backtracking is implemented, the restriction of recursive functions can be lifted.
 	if (
-		m_dialect.builtin(_f.functionName.name) ||
-		m_recursiveFunctions.count(_f.functionName.name)
+		isBuiltinFunctionCall(_f) ||
+		(std::holds_alternative<Identifier>(_f.functionName) && m_recursiveFunctions.count(std::get<Identifier>(_f.functionName).name))
 	)
 		return;
+	yulAssert(std::holds_alternative<Identifier>(_f.functionName));
+	auto& identifier = std::get<Identifier>(_f.functionName);
 
 	LiteralArguments arguments = specializableArguments(_f);
 
 	if (ranges::any_of(arguments, [](auto& _a) { return _a.has_value(); }))
 	{
-		YulString oldName = std::move(_f.functionName.name);
+		YulName oldName = std::move(identifier.name);
 		auto newName = m_nameDispenser.newName(oldName);
 
 		m_oldToNewMap[oldName].emplace_back(std::make_pair(newName, arguments));
 
-		_f.functionName.name = newName;
+		identifier.name = newName;
 		_f.arguments = util::filter(
 			_f.arguments,
 			applyMap(arguments, [](auto& _a) { return !_a; })
@@ -79,19 +81,19 @@ void FunctionSpecializer::operator()(FunctionCall& _f)
 
 FunctionDefinition FunctionSpecializer::specialize(
 	FunctionDefinition const& _f,
-	YulString _newName,
+	YulName _newName,
 	FunctionSpecializer::LiteralArguments _arguments
 )
 {
 	yulAssert(_arguments.size() == _f.parameters.size(), "");
 
-	std::map<YulString, YulString> translatedNames = applyMap(
+	std::map<YulName, YulName> translatedNames = applyMap(
 		NameCollector{_f, NameCollector::OnlyVariables}.names(),
-		[&](auto& _name) -> std::pair<YulString, YulString>
+		[&](auto& _name) -> std::pair<YulName, YulName>
 		{
 			return std::make_pair(_name, m_nameDispenser.newName(_name));
 		},
-		std::map<YulString, YulString>{}
+		std::map<YulName, YulName>{}
 	);
 
 	FunctionDefinition newFunction = std::get<FunctionDefinition>(FunctionCopier{translatedNames}(_f));
@@ -104,7 +106,7 @@ FunctionDefinition FunctionSpecializer::specialize(
 			missingVariableDeclarations.emplace_back(
 				VariableDeclaration{
 					_f.debugData,
-					std::vector<TypedName>{newFunction.parameters[index]},
+					std::vector<NameWithDebugData>{newFunction.parameters[index]},
 					std::make_unique<Expression>(std::move(*argument))
 				}
 			);
@@ -128,8 +130,7 @@ void FunctionSpecializer::run(OptimiserStepContext& _context, Block& _ast)
 {
 	FunctionSpecializer f{
 		CallGraphGenerator::callGraph(_ast).recursiveFunctions(),
-		_context.dispenser,
-		_context.dialect
+		_context.dispenser
 	};
 	f(_ast);
 

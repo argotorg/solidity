@@ -23,6 +23,9 @@
 
 #include <liblangutil/ErrorReporter.h>
 #include <liblangutil/SourceLocation.h>
+
+#include <libsolutil/Exceptions.h>
+
 #include <range/v3/algorithm/find_if.hpp>
 #include <memory>
 
@@ -121,7 +124,7 @@ bool ErrorReporter::checkForExcessiveErrors(Error::Type _type)
 		if (m_errorCount > c_maxErrorsAllowed)
 		{
 			m_errorList.push_back(std::make_shared<Error>(4013_error, Error::Type::Warning, "There are more than 256 errors. Aborting."));
-			BOOST_THROW_EXCEPTION(FatalError());
+			solThrow(FatalError, "There are more than 256 errors. Aborting.");
 		}
 	}
 
@@ -131,13 +134,13 @@ bool ErrorReporter::checkForExcessiveErrors(Error::Type _type)
 void ErrorReporter::fatalError(ErrorId _error, Error::Type _type, SourceLocation const& _location, SecondarySourceLocation const& _secondaryLocation, std::string const& _description)
 {
 	error(_error, _type, _location, _secondaryLocation, _description);
-	BOOST_THROW_EXCEPTION(FatalError());
+	solThrow(FatalError, _description);
 }
 
 void ErrorReporter::fatalError(ErrorId _error, Error::Type _type, SourceLocation const& _location, std::string const& _description)
 {
 	error(_error, _type, _location, _description);
-	BOOST_THROW_EXCEPTION(FatalError());
+	solThrow(FatalError, _description);
 }
 
 ErrorList const& ErrorReporter::errors() const
@@ -186,6 +189,17 @@ void ErrorReporter::parserError(ErrorId _error, SourceLocation const& _location,
 		_error,
 		Error::Type::ParserError,
 		_location,
+		_description
+	);
+}
+
+void ErrorReporter::parserError(ErrorId _error, SourceLocation const& _location, SecondarySourceLocation const& _secondaryLocation, std::string const& _description)
+{
+	error(
+		_error,
+		Error::Type::ParserError,
+		_location,
+		_secondaryLocation,
 		_description
 	);
 }
@@ -270,6 +284,23 @@ void ErrorReporter::unimplementedFeatureError(ErrorId _error, SourceLocation con
 		Error::Type::UnimplementedFeatureError,
 		_location,
 		_description
+	);
+}
+
+void ErrorReporter::codeGenerationError(ErrorId _error, SourceLocation const& _location, std::string const& _description)
+{
+	error(_error, Error::Type::CodeGenerationError, _location, _description);
+}
+
+void ErrorReporter::codeGenerationError(Error const& _error)
+{
+	solAssert(_error.type() == Error::Type::CodeGenerationError);
+	solAssert(_error.comment(), "Errors must include a message for the user.");
+	solUnimplementedAssert(!_error.secondarySourceLocation(), "Secondary locations not supported yet.");
+	codeGenerationError(
+		_error.errorId(),
+		_error.sourceLocation() ?  *_error.sourceLocation() : SourceLocation{},
+		*_error.comment()
 	);
 }
 

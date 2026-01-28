@@ -109,7 +109,7 @@ std::set<ASTNode const*> GasEstimator::finestNodesAtLocation(
 {
 	std::map<SourceLocation, ASTNode const*> locations;
 	std::set<ASTNode const*> nodes;
-	SimpleASTVisitor visitor(std::function<bool(ASTNode const&)>(), [&](ASTNode const& _n)
+	SimpleASTVisitor visitor([](ASTNode const&) { return false; }, [&](ASTNode const& _n)
 	{
 		if (!locations.count(_n.location()))
 		{

@@ -47,8 +47,9 @@ class TypeChecker: private ASTConstVisitor
 {
 public:
 	/// @param _errorReporter provides the error logging functionality.
-	TypeChecker(langutil::EVMVersion _evmVersion, langutil::ErrorReporter& _errorReporter):
+	TypeChecker(langutil::EVMVersion _evmVersion, std::optional<uint8_t> _eofVersion, langutil::ErrorReporter& _errorReporter):
 		m_evmVersion(_evmVersion),
+		m_eofVersion(_eofVersion),
 		m_errorReporter(_errorReporter)
 	{}
 
@@ -174,7 +175,7 @@ private:
 	/// convertible to @a _expectedType.
 	bool expectType(Expression const& _expression, Type const& _expectedType);
 	/// Runs type checks on @a _expression to infer its type and then checks that it is an LValue.
-	void requireLValue(Expression const& _expression, bool _ordinaryAssignment);
+	void requireLValue(Expression const& _expression);
 
 	bool useABICoderV2() const;
 
@@ -192,6 +193,7 @@ private:
 	ContractDefinition const* m_currentContract = nullptr;
 
 	langutil::EVMVersion m_evmVersion;
+	std::optional<uint8_t> m_eofVersion;
 
 	langutil::ErrorReporter& m_errorReporter;
 };

@@ -19,5 +19,7 @@ contract Derived is Base {
         return m_a;
     }
 }
+// ====
+// bytecodeFormat: legacy,>=EOFv1
 // ----
 // getA() -> 49

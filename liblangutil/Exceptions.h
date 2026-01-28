@@ -163,7 +163,7 @@ struct ErrorId
 	bool operator!=(ErrorId const& _rhs) const { return !(*this == _rhs); }
 	bool operator<(ErrorId const& _rhs) const { return error < _rhs.error; }
 };
-constexpr ErrorId operator"" _error(unsigned long long _error) { return ErrorId{ _error }; }
+constexpr ErrorId operator""_error(unsigned long long _error) { return ErrorId{ _error }; }
 
 class Error: virtual public util::Exception
 {
@@ -254,6 +254,11 @@ public:
 			if (isError(e->type()))
 				return true;
 		return false;
+	}
+
+	static bool hasErrorsWarningsOrInfos(ErrorList const& _list)
+	{
+		return !_list.empty();
 	}
 
 	static std::string formatErrorSeverity(Severity _severity)

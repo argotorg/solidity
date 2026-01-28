@@ -44,6 +44,7 @@
 
 using namespace solidity::langutil;
 using namespace solidity::yul;
+using namespace solidity::test;
 
 namespace solidity::frontend::test
 {
@@ -66,18 +67,9 @@ std::optional<Error> parseAndReturnFirstError(
 		solidity::frontend::OptimiserSettings::none(),
 		DebugInfoSelection::None()
 	);
-	bool success = false;
-	try
-	{
-		success = stack.parseAndAnalyze("", _source);
-		if (success && _assemble)
-			stack.assemble(_machine);
-	}
-	catch (FatalError const&)
-	{
-		BOOST_FAIL("Fatal error leaked.");
-		success = false;
-	}
+	bool success = stack.parseAndAnalyze("", _source);
+	if (success && _assemble)
+		stack.assemble(_machine);
 	std::shared_ptr<Error const> error;
 	for (auto const& e: stack.errors())
 	{
@@ -140,7 +132,7 @@ void parsePrintCompare(std::string const& _source, bool _canWarn = false)
 	if (_canWarn)
 		BOOST_REQUIRE(!Error::containsErrors(stack.errors()));
 	else
-		BOOST_REQUIRE(stack.errors().empty());
+		BOOST_REQUIRE(!Error::hasErrorsWarningsOrInfos(stack.errors()));
 	std::string expectation = "object \"object\" {\n    code " + boost::replace_all_copy(_source, "\n", "\n    ") + "\n}\n";
 	BOOST_CHECK_EQUAL(stack.print(), expectation);
 }
@@ -228,7 +220,7 @@ BOOST_AUTO_TEST_CASE(print_string_literal_unicode)
 		DebugInfoSelection::None()
 	);
 	BOOST_REQUIRE(stack.parseAndAnalyze("", source));
-	BOOST_REQUIRE(stack.errors().empty());
+	BOOST_REQUIRE(!Error::hasErrorsWarningsOrInfos(stack.errors()));
 	BOOST_CHECK_EQUAL(stack.print(), parsed);
 
 	std::string parsedInner = "{ let x := \"\\xe1\\xae\\xac\" }";
@@ -303,7 +295,8 @@ BOOST_AUTO_TEST_CASE(designated_invalid_instruction)
 	BOOST_CHECK(successAssemble("{ invalid() }"));
 }
 
-BOOST_AUTO_TEST_CASE(inline_assembly_shadowed_instruction_declaration)
+// TODO: Implement EOF counterpart
+BOOST_AUTO_TEST_CASE(inline_assembly_shadowed_instruction_declaration, *boost::unit_test::precondition(nonEOF()))
 {
 	CHECK_ASSEMBLE_ERROR("{ let gas := 1 }", ParserError, "Cannot use builtin");
 }
@@ -342,14 +335,14 @@ BOOST_AUTO_TEST_CASE(returndatacopy)
 	BOOST_CHECK(successAssemble("{ returndatacopy(0, 32, 64) }"));
 }
 
-BOOST_AUTO_TEST_CASE(staticcall)
+BOOST_AUTO_TEST_CASE(staticcall, *boost::unit_test::precondition(nonEOF()))
 {
 	if (!solidity::test::CommonOptions::get().evmVersion().hasStaticCall())
 		return;
 	BOOST_CHECK(successAssemble("{ pop(staticcall(10000, 0x123, 64, 0x10, 128, 0x10)) }"));
 }
 
-BOOST_AUTO_TEST_CASE(create2)
+BOOST_AUTO_TEST_CASE(create2, *boost::unit_test::precondition(nonEOF()))
 {
 	if (!solidity::test::CommonOptions::get().evmVersion().hasCreate2())
 		return;

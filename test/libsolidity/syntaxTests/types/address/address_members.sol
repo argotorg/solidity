@@ -5,4 +5,6 @@ contract C {
     function i() public view returns (uint) { return f().code.length; }
     function j() public view returns (uint) { return h().length; }
 }
+// ====
+// bytecodeFormat: legacy
 // ----

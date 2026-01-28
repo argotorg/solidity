@@ -105,7 +105,7 @@ size_t countDifferences(Chromosome const& _chromosome1, Chromosome const& _chrom
 /// Assigns indices from 0 to N to all optimisation steps available in the OptimiserSuite.
 /// This is a convenience helper to make it easier to test their distribution with tools made for
 /// integers.
-std::map<std::string, size_t> enumerateOptmisationSteps();
+std::map<std::string, size_t> enumerateOptimisationSteps();
 
 // STRING UTILITIES
 

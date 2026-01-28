@@ -96,6 +96,11 @@ smtutil::Expression SymbolicState::balance(smtutil::Expression _address) const
 	return smtutil::Expression::select(balances(), std::move(_address));
 }
 
+smtutil::Expression SymbolicState::blobhash(smtutil::Expression _blobIndex) const
+{
+	return smtutil::Expression::select(m_tx.member("blobhash"), std::move(_blobIndex));
+}
+
 smtutil::Expression SymbolicState::blockhash(smtutil::Expression _blockNumber) const
 {
 	return smtutil::Expression::select(m_tx.member("blockhash"), std::move(_blockNumber));
@@ -222,6 +227,7 @@ smtutil::Expression SymbolicState::txTypeConstraints() const
 	return
 		evmParisConstraints() &&
 		smt::symbolicUnknownConstraints(m_tx.member("block.basefee"), TypeProvider::uint256()) &&
+		smt::symbolicUnknownConstraints(m_tx.member("block.blobbasefee"), TypeProvider::uint256()) &&
 		smt::symbolicUnknownConstraints(m_tx.member("block.chainid"), TypeProvider::uint256()) &&
 		smt::symbolicUnknownConstraints(m_tx.member("block.coinbase"), TypeProvider::address()) &&
 		smt::symbolicUnknownConstraints(m_tx.member("block.prevrandao"), TypeProvider::uint256()) &&

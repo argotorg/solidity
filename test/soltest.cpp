@@ -115,17 +115,9 @@ void runTestCase(TestCase::Config const& _config, TestCase::TestCaseCreator cons
 					break;
 			}
 	}
-	catch (boost::exception const& _e)
-	{
-		BOOST_ERROR("Exception during extracted test: " << boost::diagnostic_information(_e));
-	}
-	catch (std::exception const& _e)
-	{
-		BOOST_ERROR("Exception during extracted test: " << boost::diagnostic_information(_e));
-	}
 	catch (...)
 	{
-		BOOST_ERROR("Unknown exception during extracted test: " << boost::current_exception_diagnostic_information());
+		BOOST_ERROR("Exception during extracted test: " << boost::current_exception_diagnostic_information());
 	}
 }
 
@@ -237,9 +229,6 @@ test_suite* init_unit_test_suite(int /*argc*/, char* /*argv*/[])
 
 		if (solidity::test::CommonOptions::get().disableSemanticTests)
 			std::cout << std::endl << "--- SKIPPING ALL SEMANTICS TESTS ---" << std::endl << std::endl;
-
-		if (!solidity::test::CommonOptions::get().enforceGasTest)
-			std::cout << std::endl << "WARNING :: Gas Cost Expectations are not being enforced" << std::endl << std::endl;
 
 		Batcher batcher(CommonOptions::get().selectedBatch, CommonOptions::get().batches);
 		if (CommonOptions::get().batches > 1)

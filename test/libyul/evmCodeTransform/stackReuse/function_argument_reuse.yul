@@ -1,10 +1,24 @@
 {
     function f(a, b, c) -> x { pop(address()) sstore(a, c) pop(callvalue()) x := b }
+    pop(f(0, 0, 0))
 }
 // ====
 // stackOptimization: true
+// EVMVersion: =current
 // ----
-//     /* "":0:88   */
+//     /* "":95:105   */
+//   tag_2
+//     /* "":103:104   */
+//   0x00
+//     /* "":95:105   */
+//   dup1
+//   dup1
+//   tag_1
+//   jump	// in
+// tag_2:
+//     /* "":91:106   */
+//   pop
+//     /* "":0:108   */
 //   stop
 //     /* "":6:86   */
 // tag_1:

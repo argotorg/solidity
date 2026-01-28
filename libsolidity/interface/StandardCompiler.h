@@ -80,7 +80,7 @@ private:
 		std::optional<uint8_t> eofVersion;
 		std::vector<ImportRemapper::Remapping> remappings;
 		RevertStrings revertStrings = RevertStrings::Default;
-		OptimiserSettings optimiserSettings = OptimiserSettings::minimal();
+		OptimiserSettings optimiserSettings;
 		std::optional<langutil::DebugInfoSelection> debugInfoSelection;
 		std::map<std::string, util::h160> libraries;
 		bool metadataLiteralSources = false;

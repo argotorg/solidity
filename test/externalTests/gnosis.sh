@@ -37,7 +37,7 @@ function test_fn { npm test; }
 function gnosis_safe_test
 {
     local repo="https://github.com/safe-global/safe-contracts.git"
-    local ref="<latest-release>"
+    local ref="v1.4.1"
     local config_file="hardhat.config.ts"
     local config_var=userConfig
 

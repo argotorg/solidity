@@ -256,7 +256,7 @@ contract schelling is module, announcementTypes, schellingVars {
             @_moduleHandler         Address of ModuleHandler.
             @_db                    Address of the database.
             @_forReplace            This address will be replaced with the old one or not.
-            @_icoExpansionAddress   This address can turn schelling runds during ICO.
+            @_icoExpansionAddress   This address can turn schelling funds during ICO.
         */
         db = schellingDB(_db);
         super.registerModuleHandler(_moduleHandler);

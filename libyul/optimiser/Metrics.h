@@ -27,8 +27,8 @@
 namespace solidity::yul
 {
 
-struct Dialect;
-struct EVMDialect;
+class Dialect;
+class EVMDialect;
 
 /**
  * Weights to be assigned to specific yul statements and expressions by a metric.
@@ -139,9 +139,9 @@ class AssignmentCounter: public ASTWalker
 public:
 	using ASTWalker::operator();
 	void operator()(Assignment const& _assignment) override;
-	std::size_t assignmentCount(YulString _name) const;
+	std::size_t assignmentCount(YulName _name) const;
 private:
-	std::map<YulString, size_t> m_assignmentCounters;
+	std::map<YulName, size_t> m_assignmentCounters;
 };
 
 }

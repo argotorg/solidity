@@ -16,6 +16,8 @@
         if iszero(out1) { leave }
     }
 }
+// ====
+// bytecodeFormat: legacy
 // ----
 // step: fullSuite
 //

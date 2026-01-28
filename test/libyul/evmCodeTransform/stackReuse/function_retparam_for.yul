@@ -1,10 +1,20 @@
 {
     function f() -> x { pop(address()) for { pop(callvalue()) } 0 {} { } }
+
+    pop(f())
 }
 // ====
 // stackOptimization: true
+// EVMVersion: =current
 // ----
-//     /* "":0:78   */
+//     /* "":86:89   */
+//   tag_2
+//   tag_1
+//   jump	// in
+// tag_2:
+//     /* "":82:90   */
+//   pop
+//     /* "":0:92   */
 //   stop
 //     /* "":6:76   */
 // tag_1:

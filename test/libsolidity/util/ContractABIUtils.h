@@ -72,7 +72,7 @@ public:
 
 	/// Calculates the encoding size of given _parameters based
 	/// on the size of their types.
-	static size_t encodingSize(ParameterList const& _paremeters);
+	static size_t encodingSize(ParameterList const& _parameters);
 
 private:
 	/// Parses and translates a single type and returns a list of

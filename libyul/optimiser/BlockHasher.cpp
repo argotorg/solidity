@@ -23,6 +23,8 @@
 #include <libyul/AST.h>
 #include <libyul/Utilities.h>
 
+#include <libsolutil/Visitor.h>
+
 using namespace solidity;
 using namespace solidity::yul;
 using namespace solidity::util;
@@ -41,6 +43,34 @@ static constexpr uint64_t compileTimeLiteralHash(char const (&_literal)[N])
 }
 }
 
+void ASTHasherBase::hashLiteral(solidity::yul::Literal const& _literal)
+{
+	hash64(compileTimeLiteralHash("Literal"));
+	if (!_literal.value.unlimited())
+		hash64(std::hash<u256>{}(_literal.value.value()));
+	else
+		hash64(std::hash<std::string>{}(_literal.value.builtinStringLiteralValue()));
+	hash8(_literal.value.unlimited());
+}
+
+void ASTHasherBase::hashFunctionCall(FunctionCall const& _funCall)
+{
+	hash64(compileTimeLiteralHash("FunctionCall"));
+	GenericVisitor visitor{
+		[&](BuiltinName const& _builtin)
+		{
+			hash64(compileTimeLiteralHash("Builtin"));
+			hash64(_builtin.handle.id);
+		},
+		[&](Identifier const& _identifier)
+		{
+			hash64(compileTimeLiteralHash("UserDefined"));
+			hash64(_identifier.name.hash());
+		}
+	};
+	std::visit(visitor, _funCall.functionName);
+}
+
 std::map<Block const*, uint64_t> BlockHasher::run(Block const& _block)
 {
 	std::map<Block const*, uint64_t> result;
@@ -51,13 +81,7 @@ std::map<Block const*, uint64_t> BlockHasher::run(Block const& _block)
 
 void BlockHasher::operator()(Literal const& _literal)
 {
-	hash64(compileTimeLiteralHash("Literal"));
-	if (_literal.kind == LiteralKind::Number)
-		hash64(std::hash<u256>{}(valueOfNumberLiteral(_literal)));
-	else
-		hash64(_literal.value.hash());
-	hash64(_literal.type.hash());
-	hash8(static_cast<uint8_t>(_literal.kind));
+	hashLiteral(_literal);
 }
 
 void BlockHasher::operator()(Identifier const& _identifier)
@@ -81,9 +105,7 @@ void BlockHasher::operator()(Identifier const& _identifier)
 
 void BlockHasher::operator()(FunctionCall const& _funCall)
 {
-	hash64(compileTimeLiteralHash("FunctionCall"));
-	hash64(_funCall.functionName.name.hash());
-	hash64(_funCall.arguments.size());
+	hashFunctionCall(_funCall);
 	ASTWalker::operator()(_funCall);
 }
 
@@ -203,13 +225,7 @@ uint64_t ExpressionHasher::run(Expression const& _e)
 
 void ExpressionHasher::operator()(Literal const& _literal)
 {
-	hash64(compileTimeLiteralHash("Literal"));
-	if (_literal.kind == LiteralKind::Number)
-		hash64(std::hash<u256>{}(valueOfNumberLiteral(_literal)));
-	else
-		hash64(_literal.value.hash());
-	hash64(_literal.type.hash());
-	hash8(static_cast<uint8_t>(_literal.kind));
+	hashLiteral(_literal);
 }
 
 void ExpressionHasher::operator()(Identifier const& _identifier)
@@ -220,8 +236,6 @@ void ExpressionHasher::operator()(Identifier const& _identifier)
 
 void ExpressionHasher::operator()(FunctionCall const& _funCall)
 {
-	hash64(compileTimeLiteralHash("FunctionCall"));
-	hash64(_funCall.functionName.name.hash());
-	hash64(_funCall.arguments.size());
+	hashFunctionCall(_funCall);
 	ASTWalker::operator()(_funCall);
 }

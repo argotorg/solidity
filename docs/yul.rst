@@ -752,8 +752,8 @@ This document does not want to be a full description of the Ethereum virtual mac
 Please refer to a different document if you are interested in the precise semantics.
 
 Opcodes marked with ``-`` do not return a result and all others return exactly one value.
-Opcodes marked with ``F``, ``H``, ``B``, ``C``, ``I``, ``L``, ``P`` and ``N`` are present since Frontier,
-Homestead, Byzantium, Constantinople, Istanbul, London, Paris or Cancun respectively.
+Opcodes marked with ``F``, ``H``, ``B``, ``C``, ``I``, ``L``, ``P``, ``N`` and ``O`` are present since
+Frontier, Homestead, Byzantium, Constantinople, Istanbul, London, Paris, Cancun or Osaka respectively.
 
 In the following, ``mem[a...b)`` signifies the bytes of memory starting at position ``a`` up to
 but not including position ``b``, ``storage[p]`` signifies the storage contents at slot ``p``, and
@@ -812,6 +812,8 @@ the ``dup`` and ``swap`` instructions as well as ``jump`` instructions, labels a
 +-------------------------+-----+---+-----------------------------------------------------------------+
 | sar(x, y)               |     | C | signed arithmetic shift right y by x bits                       |
 +-------------------------+-----+---+-----------------------------------------------------------------+
+| clz(x)                  |     | O | number of leading zero bits of x, 256 if x == 0                 |
++-------------------------+-----+---+-----------------------------------------------------------------+
 | addmod(x, y, m)         |     | F | (x + y) % m with arbitrary precision arithmetic, 0 if m == 0    |
 +-------------------------+-----+---+-----------------------------------------------------------------+
 | mulmod(x, y, m)         |     | F | (x * y) % m with arbitrary precision arithmetic, 0 if m == 0    |
@@ -819,8 +821,6 @@ the ``dup`` and ``swap`` instructions as well as ``jump`` instructions, labels a
 | signextend(i, x)        |     | F | sign extend from (i*8+7)th bit counting from least significant  |
 +-------------------------+-----+---+-----------------------------------------------------------------+
 | keccak256(p, n)         |     | F | keccak(mem[p...(p+n)))                                          |
-+-------------------------+-----+---+-----------------------------------------------------------------+
-| pc()                    |     | F | current position in code                                        |
 +-------------------------+-----+---+-----------------------------------------------------------------+
 | pop(x)                  | `-` | F | discard value x                                                 |
 +-------------------------+-----+---+-----------------------------------------------------------------+
@@ -934,7 +934,8 @@ the ``dup`` and ``swap`` instructions as well as ``jump`` instructions, labels a
 +-------------------------+-----+---+-----------------------------------------------------------------+
 | blockhash(b)            |     | F | hash of block nr b - only for last 256 blocks excluding current |
 +-------------------------+-----+---+-----------------------------------------------------------------+
-| blobhash(i)             |     | N | versioned hash of transaction's i-th blob                       |
+| blobhash(i)             |     | N | versioned hash of transaction's i-th blob, 0 if blob does not   |
+|                         |     |   | exist                                                           |
 +-------------------------+-----+---+-----------------------------------------------------------------+
 | coinbase()              |     | F | current mining beneficiary                                      |
 +-------------------------+-----+---+-----------------------------------------------------------------+
@@ -1070,7 +1071,7 @@ by two, without the optimizer touching the constant two, you can use
     let double := verbatim_1i_1o(hex"600202", x)
 
 This code will result in a ``dup1`` opcode to retrieve ``x``
-(the optimizer might directly re-use result of the
+(the optimizer might directly reuse result of the
 ``calldataload`` opcode, though)
 directly followed by ``600202``. The code is assumed to
 consume the copied value of ``x`` and produce the result
@@ -1095,7 +1096,8 @@ the compiler. Violations of these restrictions can result in
 undefined behavior.
 
 - Control-flow should not jump into or out of verbatim blocks,
-  but it can jump within the same verbatim block.
+  but it can jump within the same verbatim block. In particular,
+  reverting or returning from the block is *not* allowed.
 - Stack contents apart from the input and output parameters
   should not be accessed.
 - The stack height difference should be exactly ``m - n``

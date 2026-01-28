@@ -1,3 +1,4 @@
+// TODO: Recreate this test for EOF when subassembly deduplication will be supported for EOF too.
 contract A {
     function longdata() pure external returns (bytes memory) {
         return
@@ -37,5 +38,7 @@ contract C {
             x < 2 * type(A).creationCode.length;
     }
 }
+// ====
+// bytecodeFormat: legacy
 // ----
 // test() -> true

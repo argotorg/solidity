@@ -1,0 +1,127 @@
+{
+    "contracts": {
+        "C": {
+            "a": {
+                "evm": {
+                    "bytecode": {
+                        "ethdebug": {
+                            "contract": {
+                                "definition": {
+                                    "source": {
+                                        "id": 0
+                                    }
+                                },
+                                "name": ""
+                            },
+                            "environment": "create",
+                            "instructions": [
+                                {
+                                    "context": {
+                                        "code": {
+                                            "range": {
+                                                "length": 42,
+                                                "offset": 165
+                                            },
+                                            "source": {
+                                                "id": 0
+                                            }
+                                        }
+                                    },
+                                    "offset": 0,
+                                    "operation": {
+                                        "arguments": [
+                                            "0x1234567890123456789012345678901234567890"
+                                        ],
+                                        "mnemonic": "PUSH20"
+                                    }
+                                },
+                                {
+                                    "context": {
+                                        "code": {
+                                            "range": {
+                                                "length": 1,
+                                                "offset": 81
+                                            },
+                                            "source": {
+                                                "id": 0
+                                            }
+                                        }
+                                    },
+                                    "offset": 21,
+                                    "operation": {
+                                        "mnemonic": "PUSH0"
+                                    }
+                                },
+                                {
+                                    "context": {
+                                        "code": {
+                                            "range": {
+                                                "length": 140,
+                                                "offset": 68
+                                            },
+                                            "source": {
+                                                "id": 0
+                                            }
+                                        }
+                                    },
+                                    "offset": 22,
+                                    "operation": {
+                                        "mnemonic": "POP"
+                                    }
+                                },
+                                {
+                                    "context": {
+                                        "code": {
+                                            "range": {
+                                                "length": 140,
+                                                "offset": 68
+                                            },
+                                            "source": {
+                                                "id": 0
+                                            }
+                                        }
+                                    },
+                                    "offset": 23,
+                                    "operation": {
+                                        "mnemonic": "POP"
+                                    }
+                                },
+                                {
+                                    "context": {
+                                        "code": {
+                                            "range": {
+                                                "length": 180,
+                                                "offset": 44
+                                            },
+                                            "source": {
+                                                "id": 0
+                                            }
+                                        }
+                                    },
+                                    "offset": 24,
+                                    "operation": {
+                                        "mnemonic": "STOP"
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "ethdebug": {
+        "compilation": {
+            "compiler": {
+                "name": "solc",
+                "version": "<VERSION REMOVED>"
+            },
+            "sources": [
+                {
+                    "id": 0,
+                    "path": "C"
+                }
+            ]
+        }
+    }
+}

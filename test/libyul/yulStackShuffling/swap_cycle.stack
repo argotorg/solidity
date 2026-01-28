@@ -20,3 +20,4 @@
 // [ v1 v0 v2 v3 v4 v5 v6 v7 v9 v10 v11 v12 v13 v14 v15 v16 RET JUNK ]
 // PUSH JUNK
 // [ v1 v0 v2 v3 v4 v5 v6 v7 v9 v10 v11 v12 v13 v14 v15 v16 RET JUNK JUNK ]
+// 9 operations

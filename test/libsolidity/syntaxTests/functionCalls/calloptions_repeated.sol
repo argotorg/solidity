@@ -10,6 +10,7 @@ contract C {
 }
 // ====
 // EVMVersion: >=constantinople
+// bytecodeFormat: legacy
 // ----
 // TypeError 1645: (78-110): Function call options have already been set, you have to combine them into a single {...}-option.
 // TypeError 1645: (120-154): Function call options have already been set, you have to combine them into a single {...}-option.

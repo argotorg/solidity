@@ -106,14 +106,31 @@ void EthAssemblyAdapter::appendJump(int _stackDiffAfter, JumpType _jumpType)
 
 void EthAssemblyAdapter::appendJumpTo(LabelID _labelId, int _stackDiffAfter, JumpType _jumpType)
 {
-	appendLabelReference(_labelId);
-	appendJump(_stackDiffAfter, _jumpType);
+	if (m_assembly.supportsRelativeJumps())
+	{
+		m_assembly.append(evmasm::AssemblyItem::relativeJumpTo(evmasm::AssemblyItem(evmasm::Tag, _labelId)));
+		yulAssert(_jumpType == JumpType::Ordinary);
+		m_assembly.adjustDeposit(_stackDiffAfter);
+	}
+	else
+	{
+		appendLabelReference(_labelId);
+		appendJump(_stackDiffAfter, _jumpType);
+	}
 }
 
 void EthAssemblyAdapter::appendJumpToIf(LabelID _labelId, JumpType _jumpType)
 {
-	appendLabelReference(_labelId);
-	appendJumpInstruction(evmasm::Instruction::JUMPI, _jumpType);
+	if (m_assembly.supportsRelativeJumps())
+	{
+		m_assembly.append(evmasm::AssemblyItem::conditionalRelativeJumpTo(evmasm::AssemblyItem(evmasm::Tag, _labelId)));
+		yulAssert(_jumpType == JumpType::Ordinary);
+	}
+	else
+	{
+		appendLabelReference(_labelId);
+		appendJumpInstruction(evmasm::Instruction::JUMPI, _jumpType);
+	}
 }
 
 void EthAssemblyAdapter::appendAssemblySize()
@@ -123,9 +140,44 @@ void EthAssemblyAdapter::appendAssemblySize()
 
 std::pair<std::shared_ptr<AbstractAssembly>, AbstractAssembly::SubID> EthAssemblyAdapter::createSubAssembly(bool _creation, std::string _name)
 {
-	std::shared_ptr<evmasm::Assembly> assembly{std::make_shared<evmasm::Assembly>(m_assembly.evmVersion(), _creation, std::move(_name))};
+	std::shared_ptr<evmasm::Assembly> assembly{std::make_shared<evmasm::Assembly>(m_assembly.evmVersion(), _creation, m_assembly.eofVersion(), std::move(_name))};
 	auto sub = m_assembly.newSub(assembly);
-	return {std::make_shared<EthAssemblyAdapter>(*assembly), static_cast<size_t>(sub.data())};
+	return {std::make_shared<EthAssemblyAdapter>(*assembly), SubID{sub.data()}};
+}
+
+AbstractAssembly::FunctionID EthAssemblyAdapter::registerFunction(uint8_t _args, uint8_t _rets, bool _nonReturning)
+{
+	return m_assembly.createFunction(_args, _rets, _nonReturning);
+}
+
+void EthAssemblyAdapter::beginFunction(AbstractAssembly::FunctionID _functionID)
+{
+	m_assembly.beginFunction(_functionID);
+}
+
+void EthAssemblyAdapter::endFunction()
+{
+	m_assembly.endFunction();
+}
+
+void EthAssemblyAdapter::appendFunctionReturn()
+{
+	m_assembly.appendFunctionReturn();
+}
+
+void EthAssemblyAdapter::appendFunctionCall(FunctionID _functionID)
+{
+	m_assembly.appendFunctionCall(_functionID);
+}
+
+void EthAssemblyAdapter::appendEOFCreate(ContainerID _containerID)
+{
+	m_assembly.appendEOFCreate(_containerID);
+}
+
+void EthAssemblyAdapter::appendReturnContract(ContainerID _containerID)
+{
+	m_assembly.appendReturnContract(_containerID);
 }
 
 void EthAssemblyAdapter::appendDataOffset(std::vector<AbstractAssembly::SubID> const& _subPath)
@@ -155,7 +207,7 @@ void EthAssemblyAdapter::appendDataSize(std::vector<AbstractAssembly::SubID> con
 AbstractAssembly::SubID EthAssemblyAdapter::appendData(bytes const& _data)
 {
 	evmasm::AssemblyItem pushData = m_assembly.newData(_data);
-	SubID subID = m_nextDataCounter++;
+	SubID const subID{m_nextDataCounter++};
 	m_dataHashBySubId[subID] = pushData.data();
 	return subID;
 }
@@ -174,6 +226,22 @@ void EthAssemblyAdapter::appendImmutableAssignment(std::string const& _identifie
 {
 	m_assembly.appendImmutableAssignment(_identifier);
 }
+
+void EthAssemblyAdapter::appendAuxDataLoadN(uint16_t _offset)
+{
+	m_assembly.appendAuxDataLoadN(_offset);
+}
+
+void EthAssemblyAdapter::appendSwapN(size_t _depth)
+{
+	m_assembly.appendSwapN(_depth);
+}
+
+void EthAssemblyAdapter::appendDupN(size_t _depth)
+{
+	m_assembly.appendDupN(_depth);
+}
+
 
 void EthAssemblyAdapter::markAsInvalid()
 {

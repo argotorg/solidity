@@ -107,4 +107,34 @@ Type const* type(VariableDeclaration const& _variable)
 	return _variable.annotation().type;
 }
 
+bigint contractStorageSizeUpperBound(ContractDefinition const& _contract, VariableDeclaration::Location _location)
+{
+	solAssert(_location == VariableDeclaration::Location::Unspecified || _location == VariableDeclaration::Location::Transient);
+
+	bigint size = 0;
+	for (ContractDefinition const* contract: _contract.annotation().linearizedBaseContracts)
+		for (VariableDeclaration const* variable: contract->stateVariables())
+			if (
+				!(variable->isConstant() || variable->immutable()) &&
+				variable->referenceLocation() == _location
+			)
+				size += variable->annotation().type->storageSizeUpperBound();
+
+	return size;
+}
+
+u256 layoutBaseForInheritanceHierarchy(ContractDefinition const& _topLevelContract, DataLocation _location)
+{
+	if (_location != DataLocation::Storage)
+	{
+		solAssert(_location == DataLocation::Transient);
+		return 0;
+	}
+
+	if (auto const* storageLayoutSpecifier = _topLevelContract.storageLayoutSpecifier())
+		return *storageLayoutSpecifier->annotation().baseSlot;
+
+	return 0;
+}
+
 }

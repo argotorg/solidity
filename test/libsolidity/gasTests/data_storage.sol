@@ -11,6 +11,9 @@ contract C {
         require(false, "12345678901234567890123456789012123456789012345678901234567890123");
     }
 }
+// ====
+// EVMVersion: =current
+// bytecodeFormat: legacy
 // ----
 // creation:
 //   codeDepositCost: 377800

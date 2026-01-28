@@ -1,0 +1,12 @@
+{
+    "contracts": {
+        "A": {
+            "": {
+                "evm": {
+                    "assembly": "  revert(0x00, 0x00)
+"
+                }
+            }
+        }
+    }
+}

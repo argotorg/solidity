@@ -44,9 +44,6 @@ public:
 	void resetUniqueId();
 	/// Returns the current fresh slack id and increments it.
 	unsigned newUniqueId();
-	/// Clears the entire context, erasing everything.
-	/// To be used before a model checking engine starts.
-	void clear();
 
 	/// Sets the current solver used by the current engine for
 	/// SMT variable declaration.
@@ -68,10 +65,7 @@ public:
 
 	struct IdCompare
 	{
-		bool operator()(ASTNode const* lhs, ASTNode const* rhs) const
-		{
-			return lhs->id() < rhs->id();
-		}
+		bool operator()(ASTNode const* lhs, ASTNode const* rhs) const;
 	};
 
 	/// Variables.
@@ -142,12 +136,7 @@ public:
 	void pushSolver();
 	void popSolver();
 	void addAssertion(smtutil::Expression const& _e);
-	size_t solverStackHeigh() { return m_assertions.size(); } const
-	smtutil::SolverInterface* solver()
-	{
-		solAssert(m_solver, "");
-		return m_solver;
-	}
+	size_t solverStackHeight() const { return m_assertions.size(); }
 	//@}
 
 	SymbolicState& state() { return m_state; }

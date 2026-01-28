@@ -20,7 +20,20 @@
  * for testing purposes.
  */
 
+// Weird issue when compiling with O3 on gcc 12 and later due to usage of vector<uint8_t> (aka bytes) as std::map key
+// https://gcc.gnu.org/bugzilla/show_bug.cgi?id=98465
+// also clang doesn't know stringop-overread
+#if defined(__GNUC__) && !defined(__clang__) // GCC-specific pragma
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstringop-overread"
+#endif
+
 #include <test/EVMHost.h>
+#include <test/libsolidity/util/SoltestErrors.h>
+
+#if defined(__GNUC__) && !defined(__clang__) // GCC-specific pragma
+#pragma GCC diagnostic pop
+#endif
 
 #include <test/evmc/loader.h>
 
@@ -58,6 +71,7 @@ evmc::VM& EVMHost::getVM(std::string const& _path)
 				std::cerr << ":" << std::endl << errorMsg;
 			std::cerr << std::endl;
 		}
+		vms[_path]->set_option("validate_eof", "1");
 	}
 
 	if (vms.count(_path) > 0)
@@ -92,7 +106,7 @@ EVMHost::EVMHost(langutil::EVMVersion _evmVersion, evmc::VM& _vm):
 	if (!m_vm)
 	{
 		std::cerr << "Unable to find evmone library" << std::endl;
-		assertThrow(false, Exception, "");
+		solRequire(false, Exception, "");
 	}
 
 	if (_evmVersion == langutil::EVMVersion::homestead())
@@ -121,8 +135,10 @@ EVMHost::EVMHost(langutil::EVMVersion _evmVersion, evmc::VM& _vm):
 		m_evmRevision = EVMC_CANCUN;
 	else if (_evmVersion == langutil::EVMVersion::prague())
 		m_evmRevision = EVMC_PRAGUE;
+	else if (_evmVersion == langutil::EVMVersion::osaka())
+		m_evmRevision = EVMC_OSAKA;
 	else
-		assertThrow(false, Exception, "Unsupported EVM version");
+		solRequire(false, Exception, "Unsupported EVM version");
 
 	if (m_evmRevision >= EVMC_PARIS)
 		// This is the value from the merge block.
@@ -213,7 +229,7 @@ void EVMHost::newTransactionFrame()
 
 void EVMHost::transfer(evmc::MockedAccount& _sender, evmc::MockedAccount& _recipient, u256 const& _value) noexcept
 {
-	assertThrow(u256(convertFromEVMC(_sender.balance)) >= _value, Exception, "Insufficient balance for transfer");
+	solRequire(u256(convertFromEVMC(_sender.balance)) >= _value, Exception, "Insufficient balance for transfer");
 	_sender.balance = convertToEVMC(u256(convertFromEVMC(_sender.balance)) - _value);
 	_recipient.balance = convertToEVMC(u256(convertFromEVMC(_recipient.balance)) + _value);
 }
@@ -314,7 +330,7 @@ evmc::Result EVMHost::call(evmc_message const& _message) noexcept
 			} else if (value <= 0xffff) {
 				return bytes{128 + 55 + 2, static_cast<uint8_t>(value >> 8), static_cast<uint8_t>(value)};
 			} else {
-				assertThrow(false, Exception, "Can only encode RLP numbers <= 0xffff");
+				solUnimplemented("Can only encode RLP numbers <= 0xffff");
 			}
 		};
 
@@ -328,17 +344,21 @@ evmc::Result EVMHost::call(evmc_message const& _message) noexcept
 		), h160::AlignRight);
 
 		message.recipient = convertToEVMC(createAddress);
-		assertThrow(accounts.count(message.recipient) == 0, Exception, "Account cannot exist");
+		soltestAssert(accounts.count(message.recipient) == 0, "Account cannot exist");
 
 		code = evmc::bytes(message.input_data, message.input_data + message.input_size);
 	}
-	else if (message.kind == EVMC_CREATE2)
+	else if (message.kind == EVMC_CREATE2 || message.kind == EVMC_EOFCREATE)
 	{
 		h160 createAddress(keccak256(
 			bytes{0xff} +
 			bytes(std::begin(message.sender.bytes), std::end(message.sender.bytes)) +
 			bytes(std::begin(message.create2_salt.bytes), std::end(message.create2_salt.bytes)) +
-			keccak256(bytes(message.input_data, message.input_data + message.input_size)).asBytes()
+			keccak256(
+				message.kind == EVMC_CREATE2 ?
+				bytes(message.input_data, message.input_data + message.input_size) :
+				bytes(message.code, message.code + message.code_size)
+			).asBytes()
 		), h160::AlignRight);
 
 		message.recipient = convertToEVMC(createAddress);
@@ -353,13 +373,16 @@ evmc::Result EVMHost::call(evmc_message const& _message) noexcept
 			return result;
 		}
 
-		code = evmc::bytes(message.input_data, message.input_data + message.input_size);
+		if (message.kind == EVMC_CREATE2)
+			code = evmc::bytes(message.input_data, message.input_data + message.input_size);
+		else // EOFCREATE
+			code = evmc::bytes(message.code, message.code + message.code_size);
 	}
 	else
 		code = accounts[message.code_address].code;
 
 	auto& destination = accounts[message.recipient];
-	if (message.kind == EVMC_CREATE || message.kind == EVMC_CREATE2)
+	if (message.kind == EVMC_CREATE || message.kind == EVMC_CREATE2 || message.kind == EVMC_EOFCREATE)
 		// Mark account as created if it is a CREATE or CREATE2 call
 		// TODO: Should we roll changes back on failure like we do for `accounts`?
 		m_newlyCreatedAccounts.emplace(message.recipient);
@@ -376,7 +399,7 @@ evmc::Result EVMHost::call(evmc_message const& _message) noexcept
 		transfer(sender, destination, value);
 	}
 
-	// Populate the access access list (enabled since Berlin).
+	// Populate the access list (enabled since Berlin).
 	// Note, this will also properly touch the created address.
 	// TODO: support a user supplied access list too
 	if (m_evmRevision >= EVMC_BERLIN)
@@ -396,7 +419,7 @@ evmc::Result EVMHost::call(evmc_message const& _message) noexcept
 	}
 	evmc::Result result = m_vm.execute(*this, m_evmRevision, message, code.data(), code.size());
 
-	if (message.kind == EVMC_CREATE || message.kind == EVMC_CREATE2)
+	if (message.kind == EVMC_CREATE || message.kind == EVMC_CREATE2 || message.kind == EVMC_EOFCREATE)
 	{
 		int64_t codeDepositGas = static_cast<int64_t>(evmasm::GasCosts::createDataGas * result.output_size);
 		result.gas_left -= codeDepositGas;
@@ -409,6 +432,7 @@ evmc::Result EVMHost::call(evmc_message const& _message) noexcept
 		}
 		else
 		{
+			// TODO: Add proper codehash calculation for EOF.
 			m_totalCodeDepositGas += codeDepositGas;
 			result.create_address = message.recipient;
 			destination.code = evmc::bytes(result.output_data, result.output_data + result.output_size);
@@ -484,9 +508,33 @@ evmc::Result EVMHost::precompileECRecover(evmc_message const& _message) noexcept
 				fromHex("0000000000000000000000008743523d96a1b2cbe0c6909653a56da18ed484af"),
 				gas_cost
 			}
+		},
+		{
+			fromHex(
+				"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+				"0000000000000000000000000000000000000000000000000000000000000001"
+				"0000000000000000000000000000000000000000000000000000000000000002"
+				"0000000000000000000000000000000000000000000000000000000000000003"
+			),
+			{
+				fromHex(""),
+				gas_cost
+			}
+		},
+		{
+			fromHex(
+				"77e5189111eb6557e8a637b27ef8fbb15bc61d61c2f00cc48878f3a296e5e0ca"
+				"0000000000000000000000000000000000000000000000000000000000000000"
+				"6944c77849b18048f6abe0db8084b0d0d0689cdddb53d2671c36967b58691ad4"
+				"ef4f06ba4f78319baafd0424365777241af4dfd3da840471b4b4b087b7750d0d"
+			),
+			{
+				fromHex(""),
+				gas_cost
+			}
 		}
 	};
-	evmc::Result result = precompileGeneric(_message, inputOutput);
+	evmc::Result result = precompileGeneric(_message, inputOutput, true /* _ignoresTrailingInput */);
 	// ECRecover will return success with empty response in case of failure
 	if (result.status_code != EVMC_SUCCESS && result.status_code != EVMC_OUT_OF_GAS)
 		return resultWithGas(_message.gas, gas_cost, {});
@@ -643,8 +691,6 @@ evmc::Result EVMHost::precompileALTBN128G1Add(evmc_message const& _message) noex
 				"0000000000000000000000000000000000000000000000000000000000000000"
 				"1385281136ff5b2c326807ff0a824b6ca4f21fcc7c8764e9801bc4ad497d5012"
 				"02254594be8473dcf018a2aa66ea301e38fc865823acf75a9901721d1fc6bf4c"
-				"0000000000000000000000000000000000000000000000000000000000000000"
-				"0000000000000000000000000000000000000000000000000000000000000000"
 			),
 			{
 				fromHex(
@@ -660,8 +706,6 @@ evmc::Result EVMHost::precompileALTBN128G1Add(evmc_message const& _message) noex
 				"0000000000000000000000000000000000000000000000000000000000000002"
 				"0000000000000000000000000000000000000000000000000000000000000001"
 				"0000000000000000000000000000000000000000000000000000000000000002"
-				"0000000000000000000000000000000000000000000000000000000000000000"
-				"0000000000000000000000000000000000000000000000000000000000000000"
 			),
 			{
 				fromHex(
@@ -677,8 +721,6 @@ evmc::Result EVMHost::precompileALTBN128G1Add(evmc_message const& _message) noex
 				"0000000000000000000000000000000000000000000000000000000000000002"
 				"0000000000000000000000000000000000000000000000000000000000000001"
 				"30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd45"
-				"0000000000000000000000000000000000000000000000000000000000000000"
-				"0000000000000000000000000000000000000000000000000000000000000000"
 			),
 			{
 				fromHex(
@@ -694,8 +736,6 @@ evmc::Result EVMHost::precompileALTBN128G1Add(evmc_message const& _message) noex
 				"09f5528bdb0ef9354837a0f4b4c9da973bd5b805d359976f719ab0b74e0a7368"
 				"28d3c57516712e7843a5b3cfa7d7274a037943f5bd57c227620ad207728e4283"
 				"2795fa9df21d4b8b329a45bae120f1fd9df9049ecacaa9dd1eca18bc6a55cd2f"
-				"0000000000000000000000000000000000000000000000000000000000000000"
-				"0000000000000000000000000000000000000000000000000000000000000000"
 			),
 			{
 				fromHex(
@@ -711,8 +751,6 @@ evmc::Result EVMHost::precompileALTBN128G1Add(evmc_message const& _message) noex
 				"02254594be8473dcf018a2aa66ea301e38fc865823acf75a9901721d1fc6bf4c"
 				"1644e84fef7b7fdc98254f0654580173307a3bc44db990581e7ab55a22446dcf"
 				"28c2916b7e875692b195831945805438fcd30d2693d8a80cf8c88ec6ef4c315d"
-				"0000000000000000000000000000000000000000000000000000000000000000"
-				"0000000000000000000000000000000000000000000000000000000000000000"
 			),
 			{
 				fromHex(
@@ -728,8 +766,6 @@ evmc::Result EVMHost::precompileALTBN128G1Add(evmc_message const& _message) noex
 				"16dabf21b3f25b9665269d98dc17b1da6118251dc0b403ae50e96dfe91239375"
 				"25ff95a3abccf32adc6a4c3c8caddca67723d8ada802e9b9f612e3ddb40b2005"
 				"0d82b09bb4ec927bbf182bdc402790429322b7e2f285f2aad8ea135cbf7143d8"
-				"0000000000000000000000000000000000000000000000000000000000000000"
-				"0000000000000000000000000000000000000000000000000000000000000000"
 			),
 			{
 				fromHex(
@@ -745,8 +781,6 @@ evmc::Result EVMHost::precompileALTBN128G1Add(evmc_message const& _message) noex
 				"1b5ed0e9e8f3ff35589ea81a45cf63887d4a92c099a3be1d97b26f0db96323dd"
 				"16a1d378d1a98cf5383cdc512011234287ca43b6a078d1842d5c58c5b1f475cc"
 				"1309377a7026d08ca1529eab74381a7e0d3a4b79d80bacec207cd52fc8e3769c"
-				"0000000000000000000000000000000000000000000000000000000000000000"
-				"0000000000000000000000000000000000000000000000000000000000000000"
 			),
 			{
 				fromHex(
@@ -762,8 +796,6 @@ evmc::Result EVMHost::precompileALTBN128G1Add(evmc_message const& _message) noex
 				"3034dd2920f673e204fee2811c678745fc819b55d3e9d294e45c9b03a76aef41"
 				"0f25929bcb43d5a57391564615c9e70a992b10eafa4db109709649cf48c50dd2"
 				"16da2f5cb6be7a0aa72c440c53c9bbdfec6c36c7d515536431b3a865468acbba"
-				"0000000000000000000000000000000000000000000000000000000000000000"
-				"0000000000000000000000000000000000000000000000000000000000000000"
 			),
 			{
 				fromHex(
@@ -779,8 +811,6 @@ evmc::Result EVMHost::precompileALTBN128G1Add(evmc_message const& _message) noex
 				"1d1f2259c715327bedb42c095af6c0267e4e1be836b4e04b3f0502552f93cca9"
 				"2364294faf6b89fedeede9986aa777c4f6c2f5c4a4559ee93dfec9b7b94ef80b"
 				"05aeae62655ea23865ae6661ae371a55c12098703d0f2301f4223e708c92efc6"
-				"0000000000000000000000000000000000000000000000000000000000000000"
-				"0000000000000000000000000000000000000000000000000000000000000000"
 			),
 			{
 				fromHex(
@@ -796,8 +826,6 @@ evmc::Result EVMHost::precompileALTBN128G1Add(evmc_message const& _message) noex
 				"0185fbba22de9e698262925665735dbc4d6e8288bc3fc39fae10ca58e16e77f7"
 				"258f1faa356e470cca19c928afa5ceed6215c756912af5725b8db5777cc8f3b6"
 				"175ced8a58d0c132c2b95ba14c16dde93e7f7789214116ff69da6f44daa966e6"
-				"0000000000000000000000000000000000000000000000000000000000000000"
-				"0000000000000000000000000000000000000000000000000000000000000000"
 			),
 			{
 				fromHex(
@@ -813,8 +841,6 @@ evmc::Result EVMHost::precompileALTBN128G1Add(evmc_message const& _message) noex
 				"27c440dbd5053253a3a692f9bf89b9b6e9612127cf97db1e11ffa9679acc933b"
 				"1496064626ba8bffeb7805f0d16143a65649bb0850333ea512c03fcdaf31e254"
 				"07b4f210ab542533f1ee5633ae4406cd16c63494b537ce3f1cf4afff6f76a48f"
-				"0000000000000000000000000000000000000000000000000000000000000000"
-				"0000000000000000000000000000000000000000000000000000000000000000"
 			),
 			{
 				fromHex(
@@ -830,8 +856,6 @@ evmc::Result EVMHost::precompileALTBN128G1Add(evmc_message const& _message) noex
 				"27c440dbd5053253a3a692f9bf89b9b6e9612127cf97db1e11ffa9679acc933b"
 				"1c76476f4def4bb94541d57ebba1193381ffa7aa76ada664dd31c16024c43f59"
 				"3034dd2920f673e204fee2811c678745fc819b55d3e9d294e45c9b03a76aef41"
-				"0000000000000000000000000000000000000000000000000000000000000000"
-				"0000000000000000000000000000000000000000000000000000000000000000"
 			),
 			{
 				fromHex(
@@ -847,8 +871,6 @@ evmc::Result EVMHost::precompileALTBN128G1Add(evmc_message const& _message) noex
 				"26dd3d225c9a71476db0cf834232eba84020f3073c6d20c519963e0b98f235e1"
 				"2174f0221490cd9c15b0387f3251ec3d49517a51c37a8076eac12afb4a95a707"
 				"1d1c3fcd3161e2a417b4df0955f02db1fffa9005210fb30c5aa3755307e9d1f5"
-				"0000000000000000000000000000000000000000000000000000000000000000"
-				"0000000000000000000000000000000000000000000000000000000000000000"
 			),
 			{
 				fromHex(
@@ -864,8 +886,6 @@ evmc::Result EVMHost::precompileALTBN128G1Add(evmc_message const& _message) noex
 				"13cf106acf943c2a331de21c7d5e3351354e7412f2dba2918483a6593a6828d4"
 				"2a49621e12910cd90f3e731083d454255bf1c533d6e15b8699156778d0f27f5d"
 				"2590ee31824548d159aa2d22296bf149d564c0872f41b89b7dc5c6e6e3cd1c4d"
-				"0000000000000000000000000000000000000000000000000000000000000000"
-				"0000000000000000000000000000000000000000000000000000000000000000"
 			),
 			{
 				fromHex(
@@ -881,8 +901,6 @@ evmc::Result EVMHost::precompileALTBN128G1Add(evmc_message const& _message) noex
 				"2c7cdf62c2498486fd52646e577a06723ce97737b3c958262d78c4a413661e8a"
 				"0aee46a7ea6e80a3675026dfa84019deee2a2dedb1bbe11d7fe124cb3efb4b5a"
 				"044747b6e9176e13ede3a4dfd0d33ccca6321b9acd23bf3683a60adc0366ebaf"
-				"0000000000000000000000000000000000000000000000000000000000000000"
-				"0000000000000000000000000000000000000000000000000000000000000000"
 			),
 			{
 				fromHex(
@@ -893,7 +911,7 @@ evmc::Result EVMHost::precompileALTBN128G1Add(evmc_message const& _message) noex
 			}
 		}
 	};
-	return precompileGeneric(_message, inputOutput);
+	return precompileGeneric(_message, inputOutput, true /* _ignoresTrailingInput */);
 }
 
 template <evmc_revision Revision>
@@ -906,84 +924,161 @@ evmc::Result EVMHost::precompileALTBN128G1Mul(evmc_message const& _message) noex
 
 	static std::map<bytes, EVMPrecompileOutput> const inputOutput{
 		{
-			fromHex("0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000"),
+			fromHex(
+				"0000000000000000000000000000000000000000000000000000000000000001"
+				"0000000000000000000000000000000000000000000000000000000000000002"
+				"0000000000000000000000000000000000000000000000000000000000000002"
+			),
 			{
-				fromHex("030644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd315ed738c0e0a7c92e7845f96b2ae9c0a68a6a449e3538fc7ff3ebf7a5a18a2c4"),
+				fromHex(
+					"030644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd3"
+					"15ed738c0e0a7c92e7845f96b2ae9c0a68a6a449e3538fc7ff3ebf7a5a18a2c4"
+				),
 				gas_cost
 			}
 		},
 		{
-			fromHex("0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000050000000000000000000000000000000000000000000000000000000000000000"),
+			fromHex(
+				"0000000000000000000000000000000000000000000000000000000000000001"
+				"0000000000000000000000000000000000000000000000000000000000000002"
+				"0000000000000000000000000000000000000000000000000000000000000005"
+			),
 			{
-				fromHex("17c139df0efee0f766bc0204762b774362e4ded88953a39ce849a8a7fa163fa901e0559bacb160664764a357af8a9fe70baa9258e0b959273ffc5718c6d4cc7c"),
+				fromHex(
+					"17c139df0efee0f766bc0204762b774362e4ded88953a39ce849a8a7fa163fa9"
+					"01e0559bacb160664764a357af8a9fe70baa9258e0b959273ffc5718c6d4cc7c"
+				),
 				gas_cost
 			}
 		},
 		{
-			fromHex("09b54f111d3b2d1b2fe1ae9669b3db3d7bf93b70f00647e65c849275de6dc7fe18b2e77c63a3e400d6d1f1fbc6e1a1167bbca603d34d03edea231eb0ab7b14b4030f7b0c405c888aff922307ea2cd1c70f64664bab76899500341f4260a209290000000000000000000000000000000000000000000000000000000000000000"),
+			fromHex(
+				"09b54f111d3b2d1b2fe1ae9669b3db3d7bf93b70f00647e65c849275de6dc7fe"
+				"18b2e77c63a3e400d6d1f1fbc6e1a1167bbca603d34d03edea231eb0ab7b14b4"
+				"030f7b0c405c888aff922307ea2cd1c70f64664bab76899500341f4260a20929"
+			),
 			{
-				fromHex("16a1d378d1a98cf5383cdc512011234287ca43b6a078d1842d5c58c5b1f475cc1309377a7026d08ca1529eab74381a7e0d3a4b79d80bacec207cd52fc8e3769c"),
+				fromHex(
+					"16a1d378d1a98cf5383cdc512011234287ca43b6a078d1842d5c58c5b1f475cc"
+					"1309377a7026d08ca1529eab74381a7e0d3a4b79d80bacec207cd52fc8e3769c"
+				),
 				gas_cost
 			}
 		},
 		{
-			fromHex("0a6de0e2240aa253f46ce0da883b61976e3588146e01c9d8976548c145fe6e4a04fbaa3a4aed4bb77f30ebb07a3ec1c7d77a7f2edd75636babfeff97b1ea686e1551dcd4965285ef049512d2d30cbfc1a91acd5baad4a6e19e22e93176197f170000000000000000000000000000000000000000000000000000000000000000"),
+			fromHex(
+				"0a6de0e2240aa253f46ce0da883b61976e3588146e01c9d8976548c145fe6e4a"
+				"04fbaa3a4aed4bb77f30ebb07a3ec1c7d77a7f2edd75636babfeff97b1ea686e"
+				"1551dcd4965285ef049512d2d30cbfc1a91acd5baad4a6e19e22e93176197f17"
+			),
 			{
-				fromHex("28d3c57516712e7843a5b3cfa7d7274a037943f5bd57c227620ad207728e42832795fa9df21d4b8b329a45bae120f1fd9df9049ecacaa9dd1eca18bc6a55cd2f"),
+				fromHex(
+					"28d3c57516712e7843a5b3cfa7d7274a037943f5bd57c227620ad207728e4283"
+					"2795fa9df21d4b8b329a45bae120f1fd9df9049ecacaa9dd1eca18bc6a55cd2f"
+				),
 				gas_cost
 			}
 		},
 		{
-			fromHex("0c54b42137b67cc268cbb53ac62b00ecead23984092b494a88befe58445a244a18e3723d37fae9262d58b548a0575f59d9c3266db7afb4d5739555837f6b8b3e0c692b41f1acc961f6ea83bae2c3a1a55c54f766c63ba76989f52c149c17b5e70000000000000000000000000000000000000000000000000000000000000000"),
+			fromHex(
+				"0c54b42137b67cc268cbb53ac62b00ecead23984092b494a88befe58445a244a"
+				"18e3723d37fae9262d58b548a0575f59d9c3266db7afb4d5739555837f6b8b3e"
+				"0c692b41f1acc961f6ea83bae2c3a1a55c54f766c63ba76989f52c149c17b5e7"
+			),
 			{
-				fromHex("258f1faa356e470cca19c928afa5ceed6215c756912af5725b8db5777cc8f3b6175ced8a58d0c132c2b95ba14c16dde93e7f7789214116ff69da6f44daa966e6"),
+				fromHex(
+					"258f1faa356e470cca19c928afa5ceed6215c756912af5725b8db5777cc8f3b6"
+					"175ced8a58d0c132c2b95ba14c16dde93e7f7789214116ff69da6f44daa966e6"
+				),
 				gas_cost
 			}
 		},
 		{
-			fromHex("0f103f14a584d4203c27c26155b2c955f8dfa816980b24ba824e1972d6486a5d0c4165133b9f5be17c804203af781bcf168da7386620479f9b885ecbcd27b17b0ea71d0abb524cac7cfff5323e1d0b14ab705842426c978f96753ccce258ed930000000000000000000000000000000000000000000000000000000000000000"),
+			fromHex(
+				"0f103f14a584d4203c27c26155b2c955f8dfa816980b24ba824e1972d6486a5d"
+				"0c4165133b9f5be17c804203af781bcf168da7386620479f9b885ecbcd27b17b"
+				"0ea71d0abb524cac7cfff5323e1d0b14ab705842426c978f96753ccce258ed93"
+			),
 			{
-				fromHex("2a49621e12910cd90f3e731083d454255bf1c533d6e15b8699156778d0f27f5d2590ee31824548d159aa2d22296bf149d564c0872f41b89b7dc5c6e6e3cd1c4d"),
+				fromHex(
+					"2a49621e12910cd90f3e731083d454255bf1c533d6e15b8699156778d0f27f5d"
+					"2590ee31824548d159aa2d22296bf149d564c0872f41b89b7dc5c6e6e3cd1c4d"
+				),
 				gas_cost
 			}
 		},
 		{
-			fromHex("111e2e2a5f8828f80ddad08f9f74db56dac1cc16c1cb278036f79a84cf7a116f1d7d62e192b219b9808faa906c5ced871788f6339e8d91b83ac1343e20a16b3000000000000000000000000000000000000000e40800000000000000008cdcbc0000000000000000000000000000000000000000000000000000000000000000"),
+			fromHex(
+				"111e2e2a5f8828f80ddad08f9f74db56dac1cc16c1cb278036f79a84cf7a116f"
+				"1d7d62e192b219b9808faa906c5ced871788f6339e8d91b83ac1343e20a16b30"
+				"00000000000000000000000000000000000000e40800000000000000008cdcbc"
+			),
 			{
-				fromHex("25ff95a3abccf32adc6a4c3c8caddca67723d8ada802e9b9f612e3ddb40b20050d82b09bb4ec927bbf182bdc402790429322b7e2f285f2aad8ea135cbf7143d8"),
+				fromHex(
+					"25ff95a3abccf32adc6a4c3c8caddca67723d8ada802e9b9f612e3ddb40b2005"
+					"0d82b09bb4ec927bbf182bdc402790429322b7e2f285f2aad8ea135cbf7143d8"
+				),
 				gas_cost
 			}
 		},
 		{
-			fromHex("17d5d09b4146424bff7e6fb01487c477bbfcd0cdbbc92d5d6457aae0b6717cc502b5636903efbf46db9235bbe74045d21c138897fda32e079040db1a16c1a7a11887420878c0c8e37605291c626585eabbec8d8b97a848fe8d58a37b004583510000000000000000000000000000000000000000000000000000000000000000"),
+			fromHex(
+				"17d5d09b4146424bff7e6fb01487c477bbfcd0cdbbc92d5d6457aae0b6717cc5"
+				"02b5636903efbf46db9235bbe74045d21c138897fda32e079040db1a16c1a7a1"
+				"1887420878c0c8e37605291c626585eabbec8d8b97a848fe8d58a37b00458351"
+			),
 			{
-				fromHex("2364294faf6b89fedeede9986aa777c4f6c2f5c4a4559ee93dfec9b7b94ef80b05aeae62655ea23865ae6661ae371a55c12098703d0f2301f4223e708c92efc6"),
+				fromHex(
+					"2364294faf6b89fedeede9986aa777c4f6c2f5c4a4559ee93dfec9b7b94ef80b"
+					"05aeae62655ea23865ae6661ae371a55c12098703d0f2301f4223e708c92efc6"
+				),
 				gas_cost
 			}
 		},
 		{
-			fromHex("1c36e713d4d54e3a9644dffca1fc524be4868f66572516025a61ca542539d43f042dcc4525b82dfb242b09cb21909d5c22643dcdbe98c4d082cc2877e96b24db016086cc934d5cab679c6991a4efcedbab26d7e4fb23b6a1ad4e6b5c2fb59ce50000000000000000000000000000000000000000000000000000000000000000"),
+			fromHex(
+				"1c36e713d4d54e3a9644dffca1fc524be4868f66572516025a61ca542539d43f"
+				"042dcc4525b82dfb242b09cb21909d5c22643dcdbe98c4d082cc2877e96b24db"
+				"016086cc934d5cab679c6991a4efcedbab26d7e4fb23b6a1ad4e6b5c2fb59ce5"
+			),
 			{
-				fromHex("1644e84fef7b7fdc98254f0654580173307a3bc44db990581e7ab55a22446dcf28c2916b7e875692b195831945805438fcd30d2693d8a80cf8c88ec6ef4c315d"),
+				fromHex(
+					"1644e84fef7b7fdc98254f0654580173307a3bc44db990581e7ab55a22446dcf"
+					"28c2916b7e875692b195831945805438fcd30d2693d8a80cf8c88ec6ef4c315d"
+				),
 				gas_cost
 			}
 		},
 		{
-			fromHex("1e39e9f0f91fa7ff8047ffd90de08785777fe61c0e3434e728fce4cf35047ddc2e0b64d75ebfa86d7f8f8e08abbe2e7ae6e0a1c0b34d028f19fa56e9450527cb1eec35a0e955cad4bee5846ae0f1d0b742d8636b278450c534e38e06a60509f90000000000000000000000000000000000000000000000000000000000000000"),
+			fromHex(
+				"1e39e9f0f91fa7ff8047ffd90de08785777fe61c0e3434e728fce4cf35047ddc"
+				"2e0b64d75ebfa86d7f8f8e08abbe2e7ae6e0a1c0b34d028f19fa56e9450527cb"
+				"1eec35a0e955cad4bee5846ae0f1d0b742d8636b278450c534e38e06a60509f9"
+			),
 			{
-				fromHex("1385281136ff5b2c326807ff0a824b6ca4f21fcc7c8764e9801bc4ad497d501202254594be8473dcf018a2aa66ea301e38fc865823acf75a9901721d1fc6bf4c"),
+				fromHex(
+					"1385281136ff5b2c326807ff0a824b6ca4f21fcc7c8764e9801bc4ad497d5012"
+					"02254594be8473dcf018a2aa66ea301e38fc865823acf75a9901721d1fc6bf4c"
+				),
 				gas_cost
 			}
 		},
 		{
-			fromHex("232063b584fb76c8d07995bee3a38fa7565405f3549c6a918ddaa90ab971e7f82ac9b135a81d96425c92d02296322ad56ffb16299633233e4880f95aafa7fda70689c3dc4311426ee11707866b2cbdf9751dacd07245bf99d2113d3f5a8cac470000000000000000000000000000000000000000000000000000000000000000"),
+			fromHex(
+				"232063b584fb76c8d07995bee3a38fa7565405f3549c6a918ddaa90ab971e7f8"
+				"2ac9b135a81d96425c92d02296322ad56ffb16299633233e4880f95aafa7fda7"
+				"0689c3dc4311426ee11707866b2cbdf9751dacd07245bf99d2113d3f5a8cac47"
+			),
 			{
-				fromHex("2174f0221490cd9c15b0387f3251ec3d49517a51c37a8076eac12afb4a95a7071d1c3fcd3161e2a417b4df0955f02db1fffa9005210fb30c5aa3755307e9d1f5"),
+				fromHex(
+					"2174f0221490cd9c15b0387f3251ec3d49517a51c37a8076eac12afb4a95a707"
+					"1d1c3fcd3161e2a417b4df0955f02db1fffa9005210fb30c5aa3755307e9d1f5"
+				),
 				gas_cost
 			}
 		}
 	};
-	return precompileGeneric(_message, inputOutput);
+	return precompileGeneric(_message, inputOutput, true /* _ignoresTrailingInput */);
 }
 
 template <evmc_revision Revision>
@@ -1152,6 +1247,7 @@ evmc::Result EVMHost::precompileALTBN128PairingProduct(evmc_message const& _mess
 			}
 		}
 	};
+
 	return precompileGeneric(_message, inputOutput);
 }
 
@@ -1163,16 +1259,35 @@ evmc::Result EVMHost::precompileBlake2f(evmc_message const&) noexcept
 
 evmc::Result EVMHost::precompileGeneric(
 	evmc_message const& _message,
-	std::map<bytes, EVMPrecompileOutput> const& _inOut) noexcept
+	std::map<bytes, EVMPrecompileOutput> const& _inOut,
+	bool _ignoresTrailingInput
+) noexcept
 {
-	bytes input(_message.input_data, _message.input_data + _message.input_size);
+	size_t meaningfulInputSize = _message.input_size;
+	if (_ignoresTrailingInput && !_inOut.empty())
+	{
+		// _ignoresTrailingInput only implemented for the case where all inputs have same size.
+		// Simpler to implement and it's all we need for now.
+		for (auto const& [input, output]: _inOut)
+			solAssert(input.size() == _inOut.begin()->first.size());
+
+		// If there is more input that expected, precompiles tend to simply ignore it.
+		meaningfulInputSize = std::min(_message.input_size, _inOut.begin()->first.size());
+	}
+
+	bytes input(_message.input_data, _message.input_data + meaningfulInputSize);
 	if (_inOut.count(input))
 	{
 		auto const& ret = _inOut.at(input);
 		return resultWithGas(_message.gas, ret.gas_used, ret.output);
 	}
 	else
-		return resultWithFailure();
+		// FIXME: We're in a noexcept function; this will result in terminate() and then abort().
+		// Still better than nothing - can't be mistaken for revert and Boost will report test name.
+		solThrow(
+			Exception,
+			"Test output for a precompile not defined for input: " + toHex(input, HexPrefix::Add)
+		);
 }
 
 evmc::Result EVMHost::resultWithFailure() noexcept
@@ -1206,7 +1321,7 @@ evmc::Result EVMHost::resultWithGas(
 
 StorageMap const& EVMHost::get_address_storage(evmc::address const& _addr)
 {
-	assertThrow(account_exists(_addr), Exception, "Account does not exist.");
+	soltestAssert(account_exists(_addr), "Account does not exist.");
 	return accounts[_addr].storage;
 }
 
@@ -1269,9 +1384,10 @@ void EVMHostPrinter::callRecords()
 				return "CREATE";
 			case evmc_call_kind::EVMC_CREATE2:
 				return "CREATE2";
-			default:
-				assertThrow(false, Exception, "Invalid call kind.");
+			case evmc_call_kind::EVMC_EOFCREATE:
+				return "EOFCREATE";
 		}
+		unreachable();
 	};
 
 	for (auto const& record: m_host.recorded_calls)

@@ -9,5 +9,7 @@ contract SuperTest is Other {
 		return type(super).runtimeCode;
 	}
 }
+// ====
+// bytecodeFormat: legacy
 // ----
 // TypeError 4259: (177-182): Invalid type for argument in the function call. An enum type, contract type or an integer type is required, but type(contract super SuperTest) provided.

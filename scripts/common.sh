@@ -40,28 +40,6 @@ else
     function printLog { echo -e "$(tput setaf 3)$1$(tput sgr0)"; }
 fi
 
-function checkDputEntries
-{
-    local pattern="$1"
-    grep "${pattern}" /etc/dput.cf --quiet || \
-        fail "Error: Missing ${pattern//\\/} section in /etc/dput.cf (check top comment in release_ppa.sh for more information)."
-}
-
-function sourcePPAConfig
-{
-    [[ "$LAUNCHPAD_KEYID" == "" && "$LAUNCHPAD_EMAIL" == "" ]] || fail
-
-    # source keyid and email from .release_ppa_auth
-    if [[ -e .release_ppa_auth ]]
-    then
-        # shellcheck source=/dev/null
-        source "${REPO_ROOT}/.release_ppa_auth"
-    fi
-
-    [[ "$LAUNCHPAD_KEYID" != "" && "$LAUNCHPAD_EMAIL" != "" ]] || \
-        fail "Error: Couldn't find variables \$LAUNCHPAD_KEYID or \$LAUNCHPAD_EMAIL in sourced file .release_ppa_auth (check top comment in $0 for more information)."
-}
-
 function printStackTrace
 {
     printWarning ""
@@ -327,7 +305,7 @@ function gnu_grep
 
 function time_to_json_file
 {
-    local output_file="$1"
+    local time_file="$1"
     local cmd=("${@:2}")
     (( $# >= 2 )) || assertFail
 
@@ -340,9 +318,25 @@ function time_to_json_file
     {
         {
             time { "${cmd[@]}" 1>&3 2>&4; }
-        } 2> "$output_file"
+        } 2> "$time_file"
     } 3>&1 4>&2
 
     # Restore original format so that it does not spill outside of the function.
     TIMEFORMAT="$original_timeformat"
+}
+
+function gnu_time_to_json_file
+{
+    local time_file="$1"
+    local cmd=("${@:2}")
+    (( $# >= 2 )) || assertFail
+
+    local gnu_time_path
+    gnu_time_path=$(type -P time)
+
+    "$gnu_time_path" \
+        --output "$time_file" \
+        --quiet \
+        --format '{"real": %e, "user": %U, "sys": %S, "mem": %M, "exit": %x}' \
+            "${cmd[@]}"
 }

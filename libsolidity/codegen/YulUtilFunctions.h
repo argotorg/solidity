@@ -24,6 +24,7 @@
 #include <liblangutil/EVMVersion.h>
 
 #include <libsolidity/ast/Types.h>
+#include <libsolidity/ast/AST.h>
 #include <libsolidity/codegen/MultiUseYulFunctionCollector.h>
 
 #include <libsolidity/interface/DebugSettings.h>
@@ -51,10 +52,12 @@ class YulUtilFunctions
 public:
 	explicit YulUtilFunctions(
 		langutil::EVMVersion _evmVersion,
+		std::optional<uint8_t> _eofVersion,
 		RevertStrings _revertStrings,
 		MultiUseYulFunctionCollector& _functionCollector
 	):
 		m_evmVersion(_evmVersion),
+		m_eofVersion(_eofVersion),
 		m_revertStrings(_revertStrings),
 		m_functionCollector(_functionCollector)
 	{}
@@ -263,8 +266,11 @@ public:
 	std::string storageArrayPushZeroFunction(ArrayType const& _type);
 
 	/// @returns the name of a function that will clear the storage area given
-	/// by the start and end (exclusive) parameters (slots).
-	/// signature: (start, end)
+	/// by the start position and number of slots to clear. The start position is in terms of storage slots and we
+	/// assume that the beginning of the clear range starts at the beginning of the start slot.
+	/// `slot_count` is assumed to be a multiple of `_type.storageSize()`. The function clears storage in increments
+	/// of `_type.storageSize()` and does not perform any runtime checks.
+	/// signature: (start_slot, slot_count)
 	std::string clearStorageRangeFunction(Type const& _type);
 
 	/// @returns the name of a function that will clear the given storage array
@@ -294,7 +300,7 @@ public:
 	/// The function reverts for too large lengths.
 	std::string arrayAllocationSizeFunction(ArrayType const& _type);
 
-	/// @returns the name of a function that converts a storage slot number
+	/// @returns the name of a function that converts a storage slot number,
 	/// a memory pointer or a calldata pointer to the slot number / memory pointer / calldata pointer
 	/// for the data position of an array which is stored in that slot / memory area / calldata area.
 	std::string arrayDataAreaFunction(ArrayType const& _type);
@@ -349,8 +355,17 @@ public:
 	/// @returns a function that reads a type from storage.
 	/// @param _splitFunctionTypes if false, returns the address and function signature in a
 	/// single variable.
-	std::string readFromStorage(Type const& _type, size_t _offset, bool _splitFunctionTypes);
-	std::string readFromStorageDynamic(Type const& _type, bool _splitFunctionTypes);
+	std::string readFromStorage(
+		Type const& _type,
+		size_t _offset,
+		bool _splitFunctionTypes,
+		VariableDeclaration::Location _location
+	);
+	std::string readFromStorageDynamic(
+		Type const& _type,
+		bool _splitFunctionTypes,
+		VariableDeclaration::Location _location
+	);
 
 	/// @returns a function that reads a value type from memory. Performs cleanup.
 	/// signature: (addr) -> value
@@ -376,6 +391,7 @@ public:
 	std::string updateStorageValueFunction(
 		Type const& _fromType,
 		Type const& _toType,
+		VariableDeclaration::Location _location,
 		std::optional<unsigned> const& _offset = std::optional<unsigned>()
 	);
 
@@ -496,7 +512,7 @@ public:
 	/// @returns the name of a function that will set the given storage item to
 	/// zero
 	/// signature: (slot, offset) ->
-	std::string storageSetToZeroFunction(Type const& _type);
+	std::string storageSetToZeroFunction(Type const& _type, VariableDeclaration::Location _location);
 
 	/// If revertStrings is debug, @returns the name of a function that
 	/// stores @param _message in memory position 0 and reverts.
@@ -547,7 +563,7 @@ public:
 	/// Signature: (address) -> mpos
 	std::string externalCodeFunction();
 
-	/// @return the name of a function that that checks if two external functions pointers are equal or not
+	/// @return the name of a function that checks if two external functions pointers are equal or not
 	std::string externalFunctionPointersEqualFunction();
 
 private:
@@ -573,8 +589,13 @@ private:
 	/// @param _splitFunctionTypes if false, returns the address and function signature in a
 	/// single variable.
 	/// @param _offset if provided, read from static offset, otherwise offset is a parameter of the Yul function.
-	std::string readFromStorageValueType(Type const& _type, std::optional<size_t> _offset, bool _splitFunctionTypes);
-
+	/// @param _location if provided, indicates whether we're reading from storage our transient storage.
+	std::string readFromStorageValueType(
+		Type const& _type,
+		std::optional<size_t> _offset,
+		bool _splitFunctionTypes,
+		VariableDeclaration::Location _location
+	);
 	/// @returns a function that reads a reference type from storage to memory (performing a deep copy).
 	std::string readFromStorageReferenceType(Type const& _type);
 
@@ -600,7 +621,7 @@ private:
 	std::string cleanUpDynamicByteArrayEndSlotsFunction(ArrayType const& _type);
 
 	/// @returns the name of a function that increases size of byte array
-	/// when we resize byte array frextractUsedSetLenom < 32 elements to >= 32 elements or we push to byte array of size 31 copying of data will  occur
+	/// when we resize byte array from < 32 elements to >= 32 elements or we push to byte array of size 31 copying of data will occur
 	/// signature: (array, data, oldLen, newLen)
 	std::string increaseByteArraySizeFunction(ArrayType const& _type);
 
@@ -624,6 +645,7 @@ private:
 	std::string longByteArrayStorageIndexAccessNoCheckFunction();
 
 	langutil::EVMVersion m_evmVersion;
+	std::optional<uint8_t> m_eofVersion;
 	RevertStrings m_revertStrings;
 	MultiUseYulFunctionCollector& m_functionCollector;
 };

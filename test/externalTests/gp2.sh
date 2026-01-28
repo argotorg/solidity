@@ -66,10 +66,10 @@ function gp2_test
     force_hardhat_compiler_settings "$config_file" "$(first_word "$SELECTED_PRESETS")" "$config_var"
     force_hardhat_unlimited_contract_size "$config_file" "$config_var"
     yarn
-    # We require to install hardhat 2.20.0 due to support for evm version cancun, otherwise we get the following error:
-    # Invalid value {"blockGasLimit":12500000,"hardfork":"cancun","allowUnlimitedContractSize":true} for HardhatConfig.networks.hardhat - Expected a value of type HardhatNetworkConfig.
-    # See: https://github.com/NomicFoundation/hardhat/issues/4176
-    yarn add hardhat@2.20.0
+    # Hardhat 3.0+ breaks the test suite
+    # v2.27.1 is the last v2 Hardhat (introduces Osaka support)
+    # hardhat-gas-reporter v2 is required for compatibility with our injected gas reporter settings
+    yarn add hardhat@2.27.1 hardhat-gas-reporter@^2
 
     # Ignore bench directory which fails to compile with current hardhat and ethers versions.
     # bench/trace/gas.ts:123:19 - error TS2339: Property 'equals' does not exist on type 'Uint8Array'.
@@ -96,7 +96,7 @@ function gp2_test
         src/contracts/GPv2Settlement.sol
 
     # This test is not supposed to work. The compiler is supposed to enforce zero padding since
-    # at least 0.5.8 (see https://github.com/ethereum/solidity/pull/5815). For some reason the
+    # at least 0.5.8 (see https://github.com/argotorg/solidity/pull/5815). For some reason the
     # test worked on 0.7.6 but no longer works on 0.8.x.
     sed -i 's|it\(("invalid EVM transaction encoding does not change order hash"\)|it.skip\1|g' test/GPv2Signing.test.ts
 

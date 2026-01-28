@@ -1,0 +1,112 @@
+
+======= input.yul (EVM) =======
+
+Pretty printed source:
+object "object" {
+    code {
+        {
+            mstore(0, eofcreate("sub0", 0, 0, 0, 0))
+            mstore(32, eofcreate("sub1", 0, 0, 0, 0))
+            return(0, 64)
+        }
+    }
+    object "sub0" {
+        code {
+            { returncontract("sub00", 0, 0) }
+        }
+        object "sub00" {
+            code {
+                {
+                    mstore(0, 1)
+                    revert(0, 32)
+                }
+            }
+        }
+    }
+    object "sub1" {
+        code {
+            { returncontract("sub10", 0, 0) }
+        }
+        object "sub10" {
+            code {
+                {
+                    mstore(0, 0x20)
+                    revert(0, 32)
+                }
+            }
+        }
+    }
+    object "sub2" {
+        code {
+            {
+                mstore(0, 3)
+                revert(0, 32)
+            }
+        }
+    }
+}
+
+
+Binary representation:
+ef000101000402000100150300020037003704000000008000045f808080ec005f525f808080ec0160205260405ff3ef00010100040200010004030001001b04000000008000025f80ee00ef00010100040200010008040000000080000260015f5260205ffdef00010100040200010004030001001b04000000008000025f80ee00ef00010100040200010008040000000080000260205f5260205ffd
+
+Text representation:
+  0x00
+  dup1
+  dup1
+  dup1
+  eofcreate{0}
+  0x00
+  mstore
+  0x00
+  dup1
+  dup1
+  dup1
+  eofcreate{1}
+  0x20
+  mstore
+  0x40
+  0x00
+  return
+stop
+
+sub_0: assembly {
+      0x00
+      dup1
+      returncontract{0}
+    stop
+
+    sub_0: assembly {
+          0x01
+          0x00
+          mstore
+          0x20
+          0x00
+          revert
+    }
+}
+
+sub_1: assembly {
+      0x00
+      dup1
+      returncontract{0}
+    stop
+
+    sub_0: assembly {
+          0x20
+          0x00
+          mstore
+          0x20
+          0x00
+          revert
+    }
+}
+
+sub_2: assembly {
+      0x03
+      0x00
+      mstore
+      0x20
+      0x00
+      revert
+}

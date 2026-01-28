@@ -65,6 +65,7 @@ To give an example, the following code contains a bug (it is just a snippet and 
         mapping(address => uint) shares;
         /// Withdraw your share.
         function withdraw() public {
+        // This will report a warning (deprecation)
             if (payable(msg.sender).send(shares[msg.sender]))
                 shares[msg.sender] = 0;
         }
@@ -76,7 +77,7 @@ Ether transfer can always include code execution,
 so the recipient could be a contract that calls back into ``withdraw``.
 This would let it get multiple refunds and, basically, retrieve all the Ether in the contract.
 In particular, the following contract will allow an attacker to refund multiple times
-as it uses ``call`` which forwards all remaining gas by default:
+as it uses ``call`` which does not limit the amount of gas that is forwarded by default:
 
 .. code-block:: solidity
 
@@ -100,7 +101,7 @@ To avoid reentrancy, you can use the Checks-Effects-Interactions pattern as demo
 .. code-block:: solidity
 
     // SPDX-License-Identifier: GPL-3.0
-    pragma solidity >=0.6.0 <0.9.0;
+    pragma solidity >=0.6.2 <0.9.0;
 
     contract Fund {
         /// @dev Mapping of ether shares of the contract.
@@ -109,7 +110,8 @@ To avoid reentrancy, you can use the Checks-Effects-Interactions pattern as demo
         function withdraw() public {
             uint share = shares[msg.sender];
             shares[msg.sender] = 0;
-            payable(msg.sender).transfer(share);
+            (bool success, ) = payable(msg.sender).call{value: share}("");
+            require(success);
         }
     }
 
@@ -144,7 +146,7 @@ Please be explicit about such cases in the documentation of your contracts.
 Sending and Receiving Ether
 ===========================
 
-- Neither contracts nor "external accounts" are currently able to prevent someone from sending them Ether.
+- Neither contracts nor "externally-owned accounts" are currently able to prevent someone from sending them Ether.
   Contracts can react on and reject a regular transfer, but there are ways to move Ether without creating a message call.
   One way is to simply "mine to" the contract address and the second way is using ``selfdestruct(x)``.
 
@@ -158,8 +160,9 @@ Sending and Receiving Ether
   (for example in the "details" section in Remix).
 
 - There is a way to forward more gas to the receiving contract using ``addr.call{value: x}("")``.
-  This is essentially the same as ``addr.transfer(x)``, only that it forwards all remaining gas
-  and opens up the ability for the recipient to perform more expensive actions
+  This is essentially the same as ``addr.transfer(x)``, only that it forwards all remaining gas,
+  subject to additional limits imposed by some EVM versions (such as the `63/64th rule <https://eips.ethereum.org/EIPS/eip-150>`_
+  introduced by ``tangerineWhistle``), and opens up the ability for the recipient to perform more expensive actions
   (and it returns a failure code instead of automatically propagating the error).
   This might include calling back into the sending contract or other state changes you might not have thought of.
   So it allows for great flexibility for honest users but also for malicious actors.
@@ -255,6 +258,7 @@ Let's say you have a wallet contract like this:
         function transferTo(address payable dest, uint amount) public {
             // THE BUG IS RIGHT HERE, you must use msg.sender instead of tx.origin
             require(tx.origin == owner);
+            // This will report a warning (deprecation)
             dest.transfer(amount);
         }
     }
@@ -370,6 +374,16 @@ and calling ``readMap(4, 128)`` returns 256 even without another call to ``write
 If your ``mapping`` information must be deleted, consider using a library similar to
 `iterable mapping <https://github.com/ethereum/dapp-bin/blob/master/library/iterable_mapping.sol>`_,
 allowing you to traverse the keys and delete their values in the appropriate ``mapping``.
+
+Internal Function Pointers in Upgradeable Contracts
+===================================================
+
+Updating the code of your contract may :ref:`invalidate the values of variables of internal function
+types<function-type-value-stability-across-contract-updates>`.
+Consider such values ephemeral and avoid storing them in state variables.
+If you do, you must ensure that they never persist across code updates and are never used by
+other contracts having access to the same storage space as a result of a delegatecall or account
+abstraction.
 
 Minor Details
 =============

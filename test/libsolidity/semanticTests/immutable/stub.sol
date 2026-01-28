@@ -9,5 +9,7 @@ contract C {
 		return (x+x,y);
 	}
 }
+// ====
+// bytecodeFormat: legacy,>=EOFv1
 // ----
 // f() -> 84, 23

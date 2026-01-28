@@ -92,7 +92,7 @@ void IsolTestOptions::validate() const
 	CommonOptions::validate();
 	static std::string filterString{"[a-zA-Z0-9_/*]*"};
 	static std::regex filterExpression{filterString};
-	assertThrow(
+	solRequire(
 		regex_match(testFilter, filterExpression),
 		ConfigException,
 		"Invalid test unit filter - can only contain '" + filterString + ": " + testFilter

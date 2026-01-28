@@ -4,6 +4,9 @@ contract Small {
     function f1(uint x) public returns (uint) { a = x; b[uint8(msg.data[0])] = x; }
     fallback () external payable {}
 }
+// ====
+// EVMVersion: =current
+// bytecodeFormat: legacy
 // ----
 // creation:
 //   codeDepositCost: 103800

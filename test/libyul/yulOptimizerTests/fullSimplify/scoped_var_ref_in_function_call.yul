@@ -6,6 +6,8 @@
     }
     f(call(2, 0, 1, mod(x, 8), 1, 1, 1))
 }
+// ====
+// bytecodeFormat: legacy
 // ----
 // step: fullSimplify
 //

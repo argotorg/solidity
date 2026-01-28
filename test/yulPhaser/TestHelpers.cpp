@@ -53,7 +53,7 @@ std::vector<size_t> phaser::test::chromosomeLengths(Population const& _populatio
 	return lengths;
 }
 
-std::map<std::string, size_t> phaser::test::enumerateOptmisationSteps()
+std::map<std::string, size_t> phaser::test::enumerateOptimisationSteps()
 {
 	std::map<std::string, size_t> stepIndices;
 	size_t i = 0;

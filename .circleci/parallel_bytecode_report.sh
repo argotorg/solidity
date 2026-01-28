@@ -44,9 +44,6 @@ cd test-cases/
 echo "Preparing input files"
 python3 ../scripts/isolate_tests.py ../test/
 
-# FIXME: These cases crash because of https://github.com/ethereum/solidity/issues/13583
-rm ./*_bytecode_too_large_*.sol ./*_combined_too_large_*.sol
-
 if [[ $binary_type == native || $binary_type == "osx_intel" ]]; then
     interface=$(echo -e "standard-json\ncli" | circleci tests split)
     echo "Selected interface: ${interface}"
@@ -60,7 +57,7 @@ if [[ $binary_type == native || $binary_type == "osx_intel" ]]; then
         --report-file "../bytecode-report-${label}-${interface}-${preset}.txt"
 else
     echo "Installing solc-js"
-    git clone --depth 1 https://github.com/ethereum/solc-js.git solc-js
+    git clone --depth 1 https://github.com/argotorg/solc-js.git solc-js
     cp "$binary_path" solc-js/soljson.js
 
     cd solc-js/

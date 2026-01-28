@@ -5,6 +5,8 @@ contract test {
         ufixed8x1 c = ufixed8x1(1/3); c;
     }
 }
+// ====
+// compileViaYul: true
 // ----
 // Warning 2018: (20-182): Function state mutability can be restricted to pure
-// UnimplementedFeatureError 1834: Not yet implemented - FixedPointType.
+// UnimplementedFeatureError 1834: (67-84): Fixed point types not implemented.

@@ -202,10 +202,13 @@ def examine_id_coverage(top_dir, source_id_to_file_names, new_ids_only=False):
         "4591", # "There are more than 256 warnings. Ignoring the rest."
                 # Due to 3805, the warning lists look different for different compiler builds.
         "1920", # Unimplemented feature error from YulStack (currently there are no UnimplementedFeatureErrors thrown by libyul)
-        "1180", # SMTChecker, covered by CL tests
+        "7053", # Unimplemented feature error (parsing stage), currently has no tests
         "2339", # SMTChecker, covered by CL tests
-        "2961", # SMTChecker, covered by CL tests
         "6240", # SMTChecker, covered by CL tests
+        "2788", # SMTChecker: BMC: verification condition(s) could not be proved
+        "1733", # AsmAnalysis: expecting bool expression (everything is implicitly bool without types in Yul)
+        "9547", # AsmAnalysis: assigning incompatible types in Yul (whitelisted as there are currently no types)
+        "5026", # ContractLevelChecker: too difficult to exceed transient storage max size due to only value types supported.
     }
     assert len(test_ids & white_ids) == 0, "The sets are not supposed to intersect"
     test_ids |= white_ids
@@ -244,7 +247,6 @@ def examine_id_coverage(top_dir, source_id_to_file_names, new_ids_only=False):
         "4802",
         "4902",
         "5272",
-        "5622",
         "5798",
         "5840",
         "7128",

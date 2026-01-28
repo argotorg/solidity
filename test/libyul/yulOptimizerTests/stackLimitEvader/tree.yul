@@ -164,6 +164,8 @@
         v := sload(mul(42,8))
     }
 }
+// ====
+// bytecodeFormat: legacy
 // ----
 // step: stackLimitEvader
 //

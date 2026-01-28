@@ -2,6 +2,8 @@
 	let x := delegatecall(gas(), 0x45, 0, 0x20, 0x30, 0x20)
 	sstore(100, x)
 }
+// ====
+// bytecodeFormat: legacy
 // ----
 // Trace:
 //   DELEGATECALL(153, 69, 0, 32, 48, 32)

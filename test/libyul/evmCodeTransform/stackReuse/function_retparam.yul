@@ -1,10 +1,18 @@
 {
     function f() -> x, y { }
+
+     let x, y := f()
 }
 // ====
 // stackOptimization: true
+// EVMVersion: =current
 // ----
-//     /* "":0:32   */
+//     /* "":49:52   */
+//   tag_2
+//   tag_1
+//   jump	// in
+// tag_2:
+//     /* "":0:54   */
 //   stop
 //     /* "":6:30   */
 // tag_1:

@@ -29,16 +29,30 @@ annotation, the "data location", about where it is stored. There are three data 
 non-persistent area where function arguments are stored, and behaves mostly like memory.
 
 .. note::
+    ``transient`` is not yet supported as a data location for reference types.
+
+.. note::
     If you can, try to use ``calldata`` as data location because it will avoid copies and
     also makes sure that the data cannot be modified. Arrays and structs with ``calldata``
     data location can also be returned from functions, but it is not possible to
     allocate such types.
 
 .. note::
+    Arrays and structs with ``calldata`` location declared in a function body
+    or as its return parameters must be assigned before being used or returned.
+    There are certain cases in which non-trivial control flow is used and the compiler
+    can't properly detect the initialization.
+    A common workaround in such cases is to assign the affected variable to itself before
+    the correct initialization takes place.
+
+.. note::
     Prior to version 0.6.9 data location for reference-type arguments was limited to
     ``calldata`` in external functions, ``memory`` in public functions and either
     ``memory`` or ``storage`` in internal and private ones.
     Now ``memory`` and ``calldata`` are allowed in all functions regardless of their visibility.
+
+.. note::
+    Constructor parameters cannot use ``calldata`` as their data location.
 
 .. note::
     Prior to version 0.5.0 the data location could be omitted, and would default to different locations
@@ -666,7 +680,7 @@ shown in the following example:
 .. code-block:: solidity
 
     // SPDX-License-Identifier: GPL-3.0
-    pragma solidity >=0.6.0 <0.9.0;
+    pragma solidity >=0.6.2 <0.9.0;
 
     // Defines a new type with two fields.
     // Declaring a struct outside of a contract allows
@@ -715,8 +729,8 @@ shown in the following example:
                 return false;
             uint amount = c.amount;
             c.amount = 0;
-            c.beneficiary.transfer(amount);
-            return true;
+            (bool success, ) = c.beneficiary.call{value: amount}("");
+            return success;
         }
     }
 

@@ -25,8 +25,10 @@
 #include <libevmasm/Assembly.h>
 #include <libsolutil/JSON.h>
 #include <libevmasm/Disassemble.h>
+#include <libevmasm/Ethdebug.h>
 #include <libyul/Exceptions.h>
 
+#include <test/Common.h>
 #include <boost/test/unit_test.hpp>
 
 #include <algorithm>
@@ -36,6 +38,7 @@
 
 using namespace solidity::langutil;
 using namespace solidity::evmasm;
+using namespace solidity::test;
 using namespace std::string_literals;
 
 namespace solidity::frontend::test
@@ -53,7 +56,7 @@ namespace
 
 BOOST_AUTO_TEST_SUITE(Assembler)
 
-BOOST_AUTO_TEST_CASE(all_assembly_items)
+BOOST_AUTO_TEST_CASE(all_assembly_items, *boost::unit_test::precondition(nonEOF()))
 {
 	std::map<std::string, unsigned> indices = {
 		{ "root.asm", 0 },
@@ -61,15 +64,15 @@ BOOST_AUTO_TEST_CASE(all_assembly_items)
 		{ "verbatim.asm", 2 }
 	};
 	EVMVersion evmVersion = solidity::test::CommonOptions::get().evmVersion();
-	Assembly _assembly{evmVersion, false, {}};
+	Assembly _assembly{evmVersion, false, solidity::test::CommonOptions::get().eofVersion(), {}};
 	auto root_asm = std::make_shared<std::string>("root.asm");
 	_assembly.setSourceLocation({1, 3, root_asm});
 
-	Assembly _subAsm{evmVersion, false, {}};
+	Assembly _subAsm{evmVersion, false, solidity::test::CommonOptions::get().eofVersion(), {}};
 	auto sub_asm = std::make_shared<std::string>("sub.asm");
 	_subAsm.setSourceLocation({6, 8, sub_asm});
 
-	Assembly _verbatimAsm(evmVersion, true, "");
+	Assembly _verbatimAsm(evmVersion, true, solidity::test::CommonOptions::get().eofVersion(), "");
 	auto verbatim_asm = std::make_shared<std::string>("verbatim.asm");
 	_verbatimAsm.setSourceLocation({8, 18, verbatim_asm});
 
@@ -106,11 +109,11 @@ BOOST_AUTO_TEST_CASE(all_assembly_items)
 	// PushSubSize
 	auto sub = _assembly.appendSubroutine(_subAsmPtr);
 	// PushSub
-	_assembly.pushSubroutineOffset(static_cast<size_t>(sub.data()));
+	_assembly.pushSubroutineOffset(SubAssemblyID(sub.data()));
 	// PushSubSize
 	auto verbatim_sub = _assembly.appendSubroutine(_verbatimAsmPtr);
 	// PushSub
-	_assembly.pushSubroutineOffset(static_cast<size_t>(verbatim_sub.data()));
+	_assembly.pushSubroutineOffset(SubAssemblyID(verbatim_sub.data()));
 	// PushDeployTimeAddress
 	_assembly.append(PushDeployTimeAddress);
 	// AssignImmutable.
@@ -215,7 +218,8 @@ BOOST_AUTO_TEST_CASE(all_assembly_items)
 	BOOST_CHECK_EQUAL(util::jsonCompactPrint(_assembly.assemblyJSON(indices)), util::jsonCompactPrint(jsonValue));
 }
 
-BOOST_AUTO_TEST_CASE(immutables_and_its_source_maps)
+// TODO: Implement EOF counterpart
+BOOST_AUTO_TEST_CASE(immutables_and_its_source_maps, *boost::unit_test::precondition(nonEOF()))
 {
 	EVMVersion evmVersion = solidity::test::CommonOptions::get().evmVersion();
 	// Tests for 1, 2, 3 number of immutables.
@@ -246,7 +250,7 @@ BOOST_AUTO_TEST_CASE(immutables_and_its_source_maps)
 				{ *subName, 1 }
 			};
 
-			auto subAsm = std::make_shared<Assembly>(evmVersion, false, std::string{});
+			auto subAsm = std::make_shared<Assembly>(evmVersion, false, solidity::test::CommonOptions::get().eofVersion(), std::string{});
 			for (char i = 0; i < numImmutables; ++i)
 			{
 				for (int r = 0; r < numActualRefs; ++r)
@@ -256,7 +260,7 @@ BOOST_AUTO_TEST_CASE(immutables_and_its_source_maps)
 				}
 			}
 
-			Assembly assembly{evmVersion, true, {}};
+			Assembly assembly{evmVersion, true, solidity::test::CommonOptions::get().eofVersion(), {}};
 			for (char i = 1; i <= numImmutables; ++i)
 			{
 				assembly.setSourceLocation({10*i, 10*i + 3+i, assemblyName});
@@ -269,7 +273,8 @@ BOOST_AUTO_TEST_CASE(immutables_and_its_source_maps)
 
 			checkCompilation(assembly);
 
-			std::string const sourceMappings = AssemblyItem::computeSourceMapping(assembly.items(), indices);
+			BOOST_REQUIRE(assembly.codeSections().size() == 1);
+			std::string const sourceMappings = AssemblyItem::computeSourceMapping(assembly.codeSections().at(0).items, indices);
 			auto const numberOfMappings = std::count(sourceMappings.begin(), sourceMappings.end(), ';');
 
 			LinkerObject const& obj = assembly.assemble();
@@ -299,18 +304,19 @@ BOOST_AUTO_TEST_CASE(immutables_and_its_source_maps)
 	}
 }
 
-BOOST_AUTO_TEST_CASE(immutable)
+// TODO: Implement EOF counterpart
+BOOST_AUTO_TEST_CASE(immutable, *boost::unit_test::precondition(nonEOF()))
 {
 	std::map<std::string, unsigned> indices = {
 		{ "root.asm", 0 },
 		{ "sub.asm", 1 }
 	};
 	EVMVersion evmVersion = solidity::test::CommonOptions::get().evmVersion();
-	Assembly _assembly{evmVersion, true, {}};
+	Assembly _assembly{evmVersion, true, solidity::test::CommonOptions::get().eofVersion(), {}};
 	auto root_asm = std::make_shared<std::string>("root.asm");
 	_assembly.setSourceLocation({1, 3, root_asm});
 
-	Assembly _subAsm{evmVersion, false, {}};
+	Assembly _subAsm{evmVersion, false, solidity::test::CommonOptions::get().eofVersion(), {}};
 	auto sub_asm = std::make_shared<std::string>("sub.asm");
 	_subAsm.setSourceLocation({6, 8, sub_asm});
 	_subAsm.appendImmutable("someImmutable");
@@ -326,7 +332,7 @@ BOOST_AUTO_TEST_CASE(immutable)
 	_assembly.appendImmutableAssignment("someOtherImmutable");
 
 	auto sub = _assembly.appendSubroutine(_subAsmPtr);
-	_assembly.pushSubroutineOffset(static_cast<size_t>(sub.data()));
+	_assembly.pushSubroutineOffset(SubAssemblyID(sub.data()));
 
 	checkCompilation(_assembly);
 
@@ -404,20 +410,60 @@ BOOST_AUTO_TEST_CASE(immutable)
 BOOST_AUTO_TEST_CASE(subobject_encode_decode)
 {
 	EVMVersion evmVersion = solidity::test::CommonOptions::get().evmVersion();
-	Assembly assembly{evmVersion, true, {}};
+	Assembly assembly{evmVersion, true, solidity::test::CommonOptions::get().eofVersion(), {}};
 
-	std::shared_ptr<Assembly> subAsmPtr = std::make_shared<Assembly>(evmVersion, false, std::string{});
-	std::shared_ptr<Assembly> subSubAsmPtr = std::make_shared<Assembly>(evmVersion, false, std::string{});
+	std::shared_ptr<Assembly> subAsmPtr = std::make_shared<Assembly>(evmVersion, false, solidity::test::CommonOptions::get().eofVersion(), std::string{});
+	std::shared_ptr<Assembly> subSubAsmPtr = std::make_shared<Assembly>(evmVersion, false, solidity::test::CommonOptions::get().eofVersion(), std::string{});
 
 	assembly.appendSubroutine(subAsmPtr);
 	subAsmPtr->appendSubroutine(subSubAsmPtr);
 
-	BOOST_CHECK(assembly.encodeSubPath({0}) == 0);
-	BOOST_REQUIRE_THROW(assembly.encodeSubPath({1}), solidity::evmasm::AssemblyException);
-	BOOST_REQUIRE_THROW(assembly.decodeSubPath(1), solidity::evmasm::AssemblyException);
+	BOOST_CHECK(assembly.encodeSubPath({SubAssemblyID{0}}).value == 0);
+	BOOST_REQUIRE_THROW(assembly.encodeSubPath({SubAssemblyID{1}}), solidity::langutil::InternalCompilerError);
+	BOOST_REQUIRE_THROW(assembly.decodeSubPath(SubAssemblyID{1}), solidity::evmasm::AssemblyException);
 
-	std::vector<size_t> subPath{0, 0};
+	std::vector<SubAssemblyID> subPath{{0}, {0}};
 	BOOST_CHECK(assembly.decodeSubPath(assembly.encodeSubPath(subPath)) == subPath);
+}
+
+BOOST_AUTO_TEST_CASE(ethdebug_program_last_instruction_with_immediate_arguments)
+{
+	EVMVersion evmVersion = solidity::test::CommonOptions::get().evmVersion();
+	{
+		Assembly assembly{evmVersion, true, {}, {}};
+		assembly.append(AssemblyItem{0x11223344});
+		LinkerObject output = assembly.assemble();
+
+		Json const program = ethdebug::program("", 0, assembly, output);
+		BOOST_REQUIRE(program["instructions"].size() == 1);
+		BOOST_REQUIRE(program["instructions"][0]["operation"]["mnemonic"] == "PUSH4");
+		BOOST_REQUIRE(program["instructions"][0]["operation"]["arguments"][0] == "0x11223344");
+	}
+	{
+		Assembly assembly{evmVersion, true, {}, {}};
+		assembly.append(AssemblyItem{Instruction::PUSH0});
+		assembly.append(AssemblyItem{0x1122334455});
+		LinkerObject output = assembly.assemble();
+
+		Json const program = ethdebug::program("", 0, assembly, output);
+		BOOST_REQUIRE(program["instructions"].size() == 2);
+		BOOST_REQUIRE(program["instructions"][0]["operation"]["mnemonic"] == "PUSH0");
+		BOOST_REQUIRE(!program["instructions"][0]["operation"].contains("arguments"));
+		BOOST_REQUIRE(program["instructions"][1]["operation"]["mnemonic"] == "PUSH5");
+		BOOST_REQUIRE(program["instructions"][1]["operation"]["arguments"][0] == "0x1122334455");
+	}
+}
+
+BOOST_AUTO_TEST_CASE(ethdebug_resources)
+{
+	Json const resources = ethdebug::resources({"sourceA", "sourceB"}, "version1");
+	BOOST_REQUIRE(resources["compilation"]["compiler"]["name"] == "solc");
+	BOOST_REQUIRE(resources["compilation"]["compiler"]["version"] == "version1");
+	BOOST_REQUIRE(resources["compilation"]["sources"].size() == 2);
+	BOOST_REQUIRE(resources["compilation"]["sources"][0]["id"] == 0);
+	BOOST_REQUIRE(resources["compilation"]["sources"][0]["path"] == "sourceA");
+	BOOST_REQUIRE(resources["compilation"]["sources"][1]["id"] == 1);
+	BOOST_REQUIRE(resources["compilation"]["sources"][1]["path"] == "sourceB");
 }
 
 BOOST_AUTO_TEST_SUITE_END()

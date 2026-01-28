@@ -42,7 +42,7 @@ class InlinableExpressionFunctionFinder: public ASTWalker
 {
 public:
 
-	std::map<YulString, FunctionDefinition const*> const& inlinableFunctions() const
+	std::map<YulName, FunctionDefinition const*> const& inlinableFunctions() const
 	{
 		return m_inlinableFunctions;
 	}
@@ -53,15 +53,11 @@ public:
 	void operator()(FunctionDefinition const& _function) override;
 
 private:
-	void checkAllowed(YulString _name)
-	{
-		if (m_disallowedIdentifiers.count(_name))
-			m_foundDisallowedIdentifier = true;
-	}
+	void checkAllowed(FunctionName const& _name);
 
 	bool m_foundDisallowedIdentifier = false;
-	std::set<YulString> m_disallowedIdentifiers;
-	std::map<YulString, FunctionDefinition const*> m_inlinableFunctions;
+	std::set<YulName> m_disallowedIdentifiers;
+	std::map<YulName, FunctionDefinition const*> m_inlinableFunctions;
 };
 
 }

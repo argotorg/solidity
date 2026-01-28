@@ -10,6 +10,9 @@ contract Medium {
     function g0(uint x) public payable returns (uint) { require(x > 10); }
 }
 // ====
+// EVMVersion: =current
+// bytecodeFormat: legacy
+// ====
 // optimize: true
 // optimize-runs: 2
 // ----

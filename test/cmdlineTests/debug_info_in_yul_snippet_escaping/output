@@ -1,6 +1,6 @@
 IR:
 
-/// @use-src 0:"debug_info_in_yul_snippet_escaping/input.sol"
+/// @use-src 0:"input.sol"
 object "C_2" {
     code {
         /// @src 0:265:278  "contract C {}"
@@ -31,7 +31,7 @@ object "C_2" {
         /// @src 0:265:278  "contract C {}"
 
     }
-    /// @use-src 0:"debug_info_in_yul_snippet_escaping/input.sol"
+    /// @use-src 0:"input.sol"
     object "C_2_deployed" {
         code {
             /// @src 0:265:278  "contract C {}"
@@ -63,7 +63,7 @@ object "C_2" {
 
 
 Optimized IR:
-/// @use-src 0:"debug_info_in_yul_snippet_escaping/input.sol"
+/// @use-src 0:"input.sol"
 object "C_2" {
     code {
         {
@@ -76,7 +76,7 @@ object "C_2" {
             return(_1, _2)
         }
     }
-    /// @use-src 0:"debug_info_in_yul_snippet_escaping/input.sol"
+    /// @use-src 0:"input.sol"
     object "C_2_deployed" {
         code {
             {
@@ -90,7 +90,7 @@ object "C_2" {
 
 IR:
 
-/// @use-src 0:"debug_info_in_yul_snippet_escaping/input.sol"
+/// @use-src 0:"input.sol"
 object "D_27" {
     code {
         /// @src 0:279:599  "contract D /** @src 0:96:165  \"contract D {...\" *\/ {..."
@@ -121,7 +121,7 @@ object "D_27" {
         /// @src 0:279:599  "contract D /** @src 0:96:165  \"contract D {...\" *\/ {..."
 
     }
-    /// @use-src 0:"debug_info_in_yul_snippet_escaping/input.sol"
+    /// @use-src 0:"input.sol"
     object "D_27_deployed" {
         code {
             /// @src 0:279:599  "contract D /** @src 0:96:165  \"contract D {...\" *\/ {..."
@@ -312,6 +312,7 @@ object "D_27" {
                 var__5_mpos := zero_t_string_memory_ptr_1_mpos
 
                 /// @src 0:446:491  "new /// @src 0:149:156  \"new C()\"..."
+
                 let _2 := allocate_unbounded()
                 let _3 := add(_2, datasize("C_2"))
                 if or(gt(_3, 0xffffffffffffffff), lt(_3, _2)) { panic_error_0x41() }
@@ -341,7 +342,7 @@ object "D_27" {
 
         }
 
-        /// @use-src 0:"debug_info_in_yul_snippet_escaping/input.sol"
+        /// @use-src 0:"input.sol"
         object "C_2" {
             code {
                 /// @src 0:265:278  "contract C {}"
@@ -372,7 +373,7 @@ object "D_27" {
                 /// @src 0:265:278  "contract C {}"
 
             }
-            /// @use-src 0:"debug_info_in_yul_snippet_escaping/input.sol"
+            /// @use-src 0:"input.sol"
             object "C_2_deployed" {
                 code {
                     /// @src 0:265:278  "contract C {}"
@@ -409,7 +410,7 @@ object "D_27" {
 
 
 Optimized IR:
-/// @use-src 0:"debug_info_in_yul_snippet_escaping/input.sol"
+/// @use-src 0:"input.sol"
 object "D_27" {
     code {
         {
@@ -422,7 +423,7 @@ object "D_27" {
             return(_1, _2)
         }
     }
-    /// @use-src 0:"debug_info_in_yul_snippet_escaping/input.sol"
+    /// @use-src 0:"input.sol"
     object "D_27_deployed" {
         code {
             {
@@ -498,7 +499,7 @@ object "D_27" {
                 revert(0, 0)
             }
         }
-        /// @use-src 0:"debug_info_in_yul_snippet_escaping/input.sol"
+        /// @use-src 0:"input.sol"
         object "C_2" {
             code {
                 {
@@ -511,7 +512,7 @@ object "D_27" {
                     return(_1, _2)
                 }
             }
-            /// @use-src 0:"debug_info_in_yul_snippet_escaping/input.sol"
+            /// @use-src 0:"input.sol"
             object "C_2_deployed" {
                 code {
                     {

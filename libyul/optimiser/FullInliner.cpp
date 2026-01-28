@@ -66,8 +66,8 @@ FullInliner::FullInliner(Block& _ast, NameDispenser& _dispenser, Dialect const& 
 			m_constants.emplace(ssaValue.first);
 
 	// Store size of global statements.
-	m_functionSizes[YulString{}] = CodeSize::codeSize(_ast);
-	std::map<YulString, size_t> references = ReferencesCounter::countReferences(m_ast);
+	m_functionSizes[YulName{}] = CodeSize::codeSize(_ast);
+	std::map<FunctionHandle, size_t> references = ReferencesCounter::countReferences(m_ast);
 	for (auto& statement: m_ast.statements)
 	{
 		if (!std::holds_alternative<FunctionDefinition>(statement))
@@ -83,13 +83,13 @@ FullInliner::FullInliner(Block& _ast, NameDispenser& _dispenser, Dialect const& 
 	}
 
 	// Check for memory guard.
-	std::vector<FunctionCall*> memoryGuardCalls = FunctionCallFinder::run(
-		_ast,
-		"memoryguard"_yulstring
-	);
-	// We will perform less aggressive inlining, if no ``memoryguard`` call is found.
-	if (!memoryGuardCalls.empty())
-		m_hasMemoryGuard = true;
+	if (auto const memoryGuard = m_dialect.findBuiltin("memoryguard"))
+	{
+		std::vector<FunctionCall*> memoryGuardCalls = findFunctionCalls(_ast, *memoryGuard);
+		// We will perform less aggressive inlining, if no ``memoryguard`` call is found.
+		if (!memoryGuardCalls.empty())
+			m_hasMemoryGuard = true;
+	}
 }
 
 void FullInliner::run(Pass _pass)
@@ -104,12 +104,12 @@ void FullInliner::run(Pass _pass)
 	// function name) order.
 	// We use stable_sort below to keep the inlining order of two functions
 	// with the same depth.
-	std::map<YulString, size_t> depths = callDepths();
+	std::map<FunctionHandle, size_t> depths = callDepths();
 	std::vector<FunctionDefinition*> functions;
 	for (auto& statement: m_ast.statements)
 		if (std::holds_alternative<FunctionDefinition>(statement))
 			functions.emplace_back(&std::get<FunctionDefinition>(statement));
-	std::stable_sort(functions.begin(), functions.end(), [depths](
+	std::stable_sort(functions.begin(), functions.end(), [&depths](
 		FunctionDefinition const* _a,
 		FunctionDefinition const* _b
 	) {
@@ -126,25 +126,25 @@ void FullInliner::run(Pass _pass)
 			handleBlock({}, std::get<Block>(statement));
 }
 
-std::map<YulString, size_t> FullInliner::callDepths() const
+std::map<FunctionHandle, size_t> FullInliner::callDepths() const
 {
 	CallGraph cg = CallGraphGenerator::callGraph(m_ast);
-	cg.functionCalls.erase(""_yulstring);
+	cg.functionCalls.erase(""_yulname);
 
 	// Remove calls to builtin functions.
 	for (auto& call: cg.functionCalls)
 		for (auto it = call.second.begin(); it != call.second.end();)
-			if (m_dialect.builtin(*it))
+			if (std::holds_alternative<BuiltinHandle>(*it))
 				it = call.second.erase(it);
 			else
 				++it;
 
-	std::map<YulString, size_t> depths;
+	std::map<FunctionHandle, size_t> depths;
 	size_t currentDepth = 0;
 
 	while (true)
 	{
-		std::vector<YulString> removed;
+		std::vector<FunctionHandle> removed;
 		for (auto it = cg.functionCalls.begin(); it != cg.functionCalls.end();)
 		{
 			auto const& [fun, callees] = *it;
@@ -159,7 +159,7 @@ std::map<YulString, size_t> FullInliner::callDepths() const
 		}
 
 		for (auto& call: cg.functionCalls)
-			for (YulString toBeRemoved: removed)
+			for (FunctionHandle toBeRemoved: removed)
 				ranges::actions::remove(call.second, toBeRemoved);
 
 		currentDepth++;
@@ -175,17 +175,21 @@ std::map<YulString, size_t> FullInliner::callDepths() const
 	return depths;
 }
 
-bool FullInliner::shallInline(FunctionCall const& _funCall, YulString _callSite)
+bool FullInliner::shallInline(FunctionCall const& _funCall, YulName _callSite)
 {
+	if (isBuiltinFunctionCall(_funCall))
+		return false;
+	yulAssert(std::holds_alternative<Identifier>(_funCall.functionName));
+	auto const& functionName = std::get<Identifier>(_funCall.functionName).name;
 	// No recursive inlining
-	if (_funCall.functionName.name == _callSite)
+	if (functionName == _callSite)
 		return false;
 
-	FunctionDefinition* calledFunction = function(_funCall.functionName.name);
+	FunctionDefinition* calledFunction = function(functionName);
 	if (!calledFunction)
 		return false;
 
-	if (m_noInlineFunctions.count(_funCall.functionName.name) || recursive(*calledFunction))
+	if (m_noInlineFunctions.count(functionName) || recursive(*calledFunction))
 		return false;
 
 	// No inlining of calls where argument expressions may have side-effects.
@@ -237,7 +241,7 @@ bool FullInliner::shallInline(FunctionCall const& _funCall, YulString _callSite)
 	return (size < (aggressiveInlining ? 8u : 6u) || (constantArg && size < (aggressiveInlining ? 16u : 12u)));
 }
 
-void FullInliner::tentativelyUpdateCodeSize(YulString _function, YulString _callSite)
+void FullInliner::tentativelyUpdateCodeSize(YulName _function, YulName _callSite)
 {
 	m_functionSizes.at(_callSite) += m_functionSizes.at(_function);
 }
@@ -247,14 +251,14 @@ void FullInliner::updateCodeSize(FunctionDefinition const& _fun)
 	m_functionSizes[_fun.name] = CodeSize::codeSize(_fun.body);
 }
 
-void FullInliner::handleBlock(YulString _currentFunctionName, Block& _block)
+void FullInliner::handleBlock(YulName _currentFunctionName, Block& _block)
 {
 	InlineModifier{*this, m_nameDispenser, _currentFunctionName, m_dialect}(_block);
 }
 
 bool FullInliner::recursive(FunctionDefinition const& _fun) const
 {
-	std::map<YulString, size_t> references = ReferencesCounter::countReferences(_fun);
+	std::map<FunctionHandle, size_t> references = ReferencesCounter::countReferences(_fun);
 	return references[_fun.name] > 0;
 }
 
@@ -292,23 +296,24 @@ std::optional<std::vector<Statement>> InlineModifier::tryInlineStatement(Stateme
 std::vector<Statement> InlineModifier::performInline(Statement& _statement, FunctionCall& _funCall)
 {
 	std::vector<Statement> newStatements;
-	std::map<YulString, YulString> variableReplacements;
+	std::map<YulName, YulName> variableReplacements;
 
-	FunctionDefinition* function = m_driver.function(_funCall.functionName.name);
+	yulAssert(std::holds_alternative<Identifier>(_funCall.functionName));
+	FunctionDefinition* function = m_driver.function(std::get<Identifier>(_funCall.functionName).name);
 	assertThrow(!!function, OptimizerException, "Attempt to inline invalid function.");
 
 	m_driver.tentativelyUpdateCodeSize(function->name, m_currentFunction);
 
 	// helper function to create a new variable that is supposed to model
 	// an existing variable.
-	auto newVariable = [&](TypedName const& _existingVariable, Expression* _value) {
-		YulString newName = m_nameDispenser.newName(_existingVariable.name);
+	auto newVariable = [&](NameWithDebugData const& _existingVariable, Expression* _value) {
+		YulName newName = m_nameDispenser.newName(_existingVariable.name);
 		variableReplacements[_existingVariable.name] = newName;
-		VariableDeclaration varDecl{_funCall.debugData, {{_funCall.debugData, newName, _existingVariable.type}}, {}};
+		VariableDeclaration varDecl{_funCall.debugData, {{_funCall.debugData, newName}}, {}};
 		if (_value)
 			varDecl.value = std::make_unique<Expression>(std::move(*_value));
 		else
-			varDecl.value = std::make_unique<Expression>(m_dialect.zeroLiteralForType(varDecl.variables.front().type));
+			varDecl.value = std::make_unique<Expression>(m_dialect.zeroLiteral());
 		newStatements.emplace_back(std::move(varDecl));
 	};
 
@@ -364,10 +369,7 @@ Statement BodyCopier::operator()(FunctionDefinition const&)
 	return {};
 }
 
-YulString BodyCopier::translateIdentifier(YulString _name)
+YulName BodyCopier::translateIdentifier(YulName _name)
 {
-	if (m_variableReplacements.count(_name))
-		return m_variableReplacements.at(_name);
-	else
-		return _name;
+	return util::valueOrDefault(m_variableReplacements, _name, _name);
 }

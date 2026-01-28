@@ -19,4 +19,7 @@ pragma abicoder v1;
 import "A";
 
 contract D is C {}
+// ====
+// bytecodeFormat: legacy
 // ----
+// Warning 9511: (B:0-19): ABI coder v1 is deprecated and scheduled for removal. Use ABI coder v2 instead.

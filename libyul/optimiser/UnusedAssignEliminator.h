@@ -33,7 +33,7 @@
 
 namespace solidity::yul
 {
-struct Dialect;
+class Dialect;
 
 /**
  * Optimiser component that removes assignments to variables that are not used
@@ -113,7 +113,7 @@ struct Dialect;
  *
  * Prerequisite: Disambiguator, ForLoopInitRewriter.
  */
-class UnusedAssignEliminator: public UnusedStoreBase
+class UnusedAssignEliminator: public UnusedStoreBase<YulName>
 {
 public:
 	static constexpr char const* name{"UnusedAssignEliminator"};
@@ -121,7 +121,7 @@ public:
 
 	explicit UnusedAssignEliminator(
 		Dialect const& _dialect,
-		std::map<YulString, ControlFlowSideEffects> _controlFlowSideEffects
+		std::map<YulName, ControlFlowSideEffects> _controlFlowSideEffects
 	):
 		UnusedStoreBase(_dialect),
 		m_controlFlowSideEffects(_controlFlowSideEffects)
@@ -141,10 +141,10 @@ private:
 	void shortcutNestedLoop(ActiveStores const& _beforeLoop) override;
 	void finalizeFunctionDefinition(FunctionDefinition const& _functionDefinition) override;
 
-	void markUsed(YulString _variable);
+	void markUsed(YulName _variable);
 
-	std::set<YulString> m_returnVariables;
-	std::map<YulString, ControlFlowSideEffects> m_controlFlowSideEffects;
+	std::set<YulName> m_returnVariables;
+	std::map<YulName, ControlFlowSideEffects> m_controlFlowSideEffects;
 };
 
 }

@@ -25,10 +25,12 @@
 
 #include <libyul/backends/evm/EVMDialect.h>
 #include <libyul/AST.h>
+#include <libyul/Utilities.h>
 
 #include <libevmasm/Instruction.h>
 #include <libevmasm/SemanticInformation.h>
 
+#include <liblangutil/Exceptions.h>
 #include <libsolutil/Keccak256.h>
 #include <libsolutil/Numeric.h>
 #include <libsolutil/picosha2.h>
@@ -105,8 +107,6 @@ void copyZeroExtendedWithOverlap(
 
 }
 
-using u512 = boost::multiprecision::number<boost::multiprecision::cpp_int_backend<512, 256, boost::multiprecision::unsigned_magnitude, boost::multiprecision::unchecked, void>>;
-
 u256 EVMInstructionInterpreter::eval(
 	evmasm::Instruction _instruction,
 	std::vector<u256> const& _arguments
@@ -181,6 +181,8 @@ u256 EVMInstructionInterpreter::eval(
 			return v;
 		}
 	}
+	case Instruction::CLZ:
+		return arg[0] == 0 ? 256 : 255 - msb(arg[0]);
 	case Instruction::ADDMOD:
 		return arg[2] == 0 ? 0 : u256((u512(arg[0]) + u512(arg[1])) % arg[2]);
 	case Instruction::MULMOD:
@@ -416,7 +418,7 @@ u256 EVMInstructionInterpreter::eval(
 		m_state.trace.clear();
 		BOOST_THROW_EXCEPTION(ExplicitlyTerminated());
 	case Instruction::POP:
-		break;
+		return 0;
 	// --------------- invalid in strict assembly ---------------
 	case Instruction::JUMP:
 	case Instruction::JUMPI:
@@ -486,13 +488,24 @@ u256 EVMInstructionInterpreter::eval(
 	case Instruction::SWAP14:
 	case Instruction::SWAP15:
 	case Instruction::SWAP16:
-	{
-		yulAssert(false, "");
-		return 0;
-	}
+	case Instruction::SWAPN:
+	case Instruction::DUPN:
+		yulAssert(false, "Impossible in strict assembly.");
+	case Instruction::DATALOADN:
+	case Instruction::CALLF:
+	case Instruction::RETF:
+	case Instruction::JUMPF:
+	case Instruction::EOFCREATE:
+	case Instruction::RETURNCONTRACT:
+	case Instruction::RJUMP:
+	case Instruction::RJUMPI:
+	case Instruction::EXTCALL:
+	case Instruction::EXTSTATICCALL:
+	case Instruction::EXTDELEGATECALL:
+		solUnimplemented("EOF not yet supported by Yul interpreter.");
 	}
 
-	return 0;
+	util::unreachable();
 }
 
 u256 EVMInstructionInterpreter::evalBuiltin(
@@ -504,11 +517,11 @@ u256 EVMInstructionInterpreter::evalBuiltin(
 	if (_fun.instruction)
 		return eval(*_fun.instruction, _evaluatedArguments);
 
-	std::string fun = _fun.name.str();
+	std::string const& fun = _fun.name;
 	// Evaluate datasize/offset/copy instructions
 	if (fun == "datasize" || fun == "dataoffset")
 	{
-		std::string arg = std::get<Literal>(_arguments.at(0)).value.str();
+		std::string arg = formatLiteral(std::get<Literal>(_arguments.at(0)));
 		if (arg.length() < 32)
 			arg.resize(32, 0);
 		if (fun == "datasize")
@@ -521,7 +534,8 @@ u256 EVMInstructionInterpreter::evalBuiltin(
 			return u256(keccak256(arg)) & 0xfff;
 		}
 	}
-	else if (fun == "datacopy")
+
+	if (fun == "datacopy")
 	{
 		// This is identical to codecopy.
 		if (
@@ -537,11 +551,41 @@ u256 EVMInstructionInterpreter::evalBuiltin(
 			);
 		return 0;
 	}
-	else if (fun == "memoryguard")
+
+	if (fun == "memoryguard")
 		return _evaluatedArguments.at(0);
-	else
-		yulAssert(false, "Unknown builtin: " + fun);
-	return 0;
+
+	if (fun == "linkersymbol")
+	{
+		yulAssert(_arguments.size() == 1);
+		yulAssert(std::holds_alternative<Literal>(_arguments[0]));
+		std::string const placeholder = formatLiteral(std::get<Literal>(_arguments[0]));
+		h256 const identifier(keccak256(placeholder));
+		m_linkerSymbols.emplace(identifier, placeholder);
+		return u256(identifier);
+	}
+
+	if (fun == "loadimmutable")
+	{
+		yulAssert(_arguments.size() == 1);
+		yulAssert(std::holds_alternative<Literal>(_arguments[0]));
+		std::string const identifier = formatLiteral(std::get<Literal>(_arguments[0]));
+		// Return a deterministic value based on the identifier.
+		// This is sufficient for differential fuzzing since the same identifier
+		// will always return the same value, maintaining trace equivalence.
+		return u256(h256(keccak256(identifier)));
+	}
+
+	if (fun == "setimmutable")
+	{
+		yulAssert(_arguments.size() == 3);
+		// No-op: The real implementation patches placeholder bytes in memory-loaded runtime code.
+		// For differential fuzzing, this ensures correct code never fails (no false positives), though some
+		// bugs in setimmutable handling may not be detected (potential false negatives).
+		return 0;
+	}
+
+	yulAssert(false, "Unknown builtin: " + fun);
 }
 
 

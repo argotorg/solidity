@@ -18,11 +18,18 @@
 
 #include <libsolidity/formal/EncodingContext.h>
 
+#include <libsolidity/ast/AST.h>
+
 #include <libsolidity/formal/SymbolicTypes.h>
 
 using namespace solidity;
 using namespace solidity::util;
 using namespace solidity::frontend::smt;
+
+bool EncodingContext::IdCompare::operator()(ASTNode const* lhs, ASTNode const* rhs) const
+{
+	return lhs->id() < rhs->id();
+}
 
 EncodingContext::EncodingContext():
 	m_state(*this)

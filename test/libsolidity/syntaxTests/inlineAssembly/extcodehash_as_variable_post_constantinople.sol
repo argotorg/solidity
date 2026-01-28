@@ -7,4 +7,5 @@ contract c {
 }
 // ====
 // EVMVersion: >=constantinople
+// bytecodeFormat: legacy
 // ----

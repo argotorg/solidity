@@ -10,3 +10,4 @@ contract C {
 // EVMVersion: >=cancun
 // ----
 // ParserError 5568: (98-103): Cannot use builtin function name "tload" as identifier name.
+// ParserError 7104: (135-140): Builtin function "tload" must be called.

@@ -98,6 +98,7 @@ struct EVMBuiltins
 	static auto constexpr SHL = PatternGenerator<Instruction::SHL>{};
 	static auto constexpr SHR = PatternGenerator<Instruction::SHR>{};
 	static auto constexpr SAR = PatternGenerator<Instruction::SAR>{};
+	static auto constexpr CLZ = PatternGenerator<Instruction::CLZ>{};
 	static auto constexpr ADDMOD = PatternGenerator<Instruction::ADDMOD>{};
 	static auto constexpr MULMOD = PatternGenerator<Instruction::MULMOD>{};
 	static auto constexpr SIGNEXTEND = PatternGenerator<Instruction::SIGNEXTEND>{};

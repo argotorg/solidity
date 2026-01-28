@@ -19,7 +19,6 @@
 #pragma once
 
 #include <test/CommonSyntaxTest.h>
-#include <libyul/Dialect.h>
 
 namespace solidity::yul::test
 {
@@ -37,9 +36,6 @@ public:
 	~SyntaxTest() override {}
 protected:
 	void parseAndAnalyze() override;
-
-private:
-	Dialect const* m_dialect = nullptr;
 };
 
 }

@@ -137,7 +137,7 @@ private:
 	}
 
 	/// Merges the control flow of @a _nodes to @a _endNode.
-	/// If @a _endNode is nullptr, a new node is creates and used as end node.
+	/// If @a _endNode is nullptr, a new node is created and used as end node.
 	/// Sets the merge destination as current node.
 	/// Note: @a _endNode may be one of the nodes in @a _nodes.
 	template<typename C>

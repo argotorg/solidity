@@ -11,4 +11,6 @@ contract C {
 		this.f{gas: 42};
 	}
 }
+// ====
+// bytecodeFormat: legacy
 // ----

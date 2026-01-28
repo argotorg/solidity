@@ -185,7 +185,7 @@ contract provider is module, safeMath, announcementTypes {
     }
     function setRightForInterest(uint256 oldValue, uint256 newValue, bool priv) internal {
         /*
-            It checks if the provider has enough connected captital to be able to get from the token emission.
+            It checks if the provider has enough connected capital to be able to get from the token emission.
             In case the provider is not able to get the share from the token emission then the connected capital will not count to the value of the globalFunds, to the current schelling round.
 
             @oldValue       old

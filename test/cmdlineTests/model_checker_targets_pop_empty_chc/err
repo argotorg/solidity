@@ -3,12 +3,14 @@ Counterexample:
 arr = []
 a = 0x0
 x = 0
+success = true
 
 Transaction trace:
 test.constructor()
 State: arr = []
 test.f(0x0, 1)
-  --> model_checker_targets_pop_empty_chc/input.sol:12:3:
+    a.call{value: x}("") -- untrusted external call
+  --> input.sol:13:3:
    |
-12 | 		arr.pop();
+13 | 		arr.pop();
    | 		^^^^^^^^^

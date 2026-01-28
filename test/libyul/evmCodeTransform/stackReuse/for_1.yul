@@ -1,6 +1,7 @@
 { for { let z := 0 } 1 { } { let x := 3 } let t := 2 }
 // ====
 // stackOptimization: true
+// EVMVersion: =current
 // ----
 //     /* "":17:18   */
 //   0x00

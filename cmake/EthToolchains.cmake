@@ -1,6 +1,6 @@
-# Require C++17.
+# Require C++20.
 if (NOT DEFINED CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 17) # This requires at least CMake 3.8 to accept this C++17 flag.
+  set(CMAKE_CXX_STANDARD 20) # This requires at least CMake 3.12 to accept this C++20 flag.
 endif ()
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 set(CMAKE_CXX_EXTENSIONS OFF)

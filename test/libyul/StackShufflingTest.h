@@ -37,11 +37,13 @@ public:
 	explicit StackShufflingTest(std::string const& _filename);
 	TestResult run(std::ostream& _stream, std::string const& _linePrefix = "", bool const _formatted = false) override;
 private:
+	void processSettings();
 	bool parse(std::string const& _source);
 
+	size_t m_maximumStackDepth{};
 	Stack m_sourceStack;
 	Stack m_targetStack;
-	std::map<YulString, yul::FunctionCall> m_functions;
-	std::map<YulString, Scope::Variable> m_variables;
+	std::map<YulName, yul::FunctionCall> m_functions;
+	std::map<YulName, Scope::Variable> m_variables;
 };
 }

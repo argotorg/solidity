@@ -26,10 +26,10 @@ using namespace solidity::frontend;
 using namespace solidity::smtutil;
 
 SMTPortfolio::SMTPortfolio(
-	std::vector<std::unique_ptr<SolverInterface>> _solvers,
+	std::vector<std::unique_ptr<BMCSolverInterface>> _solvers,
 	std::optional<unsigned> _queryTimeout
 ):
-	SolverInterface(_queryTimeout), m_solvers(std::move(_solvers))
+	BMCSolverInterface(_queryTimeout), m_solvers(std::move(_solvers))
 {}
 
 
@@ -78,7 +78,7 @@ void SMTPortfolio::addAssertion(Expression const& _expr)
  * Ideally all solvers answer the query and agree on what the answer is
  * (all say SAT or all say UNSAT).
  *
- * The actual logic as as follows:
+ * The actual logic is as follows:
  * 1) If at least one solver answers the query, all the non-answer results are ignored.
  *   Here SAT/UNSAT is preferred over UNKNOWN since it's an actual answer, and over ERROR
  *   because one buggy solver/integration shouldn't break the portfolio.

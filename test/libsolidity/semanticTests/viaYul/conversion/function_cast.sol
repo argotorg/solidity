@@ -9,13 +9,14 @@ contract C {
 		return this.g()(x) + 1;
 	}
 	function t() external view returns (
-			function(uint) external returns (uint) a,
-			function(uint) external view returns (uint) b) {
-		a = this.f;
-		b = this.f;
+		function(uint) external returns (uint) a,
+		function(uint) external view returns (uint) b
+	) {
+		a = C(address(0x1234)).f;
+		b = C(address(0x1234)).f;
 	}
 }
 // ----
 // f(uint256): 2 -> 4
 // h(uint256): 2 -> 5
-// t() -> 0xc06afe3a8444fc0004668591e8306bfb9968e79eb3de648b0000000000000000, 0xc06afe3a8444fc0004668591e8306bfb9968e79eb3de648b0000000000000000
+// t() -> 0x1234b3de648b0000000000000000, 0x1234b3de648b0000000000000000

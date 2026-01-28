@@ -93,7 +93,7 @@ h1 {
 }
 
 section:first-of-type h1:first-of-type {
-    font-family: 'Overpass mono', monospace;
+    font-family: 'Overpass Mono', monospace;
     font-size: 48px;
     margin-top: 3rem;
     margin-bottom: 5rem;
@@ -229,7 +229,7 @@ small * {
 .wy-side-nav-search {
     background-color: transparent !important;
     color: var(--color-a) !important;
-    box-shadow: 0 4 4 0 var(--color-a);
+    box-shadow: 0 4px 4px 0 var(--color-a);
     border-bottom: 1px solid var(--color-d) !important;
 }
 

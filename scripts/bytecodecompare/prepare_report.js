@@ -4,7 +4,7 @@ const fs = require('fs')
 
 const compiler = require('solc')
 
-SETTINGS_PRESETS = {
+const SETTINGS_PRESETS = {
     'legacy-optimize':    {optimize: true,  viaIR: false},
     'legacy-no-optimize': {optimize: false, viaIR: false},
     'via-ir-optimize':    {optimize: true,  viaIR: true},

@@ -48,6 +48,9 @@ function solcjs_test
     printLog "Copying contracts..."
     cp -Rf "$SOLCJS_INPUT_DIR/DAO" test/
 
+    printLog "Copying test with non-zero subassembly access"
+    cp -f "$TEST_DIR"/test/libsolidity/semanticTests/various/code_access_runtime.sol test/
+
     printLog "Copying SMTChecker tests..."
     # We do not copy all tests because that takes too long.
     cp -Rf "$TEST_DIR"/test/libsolidity/smtCheckerTests/external_calls test/smtCheckerTests/

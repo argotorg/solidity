@@ -86,6 +86,9 @@ bool TypeChecker::visit(ContractDefinition const& _contract)
 
 	ASTNode::listAccept(_contract.baseContracts(), *this);
 
+	if (StorageLayoutSpecifier const* layoutSpecifier = _contract.storageLayoutSpecifier())
+		layoutSpecifier->accept(*this);
+
 	for (auto const& n: _contract.subNodes())
 		n->accept(*this);
 
@@ -785,7 +788,7 @@ bool TypeChecker::visit(InlineAssembly const& _inlineAssembly)
 				}
 				else if (identifierInfo.suffix == "slot" || identifierInfo.suffix == "offset")
 				{
-					m_errorReporter.typeError(6617_error, nativeLocationOf(_identifier), "The suffixes .offset and .slot can only be used on non-constant storage variables.");
+					m_errorReporter.typeError(6617_error, nativeLocationOf(_identifier), "The suffixes .offset and .slot can only be used on non-constant storage or transient storage variables.");
 					return false;
 				}
 				else if (var && var->value() && !var->value()->annotation().type && !dynamic_cast<Literal const*>(var->value().get()))
@@ -824,7 +827,7 @@ bool TypeChecker::visit(InlineAssembly const& _inlineAssembly)
 					{
 						if (var->isStateVariable())
 						{
-							m_errorReporter.typeError(4713_error, nativeLocationOf(_identifier), "State variables cannot be assigned to - you have to use \"sstore()\".");
+							m_errorReporter.typeError(4713_error, nativeLocationOf(_identifier), "State variables cannot be assigned to - you have to use \"sstore()\" or \"tstore()\".");
 							return false;
 						}
 						else if (suffix != "slot")
@@ -869,7 +872,7 @@ bool TypeChecker::visit(InlineAssembly const& _inlineAssembly)
 				m_errorReporter.typeError(
 					1408_error,
 					nativeLocationOf(_identifier),
-					"Only local variables are supported. To access storage variables, use the \".slot\" and \".offset\" suffixes."
+					"Only local variables are supported. To access state variables, use the \".slot\" and \".offset\" suffixes."
 				);
 				return false;
 			}
@@ -940,7 +943,7 @@ bool TypeChecker::visit(InlineAssembly const& _inlineAssembly)
 		_inlineAssembly.dialect(),
 		identifierAccess
 	);
-	if (!analyzer.analyze(_inlineAssembly.operations()))
+	if (!analyzer.analyze(_inlineAssembly.operations().root()))
 		solAssert(m_errorReporter.hasErrors());
 	_inlineAssembly.annotation().hasMemoryEffects =
 		lvalueAccessToMemoryVariable ||
@@ -1324,7 +1327,7 @@ bool TypeChecker::visit(VariableDeclarationStatement const& _statement)
 		solAssert(m_errorReporter.hasErrors(), "Should have errors!");
 		for (auto const& var: variables)
 			if (var && !var->annotation().type)
-				BOOST_THROW_EXCEPTION(FatalError());
+				solThrow(FatalError, "Type checker failed to determine types of all variables within the declaration.");
 	}
 
 	return false;
@@ -1377,7 +1380,7 @@ bool TypeChecker::visit(Conditional const& _conditional)
 		commonType = falseType;
 
 	if (!trueType && !falseType)
-		BOOST_THROW_EXCEPTION(FatalError());
+		solThrow(FatalError, "Both sides of the ternary expression have invalid types.");
 	else if (trueType && falseType)
 	{
 		commonType = Type::commonType(trueType, falseType);
@@ -1454,10 +1457,7 @@ void TypeChecker::checkExpressionAssignment(Type const& _type, Expression const&
 
 bool TypeChecker::visit(Assignment const& _assignment)
 {
-	requireLValue(
-		_assignment.leftHandSide(),
-		_assignment.assignmentOperator() == Token::Assign
-	);
+	requireLValue(_assignment.leftHandSide());
 	Type const* t = type(_assignment.leftHandSide());
 	_assignment.annotation().type = t;
 	_assignment.annotation().isPure = false;
@@ -1518,10 +1518,7 @@ bool TypeChecker::visit(TupleExpression const& _tuple)
 		for (auto const& component: components)
 			if (component)
 			{
-				requireLValue(
-					*component,
-					_tuple.annotation().lValueOfOrdinaryAssignment
-				);
+				requireLValue(*component);
 				types.push_back(type(*component));
 			}
 			else
@@ -1614,7 +1611,7 @@ bool TypeChecker::visit(UnaryOperation const& _operation)
 	Token op = _operation.getOperator();
 	bool const modifying = (op == Token::Inc || op == Token::Dec || op == Token::Delete);
 	if (modifying)
-		requireLValue(_operation.subExpression(), false);
+		requireLValue(_operation.subExpression());
 	else
 		_operation.subExpression().accept(*this);
 	Type const* operandType = type(_operation.subExpression());
@@ -1832,6 +1829,16 @@ void TypeChecker::endVisit(BinaryOperation const& _operation)
 				)
 			);
 	}
+	if (
+		TokenTraits::isCompareOp(_operation.getOperator()) &&
+		commonType->category() == Type::Category::Contract
+	)
+		m_errorReporter.warning(
+			9170_error,
+			_operation.location(),
+			"Comparison of variables of contract type is deprecated and scheduled for removal. "
+			"Use an explicit cast to address type and compare the addresses instead."
+		);
 }
 
 Type const* TypeChecker::typeCheckTypeConversionAndRetrieveReturnType(
@@ -2967,6 +2974,12 @@ bool TypeChecker::visit(FunctionCallOptions const& _functionCallOptions)
 					_functionCallOptions.location(),
 					"Function call option \"gas\" cannot be used with \"new\"."
 				);
+			else if (m_eofVersion.has_value())
+				m_errorReporter.typeError(
+					3765_error,
+					_functionCallOptions.location(),
+					"Function call option \"gas\" cannot be used when compiling to EOF."
+				);
 			else
 			{
 				expectType(*_functionCallOptions.options()[i], *TypeProvider::uint256());
@@ -3209,6 +3222,19 @@ bool TypeChecker::visit(MemberAccess const& _memberAccess)
 				if (contractType && contractType->isSuper())
 					requiredLookup = VirtualLookup::Super;
 			}
+
+		if (
+			funType->kind() == FunctionType::Kind::Send ||
+			funType->kind() == FunctionType::Kind::Transfer
+		)
+			m_errorReporter.warning(
+				9207_error,
+				_memberAccess.location(),
+				fmt::format(
+					"'{}' is deprecated and scheduled for removal. Use 'call{{value: <amount>}}(\"\")' instead.",
+					funType->kind() == FunctionType::Kind::Send ? "send" : "transfer"
+				)
+			);
 	}
 
 	annotation.requiredLookup = requiredLookup;
@@ -3245,27 +3271,57 @@ bool TypeChecker::visit(MemberAccess const& _memberAccess)
 	// TODO some members might be pure, but for example `address(0x123).balance` is not pure
 	// although every subexpression is, so leaving this limited for now.
 	if (auto tt = dynamic_cast<TypeType const*>(exprType))
+	{
 		if (
 			tt->actualType()->category() == Type::Category::Enum ||
 			tt->actualType()->category() == Type::Category::UserDefinedValueType
 		)
 			annotation.isPure = true;
+
+		// `concat` purity depends also on its arguments, but this is checked later, in visit(FunctionCall...)
+		// This covers `bytes.concat` and `string.concat`.
+		if (tt->actualType()->category() == Type::Category::Array)
+		{
+			if (
+				auto const* funcType = dynamic_cast<FunctionType const*>(annotation.type);
+				funcType &&
+				(
+					funcType->kind() == FunctionType::Kind::StringConcat ||
+					funcType->kind() == FunctionType::Kind::BytesConcat
+				)
+			)
+				annotation.isPure = true;
+		}
+	}
 	if (
 		auto const* functionType = dynamic_cast<FunctionType const*>(exprType);
 		functionType &&
 		functionType->hasDeclaration() &&
-		dynamic_cast<FunctionDefinition const*>(&functionType->declaration()) &&
 		memberName == "selector"
 	)
-		if (auto const* parentAccess = dynamic_cast<MemberAccess const*>(&_memberAccess.expression()))
+	{
+		if (dynamic_cast<FunctionDefinition const*>(&functionType->declaration()))
 		{
-			bool isPure = *parentAccess->expression().annotation().isPure;
-			if (auto const* exprInt = dynamic_cast<Identifier const*>(&parentAccess->expression()))
-				if (exprInt->name() == "this" || exprInt->name() == "super")
-					isPure = true;
+			if (auto const* parentAccess = dynamic_cast<MemberAccess const*>(&_memberAccess.expression()))
+			{
+				bool isPure = *parentAccess->expression().annotation().isPure;
+				// Accessing a function selector using `super|this.f.selector`.
+				if (auto const* exprInt = dynamic_cast<Identifier const*>(&parentAccess->expression()))
+					if (exprInt->name() == "this" || exprInt->name() == "super")
+						isPure = true;
 
-			annotation.isPure = isPure;
+				annotation.isPure = isPure;
+			}
 		}
+		// In case of event or error definition the selector is always compile-time constant, as it can be
+		// a keccak256 hash of the event signature or a function selector in case of an error.
+		else if (
+			dynamic_cast<EventDefinition const*>(&functionType->declaration()) ||
+			dynamic_cast<ErrorDefinition const*>(&functionType->declaration())
+		)
+			annotation.isPure = true;
+	}
+
 	if (
 		auto const* varDecl = dynamic_cast<VariableDeclaration const*>(annotation.referencedDeclaration);
 		!annotation.isPure.set() &&
@@ -4131,10 +4187,9 @@ bool TypeChecker::expectType(Expression const& _expression, Type const& _expecte
 	return true;
 }
 
-void TypeChecker::requireLValue(Expression const& _expression, bool _ordinaryAssignment)
+void TypeChecker::requireLValue(Expression const& _expression)
 {
 	_expression.annotation().willBeWrittenTo = true;
-	_expression.annotation().lValueOfOrdinaryAssignment = _ordinaryAssignment;
 	_expression.accept(*this);
 
 	if (*_expression.annotation().isLValue)

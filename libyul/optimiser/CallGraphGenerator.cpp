@@ -23,6 +23,8 @@
 #include <libyul/optimiser/CallGraphGenerator.h>
 
 #include <libsolutil/CommonData.h>
+#include <libsolutil/Visitor.h>
+
 #include <stack>
 
 using namespace solidity;
@@ -35,11 +37,11 @@ namespace
 struct CallGraphCycleFinder
 {
 	CallGraph const& callGraph;
-	std::set<YulString> containedInCycle{};
-	std::set<YulString> visited{};
-	std::vector<YulString> currentPath{};
+	std::set<FunctionHandle> containedInCycle{};
+	std::set<FunctionHandle> visited{};
+	std::vector<FunctionHandle> currentPath{};
 
-	void visit(YulString _function)
+	void visit(FunctionHandle const& _function)
 	{
 		if (visited.count(_function))
 			return;
@@ -61,7 +63,7 @@ struct CallGraphCycleFinder
 };
 }
 
-std::set<YulString> CallGraph::recursiveFunctions() const
+std::set<FunctionHandle> CallGraph::recursiveFunctions() const
 {
 	CallGraphCycleFinder cycleFinder{*this};
 	// Visiting the root only is not enough, since there may be disconnected recursive functions.
@@ -80,8 +82,12 @@ CallGraph CallGraphGenerator::callGraph(Block const& _ast)
 void CallGraphGenerator::operator()(FunctionCall const& _functionCall)
 {
 	auto& functionCalls = m_callGraph.functionCalls[m_currentFunction];
-	if (!util::contains(functionCalls, _functionCall.functionName.name))
-		functionCalls.emplace_back(_functionCall.functionName.name);
+	FunctionHandle identifier = std::visit(GenericVisitor{
+		[](BuiltinName const& _builtin) -> FunctionHandle { return _builtin.handle; },
+		[](Identifier const& _identifier) -> FunctionHandle { return _identifier.name; },
+	}, _functionCall.functionName);
+	if (!util::contains(functionCalls, identifier))
+		functionCalls.emplace_back(identifier);
 	ASTWalker::operator()(_functionCall);
 }
 
@@ -93,7 +99,7 @@ void CallGraphGenerator::operator()(ForLoop const& _forLoop)
 
 void CallGraphGenerator::operator()(FunctionDefinition const& _functionDefinition)
 {
-	YulString previousFunction = m_currentFunction;
+	YulName previousFunction = m_currentFunction;
 	m_currentFunction = _functionDefinition.name;
 	yulAssert(m_callGraph.functionCalls.count(m_currentFunction) == 0, "");
 	m_callGraph.functionCalls[m_currentFunction] = {};
@@ -103,6 +109,6 @@ void CallGraphGenerator::operator()(FunctionDefinition const& _functionDefinitio
 
 CallGraphGenerator::CallGraphGenerator()
 {
-	m_callGraph.functionCalls[YulString{}] = {};
+	m_callGraph.functionCalls[YulName{}] = {};
 }
 

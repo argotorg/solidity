@@ -25,19 +25,16 @@
 #include <libsmtutil/SolverInterface.h>
 
 #include <map>
+#include <unordered_map>
 #include <vector>
 
 namespace solidity::smtutil
 {
 
-class CHCSolverInterface
+class CHCSolverInterface : public SolverInterface
 {
 public:
 	CHCSolverInterface(std::optional<unsigned> _queryTimeout = {}): m_queryTimeout(_queryTimeout) {}
-
-	virtual ~CHCSolverInterface() = default;
-
-	virtual void declareVariable(std::string const& _name, SortPointer const& _sort) = 0;
 
 	/// Takes a function declaration as a relation.
 	virtual void registerRelation(Expression const& _expr) = 0;
@@ -53,11 +50,24 @@ public:
 		std::map<unsigned, std::vector<unsigned>> edges;
 	};
 
+	struct InvariantInfo
+	{
+		/// Predicate definition as SMT expression
+		Expression expression;
+		/// Names of the formal arguments of the predicate definition
+		std::vector<std::string> variableNames;
+	};
+	/// Maps predicate to its definition as given by the solver and the formal arguments of the predicate
+	using Invariants = std::unordered_map<std::string, InvariantInfo>;
+	struct QueryResult
+	{
+		CheckResult answer;
+		Invariants invariants;
+		CexGraph cex;
+	};
 	/// Takes a function application _expr and checks for reachability.
 	/// @returns solving result, an invariant, and counterexample graph, if possible.
-	virtual std::tuple<CheckResult, Expression, CexGraph> query(
-		Expression const& _expr
-	) = 0;
+	virtual QueryResult query(Expression const& _expr) = 0;
 
 protected:
 	std::optional<unsigned> m_queryTimeout;

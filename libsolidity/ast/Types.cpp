@@ -24,6 +24,7 @@
 #include <libsolidity/ast/Types.h>
 
 #include <libsolidity/ast/AST.h>
+#include <libsolidity/ast/ASTUtils.h>
 #include <libsolidity/ast/TypeProvider.h>
 
 #include <libsolidity/analysis/ConstantEvaluator.h>
@@ -138,23 +139,23 @@ void Type::clearCache() const
 	m_stackSize.reset();
 }
 
-void StorageOffsets::computeOffsets(TypePointers const& _types)
+void StorageOffsets::computeOffsets(TypePointers const& _types, u256 _baseSlot)
 {
-	bigint slotOffset = 0;
+	bigint slotOffset = bigint(_baseSlot);
 	unsigned byteOffset = 0;
 	std::map<size_t, std::pair<u256, unsigned>> offsets;
 	for (size_t i = 0; i < _types.size(); ++i)
 	{
 		Type const* type = _types[i];
-		if (!type->canBeStored())
-			continue;
+		solAssert(type->canBeStored());
+		solAssert(type->storageBytes() <= 32);
 		if (byteOffset + type->storageBytes() > 32)
 		{
 			// would overflow, go to next slot
 			++slotOffset;
 			byteOffset = 0;
 		}
-		solAssert(slotOffset < bigint(1) << 256 ,"Object too large for storage.");
+		solAssert(slotOffset < bigint(1) << 256, "Object extends past the end of storage.");
 		offsets[i] = std::make_pair(u256(slotOffset), byteOffset);
 		solAssert(type->storageSize() >= 1, "Invalid storage size.");
 		if (type->storageSize() == 1 && byteOffset + type->storageBytes() <= 32)
@@ -167,8 +168,9 @@ void StorageOffsets::computeOffsets(TypePointers const& _types)
 	}
 	if (byteOffset > 0)
 		++slotOffset;
-	solAssert(slotOffset < bigint(1) << 256, "Object too large for storage.");
-	m_storageSize = u256(slotOffset);
+
+	solAssert(slotOffset < bigint(1) << 256, "Object extends past the end of storage.");
+	m_storageSize = u256(slotOffset - _baseSlot);
 	swap(m_offsets, offsets);
 }
 
@@ -661,8 +663,12 @@ bool IntegerType::operator==(Type const& _other) const
 {
 	if (_other.category() != category())
 		return false;
-	IntegerType const& other = dynamic_cast<IntegerType const&>(_other);
-	return other.m_bits == m_bits && other.m_modifier == m_modifier;
+	return *this == dynamic_cast<IntegerType const&>(_other);
+}
+
+bool IntegerType::operator==(IntegerType const& _other) const
+{
+	return _other.m_bits == m_bits && _other.m_modifier == m_modifier;
 }
 
 std::string IntegerType::toString(bool) const
@@ -1544,6 +1550,8 @@ TypeResult ReferenceType::unaryOperatorResult(Token _operator) const
 		return TypeProvider::emptyTuple();
 	case DataLocation::Storage:
 		return isPointer() ? nullptr : TypeProvider::emptyTuple();
+	case DataLocation::Transient:
+		solUnimplemented("Transient data location is only supported for value types.");
 	}
 	return nullptr;
 }
@@ -1571,6 +1579,9 @@ std::string ReferenceType::stringForReferencePart() const
 		return "calldata";
 	case DataLocation::Memory:
 		return "memory";
+	case DataLocation::Transient:
+		solUnimplemented("Transient data location is only supported for value types.");
+		break;
 	}
 	solAssert(false, "");
 	return "";
@@ -1583,6 +1594,9 @@ std::string ReferenceType::identifierLocationSuffix() const
 	{
 	case DataLocation::Storage:
 		id += "_storage";
+		break;
+	case DataLocation::Transient:
+		solUnimplemented("Transient data location is only supported for value types.");
 		break;
 	case DataLocation::Memory:
 		id += "_memory";
@@ -1634,7 +1648,7 @@ BoolResult ArrayType::isImplicitlyConvertibleTo(Type const& _convertTo) const
 	}
 	else
 	{
-		// Conversion to storage pointer or to memory, we de not copy element-for-element here, so
+		// Conversion to storage pointer or to memory, we do not copy element-for-element here, so
 		// require that the base type is the same, not only convertible.
 		// This disallows assignment of nested dynamic arrays from storage to memory for now.
 		if (
@@ -1691,17 +1705,21 @@ bool ArrayType::operator==(Type const& _other) const
 {
 	if (_other.category() != category())
 		return false;
-	ArrayType const& other = dynamic_cast<ArrayType const&>(_other);
+	return *this == dynamic_cast<ArrayType const&>(_other);
+}
+
+bool ArrayType::operator==(ArrayType const& _other) const
+{
 	if (
-		!equals(other) ||
-		other.isByteArray() != isByteArray() ||
-		other.isString() != isString() ||
-		other.isDynamicallySized() != isDynamicallySized()
+		!equals(_other) ||
+		_other.isByteArray() != isByteArray() ||
+		_other.isString() != isString() ||
+		_other.isDynamicallySized() != isDynamicallySized()
 	)
 		return false;
-	if (*other.baseType() != *baseType())
+	if (*_other.baseType() != *baseType())
 		return false;
-	return isDynamicallySized() || length() == other.length();
+	return isDynamicallySized() || length() == _other.length();
 }
 
 BoolResult ArrayType::validForLocation(DataLocation _loc) const
@@ -1747,6 +1765,9 @@ BoolResult ArrayType::validForLocation(DataLocation _loc) const
 		case DataLocation::Storage:
 			if (storageSizeUpperBound() >= bigint(1) << 256)
 				return BoolResult::err("Type too large for storage.");
+			break;
+		case DataLocation::Transient:
+			solUnimplemented("Transient data location is only supported for value types.");
 			break;
 	}
 	return true;
@@ -1828,6 +1849,9 @@ std::vector<std::tuple<std::string, Type const*>> ArrayType::makeStackItems() co
 		case DataLocation::Storage:
 			// byte offset inside storage value is omitted
 			return {std::make_tuple("slot", TypeProvider::uint256())};
+		case DataLocation::Transient:
+			solUnimplemented("Transient data location is only supported for value types.");
+			break;
 	}
 	solAssert(false, "");
 }
@@ -2126,18 +2150,32 @@ FunctionType const* ContractType::newExpressionType() const
 	return m_constructorType;
 }
 
-std::vector<std::tuple<VariableDeclaration const*, u256, unsigned>> ContractType::stateVariables() const
+std::vector<std::tuple<VariableDeclaration const*, u256, unsigned>> ContractType::linearizedStateVariables(DataLocation _location) const
 {
+	VariableDeclaration::Location location;
+	switch (_location)
+	{
+	case DataLocation::Storage:
+		location = VariableDeclaration::Location::Unspecified;
+		break;
+	case DataLocation::Transient:
+		location = VariableDeclaration::Location::Transient;
+		break;
+	default:
+		solAssert(false);
+	}
+
 	std::vector<VariableDeclaration const*> variables;
 	for (ContractDefinition const* contract: m_contract.annotation().linearizedBaseContracts | ranges::views::reverse)
 		for (VariableDeclaration const* variable: contract->stateVariables())
-			if (!(variable->isConstant() || variable->immutable()))
+			if (!(variable->isConstant() || variable->immutable()) && variable->referenceLocation() == location)
 				variables.push_back(variable);
+
 	TypePointers types;
 	for (auto variable: variables)
 		types.push_back(variable->annotation().type);
 	StorageOffsets offsets;
-	offsets.computeOffsets(types);
+	offsets.computeOffsets(types, layoutBaseForInheritanceHierarchy(m_contract, _location));
 
 	std::vector<std::tuple<VariableDeclaration const*, u256, unsigned>> variablesAndOffsets;
 	for (size_t index = 0; index < variables.size(); ++index)
@@ -2568,6 +2606,9 @@ std::vector<std::tuple<std::string, Type const*>> StructType::makeStackItems() c
 			return {std::make_tuple("mpos", TypeProvider::uint256())};
 		case DataLocation::Storage:
 			return {std::make_tuple("slot", TypeProvider::uint256())};
+		case DataLocation::Transient:
+			solUnimplemented("Transient data location is only supported for value types.");
+			break;
 	}
 	solAssert(false, "");
 }
@@ -2674,7 +2715,12 @@ bool UserDefinedValueType::operator==(Type const& _other) const
 	if (_other.category() != category())
 		return false;
 	UserDefinedValueType const& other = dynamic_cast<UserDefinedValueType const&>(_other);
-	return other.definition() == definition();
+	return *this == other;
+}
+
+bool UserDefinedValueType::operator==(UserDefinedValueType const& _other) const
+{
+	return _other.definition() == definition();
 }
 
 std::string UserDefinedValueType::toString(bool /* _withoutDataLocation */) const
@@ -3667,7 +3713,9 @@ bool FunctionType::isPure() const
 		m_kind == Kind::ABIDecode ||
 		m_kind == Kind::MetaType ||
 		m_kind == Kind::Wrap ||
-		m_kind == Kind::Unwrap;
+		m_kind == Kind::Unwrap ||
+		m_kind == Kind::BytesConcat ||
+		m_kind == Kind::StringConcat;
 }
 
 TypePointers FunctionType::parseElementaryTypeVector(strings const& _types)
@@ -4028,6 +4076,11 @@ bool ModifierType::operator==(Type const& _other) const
 {
 	if (_other.category() != category())
 		return false;
+	return *this == dynamic_cast<ModifierType const&>(_other);
+}
+
+bool ModifierType::operator==(ModifierType const& _other) const
+{
 	ModifierType const& other = dynamic_cast<ModifierType const&>(_other);
 
 	if (m_parameterTypes.size() != other.m_parameterTypes.size())

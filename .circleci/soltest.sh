@@ -36,11 +36,17 @@ set -e
 
 OPTIMIZE=${OPTIMIZE:-"0"}
 EVM=${EVM:-"invalid"}
+EOF_VERSION=${EOF_VERSION:-0}
 CPUs=${CPUs:-3}
 REPODIR="$(realpath "$(dirname "$0")/..")"
 
 IFS=" " read -r -a BOOST_TEST_ARGS <<< "$BOOST_TEST_ARGS"
 IFS=" " read -r -a SOLTEST_FLAGS <<< "$SOLTEST_FLAGS"
+
+# TODO: [EOF] These won't pass on EOF yet. Reenable them when the implementation is complete.
+EOF_EXCLUDES=(
+    --run_test='!yulStackLayout/literal_loop'
+)
 
 # shellcheck source=scripts/common.sh
 source "${REPODIR}/scripts/common.sh"
@@ -55,6 +61,7 @@ get_logfile_basename() {
     local filename="${EVM}"
     test "${OPTIMIZE}" = "1" && filename="${filename}_opt"
     test "${ABI_ENCODER_V1}" = "1" && filename="${filename}_abiv1"
+    (( EOF_VERSION != 0 )) && filename="${filename}_eofv${EOF_VERSION}"
     filename="${filename}_${run}"
 
     echo -ne "${filename}"
@@ -78,10 +85,12 @@ do
         "--logger=HRF,error,stdout"
         "${BOOST_TEST_ARGS[@]}"
     )
+    (( EOF_VERSION != 0 )) && BOOST_TEST_ARGS_RUN+=("${EOF_EXCLUDES[@]}")
     SOLTEST_ARGS=("--evm-version=$EVM" "${SOLTEST_FLAGS[@]}")
 
     test "${OPTIMIZE}" = "1" && SOLTEST_ARGS+=(--optimize)
     test "${ABI_ENCODER_V1}" = "1" && SOLTEST_ARGS+=(--abiencoderv1)
+    (( EOF_VERSION != 0 )) && SOLTEST_ARGS+=(--eof-version "$EOF_VERSION")
 
     BATCH_ARGS=("--batches" "$((CPUs * CIRCLE_NODE_TOTAL))" "--selected-batch" "$((CPUs * CIRCLE_NODE_INDEX + run))")
 

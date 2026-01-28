@@ -21,9 +21,11 @@
 
 #include <libyul/optimiser/ExpressionSimplifier.h>
 
+#include <libyul/backends/evm/EVMDialect.h>
 #include <libyul/optimiser/SimplificationRules.h>
 #include <libyul/optimiser/OptimiserStep.h>
 #include <libyul/optimiser/OptimizerUtilities.h>
+#include <libyul/optimiser/Semantics.h>
 #include <libyul/AST.h>
 #include <libyul/Utilities.h>
 
@@ -44,12 +46,28 @@ void ExpressionSimplifier::visit(Expression& _expression)
 	while (auto const* match = SimplificationRules::findFirstMatch(
 		_expression,
 		m_dialect,
-		[this](YulString _var) { return variableValue(_var); }
+		[this](YulName const& _var) -> AssignedValue const* {
+			AssignedValue const* value = variableValue(_var);
+			if (!value || !value->value)
+				return nullptr;
+
+			// check that all variables in the value expression are in current scope
+			MovableChecker const checker(m_dialect, *value->value);
+			for (YulName const& referencedVar: checker.referencedVariables())
+				if (!inScope(referencedVar))
+					return nullptr;  // don't substitute if any referenced var is out of scope
+
+			return value;
+		}
 	))
-		_expression = match->action().toExpression(debugDataOf(_expression), evmVersionFromDialect(m_dialect));
+	{
+		auto const* evmDialect = dynamic_cast<EVMDialect const*>(&m_dialect);
+		yulAssert(evmDialect);
+		_expression = match->action().toExpression(debugDataOf(_expression), *evmDialect);
+	}
 
 	if (auto* functionCall = std::get_if<FunctionCall>(&_expression))
-		if (std::optional<evmasm::Instruction> instruction = toEVMInstruction(m_dialect, functionCall->functionName.name))
+		if (std::optional<evmasm::Instruction> instruction = toEVMInstruction(m_dialect, functionCall->functionName))
 			for (auto op: evmasm::SemanticInformation::readWriteOperations(*instruction))
 				if (op.startParameter && op.lengthParameter)
 				{
@@ -60,14 +78,14 @@ void ExpressionSimplifier::visit(Expression& _expression)
 						!knownToBeZero(startArgument) &&
 						!std::holds_alternative<FunctionCall>(startArgument)
 					)
-						startArgument = Literal{debugDataOf(startArgument), LiteralKind::Number, "0"_yulstring, {}};
+						startArgument = Literal{debugDataOf(startArgument), LiteralKind::Number, LiteralValue{0, std::nullopt}};
 				}
 }
 
 bool ExpressionSimplifier::knownToBeZero(Expression const& _expression) const
 {
 	if (auto const* literal = std::get_if<Literal>(&_expression))
-		return valueOfLiteral(*literal) == 0;
+		return literal->value.value() == 0;
 	else if (auto const* identifier = std::get_if<Identifier>(&_expression))
 		return valueOfIdentifier(identifier->name) == 0;
 	else

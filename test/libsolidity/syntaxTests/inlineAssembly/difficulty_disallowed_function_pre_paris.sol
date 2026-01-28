@@ -19,3 +19,4 @@ contract C {
 // EVMVersion: <paris
 // ----
 // ParserError 5568: (101-111): Cannot use builtin function name "difficulty" as identifier name.
+// ParserError 7104: (143-153): Builtin function "difficulty" must be called.

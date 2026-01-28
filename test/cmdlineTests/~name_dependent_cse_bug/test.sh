@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -eo pipefail
 
-# This is a regression test against https://github.com/ethereum/solidity/issues/14494
+# This is a regression test against https://github.com/argotorg/solidity/issues/14494
 # Due to the bug, a decision about which variable to use to replace a subexpression in CSE would
 # depend on sorting order of variable names. A variable not being used as a replacement could lead
 # to it being unused in general and removed by Unused Pruner. This would show up as a difference
@@ -19,7 +19,7 @@ function assemble_with_variable_name {
     local variable_name="$2"
 
     sed -e "s|__placeholder__|${variable_name}|g" "$input_file" | msg_on_error --no-stderr \
-        "$SOLC" --strict-assembly - --optimize --debug-info none |
+        "$SOLC" --strict-assembly - --optimize --debug-info none --asm |
             stripCLIDecorations
 }
 

@@ -1,4 +1,4 @@
-name: Check stale issues and pull requests
+name: Check stale pull requests
 
 on:
   workflow_dispatch:
@@ -6,12 +6,12 @@ on:
     - cron: '0 12 * * *'
 
 permissions:
-  issues: write
   pull-requests: write
 
 env:
-  BEFORE_ISSUE_STALE: 90
-  BEFORE_ISSUE_CLOSE: 7
+  # NOTE: We set the parameters below to -1, so issues will never be marked as stale or closed automatically.
+  BEFORE_ISSUE_STALE: -1
+  BEFORE_ISSUE_CLOSE: -1
   BEFORE_PR_STALE: 14
   BEFORE_PR_CLOSE: 7
 
@@ -19,22 +19,12 @@ jobs:
   stale:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/stale@v6
+      - uses: actions/stale@3a9db7e6a41a89f618792c92c0e97cc736e1b13f # v10.0.0
         with:
           debug-only: false
           days-before-issue-stale: ${{ env.BEFORE_ISSUE_STALE }}
           days-before-issue-close: ${{ env.BEFORE_ISSUE_CLOSE }}
-          stale-issue-message: |
-            This issue has been marked as stale due to inactivity for the last ${{ env.BEFORE_ISSUE_STALE }} days.
-            It will be automatically closed in ${{ env.BEFORE_ISSUE_CLOSE }} days.
-          close-issue-message: |
-            Hi everyone! This issue has been automatically closed due to inactivity.
-            If you think this issue is still relevant in the latest Solidity version and you have something to [contribute](https://docs.soliditylang.org/en/latest/contributing.html), feel free to reopen.
-            However, unless the issue is a concrete proposal that can be implemented, we recommend starting a language discussion on the [forum](https://forum.soliditylang.org) instead.
           ascending: true
-          stale-issue-label: stale
-          close-issue-label: 'closed due inactivity'
-          exempt-issue-labels: 'bug :bug:,epic,roadmap,selected for development,must have,must have eventually,smt'
           stale-pr-message: |
             This pull request is stale because it has been open for ${{ env.BEFORE_PR_STALE }} days with no activity.
             It will be closed in ${{ env.BEFORE_PR_CLOSE }} days unless the `stale` label is removed.

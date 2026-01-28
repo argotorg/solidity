@@ -1,17 +1,17 @@
 {
 	let a := 1
-	let b := codesize()
-	for { } lt(1, codesize()) { mstore(1, codesize()) a := add(a, codesize()) } {
-		mstore(1, codesize())
+	let b := calldataload(0)
+	for { } lt(1, calldataload(0)) { mstore(1, calldataload(0)) a := add(a, calldataload(0)) } {
+		mstore(1, calldataload(0))
 	}
-	mstore(1, codesize())
+	mstore(1, calldataload(0))
 }
 // ----
 // step: commonSubexpressionEliminator
 //
 // {
 //     let a := 1
-//     let b := codesize()
+//     let b := calldataload(0)
 //     for { }
 //     lt(1, b)
 //     {

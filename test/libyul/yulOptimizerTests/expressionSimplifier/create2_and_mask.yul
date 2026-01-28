@@ -8,6 +8,7 @@
 }
 // ====
 // EVMVersion: >=constantinople
+// bytecodeFormat: legacy
 // ----
 // step: expressionSimplifier
 //

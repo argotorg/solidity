@@ -1,10 +1,24 @@
 {
     function f(a, b, c, d) -> x, y { b := 3 let s := 9 y := 2 mstore(s, y) }
+
+     let x, y := f(0, 0, 0, 0)
 }
 // ====
 // stackOptimization: true
+// EVMVersion: =current
 // ----
-//     /* "":0:80   */
+//     /* "":97:110   */
+//   tag_2
+//     /* "":108:109   */
+//   0x00
+//     /* "":97:110   */
+//   dup1
+//   dup1
+//   dup1
+//   tag_1
+//   jump	// in
+// tag_2:
+//     /* "":0:112   */
 //   stop
 //     /* "":6:78   */
 // tag_1:

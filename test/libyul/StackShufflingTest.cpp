@@ -17,10 +17,16 @@
 
 #include <test/libyul/StackShufflingTest.h>
 
-#include <liblangutil/Scanner.h>
-#include <libsolutil/AnsiColorized.h>
+#include <test/Common.h>
+
+#include <libyul/backends/evm/EVMDialect.h>
 #include <libyul/backends/evm/StackHelpers.h>
 
+#include <liblangutil/Scanner.h>
+#include <libsolutil/AnsiColorized.h>
+#include <libsolutil/StringUtils.h>
+
+using namespace solidity::test;
 using namespace solidity::util;
 using namespace solidity::langutil;
 using namespace solidity::yul;
@@ -56,7 +62,7 @@ bool StackShufflingTest::parse(std::string const& _source)
 					scanner.next();
 					std::string functionName = scanner.currentLiteral();
 					auto call = yul::FunctionCall{
-						{}, yul::Identifier{{}, YulString(functionName)}, {}
+						{}, yul::Identifier{{}, YulName(functionName)}, {}
 					};
 					stack.emplace_back(FunctionCallReturnLabelSlot{
 						m_functions.insert(
@@ -78,7 +84,7 @@ bool StackShufflingTest::parse(std::string const& _source)
 				scanner.next();
 				std::string functionName = scanner.currentLiteral();
 				auto call = yul::FunctionCall{
-					{}, yul::Identifier{{}, YulString(functionName)}, {}
+					{}, yul::Identifier{{}, YulName(functionName)}, {}
 				};
 				expectToken(Token::Comma);
 				scanner.next();
@@ -102,7 +108,7 @@ bool StackShufflingTest::parse(std::string const& _source)
 				expectToken(Token::LBrack);
 				scanner.next(); // read number of ghost variables as ghostVariableId
 				std::string ghostVariableId = scanner.currentLiteral();
-				Scope::Variable ghostVar = Scope::Variable{""_yulstring, YulString(literal + "[" + ghostVariableId + "]")};
+				Scope::Variable ghostVar = Scope::Variable{YulName(literal + "[" + ghostVariableId + "]")};
 				stack.emplace_back(VariableSlot{
 					m_variables.insert(std::make_pair(ghostVar.name, ghostVar)).first->second
 				});
@@ -110,7 +116,7 @@ bool StackShufflingTest::parse(std::string const& _source)
 			}
 			else
 			{
-				Scope::Variable var = Scope::Variable{""_yulstring, YulString(literal)};
+				Scope::Variable var = Scope::Variable{YulName(literal)};
 				stack.emplace_back(VariableSlot{
 					m_variables.insert(
 						make_pair(literal, var)
@@ -131,12 +137,23 @@ bool StackShufflingTest::parse(std::string const& _source)
 StackShufflingTest::StackShufflingTest(std::string const& _filename):
 	TestCase(_filename)
 {
+	processSettings();
 	m_source = m_reader.source();
 	m_expectation = m_reader.simpleExpectations();
 }
 
+void StackShufflingTest::processSettings()
+{
+	std::string depthString = m_reader.stringSetting("maximumStackDepth", "16");
+	std::optional<unsigned> depth = toUnsignedInt(depthString);
+	if (!depth.has_value())
+		BOOST_THROW_EXCEPTION(std::runtime_error{"Invalid maximum stack depth: \"" + depthString + "\""});
+	m_maximumStackDepth = *depth;
+}
+
 TestCase::TestResult StackShufflingTest::run(std::ostream& _stream, std::string const& _linePrefix, bool _formatted)
 {
+	auto const& dialect = CommonOptions::get().evmDialect();
 	if (!parse(m_source))
 	{
 		AnsiColorized(_stream, _formatted, {formatting::BOLD, formatting::RED}) << _linePrefix << "Error parsing source." << std::endl;
@@ -144,19 +161,22 @@ TestCase::TestResult StackShufflingTest::run(std::ostream& _stream, std::string 
 	}
 
 	std::ostringstream output;
+	size_t operations = 0;
 	createStackLayout(
 		m_sourceStack,
 		m_targetStack,
 		[&](unsigned _swapDepth) // swap
 		{
-			output << stackToString(m_sourceStack) << std::endl;
+			++operations;
+			output << stackToString(m_sourceStack, dialect) << std::endl;
 			output << "SWAP" << _swapDepth << std::endl;
 		},
 		[&](StackSlot const& _slot) // dupOrPush
 		{
-			output << stackToString(m_sourceStack) << std::endl;
+			++operations;
+			output << stackToString(m_sourceStack, dialect) << std::endl;
 			if (canBeFreelyGenerated(_slot))
-				output << "PUSH " << stackSlotToString(_slot) << std::endl;
+				output << "PUSH " << stackSlotToString(_slot, dialect) << std::endl;
 			else
 			{
 				if (auto depth = util::findOffset(m_sourceStack | ranges::views::reverse, _slot))
@@ -166,12 +186,15 @@ TestCase::TestResult StackShufflingTest::run(std::ostream& _stream, std::string 
 			}
 		},
 		[&](){ // pop
-			output << stackToString(m_sourceStack) << std::endl;
+			++operations;
+			output << stackToString(m_sourceStack, dialect) << std::endl;
 			output << "POP" << std::endl;
-		}
+		},
+		m_maximumStackDepth
     );
 
-	output << stackToString(m_sourceStack) << std::endl;
+	output << stackToString(m_sourceStack, dialect) << std::endl;
+	output << operations << " operations" << std::endl;
 	m_obtainedResult = output.str();
 
 	return checkResult(_stream, _linePrefix, _formatted);

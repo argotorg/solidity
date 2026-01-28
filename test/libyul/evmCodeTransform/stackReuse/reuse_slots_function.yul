@@ -4,6 +4,7 @@
 }
 // ====
 // stackOptimization: true
+// EVMVersion: =current
 // ----
 //     /* "":58:61   */
 //   tag_2

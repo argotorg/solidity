@@ -37,7 +37,7 @@ class ABI
 public:
 	/// Get the ABI Interface of the contract
 	/// @param _contractDef The contract definition
-	/// @return             A JSONrepresentation of the contract's ABI Interface
+	/// @return             A JSON representation of the contract's ABI Interface
 	static Json generate(ContractDefinition const& _contractDef);
 private:
 	/// @returns a json value suitable for a list of types in function input or output

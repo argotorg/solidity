@@ -16,18 +16,24 @@
 */
 // SPDX-License-Identifier: GPL-3.0
 
-#include <stdexcept>
-#include <iostream>
 #include <test/Common.h>
+
 #include <test/EVMHost.h>
 #include <test/libsolidity/util/SoltestErrors.h>
 
+#include <libyul/backends/evm/EVMDialect.h>
+
 #include <libsolutil/Assertions.h>
 #include <libsolutil/StringUtils.h>
+
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
+
 #include <range/v3/all.hpp>
+
+#include <iostream>
+#include <stdexcept>
 
 namespace fs = boost::filesystem;
 namespace po = boost::program_options;
@@ -123,22 +129,22 @@ void CommonOptions::addOptions()
 
 void CommonOptions::validate() const
 {
-	assertThrow(
+	solRequire(
 		!testPath.empty(),
 		ConfigException,
 		"No test path specified. The --testpath argument must not be empty when given."
 	);
-	assertThrow(
+	solRequire(
 		fs::exists(testPath),
 		ConfigException,
 		"Invalid test path specified."
 	);
-	assertThrow(
+	solRequire(
 		batches > 0,
 		ConfigException,
 		"Batches needs to be at least 1."
 	);
-	assertThrow(
+	solRequire(
 		selectedBatch < batches,
 		ConfigException,
 		"Selected batch has to be less than number of batches."
@@ -155,6 +161,12 @@ void CommonOptions::validate() const
 			std::cout << "- ABI coder: v1 (default: v2)" << std::endl;
 		std::cout << std::endl << "DO NOT COMMIT THE UPDATED EXPECTATIONS." << std::endl << std::endl;
 	}
+
+	solRequire(
+		!eofVersion().has_value() || evmVersion().supportsEOF(),
+		ConfigException,
+		"EOF is not supported by EVM versions earlier than " + langutil::EVMVersion::firstWithEOF().name() + "."
+	);
 }
 
 bool CommonOptions::parse(int argc, char const* const* argv)
@@ -258,6 +270,12 @@ langutil::EVMVersion CommonOptions::evmVersion() const
 		return langutil::EVMVersion();
 }
 
+yul::EVMDialect const& CommonOptions::evmDialect() const
+{
+	return yul::EVMDialect::strictAssemblyForEVMObjects(evmVersion(), eofVersion());
+}
+
+
 CommonOptions const& CommonOptions::get()
 {
 	if (!m_singleton)
@@ -286,6 +304,20 @@ bool isValidSemanticTestPath(boost::filesystem::path const& _testPath)
 			return false;
 	}
 	return true;
+}
+
+boost::unit_test::precondition::predicate_t nonEOF()
+{
+	return [](boost::unit_test::test_unit_id) {
+		return !solidity::test::CommonOptions::get().eofVersion().has_value();
+	};
+}
+
+boost::unit_test::precondition::predicate_t onEOF()
+{
+	return [](boost::unit_test::test_unit_id) {
+		return solidity::test::CommonOptions::get().eofVersion().has_value();
+	};
 }
 
 boost::unit_test::precondition::predicate_t minEVMVersionCheck(langutil::EVMVersion _minEVMVersion)

@@ -1,0 +1,10 @@
+{
+    "language": "Solidity",
+    "sources": {
+        "C.sol": {"content": "contract C {}"}
+    },
+    "settings": {
+        "eofVersion": 1,
+        "evmVersion": "cancun"
+    }
+}

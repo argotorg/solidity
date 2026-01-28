@@ -3,12 +3,19 @@
   function g(b,s) -> y {
     y := g(b, g(y, s))
   }
+
+  pop(g(0,0))
 }
 // ====
 // stackOptimization: true
+// EVMVersion: =current
 // ----
-//     /* "":0:111   */
-//   stop
+//     /* "":121:122   */
+//   0x00
+//     /* "":117:123   */
+//   dup1
+//   tag_1
+//   jump	// in
 //     /* "":60:109   */
 // tag_1:
 //   pop

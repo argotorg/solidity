@@ -8,7 +8,8 @@ contract test {
 		--x;
 		x + type(uint).max;
 		2 / x;
-		a.transfer(x);
+		(bool success, ) = a.call{value: x}("");
+		require(success);
 		assert(x > 0);
 		arr.pop();
 		arr[x];

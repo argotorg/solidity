@@ -18,5 +18,7 @@ contract X is D, C, B, A {
     function g() public view returns (uint[] memory) { return x; }
     constructor() A(f(1)) C(f(2)) B(f(3)) D(f(4)) {}
 }
+// ====
+// bytecodeFormat: legacy,>=EOFv1
 // ----
 // g() -> 0x20, 4, 1, 3, 2, 4

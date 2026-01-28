@@ -13,6 +13,8 @@ contract C {
     function f8(uint[32] memory, string[] memory, uint32, address) public returns (uint[] memory, uint16[] memory) {}
 }
 // ====
+// EVMVersion: =current
+// bytecodeFormat: legacy
 // optimize: true
 // optimize-yul: true
 // ----

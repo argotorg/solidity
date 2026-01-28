@@ -38,7 +38,7 @@ struct Block;
 namespace solidity::yul::test
 {
 
-class ObjectCompilerTest: public solidity::frontend::test::TestCase
+class ObjectCompilerTest: public solidity::frontend::test::EVMVersionRestrictedTestCase
 {
 public:
 	static std::unique_ptr<TestCase> create(Config const& _config)
@@ -51,10 +51,10 @@ public:
 	TestResult run(std::ostream& _stream, std::string const& _linePrefix = "", bool const _formatted = false) override;
 
 private:
-	bool parse(std::ostream& _stream, std::string const& _linePrefix, bool const _formatted);
 	void disambiguate();
 
 	frontend::OptimisationPreset m_optimisationPreset;
+	std::vector<std::string> m_outputSetting;
 };
 
 }

@@ -5,7 +5,10 @@ add_library(yul
 	AsmAnalysis.h
 	AsmAnalysisInfo.h
 	AST.h
+	AST.cpp
 	ASTForward.h
+	ASTLabelRegistry.cpp
+	ASTLabelRegistry.h
 	AsmJsonConverter.h
 	AsmJsonConverter.cpp
 	AsmJsonImporter.h
@@ -14,6 +17,7 @@ add_library(yul
 	AsmParser.h
 	AsmPrinter.cpp
 	AsmPrinter.h
+	Builtins.h
 	YulStack.h
 	YulStack.cpp
 	CompilabilityChecker.cpp
@@ -28,6 +32,8 @@ add_library(yul
 	FunctionReferenceResolver.h
 	Object.cpp
 	Object.h
+	ObjectOptimizer.cpp
+	ObjectOptimizer.h
 	ObjectParser.cpp
 	ObjectParser.h
 	Scope.cpp
@@ -36,6 +42,7 @@ add_library(yul
 	ScopeFiller.h
 	Utilities.cpp
 	Utilities.h
+	YulName.h
 	YulString.h
 	backends/evm/AbstractAssembly.h
 	backends/evm/AsmCodeGen.cpp
@@ -47,6 +54,8 @@ add_library(yul
 	backends/evm/ControlFlowGraphBuilder.h
 	backends/evm/EthAssemblyAdapter.cpp
 	backends/evm/EthAssemblyAdapter.h
+	backends/evm/EVMBuiltins.cpp
+	backends/evm/EVMBuiltins.h
 	backends/evm/EVMCodeTransform.cpp
 	backends/evm/EVMCodeTransform.h
 	backends/evm/EVMDialect.cpp
@@ -64,6 +73,25 @@ add_library(yul
 	backends/evm/StackLayoutGenerator.h
 	backends/evm/VariableReferenceCounter.h
 	backends/evm/VariableReferenceCounter.cpp
+	backends/evm/ssa/BridgeFinder.h
+	backends/evm/ssa/ControlFlow.cpp
+	backends/evm/ssa/ControlFlow.h
+	backends/evm/ssa/JunkAdmittingBlocksFinder.cpp
+	backends/evm/ssa/JunkAdmittingBlocksFinder.h
+	backends/evm/ssa/LivenessAnalysis.cpp
+	backends/evm/ssa/LivenessAnalysis.h
+	backends/evm/ssa/SSACFGLoopNestingForest.cpp
+	backends/evm/ssa/SSACFGLoopNestingForest.h
+	backends/evm/ssa/SSACFGTopologicalSort.cpp
+	backends/evm/ssa/SSACFGTopologicalSort.h
+	backends/evm/ssa/SSACFG.cpp
+	backends/evm/ssa/SSACFG.h
+	backends/evm/ssa/SSACFGBuilder.cpp
+	backends/evm/ssa/SSACFGBuilder.h
+	backends/evm/ssa/SSACFGJsonExporter.cpp
+	backends/evm/ssa/SSACFGJsonExporter.h
+	backends/evm/ssa/Stack.cpp
+	backends/evm/ssa/Stack.h
 	optimiser/ASTCopier.cpp
 	optimiser/ASTCopier.h
 	optimiser/ASTWalker.cpp
@@ -124,6 +152,8 @@ add_library(yul
 	optimiser/InlinableExpressionFunctionFinder.h
 	optimiser/KnowledgeBase.cpp
 	optimiser/KnowledgeBase.h
+	optimiser/LabelIDDispenser.cpp
+	optimiser/LabelIDDispenser.h
 	optimiser/LoadResolver.cpp
 	optimiser/LoadResolver.h
 	optimiser/LoopInvariantCodeMotion.cpp
@@ -173,8 +203,6 @@ add_library(yul
 	optimiser/Suite.h
 	optimiser/SyntacticalEquality.cpp
 	optimiser/SyntacticalEquality.h
-	optimiser/TypeInfo.cpp
-	optimiser/TypeInfo.h
 	optimiser/UnusedFunctionParameterPruner.cpp
 	optimiser/UnusedFunctionParameterPruner.h
 	optimiser/UnusedFunctionsCommon.h

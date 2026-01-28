@@ -185,7 +185,7 @@ BOOST_FIXTURE_TEST_CASE(makeRandom_should_return_population_with_random_chromoso
 	constexpr int chromosomeLength = 30;
 	constexpr double relativeTolerance = 0.01;
 
-	std::map<std::string, size_t> stepIndices = enumerateOptmisationSteps();
+	std::map<std::string, size_t> stepIndices = enumerateOptimisationSteps();
 	auto population = Population::makeRandom(m_fitnessMetric, populationSize, chromosomeLength, chromosomeLength);
 
 	std::vector<size_t> samples;

@@ -2,28 +2,13 @@
     "errors": [
         {
             "component": "general",
-            "errorCode": "7812",
-            "formattedMessage": "Warning: BMC: Assertion violation might happen here.
-  --> A:11:7:
-   |
-11 | \t\t\t\t\t\tassert(s.x > 0);
-   | \t\t\t\t\t\t^^^^^^^^^^^^^^^
-Note:
+            "errorCode": "6002",
+            "formattedMessage": "Info: BMC: 1 verification condition(s) proved safe! Enable the model checker option \"show proved safe\" to see all of them.
 
 ",
-            "message": "BMC: Assertion violation might happen here.",
-            "secondarySourceLocations": [
-                {
-                    "message": ""
-                }
-            ],
-            "severity": "warning",
-            "sourceLocation": {
-                "end": 201,
-                "file": "A",
-                "start": 186
-            },
-            "type": "Warning"
+            "message": "BMC: 1 verification condition(s) proved safe! Enable the model checker option \"show proved safe\" to see all of them.",
+            "severity": "info",
+            "type": "Info"
         }
     ],
     "sources": {

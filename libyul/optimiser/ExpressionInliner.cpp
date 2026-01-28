@@ -29,6 +29,7 @@
 #include <libyul/optimiser/OptimiserStep.h>
 
 #include <libyul/AST.h>
+#include <libyul/Utilities.h>
 
 using namespace solidity;
 using namespace solidity::yul;
@@ -52,15 +53,16 @@ void ExpressionInliner::visit(Expression& _expression)
 	if (std::holds_alternative<FunctionCall>(_expression))
 	{
 		FunctionCall& funCall = std::get<FunctionCall>(_expression);
-		if (!m_inlinableFunctions.count(funCall.functionName.name))
+		YulString const functionName{resolveFunctionName(funCall.functionName, m_dialect)};
+		if (!m_inlinableFunctions.count(functionName))
 			return;
-		FunctionDefinition const& fun = *m_inlinableFunctions.at(funCall.functionName.name);
+		FunctionDefinition const& fun = *m_inlinableFunctions.at(functionName);
 
-		std::map<YulString, Expression const*> substitutions;
+		std::map<YulName, Expression const*> substitutions;
 		for (size_t i = 0; i < funCall.arguments.size(); i++)
 		{
 			Expression const& arg = funCall.arguments[i];
-			YulString paraName = fun.parameters[i].name;
+			YulName paraName = fun.parameters[i].name;
 
 			if (!SideEffectsCollector(m_dialect, arg).movable())
 				return;

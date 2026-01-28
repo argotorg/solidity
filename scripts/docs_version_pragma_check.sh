@@ -181,7 +181,7 @@ SOLTMPDIR=$(mktemp -d)
         if [[ ! -f "$solc_bin" ]]
         then
             echo "Downloading release from github..."
-            if wget -q "https://github.com/ethereum/solidity/releases/download/v$version/solc-static-linux" >/dev/null
+            if wget -q "https://github.com/argotorg/solidity/releases/download/v$version/solc-static-linux" >/dev/null
             then
                 mv solc-static-linux "$solc_bin"
             else

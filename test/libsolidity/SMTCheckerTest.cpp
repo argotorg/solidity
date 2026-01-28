@@ -25,12 +25,24 @@ using namespace solidity;
 using namespace solidity::langutil;
 using namespace solidity::frontend;
 using namespace solidity::frontend::test;
+using namespace solidity::test;
 
-SMTCheckerTest::SMTCheckerTest(std::string const& _filename): SyntaxTest(_filename, EVMVersion{})
+SMTCheckerTest::SMTCheckerTest(std::string const& _filename):
+	SyntaxTest(_filename, EVMVersion{}),
+	universalCallback(nullptr, smtCommand)
 {
 	auto contract = m_reader.stringSetting("SMTContract", "");
-	if (!contract.empty())
+	auto maybeContracts = ModelCheckerContracts::fromString(contract);
+	auto isValidContractName = [](std::string const& _name)
+	{
+		return !_name.empty() && _name.find_first_of(" \t\n\r:,") == std::string::npos;
+	};
+	if (maybeContracts)
+		m_modelCheckerSettings.contracts = *maybeContracts;
+	else if (isValidContractName(contract))
 		m_modelCheckerSettings.contracts.contracts[""] = {contract};
+	else
+		BOOST_THROW_EXCEPTION(std::runtime_error("Invalid contract specified in SMTContract setting."));
 
 	auto extCallsMode = ModelCheckerExtCalls::fromString(m_reader.stringSetting("SMTExtCalls", "untrusted"));
 	if (extCallsMode)
@@ -104,8 +116,6 @@ SMTCheckerTest::SMTCheckerTest(std::string const& _filename): SyntaxTest(_filena
 				filtered.emplace_back(e);
 		return filtered;
 	};
-	if (m_modelCheckerSettings.invariants.invariants.empty())
-		m_expectations = removeInv(std::move(m_expectations));
 
 	auto const& ignoreInv = m_reader.stringSetting("SMTIgnoreInv", "yes");
 	if (ignoreInv == "no")
@@ -114,6 +124,9 @@ SMTCheckerTest::SMTCheckerTest(std::string const& _filename): SyntaxTest(_filena
 		m_modelCheckerSettings.invariants = ModelCheckerInvariants::None();
 	else
 		BOOST_THROW_EXCEPTION(std::runtime_error("Invalid SMT invariant choice."));
+
+	if (m_modelCheckerSettings.invariants.invariants.empty())
+		m_expectations = removeInv(std::move(m_expectations));
 
 	auto const& ignoreOSSetting = m_reader.stringSetting("SMTIgnoreOS", "none");
 	for (std::string const& os: ignoreOSSetting | ranges::views::split(',') | ranges::to<std::vector<std::string>>())
@@ -127,11 +140,19 @@ SMTCheckerTest::SMTCheckerTest(std::string const& _filename): SyntaxTest(_filena
 #elif __linux__
 		if (os == "linux")
 			m_shouldRun = false;
+#else
+		// On other operating systems this setting is ignored (as we don't test other operating systems in CI),
+		// but we need to prevent an unused-variable warning.
+		(void)os;
 #endif
 	}
 
 	auto const& bmcLoopIterations = m_reader.sizetSetting("BMCLoopIterations", 1);
 	m_modelCheckerSettings.bmcLoopIterations = std::optional<unsigned>{bmcLoopIterations};
+
+	// TODO: Enable EOF testing when EOF gets stable and smtCheckerTest starts using IR.
+	if (CommonOptions::get().eofVersion().has_value())
+		m_shouldRun = false;
 }
 
 void SMTCheckerTest::setupCompiler(CompilerStack& _compiler)
@@ -167,4 +188,8 @@ void SMTCheckerTest::printUpdatedExpectations(std::ostream &_stream, const std::
 		printErrorList(_stream, m_unfilteredErrorList, _linePrefix, false);
 	else
 		CommonSyntaxTest::printUpdatedExpectations(_stream, _linePrefix);
+}
+
+std::unique_ptr<CompilerStack> SMTCheckerTest::createStack() const {
+	return std::make_unique<CompilerStack>(universalCallback.callback());
 }

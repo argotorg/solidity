@@ -130,18 +130,23 @@ SourceUnitAnnotation& SourceUnit::annotation() const
 std::set<SourceUnit const*> SourceUnit::referencedSourceUnits(bool _recurse, std::set<SourceUnit const*> _skipList) const
 {
 	std::set<SourceUnit const*> sourceUnits;
+	referencedSourceUnits(sourceUnits, _recurse, _skipList);
+	return sourceUnits;
+}
+
+void SourceUnit::referencedSourceUnits(std::set<SourceUnit const*>& _referencedSourceUnits, bool _recurse, std::set<SourceUnit const*>& _skipList) const
+{
 	for (ImportDirective const* importDirective: filteredNodes<ImportDirective>(nodes()))
 	{
 		auto const& sourceUnit = importDirective->annotation().sourceUnit;
-		if (!_skipList.count(sourceUnit))
+		auto [skipListIt, notOnSkipListYet] = _skipList.insert(sourceUnit);
+		if (notOnSkipListYet)
 		{
-			_skipList.insert(sourceUnit);
-			sourceUnits.insert(sourceUnit);
+			_referencedSourceUnits.insert(sourceUnit);
 			if (_recurse)
-				sourceUnits += sourceUnit->referencedSourceUnits(true, _skipList);
+				sourceUnit->referencedSourceUnits(_referencedSourceUnits, true, _skipList);
 		}
 	}
-	return sourceUnits;
 }
 
 ImportAnnotation& ImportDirective::annotation() const
@@ -366,6 +371,22 @@ std::multimap<std::string, FunctionDefinition const*> const& ContractDefinition:
 	});
 }
 
+StorageLayoutSpecifier::StorageLayoutSpecifier(
+	int64_t _id,
+	SourceLocation const& _location,
+	ASTPointer<Expression> _baseSlotExpression
+):
+	ASTNode(_id, _location),
+	m_baseSlotExpression(_baseSlotExpression)
+{
+	solAssert(m_baseSlotExpression);
+	solAssert(_location.contains(m_baseSlotExpression->location()));
+}
+
+StorageLayoutSpecifierAnnotation& StorageLayoutSpecifier::annotation() const
+{
+	return initAnnotation<StorageLayoutSpecifierAnnotation>();
+}
 
 TypeNameAnnotation& TypeName::annotation() const
 {
@@ -816,7 +837,9 @@ std::set<VariableDeclaration::Location> VariableDeclaration::allowedDataLocation
 {
 	using Location = VariableDeclaration::Location;
 
-	if (!hasReferenceOrMappingType() || isStateVariable() || isEventOrErrorParameter())
+	if (isStateVariable())
+		return std::set<Location>{Location::Unspecified, Location::Transient};
+	else if (!hasReferenceOrMappingType() || isEventOrErrorParameter())
 		return std::set<Location>{ Location::Unspecified };
 	else if (isCallableOrCatchParameter())
 	{

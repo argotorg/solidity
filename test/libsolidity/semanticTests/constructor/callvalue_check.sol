@@ -11,6 +11,7 @@ contract B4 { constructor() {} }
 contract C {
 	function createWithValue(bytes memory c, uint256 value) public payable returns (bool) {
 		uint256 y = 0;
+		// TODO: This test is hard to recreate for EOF as for now eofcreate is disallowed in inline assembly.
 		assembly { y := create(value, add(c, 0x20), mload(c)) }
 		return y != 0;
 	}
@@ -29,6 +30,7 @@ contract C {
 }
 // ====
 // EVMVersion: >homestead
+// bytecodeFormat: legacy
 // ----
 // f(uint256), 2000 ether: 0 -> true
 // f(uint256), 2000 ether: 100 -> false

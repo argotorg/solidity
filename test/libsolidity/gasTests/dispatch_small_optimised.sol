@@ -5,8 +5,10 @@ contract Small {
     fallback () external payable {}
 }
 // ====
+// EVMVersion: =current
 // optimize: true
 // optimize-runs: 2
+// bytecodeFormat: legacy
 // ----
 // creation:
 //   codeDepositCost: 58200

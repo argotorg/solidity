@@ -5,37 +5,47 @@ Resources
 General Resources
 =================
 
-* `Ethereum.org Developer Portal <https://ethereum.org/en/developers/>`_
+* `Ethereum.org Developers page <https://ethereum.org/en/developers/>`_
 * `Ethereum StackExchange <https://ethereum.stackexchange.com/>`_
-* `Solidity Portal <https://soliditylang.org/>`_
-* `Solidity Changelog <https://github.com/ethereum/solidity/blob/develop/Changelog.md>`_
-* `Solidity Source Code on GitHub <https://github.com/ethereum/solidity/>`_
-* `Solidity Language Users Chat <https://matrix.to/#/#ethereum_solidity:gitter.im>`_
-* `Solidity Compiler Developers Chat <https://matrix.to/#/#ethereum_solidity-dev:gitter.im>`_
-* `Awesome Solidity <https://github.com/bkrem/awesome-solidity>`_
+* `Solidity website <https://soliditylang.org/>`_
+* `Solidity changelog <https://github.com/argotorg/solidity/blob/develop/Changelog.md>`_
+* `Solidity codebase on GitHub <https://github.com/argotorg/solidity/>`_
+* `Solidity language users chat <https://matrix.to/#/#ethereum_solidity:gitter.im>`_
+* `Solidity compiler developers chat <https://matrix.to/#/#ethereum_solidity-dev:gitter.im>`_
+* `awesome-solidity <https://github.com/bkrem/awesome-solidity>`_
 * `Solidity by Example <https://solidity-by-example.org/>`_
-* `Solidity Documentation Community Translations <https://github.com/solidity-docs>`_
+* `Solidity documentation community translations <https://github.com/solidity-docs>`_
+* `Solidity and Smart Contract Glossary <https://www.cyfrin.io/glossary>`_
 
 Integrated (Ethereum) Development Environments
 ==============================================
 
-    * `Brownie <https://eth-brownie.readthedocs.io/en/stable/>`_
-        Python-based development and testing framework for smart contracts targeting the Ethereum Virtual Machine.
+* `Ape <https://docs.apeworx.io/ape>`_
+        A Python-based web3 development tool for compiling, testing, and interacting with smart contracts.
 
-    * `Dapp <https://dapp.tools/>`_
+* `Brownie <https://eth-brownie.readthedocs.io/en/stable/>`_
+        A Python-based development and testing framework for smart contracts targeting the Ethereum Virtual Machine.
+        💡 Note: As per the official docs, Brownie is no longer actively maintained.
+        Future releases may come sporadically - or never at all.
+        Check out Ape Framework (first in list) for all your python Ethereum development needs.
+
+* `Dapp <https://dapp.tools/>`_
         Tool for building, testing and deploying smart contracts from the command-line.
 
-    * `Foundry <https://github.com/foundry-rs/foundry>`_
+* `Foundry <https://github.com/foundry-rs/foundry>`_
         Fast, portable and modular toolkit for Ethereum application development written in Rust.
 
-    * `Hardhat <https://hardhat.org/>`_
+* `Hardhat <https://hardhat.org/>`_
         Ethereum development environment with local Ethereum network, debugging features and plugin ecosystem.
 
-    * `Remix <https://remix.ethereum.org/>`_
+* `Remix <https://remix.ethereum.org/>`_
         Browser-based IDE with integrated compiler and Solidity runtime environment without server-side components.
 
-    * `Truffle <https://trufflesuite.com/truffle/>`_
+* `Truffle <https://trufflesuite.com/truffle/>`_
         Ethereum development framework.
+        💡 Note: Consensys announced the sunset of Truffle on September 21, 2023.
+        Current users may check out the migration path and available product support `here.
+        <https://consensys.io/blog/consensys-announces-the-sunset-of-truffle-and-ganache-and-new-hardhat>`_
 
 Editor Integrations
 ===================
@@ -70,6 +80,7 @@ Editor Integrations
 
     * `Ethereum Remix Visual Studio Code extension <https://github.com/ethereum/remix-vscode>`_
         Ethereum Remix extension pack for VS Code
+        💡 Note: As per the official repository, this extension has been removed from the VSCODE marketplace and will be replaced by a dedicated stand-alone desktop application.
 
     * `Solidity Visual Studio Code extension, by Juan Blanco <https://juan.blanco.ws/solidity-contracts-in-visual-studio-code/>`_
         Solidity plugin for Microsoft Visual Studio Code that includes syntax highlighting and the Solidity compiler.
@@ -82,6 +93,9 @@ Editor Integrations
 
     * `Truffle for VS Code <https://marketplace.visualstudio.com/items?itemName=trufflesuite-csi.truffle-vscode>`_
         Build, debug and deploy smart contracts on Ethereum and EVM-compatible blockchains.
+        💡 Note: This extension has built-in support for the Truffle Suite which is being sunset.
+        For information on ongoing support, migration options and FAQs, visit the `Consensys blog.
+        <https://consensys.io/blog/consensys-announces-the-sunset-of-truffle-and-ganache-and-new-hardhat>`_
 
 Solidity Tools
 ==============
@@ -92,8 +106,14 @@ Solidity Tools
 * `abi-to-sol <https://github.com/gnidan/abi-to-sol>`_
     Tool to generate Solidity interface source from a given ABI JSON.
 
+* `Aderyn <https://github.com/Cyfrin/aderyn>`_
+    Rust-based solidity smart contract static analyzer designed to help find vulnerabilities in Solidity code bases.
+
 * `Doxity <https://github.com/DigixGlobal/doxity>`_
     Documentation Generator for Solidity.
+
+* `ethdebug <https://github.com/ethdebug/format>`_
+    A standard debugging data format for smart contracts on Ethereum-compatible networks.
 
 * `Ethlint <https://github.com/duaraghav8/Ethlint>`_
     Linter to identify and fix style and security issues in Solidity.
@@ -102,7 +122,7 @@ Solidity Tools
     EVM Disassembler that performs static analysis on the bytecode to provide a higher level of abstraction than raw EVM operations.
 
 * `EVM Lab <https://github.com/ethereum/evmlab/>`_
-    Rich tool package to interact with the EVM. Includes a VM, Etherchain API, and a trace-viewer with gas cost display.
+    A collection of tools to interact with the EVM. The package includes a VM, Etherchain API, and a trace-viewer with gas cost display.
 
 * `hevm <https://github.com/dapphub/dapptools/tree/master/src/hevm#readme>`_
     EVM debugger and symbolic execution engine.
@@ -112,6 +132,9 @@ Solidity Tools
 
 * `Scaffold-ETH 2 <https://github.com/scaffold-eth/scaffold-eth-2>`_
     Forkable Ethereum development stack focused on fast product iterations.
+
+* `Slippy <https://github.com/fvictorio/slippy>`_
+    A simple and powerful linter for Solidity.
 
 * `sol2uml <https://www.npmjs.com/package/sol2uml>`_
     Unified Modeling Language (UML) class diagram generator for Solidity contracts.
@@ -139,6 +162,9 @@ Solidity Tools
 
 * `Universal Mutator <https://github.com/agroce/universalmutator>`_
     A tool for mutation generation, with configurable rules and support for Solidity and Vyper.
+
+* `Wake <https://github.com/Ackee-Blockchain/wake>`_
+    A Python-based Solidity development and testing framework with built-in vulnerability detectors.
 
 Third-Party Solidity Parsers and Grammars
 =========================================

@@ -114,11 +114,11 @@ AnsiColorized SourceReferenceFormatter::diagColored() const
 
 void SourceReferenceFormatter::printSourceLocation(SourceReference const& _ref)
 {
-	if (_ref.sourceName.empty())
-		return; // Nothing we can print here
-
 	if (_ref.position.line < 0)
 	{
+		if (_ref.sourceName.empty())
+			return; // Nothing we can print here
+
 		frameColored() << "-->";
 		m_stream << ' ' << _ref.sourceName << '\n';
 		return; // No line available, nothing else to print

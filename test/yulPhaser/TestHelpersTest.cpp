@@ -96,10 +96,10 @@ BOOST_AUTO_TEST_CASE(countDifferences_should_count_missing_characters_as_differe
 	BOOST_TEST(countDifferences(Chromosome("aa"), Chromosome("cccc")) == 4);
 }
 
-BOOST_AUTO_TEST_CASE(enumerateOptimisationSteps_should_assing_indices_to_all_available_optimisation_steps)
+BOOST_AUTO_TEST_CASE(enumerateOptimisationSteps_should_assign_indices_to_all_available_optimisation_steps)
 {
 	std::map<std::string, char> stepsAndAbbreviations = OptimiserSuite::stepNameToAbbreviationMap();
-	std::map<std::string, size_t> stepsAndIndices = enumerateOptmisationSteps();
+	std::map<std::string, size_t> stepsAndIndices = enumerateOptimisationSteps();
 	BOOST_TEST(stepsAndIndices.size() == stepsAndAbbreviations.size());
 
 	std::set<std::string> stepsSoFar;

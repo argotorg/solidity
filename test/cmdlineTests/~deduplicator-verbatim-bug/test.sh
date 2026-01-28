@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -eo pipefail
 
-# This is a regression test against https://github.com/ethereum/solidity/issues/14640
+# This is a regression test against https://github.com/argotorg/solidity/issues/14640
 # The bug caused the block deduplicator to incorrectly merge two blocks which have
 # verbatim items surrounded by identical opcodes. Due to the bug, the contents of
 # the verbatim were ignored and the blocks merged into a single one.

@@ -1,6 +1,7 @@
 { let x := 1 mstore(3, 4) pop(mload(x)) }
 // ====
 // stackOptimization: true
+// EVMVersion: =current
 // ----
 //     /* "":11:12   */
 //   0x01

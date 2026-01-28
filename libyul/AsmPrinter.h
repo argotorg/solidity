@@ -24,7 +24,7 @@
 #pragma once
 
 #include <libyul/ASTForward.h>
-#include <libyul/YulString.h>
+#include <libyul/YulName.h>
 
 #include <libsolutil/CommonData.h>
 
@@ -36,19 +36,26 @@
 
 namespace solidity::yul
 {
-struct Dialect;
+
+class Dialect;
 
 /**
  * Converts a parsed Yul AST into readable string representation.
  * Ignores source locations.
- * If a dialect is provided, the dialect's default type is omitted.
  */
 class AsmPrinter
 {
 public:
+	static std::string format(
+		AST const& _ast,
+		std::optional<std::map<unsigned, std::shared_ptr<std::string const>>> const& _sourceIndexToName = {},
+		langutil::DebugInfoSelection const& _debugInfoSelection = langutil::DebugInfoSelection::Default(),
+		langutil::CharStreamProvider const* _soliditySourceProvider = nullptr
+	);
+
 	explicit AsmPrinter(
-		Dialect const* _dialect = nullptr,
-		std::optional<std::map<unsigned, std::shared_ptr<std::string const>>> _sourceIndexToName = {},
+		Dialect const& _dialect,
+		std::optional<std::map<unsigned, std::shared_ptr<std::string const>>> const& _sourceIndexToName = {},
 		langutil::DebugInfoSelection const& _debugInfoSelection = langutil::DebugInfoSelection::Default(),
 		langutil::CharStreamProvider const* _soliditySourceProvider = nullptr
 	):
@@ -61,15 +68,9 @@ public:
 				m_nameToSourceIndex[*name] = index;
 	}
 
-	explicit AsmPrinter(
-		Dialect const& _dialect,
-		std::optional<std::map<unsigned, std::shared_ptr<std::string const>>> _sourceIndexToName = {},
-		langutil::DebugInfoSelection const& _debugInfoSelection = langutil::DebugInfoSelection::Default(),
-		langutil::CharStreamProvider const* _soliditySourceProvider = nullptr
-	): AsmPrinter(&_dialect, _sourceIndexToName, _debugInfoSelection, _soliditySourceProvider) {}
-
 	std::string operator()(Literal const& _literal);
 	std::string operator()(Identifier const& _identifier);
+	std::string operator()(BuiltinName const& _builtin);
 	std::string operator()(ExpressionStatement const& _expr);
 	std::string operator()(Assignment const& _assignment);
 	std::string operator()(VariableDeclaration const& _variableDeclaration);
@@ -91,8 +92,7 @@ public:
 	);
 
 private:
-	std::string formatTypedName(TypedName _variable);
-	std::string appendTypeName(YulString _type, bool _isBoolLiteral = false) const;
+	std::string formatNameWithDebugData(NameWithDebugData _variable);
 	std::string formatDebugData(langutil::DebugData::ConstPtr const& _debugData, bool _statement);
 	template <class T>
 	std::string formatDebugData(T const& _node)
@@ -101,7 +101,7 @@ private:
 		return formatDebugData(_node.debugData, !isExpression);
 	}
 
-	Dialect const* const m_dialect = nullptr;
+	Dialect const& m_dialect;
 	std::map<std::string, unsigned> m_nameToSourceIndex;
 	langutil::SourceLocation m_lastLocation = {};
 	langutil::DebugInfoSelection m_debugInfoSelection = {};

@@ -2,6 +2,7 @@
 { let z := mload(0) if z { let x := z } let t := 3 }
 // ====
 // stackOptimization: true
+// EVMVersion: =current
 // ----
 //     /* "":72:73   */
 //   0x00

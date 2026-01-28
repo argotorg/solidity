@@ -25,15 +25,33 @@
 #include <libsolutil/Numeric.h>
 #include <libyul/ASTForward.h>
 
+#include <string_view>
+
 namespace solidity::yul
 {
 
+class Dialect;
+class EVMDialect;
+struct BuiltinFunction;
+struct BuiltinFunctionForEVM;
+
 std::string reindent(std::string const& _code);
 
-u256 valueOfNumberLiteral(Literal const& _literal);
-u256 valueOfStringLiteral(Literal const& _literal);
-u256 valueOfBoolLiteral(Literal const& _literal);
-u256 valueOfLiteral(Literal const& _literal);
+LiteralValue valueOfNumberLiteral(std::string_view _literal);
+LiteralValue valueOfStringLiteral(std::string_view _literal);
+LiteralValue valueOfBuiltinStringLiteralArgument(std::string_view _literal);
+LiteralValue valueOfBoolLiteral(std::string_view _literal);
+LiteralValue valueOfLiteral(std::string_view _literal, LiteralKind const& _kind, bool _unlimitedLiteralArgument = false);
+bool validLiteral(Literal const& _literal);
+bool validStringLiteral(Literal const& _literal);
+bool validNumberLiteral(Literal const& _literal);
+bool validBoolLiteral(Literal const& _literal);
+
+/// Produces a string representation of a Literal instance.
+/// @param _literal the Literal to be formatted
+/// @param _validated whether the Literal was already validated, i.e., assumptions are asserted in the method
+/// @returns the literal's string representation
+std::string formatLiteral(Literal const& _literal, bool _validated = true);
 
 /**
  * Linear order on Yul AST nodes.
@@ -69,5 +87,11 @@ struct SwitchCaseCompareByLiteralValue
 {
 	bool operator()(Case const* _lhsCase, Case const* _rhsCase) const;
 };
+
+std::string_view resolveFunctionName(FunctionName const& _functionName, Dialect const& _dialect);
+
+BuiltinFunction const* resolveBuiltinFunction(FunctionName const& _functionName, Dialect const& _dialect);
+BuiltinFunctionForEVM const* resolveBuiltinFunctionForEVM(FunctionName const& _functionName, EVMDialect const& _dialect);
+FunctionHandle functionNameToHandle(FunctionName const& _functionName);
 
 }

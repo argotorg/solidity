@@ -10,6 +10,7 @@ object "main" {
 }
 // ====
 // stackOptimization: true
+// EVMVersion: =current
 // ----
 //     /* "":51:52   */
 //   0x00

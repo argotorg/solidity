@@ -4,6 +4,7 @@
 }
 // ====
 // EVMVersion: >=byzantium
+// bytecodeFormat: legacy
 // ----
 // Trace:
 //   STATICCALL(153, 69, 0, 32, 48, 32)

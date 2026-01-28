@@ -71,7 +71,8 @@ protected:
 	Token currentToken() const;
 	Token peekNextToken() const;
 	std::string tokenName(Token _token);
-	std::string currentLiteral() const;
+	/// Points to the current literal. The string view invalidates when the parser advances.
+	std::string_view currentLiteral() const;
 	virtual Token advance();
 	///@}
 

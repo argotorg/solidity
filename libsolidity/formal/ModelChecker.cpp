@@ -17,14 +17,14 @@
 // SPDX-License-Identifier: GPL-3.0
 
 #include <libsolidity/formal/ModelChecker.h>
-#ifdef HAVE_Z3
-#include <libsmtutil/Z3Interface.h>
-#endif
-#ifdef HAVE_Z3_DLOPEN
-#include <z3_version.h>
-#endif
 
+#include <boost/version.hpp>
+#if (BOOST_VERSION < 108800)
 #include <boost/process.hpp>
+#else
+#define BOOST_PROCESS_VERSION 1
+#include <boost/process/v1/search_path.hpp>
+#endif
 
 #include <range/v3/algorithm/any_of.hpp>
 #include <range/v3/view.hpp>
@@ -43,10 +43,11 @@ ModelChecker::ModelChecker(
 	ReadCallback::Callback const& _smtCallback
 ):
 	m_errorReporter(_errorReporter),
+	m_provedSafeReporter(m_provedSafeLogs),
 	m_settings(std::move(_settings)),
 	m_context(),
-	m_bmc(m_context, m_uniqueErrorReporter, m_unsupportedErrorReporter, _smtlib2Responses, _smtCallback, m_settings, _charStreamProvider),
-	m_chc(m_context, m_uniqueErrorReporter, m_unsupportedErrorReporter, _smtlib2Responses, _smtCallback, m_settings, _charStreamProvider)
+	m_bmc(m_context, m_uniqueErrorReporter, m_unsupportedErrorReporter, m_provedSafeReporter, _smtlib2Responses, _smtCallback, m_settings, _charStreamProvider),
+	m_chc(m_context, m_uniqueErrorReporter, m_unsupportedErrorReporter, m_provedSafeReporter, _smtlib2Responses, _smtCallback, m_settings, _charStreamProvider)
 {
 }
 
@@ -151,6 +152,12 @@ void ModelChecker::analyze(SourceUnit const& _source)
 
 	m_errorReporter.append(m_uniqueErrorReporter.errors());
 	m_uniqueErrorReporter.clear();
+
+	if (m_settings.showProvedSafe)
+	{
+		m_errorReporter.append(m_provedSafeReporter.errors());
+		m_provedSafeReporter.clear();
+	}
 }
 
 std::vector<std::string> ModelChecker::unhandledQueries()
@@ -163,8 +170,10 @@ SMTSolverChoice ModelChecker::availableSolvers()
 	smtutil::SMTSolverChoice available = smtutil::SMTSolverChoice::SMTLIB2();
 	available.eld = !boost::process::search_path("eld").empty();
 	available.cvc5 = !boost::process::search_path("cvc5").empty();
-#ifdef HAVE_Z3
-	available.z3 = solidity::smtutil::Z3Interface::available();
+#ifdef EMSCRIPTEN_BUILD
+	available.z3 = true;
+#else
+	available.z3 = !boost::process::search_path("z3").empty();
 #endif
 	return available;
 }
@@ -204,9 +213,6 @@ SMTSolverChoice ModelChecker::checkRequestedSolvers(SMTSolverChoice _enabled, Er
 			8158_error,
 			SourceLocation(),
 			"Solver z3 was selected for SMTChecker but it is not available."
-#ifdef HAVE_Z3_DLOPEN
-			" libz3.so." + std::to_string(Z3_MAJOR_VERSION) + "." + std::to_string(Z3_MINOR_VERSION) + " was not found."
-#endif
 		);
 	}
 

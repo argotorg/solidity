@@ -1,7 +1,7 @@
 {
 	"language": "Solidity",
 	"sources": {
-		"C": {"urls": ["standard_outputs_on_compilation_error/in.sol"]}
+		"C": {"urls": ["in.sol"]}
 	},
 	"settings": {
 		"optimizer": {"enabled": true},

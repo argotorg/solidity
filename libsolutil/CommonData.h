@@ -380,12 +380,6 @@ private:
 	std::vector<T> m_contents;
 };
 
-template<typename T>
-void swap(UniqueVector<T>& _lhs, UniqueVector<T>& _rhs)
-{
-	std::swap(_lhs.contents(), _rhs.contents());
-}
-
 namespace detail
 {
 
@@ -459,7 +453,7 @@ int fromHex(char _i, WhenError _throw);
 
 /// Converts a (printable) ASCII hex string into the corresponding byte stream.
 /// @example fromHex("41626261") == asBytes("Abba")
-/// If _throw = ThrowType::DontThrow, it replaces bad hex characters with 0's, otherwise it will throw an exception.
+/// If _throw = WhenError::DontThrow, it returns an empty bytes array on any validation error, otherwise it will throw an exception.
 bytes fromHex(std::string const& _s, WhenError _throw = WhenError::DontThrow);
 /// Converts byte array to a string containing the same (binary) data. Unless
 /// the byte array happens to contain ASCII data, this won't be printable.
@@ -476,7 +470,7 @@ inline std::string asString(bytesConstRef _b)
 }
 
 /// Converts a string to a byte array containing the string's (byte) data.
-inline bytes asBytes(std::string const& _b)
+inline bytes asBytes(std::string_view const _b)
 {
 	return bytes((uint8_t const*)_b.data(), (uint8_t const*)(_b.data() + _b.size()));
 }
@@ -557,6 +551,29 @@ void iterateReplacingWindow(std::vector<T>& _vector, F const& _f, std::index_seq
 
 }
 
+/// Checks if two collections possess a non-empty intersection.
+/// Assumes that both inputs are sorted in ascending order.
+template<typename Collection1, typename Collection2>
+requires (
+	std::forward_iterator<std::ranges::iterator_t<Collection1>> &&
+	std::forward_iterator<std::ranges::iterator_t<Collection2>>
+)
+bool hasNonemptyIntersectionSorted(Collection1 const& _collection1, Collection2 const& _collection2)
+{
+	auto it1 = std::ranges::begin(_collection1);
+	auto it2 = std::ranges::begin(_collection2);
+	while (it1 != std::ranges::end(_collection1) && it2 != std::ranges::end(_collection2))
+	{
+		if (*it1 == *it2)
+			return true;
+		if (*it1 < *it2)
+			++it1;
+		else
+			++it2;
+	}
+	return false;
+}
+
 /// Function that iterates over the vector @param _vector,
 /// calling the function @param _f on sequences of @tparam N of its
 /// elements. If @param _f returns a vector, these elements are replaced by
@@ -584,8 +601,8 @@ bool passesAddressChecksum(std::string const& _str, bool _strict);
 /// @param hex strings that look like an address
 std::string getChecksummedAddress(std::string const& _addr);
 
-bool isValidHex(std::string const& _string);
-bool isValidDecimal(std::string const& _string);
+bool isValidHex(std::string_view _string);
+bool isValidDecimal(std::string_view _string);
 
 /// @returns a quoted string if all characters are printable ASCII chars,
 /// or its hex representation otherwise.

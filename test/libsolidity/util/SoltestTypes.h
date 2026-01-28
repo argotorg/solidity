@@ -32,7 +32,7 @@ namespace solidity::frontend::test
 	T(Invalid, "invalid", 0)           \
 	T(EOS, "EOS", 0)                   \
 	T(Whitespace, "_", 0)              \
-	/* punctuations */                 \
+	/* punctuation */                  \
 	T(LParen, "(", 0)                  \
 	T(RParen, ")", 0)                  \
 	T(LBrack, "[", 0)                  \

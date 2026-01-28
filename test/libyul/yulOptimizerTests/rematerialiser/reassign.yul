@@ -1,5 +1,5 @@
 {
-    let a := extcodesize(0)
+    let a := balance(0)
     let b := a
     let c := b
     a := 2
@@ -10,7 +10,7 @@
 // step: rematerialiser
 //
 // {
-//     let a := extcodesize(0)
+//     let a := balance(0)
 //     let b := a
 //     let c := a
 //     a := 2

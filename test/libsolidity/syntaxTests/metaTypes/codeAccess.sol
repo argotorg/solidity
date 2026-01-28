@@ -9,4 +9,6 @@ contract Test {
 contract Other {
     function f(uint) public pure returns (uint) {}
 }
+// ====
+// bytecodeFormat: legacy
 // ----

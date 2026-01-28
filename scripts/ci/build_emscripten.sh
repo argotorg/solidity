@@ -37,27 +37,15 @@ set -ev
 SCRIPT_DIR="$(realpath "$(dirname "$0")/..")"
 # shellcheck source=scripts/common.sh
 source "${SCRIPT_DIR}/common.sh"
+ROOT_DIR="${SCRIPT_DIR}/.."
 
 function build() {
     local build_dir="$1"
     local prerelease_source="${2:-ci}"
 
-    cd /root/project
+    cd "${ROOT_DIR}"
 
-    # shellcheck disable=SC2166
-    if [[ "$CIRCLE_BRANCH" = release || -n "$CIRCLE_TAG" || -n "$FORCE_RELEASE" || "$(git tag --points-at HEAD 2>/dev/null)" == v* ]]
-    then
-        echo -n >prerelease.txt
-    else
-        # Use last commit date rather than build date to avoid ending up with builds for
-        # different platforms having different version strings (and therefore producing different bytecode)
-        # if the CI is triggered just before midnight.
-        TZ=UTC git show --quiet --date="format-local:%Y.%-m.%-d" --format="${prerelease_source}.%cd" >prerelease.txt
-    fi
-    if [ -n "$CIRCLE_SHA1" ]
-    then
-        echo -n "$CIRCLE_SHA1" >commit_hash.txt
-    fi
+    "${SCRIPT_DIR}/prerelease_suffix.sh" "$prerelease_source" "$(git tag --points-at HEAD 2> /dev/null)" > prerelease.txt
 
     # Disable warnings for unqualified `move()` calls, introduced and enabled by
     # default in clang-16 which is what the emscripten docker image uses.

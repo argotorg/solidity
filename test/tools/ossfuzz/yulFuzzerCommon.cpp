@@ -23,8 +23,7 @@ using namespace solidity::yul::test::yul_fuzzer;
 
 yulFuzzerUtil::TerminationReason yulFuzzerUtil::interpret(
 	std::ostream& _os,
-	std::shared_ptr<yul::Block> _ast,
-	Dialect const& _dialect,
+	AST const& _ast,
 	bool _disableMemoryTracing,
 	bool _outputStorageOnly,
 	size_t _maxSteps,
@@ -52,7 +51,7 @@ yulFuzzerUtil::TerminationReason yulFuzzerUtil::interpret(
 	TerminationReason reason = TerminationReason::None;
 	try
 	{
-		Interpreter::run(state, _dialect, *_ast, true, _disableMemoryTracing);
+		Interpreter::run(state, _ast, true, _disableMemoryTracing);
 	}
 	catch (StepLimitReached const&)
 	{
@@ -64,7 +63,7 @@ yulFuzzerUtil::TerminationReason yulFuzzerUtil::interpret(
 	}
 	catch (ExpressionNestingLimitReached const&)
 	{
-		reason = TerminationReason::ExpresionNestingLimitReached;
+		reason = TerminationReason::ExpressionNestingLimitReached;
 	}
 	catch (ExplicitlyTerminated const&)
 	{
@@ -83,5 +82,5 @@ bool yulFuzzerUtil::resourceLimitsExceeded(TerminationReason _reason)
 	return
 		_reason == yulFuzzerUtil::TerminationReason::StepLimitReached ||
 		_reason == yulFuzzerUtil::TerminationReason::TraceLimitReached ||
-		_reason == yulFuzzerUtil::TerminationReason::ExpresionNestingLimitReached;
+		_reason == yulFuzzerUtil::TerminationReason::ExpressionNestingLimitReached;
 }

@@ -18,6 +18,8 @@
 
 #include <libsolidity/formal/ArraySlicePredicate.h>
 
+#include <libsolidity/formal/SymbolicVariables.h>
+
 #include <liblangutil/Exceptions.h>
 
 using namespace solidity;

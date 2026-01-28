@@ -47,6 +47,8 @@
         v := h()
     }
 }
+// ====
+// bytecodeFormat: legacy
 // ----
 // step: stackLimitEvader
 //

@@ -18,20 +18,22 @@ contract C {
 	uint public y;
 	constructor() {
 		a = 3;
-		x = (new A()).f();
-		y = (new B()).f();
+		x = (new A{salt: hex"00"}()).f();
+		y = (new B{salt: hex"00"}()).f();
 	}
 	function f() public returns (uint256, uint, uint) {
-		return (a, (new A()).f(), (new B()).f());
+		return (a, (new A{salt: hex"01"}()).f(), (new B{salt: hex"01"}()).f());
 	}
 }
+// ====
+// EVMVersion: >=constantinople
 // ----
 // f() -> 3, 7, 5
-// gas irOptimized: 86796
+// gas irOptimized: 86892
 // gas irOptimized code: 37200
-// gas legacy: 87728
+// gas legacy: 87839
 // gas legacy code: 60800
-// gas legacyOptimized: 86771
+// gas legacyOptimized: 86870
 // gas legacyOptimized code: 37200
 // x() -> 7
 // y() -> 5

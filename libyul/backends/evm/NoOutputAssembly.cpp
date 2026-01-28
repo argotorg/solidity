@@ -26,6 +26,7 @@
 
 #include <libevmasm/Instruction.h>
 
+#include <range/v3/view/enumerate.hpp>
 #include <range/v3/view/iota.hpp>
 
 using namespace solidity;
@@ -33,6 +34,23 @@ using namespace solidity::yul;
 using namespace solidity::util;
 using namespace solidity::langutil;
 
+namespace
+{
+
+void modifyBuiltinToNoOutput(BuiltinFunctionForEVM& _builtin)
+{
+	_builtin.generateCode = [_builtin](FunctionCall const& _call, AbstractAssembly& _assembly, BuiltinContext&)
+	{
+		for (size_t i: ranges::views::iota(0u, _call.arguments.size()))
+			if (!_builtin.literalArgument(i))
+				_assembly.appendInstruction(evmasm::Instruction::POP);
+
+		for (size_t i = 0; i < _builtin.numReturns; i++)
+			_assembly.appendConstant(u256(0));
+	};
+}
+
+}
 
 void NoOutputAssembly::appendInstruction(evmasm::Instruction _instr)
 {
@@ -71,7 +89,7 @@ void NoOutputAssembly::appendLinkerSymbol(std::string const&)
 
 void NoOutputAssembly::appendVerbatim(bytes, size_t _arguments, size_t _returnVariables)
 {
-	m_stackHeight += static_cast<int>(_returnVariables - _arguments);
+	m_stackHeight += static_cast<int>(_returnVariables) - static_cast<int>(_arguments);
 }
 
 void NoOutputAssembly::appendJump(int _stackDiffAfter, JumpType)
@@ -97,10 +115,53 @@ void NoOutputAssembly::appendAssemblySize()
 	appendInstruction(evmasm::Instruction::PUSH1);
 }
 
+void NoOutputAssembly::appendDupN(size_t)
+{
+	m_stackHeight++;
+}
+
 std::pair<std::shared_ptr<AbstractAssembly>, AbstractAssembly::SubID> NoOutputAssembly::createSubAssembly(bool, std::string)
 {
 	yulAssert(false, "Sub assemblies not implemented.");
 	return {};
+}
+
+AbstractAssembly::FunctionID NoOutputAssembly::registerFunction(uint8_t _args, uint8_t _rets, bool)
+{
+	yulAssert(m_context.numFunctions <= std::numeric_limits<AbstractAssembly::FunctionID>::max());
+	AbstractAssembly::FunctionID id = static_cast<AbstractAssembly::FunctionID>(m_context.numFunctions++);
+	m_context.functionSignatures[id] = {_args, _rets};
+	return id;
+}
+
+void NoOutputAssembly::beginFunction(FunctionID _functionID)
+{
+	yulAssert(m_currentFunctionID == 0, "Attempted to begin a function before ending the last one.");
+	yulAssert(m_context.functionSignatures.count(_functionID) == 1, "Filling unregistered function.");
+	yulAssert(m_stackHeight == 0, "Non-empty stack on beginFunction call.");
+	m_currentFunctionID = _functionID;
+}
+
+void NoOutputAssembly::endFunction()
+{
+	yulAssert(m_currentFunctionID != 0, "End function without begin function.");
+	auto const [_, rets] = m_context.functionSignatures.at(m_currentFunctionID);
+	yulAssert(m_stackHeight == rets, "Stack height mismatch at function end.");
+	m_currentFunctionID = 0;
+}
+
+void NoOutputAssembly::appendFunctionCall(FunctionID _functionID)
+{
+	auto [args, rets] = m_context.functionSignatures.at(_functionID);
+	m_stackHeight += static_cast<int>(rets) - static_cast<int>(args);
+	solAssert(m_stackHeight >= 0);
+}
+
+void NoOutputAssembly::appendFunctionReturn()
+{
+	yulAssert(m_currentFunctionID != 0, "End function without begin function.");
+	auto const [_, rets] = m_context.functionSignatures.at(m_currentFunctionID);
+	yulAssert(m_stackHeight == rets, "Stack height mismatch at function end.");
 }
 
 void NoOutputAssembly::appendDataOffset(std::vector<AbstractAssembly::SubID> const&)
@@ -115,7 +176,7 @@ void NoOutputAssembly::appendDataSize(std::vector<AbstractAssembly::SubID> const
 
 AbstractAssembly::SubID NoOutputAssembly::appendData(bytes const&)
 {
-	return 1;
+	return {1};
 }
 
 
@@ -129,20 +190,64 @@ void NoOutputAssembly::appendImmutableAssignment(std::string const&)
 	yulAssert(false, "setimmutable not implemented.");
 }
 
-NoOutputEVMDialect::NoOutputEVMDialect(EVMDialect const& _copyFrom):
-	EVMDialect(_copyFrom.evmVersion(), _copyFrom.providesObjectAccess())
+void NoOutputAssembly::appendAuxDataLoadN(uint16_t)
 {
-	for (auto& fun: m_functions)
-	{
-		size_t returns = fun.second.returns.size();
-		fun.second.generateCode = [=](FunctionCall const& _call, AbstractAssembly& _assembly, BuiltinContext&)
-		{
-			for (size_t i: ranges::views::iota(0u, _call.arguments.size()))
-				if (!fun.second.literalArgument(i))
-					_assembly.appendInstruction(evmasm::Instruction::POP);
+	yulAssert(false, "auxdataloadn not implemented.");
+}
 
-			for (size_t i = 0; i < returns; i++)
-				_assembly.appendConstant(u256(0));
-		};
+void NoOutputAssembly::appendEOFCreate(ContainerID)
+{
+	yulAssert(false, "eofcreate not implemented.");
+
+}
+void NoOutputAssembly::appendReturnContract(ContainerID)
+{
+	yulAssert(false, "returncontract not implemented.");
+}
+
+NoOutputEVMDialect::NoOutputEVMDialect(EVMDialect const& _copyFrom):
+	EVMDialect(_copyFrom.evmVersion(), _copyFrom.eofVersion(), _copyFrom.providesObjectAccess())
+{
+	// save the modified functions here - note that this only has to be done once because we modify all of
+	// them in one go, later reference pointers to this static vector
+	static std::vector<BuiltinFunctionForEVM> noOutputBuiltins = defineNoOutputBuiltins();
+
+	yulAssert(m_functions.size() == noOutputBuiltins.size(), "Function count mismatch.");
+	for (auto const& [index, builtinFunction]: m_functions | ranges::views::enumerate)
+	{
+		if (builtinFunction)
+			m_functions[index] = &noOutputBuiltins[index];
+		else
+			m_functions[index] = nullptr;
 	}
+}
+
+BuiltinFunctionForEVM const& NoOutputEVMDialect::builtin(BuiltinHandle const& _handle) const
+{
+	if (isVerbatimHandle(_handle))
+		// for verbatims the modification is performed lazily as they are stored in a lookup table fashion
+		if (
+			auto& builtin = m_verbatimFunctions[_handle.id];
+			!builtin
+		)
+		{
+			builtin = std::make_unique<BuiltinFunctionForEVM>(createVerbatimFunctionFromHandle(_handle));
+			modifyBuiltinToNoOutput(*builtin);
+		}
+	return EVMDialect::builtin(_handle);
+}
+
+std::vector<BuiltinFunctionForEVM> NoOutputEVMDialect::defineNoOutputBuiltins()
+{
+	std::vector<BuiltinFunctionForEVM> modifiedBuiltins;
+	modifiedBuiltins.reserve(allBuiltins().functions().size());
+
+	for (auto const& [_, builtin]: allBuiltins().functions())
+	{
+		auto noOutputFunction = builtin;
+		modifyBuiltinToNoOutput(noOutputFunction);
+		modifiedBuiltins.push_back(std::move(noOutputFunction));
+	}
+
+	return modifiedBuiltins;
 }

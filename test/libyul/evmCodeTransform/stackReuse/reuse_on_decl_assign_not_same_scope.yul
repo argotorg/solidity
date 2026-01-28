@@ -7,6 +7,7 @@
 }
 // ====
 // stackOptimization: true
+// EVMVersion: =current
 // ----
 //     /* "":15:16   */
 //   0x05

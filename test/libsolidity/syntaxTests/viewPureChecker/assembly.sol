@@ -27,4 +27,6 @@ contract C {
         assembly { pop(extcodesize(0)) }
     }
 }
+// ====
+// bytecodeFormat: legacy
 // ----

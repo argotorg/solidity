@@ -26,23 +26,28 @@ using namespace solidity;
 using namespace solidity::evmasm;
 using namespace solidity::langutil;
 
-bool EVMVersion::hasOpcode(Instruction _opcode) const
+bool EVMVersion::hasOpcode(Instruction _opcode, std::optional<uint8_t> _eofVersion) const
 {
+	// EOF version can be only defined since osaka
+	assert(!_eofVersion.has_value() || *this >= EVMVersion::firstWithEOF());
+
 	switch (_opcode)
 	{
 	case Instruction::RETURNDATACOPY:
 	case Instruction::RETURNDATASIZE:
 		return supportsReturndata();
 	case Instruction::STATICCALL:
-		return hasStaticCall();
+		return !_eofVersion.has_value() && hasStaticCall();
 	case Instruction::SHL:
 	case Instruction::SHR:
 	case Instruction::SAR:
 		return hasBitwiseShifting();
+	case Instruction::CLZ:
+		return hasCLZ();
 	case Instruction::CREATE2:
-		return hasCreate2();
+		return !_eofVersion.has_value() && hasCreate2();
 	case Instruction::EXTCODEHASH:
-		return hasExtCodeHash();
+		return !_eofVersion.has_value() && hasExtCodeHash();
 	case Instruction::CHAINID:
 		return hasChainID();
 	case Instruction::SELFBALANCE:
@@ -58,6 +63,36 @@ bool EVMVersion::hasOpcode(Instruction _opcode) const
 	case Instruction::TSTORE:
 	case Instruction::TLOAD:
 		return supportsTransientStorage();
+	// Instructions below are deprecated in EOF
+	case Instruction::CALL:
+	case Instruction::CALLCODE:
+	case Instruction::DELEGATECALL:
+	case Instruction::SELFDESTRUCT:
+	case Instruction::JUMP:
+	case Instruction::JUMPI:
+	case Instruction::PC:
+	case Instruction::CREATE:
+	case Instruction::CODESIZE:
+	case Instruction::CODECOPY:
+	case Instruction::EXTCODESIZE:
+	case Instruction::EXTCODECOPY:
+	case Instruction::GAS:
+		return !_eofVersion.has_value();
+	// Instructions below available only in EOF
+	case Instruction::EOFCREATE:
+	case Instruction::RETURNCONTRACT:
+	case Instruction::DATALOADN:
+	case Instruction::RJUMP:
+	case Instruction::RJUMPI:
+	case Instruction::CALLF:
+	case Instruction::JUMPF:
+	case Instruction::DUPN:
+	case Instruction::SWAPN:
+	case Instruction::RETF:
+	case Instruction::EXTCALL:
+	case Instruction::EXTSTATICCALL:
+	case Instruction::EXTDELEGATECALL:
+		return _eofVersion.has_value();
 	default:
 		return true;
 	}

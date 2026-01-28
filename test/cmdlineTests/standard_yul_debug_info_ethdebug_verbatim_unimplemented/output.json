@@ -1,0 +1,13 @@
+{
+    "errors": [
+        {
+            "component": "general",
+            "formattedMessage": "UnimplementedFeatureError: Verbatim bytecode is currently not supported by ethdebug.
+
+",
+            "message": "Verbatim bytecode is currently not supported by ethdebug.",
+            "severity": "error",
+            "type": "UnimplementedFeatureError"
+        }
+    ]
+}

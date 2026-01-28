@@ -798,7 +798,7 @@ BOOST_AUTO_TEST_CASE(call_arguments_tuple_invalid_empty)
 	BOOST_REQUIRE_THROW(parse(source), TestParserError);
 }
 
-BOOST_AUTO_TEST_CASE(call_arguments_tuple_invalid_parantheses)
+BOOST_AUTO_TEST_CASE(call_arguments_tuple_invalid_parentheses)
 {
 	char const* source = R"(
 		// f((uint8,() -> FAILURE

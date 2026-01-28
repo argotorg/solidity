@@ -32,6 +32,8 @@ contract Main {
         return h.getName();
     }
 }
+// ====
+// bytecodeFormat: legacy,>=EOFv1
 // ----
 // getFlag() -> true
 // getName() -> "abc"

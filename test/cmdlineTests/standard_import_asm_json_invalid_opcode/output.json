@@ -2,8 +2,8 @@
     "errors": [
         {
             "component": "general",
-            "formattedMessage": "Assembly import error: InvalidOpcode",
-            "message": "Assembly import error: InvalidOpcode",
+            "formattedMessage": "Assembly import error: Invalid opcode (INVALID_OPCODE)",
+            "message": "Assembly import error: Invalid opcode (INVALID_OPCODE)",
             "severity": "error",
             "type": "Exception"
         }

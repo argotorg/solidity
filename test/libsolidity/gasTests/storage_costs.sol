@@ -11,8 +11,10 @@ contract C {
     }
 }
 // ====
+// EVMVersion: =current
 // optimize: true
 // optimize-yul: true
+// bytecodeFormat: legacy
 // ----
 // creation:
 //   codeDepositCost: 25600

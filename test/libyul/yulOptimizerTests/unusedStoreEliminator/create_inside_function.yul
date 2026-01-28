@@ -7,6 +7,8 @@
     f()
     sstore(x, 20)
 }
+// ====
+// bytecodeFormat: legacy
 // ----
 // step: unusedStoreEliminator
 //

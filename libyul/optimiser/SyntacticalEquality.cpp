@@ -1,4 +1,4 @@
-/*(
+/*
 	This file is part of solidity.
 
 	solidity is free software: you can redistribute it and/or modify
@@ -22,8 +22,10 @@
 
 #include <libyul/AST.h>
 #include <libyul/Utilities.h>
+#include <libyul/Exceptions.h>
 
 #include <libsolutil/CommonData.h>
+#include <libsolutil/Visitor.h>
 
 using namespace solidity;
 using namespace solidity::yul;
@@ -53,6 +55,14 @@ bool SyntacticallyEqual::expressionEqual(FunctionCall const& _lhs, FunctionCall 
 		});
 }
 
+bool SyntacticallyEqual::expressionEqual(FunctionName const& _lhs, FunctionName const& _rhs)
+{
+	return std::visit(util::GenericVisitor{
+		[&](BuiltinName const& _builtin) { return std::holds_alternative<BuiltinName>(_rhs) && _builtin.handle == std::get<BuiltinName>(_rhs).handle; },
+		[&](Identifier const& _identifier) { return std::holds_alternative<Identifier>(_rhs) && expressionEqual(_identifier, std::get<Identifier>(_rhs)); },
+	}, _lhs);
+}
+
 bool SyntacticallyEqual::expressionEqual(Identifier const& _lhs, Identifier const& _rhs)
 {
 	auto lhsIt = m_identifiersLHS.find(_lhs.name);
@@ -63,12 +73,9 @@ bool SyntacticallyEqual::expressionEqual(Identifier const& _lhs, Identifier cons
 }
 bool SyntacticallyEqual::expressionEqual(Literal const& _lhs, Literal const& _rhs)
 {
-	if (_lhs.kind != _rhs.kind || _lhs.type != _rhs.type)
-		return false;
-	if (_lhs.kind == LiteralKind::Number)
-		return valueOfNumberLiteral(_lhs) == valueOfNumberLiteral(_rhs);
-	else
-		return _lhs.value == _rhs.value;
+	assert(validLiteral(_lhs));
+	assert(validLiteral(_rhs));
+	return _lhs.value == _rhs.value;
 }
 
 bool SyntacticallyEqual::statementEqual(ExpressionStatement const& _lhs, ExpressionStatement const& _rhs)
@@ -91,14 +98,14 @@ bool SyntacticallyEqual::statementEqual(VariableDeclaration const& _lhs, Variabl
 	// first visit expression, then variable declarations
 	if (!compareUniquePtr<Expression, &SyntacticallyEqual::operator()>(_lhs.value, _rhs.value))
 		return false;
-	return util::containerEqual(_lhs.variables, _rhs.variables, [this](TypedName const& _lhsVarName, TypedName const& _rhsVarName) -> bool {
+	return util::containerEqual(_lhs.variables, _rhs.variables, [this](NameWithDebugData const& _lhsVarName, NameWithDebugData const& _rhsVarName) -> bool {
 		return this->visitDeclaration(_lhsVarName, _rhsVarName);
 	});
 }
 
 bool SyntacticallyEqual::statementEqual(FunctionDefinition const& _lhs, FunctionDefinition const& _rhs)
 {
-	auto compare = [this](TypedName const& _lhsVarName, TypedName const& _rhsVarName) -> bool {
+	auto compare = [this](NameWithDebugData const& _lhsVarName, NameWithDebugData const& _rhsVarName) -> bool {
 		return this->visitDeclaration(_lhsVarName, _rhsVarName);
 	};
 	// first visit parameter declarations, then body
@@ -155,10 +162,8 @@ bool SyntacticallyEqual::statementEqual(Block const& _lhs, Block const& _rhs)
 	});
 }
 
-bool SyntacticallyEqual::visitDeclaration(TypedName const& _lhs, TypedName const& _rhs)
+bool SyntacticallyEqual::visitDeclaration(NameWithDebugData const& _lhs, NameWithDebugData const& _rhs)
 {
-	if (_lhs.type != _rhs.type)
-		return false;
 	std::size_t id = m_idsUsed++;
 	m_identifiersLHS[_lhs.name] = id;
 	m_identifiersRHS[_rhs.name] = id;

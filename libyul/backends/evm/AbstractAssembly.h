@@ -25,6 +25,8 @@
 
 #include <libyul/ASTForward.h>
 
+#include <libevmasm/SubAssemblyID.h>
+
 #include <libsolutil/Common.h>
 #include <libsolutil/CommonData.h>
 #include <libsolutil/Numeric.h>
@@ -55,7 +57,9 @@ class AbstractAssembly
 {
 public:
 	using LabelID = size_t;
-	using SubID = size_t;
+	using SubID = evmasm::SubAssemblyID;
+	using ContainerID = uint8_t;
+	using FunctionID = uint16_t;
 	enum class JumpType { Ordinary, IntoFunction, OutOfFunction };
 
 	virtual ~AbstractAssembly() = default;
@@ -100,6 +104,27 @@ public:
 	virtual void appendAssemblySize() = 0;
 	/// Creates a new sub-assembly, which can be referenced using dataSize and dataOffset.
 	virtual std::pair<std::shared_ptr<AbstractAssembly>, SubID> createSubAssembly(bool _creation, std::string _name = "") = 0;
+
+	/// Registers a new function with given signature and returns its ID.
+	/// The function is initially empty and its body must be filled with instructions.
+	/// `_rets` even for non-returning function matters in case of stack height calculation.
+	virtual FunctionID registerFunction(uint8_t _args, uint8_t _rets, bool _nonReturning) = 0;
+	/// Selects a function as a target for newly appended instructions.
+	/// May only be called after the main code section is already filled and
+	/// must not be called when another function is already selected.
+	/// Filling the same function more than once is not allowed.
+	/// @a endFunction() must be called at the end to finalize the function.
+	virtual void beginFunction(FunctionID _functionID) = 0;
+	/// Finalizes the process of filling a function body and switches back to the main code section.
+	/// Must not be called if no function is selected.
+	/// Must be called after filling the main yul section
+	virtual void endFunction() = 0;
+	/// Appends function call to a function under given ID
+	virtual void appendFunctionCall(FunctionID _functionID) = 0;
+	/// Appends an instruction that returns values from the current function.
+	/// Only allowed inside a function body.
+	virtual void appendFunctionReturn() = 0;
+
 	/// Appends the offset of the given sub-assembly or data.
 	virtual void appendDataOffset(std::vector<SubID> const& _subPath) = 0;
 	/// Appends the size of the given sub-assembly or data.
@@ -112,8 +137,26 @@ public:
 	/// Appends an assignment to an immutable variable.
 	virtual void appendImmutableAssignment(std::string const& _identifier) = 0;
 
+	/// Appends an operation that loads 32 bytes of data from a known offset relative to the start of the static_aux_data area of the EOF data section.
+	/// Note that static_aux_data is only a part or the data section.
+	/// It is preceded by the pre_deploy_data, whose size is not determined before the bytecode is assembled, and which cannot be accessed using this function.
+	/// The function is meant to allow indexing into static_aux_data in a way that's independent of the size of pre_deploy_data.
+	virtual void appendAuxDataLoadN(uint16_t _offset) = 0;
+
+	/// Appends EOF contract creation instruction which takes creation code from subcontainer with _containerID.
+	virtual void appendEOFCreate(ContainerID _containerID) = 0;
+	/// Appends EOF contract return instruction which returns a subcontainer ID (_containerID) with auxiliary data filled in.
+	virtual void appendReturnContract(ContainerID _containerID) = 0;
 	/// Appends data to the very end of the bytecode. Repeated calls concatenate.
+	/// EOF auxiliary data in data section and the auxiliary data are different things.
 	virtual void appendToAuxiliaryData(bytes const& _data) = 0;
+
+	/// Appends a SWAPN with 1-based indexing for @arg _depth. I.e. a depth of 1 would be equivalent to emitting SWAP1.
+	/// @arg _depth ranges from 1 to 256.
+	virtual void appendSwapN(size_t _depth) = 0;
+	/// Appends a DUPN with 1-based indexing for @arg _depth. I.e. a depth of 1 would be equivalent to emitting DUP1.
+	/// @arg _depth ranges from 1 to 256.
+	virtual void appendDupN(size_t _depth) = 0;
 
 	/// Mark this assembly as invalid. Any attempt to request bytecode from it should throw.
 	virtual void markAsInvalid() = 0;

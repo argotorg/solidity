@@ -58,6 +58,7 @@ public:
 		smt::EncodingContext& _context,
 		langutil::UniqueErrorReporter& _errorReporter,
 		langutil::UniqueErrorReporter& _unsupportedErrorReporter,
+		langutil::ErrorReporter& _provedSafeReporter,
 		std::map<util::h256, std::string> const& _smtlib2Responses,
 		ReadCallback::Callback const& _smtCallback,
 		ModelCheckerSettings _settings,
@@ -73,7 +74,10 @@ public:
 
 		friend bool operator<(CHCVerificationTarget const& _a, CHCVerificationTarget const& _b)
 		{
-			return _a.errorId < _b.errorId;
+			if (_a.errorNode->id() == _b.errorNode->id())
+				return _a.type < _b.type;
+			else
+				return _a.errorNode->id() < _b.errorNode->id();
 		}
 	};
 
@@ -213,7 +217,6 @@ private:
 	smtutil::Expression interface(ContractDefinition const& _contract);
 	/// Error predicate over current variables.
 	smtutil::Expression error();
-	smtutil::Expression error(unsigned _idx);
 
 	/// Creates a block for the given _node.
 	Predicate const* createBlock(ASTNode const* _node, PredicateType _predType, std::string const& _prefix = "");
@@ -285,7 +288,7 @@ private:
 	void addRule(smtutil::Expression const& _rule, std::string const& _ruleName);
 	/// @returns <true, invariant, empty> if query is unsatisfiable (safe).
 	/// @returns <false, Expression(true), model> otherwise.
-	std::tuple<smtutil::CheckResult, smtutil::Expression, smtutil::CHCSolverInterface::CexGraph> query(smtutil::Expression const& _query, langutil::SourceLocation const& _location);
+	smtutil::CHCSolverInterface::QueryResult query(smtutil::Expression const& _query, langutil::SourceLocation const& _location);
 
 	void verificationTargetEncountered(ASTNode const* const _errorNode, VerificationTargetType _type, smtutil::Expression const& _errorCondition);
 

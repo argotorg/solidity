@@ -1,0 +1,31 @@
+//SPDX-License-Identifier: GPL-3.0
+pragma solidity *;
+
+abstract contract A {
+    uint x;
+    uint transient t1;
+    uint y;
+}
+
+contract B {
+    uint transient t2;
+    int8 w;
+    int8 transient t3;
+}
+
+contract C is B {
+    uint128 z;
+    bool b;
+    bool transient t4;
+}
+
+contract D is A, C layout at 100 {
+    address addr;
+    address transient t5;
+    uint[2] array;
+    mapping(uint => address) m;
+}
+
+contract P is A layout at 200 {
+    uint q;
+}

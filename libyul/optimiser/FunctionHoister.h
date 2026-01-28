@@ -46,7 +46,8 @@ public:
 	void operator()(Block& _block) override;
 
 private:
-	FunctionHoister() = default;
+	FunctionHoister();
+	~FunctionHoister() override;
 
 	bool m_isTopLevel = true;
 	std::vector<Statement> m_functions;

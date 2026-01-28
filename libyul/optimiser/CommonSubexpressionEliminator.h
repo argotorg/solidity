@@ -32,7 +32,7 @@
 namespace solidity::yul
 {
 
-struct Dialect;
+class Dialect;
 struct SideEffects;
 
 /**
@@ -53,19 +53,19 @@ public:
 private:
 	CommonSubexpressionEliminator(
 		Dialect const& _dialect,
-		std::map<YulString, SideEffects> _functionSideEffects
+		std::map<FunctionHandle, SideEffects> _functionSideEffects
 	);
 
 protected:
 	using ASTModifier::visit;
 	void visit(Expression& _e) override;
 
-	void assignValue(YulString _variable, Expression const* _value) override;
+	void assignValue(YulName _variable, Expression const* _value) override;
 private:
-	std::set<YulString> m_returnVariables;
+	std::set<YulName> m_returnVariables;
 	std::unordered_map<
 		std::reference_wrapper<Expression const>,
-		std::set<YulString>,
+		std::set<YulName>,
 		ExpressionHash,
 		SyntacticallyEqualExpression
 	> m_replacementCandidates;

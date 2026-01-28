@@ -36,9 +36,9 @@ void ForLoopConditionOutOfBody::operator()(ForLoop& _forLoop)
 	ASTModifier::operator()(_forLoop);
 
 	if (
-		!m_dialect.booleanNegationFunction() ||
+		!m_dialect.booleanNegationFunctionHandle() ||
 		!std::holds_alternative<Literal>(*_forLoop.condition) ||
-		valueOfLiteral(std::get<Literal>(*_forLoop.condition)) == u256(0) ||
+		std::get<Literal>(*_forLoop.condition).value.value() == 0 ||
 		_forLoop.body.statements.empty() ||
 		!std::holds_alternative<If>(_forLoop.body.statements.front())
 	)
@@ -53,18 +53,21 @@ void ForLoopConditionOutOfBody::operator()(ForLoop& _forLoop)
 	if (!SideEffectsCollector(m_dialect, *firstStatement.condition).movable())
 		return;
 
-	YulString iszero = m_dialect.booleanNegationFunction()->name;
+	std::optional<BuiltinHandle> iszero = m_dialect.booleanNegationFunctionHandle();
+	yulAssert(iszero.has_value());
+	auto const& isZeroHandle = *iszero;
 	langutil::DebugData::ConstPtr debugData = debugDataOf(*firstStatement.condition);
 
 	if (
 		std::holds_alternative<FunctionCall>(*firstStatement.condition) &&
-		std::get<FunctionCall>(*firstStatement.condition).functionName.name == iszero
+		std::holds_alternative<BuiltinName>(std::get<FunctionCall>(*firstStatement.condition).functionName) &&
+		std::get<BuiltinName>(std::get<FunctionCall>(*firstStatement.condition).functionName).handle == isZeroHandle
 	)
 		_forLoop.condition = std::make_unique<Expression>(std::move(std::get<FunctionCall>(*firstStatement.condition).arguments.front()));
 	else
 		_forLoop.condition = std::make_unique<Expression>(FunctionCall{
 			debugData,
-			Identifier{debugData, iszero},
+			BuiltinName{debugData, isZeroHandle},
 			util::make_vector<Expression>(
 				std::move(*firstStatement.condition)
 			)

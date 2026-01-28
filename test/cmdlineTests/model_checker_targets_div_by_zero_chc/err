@@ -3,12 +3,13 @@ Counterexample:
 arr = []
 a = 0x0
 x = 0
+success = false
 
 Transaction trace:
 test.constructor()
 State: arr = []
 test.f(0x0, 1)
- --> model_checker_targets_div_by_zero_chc/input.sol:9:3:
+ --> input.sol:9:3:
   |
 9 | 		2 / x;
   | 		^^^^^

@@ -22,7 +22,7 @@
 
 	function foo_singlereturn_1(in_1, in_2) -> out
 	{
-		extcodecopy(1,msize(),1,1)
+		mstore8(msize(), 42)
 	}
 
 	a := foo_singlereturn_0()
@@ -60,5 +60,5 @@
 //         default { out := gcd(_b, mod(_a, _b)) }
 //     }
 //     function foo_singlereturn()
-//     { extcodecopy(1, msize(), 1, 1) }
+//     { mstore8(msize(), 42) }
 // }

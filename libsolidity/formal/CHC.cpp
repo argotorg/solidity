@@ -18,18 +18,14 @@
 
 #include <libsolidity/formal/CHC.h>
 
-#include <libsolidity/formal/ModelChecker.h>
-
-#ifdef HAVE_Z3
-#include <libsmtutil/Z3CHCInterface.h>
-#endif
-
 #include <libsolidity/formal/ArraySlicePredicate.h>
+#include <libsolidity/formal/ExpressionFormatter.h>
 #include <libsolidity/formal/EldaricaCHCSmtLib2Interface.h>
-#include <libsolidity/formal/Invariants.h>
+#include <libsolidity/formal/ModelChecker.h>
 #include <libsolidity/formal/PredicateInstance.h>
 #include <libsolidity/formal/PredicateSort.h>
 #include <libsolidity/formal/SymbolicTypes.h>
+#include <libsolidity/formal/Z3CHCSmtLib2Interface.h>
 
 #include <libsolidity/ast/TypeProvider.h>
 
@@ -38,13 +34,8 @@
 #include <libsolutil/Algorithms.h>
 #include <libsolutil/StringUtils.h>
 
-#ifdef HAVE_Z3_DLOPEN
-#include <z3_version.h>
-#endif
-
-#include <boost/algorithm/string.hpp>
-
 #include <range/v3/algorithm/for_each.hpp>
+#include <range/v3/algorithm/none_of.hpp>
 #include <range/v3/view.hpp>
 #include <range/v3/view/enumerate.hpp>
 #include <range/v3/view/reverse.hpp>
@@ -63,17 +54,16 @@ CHC::CHC(
 	EncodingContext& _context,
 	UniqueErrorReporter& _errorReporter,
 	UniqueErrorReporter& _unsupportedErrorReporter,
+	ErrorReporter& _provedSafeReporter,
 	std::map<util::h256, std::string> const& _smtlib2Responses,
 	ReadCallback::Callback const& _smtCallback,
 	ModelCheckerSettings _settings,
 	CharStreamProvider const& _charStreamProvider
 ):
-	SMTEncoder(_context, _settings, _errorReporter, _unsupportedErrorReporter, _charStreamProvider),
+	SMTEncoder(_context, _settings, _errorReporter, _unsupportedErrorReporter, _provedSafeReporter, _charStreamProvider),
 	m_smtlib2Responses(_smtlib2Responses),
 	m_smtCallback(_smtCallback)
-{
-	solAssert(!_settings.printQuery || _settings.solvers == smtutil::SMTSolverChoice::SMTLIB2(), "Only SMTLib2 solver can be enabled to print queries");
-}
+{}
 
 void CHC::analyze(SourceUnit const& _source)
 {
@@ -98,7 +88,7 @@ void CHC::analyze(SourceUnit const& _source)
 			" If you wish to use Eldarica, please enable Eldarica only."
 		);
 
-	if (!shouldAnalyze(_source))
+	if (!shouldAnalyzeVerificationTargetsFor(_source))
 		return;
 
 	resetSourceAnalysis();
@@ -140,8 +130,11 @@ std::vector<std::string> CHC::unhandledQueries() const
 
 bool CHC::visit(ContractDefinition const& _contract)
 {
-	if (!shouldAnalyze(_contract))
+	if (!shouldEncode(_contract))
 		return false;
+
+	// Raises UnimplementedFeatureError in the presence of transient storage variables
+	TransientDataLocationChecker checker(_contract);
 
 	resetContractAnalysis();
 	initContract(_contract);
@@ -158,7 +151,7 @@ bool CHC::visit(ContractDefinition const& _contract)
 
 void CHC::endVisit(ContractDefinition const& _contract)
 {
-	if (!shouldAnalyze(_contract))
+	if (!shouldEncode(_contract))
 		return;
 
 	for (auto base: _contract.annotation().linearizedBaseContracts)
@@ -245,15 +238,14 @@ void CHC::endVisit(ContractDefinition const& _contract)
 	setCurrentBlock(*m_constructorSummaries.at(&_contract));
 
 	solAssert(&_contract == m_currentContract, "");
-	if (shouldAnalyze(_contract))
-	{
-		auto constructor = _contract.constructor();
-		auto txConstraints = state().txTypeConstraints();
-		if (!constructor || !constructor->isPayable())
-			txConstraints = txConstraints && state().txNonPayableConstraint();
+	smtAssert(shouldEncode(_contract));
+	auto constructor = _contract.constructor();
+	auto txConstraints = state().txTypeConstraints();
+	if (!constructor || !constructor->isPayable())
+		txConstraints = txConstraints && state().txNonPayableConstraint();
+	connectBlocks(m_currentBlock, interface(), txConstraints && errorFlag().currentValue() == 0);
+	if (shouldAnalyzeVerificationTargetsFor(_contract))
 		m_queryPlaceholders[&_contract].push_back({txConstraints, errorFlag().currentValue(), m_currentBlock});
-		connectBlocks(m_currentBlock, interface(), txConstraints && errorFlag().currentValue() == 0);
-	}
 
 	solAssert(m_scopes.back() == &_contract, "");
 	m_scopes.pop_back();
@@ -344,7 +336,7 @@ void CHC::endVisit(FunctionDefinition const& _function)
 		!_function.isConstructor() &&
 		_function.isPublic() &&
 		contractFunctions(*m_currentContract).count(&_function) &&
-		shouldAnalyze(*m_currentContract)
+		shouldEncode(*m_currentContract)
 	)
 	{
 		defineExternalFunctionInterface(_function, *m_currentContract);
@@ -355,8 +347,9 @@ void CHC::endVisit(FunctionDefinition const& _function)
 		auto ifacePre = smt::interfacePre(*m_interfaces.at(m_currentContract), *m_currentContract, m_context);
 		auto sum = externalSummary(_function);
 
-		m_queryPlaceholders[&_function].push_back({sum, errorFlag().currentValue(), ifacePre});
 		connectBlocks(ifacePre, interface(), sum && errorFlag().currentValue() == 0);
+		if (shouldAnalyzeVerificationTargetsFor(*m_currentContract))
+			m_queryPlaceholders[&_function].push_back({sum, errorFlag().currentValue(), ifacePre});
 	}
 
 	m_currentFunction = nullptr;
@@ -645,6 +638,7 @@ void CHC::endVisit(FunctionCall const& _funCall)
 	case FunctionType::Kind::ECRecover:
 	case FunctionType::Kind::SHA256:
 	case FunctionType::Kind::RIPEMD160:
+	case FunctionType::Kind::BlobHash:
 	case FunctionType::Kind::BlockHash:
 	case FunctionType::Kind::AddMod:
 	case FunctionType::Kind::MulMod:
@@ -857,7 +851,7 @@ void CHC::visitDeployment(FunctionCall const& _funCall)
 		auto const& params = constructor->parameters();
 		solAssert(args.size() == params.size(), "");
 		for (auto [arg, param]: ranges::zip_view(args, params))
-			m_context.addAssertion(expr(*arg) == m_context.variable(*param)->currentValue());
+			m_context.addAssertion(expr(*arg, param->type()) == m_context.variable(*param)->currentValue());
 	}
 	for (auto var: stateVariablesIncludingInheritedAndPrivate(*contract))
 		m_context.variable(*var)->increaseIndex();
@@ -929,17 +923,6 @@ void CHC::internalFunctionCall(FunctionCall const& _funCall)
 
 	Expression const* calledExpr = &_funCall.expression();
 	auto funType = dynamic_cast<FunctionType const*>(calledExpr->annotation().type);
-
-	auto contractAddressValue = [this](FunctionCall const& _f) {
-		auto [callExpr, callOptions] = functionCallExpression(_f);
-
-		FunctionType const& funType = dynamic_cast<FunctionType const&>(*callExpr->annotation().type);
-		if (funType.kind() == FunctionType::Kind::Internal)
-			return state().thisAddress();
-		if (MemberAccess const* callBase = dynamic_cast<MemberAccess const*>(callExpr))
-			return expr(callBase->expression());
-		solAssert(false, "Unreachable!");
-	};
 
 	std::vector<Expression const*> arguments;
 	for (auto& arg: _funCall.sortedArguments())
@@ -1275,41 +1258,29 @@ void CHC::resetSourceAnalysis()
 	ArraySlicePredicate::reset();
 	m_blockCounter = 0;
 
-	// At this point every enabled solver is available.
-	// If more than one Horn solver is selected we go with z3.
-	// We still need the ifdef because of Z3CHCInterface.
-	if (m_settings.solvers.z3)
+	solAssert(m_settings.solvers.smtlib2 || m_settings.solvers.eld || m_settings.solvers.z3);
+	if (!m_interface)
 	{
-#ifdef HAVE_Z3
-		// z3::fixedpoint does not have a reset mechanism, so we need to create another.
-		m_interface = std::make_unique<Z3CHCInterface>(m_settings.timeout);
-		auto z3Interface = dynamic_cast<Z3CHCInterface const*>(m_interface.get());
-		solAssert(z3Interface, "");
-		m_context.setSolver(z3Interface->z3Interface());
-#else
-		solAssert(false);
-#endif
+		if (m_settings.solvers.z3)
+			m_interface = std::make_unique<Z3CHCSmtLib2Interface>(
+				m_smtCallback,
+				m_settings.timeout,
+				m_settings.invariants != ModelCheckerInvariants::None()
+			);
+		else if (m_settings.solvers.eld)
+			m_interface = std::make_unique<EldaricaCHCSmtLib2Interface>(
+				m_smtCallback,
+				m_settings.timeout,
+				m_settings.invariants != ModelCheckerInvariants::None()
+			);
+		else
+			m_interface = std::make_unique<CHCSmtLib2Interface>(m_smtlib2Responses, m_smtCallback, m_settings.timeout);
 	}
-	else
-	{
-		solAssert(m_settings.solvers.smtlib2 || m_settings.solvers.eld);
-		if (!m_interface)
-		{
-			if (m_settings.solvers.eld)
-				m_interface = std::make_unique<EldaricaCHCSmtLib2Interface>(
-					m_smtCallback,
-					m_settings.timeout,
-					m_settings.invariants != ModelCheckerInvariants::None()
-				);
-			else
-				m_interface = std::make_unique<CHCSmtLib2Interface>(m_smtlib2Responses, m_smtCallback, m_settings.timeout);
-		}
 
-		auto smtlib2Interface = dynamic_cast<CHCSmtLib2Interface*>(m_interface.get());
-		solAssert(smtlib2Interface);
-		smtlib2Interface->reset();
-		m_context.setSolver(smtlib2Interface->smtlib2Interface());
-	}
+	auto smtlib2Interface = dynamic_cast<CHCSmtLib2Interface*>(m_interface.get());
+	solAssert(smtlib2Interface);
+	smtlib2Interface->reset();
+	m_context.setSolver(smtlib2Interface);
 
 	m_context.reset();
 	m_context.resetUniqueId();
@@ -1352,7 +1323,7 @@ void CHC::clearIndices(ContractDefinition const* _contract, FunctionDefinition c
 
 void CHC::setCurrentBlock(Predicate const& _block)
 {
-	if (m_context.solverStackHeigh() > 0)
+	if (m_context.solverStackHeight() > 0)
 		m_context.popSolver();
 	solAssert(m_currentContract, "");
 	clearIndices(m_currentContract, m_currentFunction);
@@ -1653,11 +1624,6 @@ smtutil::Expression CHC::error()
 	return (*m_errorPredicate)({});
 }
 
-smtutil::Expression CHC::error(unsigned _idx)
-{
-	return m_errorPredicate->functor(_idx)({});
-}
-
 smtutil::Expression CHC::initializer(ContractDefinition const& _contract, ContractDefinition const& _contractContext)
 {
 	return predicate(*m_contractInitializers.at(&_contractContext).at(&_contract));
@@ -1744,7 +1710,6 @@ void CHC::createErrorBlock()
 		"error_target_" + std::to_string(m_context.newUniqueId()),
 		PredicateType::Error
 	);
-	m_interface->registerRelation(m_errorPredicate->functor());
 }
 
 void CHC::connectBlocks(smtutil::Expression const& _from, smtutil::Expression const& _to, smtutil::Expression const& _constraints)
@@ -1918,11 +1883,8 @@ void CHC::addRule(smtutil::Expression const& _rule, std::string const& _ruleName
 	m_interface->addRule(_rule, _ruleName);
 }
 
-std::tuple<CheckResult, smtutil::Expression, CHCSolverInterface::CexGraph> CHC::query(smtutil::Expression const& _query, langutil::SourceLocation const& _location)
+CHCSolverInterface::QueryResult CHC::query(smtutil::Expression const& _query, langutil::SourceLocation const& _location)
 {
-	CheckResult result;
-	smtutil::Expression invariant(true);
-	CHCSolverInterface::CexGraph cex;
 	if (m_settings.printQuery)
 	{
 		auto smtLibInterface = dynamic_cast<CHCSmtLib2Interface*>(m_interface.get());
@@ -1932,49 +1894,23 @@ std::tuple<CheckResult, smtutil::Expression, CHCSolverInterface::CexGraph> CHC::
 			2339_error,
 			"CHC: Requested query:\n" + smtLibCode
 		);
+		return {.answer = CheckResult::UNKNOWN, .invariants = {}, .cex = {}};
 	}
-	std::tie(result, invariant, cex) = m_interface->query(_query);
-	switch (result)
+	auto result = m_interface->query(_query);
+	switch (result.answer)
 	{
 	case CheckResult::SATISFIABLE:
-	{
-	// We still need the ifdef because of Z3CHCInterface.
-		if (m_settings.solvers.z3)
-		{
-#ifdef HAVE_Z3
-			// Even though the problem is SAT, Spacer's pre processing makes counterexamples incomplete.
-			// We now disable those optimizations and check whether we can still solve the problem.
-			auto* spacer = dynamic_cast<Z3CHCInterface*>(m_interface.get());
-			solAssert(spacer, "");
-			spacer->setSpacerOptions(false);
-
-			CheckResult resultNoOpt;
-			smtutil::Expression invariantNoOpt(true);
-			CHCSolverInterface::CexGraph cexNoOpt;
-			std::tie(resultNoOpt, invariantNoOpt, cexNoOpt) = m_interface->query(_query);
-
-			if (resultNoOpt == CheckResult::SATISFIABLE)
-				cex = std::move(cexNoOpt);
-
-			spacer->setSpacerOptions(true);
-#else
-			solAssert(false);
-#endif
-		}
-		break;
-	}
 	case CheckResult::UNSATISFIABLE:
-		break;
 	case CheckResult::UNKNOWN:
 		break;
 	case CheckResult::CONFLICTING:
 		m_errorReporter.warning(1988_error, _location, "CHC: At least two SMT solvers provided conflicting answers. Results might not be sound.");
 		break;
 	case CheckResult::ERROR:
-		m_errorReporter.warning(1218_error, _location, "CHC: Error trying to invoke SMT solver.");
+		m_errorReporter.warning(1218_error, _location, "CHC: Error during interaction with the solver.");
 		break;
 	}
-	return {result, invariant, cex};
+	return result;
 }
 
 void CHC::verificationTargetEncountered(
@@ -2113,17 +2049,22 @@ void CHC::checkVerificationTargets()
 		);
 
 	if (!m_settings.showProvedSafe && !m_safeTargets.empty())
+	{
+		std::size_t provedSafeNum = 0;
+		for (auto&& [_, targets]: m_safeTargets)
+			provedSafeNum += targets.size();
 		m_errorReporter.info(
 			1391_error,
 			"CHC: " +
-			std::to_string(m_safeTargets.size()) +
+			std::to_string(provedSafeNum) +
 			" verification condition(s) proved safe!" +
 			" Enable the model checker option \"show proved safe\" to see all of them."
 		);
+	}
 	else if (m_settings.showProvedSafe)
 		for (auto const& [node, targets]: m_safeTargets)
 			for (auto const& target: targets)
-				m_errorReporter.info(
+				m_provedSafeReporter.info(
 					9576_error,
 					node->location(),
 					"CHC: " +
@@ -2192,6 +2133,43 @@ void CHC::checkVerificationTargets()
 		m_safeTargets[m_verificationTargets.at(id).errorNode].insert(m_verificationTargets.at(id));
 }
 
+namespace
+{
+std::map<Predicate const*, std::set<std::string>> collectInvariants(
+	CHCSmtLib2Interface::Invariants const& _invariants,
+	std::set<Predicate const*> const& _predicates,
+	ModelCheckerInvariants const& _invariantsSetting
+)
+{
+	std::set<std::string> targets;
+	if (_invariantsSetting.has(InvariantType::Contract))
+		targets.insert("interface_");
+	if (_invariantsSetting.has(InvariantType::Reentrancy))
+		targets.insert("nondet_interface_");
+
+	std::map<Predicate const*, std::set<std::string>> invariants;
+	for (auto const* pred: _predicates)
+	{
+		smtAssert(pred);
+		auto const& predName = pred->functor().name;
+		if (!_invariants.contains(predName))
+			continue;
+		if (ranges::none_of(targets, [&](auto const& _target) { return predName.starts_with(_target); }))
+			continue;
+
+		smtAssert(pred->contextContract());
+
+		auto const& [definition, formalArguments] = _invariants.at(predName);
+
+		auto r = substitute(definition, pred->expressionSubstitution(formalArguments));
+		// No point in reporting true/false as invariants.
+		if (r.name != "true" && r.name != "false")
+			invariants[pred].insert(toSolidityStr(r));
+	}
+	return invariants;
+}
+} // namespace
+
 void CHC::checkAndReportTarget(
 	CHCVerificationTarget const& _target,
 	std::vector<CHCQueryPlaceholder> const& _placeholders,
@@ -2211,7 +2189,7 @@ void CHC::checkAndReportTarget(
 			placeholder.constraints && placeholder.errorExpression == _target.errorId
 		);
 	auto const& location = _target.errorNode->location();
-	auto [result, invariant, model] = query(error(), location);
+	auto [result, invariants, model] = query(error(), location);
 	if (result == CheckResult::UNSATISFIABLE)
 	{
 		m_safeTargets[_target.errorNode].insert(_target);
@@ -2220,13 +2198,19 @@ void CHC::checkAndReportTarget(
 			predicates.insert(pred);
 		for (auto const* pred: m_nondetInterfaces | ranges::views::values)
 			predicates.insert(pred);
-		std::map<Predicate const*, std::set<std::string>> invariants = collectInvariants(invariant, predicates, m_settings.invariants);
-		for (auto pred: invariants | ranges::views::keys)
-			m_invariants[pred] += std::move(invariants.at(pred));
+		std::map<Predicate const*, std::set<std::string>> invariantStrings = collectInvariants(invariants, predicates, m_settings.invariants);
+		for (auto pred: invariantStrings | ranges::views::keys)
+			m_invariants[pred] += std::move(invariantStrings.at(pred));
 	}
 	else if (result == CheckResult::SATISFIABLE)
 	{
-		solAssert(!_satMsg.empty(), "");
+		solAssert(!_satMsg.empty());
+		if (auto it = m_safeTargets.find(_target.errorNode); it != m_safeTargets.end())
+		{
+			std::erase_if(it->second, [&](auto const& target) { return target.type == _target.type; });
+			if (it->second.empty())
+				m_safeTargets.erase(it);
+		}
 		auto cex = generateCounterexample(model, error().name);
 		if (cex)
 			m_unsafeTargets[_target.errorNode][_target.type] = {
@@ -2410,22 +2394,17 @@ std::map<unsigned, std::vector<unsigned>> CHC::summaryCalls(CHCSolverInterface::
 			// nondet_call_<CALLID>_<suffix>
 			// Those have the extra unique <CALLID> numbers based on the traversal order, and are necessary
 			// to infer the call order so that's shown property in the counterexample trace.
-			// Predicates that do not have a CALLID have a predicate id at the end of <suffix>,
-			// so the assertion below should still hold.
+			// For other predicates, we do not care.
 			auto beg = _s.data();
 			while (beg != _s.data() + _s.size() && !isDigit(*beg)) ++beg;
-			auto end = beg;
-			while (end != _s.data() + _s.size() && isDigit(*end)) ++end;
-
-			solAssert(beg != end, "Expected to find numerical call or predicate id.");
-
-			int result;
-			auto [p, ec] = std::from_chars(beg, end, result);
-			solAssert(ec == std::errc(), "Id should be a number.");
-
+			int result = -1;
+			static_cast<void>(std::from_chars(beg, _s.data() + _s.size(), result));
 			return result;
 		};
-		return extract(_graph.nodes.at(_a).name) > extract(_graph.nodes.at(_b).name);
+		auto anum = extract(_graph.nodes.at(_a).name);
+		auto bnum = extract(_graph.nodes.at(_b).name);
+		// The second part of the condition is needed to ensure that two different predicates are not considered equal
+		return (anum > bnum) || (anum == bnum && _graph.nodes.at(_a).name > _graph.nodes.at(_b).name);
 	};
 
 	std::queue<std::pair<unsigned, unsigned>> q;

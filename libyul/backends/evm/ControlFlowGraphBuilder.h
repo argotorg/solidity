@@ -33,7 +33,7 @@ public:
 	ControlFlowGraphBuilder& operator=(ControlFlowGraphBuilder const&) = delete;
 	static std::unique_ptr<CFG> build(AsmAnalysisInfo const& _analysisInfo, Dialect const& _dialect, Block const& _block);
 
-	StackSlot operator()(Expression const& _literal);
+	StackSlot operator()(Expression const& _expression);
 	StackSlot operator()(Literal const& _literal);
 	StackSlot operator()(Identifier const& _identifier);
 	StackSlot operator()(FunctionCall const&);
@@ -63,8 +63,8 @@ private:
 	Stack const& visitFunctionCall(FunctionCall const&);
 	Stack visitAssignmentRightHandSide(Expression const& _expression, size_t _expectedSlotCount);
 
-	Scope::Function const& lookupFunction(YulString _name) const;
-	Scope::Variable const& lookupVariable(YulString _name) const;
+	Scope::Function const& lookupFunction(YulName _name) const;
+	Scope::Variable const& lookupVariable(YulName _name) const;
 	/// Resets m_currentBlock to enforce a subsequent explicit reassignment.
 	void makeConditionalJump(
 		langutil::DebugData::ConstPtr _debugData,
@@ -90,6 +90,8 @@ private:
 	};
 	std::optional<ForLoopInfo> m_forLoopInfo;
 	std::optional<CFG::FunctionInfo*> m_currentFunction;
+	/// True if control flow graph simulates functions with jumps. False otherwise. True for legacy bytecode
+	bool m_simulateFunctionsWithJumps = true;
 };
 
 }

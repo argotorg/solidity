@@ -22,8 +22,7 @@
 
 namespace solidity::yul
 {
-struct AsmAnalysisInfo;
-struct Block;
+class Object;
 }
 
 namespace solidity::yul::test
@@ -42,11 +41,8 @@ public:
 	TestResult run(std::ostream& _stream, std::string const& _linePrefix = "", bool const _formatted = false) override;
 
 private:
-	bool parse(std::ostream& _stream, std::string const& _linePrefix, bool const _formatted);
-	std::string interpret();
+	std::string interpret(std::shared_ptr<Object const> const& _object);
 
-	std::shared_ptr<Block> m_ast;
-	std::shared_ptr<AsmAnalysisInfo> m_analysisInfo;
 	bool m_simulateExternalCallsToSelf = false;
 };
 

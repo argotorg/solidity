@@ -1,5 +1,5 @@
 {
-	function gas() {}
+	function mload() {}
 }
 // ----
-// ParserError 5568: (12-15): Cannot use builtin function name "gas" as identifier name.
+// ParserError 5568: (12-17): Cannot use builtin function name "mload" as identifier name.

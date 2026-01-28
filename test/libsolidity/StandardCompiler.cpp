@@ -22,18 +22,23 @@
 
 #include <string>
 #include <boost/test/unit_test.hpp>
+#include <boost/test/data/test_case.hpp>
 #include <boost/algorithm/string/replace.hpp>
+#include <liblangutil/EVMVersion.h>
 #include <libsolidity/interface/OptimiserSettings.h>
 #include <libsolidity/interface/StandardCompiler.h>
 #include <libsolidity/interface/Version.h>
 #include <libsolutil/JSON.h>
 #include <libsolutil/CommonData.h>
 #include <test/Metadata.h>
+#include <test/Common.h>
 
 #include <algorithm>
 #include <set>
+#include <utility>
 
 using namespace solidity::evmasm;
+using namespace solidity::langutil;
 using namespace std::string_literals;
 
 namespace solidity::frontend::test
@@ -42,15 +47,15 @@ namespace solidity::frontend::test
 namespace
 {
 
-langutil::Error::Severity str2Severity(std::string const& _cat)
+Error::Severity str2Severity(std::string const& _cat)
 {
-	std::map<std::string, langutil::Error::Severity> cats{
-		{"info", langutil::Error::Severity::Info},
-		{"Info", langutil::Error::Severity::Info},
-		{"warning", langutil::Error::Severity::Warning},
-		{"Warning", langutil::Error::Severity::Warning},
-		{"error", langutil::Error::Severity::Error},
-		{"Error", langutil::Error::Severity::Error}
+	std::map<std::string, Error::Severity> cats{
+		{"info", Error::Severity::Info},
+		{"Info", Error::Severity::Info},
+		{"warning", Error::Severity::Warning},
+		{"Warning", Error::Severity::Warning},
+		{"error", Error::Severity::Error},
+		{"Error", Error::Severity::Error}
 	};
 	return cats.at(_cat);
 }
@@ -82,7 +87,7 @@ bool containsAtMostWarnings(Json const& _compilerResult)
 	{
 		BOOST_REQUIRE(error.is_object());
 		BOOST_REQUIRE(error["severity"].is_string());
-		if (langutil::Error::isError(str2Severity(error["severity"].get<std::string>())))
+		if (Error::isError(str2Severity(error["severity"].get<std::string>())))
 			return false;
 	}
 
@@ -149,6 +154,147 @@ Json compile(std::string _input)
 	Json ret;
 	BOOST_REQUIRE(util::jsonParseStrict(output, ret));
 	return ret;
+}
+
+Json createLanguageAndSourcesSection(std::string const& _language, std::map<std::string, Json> const& _sources, bool _contentNode = true)
+{
+	Json result = Json::object();
+	result["language"] = _language;
+	result["sources"] = Json::object();
+	for (auto const& source: _sources)
+	{
+		result["sources"][source.first] = Json::object();
+		if (_contentNode)
+			result["sources"][source.first]["content"] = source.second;
+		else
+			result["sources"][source.first] = source.second;
+	}
+	return result;
+}
+
+class Code
+{
+public:
+	virtual ~Code() = default;
+	explicit Code(std::map<std::string, Json> _code = {}) : m_code(std::move(_code)) {}
+	[[nodiscard]] virtual Json json() const = 0;
+protected:
+	std::map<std::string, Json> m_code;
+};
+
+class SolidityCode: public Code
+{
+public:
+	explicit SolidityCode(std::map<std::string, Json> _code = {
+		{"fileA", "pragma solidity >=0.0; contract C { function f() public pure {} }"}
+	}) : Code(std::move(_code)) {}
+	[[nodiscard]] Json json() const override
+	{
+		return createLanguageAndSourcesSection("Solidity", m_code);
+	}
+};
+
+class YulCode: public Code
+{
+public:
+	explicit YulCode(std::map<std::string, Json> _code = {
+		{"fileA", "{}"}
+	}) : Code(std::move(_code)) {}
+	[[nodiscard]] Json json() const override
+	{
+		return createLanguageAndSourcesSection("Yul", m_code);
+	}
+};
+
+class EvmAssemblyCode: public Code
+{
+public:
+	explicit EvmAssemblyCode(std::map<std::string, Json> _code = {
+		{"fileA", Json::parse(R"(
+			{
+				"assemblyJson": {
+					".code": [
+						{
+							"begin": 36,
+							"end": 51,
+							"name": "PUSH",
+							"source": 0,
+							"value": "0"
+						}
+					],
+					"sourceList": [
+						"<stdin>"
+					]
+				}
+			}
+			)")}
+	}) : Code(std::move(_code)) {}
+	[[nodiscard]] Json json() const override
+	{
+		return createLanguageAndSourcesSection("EVMAssembly", m_code, false);
+	}
+};
+
+class SolidityAstCode: public Code
+{
+public:
+	explicit SolidityAstCode(std::map<std::string, Json> _code = {
+		{"fileA", Json::parse(R"(
+		{
+			"ast": {
+				"absolutePath": "empty_contract.sol",
+				"exportedSymbols": {
+					"test": [
+						1
+					]
+				},
+				"id": 2,
+				"nodeType": "SourceUnit",
+				"nodes": [
+				{
+					"abstract": false,
+					"baseContracts": [],
+					"canonicalName": "test",
+					"contractDependencies": [],
+					"contractKind": "contract",
+					"fullyImplemented": true,
+					"id": 1,
+					"linearizedBaseContracts": [
+						1
+					],
+					"name": "test",
+					"nameLocation": "9:4:0",
+					"nodeType": "ContractDefinition",
+					"nodes": [],
+					"scope": 2,
+					"src": "0:17:0",
+					"usedErrors": []
+				}
+				],
+			"src": "0:124:0"
+			},
+			"id": 0
+		}
+		)")}
+	}) : Code(std::move(_code)) {}
+	[[nodiscard]] Json json() const override
+	{
+		return createLanguageAndSourcesSection("SolidityAST", m_code);
+	}
+};
+
+Json generateStandardJson(bool _viaIr, Json const& _debugInfoSelection, Json const& _outputSelection, Code const& _code = SolidityCode(), bool _advancedOutputSelection = false)
+{
+	Json result = _code.json();
+	result["settings"] = Json::object();
+	result["settings"]["viaIR"] = _viaIr;
+	if (!_debugInfoSelection.empty())
+		result["settings"]["debug"]["debugInfo"] = _debugInfoSelection;
+	if (_advancedOutputSelection)
+		result["settings"]["outputSelection"] = _outputSelection;
+	else
+		result["settings"]["outputSelection"]["*"]["*"] = _outputSelection;
+	return result;
 }
 
 } // end anonymous namespace
@@ -383,22 +529,20 @@ BOOST_AUTO_TEST_CASE(basic_compilation)
 	BOOST_CHECK(contract["evm"]["bytecode"]["object"].is_string());
 	BOOST_CHECK_EQUAL(
 		solidity::test::bytecodeSansMetadata(contract["evm"]["bytecode"]["object"].get<std::string>()),
-		std::string("6080604052348015600e575f80fd5b5060") +
+		std::string("6080604052348015600e575f5ffd5b5060") +
 		(VersionIsRelease ? "3e" : util::toHex(bytes{uint8_t(60 + VersionStringStrict.size())})) +
-		"80601a5f395ff3fe60806040525f80fdfe"
+		"80601a5f395ff3fe60806040525f5ffdfe"
 	);
 	BOOST_CHECK(contract["evm"]["assembly"].is_string());
 	BOOST_CHECK(contract["evm"]["assembly"].get<std::string>().find(
 		"    /* \"fileA\":0:14  contract A { } */\n  mstore(0x40, 0x80)\n  "
 		"callvalue\n  dup1\n  "
 		"iszero\n  tag_1\n  jumpi\n  "
-		"0x00\n  "
-		"dup1\n  revert\n"
+		"revert(0x00, 0x00)\n"
 		"tag_1:\n  pop\n  dataSize(sub_0)\n  dup1\n  "
 		"dataOffset(sub_0)\n  0x00\n  codecopy\n  0x00\n  return\nstop\n\nsub_0: assembly {\n        "
 		"/* \"fileA\":0:14  contract A { } */\n      mstore(0x40, 0x80)\n      "
-		"0x00\n      "
-		"dup1\n      revert\n\n    auxdata: 0xa26469706673582212"
+		"revert(0x00, 0x00)\n\n    auxdata: 0xa26469706673582212"
 	) == 0);
 	BOOST_CHECK(contract["evm"]["gasEstimates"].is_object());
 	BOOST_CHECK_EQUAL(contract["evm"]["gasEstimates"].size(), 1);
@@ -427,7 +571,7 @@ BOOST_AUTO_TEST_CASE(basic_compilation)
 		"{\"begin\":0,\"end\":14,\"name\":\"PUSH [tag]\",\"source\":0,\"value\":\"1\"},"
 		"{\"begin\":0,\"end\":14,\"name\":\"JUMPI\",\"source\":0},"
 		"{\"begin\":0,\"end\":14,\"name\":\"PUSH\",\"source\":0,\"value\":\"0\"},"
-		"{\"begin\":0,\"end\":14,\"name\":\"DUP1\",\"source\":0},"
+		"{\"begin\":0,\"end\":14,\"name\":\"PUSH\",\"source\":0,\"value\":\"0\"},"
 		"{\"begin\":0,\"end\":14,\"name\":\"REVERT\",\"source\":0},"
 		"{\"begin\":0,\"end\":14,\"name\":\"tag\",\"source\":0,\"value\":\"1\"},"
 		"{\"begin\":0,\"end\":14,\"name\":\"JUMPDEST\",\"source\":0},"
@@ -679,7 +823,7 @@ BOOST_AUTO_TEST_CASE(filename_with_colon)
 		"language": "Solidity",
 		"settings": {
 			"outputSelection": {
-				"http://github.com/ethereum/solidity/std/StandardToken.sol": {
+				"https://github.com/argotorg/solidity/blob/develop/test/compilationTests/gnosis/Tokens/StandardToken.sol": {
 					"A": [
 						"abi"
 					]
@@ -687,7 +831,7 @@ BOOST_AUTO_TEST_CASE(filename_with_colon)
 			}
 		},
 		"sources": {
-			"http://github.com/ethereum/solidity/std/StandardToken.sol": {
+			"https://github.com/argotorg/solidity/blob/develop/test/compilationTests/gnosis/Tokens/StandardToken.sol": {
 				"content": "contract A { }"
 			}
 		}
@@ -695,7 +839,7 @@ BOOST_AUTO_TEST_CASE(filename_with_colon)
 	)";
 	Json result = compile(input);
 	BOOST_CHECK(containsAtMostWarnings(result));
-	Json contract = getContractResult(result, "http://github.com/ethereum/solidity/std/StandardToken.sol", "A");
+	Json contract = getContractResult(result, "https://github.com/argotorg/solidity/blob/develop/test/compilationTests/gnosis/Tokens/StandardToken.sol", "A");
 	BOOST_CHECK(contract.is_object());
 	BOOST_CHECK(contract["abi"].is_array());
 	BOOST_CHECK_EQUAL(util::jsonCompactPrint(contract["abi"]), "[]");
@@ -1028,33 +1172,14 @@ BOOST_AUTO_TEST_CASE(evm_version)
 		)";
 	};
 	Json result;
-	result = compile(inputForVersion("\"evmVersion\": \"homestead\","));
-	BOOST_CHECK(result["contracts"]["fileA"]["A"]["metadata"].get<std::string>().find("\"evmVersion\":\"homestead\"") != std::string::npos);
-	result = compile(inputForVersion("\"evmVersion\": \"tangerineWhistle\","));
-	BOOST_CHECK(result["contracts"]["fileA"]["A"]["metadata"].get<std::string>().find("\"evmVersion\":\"tangerineWhistle\"") != std::string::npos);
-	result = compile(inputForVersion("\"evmVersion\": \"spuriousDragon\","));
-	BOOST_CHECK(result["contracts"]["fileA"]["A"]["metadata"].get<std::string>().find("\"evmVersion\":\"spuriousDragon\"") != std::string::npos);
-	result = compile(inputForVersion("\"evmVersion\": \"byzantium\","));
-	BOOST_CHECK(result["contracts"]["fileA"]["A"]["metadata"].get<std::string>().find("\"evmVersion\":\"byzantium\"") != std::string::npos);
-	result = compile(inputForVersion("\"evmVersion\": \"constantinople\","));
-	BOOST_CHECK(result["contracts"]["fileA"]["A"]["metadata"].get<std::string>().find("\"evmVersion\":\"constantinople\"") != std::string::npos);
-	result = compile(inputForVersion("\"evmVersion\": \"petersburg\","));
-	BOOST_CHECK(result["contracts"]["fileA"]["A"]["metadata"].get<std::string>().find("\"evmVersion\":\"petersburg\"") != std::string::npos);
-	result = compile(inputForVersion("\"evmVersion\": \"istanbul\","));
-	BOOST_CHECK(result["contracts"]["fileA"]["A"]["metadata"].get<std::string>().find("\"evmVersion\":\"istanbul\"") != std::string::npos);
-	result = compile(inputForVersion("\"evmVersion\": \"berlin\","));
-	BOOST_CHECK(result["contracts"]["fileA"]["A"]["metadata"].get<std::string>().find("\"evmVersion\":\"berlin\"") != std::string::npos);
-	result = compile(inputForVersion("\"evmVersion\": \"london\","));
-	BOOST_CHECK(result["contracts"]["fileA"]["A"]["metadata"].get<std::string>().find("\"evmVersion\":\"london\"") != std::string::npos);
-	result = compile(inputForVersion("\"evmVersion\": \"paris\","));
-	BOOST_CHECK(result["contracts"]["fileA"]["A"]["metadata"].get<std::string>().find("\"evmVersion\":\"paris\"") != std::string::npos);
-	result = compile(inputForVersion("\"evmVersion\": \"shanghai\","));
-	BOOST_CHECK(result["contracts"]["fileA"]["A"]["metadata"].get<std::string>().find("\"evmVersion\":\"shanghai\"") != std::string::npos);
-	result = compile(inputForVersion("\"evmVersion\": \"cancun\","));
-	BOOST_CHECK(result["contracts"]["fileA"]["A"]["metadata"].get<std::string>().find("\"evmVersion\":\"cancun\"") != std::string::npos);
+	for (auto const& version: EVMVersion::allVersions())
+	{
+		result = compile(inputForVersion(fmt::format("\"evmVersion\": \"{}\",", version.name())));
+		BOOST_CHECK(result["contracts"]["fileA"]["A"]["metadata"].get<std::string>().find(fmt::format("\"evmVersion\":\"{}\"", version.name())) != std::string::npos);
+	}
 	// test default
 	result = compile(inputForVersion(""));
-	BOOST_CHECK(result["contracts"]["fileA"]["A"]["metadata"].get<std::string>().find("\"evmVersion\":\"cancun\"") != std::string::npos);
+	BOOST_CHECK(result["contracts"]["fileA"]["A"]["metadata"].get<std::string>().find(fmt::format("\"evmVersion\":\"{}\"", EVMVersion::current().name())) != std::string::npos);
 	// test invalid
 	result = compile(inputForVersion("\"evmVersion\": \"invalid\","));
 	BOOST_CHECK(result["errors"][0]["message"].get<std::string>() == "Invalid EVM version requested.");
@@ -1781,6 +1906,357 @@ BOOST_AUTO_TEST_CASE(source_location_of_bare_block)
 		":" +
 		std::to_string(std::string{"{ uint y = 3; }"}.size());
 	BOOST_REQUIRE(sourceMap.find(sourceRef) != std::string::npos);
+}
+
+BOOST_AUTO_TEST_CASE(ethdebug_excluded_from_wildcards)
+{
+	frontend::StandardCompiler compiler;
+	// excluded from output selection wildcard
+	Json result = compiler.compile(generateStandardJson(true, {}, Json::array({"*"})));
+	BOOST_REQUIRE(result.dump().find("ethdebug") == std::string::npos);
+	// excluded from debug info selection wildcard
+	result = compiler.compile(generateStandardJson(true, {"*"}, Json::array({"ir"})));
+	BOOST_REQUIRE(result.dump().find("ethdebug") == std::string::npos);
+	// excluded from both - just in case ;)
+	result = compiler.compile(generateStandardJson(true, {"*"}, Json::array({"*"})));
+	BOOST_REQUIRE(result.dump().find("ethdebug") == std::string::npos);
+}
+
+BOOST_AUTO_TEST_CASE(ethdebug_debug_info_ethdebug)
+{
+	static std::vector<std::tuple<Json, std::optional<std::function<bool(Json)>>>> tests{
+		{
+			generateStandardJson(false, Json::array({"ethdebug"}), Json::array({"*"})),
+			std::nullopt,
+		},
+		{
+			generateStandardJson(true, Json::array({"ethdebug"}), Json::array({"*"})),
+			std::nullopt,
+		},
+		{
+			generateStandardJson(false, Json::array({"ethdebug"}), Json::array({"evm.bytecode.ethdebug"})),
+			std::nullopt,
+		},
+		{
+			generateStandardJson(false, Json::array({"ethdebug"}), Json::array({"evm.deployedBytecode.ethdebug"})),
+			std::nullopt,
+		},
+		{
+			generateStandardJson(false, Json::array({"ethdebug"}), Json::array({"evm.bytecode.ethdebug", "evm.deployedBytecode.ethdebug"})),
+			std::nullopt,
+		},
+		{
+			generateStandardJson(false, Json::array({"ethdebug"}), Json::array({"irOptimized"})),
+			[](const Json& result)
+			{
+				return result.dump().find("/// ethdebug: enabled") != std::string::npos;
+			}
+		},
+		{
+			generateStandardJson(false, Json::array({"ethdebug"}), Json::array({"irOptimized"})),
+			[](const Json& result)
+			{
+				return result.dump().find("/// ethdebug: enabled") != std::string::npos;
+			}
+		},
+		{
+			generateStandardJson(true, {}, Json::array({"irOptimized", "evm.bytecode.ethdebug"})),
+			[](const Json& result)
+			{
+				return result.dump().find("/// ethdebug: enabled") != std::string::npos;
+			}
+		},
+		{
+			generateStandardJson(true, {}, Json::array({"irOptimized", "evm.deployedBytecode.ethdebug"})),
+			[](const Json& result)
+			{
+				return result.dump().find("/// ethdebug: enabled") != std::string::npos;
+			}
+		},
+		{
+			generateStandardJson(true, {}, Json::array({"irOptimized", "evm.bytecode.ethdebug", "evm.deployedBytecode.ethdebug"})),
+			[](const Json& result)
+			{
+				return result.dump().find("/// ethdebug: enabled") != std::string::npos;
+			}
+		},
+		{
+			generateStandardJson(true, {}, Json::array({"irOptimized", "evm.bytecode.ethdebug"})),
+			[](const Json& result)
+			{
+				return result.dump().find("/// ethdebug: enabled") != std::string::npos;
+			}
+		},
+		{
+			generateStandardJson(true, {}, Json::array({"irOptimized", "evm.deployedBytecode.ethdebug"})),
+			[](const Json& result)
+			{
+				return result.dump().find("/// ethdebug: enabled") != std::string::npos;
+			}
+		},
+		{
+			generateStandardJson(true, {}, Json::array({"irOptimized", "evm.bytecode.ethdebug", "evm.deployedBytecode.ethdebug"})),
+			[](const Json& result)
+			{
+				return result.dump().find("/// ethdebug: enabled") != std::string::npos;
+			}
+		},
+		{
+			generateStandardJson(true, Json::array({"ethdebug"}), Json::array({"irOptimized"}), YulCode()),
+			[](const Json& result)
+			{
+				return result.dump().find("/// ethdebug: enabled") != std::string::npos;
+			}
+		},
+		{
+			generateStandardJson(true, Json::array({"ethdebug"}), Json::array({"irOptimized"}), YulCode()),
+			{}
+		},
+		{
+			generateStandardJson(true, Json::array({"ethdebugs"}), Json::array({"irOptimized"}), YulCode()), {}
+		},
+		{
+			generateStandardJson(
+				true, Json::array({"ethdebug"}), {
+					{"fileA", {{"contractA", Json::array({"evm.deployedBytecode.bin"})}}},
+					{"fileB", {{"contractB", Json::array({"evm.bytecode.bin"})}}}
+				},
+				SolidityCode({
+					{"fileA", "pragma solidity >=0.0; contract contractA { function f() public pure {} }"},
+					{"fileB", "pragma solidity >=0.0; contract contractB { function f() public pure {} }"}
+				}), true
+			),
+			std::nullopt,
+		},
+		{
+			generateStandardJson(true, Json::array({"ethdebug"}), Json::array({"*"}), EvmAssemblyCode()),
+			std::nullopt,
+		},
+		{
+			generateStandardJson(true, Json::array({"ethdebug"}), Json::array({"*"}), SolidityAstCode()),
+			std::nullopt,
+		},
+	};
+	frontend::StandardCompiler compiler;
+	for (auto const& test: tests)
+	{
+		Json result = compiler.compile(std::get<0>(test));
+		if (std::get<1>(test).has_value())
+			BOOST_REQUIRE((*std::get<1>(test))(result));
+	}
+}
+
+BOOST_AUTO_TEST_CASE(ethdebug_ethdebug_output)
+{
+	static std::vector<std::tuple<Json, std::optional<std::function<bool(Json)>>>> tests{
+		{
+			generateStandardJson(false, Json::array({"ethdebug"}), Json::array({"evm.bytecode.ethdebug"})),
+			std::nullopt
+		},
+		{
+			generateStandardJson(false, {}, Json::array({"evm.bytecode.ethdebug"})),
+			std::nullopt
+		},
+		{
+			generateStandardJson(false, Json::array({"ethdebug"}), Json::array({"evm.deployedBytecode.ethdebug"})),
+			std::nullopt
+		},
+		{
+			generateStandardJson(false, {}, Json::array({"evm.deployedBytecode.ethdebug"})),
+			std::nullopt
+		},
+		{
+			generateStandardJson(false, Json::array({"ethdebug"}), Json::array({"evm.bytecode.ethdebug", "evm.deployedBytecode.ethdebug"})),
+			std::nullopt
+		},
+		{
+			generateStandardJson(false, {}, Json::array({"evm.bytecode.ethdebug", "evm.deployedBytecode.ethdebug"})),
+			std::nullopt
+		},
+		{
+			generateStandardJson(true, Json::array({"location"}), Json::array({"evm.bytecode.ethdebug"})),
+			std::nullopt
+		},
+		{
+			generateStandardJson(true, Json::array({"location"}), Json::array({"evm.deployedBytecode.ethdebug"})),
+			std::nullopt
+		},
+		{
+			generateStandardJson(true, Json::array({"location"}), Json::array({"evm.bytecode.ethdebug", "evm.deployedBytecode.ethdebug"})),
+			std::nullopt
+		},
+		{
+			generateStandardJson(true, Json::array({"ethdebug"}), Json::array({"evm.bytecode.ethdebug"})),
+			[](const Json& result)
+			{
+				return result.contains("ethdebug") && result["contracts"]["fileA"]["C"]["evm"]["bytecode"].contains("ethdebug");
+			}
+		},
+		{
+			generateStandardJson(true, Json::array({"ethdebug"}), Json::array({"evm.deployedBytecode.ethdebug"})),
+			[](const Json& result)
+			{
+				return result.contains("ethdebug") && result["contracts"]["fileA"]["C"]["evm"]["deployedBytecode"].contains("ethdebug");
+			}
+		},
+		{
+			generateStandardJson(true, Json::array({"ethdebug"}), Json::array({"evm.bytecode.ethdebug", "evm.deployedBytecode.ethdebug"})),
+			[](const Json& result)
+			{
+				return result.contains("ethdebug") && result["contracts"]["fileA"]["C"]["evm"]["deployedBytecode"].contains("ethdebug") &&
+					 result["contracts"]["fileA"]["C"]["evm"]["bytecode"].contains("ethdebug");
+			}
+		},
+		{
+			generateStandardJson(true, {}, Json::array({"evm.bytecode.ethdebug"})),
+			[](const Json& result)
+			{
+				return result.contains("ethdebug") && result["contracts"]["fileA"]["C"]["evm"]["bytecode"].contains("ethdebug");
+			}
+		},
+		{
+			generateStandardJson(true, {}, Json::array({"evm.deployedBytecode.ethdebug"})),
+			[](const Json& result)
+			{
+				return result.contains("ethdebug") && result["contracts"]["fileA"]["C"]["evm"]["deployedBytecode"].contains("ethdebug");
+			}
+		},
+		{
+			generateStandardJson(true, {}, Json::array({"evm.bytecode.ethdebug", "evm.deployedBytecode.ethdebug"})),
+			[](const Json& result)
+			{
+				return result.contains("ethdebug") && result["contracts"]["fileA"]["C"]["evm"]["deployedBytecode"].contains("ethdebug") &&
+					 result["contracts"]["fileA"]["C"]["evm"]["bytecode"].contains("ethdebug");
+			}
+		},
+		{
+			generateStandardJson(true, {}, Json::array({"evm.bytecode.ethdebug", "ir"})),
+			[](const Json& result)
+			{
+				return result.dump().find("/// ethdebug: enabled") != std::string::npos && result.contains("ethdebug") && result["contracts"]["fileA"]["C"]["evm"]["bytecode"].contains("ethdebug");
+			}
+		},
+		{
+			generateStandardJson(true, {}, Json::array({"evm.deployedBytecode.ethdebug", "ir"})),
+			[](const Json& result)
+			{
+				return result.dump().find("/// ethdebug: enabled") != std::string::npos && result.contains("ethdebug") && result["contracts"]["fileA"]["C"]["evm"]["deployedBytecode"].contains("ethdebug");
+			}
+		},
+		{
+			generateStandardJson(true, {}, Json::array({"evm.bytecode.ethdebugs"})),
+			std::nullopt
+		},
+		{
+			generateStandardJson(true, {}, Json::array({"evm.deployedBytecode.ethdebugs"})),
+			std::nullopt
+		},
+		{
+			generateStandardJson(true, {}, Json::array({"evm.bytecode.ethdebug", "evm.deployedBytecode.ethdebug", "ir"})),
+			[](const Json& result)
+			{
+				return result.dump().find("/// ethdebug: enabled") != std::string::npos && result.contains("ethdebug") && result["contracts"]["fileA"]["C"]["evm"]["deployedBytecode"].contains("ethdebug") &&
+					 result["contracts"]["fileA"]["C"]["evm"]["bytecode"].contains("ethdebug");
+			}
+		},
+		{
+			generateStandardJson(true, {}, Json::array({"evm.bytecode.ethdebug", "ir"}), YulCode()),
+			[](const Json& result)
+			{
+				return result.dump().find("/// ethdebug: enabled") != std::string::npos && result["contracts"]["fileA"]["object"]["evm"]["bytecode"].contains("ethdebug");
+			}
+		},
+		{
+			generateStandardJson(true, {}, Json::array({"evm.deployedBytecode.ethdebug", "ir"}), YulCode()),
+			std::nullopt
+		},
+		{
+			generateStandardJson(true, {}, Json::array({"evm.bytecode.ethdebug", "evm.deployedBytecode.ethdebug", "ir"}), YulCode()),
+			std::nullopt
+		},
+		{
+			generateStandardJson(true, {}, Json::array({"evm.bytecode"})),
+			[](const Json& result)
+			{
+				return result.dump().find("ethdebug") == std::string::npos;
+			}
+		},
+		{
+			generateStandardJson(true, {}, Json::array({"evm.deployedBytecode"})),
+			[](const Json& result)
+			{
+				return result.dump().find("ethdebug") == std::string::npos;
+			}
+		},
+		{
+			generateStandardJson(
+				true, {}, {
+					{"fileA", {{"contractA", Json::array({"evm.deployedBytecode.ethdebug"})}}},
+					{"fileB", {{"contractB", Json::array({"evm.bytecode.ethdebug"})}}}
+				},
+				SolidityCode({
+					{"fileA", "pragma solidity >=0.0; contract contractA { function f() public pure {} }"},
+					{"fileB", "pragma solidity >=0.0; contract contractB { function f() public pure {} }"}
+				}), true
+			),
+			[](const Json& result)
+			{
+				return result["contracts"]["fileA"]["contractA"]["evm"]["deployedBytecode"].contains("ethdebug") &&
+					result["contracts"]["fileB"]["contractB"]["evm"]["bytecode"].contains("ethdebug") && result.contains("ethdebug");
+			}
+		}
+	};
+	frontend::StandardCompiler compiler;
+	for (auto const& [standardJsonToCompile, optionalCheck]: tests)
+	{
+		Json result = compiler.compile(standardJsonToCompile);
+		BOOST_REQUIRE(!optionalCheck.has_value() ? result.contains("errors") : result.contains("contracts"));
+		if (optionalCheck.has_value())
+			BOOST_REQUIRE((*optionalCheck)(result));
+	}
+}
+
+BOOST_DATA_TEST_CASE(ethdebug_output_instructions_smoketest, boost::unit_test::data::make({"deployedBytecode", "bytecode"}), bytecodeType)
+{
+	frontend::StandardCompiler compiler;
+	Json result = compiler.compile(generateStandardJson(true, {}, Json::array({std::string("evm.") + bytecodeType + ".ethdebug"})));
+	BOOST_REQUIRE(result["contracts"]["fileA"]["C"]["evm"][bytecodeType].contains("ethdebug"));
+	bool creation = std::string(bytecodeType) == "bytecode";
+	Json ethdebugInstructionsToCheck = result["contracts"]["fileA"]["C"]["evm"][bytecodeType]["ethdebug"];
+	BOOST_REQUIRE(ethdebugInstructionsToCheck["contract"]["definition"]["source"]["id"] == 0);
+	BOOST_REQUIRE(ethdebugInstructionsToCheck["contract"]["name"] == "C");
+	BOOST_REQUIRE(ethdebugInstructionsToCheck["environment"] == (creation ? "create" : "call"));
+	BOOST_REQUIRE(ethdebugInstructionsToCheck["instructions"].is_array());
+	for (auto const& instruction: ethdebugInstructionsToCheck["instructions"])
+	{
+		BOOST_REQUIRE(instruction.contains("offset"));
+		BOOST_REQUIRE(instruction.contains("operation"));
+		BOOST_REQUIRE(instruction["operation"].contains("mnemonic"));
+		if (instruction.contains("context"))
+		{
+			BOOST_REQUIRE(instruction["context"]["code"]["range"].contains("length"));
+			BOOST_REQUIRE(instruction["context"]["code"]["range"].contains("offset"));
+			BOOST_REQUIRE(instruction["context"]["code"]["source"].contains("id"));
+		}
+		std::string mnemonic = instruction["operation"]["mnemonic"];
+		if (mnemonic.find("PUSH") != std::string::npos)
+		{
+			size_t bytesToPush = boost::lexical_cast<size_t>(mnemonic.substr(4));
+			if (bytesToPush > 0)
+			{
+				BOOST_REQUIRE(instruction["operation"].contains("arguments"));
+				BOOST_REQUIRE(instruction["operation"]["arguments"].is_array());
+				BOOST_REQUIRE(instruction["operation"]["arguments"].size() == 1);
+				std::string argument = instruction["operation"]["arguments"][0];
+				BOOST_REQUIRE(argument.length() % 2 == 0);
+				BOOST_REQUIRE(bytesToPush == (argument.length() - 2) / 2); // remove "0x" and calculate actual byte size from hex.
+			}
+			else
+				BOOST_REQUIRE(!instruction["operation"].contains("arguments"));
+		}
+		else
+			BOOST_REQUIRE(!instruction["operation"].contains("arguments"));
+	}
 }
 
 BOOST_AUTO_TEST_SUITE_END()

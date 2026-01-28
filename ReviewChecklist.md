@@ -123,7 +123,7 @@ The following points are all covered by the coding style but come up so often th
 - If it is a bugfix:
     - [ ] **The PR must include tests that reproduce the bug.**
     - [ ] **Are there gaps in test coverage of the buggy feature?** Fill them by adding more tests.
-    - [ ] **Try to break it.** Can you of any similar features that could also be buggy?
+    - [ ] **Try to break it.** Can you think of any similar features that could also be buggy?
         Play with the repro and include prominent variants as separate test cases, even if they don't trigger a bug.
 - [ ] **Positive cases (code that compiles) should have a semantic test.**
 - [ ] **Negative cases (code with compilation errors) should have a syntax test.**

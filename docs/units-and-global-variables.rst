@@ -77,6 +77,7 @@ Block and Transaction Properties
 - ``blobhash(uint index) returns (bytes32)``: versioned hash of the ``index``-th blob associated with the current transaction.
   A versioned hash consists of a single byte representing the version (currently ``0x01``), followed by the last 31 bytes
   of the SHA256 hash of the KZG commitment (`EIP-4844 <https://eips.ethereum.org/EIPS/eip-4844>`_).
+  Returns zero if no blob with the given index exists.
 - ``block.basefee`` (``uint``): current block's base fee (`EIP-3198 <https://eips.ethereum.org/EIPS/eip-3198>`_ and `EIP-1559 <https://eips.ethereum.org/EIPS/eip-1559>`_)
 - ``block.blobbasefee`` (``uint``): current block's blob base fee (`EIP-7516 <https://eips.ethereum.org/EIPS/eip-7516>`_ and `EIP-4844 <https://eips.ethereum.org/EIPS/eip-4844>`_)
 - ``block.chainid`` (``uint``): current chain id
@@ -251,6 +252,7 @@ Mathematical and Cryptographic Functions
 
 Members of Address Types
 ------------------------
+These members are explained in more detail in the section on :ref:`members of address <members-of-addresses>`.
 
 ``<address>.balance`` (``uint256``)
     balance of the :ref:`address` in Wei
@@ -267,14 +269,21 @@ Members of Address Types
 ``<address payable>.send(uint256 amount) returns (bool)``
     send given amount of Wei to :ref:`address`, returns ``false`` on failure, forwards 2300 gas stipend, not adjustable
 
+.. warning::
+    ``send()`` and ``transfer()`` are deprecated and scheduled for removal.
+    See the section on :ref:`send <send-address-member>` and :ref:`transfer <balance-transfer-address-members>` for more information.
+
 ``<address>.call(bytes memory) returns (bool, bytes memory)``
-    issue low-level ``CALL`` with the given payload, returns success condition and return data, forwards all available gas, adjustable
+    issue low-level ``CALL`` with the given payload, returns success condition and return data,
+    forwards all available gas (subject to additional limits imposed by some EVM versions), adjustable
 
 ``<address>.delegatecall(bytes memory) returns (bool, bytes memory)``
-    issue low-level ``DELEGATECALL`` with the given payload, returns success condition and return data, forwards all available gas, adjustable
+    issue low-level ``DELEGATECALL`` with the given payload, returns success condition and return data,
+    forwards all available gas (subject to additional limits imposed by some EVM versions), adjustable
 
 ``<address>.staticcall(bytes memory) returns (bool, bytes memory)``
-    issue low-level ``STATICCALL`` with the given payload, returns success condition and return data, forwards all available gas, adjustable
+    issue low-level ``STATICCALL`` with the given payload, returns success condition and return data,
+    forwards all available gas (subject to additional limits imposed by some EVM versions), adjustable
 
 For more information, see the section on :ref:`address`.
 

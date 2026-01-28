@@ -18,6 +18,8 @@
     h(x)
     h(y)
 }
+// ====
+// bytecodeFormat: legacy
 // ----
 // digraph CFG {
 // nodesep=0.7;
@@ -44,30 +46,22 @@
 // Block1Exit [label="FunctionReturn[f]"];
 // Block1 -> Block1Exit;
 //
-// FunctionEntry_g_2 [label="function g()"];
-// FunctionEntry_g_2 -> Block2;
+// FunctionEntry_h_2 [label="function h(x)"];
+// FunctionEntry_h_2 -> Block2;
 // Block2 [label="\
-// sstore: [ 0x0101 0x01 ] => [ ]\l\
-// "];
-// Block2Exit [label="FunctionReturn[g]"];
-// Block2 -> Block2Exit;
-//
-// FunctionEntry_h_3 [label="function h(x)"];
-// FunctionEntry_h_3 -> Block3;
-// Block3 [label="\
 // f: [ RET[f] 0x00 x ] => [ TMP[f, 0] ]\l\
 // h: [ TMP[f, 0] ] => [ ]\l\
 // "];
-// Block3Exit [label="Terminated"];
-// Block3 -> Block3Exit;
+// Block2Exit [label="Terminated"];
+// Block2 -> Block2Exit;
 //
-// FunctionEntry_i_4 [label="function i() -> v, w"];
-// FunctionEntry_i_4 -> Block4;
-// Block4 [label="\
+// FunctionEntry_i_3 [label="function i() -> v, w"];
+// FunctionEntry_i_3 -> Block3;
+// Block3 [label="\
 // Assignment(v): [ 0x0202 ] => [ v ]\l\
 // Assignment(w): [ 0x0303 ] => [ w ]\l\
 // "];
-// Block4Exit [label="FunctionReturn[i]"];
-// Block4 -> Block4Exit;
+// Block3Exit [label="FunctionReturn[i]"];
+// Block3 -> Block3Exit;
 //
 // }

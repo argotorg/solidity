@@ -25,6 +25,8 @@
 
 #include <libyul/Object.h>
 #include <libyul/AsmPrinter.h>
+#include <libyul/AST.h>
+#include <libyul/YulStack.h>
 
 #include <liblangutil/CharStreamProvider.h>
 #include <liblangutil/SourceReferenceFormatter.h>
@@ -55,21 +57,18 @@ YulOptimizerTest::YulOptimizerTest(std::string const& _filename):
 	m_source = m_reader.source();
 
 	auto dialectName = m_reader.stringSetting("dialect", "evm");
-	m_dialect = &dialect(dialectName, solidity::test::CommonOptions::get().evmVersion());
+	soltestAssert(dialectName == "evm"); // We only have one dialect now
 
 	m_expectation = m_reader.simpleExpectations();
 }
 
 TestCase::TestResult YulOptimizerTest::run(std::ostream& _stream, std::string const& _linePrefix, bool const _formatted)
 {
-	std::tie(m_object, m_analysisInfo) = parse(_stream, _linePrefix, _formatted, m_source);
+	m_object = parse(_stream, _linePrefix, _formatted, m_source);
 	if (!m_object)
 		return TestResult::FatalError;
 
-	soltestAssert(m_dialect, "Dialect not set.");
-
-	m_object->analysisInfo = m_analysisInfo;
-	YulOptimizerTestCommon tester(m_object, *m_dialect);
+	YulOptimizerTestCommon tester(m_object);
 	tester.setStep(m_optimizerStep);
 
 	if (!tester.runStep())
@@ -77,42 +76,41 @@ TestCase::TestResult YulOptimizerTest::run(std::ostream& _stream, std::string co
 		AnsiColorized(_stream, _formatted, {formatting::BOLD, formatting::RED}) << _linePrefix << "Invalid optimizer step: " << m_optimizerStep << std::endl;
 		return TestResult::FatalError;
 	}
-
-	auto const printed = (m_object->subObjects.empty() ? AsmPrinter{ *m_dialect }(*m_object->code) : m_object->toString(m_dialect));
+	auto optimizedObject = tester.optimizedObject();
+	std::string printedOptimizedObject;
+	soltestAssert(optimizedObject->dialect());
+	if (optimizedObject->subObjects.empty())
+		printedOptimizedObject = AsmPrinter::format(*optimizedObject->code());
+	else
+		printedOptimizedObject = optimizedObject->toString();
 
 	// Re-parse new code for compilability
-	if (!std::get<0>(parse(_stream, _linePrefix, _formatted, printed)))
+	if (!parse(_stream, _linePrefix, _formatted, printedOptimizedObject))
 	{
 		util::AnsiColorized(_stream, _formatted, {util::formatting::BOLD, util::formatting::CYAN})
 			<< _linePrefix << "Result after the optimiser:" << std::endl;
-		printPrefixed(_stream, printed, _linePrefix + "  ");
+		printPrefixed(_stream, printedOptimizedObject, _linePrefix + "  ");
 		return TestResult::FatalError;
 	}
 
-	m_obtainedResult = "step: " + m_optimizerStep + "\n\n" + printed + "\n";
+	m_obtainedResult = "step: " + m_optimizerStep + "\n\n" + printedOptimizedObject + "\n";
 
 	return checkResult(_stream, _linePrefix, _formatted);
 }
 
-std::pair<std::shared_ptr<Object>, std::shared_ptr<AsmAnalysisInfo>> YulOptimizerTest::parse(
+std::shared_ptr<Object> YulOptimizerTest::parse(
 	std::ostream& _stream,
 	std::string const& _linePrefix,
 	bool const _formatted,
 	std::string const& _source
 )
 {
-	ErrorList errors;
-	soltestAssert(m_dialect, "");
-	std::shared_ptr<Object> object;
-	std::shared_ptr<AsmAnalysisInfo> analysisInfo;
-	std::tie(object, analysisInfo) = yul::test::parse(_source, *m_dialect, errors);
-	if (!object || !analysisInfo || Error::containsErrors(errors))
+	YulStack yulStack = parseYul(_source);
+	if (yulStack.hasErrors())
 	{
-		AnsiColorized(_stream, _formatted, {formatting::BOLD, formatting::RED}) << _linePrefix << "Error parsing source." << std::endl;
-		CharStream charStream(_source, "");
-		SourceReferenceFormatter{_stream, SingletonCharStreamProvider(charStream), true, false}
-			.printErrorInformation(errors);
-		return {};
+		printYulErrors(yulStack, _stream, _linePrefix, _formatted);
+		return nullptr;
 	}
-	return {std::move(object), std::move(analysisInfo)};
+
+	return yulStack.parserResult();
 }

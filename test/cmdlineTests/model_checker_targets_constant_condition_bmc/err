@@ -1,5 +1,11 @@
+Warning: 'transfer' is deprecated and scheduled for removal. Use 'call{value: <amount>}("")' instead.
+  --> input.sol:10:3:
+   |
+10 | 		a.transfer(x);
+   | 		^^^^^^^^^^
+
 Warning: BMC: Condition is always true.
- --> model_checker_targets_constant_condition_bmc/input.sol:6:11:
+ --> input.sol:6:11:
   |
 6 | 		require(x >= 0);
   | 		        ^^^^^^

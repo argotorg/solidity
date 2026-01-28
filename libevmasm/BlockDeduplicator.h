@@ -24,9 +24,10 @@
 
 #pragma once
 
+#include <libevmasm/SubAssemblyID.h>
+
 #include <libsolutil/Common.h>
 #include <libsolutil/Numeric.h>
-
 
 #include <cstddef>
 #include <vector>
@@ -52,14 +53,14 @@ public:
 	/// @returns the tags that were replaced.
 	std::map<u256, u256> const& replacedTags() const { return m_replacedTags; }
 
-	/// Replaces all PushTag operations insied @a _items that match a key in
-	/// @a _replacements by the respective value. If @a _subID is not -1, only
+	/// Replaces all PushTag operations inside @a _items that match a key in
+	/// @a _replacements by the respective value. If @a _subID is not empty, only
 	/// apply the replacement for foreign tags from this sub id.
 	/// @returns true iff a replacement was performed.
 	static bool applyTagReplacement(
 		AssemblyItems& _items,
 		std::map<u256, u256> const& _replacements,
-		size_t _subID = size_t(-1)
+		SubAssemblyID _subID = {}
 	);
 
 private:

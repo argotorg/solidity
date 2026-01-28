@@ -73,7 +73,7 @@ private:
 	///              of a method's return notice documentation
 	static Json extractReturnParameterDocs(std::multimap<std::string, DocTag> const& _tags, std::vector<std::string> const& _returnParameterNames);
 
-	/// Temporary function until https://github.com/ethereum/solidity/issues/11114 is implemented.
+	/// Temporary function until https://github.com/argotorg/solidity/issues/11114 is implemented.
 	/// @return all events defined in the contract and its base contracts and all events
 	/// that are emitted during the execution of the contract, but allowing only unique signatures.
 	/// In case of conflict between a library event and a contract one, selects the latter

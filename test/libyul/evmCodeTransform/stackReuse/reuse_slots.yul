@@ -1,6 +1,7 @@
 { let a, b, c, d let x := 2 let y := 3 mstore(x, a) mstore(y, c) }
 // ====
 // stackOptimization: true
+// EVMVersion: =current
 // ----
 //     /* "":2:16   */
 //   0x00

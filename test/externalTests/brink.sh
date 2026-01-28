@@ -61,7 +61,7 @@ function brink_test
     setup_solc "$DIR" "$BINARY_TYPE" "$BINARY_PATH"
     download_project "$repo" "$ref" "$DIR"
 
-    # TODO: Remove this when Brink merges https://github.com/brinktrade/brink-core/pull/52
+    # TODO: Remove this once Brink merges PR #52 (https://github.com/brinktrade/brink-core/pull/52).
     sed -i "s|\(function isValidSignature(bytes \)calldata\( _data, bytes \)calldata\( _signature)\)|\1memory\2memory\3|g" src/Test/MockEIP1271Validator.sol
 
     neutralize_package_lock

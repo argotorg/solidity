@@ -1,0 +1,18 @@
+{
+    ".code": [
+        {"name": "PUSH", "value": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"},
+        {"name": "PUSH", "value": "42"},
+        {"name": "PUSH", "value": "24"},
+        {"name": "SWAP1"},
+        {"name": "ADD"}
+    ]
+}
+// ====
+// optimizationPreset: full
+// ----
+// Assembly:
+//   not(0x00)
+//   0x66
+// Bytecode: 5f196066
+// Opcodes: PUSH0 NOT PUSH1 0x66
+// SourceMappings: :::-:0;;

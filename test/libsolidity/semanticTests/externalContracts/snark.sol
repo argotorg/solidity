@@ -1,3 +1,5 @@
+pragma abicoder v2;
+
 library Pairing {
 	struct G1Point {
 		uint X;
@@ -40,13 +42,9 @@ library Pairing {
 		input[1] = p1.Y;
 		input[2] = p2.X;
 		input[3] = p2.Y;
-		bool success;
-		assembly {
-			success := call(sub(gas(), 2000), 6, 0, input, 0xc0, r, 0x60)
-			// Use "invalid" to make gas estimation work
-			switch success case 0 { invalid() }
-		}
+		(bool success, bytes memory encodedResult) = address(6).call(abi.encode(input));
 		require(success);
+		r = abi.decode(encodedResult, (G1Point));
 	}
 
 	/// @return r the product of a point on G1 and a scalar, i.e.
@@ -56,13 +54,9 @@ library Pairing {
 		input[0] = p.X;
 		input[1] = p.Y;
 		input[2] = s;
-		bool success;
-		assembly {
-			success := call(sub(gas(), 2000), 7, 0, input, 0x80, r, 0x60)
-			// Use "invalid" to make gas estimation work
-			switch success case 0 { invalid() }
-		}
+		(bool success, bytes memory encodedResult) = address(7).call(abi.encode(input));
 		require(success);
+		r = abi.decode(encodedResult, (G1Point));
 	}
 
 	/// @return the result of computing the pairing check
@@ -83,15 +77,19 @@ library Pairing {
 			input[i * 6 + 4] = p2[i].Y[0];
 			input[i * 6 + 5] = p2[i].Y[1];
 		}
-		uint[1] memory out;
-		bool success;
-		assembly {
-			success := call(sub(gas(), 2000), 8, 0, add(input, 0x20), mul(inputSize, 0x20), out, 0x20)
-			// Use "invalid" to make gas estimation work
-			switch success case 0 { invalid() }
+
+		bytes memory encodedInput = new bytes(inputSize * 32);
+		for (uint i = 0; i < inputSize; i++)
+		{
+			uint offset = (i + 1) * 32;
+			uint item = input[i];
+			assembly ("memory-safe") {
+				mstore(add(encodedInput, offset), item)
+			}
 		}
+		(bool success, bytes memory encodedResult) = address(8).call(encodedInput);
 		require(success);
-		return out[0] != 0;
+		return abi.decode(encodedResult, (bool));
 	}
 	function pairingProd2(G1Point memory a1, G2Point memory a2, G1Point memory b1, G2Point memory b2) internal returns (bool) {
 		G1Point[] memory p1 = new G1Point[](2);
@@ -294,11 +292,11 @@ contract Test {
 // f() -> true
 // g() -> true
 // pair() -> true
-// gas irOptimized: 270424
-// gas legacy: 275206
-// gas legacyOptimized: 266925
+// gas irOptimized: 275229
+// gas legacy: 293579
+// gas legacyOptimized: 276313
 // verifyTx() -> true
 // ~ emit Verified(string): 0x20, 0x16, "Successfully verified."
-// gas irOptimized: 785783
-// gas legacy: 801868
-// gas legacyOptimized: 770942
+// gas irOptimized: 818076
+// gas legacy: 904397
+// gas legacyOptimized: 816770

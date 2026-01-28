@@ -177,6 +177,7 @@ namespace GasCosts
 		return _evmVersion >= langutil::EVMVersion::istanbul() ? 16 : 68;
 	}
 	static unsigned const copyGas = 3;
+	static unsigned const rjumpiGas = 4;
 }
 
 /**
@@ -224,6 +225,18 @@ public:
 	/// @returns gas costs for simple instructions with constant gas costs (that do not
 	/// change with EVM versions)
 	static unsigned runGas(Instruction _instruction, langutil::EVMVersion _evmVersion);
+
+	/// @returns gas costs for the cheapest push instructions for the given @a _value
+	/// (may change depending on EVM version)
+	static unsigned pushGas(u256 _value, langutil::EVMVersion _evmVersion);
+
+	/// @returns gas costs for the cheapest swap instructions for the given @a _depth
+	/// (may change depending on EVM version)
+	static unsigned swapGas(size_t _depth, langutil::EVMVersion _evmVersion);
+
+	/// @returns gas costs for the cheapest dup instructions for the given @a _depth
+	/// (may change depending on EVM version)
+	static unsigned dupGas(size_t _depth, langutil::EVMVersion _evmVersion);
 
 	/// @returns the gas cost of the supplied data, depending whether it is in creation code, or not.
 	/// In case of @a _inCreation, the data is only sent as a transaction and is not stored, whereas

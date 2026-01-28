@@ -1,5 +1,5 @@
 
-======= debug_info_in_yul_and_evm_asm_print_none/input.sol:C =======
+======= input.sol:C =======
 EVM assembly:
   mstore(0x40, 0x80)
   callvalue
@@ -7,9 +7,7 @@ EVM assembly:
   iszero
   tag_1
   jumpi
-  0x00
-  dup1
-  revert
+  revert(0x00, 0x00)
 tag_1:
   pop
   dataSize(sub_0)
@@ -28,9 +26,7 @@ sub_0: assembly {
       iszero
       tag_1
       jumpi
-      0x00
-      dup1
-      revert
+      revert(0x00, 0x00)
     tag_1:
       pop
       jumpi(tag_2, lt(calldatasize, 0x04))
@@ -41,9 +37,7 @@ sub_0: assembly {
       tag_3
       jumpi
     tag_2:
-      0x00
-      dup1
-      revert
+      revert(0x00, 0x00)
     tag_3:
       stop
 
@@ -52,7 +46,7 @@ sub_0: assembly {
 
 IR:
 
-/// @use-src 0:"debug_info_in_yul_and_evm_asm_print_none/input.sol"
+/// @use-src 0:"input.sol"
 object "C_6" {
     code {
 
@@ -79,7 +73,7 @@ object "C_6" {
         }
 
     }
-    /// @use-src 0:"debug_info_in_yul_and_evm_asm_print_none/input.sol"
+    /// @use-src 0:"input.sol"
     object "C_6_deployed" {
         code {
 
@@ -159,7 +153,7 @@ object "C_6" {
 
 
 Optimized IR:
-/// @use-src 0:"debug_info_in_yul_and_evm_asm_print_none/input.sol"
+/// @use-src 0:"input.sol"
 object "C_6" {
     code {
         {
@@ -171,7 +165,7 @@ object "C_6" {
             return(_1, _2)
         }
     }
-    /// @use-src 0:"debug_info_in_yul_and_evm_asm_print_none/input.sol"
+    /// @use-src 0:"input.sol"
     object "C_6_deployed" {
         code {
             {

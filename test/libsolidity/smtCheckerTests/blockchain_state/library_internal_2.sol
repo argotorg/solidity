@@ -22,5 +22,6 @@ contract C {
 // SMTEngine: all
 // SMTIgnoreCex: yes
 // ----
-// Warning 6328: (315-331): CHC: Assertion violation happens here.
+// Warning 9207: (87-97): 'transfer' is deprecated and scheduled for removal. Use 'call{value: <amount>}("")' instead.
+// Warning 6328: (315-331): CHC: Assertion violation happens here.\nCounterexample:\nx = 0\na = 0x7e1e\nb1 = 38\nb2 = 37\n\nTransaction trace:\nC.constructor()\nState: x = 0\nC.f(0x7e1e){ msg.value: 17 }\n    L.l(0x7e1e) -- internal call
 // Info 1391: CHC: 4 verification condition(s) proved safe! Enable the model checker option "show proved safe" to see all of them.

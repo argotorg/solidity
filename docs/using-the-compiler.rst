@@ -71,7 +71,7 @@ For a detailed explanation with examples and discussion of corner cases please r
 Library Linking
 ---------------
 
-If your contracts use :ref:`libraries <libraries>`, you will notice that the bytecode contains substrings of the form ``__$53aea86b7d70b31448b230b20ae141a537$__``. These are placeholders for the actual library addresses.
+If your contracts use :ref:`libraries <libraries>`, you will notice that the bytecode contains substrings of the form ``__$53aea86b7d70b31448b230b20ae141a537$__`` `(format was different <v0.5.0) <https://docs.soliditylang.org/en/v0.4.26/contracts.html#libraries>`_. These are placeholders for the actual library addresses.
 The placeholder is a 34 character prefix of the hex encoding of the keccak256 hash of the fully qualified library name.
 The bytecode file will also contain lines of the form ``// <placeholder> -> <fq library name>`` at the end to help
 identify which libraries the placeholders represent. Note that the fully qualified library name
@@ -176,12 +176,14 @@ at each version. Backward compatibility is not guaranteed between each version.
    - Introduces ``prevrandao()`` and ``block.prevrandao``, and changes the semantics of the now deprecated ``block.difficulty``, disallowing ``difficulty()`` in inline assembly (see `EIP-4399 <https://eips.ethereum.org/EIPS/eip-4399>`_).
 - ``shanghai``
    - Smaller code size and gas savings due to the introduction of ``push0`` (see `EIP-3855 <https://eips.ethereum.org/EIPS/eip-3855>`_).
-- ``cancun`` (**default**)
+- ``cancun``
    - The block's blob base fee (`EIP-7516 <https://eips.ethereum.org/EIPS/eip-7516>`_ and `EIP-4844 <https://eips.ethereum.org/EIPS/eip-4844>`_) can be accessed via the global ``block.blobbasefee`` or ``blobbasefee()`` in inline assembly.
    - Introduces ``blobhash()`` in inline assembly and a corresponding global function to retrieve versioned hashes of blobs associated with the transaction (see `EIP-4844 <https://eips.ethereum.org/EIPS/eip-4844>`_).
    - Opcode ``mcopy`` is available in assembly (see `EIP-5656 <https://eips.ethereum.org/EIPS/eip-5656>`_).
    - Opcodes ``tstore`` and ``tload`` are available in assembly (see `EIP-1153 <https://eips.ethereum.org/EIPS/eip-1153>`_).
-- ``prague`` (**experimental**)
+- ``prague``
+- ``osaka`` (**default**)
+   - ``clz`` builtin function is available in inline assembly. (`EIP-7939 <https://eips.ethereum.org/EIPS/eip-7939>`_)
 
 .. index:: ! standard JSON, ! --standard-json
 .. _compiler-api:
@@ -277,76 +279,89 @@ Input Description
       {
         // Optional: Stop compilation after the given stage. Currently only "parsing" is valid here
         "stopAfter": "parsing",
-        // Optional: Sorted list of remappings
+        // Optional: List of remappings
         "remappings": [ ":g=/dir" ],
         // Optional: Optimizer settings
         "optimizer": {
-          // Disabled by default.
-          // NOTE: enabled=false still leaves some optimizations on. See comments below.
-          // WARNING: Before version 0.8.6 omitting the 'enabled' key was not equivalent to setting
-          // it to false and would actually disable all the optimizations.
+          // Turn on the optimizer. Optional. Default: false.
+          // NOTE: The state of the optimizer is fully determined by the 'details' dict and this setting
+          // only affects its defaults - when enabled, all components default to being enabled.
+          // The opposite is not true - there are several components that always default to being
+          // enabled an can only be explicitly disabled via 'details'.
+          // WARNING: Before version 0.8.6 omitting this setting was not equivalent to setting
+          // it to false and would result in all components being disabled instead.
+          // WARNING: Enabling optimizations for EVMAssembly input is allowed but not necessary under normal
+          // circumstances. It forces the opcode-based optimizer to run again and can produce bytecode that
+          // is not reproducible from metadata.
           "enabled": true,
-          // Optimize for how many times you intend to run the code.
+          // Optimize for how many times you intend to run the code. Optional. Default: 200.
           // Lower values will optimize more for initial deployment cost, higher
           // values will optimize more for high-frequency usage.
           "runs": 200,
-          // Switch optimizer components on or off in detail.
-          // The "enabled" switch above provides two defaults which can be
-          // tweaked here. If "details" is given, "enabled" can be omitted.
+          // State of all optimizer components. Optional.
+          // Default values are determined by whether the optimizer is enabled or not.
+          // Note that the 'enabled' setting only affects the defaults here and has no effect when
+          // all values are provided explicitly.
           "details": {
-            // The peephole optimizer is always on if no details are given,
-            // use details to switch it off.
+            // Peephole optimizer (opcode-based). Optional. Default: true.
+            // Default for EVMAssembly input: false when optimization is not enabled.
+            // NOTE: Always runs (even with optimization disabled) except for EVMAssembly input or when explicitly turned off here.
             "peephole": true,
-            // The inliner is always off if no details are given,
-            // use details to switch it on.
+            // Inliner (opcode-based). Optional. Default: true when optimization is enabled.
             "inliner": false,
-            // The unused jumpdest remover is always on if no details are given,
-            // use details to switch it off.
+            // Unused JUMPDEST remover (opcode-based). Optional. Default: true.
+            // Default for EVMAssembly input: false when optimization is not enabled.
+            // NOTE: Always runs (even with optimization disabled) except for EVMAssembly input or when explicitly turned off here.
             "jumpdestRemover": true,
-            // Sometimes re-orders literals in commutative operations.
+            // Literal reordering (codegen-based). Optional. Default: true when optimization is enabled.
+            // Moves literals to the right of commutative binary operators during code generation, helping exploit associativity.
             "orderLiterals": false,
-            // Removes duplicate code blocks
+            // Block deduplicator (opcode-based). Optional. Default: true when optimization is enabled.
+            // Unifies assembly code blocks that share content.
             "deduplicate": false,
-            // Common subexpression elimination, this is the most complicated step but
-            // can also provide the largest gain.
+            // Common subexpression elimination (opcode-based). Optional. Default: true when optimization is enabled.
+            // This is the most complicated step but can also provide the largest gain.
             "cse": false,
-            // Optimize representation of literal numbers and strings in code.
+            // Constant optimizer (opcode-based). Optional. Default: true when optimization is enabled.
+            // Tries to find better representations of literal numbers and strings, that satisfy the
+            // size/cost trade-off determined by the 'runs' setting.
             "constantOptimizer": false,
-            // Use unchecked arithmetic when incrementing the counter of for loops
-            // under certain circumstances. It is always on if no details are given.
+            // Unchecked loop increment (codegen-based). Optional. Default: true.
+            // Use unchecked arithmetic when incrementing the counter of 'for' loops under certain circumstances.
+            // NOTE: Always runs (even with optimization disabled) unless explicitly turned off here.
             "simpleCounterForLoopUncheckedIncrement": true,
-            // The new Yul optimizer. Mostly operates on the code of ABI coder v2
-            // and inline assembly.
-            // It is activated together with the global optimizer setting
-            // and can be deactivated here.
-            // Before Solidity 0.6.0 it had to be activated through this switch.
+            // Yul optimizer. Optional. Default: true when optimization is enabled.
+            // Used to optimize the IR produced by the Yul IR-based pipeline as well as inline assembly
+            // and utility Yul code generated by the compiler.
+            // NOTE: Before Solidity 0.6.0 the default was false.
             "yul": false,
-            // Tuning options for the Yul optimizer.
+            // Tuning options for the Yul optimizer. Optional.
             "yulDetails": {
               // Improve allocation of stack slots for variables, can free up stack slots early.
-              // Activated by default if the Yul optimizer is activated.
+              // Optional. Default: true if Yul optimizer is enabled.
               "stackAllocation": true,
-              // Select optimization steps to be applied. It is also possible to modify both the
-              // optimization sequence and the clean-up sequence. Instructions for each sequence
-              // are separated with the ":" delimiter and the values are provided in the form of
-              // optimization-sequence:clean-up-sequence. For more information see
-              // "The Optimizer > Selecting Optimizations".
-              // This field is optional, and if not provided, the default sequences for both
-              // optimization and clean-up are used. If only one of the sequences is provided
-              // the other will not be run.
-              // If only the delimiter ":" is provided then neither the optimization nor the clean-up
-              // sequence will be run.
-              // If set to an empty value, only the default clean-up sequence is used and
-              // no optimization steps are applied.
-              "optimizerSteps": "dhfoDgvulfnTUtnIf..."
+              // Optimization step sequence.
+              // The general form of the value is "<main sequence>:<cleanup sequence>".
+              // The setting is optional and when omitted, default values are used for both sequences.
+              // If the value does not contain the ':' delimiter, it is interpreted as the main
+              // sequence and the default is used for the cleanup sequence.
+              // To make one of the sequences empty, the delimiter must be present at the first or last position.
+              // In particular if the whole value consists only of the delimiter, both sequences are empty.
+              // Note that there are several hard-coded steps that always run, even when both sequences are empty.
+              // For more information see "The Optimizer > Selecting Optimizations".
+              "optimizerSteps": "dfDvulfnTUtnIf..."
             }
           }
         },
-        // Version of the EVM to compile for.
+        // Version of the EVM to compile for (optional).
         // Affects type checking and code generation. Can be homestead,
         // tangerineWhistle, spuriousDragon, byzantium, constantinople,
-        // petersburg, istanbul, berlin, london, paris, shanghai, cancun (default) or prague.
-        "evmVersion": "cancun",
+        // petersburg, istanbul, berlin, london, paris, shanghai, cancun, prague or osaka (default).
+        "evmVersion": "osaka",
+        // EVM Object Format version to compile for (optional, experimental).
+        // Currently the only valid value is 1. If not specified, legacy non-EOF bytecode will be generated.
+        // Requires `evmVersion` >= osaka.
+        "eofVersion": null,
         // Optional: Change compilation pipeline to go through the Yul intermediate representation.
         // This is false by default.
         "viaIR": true,
@@ -404,7 +419,8 @@ Input Description
         // but to the whole source file like the AST.
         // A star as contract name refers to all contracts in the file.
         // Similarly, a star as a file name matches all files.
-        // To select all outputs the compiler can possibly generate, use
+        // To select all outputs the compiler can possibly generate, with the exclusion of
+        // Yul intermediate representation outputs, use
         // "outputSelection: { "*": { "*": [ "*" ], "": [ "*" ] } }"
         // but note that this might slow down the compilation process needlessly.
         //
@@ -422,7 +438,8 @@ Input Description
         //   irAst - AST of Yul intermediate representation of the code before optimization
         //   irOptimized - Intermediate representation after optimization
         //   irOptimizedAst - AST of intermediate representation after optimization
-        //   storageLayout - Slots, offsets and types of the contract's state variables.
+        //   storageLayout - Slots, offsets and types of the contract's state variables in storage.
+        //   transientStorageLayout - Slots, offsets and types of the contract's state variables in transient storage.
         //   evm.assembly - New assembly format
         //   evm.legacyAssembly - Old-style assembly format in JSON
         //   evm.bytecode.functionDebugData - Debugging information at function level
@@ -479,7 +496,7 @@ Input Description
           // Choose which types of invariants should be reported to the user: contract, reentrancy.
           "invariants": ["contract", "reentrancy"],
           // Choose whether to output all proved targets. The default is `false`.
-          "showProved": true,
+          "showProvedSafe": true,
           // Choose whether to output all unproved targets. The default is `false`.
           "showUnproved": true,
           // Choose whether to output all unsupported language features. The default is `false`.
@@ -577,6 +594,8 @@ Output Description
             "irOptimizedAst": {/* ... */},
             // See the Storage Layout documentation.
             "storageLayout": {"storage": [/* ... */], "types": {/* ... */} },
+            // See the Storage Layout documentation.
+            "transientStorageLayout": {"storage": [/* ... */], "types": {/* ... */} },
             // EVM-related outputs
             "evm": {
               // Assembly (string)

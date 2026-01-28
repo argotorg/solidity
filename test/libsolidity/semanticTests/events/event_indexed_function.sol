@@ -1,9 +1,9 @@
 contract C {
     event Test(function() external indexed);
     function f() public {
-        emit Test(this.f);
+        emit Test(C(address(0x1234)).f);
     }
 }
 // ----
 // f() ->
-// ~ emit Test(function): #0xc06afe3a8444fc0004668591e8306bfb9968e79e26121ff00000000000000000
+// ~ emit Test(function): #0x123426121ff00000000000000000

@@ -124,7 +124,17 @@ private:
 	template <evmc_revision Revision>
 	static evmc::Result precompileALTBN128PairingProduct(evmc_message const& _message) noexcept;
 	static evmc::Result precompileBlake2f(evmc_message const& _message) noexcept;
-	static evmc::Result precompileGeneric(evmc_message const& _message, std::map<bytes, EVMPrecompileOutput> const& _inOut) noexcept;
+	/// Generic implementation of a precompile for testing, with hard-coded answers for hard-coded inputs.
+	/// @param _message EVM message to handle.
+	/// @param _inOut Hard-coded inputs and corresponding outputs to be returned.
+	/// @param _ignoresTrailingInput Enable if the precompile only cares about the initial part of
+	///     its input and works exactly the same, regardless of what's in the remaining part. The message will
+	///     be considered a match for a test input even if it's longer.
+	static evmc::Result precompileGeneric(
+		evmc_message const& _message,
+		std::map<bytes, EVMPrecompileOutput> const& _inOut,
+		bool _ignoresTrailingInput = false
+	) noexcept;
 	/// @returns a result object with gas usage and result data taken from @a _data.
 	/// The outcome will be a failure if the limit < required.
 	/// @note The return value is only valid as long as @a _data is alive!

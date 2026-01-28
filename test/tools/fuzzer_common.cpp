@@ -39,19 +39,7 @@ using namespace solidity::frontend;
 using namespace solidity::langutil;
 using namespace solidity::util;
 
-static std::vector<EVMVersion> s_evmVersions = {
-	EVMVersion::homestead(),
-	EVMVersion::tangerineWhistle(),
-	EVMVersion::spuriousDragon(),
-	EVMVersion::byzantium(),
-	EVMVersion::constantinople(),
-	EVMVersion::petersburg(),
-	EVMVersion::istanbul(),
-	EVMVersion::berlin(),
-	EVMVersion::london(),
-	EVMVersion::paris(),
-	EVMVersion::prague()
-};
+static auto constexpr s_evmVersions = EVMVersion::allVersions();
 
 void FuzzerUtil::testCompilerJsonInterface(std::string const& _input, bool _optimize, bool _quiet)
 {
@@ -128,12 +116,6 @@ void FuzzerUtil::testCompiler(
 	{
 		compiler.compile();
 	}
-	catch (Error const&)
-	{
-	}
-	catch (FatalError const&)
-	{
-	}
 	catch (UnimplementedFeatureError const&)
 	{
 	}
@@ -196,7 +178,7 @@ void FuzzerUtil::testConstantOptimizer(std::string const& _input, bool _quiet)
 
 	for (bool isCreation: {false, true})
 	{
-		Assembly assembly{langutil::EVMVersion{}, isCreation, {}};
+		Assembly assembly{langutil::EVMVersion{}, isCreation, std::nullopt, {}};
 		for (u256 const& n: numbers)
 		{
 			if (!_quiet)

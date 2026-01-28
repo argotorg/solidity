@@ -16,6 +16,7 @@ contract C
 // ====
 // SMTEngine: all
 // SMTIgnoreCex: yes
+// SMTTargets: assert
 // ----
-// Warning 6328: (198-215): CHC: Assertion violation happens here.
-// Info 1391: CHC: 4 verification condition(s) proved safe! Enable the model checker option "show proved safe" to see all of them.
+// Warning 6328: (198-215): CHC: Assertion violation happens here.\nCounterexample:\na = [3212, 4]\nx = 0\ny = 1\n\nTransaction trace:\nC.constructor()\nState: a = []\nC.f(3212)\nState: a = [3212]\nC.f(1573)\nState: a = [3212, 1573]\nC.g(0, 1)
+// Info 1391: CHC: 1 verification condition(s) proved safe! Enable the model checker option "show proved safe" to see all of them.

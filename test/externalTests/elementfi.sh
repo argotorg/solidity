@@ -93,8 +93,8 @@ function elementfi_test
     sed -i 's|it(\("should prevent withdrawal of Principal Tokens and Interest Tokens before the tranche expires "\)|it.skip(\1|g' test/trancheTest.ts
     sed -i 's|it(\("should prevent withdrawal of more Principal Tokens and Interest Tokens than the user has"\)|it.skip(\1|g' test/trancheTest.ts
 
-    # This test file is very flaky. There's one particular cases that fails randomly (see
-    # https://github.com/element-fi/elf-contracts/issues/240) but some others also depends on an external
+    # This test file is very flaky. There's one particular case that fails randomly (see
+    # https://github.com/element-fi/elf-contracts/issues/240) but some others also depend on an external
     # service which makes tests time out when that service is down.
     # "ProviderError: Too Many Requests error received from eth-mainnet.alchemyapi.io"
     rm test/mockERC20YearnVaultTest.ts

@@ -7,6 +7,8 @@
         sstore(a18, 20)
     }
 }
+// ====
+// bytecodeFormat: legacy
 // ----
 // step: stackLimitEvader
 //

@@ -33,12 +33,13 @@ contract D {
 }
 // ====
 // EVMVersion: >=cancun
+// bytecodeFormat: legacy
 // ----
 // constructor(), 2 ether ->
 // gas irOptimized: 108104
 // gas irOptimized code: 119200
-// gas legacy: 120424
-// gas legacy code: 253600
+// gas legacy: 120439
+// gas legacy code: 253800
 // gas legacyOptimized: 109015
 // gas legacyOptimized code: 130800
 // balance: 0x1111111111111111111111111111111111111111 -> 0
@@ -48,7 +49,7 @@ contract D {
 // test_deploy_and_terminate_twice() ->
 // gas irOptimized: 121395
 // gas irOptimized code: 14000
-// gas legacy: 122384
+// gas legacy: 122386
 // gas legacy code: 43200
 // gas legacyOptimized: 121596
 // gas legacyOptimized code: 22800

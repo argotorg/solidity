@@ -24,7 +24,7 @@ SMT_CONTRACT_WITH_CR_NEWLINES_SOL_PATH = FIXTURE_DIR / 'smt_contract_with_cr_new
 SMT_CONTRACT_WITH_MIXED_NEWLINES_SOL_PATH = FIXTURE_DIR / 'smt_contract_with_mixed_newlines.sol'
 SMT_CONTRACT_WITH_MIXED_NEWLINES_SOL_CODE = load_fixture(SMT_CONTRACT_WITH_MIXED_NEWLINES_SOL_PATH)
 
-SYNTAX_SMOKE_TEST_SOL_PATH = LIBSOLIDITY_TEST_DIR / 'syntaxTests/smoke_test.sol'
+SYNTAX_SMOKE_TEST_SOL_PATH = LIBSOLIDITY_TEST_DIR / 'syntaxTests/smoke/smoke_test.sol'
 SYNTAX_SMOKE_TEST_SOL_CODE = load_libsolidity_test_case(SYNTAX_SMOKE_TEST_SOL_PATH)
 
 LIBRARY_INHERITED2_SOL_JSON_OUTPUT = load_fixture('library_inherited2_sol_json_output.json')
@@ -58,19 +58,19 @@ class TestFileReport(PrepareReportTestBase):
             contract_reports=[
                 ContractReport(
                     contract_name='A',
-                    file_name=Path('syntaxTests/smoke_test.sol'),
+                    file_name=Path('syntaxTests/smoke/smoke_test.sol'),
                     bytecode=None,
                     metadata=None,
                 ),
                 ContractReport(
                     contract_name='B',
-                    file_name=Path('syntaxTests/smoke_test.sol'),
+                    file_name=Path('syntaxTests/smoke/smoke_test.sol'),
                     bytecode=None,
                     metadata='{"language":"Solidity"}',
                 ),
                 ContractReport(
                     contract_name='Lib',
-                    file_name=Path('syntaxTests/smoke_test.sol'),
+                    file_name=Path('syntaxTests/smoke/smoke_test.sol'),
                     bytecode='60566050600b828282398051',
                     metadata=None,
                 ),

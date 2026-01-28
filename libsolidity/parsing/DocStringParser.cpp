@@ -163,7 +163,7 @@ DocStringParser::iter DocStringParser::parseDocTag(iter _pos, iter _end, std::st
 {
 	// TODO: need to check for @(start of a tag) between here and the end of line
 	// for all cases.
-	if (!m_lastTag || _tag != "")
+	if (!m_lastTag || !_tag.empty())
 	{
 		if (_tag == "param")
 			return parseDocTagParam(_pos, _end);

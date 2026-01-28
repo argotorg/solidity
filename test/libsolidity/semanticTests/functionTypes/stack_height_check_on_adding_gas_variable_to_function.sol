@@ -19,5 +19,7 @@ contract C {
         return true;
     }
 }
+// ====
+// bytecodeFormat: legacy
 // ----
 // test_function() -> true
