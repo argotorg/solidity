@@ -117,9 +117,10 @@ struct OpPop: SimplePeepholeOptimizerMethod<OpPop>
 		if (_pop == Instruction::POP && _op.type() == Operation)
 		{
 			Instruction instr = _op.instruction();
-			if (instructionInfo(instr, langutil::EVMVersion()).ret == 1 && !instructionInfo(instr, langutil::EVMVersion()).sideEffects)
+			auto const& info = instructionInfo(instr, langutil::EVMVersion());
+			if (info.ret == 1 && !info.sideEffects)
 			{
-				for (int j = 0; j < instructionInfo(instr, langutil::EVMVersion()).args; j++)
+				for (int j = 0; j < info.args; j++)
 					*_out = {Instruction::POP, _op.debugData()};
 				return true;
 			}
