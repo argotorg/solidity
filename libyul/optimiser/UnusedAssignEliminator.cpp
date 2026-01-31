@@ -27,8 +27,6 @@
 #include <libyul/ControlFlowSideEffectsCollector.h>
 #include <libyul/Utilities.h>
 #include <libyul/AST.h>
-#include <libyul/AsmPrinter.h>
-
 #include <libsolutil/CommonData.h>
 
 #include <range/v3/action/remove_if.hpp>
