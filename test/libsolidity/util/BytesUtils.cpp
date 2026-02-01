@@ -40,15 +40,16 @@ using namespace solidity::frontend::test;
 
 bytes BytesUtils::alignLeft(bytes _bytes)
 {
-	soltestAssert(_bytes.size() <= 32, "");
 	size_t size = _bytes.size();
+	soltestAssert(size <= 32, "");
 	return std::move(_bytes) + bytes(32 - size, 0);
 }
 
 bytes BytesUtils::alignRight(bytes _bytes)
 {
-	soltestAssert(_bytes.size() <= 32, "");
-	return bytes(32 - _bytes.size(), 0) + std::move(_bytes);
+	size_t size = _bytes.size();
+	soltestAssert(size <= 32, "");
+	return bytes(32 - size, 0) + std::move(_bytes);
 }
 
 bytes BytesUtils::applyAlign(
