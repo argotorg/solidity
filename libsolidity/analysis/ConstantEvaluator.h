@@ -79,6 +79,7 @@ private:
 	void endVisit(Literal const& _literal) override;
 	void endVisit(Identifier const& _identifier) override;
 	void endVisit(TupleExpression const& _tuple) override;
+	void endVisit(FunctionCall const& _functionCall) override;
 
 	langutil::ErrorReporter& m_errorReporter;
 	/// Current recursion depth.
