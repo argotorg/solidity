@@ -42,9 +42,10 @@ using namespace solidity::yul;
 using namespace solidity::yul::test;
 using namespace solidity::frontend;
 using namespace solidity::frontend::test;
+using namespace solidity::test;
 
 ObjectCompilerTest::ObjectCompilerTest(std::string const& _filename):
-	solidity::frontend::test::EVMVersionRestrictedTestCase(_filename)
+	EVMVersionRestrictedTestCase(_filename)
 {
 	m_source = m_reader.source();
 	m_optimisationPreset = m_reader.enumSetting<OptimisationPreset>(
@@ -97,7 +98,7 @@ TestCase::TestResult ObjectCompilerTest::run(std::ostream& _stream, std::string 
 		{
 			m_obtainedResult += (!m_obtainedResult.empty() && m_obtainedResult.back() != '\n') ? "\n" : "";
 			m_obtainedResult += "Opcodes: " +
-				boost::trim_copy(evmasm::disassemble(obj.bytecode->bytecode, solidity::test::CommonOptions::get().evmVersion()));
+				boost::trim_copy(evmasm::disassemble(obj.bytecode->bytecode, CommonOptions::get().evmVersion()));
 		}
 		if (std::find(m_outputSetting.begin(), m_outputSetting.end(), "SourceMappings") != m_outputSetting.end())
 		{

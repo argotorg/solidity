@@ -26,12 +26,14 @@
 #include <libsolutil/JSON.h>
 #include <libsolutil/AnsiColorized.h>
 
-#include <fstream>
+#include <ostream>
+#include <string>
 
 using namespace solidity;
 using namespace solidity::util;
 using namespace solidity::frontend;
 using namespace solidity::frontend::test;
+using namespace solidity::test;
 
 ABIJsonTest::ABIJsonTest(std::string const& _filename):
 	TestCase(_filename)
@@ -48,8 +50,8 @@ TestCase::TestResult ABIJsonTest::run(std::ostream& _stream, std::string const& 
 		"",
 		"pragma solidity >=0.0;\n// SPDX-License-Identifier: GPL-3.0\n" + m_source
 	}});
-	compiler.setEVMVersion(solidity::test::CommonOptions::get().evmVersion());
-	compiler.setOptimiserSettings(solidity::test::CommonOptions::get().optimize);
+	compiler.setEVMVersion(CommonOptions::get().evmVersion());
+	compiler.setOptimiserSettings(CommonOptions::get().optimize);
 	if (!compiler.parseAndAnalyze())
 		BOOST_THROW_EXCEPTION(std::runtime_error("Parsing contract failed"));
 

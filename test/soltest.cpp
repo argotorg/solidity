@@ -49,6 +49,7 @@
 
 using namespace boost::unit_test;
 using namespace solidity::frontend::test;
+using namespace solidity::test;
 namespace fs = boost::filesystem;
 
 namespace
@@ -68,7 +69,7 @@ void removeTestSuite(std::string const& _name)
 class BoostBatcher: public test_tree_visitor
 {
 public:
-	BoostBatcher(solidity::test::Batcher& _batcher):
+	BoostBatcher(Batcher& _batcher):
 		m_batcher(_batcher)
 	{}
 
@@ -91,7 +92,7 @@ public:
 	}
 
 private:
-	solidity::test::Batcher& m_batcher;
+	Batcher& m_batcher;
 	std::vector<test_suite*> m_path;
 };
 
@@ -127,18 +128,18 @@ int registerTests(
 	boost::filesystem::path const& _path,
 	std::vector<std::string> const& _labels,
 	TestCase::TestCaseCreator _testCaseCreator,
-	solidity::test::Batcher& _batcher
+	Batcher& _batcher
 )
 {
 	int numTestsAdded = 0;
 	fs::path fullpath = _basepath / _path;
 	TestCase::Config config{
 		fullpath.string(),
-		solidity::test::CommonOptions::get().evmVersion(),
-		solidity::test::CommonOptions::get().eofVersion(),
-		solidity::test::CommonOptions::get().vmPaths,
-		solidity::test::CommonOptions::get().enforceGasTest,
-		solidity::test::CommonOptions::get().enforceGasTestMinValue,
+		CommonOptions::get().evmVersion(),
+		CommonOptions::get().eofVersion(),
+		CommonOptions::get().vmPaths,
+		CommonOptions::get().enforceGasTest,
+		CommonOptions::get().enforceGasTestMinValue,
 	};
 	if (fs::is_directory(fullpath))
 	{
@@ -148,7 +149,7 @@ int registerTests(
 			fs::directory_iterator()
 		))
 			if (
-				solidity::test::isValidSemanticTestPath(entry) &&
+				isValidSemanticTestPath(entry) &&
 				(fs::is_directory(entry.path()) || TestCase::isTestFilename(entry.path().filename()))
 			)
 				numTestsAdded += registerTests(
@@ -195,13 +196,13 @@ bool initializeOptions()
 {
 	auto const& suite = boost::unit_test::framework::master_test_suite();
 
-	auto options = std::make_unique<solidity::test::CommonOptions>();
+	auto options = std::make_unique<CommonOptions>();
 	bool shouldContinue = options->parse(suite.argc, suite.argv);
 	if (!shouldContinue)
 		return false;
 	options->validate();
 
-	solidity::test::CommonOptions::setSingleton(std::move(options));
+	CommonOptions::setSingleton(std::move(options));
 	return true;
 }
 
@@ -224,10 +225,10 @@ test_suite* init_unit_test_suite(int /*argc*/, char* /*argv*/[])
 		if (!shouldContinue)
 			exit(EXIT_SUCCESS);
 
-		if (!solidity::test::loadVMs(solidity::test::CommonOptions::get()))
+		if (!loadVMs(CommonOptions::get()))
 			exit(EXIT_FAILURE);
 
-		if (solidity::test::CommonOptions::get().disableSemanticTests)
+		if (CommonOptions::get().disableSemanticTests)
 			std::cout << std::endl << "--- SKIPPING ALL SEMANTICS TESTS ---" << std::endl << std::endl;
 
 		Batcher batcher(CommonOptions::get().selectedBatch, CommonOptions::get().batches);
@@ -241,12 +242,12 @@ test_suite* init_unit_test_suite(int /*argc*/, char* /*argv*/[])
 		// Include the interactive tests in the automatic tests as well
 		for (auto const& ts: g_interactiveTestsuites)
 		{
-			auto const& options = solidity::test::CommonOptions::get();
+			auto const& options = CommonOptions::get();
 
 			if (ts.smt && options.disableSMT)
 				continue;
 
-			if (ts.needsVM && solidity::test::CommonOptions::get().disableSemanticTests)
+			if (ts.needsVM && CommonOptions::get().disableSemanticTests)
 				continue;
 
 			//TODO
@@ -262,7 +263,7 @@ test_suite* init_unit_test_suite(int /*argc*/, char* /*argv*/[])
 			// > 0, std::string("no ") + ts.title + " tests found");
 		 }
 
-		if (solidity::test::CommonOptions::get().disableSemanticTests)
+		if (CommonOptions::get().disableSemanticTests)
 		{
 			for (auto suite: {
 				"ABIDecoderTest",

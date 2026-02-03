@@ -97,7 +97,7 @@ protected:
 	boost::program_options::options_description options;
 
 private:
-	std::string evmVersionString;
+	std::string m_evmVersionString;
 	std::optional<uint8_t> m_eofVersion;
 	static std::unique_ptr<CommonOptions const> m_singleton;
 };
@@ -106,6 +106,9 @@ private:
 /// I.e. if the test is located in the semantic test directory and is not excluded due to being a part of external sources.
 /// Note: @p _testPath can be relative but must include at least the `/test/libsolidity/semanticTests/` part
 bool isValidSemanticTestPath(boost::filesystem::path const& _testPath);
+
+/// Returns a list of file extensions allowed for test files.
+std::set<std::string> testFileExtensions();
 
 /// Helper that can be used to skip tests when the EVM version selected on the command line
 /// is older than @p _minEVMVersion.

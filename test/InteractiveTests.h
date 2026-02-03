@@ -19,10 +19,10 @@
 #pragma once
 
 #include <test/TestCase.h>
+
 #include <test/libsolidity/ABIJsonTest.h>
 #include <test/libsolidity/ASTJSONTest.h>
 #include <test/libsolidity/ASTPropertyTest.h>
-#include <libsolidity/FunctionDependencyGraphTest.h>
 #include <test/libsolidity/GasTest.h>
 #include <test/libsolidity/MemoryGuardTest.h>
 #include <test/libsolidity/NatspecJSONTest.h>
@@ -30,6 +30,7 @@
 #include <test/libsolidity/SyntaxTest.h>
 #include <test/libsolidity/SemanticTest.h>
 #include <test/libsolidity/SMTCheckerTest.h>
+
 #include <test/libyul/ControlFlowGraphTest.h>
 #include <test/libyul/SSAControlFlowGraphTest.h>
 #include <test/libyul/EVMCodeTransformTest.h>
@@ -43,6 +44,8 @@
 #include <test/libyul/SyntaxTest.h>
 
 #include <test/libevmasm/EVMAssemblyTest.h>
+
+#include <libsolidity/FunctionDependencyGraphTest.h>
 
 #include <boost/filesystem.hpp>
 

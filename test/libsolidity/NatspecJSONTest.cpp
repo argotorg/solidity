@@ -27,8 +27,6 @@
 
 #include <fmt/format.h>
 
-#include <vector>
-
 using namespace solidity::frontend::test;
 using namespace solidity::util;
 using namespace std::string_literals;

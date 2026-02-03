@@ -34,8 +34,6 @@
 #include <libsolutil/FunctionSelector.h>
 #include <libsolutil/ErrorCodes.h>
 
-#include <functional>
-
 #include <boost/rational.hpp>
 #include <boost/test/unit_test.hpp>
 

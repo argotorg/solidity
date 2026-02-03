@@ -44,9 +44,9 @@
 #include <range/v3/view/enumerate.hpp>
 #include <range/v3/view/map.hpp>
 
-#include <fstream>
 #include <limits>
 #include <iterator>
+#include <ostream>
 #include <stack>
 
 using namespace solidity;

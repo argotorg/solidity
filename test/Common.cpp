@@ -110,10 +110,10 @@ CommonOptions::CommonOptions(std::string _caption):
 void CommonOptions::addOptions()
 {
 	options.add_options()
-		("evm-version", po::value(&evmVersionString), "which EVM version to use")
+		("evm-version", po::value(&m_evmVersionString), "which EVM version to use")
 		// "eof-version" is declared as uint64_t, since uint8_t will be parsed as character by boost.
 		("eof-version", po::value<uint64_t>()->implicit_value(1u), "which EOF version to use")
-		("testpath", po::value<fs::path>(&this->testPath)->default_value(solidity::test::testPath()), "path to test files")
+		("testpath", po::value<fs::path>(&this->testPath)->default_value(test::testPath()), "path to test files")
 		("vm", po::value<std::vector<fs::path>>(&vmPaths), "path to evmc library, can be supplied multiple times.")
 		("batches", po::value<size_t>(&this->batches)->default_value(1), "set number of batches to split the tests into")
 		("selected-batch", po::value<size_t>(&this->selectedBatch)->default_value(0), "zero-based number of batch to execute")
@@ -259,11 +259,11 @@ void CommonOptions::printSelectedOptions(std::ostream& _stream, std::string cons
 
 langutil::EVMVersion CommonOptions::evmVersion() const
 {
-	if (!evmVersionString.empty())
+	if (!m_evmVersionString.empty())
 	{
-		auto version = langutil::EVMVersion::fromString(evmVersionString);
+		auto version = langutil::EVMVersion::fromString(m_evmVersionString);
 		if (!version)
-			BOOST_THROW_EXCEPTION(std::runtime_error("Invalid EVM version: " + evmVersionString));
+			BOOST_THROW_EXCEPTION(std::runtime_error("Invalid EVM version: " + m_evmVersionString));
 		return *version;
 	}
 	else
@@ -306,17 +306,28 @@ bool isValidSemanticTestPath(boost::filesystem::path const& _testPath)
 	return true;
 }
 
+std::set<std::string> testFileExtensions()
+{
+	return {
+		".sol",
+		".yul",
+		".asm",
+		".asmjson", // Not .json because JSON files that do not represent test cases exist in some test dirs.
+		".stack",
+	};
+}
+
 boost::unit_test::precondition::predicate_t nonEOF()
 {
 	return [](boost::unit_test::test_unit_id) {
-		return !solidity::test::CommonOptions::get().eofVersion().has_value();
+		return !CommonOptions::get().eofVersion().has_value();
 	};
 }
 
 boost::unit_test::precondition::predicate_t onEOF()
 {
 	return [](boost::unit_test::test_unit_id) {
-		return solidity::test::CommonOptions::get().eofVersion().has_value();
+		return CommonOptions::get().eofVersion().has_value();
 	};
 }
 
@@ -332,13 +343,13 @@ bool loadVMs(CommonOptions const& _options)
 	if (_options.disableSemanticTests)
 		return true;
 
-	bool evmSupported = solidity::test::EVMHost::checkVmPaths(_options.vmPaths);
+	bool evmSupported = EVMHost::checkVmPaths(_options.vmPaths);
 	if (!_options.disableSemanticTests && !evmSupported)
 	{
-		std::cerr << "Unable to find " << solidity::test::evmoneFilename;
+		std::cerr << "Unable to find " << evmoneFilename;
 		std::cerr << ". Please disable semantics tests with --no-semantic-tests or provide a path using --vm <path>." << std::endl;
 		std::cerr << "You can download it at" << std::endl;
-		std::cerr << solidity::test::evmoneDownloadLink << std::endl;
+		std::cerr << evmoneDownloadLink << std::endl;
 		return false;
 	}
 	return true;

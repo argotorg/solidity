@@ -41,8 +41,6 @@
 
 #include <boost/test/unit_test.hpp>
 
-#include <variant>
-
 using namespace solidity;
 using namespace solidity::frontend;
 using namespace solidity::yul;

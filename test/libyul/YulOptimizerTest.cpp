@@ -35,7 +35,7 @@
 #include <libsolutil/AnsiColorized.h>
 #include <libsolutil/StringUtils.h>
 
-#include <fstream>
+#include <ostream>
 
 using namespace solidity;
 using namespace solidity::util;

@@ -33,16 +33,15 @@
 #include <boost/throw_exception.hpp>
 
 #include <fstream>
-#include <memory>
 #include <stdexcept>
 
 using namespace solidity;
 using namespace solidity::langutil;
 using namespace solidity::frontend;
 using namespace solidity::frontend::test;
+using namespace solidity::test;
 using namespace solidity::util::formatting;
 using namespace solidity::util;
-namespace fs = boost::filesystem;
 using namespace boost::unit_test;
 using namespace std::string_literals;
 
@@ -79,7 +78,7 @@ void replaceVersionWithTag(std::string& _input)
 {
 	boost::algorithm::replace_all(
 		_input,
-		"\"" + solidity::test::CommonOptions::get().evmVersion().name() + "\"",
+		"\"" + CommonOptions::get().evmVersion().name() + "\"",
 		"%EVMVERSION%"
 	);
 }
@@ -89,7 +88,7 @@ void replaceTagWithVersion(std::string& _input)
 	boost::algorithm::replace_all(
 		_input,
 		"%EVMVERSION%",
-		"\"" + solidity::test::CommonOptions::get().evmVersion().name() + "\""
+		"\"" + CommonOptions::get().evmVersion().name() + "\""
 	);
 }
 
@@ -210,7 +209,7 @@ TestCase::TestResult ASTJSONTest::run(std::ostream& _stream, std::string const& 
 	{
 		c.reset();
 		c.setSources(sources);
-		c.setEVMVersion(solidity::test::CommonOptions::get().evmVersion());
+		c.setEVMVersion(CommonOptions::get().evmVersion());
 
 		if (!c.parseAndAnalyze(variant.stopAfter))
 		{

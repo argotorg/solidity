@@ -36,6 +36,7 @@
 #include <queue>
 
 using namespace solidity::util;
+using namespace solidity::test;
 using namespace solidity::langutil;
 using namespace solidity::frontend;
 using namespace solidity::frontend::test;
@@ -191,8 +192,8 @@ TestCase::TestResult ASTPropertyTest::run(std::ostream& _stream, std::string con
 		"A",
 		"pragma solidity >=0.0;\n// SPDX-License-Identifier: GPL-3.0\n" + m_source
 	}});
-	compiler.setEVMVersion(solidity::test::CommonOptions::get().evmVersion());
-	compiler.setOptimiserSettings(solidity::test::CommonOptions::get().optimize);
+	compiler.setEVMVersion(CommonOptions::get().evmVersion());
+	compiler.setOptimiserSettings(CommonOptions::get().optimize);
 	if (!compiler.parseAndAnalyze())
 		BOOST_THROW_EXCEPTION(std::runtime_error(
 			"Parsing contract failed" +

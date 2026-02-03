@@ -25,8 +25,13 @@
 #include <test/InteractiveTests.h>
 #include <test/EVMHost.h>
 
+#include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/filesystem.hpp>
+
+#include <fmt/format.h>
+
+#include <range/v3/algorithm/all_of.hpp>
 
 #include <cstdlib>
 #include <iostream>
@@ -43,12 +48,9 @@ using namespace solidity::util;
 using namespace solidity::frontend;
 using namespace solidity::frontend::test;
 using namespace solidity::util::formatting;
+using namespace solidity::test;
 
-namespace po = boost::program_options;
 namespace fs = boost::filesystem;
-
-using TestCreator = TestCase::TestCaseCreator;
-using TestOptions = solidity::test::IsolTestOptions;
 
 struct TestStats
 {
@@ -68,19 +70,22 @@ struct TestStats
 class TestFilter
 {
 public:
-	explicit TestFilter(std::string _filter): m_filter(std::move(_filter))
+	explicit TestFilter(std::string _filter):
+		m_filter(std::move(_filter))
 	{
-		std::string filter{m_filter};
+		auto const startsWithDot = [](std::string const& _extension) { return boost::starts_with(_extension, "."); };
+		soltestAssert(ranges::all_of(testFileExtensions(), startsWithDot));
 
-		boost::replace_all(filter, "/", "\\/");
-		boost::replace_all(filter, "*", ".*");
-
-		m_filterExpression = std::regex{"(" + filter + "(\\.sol|\\.yul|\\.asm|\\.asmjson|\\.stack))"};
+		m_filterExpression = std::regex{fmt::format(
+			"({}({}))",
+			boost::replace_all_copy(boost::replace_all_copy(m_filter, "/", "\\/"), "*", ".*"),
+			boost::replace_all_copy(joinHumanReadable(testFileExtensions(), "|"), ".", "\\.")
+		)};
 	}
 
 	bool matches(fs::path const& _path, std::string const& _name) const
 	{
-		return std::regex_match(_name, m_filterExpression) && solidity::test::isValidSemanticTestPath(_path);
+		return std::regex_match(_name, m_filterExpression) && isValidSemanticTestPath(_path);
 	}
 
 private:
@@ -92,8 +97,8 @@ class TestTool
 {
 public:
 	TestTool(
-		TestCreator _testCaseCreator,
-		TestOptions const& _options,
+		TestCase::TestCaseCreator _testCaseCreator,
+		IsolTestOptions const& _options,
 		fs::path _path,
 		std::string _name
 	):
@@ -115,11 +120,11 @@ public:
 	Result process();
 
 	static TestStats processPath(
-		TestCreator _testCaseCreator,
-		TestOptions const& _options,
+		TestCase::TestCaseCreator _testCaseCreator,
+		IsolTestOptions const& _options,
 		fs::path const& _basepath,
 		fs::path const& _path,
-		solidity::test::Batcher& _batcher
+		Batcher& _batcher
 	);
 private:
 	enum class Request
@@ -132,8 +137,8 @@ private:
 	void updateTestCase();
 	Request handleResponse(bool _exception);
 
-	TestCreator m_testCaseCreator;
-	TestOptions const& m_options;
+	TestCase::TestCaseCreator m_testCaseCreator;
+	IsolTestOptions const& m_options;
 	TestFilter m_filter;
 	fs::path const m_path;
 	std::string const m_name;
@@ -253,11 +258,11 @@ TestTool::Request TestTool::handleResponse(bool _exception)
 }
 
 TestStats TestTool::processPath(
-	TestCreator _testCaseCreator,
-	TestOptions const& _options,
+	TestCase::TestCaseCreator _testCaseCreator,
+	IsolTestOptions const& _options,
 	fs::path const& _basepath,
 	fs::path const& _path,
-	solidity::test::Batcher& _batcher
+	Batcher& _batcher
 )
 {
 	std::queue<fs::path> paths;
@@ -362,12 +367,12 @@ void setupTerminal()
 }
 
 std::optional<TestStats> runTestSuite(
-	TestCreator _testCaseCreator,
-	TestOptions const& _options,
+	TestCase::TestCaseCreator _testCaseCreator,
+	IsolTestOptions const& _options,
 	fs::path const& _basePath,
 	fs::path const& _subdirectory,
 	std::string const& _name,
-	solidity::test::Batcher& _batcher
+	Batcher& _batcher
 )
 {
 	fs::path testPath{_basePath / _subdirectory};
@@ -429,7 +434,7 @@ int main(int argc, char const *argv[])
 
 		auto& options = dynamic_cast<IsolTestOptions const&>(CommonOptions::get());
 
-		if (!solidity::test::loadVMs(options))
+		if (!loadVMs(options))
 			return EXIT_FAILURE;
 
 		if (options.disableSemanticTests)
@@ -493,7 +498,7 @@ int main(int argc, char const *argv[])
 		std::cerr << exception.what() << std::endl;
 		return 2;
 	}
-	catch (solidity::test::ConfigException const& exception)
+	catch (ConfigException const& exception)
 	{
 		std::cerr << exception.what() << std::endl;
 		return 2;

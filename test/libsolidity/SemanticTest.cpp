@@ -24,12 +24,12 @@
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/throw_exception.hpp>
 
-#include <algorithm>
 #include <cctype>
-#include <fstream>
+#include <istream>
 #include <functional>
-#include <memory>
 #include <optional>
+#include <ostream>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -37,13 +37,13 @@
 using namespace solidity;
 using namespace solidity::yul;
 using namespace solidity::langutil;
+using namespace solidity::test;
 using namespace solidity::util;
 using namespace solidity::util::formatting;
 using namespace solidity::frontend::test;
 using namespace boost::algorithm;
 using namespace boost::unit_test;
 using namespace std::string_literals;
-namespace fs = boost::filesystem;
 
 std::ostream& solidity::frontend::test::operator<<(std::ostream& _output, RequiresYulOptimizer _requiresYulOptimizer)
 {
@@ -88,10 +88,10 @@ SemanticTest::SemanticTest(
 	);
 
 	m_runWithABIEncoderV1Only = m_reader.boolSetting("ABIEncoderV1Only", false);
-	if (m_runWithABIEncoderV1Only && !solidity::test::CommonOptions::get().useABIEncoderV1)
+	if (m_runWithABIEncoderV1Only && !CommonOptions::get().useABIEncoderV1)
 		m_shouldRun = false;
 
-	auto const eofEnabled = solidity::test::CommonOptions::get().eofVersion().has_value();
+	auto const eofEnabled = CommonOptions::get().eofVersion().has_value();
 	std::string compileViaYul = m_reader.stringSetting("compileViaYul", eofEnabled ? "true" : "also");
 
 	if (compileViaYul == "false" && eofEnabled)
@@ -326,14 +326,14 @@ TestCase::TestResult SemanticTest::run(std::ostream& _stream, std::string const&
 
 	if (m_testCaseWantsYulRun && result == TestResult::Success)
 	{
-		if (solidity::test::CommonOptions::get().optimize)
+		if (CommonOptions::get().optimize)
 			result = runTest(_stream, _linePrefix, _formatted, true /* _isYulRun */);
 		else
 			result = tryRunTestWithYulOptimizer(_stream, _linePrefix, _formatted);
 	}
 
 	if (result != TestResult::Success)
-		solidity::test::CommonOptions::get().printSelectedOptions(
+		CommonOptions::get().printSelectedOptions(
 			_stream,
 			_linePrefix,
 			{"evmVersion", "optimize", "useABIEncoderV1", "batch"}
@@ -364,7 +364,7 @@ TestCase::TestResult SemanticTest::runTest(
 	for (TestFunctionCall& test: m_tests)
 		test.reset();
 
-	std::map<std::string, solidity::test::Address> libraries;
+	std::map<std::string, Address> libraries;
 
 	bool constructed = false;
 
@@ -697,7 +697,7 @@ bool SemanticTest::deploy(
 	std::string const& _contractName,
 	u256 const& _value,
 	bytes const& _arguments,
-	std::map<std::string, solidity::test::Address> const& _libraries
+	std::map<std::string, Address> const& _libraries
 )
 {
 	auto output = compileAndRunWithoutCheck(m_sources.sources, _value, _contractName, _arguments, _libraries, m_sources.mainSourceFile);

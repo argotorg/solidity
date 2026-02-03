@@ -27,7 +27,9 @@
 #include <boost/filesystem.hpp>
 #include <boost/test/unit_test.hpp>
 #include <boost/throw_exception.hpp>
-#include <fstream>
+
+#include <istream>
+#include <ostream>
 #include <stdexcept>
 
 using namespace solidity::langutil;

@@ -25,7 +25,7 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/throw_exception.hpp>
 #include <range/v3/algorithm/find_if.hpp>
-#include <fstream>
+
 #include <memory>
 #include <stdexcept>
 
@@ -35,8 +35,8 @@ using namespace solidity::util::formatting;
 using namespace solidity::langutil;
 using namespace solidity::frontend;
 using namespace solidity::frontend::test;
+using namespace solidity::test;
 using namespace boost::unit_test;
-namespace fs = boost::filesystem;
 
 SyntaxTest::SyntaxTest(
 	std::string const& _filename,
@@ -48,7 +48,7 @@ SyntaxTest::SyntaxTest(
 {
 	static std::set<std::string> const compileViaYulAllowedValues{"true", "false"};
 
-	auto const eofEnabled = solidity::test::CommonOptions::get().eofVersion().has_value();
+	auto const eofEnabled = CommonOptions::get().eofVersion().has_value();
 
 	m_compileViaYul = m_reader.stringSetting("compileViaYul", eofEnabled ? "true" : "false");
 	if (!util::contains(compileViaYulAllowedValues, m_compileViaYul))
@@ -133,8 +133,8 @@ void SyntaxTest::filterObtainedErrors()
 			if(m_sources.sources.count(sourceName) == 1)
 			{
 				int preambleSize =
-						static_cast<int>(compiler().charStream(sourceName).size()) -
-						static_cast<int>(m_sources.sources[sourceName].size());
+					static_cast<int>(compiler().charStream(sourceName).size()) -
+					static_cast<int>(m_sources.sources[sourceName].size());
 				solAssert(preambleSize >= 0, "");
 
 				// ignore the version & license pragma inserted by the testing tool when calculating locations.

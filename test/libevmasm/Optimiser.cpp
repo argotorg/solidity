@@ -36,7 +36,6 @@
 #include <range/v3/algorithm/any_of.hpp>
 
 #include <string>
-#include <tuple>
 #include <memory>
 
 using namespace solidity::langutil;
@@ -319,7 +318,7 @@ BOOST_AUTO_TEST_CASE(cse_associativity2)
 
 BOOST_AUTO_TEST_CASE(cse_double_shift_right_overflow)
 {
-	if (solidity::test::CommonOptions::get().evmVersion().hasBitwiseShifting())
+	if (CommonOptions::get().evmVersion().hasBitwiseShifting())
 	{
 		AssemblyItems input{
 			Instruction::CALLVALUE,
@@ -334,7 +333,7 @@ BOOST_AUTO_TEST_CASE(cse_double_shift_right_overflow)
 
 BOOST_AUTO_TEST_CASE(cse_double_shift_left_overflow)
 {
-	if (solidity::test::CommonOptions::get().evmVersion().hasBitwiseShifting())
+	if (CommonOptions::get().evmVersion().hasBitwiseShifting())
 	{
 		AssemblyItems input{
 			Instruction::DUP1,
@@ -1001,7 +1000,7 @@ BOOST_AUTO_TEST_CASE(clear_unreachable_code)
 		AssemblyItem(PushTag, 1),
 		Instruction::JUMP
 	};
-	PeepholeOptimiser peepOpt(items, solidity::test::CommonOptions::get().evmVersion());
+	PeepholeOptimiser peepOpt(items, CommonOptions::get().evmVersion());
 	BOOST_REQUIRE(peepOpt.optimise());
 	BOOST_CHECK_EQUAL_COLLECTIONS(
 		items.begin(), items.end(),
@@ -1040,7 +1039,7 @@ BOOST_AUTO_TEST_CASE(clear_unreachable_code_eof, *boost::unit_test::precondition
 			Instruction::SSTORE,
 			blockTerminatingItem,
 		};
-		PeepholeOptimiser peepOpt(items, solidity::test::CommonOptions::get().evmVersion());
+		PeepholeOptimiser peepOpt(items, CommonOptions::get().evmVersion());
 		BOOST_REQUIRE(peepOpt.optimise());
 		BOOST_CHECK_EQUAL_COLLECTIONS(
 			items.begin(), items.end(),
@@ -1069,7 +1068,7 @@ BOOST_AUTO_TEST_CASE(is_zero_is_zero_rjumpi, *boost::unit_test::precondition(onE
 		AssemblyItem(Tag, 1),
 	};
 
-	PeepholeOptimiser peepOpt(items, solidity::test::CommonOptions::get().evmVersion());
+	PeepholeOptimiser peepOpt(items, CommonOptions::get().evmVersion());
 	BOOST_REQUIRE(peepOpt.optimise());
 	BOOST_CHECK_EQUAL_COLLECTIONS(
 		items.begin(), items.end(),
@@ -1100,7 +1099,7 @@ BOOST_AUTO_TEST_CASE(equal_is_zero_rjumpi, *boost::unit_test::precondition(onEOF
 		AssemblyItem(Tag, 1),
 	};
 
-	PeepholeOptimiser peepOpt(items, solidity::test::CommonOptions::get().evmVersion());
+	PeepholeOptimiser peepOpt(items, CommonOptions::get().evmVersion());
 	BOOST_REQUIRE(peepOpt.optimise());
 	BOOST_CHECK_EQUAL_COLLECTIONS(
 		items.begin(), items.end(),
@@ -1130,7 +1129,7 @@ BOOST_AUTO_TEST_CASE(double_rjump, *boost::unit_test::precondition(onEOF()))
 		AssemblyItem(Tag, 2),
 	};
 
-	PeepholeOptimiser peepOpt(items, solidity::test::CommonOptions::get().evmVersion());
+	PeepholeOptimiser peepOpt(items, CommonOptions::get().evmVersion());
 	BOOST_REQUIRE(peepOpt.optimise());
 	BOOST_CHECK_EQUAL_COLLECTIONS(
 		items.begin(), items.end(),
@@ -1153,7 +1152,7 @@ BOOST_AUTO_TEST_CASE(rjump_to_next, *boost::unit_test::precondition(onEOF()))
 		Instruction::SLOAD,
 	};
 
-	PeepholeOptimiser peepOpt(items, solidity::test::CommonOptions::get().evmVersion());
+	PeepholeOptimiser peepOpt(items, CommonOptions::get().evmVersion());
 	BOOST_REQUIRE(peepOpt.optimise());
 	BOOST_CHECK_EQUAL_COLLECTIONS(
 		items.begin(), items.end(),
@@ -1177,7 +1176,7 @@ BOOST_AUTO_TEST_CASE(rjumpi_to_next, *boost::unit_test::precondition(onEOF()))
 		Instruction::SLOAD,
 	};
 
-	PeepholeOptimiser peepOpt(items, solidity::test::CommonOptions::get().evmVersion());
+	PeepholeOptimiser peepOpt(items, CommonOptions::get().evmVersion());
 	BOOST_REQUIRE(peepOpt.optimise());
 	BOOST_CHECK_EQUAL_COLLECTIONS(
 		items.begin(), items.end(),
@@ -1205,7 +1204,7 @@ BOOST_AUTO_TEST_CASE(deduplicateNextTagBlockSize3)
 		u256(1),
 		Instruction::REVERT
 	};
-	PeepholeOptimiser peepOpt(items, solidity::test::CommonOptions::get().evmVersion());
+	PeepholeOptimiser peepOpt(items, CommonOptions::get().evmVersion());
 	BOOST_REQUIRE(peepOpt.optimise());
 	BOOST_CHECK_EQUAL_COLLECTIONS(
 		items.begin(), items.end(),
@@ -1230,7 +1229,7 @@ BOOST_AUTO_TEST_CASE(deduplicateNextTagBlockSize2)
 		u256(0),
 		Instruction::SELFDESTRUCT
 	};
-	PeepholeOptimiser peepOpt(items, solidity::test::CommonOptions::get().evmVersion());
+	PeepholeOptimiser peepOpt(items, CommonOptions::get().evmVersion());
 	BOOST_REQUIRE(peepOpt.optimise());
 	BOOST_CHECK_EQUAL_COLLECTIONS(
 		items.begin(), items.end(),
@@ -1252,7 +1251,7 @@ BOOST_AUTO_TEST_CASE(deduplicateNextTagBlockSize1)
 		AssemblyItem(Tag, 2),
 		Instruction::STOP
 	};
-	PeepholeOptimiser peepOpt(items, solidity::test::CommonOptions::get().evmVersion());
+	PeepholeOptimiser peepOpt(items, CommonOptions::get().evmVersion());
 	BOOST_REQUIRE(peepOpt.optimise());
 	BOOST_CHECK_EQUAL_COLLECTIONS(
 		items.begin(), items.end(),
@@ -1280,7 +1279,7 @@ BOOST_AUTO_TEST_CASE(peephole_double_push)
 	};
 
 	// `PUSH0 PUSH0` is cheaper than `DUP1 PUSH0`
-	if (solidity::test::CommonOptions::get().evmVersion() >= EVMVersion::shanghai())
+	if (CommonOptions::get().evmVersion() >= EVMVersion::shanghai())
 		expectation = {
 			u256(0),
 			u256(0),
@@ -1290,7 +1289,7 @@ BOOST_AUTO_TEST_CASE(peephole_double_push)
 			u256(5)
 		};
 
-	PeepholeOptimiser peepOpt(items, solidity::test::CommonOptions::get().evmVersion());
+	PeepholeOptimiser peepOpt(items, CommonOptions::get().evmVersion());
 	BOOST_REQUIRE(peepOpt.optimise());
 	BOOST_CHECK_EQUAL_COLLECTIONS(
 		items.begin(), items.end(),
@@ -1306,7 +1305,7 @@ BOOST_AUTO_TEST_CASE(peephole_pop_calldatasize)
 		Instruction::LT,
 		Instruction::POP
 	};
-	PeepholeOptimiser peepOpt(items, solidity::test::CommonOptions::get().evmVersion());
+	PeepholeOptimiser peepOpt(items, CommonOptions::get().evmVersion());
 	for (size_t i = 0; i < 3; i++)
 		BOOST_CHECK(peepOpt.optimise());
 	BOOST_CHECK(items.empty());
@@ -1339,7 +1338,7 @@ BOOST_AUTO_TEST_CASE(peephole_commutative_swap1)
 			u256(4),
 			u256(5)
 		};
-		PeepholeOptimiser peepOpt(items, solidity::test::CommonOptions::get().evmVersion());
+		PeepholeOptimiser peepOpt(items, CommonOptions::get().evmVersion());
 		BOOST_REQUIRE(peepOpt.optimise());
 		BOOST_CHECK_EQUAL_COLLECTIONS(
 			items.begin(), items.end(),
@@ -1377,7 +1376,7 @@ BOOST_AUTO_TEST_CASE(peephole_noncommutative_swap1)
 			u256(4),
 			u256(5)
 		};
-		PeepholeOptimiser peepOpt(items, solidity::test::CommonOptions::get().evmVersion());
+		PeepholeOptimiser peepOpt(items, CommonOptions::get().evmVersion());
 		BOOST_REQUIRE(!peepOpt.optimise());
 		BOOST_CHECK_EQUAL_COLLECTIONS(
 			items.begin(), items.end(),
@@ -1412,7 +1411,7 @@ BOOST_AUTO_TEST_CASE(peephole_swap_comparison)
 			u256(4),
 			u256(5)
 		};
-		PeepholeOptimiser peepOpt(items, solidity::test::CommonOptions::get().evmVersion());
+		PeepholeOptimiser peepOpt(items, CommonOptions::get().evmVersion());
 		BOOST_REQUIRE(peepOpt.optimise());
 		BOOST_CHECK_EQUAL_COLLECTIONS(
 			items.begin(), items.end(),
@@ -1438,7 +1437,7 @@ BOOST_AUTO_TEST_CASE(peephole_truthy_and)
 		AssemblyItem(PushTag, 1),
 		Instruction::JUMPI
 	};
-	PeepholeOptimiser peepOpt(items, solidity::test::CommonOptions::get().evmVersion());
+	PeepholeOptimiser peepOpt(items, CommonOptions::get().evmVersion());
 	BOOST_REQUIRE(peepOpt.optimise());
 	BOOST_CHECK_EQUAL_COLLECTIONS(
 		items.begin(), items.end(),
@@ -1471,7 +1470,7 @@ BOOST_AUTO_TEST_CASE(peephole_iszero_iszero_jumpi)
 		u256(0x20),
 		Instruction::RETURN
 	};
-	PeepholeOptimiser peepOpt(items, solidity::test::CommonOptions::get().evmVersion());
+	PeepholeOptimiser peepOpt(items, CommonOptions::get().evmVersion());
 	BOOST_REQUIRE(peepOpt.optimise());
 	BOOST_CHECK_EQUAL_COLLECTIONS(
 	  items.begin(), items.end(),
@@ -1513,7 +1512,7 @@ BOOST_AUTO_TEST_CASE(jumpdest_removal_subassemblies, *boost::unit_test::precondi
 	// tag unifications (due to block deduplication) is also
 	// visible at the super-assembly.
 
-	solAssert(!solidity::test::CommonOptions::get().eofVersion().has_value());
+	solAssert(!CommonOptions::get().eofVersion().has_value());
 	Assembly::OptimiserSettings settings;
 	settings.runInliner = false;
 	settings.runJumpdestRemover = true;
@@ -1728,7 +1727,7 @@ BOOST_AUTO_TEST_CASE(verbatim_knownstate)
 
 BOOST_AUTO_TEST_CASE(cse_remove_redundant_shift_masking)
 {
-	if (!solidity::test::CommonOptions::get().evmVersion().hasBitwiseShifting())
+	if (!CommonOptions::get().evmVersion().hasBitwiseShifting())
 		return;
 
 	for (unsigned i = 1; i < 256; i++)
@@ -1876,7 +1875,7 @@ BOOST_AUTO_TEST_CASE(cse_remove_unwanted_masking_of_address)
 
 BOOST_AUTO_TEST_CASE(cse_replace_too_large_shift)
 {
-	if (!solidity::test::CommonOptions::get().evmVersion().hasBitwiseShifting())
+	if (!CommonOptions::get().evmVersion().hasBitwiseShifting())
 		return;
 
 	checkCSE({
