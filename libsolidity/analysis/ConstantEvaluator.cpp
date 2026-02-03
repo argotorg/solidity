@@ -24,8 +24,13 @@
 #include <libsolidity/analysis/ConstantEvaluator.h>
 
 #include <libsolidity/ast/AST.h>
+#include <libsolidity/ast/ASTAnnotations.h>
 #include <libsolidity/ast/TypeProvider.h>
 #include <liblangutil/ErrorReporter.h>
+#include <libsolutil/Keccak256.h>
+#include <libsolutil/CommonData.h>
+#include <libsolutil/FixedHash.h>
+#include <libsolutil/Numeric.h>
 
 #include <limits>
 
@@ -406,4 +411,75 @@ void ConstantEvaluator::endVisit(TupleExpression const& _tuple)
 {
 	if (!_tuple.isInlineArray() && _tuple.components().size() == 1)
 		m_values[&_tuple] = evaluate(*_tuple.components().front());
+}
+
+void ConstantEvaluator::endVisit(FunctionCall const& _functionCall)
+{
+	// Stage 1 (#16420): explicit uint() in comptime (enables layout at uint(keccak256(...)) #16421).
+	if (_functionCall.annotation().kind.set() && *_functionCall.annotation().kind == FunctionCallKind::TypeConversion &&
+		_functionCall.arguments().size() == 1)
+	{
+		Type const* resultType = _functionCall.annotation().type;
+		auto const* integerType = dynamic_cast<IntegerType const*>(resultType);
+		if (integerType && integerType->numBits() == 256 && !integerType->isSigned())
+		{
+			std::optional<TypedRational> argValue = evaluate(*_functionCall.arguments().front());
+			if (argValue)
+			{
+				rational const& value = argValue->value;
+				if (value.denominator() != 1)
+				{
+					m_errorReporter.fatalTypeError(
+						3667_error,
+						_functionCall.location(),
+						"Explicit type conversion not allowed from fractional type to \"uint256\" in compile-time context."
+					);
+					return;
+				}
+				bigint intValue = value.numerator() / value.denominator();
+				if (intValue >= integerType->minValue() && intValue <= integerType->maxValue())
+				{
+					m_values[&_functionCall] = TypedRational{resultType, rational(intValue, 1)};
+					return;
+				}
+				m_errorReporter.fatalTypeError(
+					3667_error,
+					_functionCall.location(),
+					"Arithmetic error when computing constant value: value does not fit in \"uint256\"."
+				);
+				return;
+			}
+		}
+	}
+
+	// #16421: keccak256() in comptime (other common layout base beside erc7201 from PR 15968).
+	auto const* builtin = dynamic_cast<MagicVariableDeclaration const*>(ASTNode::referencedDeclaration(_functionCall.expression()));
+	if (!builtin || _functionCall.arguments().size() != 1)
+		return;
+	auto const* functionType = builtin->functionType(true);
+	if (!functionType || functionType->kind() != FunctionType::Kind::KECCAK256)
+		return;
+
+	Expression const& arg = *_functionCall.arguments().front();
+	auto const* literal = dynamic_cast<Literal const*>(&arg);
+	if (!literal)
+		return;
+
+	util::h256 hash;
+	if (literal->token() == Token::StringLiteral)
+		hash = util::keccak256(literal->value());
+	else if (literal->token() == Token::HexStringLiteral)
+	{
+		bytes data = util::fromHex(literal->value(), util::WhenError::DontThrow);
+		if (data.empty())
+			return;
+		hash = util::keccak256(data);
+	}
+	else
+		return;
+
+	solAssert(functionType->returnParameterTypes().size() == 1, "");
+	Type const* bytes32Type = functionType->returnParameterTypes().front();
+	u256 const val = u256(util::h256::Arith(hash));
+	m_values[&_functionCall] = TypedRational{bytes32Type, rational(bigint(val), 1)};
 }

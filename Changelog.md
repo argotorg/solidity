@@ -1,6 +1,8 @@
 ### 0.8.34 (unreleased)
 
 Language Features:
+* Custom Storage Layout: Allow `keccak256()` with string or hex literal argument in compile-time context for layout base expressions (e.g. `layout at uint(keccak256("my.contract.id"))`).
+* Custom Storage Layout: Allow explicit `uint()` conversion in compile-time context for layout base and array size expressions (Stage 1 of built-in value type conversions in comptime).
 
 Compiler Features:
 * Yul Optimizer: Remove redundant prerequisite steps from the default optimizer sequence.
