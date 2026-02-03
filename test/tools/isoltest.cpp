@@ -206,6 +206,8 @@ void TestTool::updateTestCase()
 	m_test->printUpdatedSettings(file);
 	file << "// ----" << std::endl;
 	m_test->printUpdatedExpectations(file, "// ");
+	file.flush();  // Explicitly flush to ensure file is written before rerun
+	file.close();  // Explicitly close to ensure file is fully written
 }
 
 TestTool::Request TestTool::handleResponse(bool _exception)

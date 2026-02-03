@@ -851,12 +851,42 @@ std::vector<std::string> CompilerStack::contractNames() const
 std::string const CompilerStack::lastContractName(std::optional<std::string> const& _sourceName) const
 {
 	solAssert(m_stackState >= AnalysisSuccessful, "Parsing was not successful.");
+
 	// try to find some user-supplied contract
 	std::string contractName;
+	bool sourceFound = false;
+
 	for (auto const& it: m_sources)
+	{
 		if (_sourceName.value_or(it.first) == it.first)
-			for (auto const* contract: ASTNode::filteredNodes<ContractDefinition>(it.second.ast->nodes()))
-				contractName = contract->fullyQualifiedName();
+		{
+			sourceFound = true;
+			if (it.second.ast)
+				for (auto const* contract: ASTNode::filteredNodes<ContractDefinition>(it.second.ast->nodes()))
+					contractName = contract->fullyQualifiedName();
+		}
+	}
+
+	// Fallback: if the specified source was not found in m_sources (e.g., due to source name
+	// mismatch between mainSourceFile and the actual key in the sources map), search all sources.
+	// This fixes issue #16337 where isoltest crashes on interactive update.
+	if (contractName.empty() && !sourceFound)
+	{
+		for (auto const& it: m_sources)
+		{
+			if (it.second.ast)
+			{
+				for (auto const* contract: ASTNode::filteredNodes<ContractDefinition>(it.second.ast->nodes()))
+				{
+					contractName = contract->fullyQualifiedName();
+					break;
+				}
+				if (!contractName.empty())
+					break;
+			}
+		}
+	}
+
 	return contractName;
 }
 
