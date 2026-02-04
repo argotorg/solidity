@@ -1,0 +1,11 @@
+{
+    "errors": [
+        {
+            "component": "general",
+            "formattedMessage": "EVM version 'experimental' is experimental and can only be selected in experimental mode. To enable experimental mode, use the 'settings.experimental' option.",
+            "message": "EVM version 'experimental' is experimental and can only be selected in experimental mode. To enable experimental mode, use the 'settings.experimental' option.",
+            "severity": "error",
+            "type": "JSONError"
+        }
+    ]
+}

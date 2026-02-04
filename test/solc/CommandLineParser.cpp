@@ -700,6 +700,18 @@ BOOST_AUTO_TEST_CASE(experimental_features_without_experimental_flag)
 	BOOST_CHECK_EXCEPTION(parseCommandLine(commandLineOptions), CommandLineValidationError, hasCorrectMessage);
 }
 
+BOOST_AUTO_TEST_CASE(experimental_evm_version_without_experimental_flag)
+{
+	std::string const expectedErrorMessage {
+		"EVM version 'experimental' is experimental and can only be selected in experimental mode. "
+		"To enable experimental mode, use the --experimental flag."
+	};
+	auto hasCorrectMessage = [&](CommandLineValidationError const& _exception) { return _exception.what() == expectedErrorMessage; };
+
+	std::vector<std::string> const commandLineOptions{"solc", "--evm-version", "experimental", "contract.sol"};
+	BOOST_CHECK_EXCEPTION(parseCommandLine(commandLineOptions), CommandLineValidationError, hasCorrectMessage);
+}
+
 BOOST_AUTO_TEST_CASE(debug_info_ethdebug_without_experimental_flag)
 {
 	std::string const expectedErrorMessage { "--debug-info ethdebug can only be used by toggling the --experimental flag." };

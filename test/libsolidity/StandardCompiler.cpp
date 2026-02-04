@@ -1181,7 +1181,10 @@ BOOST_AUTO_TEST_CASE(evm_version)
 	Json result;
 	for (auto const& version: EVMVersion::allVersions())
 	{
-		result = compile(inputForVersion(fmt::format("\"evmVersion\": \"{}\",", version.name())));
+		if (version.isExperimental())
+			result = compile(inputForVersion(fmt::format("\"evmVersion\": \"{}\", \"experimental\": true,", version.name())));
+		else
+			result = compile(inputForVersion(fmt::format("\"evmVersion\": \"{}\",", version.name())));
 		BOOST_CHECK(result["contracts"]["fileA"]["A"]["metadata"].get<std::string>().find(fmt::format("\"evmVersion\":\"{}\"", version.name())) != std::string::npos);
 	}
 	// test default
@@ -2457,6 +2460,34 @@ BOOST_AUTO_TEST_CASE(no_experimental_eof)
 	BOOST_REQUIRE(util::jsonParseStrict(input, parsedInput));
 	Json result = compiler.compile(parsedInput);
 	BOOST_CHECK(containsError(result, "FatalError", "'eofVersion' is experimental, and can only be used by toggling the 'settings.experimental' option."));
+}
+
+BOOST_AUTO_TEST_CASE(no_experimental_evm_version_experimental)
+{
+	frontend::StandardCompiler compiler;
+	char const* input = R"(
+	{
+		"language": "Solidity",
+		"sources": {
+			"A.sol": {
+				"content": "contract A { constructor() { uint x = 2; { uint y = 3; } } }"
+			}
+		},
+		"settings": {
+			"evmVersion": "experimental"
+		}
+	}
+	)";
+
+	std::string const expectedErrorMessage {
+		"EVM version 'experimental' is experimental and can only be selected in experimental mode. "
+		"To enable experimental mode, use the 'settings.experimental' option."
+	};
+
+	Json parsedInput;
+	BOOST_REQUIRE(util::jsonParseStrict(input, parsedInput));
+	Json result = compiler.compile(parsedInput);
+	BOOST_CHECK(containsError(result, "JSONError", expectedErrorMessage));
 }
 
 BOOST_AUTO_TEST_CASE(experimental_non_boolean)

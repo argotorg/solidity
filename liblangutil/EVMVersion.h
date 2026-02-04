@@ -27,6 +27,7 @@
 #include <cstdint>
 #include <optional>
 #include <string>
+#include <limits>
 
 
 namespace solidity::evmasm
@@ -63,6 +64,7 @@ public:
 	static EVMVersion constexpr cancun() { return {Version::Cancun}; }
 	static EVMVersion constexpr prague() { return {Version::Prague}; }
 	static EVMVersion constexpr osaka() { return {Version::Osaka}; }
+	static EVMVersion constexpr experimental() { return {Version::Experimental}; }
 
 	static auto constexpr allVersions() {
 		return std::array{
@@ -80,6 +82,7 @@ public:
 			cancun(),
 			prague(),
 			osaka(),
+			experimental(),
 		};
 	}
 
@@ -125,6 +128,7 @@ public:
 		case Version::Cancun: return "cancun";
 		case Version::Prague: return "prague";
 		case Version::Osaka: return "osaka";
+		case Version::Experimental: return "experimental";
 		}
 		util::unreachable();
 	}
@@ -154,7 +158,7 @@ public:
 	bool canOverchargeGasForCall() const { return *this >= tangerineWhistle(); }
 
 private:
-	enum class Version {
+	enum class Version : std::uint32_t {
 		Homestead,
 		TangerineWhistle,
 		SpuriousDragon,
@@ -169,6 +173,7 @@ private:
 		Cancun,
 		Prague,
 		Osaka,
+		Experimental = std::numeric_limits<std::uint32_t>::max(),
 	};
 	static auto constexpr currentVersion = Version::Osaka;
 

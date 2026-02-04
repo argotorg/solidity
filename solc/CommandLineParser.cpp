@@ -177,8 +177,8 @@ void CommandLineParser::checkExperimental(std::vector<std::string> const& _optio
 			solThrow(
 				CommandLineValidationError,
 				fmt::format(
-					"EVM version '{}' is experimental and can only be selected in experimental mode."
-					"To enable experimental mode, use the --experimental flag", versionOption->name()
+					"EVM version '{}' is experimental and can only be selected in experimental mode. "
+					"To enable experimental mode, use the --experimental flag.", versionOption->name()
 				)
 			);
 	}

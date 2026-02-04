@@ -861,6 +861,11 @@ std::variant<StandardCompiler::InputsAndSettings, Json> StandardCompiler::parseI
 				"general",
 				"Support for EVM versions older than constantinople is deprecated and will be removed in the future."
 			));
+		if (version->isExperimental() && !ret.experimental)
+			return formatFatalError(Error::Type::JSONError, fmt::format(
+				"EVM version '{}' is experimental and can only be selected in experimental mode. "
+				"To enable experimental mode, use the 'settings.experimental' option.", version->name()
+			));
 		ret.evmVersion = *version;
 	}
 
