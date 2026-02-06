@@ -35,7 +35,6 @@
 #include <set>
 #include <functional>
 #include <utility>
-#include <type_traits>
 #include <list>
 #include <algorithm>
 
@@ -186,7 +185,8 @@ std::vector<T> filter(std::vector<T> const& _vec, std::vector<bool> const& _mask
 	assert(_vec.size() == _mask.size());
 
 	std::vector<T> ret;
-
+    ret.reserve(_vec.size());
+	
 	for (size_t i = 0; i < _mask.size(); ++i)
 		if (_mask[i])
 			ret.push_back(_vec[i]);
