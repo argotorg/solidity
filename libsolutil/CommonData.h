@@ -35,7 +35,6 @@
 #include <set>
 #include <functional>
 #include <utility>
-#include <type_traits>
 #include <list>
 #include <algorithm>
 
