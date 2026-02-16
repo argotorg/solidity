@@ -26,12 +26,12 @@ const CONTRIBUTE_PATH = `/en/latest/contributing.html`;
 const ABOUT_PATH = `${SOLIDITY_HOME_URL}/about`;
 const FORUM_URL = "https://forum.soliditylang.org/";
 const NAV_LINKS = [
-  { name: "Blog", href: BLOG_URL },
-  { name: "Documentation", href: DOCS_URL },
-  { name: "Use cases", href: USE_CASES_PATH },
-  { name: "Contribute", href: CONTRIBUTE_PATH },
-  { name: "About", href: ABOUT_PATH },
-  { name: "Forum", href: FORUM_URL },
+  { name: window.NAV_LINKS.blog, href: BLOG_URL },
+  { name: window.NAV_LINKS.documentation, href: DOCS_URL },
+  { name: window.NAV_LINKS.use_cases, href: USE_CASES_PATH },
+  { name: window.NAV_LINKS.contribute, href: CONTRIBUTE_PATH },
+  { name: window.NAV_LINKS.about, href: ABOUT_PATH },
+  { name: window.NAV_LINKS.forum, href: FORUM_URL },
 ];
 
 const MOBILE_MENU_TOGGLE_CLASS = "shift";
