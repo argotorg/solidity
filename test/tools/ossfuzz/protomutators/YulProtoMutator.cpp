@@ -64,7 +64,7 @@ struct addControlFlow
 }
 
 /* static addControlFlow<ForStmt> c1; */
-static addControlFlow<BoundedForStmt> c2;
+/* static addControlFlow<BoundedForStmt> c2; */
 static addControlFlow<IfStmt> c3;
 static addControlFlow<SwitchStmt> c4;
 static addControlFlow<FunctionDef> c5;
@@ -172,8 +172,8 @@ void YPM::addControlFlow(T* _msg, unsigned _seed)
 	enum class ControlFlowStmt: unsigned
 	{
 		/* For = 0, */
-		BoundedFor = 0,
-		If,
+		/* BoundedFor = 0, */
+		If = 0,
 		Switch,
 		FunctionCall,
 		Break,
@@ -193,9 +193,9 @@ void YPM::addControlFlow(T* _msg, unsigned _seed)
 	/* case ControlFlowStmt::For: */
 	/* 	s->set_allocated_forstmt(new ForStmt()); */
 	/* 	break; */
-	case ControlFlowStmt::BoundedFor:
-		s->set_allocated_boundedforstmt(new BoundedForStmt());
-		break;
+	/* case ControlFlowStmt::BoundedFor: */
+	/* 	s->set_allocated_boundedforstmt(new BoundedForStmt()); */
+	/* 	break; */
 	case ControlFlowStmt::If:
 		s->set_allocated_ifstmt(new IfStmt());
 		break;
@@ -250,9 +250,10 @@ Block* YPM::basicBlock(T* _msg, unsigned/* _seed*/)
 	/* if constexpr (std::is_same_v<T, ForStmt>) */
 	/* 	return randomBlock(_msg, _seed); */
 	/* else */
-	if constexpr (std::is_same_v<T, BoundedForStmt>)
-		return _msg->mutable_for_body();
-	else if constexpr (std::is_same_v<T, SwitchStmt>)
+	/* if constexpr (std::is_same_v<T, BoundedForStmt>) */
+	/* 	return _msg->mutable_for_body(); */
+	/* else */
+	if constexpr (std::is_same_v<T, SwitchStmt>)
 		return _msg->mutable_default_block();
 	else if constexpr (std::is_same_v<T, FunctionDef>)
 		return _msg->mutable_block();

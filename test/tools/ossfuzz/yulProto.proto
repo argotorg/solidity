@@ -279,9 +279,9 @@ message IfStmt {
   required Block if_body = 2;
 }
 
-message BoundedForStmt {
-  required Block for_body = 1;
-}
+// message BoundedForStmt {
+//   required Block for_body = 1;
+// }
 
 // message ForStmt {
 //   required Block for_body = 1;
@@ -363,7 +363,7 @@ message Statement {
     ExtCodeCopy         extcode_copy    = 11;
     TerminatingStmt     terminatestmt   = 12;
     FunctionCall        functioncall    = 13;
-    BoundedForStmt      boundedforstmt  = 14;
+    // BoundedForStmt      boundedforstmt  = 14;
     FunctionDef         funcdef         = 15;
     PopStmt             pop             = 16;
     LeaveStmt           leave           = 17;

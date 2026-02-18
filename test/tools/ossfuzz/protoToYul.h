@@ -94,7 +94,7 @@ private:
 	void visit(StoreFunc const&);
 	void visit(Statement const&);
 	/* void visit(ForStmt const&); */
-	void visit(BoundedForStmt const&);
+	/* void visit(BoundedForStmt const&); */
 	void visit(CaseStmt const&);
 	void visit(SwitchStmt const&);
 	void visit(TernaryOp const&);

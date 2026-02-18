@@ -1196,26 +1196,26 @@ void ProtoConverter::visit(StoreFunc const& _x)
 	m_output << ")\n";
 }
 
-void ProtoConverter::visit(BoundedForStmt const& _x)
-{
-	if (++m_numForLoops > s_maxForLoops)
-		return;
+/* void ProtoConverter::visit(BoundedForStmt const& _x) */
+/* { */
+/* 	if (++m_numForLoops > s_maxForLoops) */
+/* 		return; */
 
-	// Boilerplate for loop that limits the number of iterations to a maximum of 4.
-	std::string loopVarName("i_" + std::to_string(m_numNestedForLoops++));
-	m_output << "for { let " << loopVarName << " := 0 } "
-	       << "lt(" << loopVarName << ", 0x60) "
-	       << "{ " << loopVarName << " := add(" << loopVarName << ", 0x20) } ";
-	// Store previous for body scope
-	bool wasInForBody = m_inForBodyScope;
-	bool wasInForInit = m_inForInitScope;
-	m_inForBodyScope = true;
-	m_inForInitScope = false;
-	visit(_x.for_body());
-	// Restore previous for body scope and init
-	m_inForBodyScope = wasInForBody;
-	m_inForInitScope = wasInForInit;
-}
+/* 	// Boilerplate for loop that limits the number of iterations to a maximum of 4. */
+/* 	std::string loopVarName("i_" + std::to_string(m_numNestedForLoops++)); */
+/* 	m_output << "for { let " << loopVarName << " := 0 } " */
+/* 	       << "lt(" << loopVarName << ", 0x60) " */
+/* 	       << "{ " << loopVarName << " := add(" << loopVarName << ", 0x20) } "; */
+/* 	// Store previous for body scope */
+/* 	bool wasInForBody = m_inForBodyScope; */
+/* 	bool wasInForInit = m_inForInitScope; */
+/* 	m_inForBodyScope = true; */
+/* 	m_inForInitScope = false; */
+/* 	visit(_x.for_body()); */
+/* 	// Restore previous for body scope and init */
+/* 	m_inForBodyScope = wasInForBody; */
+/* 	m_inForInitScope = wasInForInit; */
+/* } */
 
 void ProtoConverter::visit(CaseStmt const& _x)
 {
@@ -1413,10 +1413,10 @@ void ProtoConverter::visit(Statement const& _x)
 	/* 	if (_x.forstmt().for_body().statements_size() > 0 && !m_filterUnboundedLoops) */
 	/* 		visit(_x.forstmt()); */
 	/* 	break; */
-	case Statement::kBoundedforstmt:
-		if (_x.boundedforstmt().for_body().statements_size() > 0)
-			visit(_x.boundedforstmt());
-		break;
+	/* case Statement::kBoundedforstmt: */
+	/* 	if (_x.boundedforstmt().for_body().statements_size() > 0) */
+	/* 		visit(_x.boundedforstmt()); */
+	/* 	break; */
 	case Statement::kSwitchstmt:
 		visit(_x.switchstmt());
 		break;
