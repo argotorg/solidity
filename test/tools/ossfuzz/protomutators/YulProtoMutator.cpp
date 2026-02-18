@@ -63,7 +63,7 @@ struct addControlFlow
 };
 }
 
-static addControlFlow<ForStmt> c1;
+/* static addControlFlow<ForStmt> c1; */
 static addControlFlow<BoundedForStmt> c2;
 static addControlFlow<IfStmt> c3;
 static addControlFlow<SwitchStmt> c4;
@@ -171,8 +171,8 @@ void YPM::addControlFlow(T* _msg, unsigned _seed)
 {
 	enum class ControlFlowStmt: unsigned
 	{
-		For = 0,
-		BoundedFor,
+		/* For = 0, */
+		BoundedFor = 0,
 		If,
 		Switch,
 		FunctionCall,
@@ -182,7 +182,7 @@ void YPM::addControlFlow(T* _msg, unsigned _seed)
 		Termination
 	};
 	std::uniform_int_distribution<unsigned> d(
-		static_cast<unsigned>(ControlFlowStmt::For),
+		/* static_cast<unsigned>(ControlFlowStmt::For), */
 		static_cast<unsigned>(ControlFlowStmt::Termination)
 	);
 	YulRandomNumGenerator yrand(_seed);
@@ -190,9 +190,9 @@ void YPM::addControlFlow(T* _msg, unsigned _seed)
 	Statement* s = basicBlock(_msg, _seed)->add_statements();
 	switch (random)
 	{
-	case ControlFlowStmt::For:
-		s->set_allocated_forstmt(new ForStmt());
-		break;
+	/* case ControlFlowStmt::For: */
+	/* 	s->set_allocated_forstmt(new ForStmt()); */
+	/* 	break; */
 	case ControlFlowStmt::BoundedFor:
 		s->set_allocated_boundedforstmt(new BoundedForStmt());
 		break;
@@ -220,36 +220,37 @@ void YPM::addControlFlow(T* _msg, unsigned _seed)
 	}
 }
 
-Block* YPM::randomBlock(ForStmt* _stmt, unsigned _seed)
-{
-	enum class ForBlocks: unsigned
-	{
-		Init = 0,
-		Post = 1,
-		Body = 2
-	};
-	std::uniform_int_distribution<unsigned> d(
-		static_cast<unsigned>(ForBlocks::Init),
-		static_cast<unsigned>(ForBlocks::Body)
-	);
-	YulRandomNumGenerator yrand(_seed);
-	switch (static_cast<ForBlocks>(d(yrand.m_random)))
-	{
-	case ForBlocks::Init:
-		return _stmt->mutable_for_init();
-	case ForBlocks::Post:
-		return _stmt->mutable_for_post();
-	case ForBlocks::Body:
-		return _stmt->mutable_for_body();
-	}
-}
+/* Block* YPM::randomBlock(ForStmt* _stmt, unsigned _seed) */
+/* { */
+/* 	enum class ForBlocks: unsigned */
+/* 	{ */
+/* 		Init = 0, */
+/* 		Post = 1, */
+/* 		Body = 2 */
+/* 	}; */
+/* 	std::uniform_int_distribution<unsigned> d( */
+/* 		static_cast<unsigned>(ForBlocks::Init), */
+/* 		static_cast<unsigned>(ForBlocks::Body) */
+/* 	); */
+/* 	YulRandomNumGenerator yrand(_seed); */
+/* 	switch (static_cast<ForBlocks>(d(yrand.m_random))) */
+/* 	{ */
+/* 	case ForBlocks::Init: */
+/* 		return _stmt->mutable_for_init(); */
+/* 	case ForBlocks::Post: */
+/* 		return _stmt->mutable_for_post(); */
+/* 	case ForBlocks::Body: */
+/* 		return _stmt->mutable_for_body(); */
+/* 	} */
+/* } */
 
 template <typename T>
-Block* YPM::basicBlock(T* _msg, unsigned _seed)
+Block* YPM::basicBlock(T* _msg, unsigned/* _seed*/)
 {
-	if constexpr (std::is_same_v<T, ForStmt>)
-		return randomBlock(_msg, _seed);
-	else if constexpr (std::is_same_v<T, BoundedForStmt>)
+	/* if constexpr (std::is_same_v<T, ForStmt>) */
+	/* 	return randomBlock(_msg, _seed); */
+	/* else */
+	if constexpr (std::is_same_v<T, BoundedForStmt>)
 		return _msg->mutable_for_body();
 	else if constexpr (std::is_same_v<T, SwitchStmt>)
 		return _msg->mutable_default_block();

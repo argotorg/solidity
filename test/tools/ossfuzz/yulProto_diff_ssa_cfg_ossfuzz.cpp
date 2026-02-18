@@ -83,8 +83,8 @@ bool checkEquivalenceHEVM(
 		"--num-solvers", "1",
 		"--only-deployed"
 	};
-    if (!isRuntime)
-        args.push_back("--create");
+	if (!isRuntime)
+	 	args.push_back("--create");
 
 	auto hevmPath = boost::process::search_path("hevm");
 	if (hevmPath.empty())
