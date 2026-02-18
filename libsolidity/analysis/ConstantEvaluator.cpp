@@ -472,9 +472,13 @@ void ConstantEvaluator::endVisit(FunctionCall const& _functionCall)
 		hash = util::keccak256(literal->value());
 	else if (literal->token() == Token::HexStringLiteral)
 	{
-		bytes data = util::fromHex(literal->value(), util::WhenError::DontThrow);
-		if (data.empty())
-			return;
+		bytes data;
+		if (!literal->value().empty())
+		{
+			data = util::fromHex(literal->value(), util::WhenError::DontThrow);
+			if (data.empty())
+				return;
+		}
 		hash = util::keccak256(data);
 	}
 	else
