@@ -1196,45 +1196,6 @@ void ProtoConverter::visit(StoreFunc const& _x)
 	m_output << ")\n";
 }
 
-void ProtoConverter::visit(ForStmt const& _x)
-{
-	if (++m_numForLoops > s_maxForLoops)
-		return;
-	bool wasInForBody = m_inForBodyScope;
-	bool wasInForInit = m_inForInitScope;
-	bool wasForInitScopeExtEnabled = m_forInitScopeExtEnabled;
-	m_inForBodyScope = false;
-	m_inForInitScope = true;
-	m_forInitScopeExtEnabled = true;
-	m_inForCond = false;
-	m_output << "for ";
-	visit(_x.for_init());
-	m_inForInitScope = false;
-	m_forInitScopeExtEnabled = wasForInitScopeExtEnabled;
-	m_inForCond = true;
-	visit(_x.for_cond());
-	m_inForCond = false;
-	visit(_x.for_post());
-	m_inForBodyScope = true;
-	visit(_x.for_body());
-	m_inForBodyScope = wasInForBody;
-	m_inForInitScope = wasInForInit;
-	if (m_inFunctionDef)
-	{
-		yulAssert(
-			!m_funcForLoopInitVars.empty() && !m_funcForLoopInitVars.back().empty(),
-			"Proto fuzzer: Invalid data structure"
-		);
-		// Remove variables in for-init
-		m_funcForLoopInitVars.back().pop_back();
-	}
-	else
-	{
-		yulAssert(!m_globalForLoopInitVars.empty(), "Proto fuzzer: Invalid data structure");
-		m_globalForLoopInitVars.pop_back();
-	}
-}
-
 void ProtoConverter::visit(BoundedForStmt const& _x)
 {
 	if (++m_numForLoops > s_maxForLoops)
