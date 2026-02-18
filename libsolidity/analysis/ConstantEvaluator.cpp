@@ -420,6 +420,8 @@ void ConstantEvaluator::endVisit(FunctionCall const& _functionCall)
 		_functionCall.arguments().size() == 1)
 	{
 		Type const* resultType = _functionCall.annotation().type;
+		if (!resultType)
+			return;
 		auto const* integerType = dynamic_cast<IntegerType const*>(resultType);
 		if (integerType && integerType->numBits() == 256 && !integerType->isSigned())
 		{
