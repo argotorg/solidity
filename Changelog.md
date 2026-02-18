@@ -66,6 +66,9 @@ Compiler Features:
 * Standard JSON Interface: Replace the experimental top-level `ethdebug` output with `ethdebug.resources` and `ethdebug.compilation`. Decouple ethdebug outputs from binary compilation so that requesting the `ethdebug/format/info/resources` schema artifacts does not trigger bytecode generation.
 * Yul Optimizer: Improve performance of control flow side effects collector and function references resolver.
 
+Important Bugfixes:
+* Evmasm Code Generator: Fix unchecked multiplication overflow when computing the storage size of dynamic arrays during deletion, which could result in `delete` silently leaving stale data in storage.
+
 Bugfixes:
 * Yul: Fix incorrect serialization of Yul object names containing double quotes and escape sequences, producing output that could not be parsed as valid Yul.
 * Yul EVM Code Transform: Improve stack shuffler performance by fixing a BFS deduplication issue.

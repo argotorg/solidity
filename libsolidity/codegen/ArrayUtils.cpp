@@ -641,7 +641,20 @@ void ArrayUtils::convertLengthToSize(ArrayType const& _arrayType, bool _pad) con
 			}
 		}
 		else
-			m_context << _arrayType.baseType()->storageSize() << Instruction::MUL;
+		{
+			if (!_arrayType.isDynamicallySized())
+				// For static arrays, the total size is known at compile time and overflow checked during type validation.
+				m_context << Instruction::POP << _arrayType.storageSize();
+			else
+			{
+				m_context << _arrayType.baseType()->storageSize();
+				m_context.callYulFunction(
+					m_context.utilFunctions().overflowCheckedIntMulFunction(*TypeProvider::uint256()),
+					2,
+					1
+				);
+			}
+		}
 	}
 	else
 	{

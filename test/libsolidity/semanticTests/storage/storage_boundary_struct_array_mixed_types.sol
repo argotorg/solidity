@@ -173,7 +173,7 @@ contract C {
 // gas ssaCFGOptimized: 113161
 // deleteBoundaryArray()
 // gas irOptimized: 177968
-// gas legacy: 180995
+// gas legacy: 180988
 // gas legacyOptimized: 178182
 // gas ssaCFGOptimized: 177963
 // canaryValue() -> 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff

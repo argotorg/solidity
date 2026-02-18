@@ -1,6 +1,7 @@
 {
     "0.1.0": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
             "KeccakCaching",
@@ -24,6 +25,7 @@
     },
     "0.1.1": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
             "KeccakCaching",
@@ -47,6 +49,7 @@
     },
     "0.1.2": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
             "KeccakCaching",
@@ -70,6 +73,7 @@
     },
     "0.1.3": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
             "KeccakCaching",
@@ -93,6 +97,7 @@
     },
     "0.1.4": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
             "KeccakCaching",
@@ -117,6 +122,7 @@
     },
     "0.1.5": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
             "KeccakCaching",
@@ -141,6 +147,7 @@
     },
     "0.1.6": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
             "KeccakCaching",
@@ -167,6 +174,7 @@
     },
     "0.1.7": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
             "KeccakCaching",
@@ -193,6 +201,7 @@
     },
     "0.2.0": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
             "KeccakCaching",
@@ -220,6 +229,7 @@
     },
     "0.2.1": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
             "KeccakCaching",
@@ -247,6 +257,7 @@
     },
     "0.2.2": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
             "KeccakCaching",
@@ -274,6 +285,7 @@
     },
     "0.3.0": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
             "KeccakCaching",
@@ -303,6 +315,7 @@
     },
     "0.3.1": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
             "KeccakCaching",
@@ -331,6 +344,7 @@
     },
     "0.3.2": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
             "KeccakCaching",
@@ -359,6 +373,7 @@
     },
     "0.3.3": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
             "KeccakCaching",
@@ -386,6 +401,7 @@
     },
     "0.3.4": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
             "KeccakCaching",
@@ -413,6 +429,7 @@
     },
     "0.3.5": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
             "KeccakCaching",
@@ -440,6 +457,7 @@
     },
     "0.3.6": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
             "KeccakCaching",
@@ -465,6 +483,7 @@
     },
     "0.4.0": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
             "KeccakCaching",
@@ -490,6 +509,7 @@
     },
     "0.4.1": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
             "KeccakCaching",
@@ -515,6 +535,7 @@
     },
     "0.4.10": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
             "KeccakCaching",
@@ -539,6 +560,7 @@
     },
     "0.4.11": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
             "KeccakCaching",
@@ -562,6 +584,7 @@
     },
     "0.4.12": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
             "KeccakCaching",
@@ -584,6 +607,7 @@
     },
     "0.4.13": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
             "KeccakCaching",
@@ -606,6 +630,7 @@
     },
     "0.4.14": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
             "KeccakCaching",
@@ -627,6 +652,7 @@
     },
     "0.4.15": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
             "KeccakCaching",
@@ -647,6 +673,7 @@
     },
     "0.4.16": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
             "ABIDecodeTwoDimensionalArrayMemory",
@@ -670,6 +697,7 @@
     },
     "0.4.17": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
             "ABIDecodeTwoDimensionalArrayMemory",
@@ -694,6 +722,7 @@
     },
     "0.4.18": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
             "ABIDecodeTwoDimensionalArrayMemory",
@@ -717,6 +746,7 @@
     },
     "0.4.19": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
             "ABIDecodeTwoDimensionalArrayMemory",
@@ -741,6 +771,7 @@
     },
     "0.4.2": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
             "KeccakCaching",
@@ -765,6 +796,7 @@
     },
     "0.4.20": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
             "ABIDecodeTwoDimensionalArrayMemory",
@@ -789,6 +821,7 @@
     },
     "0.4.21": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
             "ABIDecodeTwoDimensionalArrayMemory",
@@ -813,6 +846,7 @@
     },
     "0.4.22": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
             "ABIDecodeTwoDimensionalArrayMemory",
@@ -837,6 +871,7 @@
     },
     "0.4.23": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
             "ABIDecodeTwoDimensionalArrayMemory",
@@ -860,6 +895,7 @@
     },
     "0.4.24": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
             "ABIDecodeTwoDimensionalArrayMemory",
@@ -883,6 +919,7 @@
     },
     "0.4.25": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
             "ABIDecodeTwoDimensionalArrayMemory",
@@ -904,6 +941,7 @@
     },
     "0.4.26": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
             "ABIDecodeTwoDimensionalArrayMemory",
@@ -922,6 +960,7 @@
     },
     "0.4.3": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
             "KeccakCaching",
@@ -945,6 +984,7 @@
     },
     "0.4.4": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
             "KeccakCaching",
@@ -967,6 +1007,7 @@
     },
     "0.4.5": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
             "KeccakCaching",
@@ -992,6 +1033,7 @@
     },
     "0.4.6": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
             "KeccakCaching",
@@ -1016,6 +1058,7 @@
     },
     "0.4.7": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
             "KeccakCaching",
@@ -1040,6 +1083,7 @@
     },
     "0.4.8": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
             "KeccakCaching",
@@ -1064,6 +1108,7 @@
     },
     "0.4.9": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
             "KeccakCaching",
@@ -1088,6 +1133,7 @@
     },
     "0.5.0": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
             "ABIDecodeTwoDimensionalArrayMemory",
@@ -1109,6 +1155,7 @@
     },
     "0.5.1": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
             "ABIDecodeTwoDimensionalArrayMemory",
@@ -1130,6 +1177,7 @@
     },
     "0.5.10": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "AbiReencodingHeadOverflowWithStaticArrayCleanup",
             "DirtyBytesArrayToStorage",
@@ -1149,6 +1197,7 @@
     },
     "0.5.11": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "AbiReencodingHeadOverflowWithStaticArrayCleanup",
             "DirtyBytesArrayToStorage",
@@ -1167,6 +1216,7 @@
     },
     "0.5.12": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "AbiReencodingHeadOverflowWithStaticArrayCleanup",
             "DirtyBytesArrayToStorage",
@@ -1185,6 +1235,7 @@
     },
     "0.5.13": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "AbiReencodingHeadOverflowWithStaticArrayCleanup",
             "DirtyBytesArrayToStorage",
@@ -1203,6 +1254,7 @@
     },
     "0.5.14": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "AbiReencodingHeadOverflowWithStaticArrayCleanup",
             "DirtyBytesArrayToStorage",
@@ -1223,6 +1275,7 @@
     },
     "0.5.15": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "AbiReencodingHeadOverflowWithStaticArrayCleanup",
             "DirtyBytesArrayToStorage",
@@ -1242,6 +1295,7 @@
     },
     "0.5.16": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "AbiReencodingHeadOverflowWithStaticArrayCleanup",
             "DirtyBytesArrayToStorage",
@@ -1260,6 +1314,7 @@
     },
     "0.5.17": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "AbiReencodingHeadOverflowWithStaticArrayCleanup",
             "DirtyBytesArrayToStorage",
@@ -1277,6 +1332,7 @@
     },
     "0.5.2": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
             "ABIDecodeTwoDimensionalArrayMemory",
@@ -1298,6 +1354,7 @@
     },
     "0.5.3": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
             "ABIDecodeTwoDimensionalArrayMemory",
@@ -1319,6 +1376,7 @@
     },
     "0.5.4": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
             "ABIDecodeTwoDimensionalArrayMemory",
@@ -1340,6 +1398,7 @@
     },
     "0.5.5": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
             "ABIDecodeTwoDimensionalArrayMemory",
@@ -1363,6 +1422,7 @@
     },
     "0.5.6": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
             "ABIDecodeTwoDimensionalArrayMemory",
@@ -1386,6 +1446,7 @@
     },
     "0.5.7": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
             "ABIDecodeTwoDimensionalArrayMemory",
@@ -1407,6 +1468,7 @@
     },
     "0.5.8": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "AbiReencodingHeadOverflowWithStaticArrayCleanup",
             "DirtyBytesArrayToStorage",
@@ -1429,6 +1491,7 @@
     },
     "0.5.9": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "AbiReencodingHeadOverflowWithStaticArrayCleanup",
             "DirtyBytesArrayToStorage",
@@ -1450,6 +1513,7 @@
     },
     "0.6.0": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "AbiReencodingHeadOverflowWithStaticArrayCleanup",
             "DirtyBytesArrayToStorage",
@@ -1469,6 +1533,7 @@
     },
     "0.6.1": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "AbiReencodingHeadOverflowWithStaticArrayCleanup",
             "DirtyBytesArrayToStorage",
@@ -1487,6 +1552,7 @@
     },
     "0.6.10": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "FullInlinerNonExpressionSplitArgumentEvaluationOrder",
             "MissingSideEffectsOnSelectorAccess",
@@ -1504,6 +1570,7 @@
     },
     "0.6.11": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "FullInlinerNonExpressionSplitArgumentEvaluationOrder",
             "MissingSideEffectsOnSelectorAccess",
@@ -1521,6 +1588,7 @@
     },
     "0.6.12": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "FullInlinerNonExpressionSplitArgumentEvaluationOrder",
             "MissingSideEffectsOnSelectorAccess",
@@ -1538,6 +1606,7 @@
     },
     "0.6.2": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "MissingSideEffectsOnSelectorAccess",
             "AbiReencodingHeadOverflowWithStaticArrayCleanup",
@@ -1557,6 +1626,7 @@
     },
     "0.6.3": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "MissingSideEffectsOnSelectorAccess",
             "AbiReencodingHeadOverflowWithStaticArrayCleanup",
@@ -1576,6 +1646,7 @@
     },
     "0.6.4": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "MissingSideEffectsOnSelectorAccess",
             "AbiReencodingHeadOverflowWithStaticArrayCleanup",
@@ -1595,6 +1666,7 @@
     },
     "0.6.5": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "MissingSideEffectsOnSelectorAccess",
             "AbiReencodingHeadOverflowWithStaticArrayCleanup",
@@ -1614,6 +1686,7 @@
     },
     "0.6.6": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "MissingSideEffectsOnSelectorAccess",
             "AbiReencodingHeadOverflowWithStaticArrayCleanup",
@@ -1632,6 +1705,7 @@
     },
     "0.6.7": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "FullInlinerNonExpressionSplitArgumentEvaluationOrder",
             "MissingSideEffectsOnSelectorAccess",
@@ -1651,6 +1725,7 @@
     },
     "0.6.8": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "FullInlinerNonExpressionSplitArgumentEvaluationOrder",
             "MissingSideEffectsOnSelectorAccess",
@@ -1667,6 +1742,7 @@
     },
     "0.6.9": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "FullInlinerNonExpressionSplitArgumentEvaluationOrder",
             "MissingSideEffectsOnSelectorAccess",
@@ -1685,6 +1761,7 @@
     },
     "0.7.0": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "FullInlinerNonExpressionSplitArgumentEvaluationOrder",
             "MissingSideEffectsOnSelectorAccess",
@@ -1702,6 +1779,7 @@
     },
     "0.7.1": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "LostStorageArrayWriteOnSlotOverflow",
             "FullInlinerNonExpressionSplitArgumentEvaluationOrder",
             "MissingSideEffectsOnSelectorAccess",
@@ -1720,6 +1798,7 @@
     },
     "0.7.2": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "UnsoundSpillInMutualRecursion",
             "LostStorageArrayWriteOnSlotOverflow",
             "FullInlinerNonExpressionSplitArgumentEvaluationOrder",
@@ -1738,6 +1817,7 @@
     },
     "0.7.3": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "UnsoundSpillInMutualRecursion",
             "LostStorageArrayWriteOnSlotOverflow",
             "FullInlinerNonExpressionSplitArgumentEvaluationOrder",
@@ -1755,6 +1835,7 @@
     },
     "0.7.4": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "UnsoundSpillInMutualRecursion",
             "LostStorageArrayWriteOnSlotOverflow",
             "FullInlinerNonExpressionSplitArgumentEvaluationOrder",
@@ -1771,6 +1852,7 @@
     },
     "0.7.5": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "UnsoundSpillInMutualRecursion",
             "LostStorageArrayWriteOnSlotOverflow",
             "FullInlinerNonExpressionSplitArgumentEvaluationOrder",
@@ -1787,6 +1869,7 @@
     },
     "0.7.6": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "UnsoundSpillInMutualRecursion",
             "LostStorageArrayWriteOnSlotOverflow",
             "FullInlinerNonExpressionSplitArgumentEvaluationOrder",
@@ -1803,6 +1886,7 @@
     },
     "0.8.0": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "UnsoundSpillInMutualRecursion",
             "LostStorageArrayWriteOnSlotOverflow",
             "FullInlinerNonExpressionSplitArgumentEvaluationOrder",
@@ -1819,6 +1903,7 @@
     },
     "0.8.1": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "UnsoundSpillInMutualRecursion",
             "LostStorageArrayWriteOnSlotOverflow",
             "FullInlinerNonExpressionSplitArgumentEvaluationOrder",
@@ -1835,6 +1920,7 @@
     },
     "0.8.10": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "UnsoundSpillInMutualRecursion",
             "LostStorageArrayWriteOnSlotOverflow",
             "VerbatimInvalidDeduplication",
@@ -1849,6 +1935,7 @@
     },
     "0.8.11": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "UnsoundSpillInMutualRecursion",
             "LostStorageArrayWriteOnSlotOverflow",
             "VerbatimInvalidDeduplication",
@@ -1864,6 +1951,7 @@
     },
     "0.8.12": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "UnsoundSpillInMutualRecursion",
             "LostStorageArrayWriteOnSlotOverflow",
             "VerbatimInvalidDeduplication",
@@ -1879,6 +1967,7 @@
     },
     "0.8.13": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "UnsoundSpillInMutualRecursion",
             "LostStorageArrayWriteOnSlotOverflow",
             "VerbatimInvalidDeduplication",
@@ -1895,6 +1984,7 @@
     },
     "0.8.14": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "UnsoundSpillInMutualRecursion",
             "LostStorageArrayWriteOnSlotOverflow",
             "VerbatimInvalidDeduplication",
@@ -1909,6 +1999,7 @@
     },
     "0.8.15": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "UnsoundSpillInMutualRecursion",
             "LostStorageArrayWriteOnSlotOverflow",
             "VerbatimInvalidDeduplication",
@@ -1921,6 +2012,7 @@
     },
     "0.8.16": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "UnsoundSpillInMutualRecursion",
             "LostStorageArrayWriteOnSlotOverflow",
             "VerbatimInvalidDeduplication",
@@ -1932,6 +2024,7 @@
     },
     "0.8.17": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "UnsoundSpillInMutualRecursion",
             "LostStorageArrayWriteOnSlotOverflow",
             "VerbatimInvalidDeduplication",
@@ -1942,6 +2035,7 @@
     },
     "0.8.18": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "UnsoundSpillInMutualRecursion",
             "LostStorageArrayWriteOnSlotOverflow",
             "VerbatimInvalidDeduplication",
@@ -1952,6 +2046,7 @@
     },
     "0.8.19": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "UnsoundSpillInMutualRecursion",
             "LostStorageArrayWriteOnSlotOverflow",
             "VerbatimInvalidDeduplication",
@@ -1962,6 +2057,7 @@
     },
     "0.8.2": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "UnsoundSpillInMutualRecursion",
             "LostStorageArrayWriteOnSlotOverflow",
             "FullInlinerNonExpressionSplitArgumentEvaluationOrder",
@@ -1978,6 +2074,7 @@
     },
     "0.8.20": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "UnsoundSpillInMutualRecursion",
             "LostStorageArrayWriteOnSlotOverflow",
             "VerbatimInvalidDeduplication",
@@ -1988,6 +2085,7 @@
     },
     "0.8.21": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "UnsoundSpillInMutualRecursion",
             "LostStorageArrayWriteOnSlotOverflow",
             "VerbatimInvalidDeduplication"
@@ -1996,6 +2094,7 @@
     },
     "0.8.22": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "UnsoundSpillInMutualRecursion",
             "LostStorageArrayWriteOnSlotOverflow",
             "VerbatimInvalidDeduplication"
@@ -2004,6 +2103,7 @@
     },
     "0.8.23": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "UnsoundSpillInMutualRecursion",
             "LostStorageArrayWriteOnSlotOverflow"
         ],
@@ -2011,6 +2111,7 @@
     },
     "0.8.24": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "UnsoundSpillInMutualRecursion",
             "LostStorageArrayWriteOnSlotOverflow"
         ],
@@ -2018,6 +2119,7 @@
     },
     "0.8.25": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "UnsoundSpillInMutualRecursion",
             "LostStorageArrayWriteOnSlotOverflow"
         ],
@@ -2025,6 +2127,7 @@
     },
     "0.8.26": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "UnsoundSpillInMutualRecursion",
             "LostStorageArrayWriteOnSlotOverflow"
         ],
@@ -2032,6 +2135,7 @@
     },
     "0.8.27": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "UnsoundSpillInMutualRecursion",
             "LostStorageArrayWriteOnSlotOverflow"
         ],
@@ -2039,6 +2143,7 @@
     },
     "0.8.28": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "UnsoundSpillInMutualRecursion",
             "TransientStorageClearingHelperCollision",
             "LostStorageArrayWriteOnSlotOverflow"
@@ -2047,6 +2152,7 @@
     },
     "0.8.29": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "InheritanceOrderReversalOnStorageEndWarning",
             "UnsoundSpillInMutualRecursion",
             "TransientStorageClearingHelperCollision",
@@ -2056,6 +2162,7 @@
     },
     "0.8.3": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "UnsoundSpillInMutualRecursion",
             "LostStorageArrayWriteOnSlotOverflow",
             "FullInlinerNonExpressionSplitArgumentEvaluationOrder",
@@ -2071,6 +2178,7 @@
     },
     "0.8.30": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "InheritanceOrderReversalOnStorageEndWarning",
             "UnsoundSpillInMutualRecursion",
             "TransientStorageClearingHelperCollision",
@@ -2080,6 +2188,7 @@
     },
     "0.8.31": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "InheritanceOrderReversalOnStorageEndWarning",
             "UnsoundSpillInMutualRecursion",
             "TransientStorageClearingHelperCollision",
@@ -2089,6 +2198,7 @@
     },
     "0.8.32": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "InheritanceOrderReversalOnStorageEndWarning",
             "UnsoundSpillInMutualRecursion",
             "TransientStorageClearingHelperCollision"
@@ -2097,6 +2207,7 @@
     },
     "0.8.33": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "InheritanceOrderReversalOnStorageEndWarning",
             "UnsoundSpillInMutualRecursion",
             "TransientStorageClearingHelperCollision"
@@ -2105,6 +2216,7 @@
     },
     "0.8.34": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "InheritanceOrderReversalOnStorageEndWarning",
             "UnsoundSpillInMutualRecursion"
         ],
@@ -2123,6 +2235,7 @@
     },
     "0.8.4": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "UnsoundSpillInMutualRecursion",
             "LostStorageArrayWriteOnSlotOverflow",
             "FullInlinerNonExpressionSplitArgumentEvaluationOrder",
@@ -2137,6 +2250,7 @@
     },
     "0.8.5": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "UnsoundSpillInMutualRecursion",
             "LostStorageArrayWriteOnSlotOverflow",
             "VerbatimInvalidDeduplication",
@@ -2152,6 +2266,7 @@
     },
     "0.8.6": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "UnsoundSpillInMutualRecursion",
             "LostStorageArrayWriteOnSlotOverflow",
             "VerbatimInvalidDeduplication",
@@ -2167,6 +2282,7 @@
     },
     "0.8.7": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "UnsoundSpillInMutualRecursion",
             "LostStorageArrayWriteOnSlotOverflow",
             "VerbatimInvalidDeduplication",
@@ -2182,6 +2298,7 @@
     },
     "0.8.8": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "UnsoundSpillInMutualRecursion",
             "LostStorageArrayWriteOnSlotOverflow",
             "VerbatimInvalidDeduplication",
@@ -2198,6 +2315,7 @@
     },
     "0.8.9": {
         "bugs": [
+            "EvmasmCodegenUncheckedArraySizeOverflow",
             "UnsoundSpillInMutualRecursion",
             "LostStorageArrayWriteOnSlotOverflow",
             "VerbatimInvalidDeduplication",

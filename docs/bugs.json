@@ -1,5 +1,18 @@
 [
     {
+        "uid": "SOL-2026-4",
+        "name": "EvmasmCodegenUncheckedArraySizeOverflow",
+        "summary": "Deleting a dynamic array of large static arrays could silently skip storage clearing due to an unchecked multiplication overflow in the evmasm code generator.",
+        "description": "When the legacy (evmasm) code generator computes the total number of storage slots occupied by an array, it multiplies the array length by the storage size of its base type. This multiplication was performed without an overflow check, so when the product exceeded ``2**256``, the result would wrap to a small value (or zero). This caused the subsequent clearing loop to process fewer slots than necessary, leaving stale data in storage. The bug could be triggered by using the ``delete`` operator on a dynamic storage array whose base type is large enough for the product to overflow. The IR pipeline was not affected, because it already used overflow-checked arithmetic for this computation. With the fix, the Evmasm code generator now reverts with an arithmetic overflow panic in this situation, matching the via-IR behavior.",
+        "link": "",
+        "introduced": "0.1.0",
+        "fixed": "0.8.35",
+        "severity": "low",
+        "conditions": {
+            "viaIR": false
+        }
+    },
+    {
         "uid": "SOL-2026-3",
         "name": "InheritanceOrderReversalOnStorageEndWarning",
         "summary": "Emitting a warning about storage base location being too close to the storage end unintentionally reversed the ``linearizedBaseContracts`` annotation, possibly leading to miscompilation due to reversing the order in which inheritance is resolved.",
