@@ -69,7 +69,7 @@ public:
 	{
 		return m_evmVersion;
 	}
-	const std::vector<uint8_t>& calldata() const
+	const bytes& calldata() const
 	{
 		return m_calldata;
 	}
@@ -93,7 +93,7 @@ private:
 	void visit(IfStmt const&);
 	void visit(StoreFunc const&);
 	void visit(Statement const&);
-	void visit(ForStmt const&);
+	/* void visit(ForStmt const&); */
 	void visit(BoundedForStmt const&);
 	void visit(CaseStmt const&);
 	void visit(SwitchStmt const&);

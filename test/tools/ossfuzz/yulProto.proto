@@ -283,12 +283,12 @@ message BoundedForStmt {
   required Block for_body = 1;
 }
 
-message ForStmt {
-  required Block for_body = 1;
-  required Block for_init = 2;
-  required Block for_post = 3;
-  required Expression for_cond = 4;
-}
+// message ForStmt {
+//   required Block for_body = 1;
+//   required Block for_init = 2;
+//   required Block for_post = 3;
+//   required Expression for_cond = 4;
+// }
 
 message CaseStmt {
   required Literal case_lit = 1;
@@ -349,25 +349,25 @@ message LeaveStmt {}
 
 message Statement {
   oneof stmt_oneof {
+    // ForStmt             forstmt         = 6;
     VarDecl             decl            = 1;
     AssignmentStatement assignment      = 2;
     IfStmt              ifstmt          = 3;
     StoreFunc           storage_func    = 4;
     Block               blockstmt       = 5;
-    ForStmt             forstmt         = 6;
-    SwitchStmt          switchstmt      = 7;
-    BreakStmt           breakstmt       = 8;
-    ContinueStmt        contstmt        = 9;
-    LogFunc             log_func        = 10;
-    CopyFunc            copy_func       = 11;
-    ExtCodeCopy         extcode_copy    = 12;
-    TerminatingStmt     terminatestmt   = 13;
-    FunctionCall        functioncall    = 14;
-    BoundedForStmt      boundedforstmt  = 15;
-    FunctionDef         funcdef         = 16;
-    PopStmt             pop             = 17;
-    LeaveStmt           leave           = 18;
-    MultiVarDecl        multidecl       = 19;
+    SwitchStmt          switchstmt      = 6;
+    BreakStmt           breakstmt       = 7;
+    ContinueStmt        contstmt        = 8;
+    LogFunc             log_func        = 9;
+    CopyFunc            copy_func       = 10;
+    ExtCodeCopy         extcode_copy    = 11;
+    TerminatingStmt     terminatestmt   = 12;
+    FunctionCall        functioncall    = 13;
+    BoundedForStmt      boundedforstmt  = 14;
+    FunctionDef         funcdef         = 15;
+    PopStmt             pop             = 16;
+    LeaveStmt           leave           = 17;
+    MultiVarDecl        multidecl       = 18;
   }
 }
 

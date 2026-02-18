@@ -1448,10 +1448,10 @@ void ProtoConverter::visit(Statement const& _x)
 		if (_x.blockstmt().statements_size() > 0)
 			visit(_x.blockstmt());
 		break;
-	case Statement::kForstmt:
-		if (_x.forstmt().for_body().statements_size() > 0 && !m_filterUnboundedLoops)
-			visit(_x.forstmt());
-		break;
+	/* case Statement::kForstmt: */
+	/* 	if (_x.forstmt().for_body().statements_size() > 0 && !m_filterUnboundedLoops) */
+	/* 		visit(_x.forstmt()); */
+	/* 	break; */
 	case Statement::kBoundedforstmt:
 		if (_x.boundedforstmt().for_body().statements_size() > 0)
 			visit(_x.boundedforstmt());
@@ -1997,9 +1997,10 @@ void ProtoConverter::buildObjectScopeTree(Object const& _x)
 	m_objectScope.emplace(objectName, node);
 }
 
-std::vector<uint8_t> ProtoConverter::createCalldata(CallData const& _x)
+bytes ProtoConverter::createCalldata(CallData const& _x)
 {
-	return calldataBytes;
+	std::string const& data = _x.raw_data();
+	return bytes(data.begin(), data.end());
 }
 
 void ProtoConverter::visit(Program const& _x)
