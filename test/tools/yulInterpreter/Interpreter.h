@@ -135,8 +135,8 @@ struct InterpreterState
 	{
 		yulAssert(_size <= 0xffff, "Too large read.");
 		bytes data(size_t(_size), uint8_t(0));
-		for (size_t i = 0; i < data.size(); ++i)
-			data[i] = memory[_offset + i];
+		for (auto it = memory.lower_bound(_offset), end = memory.lower_bound(_offset + _size); it != end; ++it)
+			data[size_t(it->first - _offset)] = it->second;
 		return data;
 	}
 };
