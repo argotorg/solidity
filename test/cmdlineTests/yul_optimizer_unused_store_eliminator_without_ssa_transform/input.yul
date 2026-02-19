@@ -1,0 +1,11 @@
+object "UnusedStoreEliminatorNoSSA" {
+	code {
+		let x := calldataload(4)
+		let a := add(x, 32)
+		x := add(x, 32)
+		let b := x
+		let outLen := 32
+		mstore(a, 0xAA)
+		return(b, outLen)
+	}
+}
