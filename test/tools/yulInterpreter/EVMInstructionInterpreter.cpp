@@ -86,8 +86,18 @@ void copyZeroExtended(
 	size_t _size
 )
 {
-	for (size_t i = 0; i < _size; ++i)
-		_target[_targetOffset + i] = (_sourceOffset + i < _source.size() ? _source[_sourceOffset + i] : 0);
+	if (_size == 0)
+		return;
+	// Erase the target range (positions become implicitly zero).
+	_target.erase(_target.lower_bound(_targetOffset), _target.lower_bound(_targetOffset + _size));
+	// Collect only non-zero bytes from the source range (keys are already in sorted order).
+	// Bytes past _source.size() are treated as zero and therefore skipped.
+	std::vector<typename T::value_type> toInsert;
+	size_t const srcEnd = std::min(_sourceOffset + _size, _source.size());
+	for (size_t i = _sourceOffset; i < srcEnd; ++i)
+		if (_source[i] != 0)
+			toInsert.emplace_back(u256(_targetOffset) + (i - _sourceOffset), _source[i]);
+	_target.insert(toInsert.begin(), toInsert.end());
 }
 
 template<typename T, typename T2>
