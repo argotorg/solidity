@@ -89,11 +89,13 @@ void copyZeroExtended(
 	if (_size == 0)
 		return;
 	// Erase the target range (positions become implicitly zero).
-	_target.erase(_target.lower_bound(_targetOffset), _target.lower_bound(_targetOffset + _size));
+	size_t const tgtUpper = _targetOffset + _size;
+	_target.erase(_target.lower_bound(_targetOffset), (tgtUpper >= _targetOffset) ? _target.lower_bound(tgtUpper) : _target.end());
 	// Collect only non-zero bytes from the source range (keys are already in sorted order).
 	// Bytes past _source.size() are treated as zero and therefore skipped.
 	std::vector<typename T::value_type> toInsert;
-	size_t const srcEnd = std::min(_sourceOffset + _size, _source.size());
+	size_t const srcUpper = _sourceOffset + _size;
+	size_t const srcEnd = std::min(srcUpper >= _sourceOffset ? srcUpper : _source.size(), _source.size());
 	for (size_t i = _sourceOffset; i < srcEnd; ++i)
 		if (_source[i] != 0)
 			toInsert.emplace_back(u256(_targetOffset) + (i - _sourceOffset), _source[i]);
@@ -114,11 +116,13 @@ void copyZeroExtendedWithOverlap(
 	// Collect only the entries that actually exist in the source range, already shifted
 	// to their target keys. We snapshot before erasing to handle the case where
 	// _target and _source alias the same map (e.g. MCOPY).
+	size_t const srcUpper = _sourceOffset + _size;
+	size_t const tgtUpper = _targetOffset + _size;
 	std::vector<typename T::value_type> toInsert;
-	for (auto it = _source.lower_bound(_sourceOffset), end = _source.lower_bound(_sourceOffset + _size); it != end; ++it)
+	for (auto it = _source.lower_bound(_sourceOffset), end = (srcUpper >= _sourceOffset) ? _source.lower_bound(srcUpper) : _source.end(); it != end; ++it)
 		toInsert.emplace_back(u256(_targetOffset) + (it->first - u256(_sourceOffset)), it->second);
 	// Erase the target range (positions with no source entry become implicitly zero).
-	_target.erase(_target.lower_bound(_targetOffset), _target.lower_bound(_targetOffset + _size));
+	_target.erase(_target.lower_bound(_targetOffset), (tgtUpper >= _targetOffset) ? _target.lower_bound(tgtUpper) : _target.end());
 	// Write the collected entries into the target.
 	_target.insert(toInsert.begin(), toInsert.end());
 }
