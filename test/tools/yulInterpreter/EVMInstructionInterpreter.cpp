@@ -99,12 +99,18 @@ void copyZeroExtendedWithOverlap(
 	size_t _size
 )
 {
-	if (_targetOffset >= _sourceOffset)
-		for (size_t i = _size; i > 0; --i)
-			_target[_targetOffset + i - 1] = (_source.count(_sourceOffset + i - 1) != 0 ? _source.at(_sourceOffset + i - 1) : 0);
-	else
-		for (size_t i = 0; i < _size; ++i)
-			_target[_targetOffset + i] = (_source.count(_sourceOffset + i) != 0 ? _source.at(_sourceOffset + i) : 0);
+	if (_size == 0)
+		return;
+	// Collect only the entries that actually exist in the source range, already shifted
+	// to their target keys. We snapshot before erasing to handle the case where
+	// _target and _source alias the same map (e.g. MCOPY).
+	std::vector<typename T::value_type> toInsert;
+	for (auto it = _source.lower_bound(_sourceOffset), end = _source.lower_bound(_sourceOffset + _size); it != end; ++it)
+		toInsert.emplace_back(u256(_targetOffset) + (it->first - u256(_sourceOffset)), it->second);
+	// Erase the target range (positions with no source entry become implicitly zero).
+	_target.erase(_target.lower_bound(_targetOffset), _target.lower_bound(_targetOffset + _size));
+	// Write the collected entries into the target.
+	_target.insert(toInsert.begin(), toInsert.end());
 }
 
 }
