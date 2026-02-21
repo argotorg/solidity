@@ -426,6 +426,24 @@ BOOST_AUTO_TEST_CASE(invalid_options_input_modes_combinations)
 		}
 }
 
+BOOST_AUTO_TEST_CASE(libraries_equal_sign_required)
+{
+	std::string badLib = "dir1/file1.sol:L:0x1234567890123456789012345678901234567890";
+	std::vector<std::string> commandLine = {"solc", "--libraries=" + badLib, "contract.sol"};
+
+	auto hasCorrectMessage = [&](CommandLineValidationError const& _exception) {
+		return _exception.what() == ("Equal sign separator missing in library address specifier \"" + badLib + "\"");
+	};
+
+	BOOST_CHECK_EXCEPTION(parseCommandLine(commandLine), CommandLineValidationError, hasCorrectMessage);
+
+	// Ensure the correct '=' format is accepted and parsed.
+	std::string goodLib = "dir1/file1.sol:L=0x1234567890123456789012345678901234567890";
+	CommandLineOptions parsed = parseCommandLine({"solc", "--libraries=" + goodLib, "contract.sol"});
+	BOOST_CHECK(parsed.linker.libraries.count("dir1/file1.sol:L") == 1);
+	BOOST_CHECK(parsed.linker.libraries.at("dir1/file1.sol:L") == h160("1234567890123456789012345678901234567890"));
+}
+
 BOOST_AUTO_TEST_SUITE_END()
 
 } // namespace solidity::frontend::test

@@ -352,20 +352,15 @@ void CommandLineParser::parseLibraryOption(string const& _input)
 	for (string const& lib: libraries)
 		if (!lib.empty())
 		{
-			//search for equal sign or last colon in string as our binaries output placeholders in the form of file=Name or file:Name
-			//so we need to search for `=` or `:` in the string
+			//search for equal sign in string as our binaries output placeholders in the form of file=Name
+			//so we need to search for `=` in the string
 			auto separator = lib.rfind('=');
-			bool isSeparatorEqualSign = true;
 			if (separator == string::npos)
 			{
-				separator = lib.rfind(':');
-				if (separator == string::npos)
-					solThrow(
-						CommandLineValidationError,
-						"Equal sign separator missing in library address specifier \"" + lib + "\""
-					);
-				else
-					isSeparatorEqualSign = false; // separator is colon
+				solThrow(
+					CommandLineValidationError,
+					"Equal sign separator missing in library address specifier \"" + lib + "\""
+				);
 			}
 			else
 				if (lib.rfind('=') != lib.find('='))
@@ -388,8 +383,7 @@ void CommandLineParser::parseLibraryOption(string const& _input)
 				solThrow(
 					CommandLineValidationError,
 					"Empty address provided for library \"" + libName + "\".\n"
-					"Note that there should not be any whitespace after the " +
-					(isSeparatorEqualSign ? "equal sign" : "colon") + "."
+					"Note that there should not be any whitespace after the equal sign ."
 				);
 
 			if (addrString.substr(0, 2) == "0x")
