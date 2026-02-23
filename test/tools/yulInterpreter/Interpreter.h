@@ -67,6 +67,10 @@ class ExpressionNestingLimitReached: public InterpreterTerminatedGeneric
 {
 };
 
+class InstructionLimitReached: public InterpreterTerminatedGeneric
+{
+};
+
 enum class ControlFlowState
 {
 	Default,
@@ -111,6 +115,8 @@ struct InterpreterState
 	size_t maxSteps = 0;
 	size_t numSteps = 0;
 	size_t maxExprNesting = 0;
+	size_t maxInstructions = 0;
+	size_t numInstructions = 0;
 	ControlFlowState controlFlowState = ControlFlowState::Default;
 
 	/// Number of the current state instance, used for recursion protection

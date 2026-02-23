@@ -226,6 +226,10 @@ u256 EVMInstructionInterpreter::eval(
 	// --------------- blockchain stuff ---------------
 	case Instruction::KECCAK256:
 	{
+		// Keccak is expensive; count it as 50 instructions total (1 already counted in evalBuiltin).
+		m_state.numInstructions += 49;
+		if (m_state.maxInstructions > 0 && m_state.numInstructions >= m_state.maxInstructions)
+			BOOST_THROW_EXCEPTION(InstructionLimitReached());
 		if (!accessMemory(arg[0], arg[1]))
 			return u256("0x1234cafe1234cafe1234cafe") + arg[0];
 		uint64_t offset = uint64_t(arg[0] & uint64_t(-1));
@@ -536,6 +540,10 @@ u256 EVMInstructionInterpreter::evalBuiltin(
 	std::vector<u256> const& _evaluatedArguments
 )
 {
+	m_state.numInstructions++;
+	if (m_state.maxInstructions > 0 && m_state.numInstructions >= m_state.maxInstructions)
+		BOOST_THROW_EXCEPTION(InstructionLimitReached());
+
 	if (_fun.instruction)
 		return eval(*_fun.instruction, _evaluatedArguments);
 

@@ -97,7 +97,12 @@ DEFINE_PROTO_FUZZER(Program const& _input)
 		os1,
 		calldata,
 		*stack.parserResult()->code(),
-		/*disableMemoryTracing=*/true
+		/*disableMemoryTracing=*/true,
+		/*outputStorageOnly=*/false,
+		yulFuzzerUtil::maxSteps,
+		yulFuzzerUtil::maxTraceSize,
+		yulFuzzerUtil::maxExprNesting,
+		/*maxInstructions=*/500
 	);
 
 	if (yulFuzzerUtil::resourceLimitsExceeded(termReason))

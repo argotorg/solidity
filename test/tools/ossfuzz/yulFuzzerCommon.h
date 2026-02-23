@@ -29,6 +29,7 @@ struct yulFuzzerUtil
 		StepLimitReached,
 		TraceLimitReached,
 		ExpressionNestingLimitReached,
+		InstructionLimitReached,
 		None
 	};
 
@@ -46,7 +47,8 @@ struct yulFuzzerUtil
 		bool _outputStorageOnly = false,
 		size_t _maxSteps = maxSteps,
 		size_t _maxTraceSize = maxTraceSize,
-		size_t _maxExprNesting = maxExprNesting
+		size_t _maxExprNesting = maxExprNesting,
+		size_t _maxInstructions = 0
 	);
 
 	/// @returns true if @param _reason for Yul interpreter terminating is

@@ -29,13 +29,15 @@ yulFuzzerUtil::TerminationReason yulFuzzerUtil::interpret(
 	bool _outputStorageOnly,
 	size_t _maxSteps,
 	size_t _maxTraceSize,
-	size_t _maxExprNesting
+	size_t _maxExprNesting,
+	size_t _maxInstructions
 )
 {
 	InterpreterState state;
 	state.maxTraceSize = _maxTraceSize;
 	state.maxSteps = _maxSteps;
 	state.maxExprNesting = _maxExprNesting;
+	state.maxInstructions = _maxInstructions;
 	// Add 64 bytes of pseudo-randomly generated calldata so that
 	// calldata opcodes perform non trivial work.
 	state.calldata = calldata;
@@ -57,6 +59,10 @@ yulFuzzerUtil::TerminationReason yulFuzzerUtil::interpret(
 	{
 		reason = TerminationReason::ExpressionNestingLimitReached;
 	}
+	catch (InstructionLimitReached const&)
+	{
+		reason = TerminationReason::InstructionLimitReached;
+	}
 	catch (ExplicitlyTerminated const&)
 	{
 		reason = TerminationReason::ExplicitlyTerminated;
@@ -74,5 +80,6 @@ bool yulFuzzerUtil::resourceLimitsExceeded(TerminationReason _reason)
 	return
 		_reason == yulFuzzerUtil::TerminationReason::StepLimitReached ||
 		_reason == yulFuzzerUtil::TerminationReason::TraceLimitReached ||
-		_reason == yulFuzzerUtil::TerminationReason::ExpressionNestingLimitReached;
+		_reason == yulFuzzerUtil::TerminationReason::ExpressionNestingLimitReached ||
+		_reason == yulFuzzerUtil::TerminationReason::InstructionLimitReached;
 }
