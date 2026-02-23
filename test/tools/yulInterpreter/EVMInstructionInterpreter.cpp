@@ -256,6 +256,7 @@ u256 EVMInstructionInterpreter::eval(
 	case Instruction::CALLDATASIZE:
 		return m_state.calldata.size();
 	case Instruction::CALLDATACOPY:
+		chargeCopyCost(arg[2]);
 		if (accessMemory(arg[0], arg[2]))
 			copyZeroExtended(
 				m_state.memory, m_state.calldata,
@@ -266,6 +267,7 @@ u256 EVMInstructionInterpreter::eval(
 	case Instruction::CODESIZE:
 		return m_state.code.size();
 	case Instruction::CODECOPY:
+		chargeCopyCost(arg[2]);
 		if (accessMemory(arg[0], arg[2]))
 			copyZeroExtended(
 				m_state.memory, m_state.code,
@@ -288,6 +290,7 @@ u256 EVMInstructionInterpreter::eval(
 	case Instruction::EXTCODEHASH:
 		return u256(keccak256(h256(arg[0] + 1)));
 	case Instruction::EXTCODECOPY:
+		chargeCopyCost(arg[3]);
 		if (accessMemory(arg[1], arg[3]))
 			// TODO this way extcodecopy and codecopy do the same thing.
 			copyZeroExtended(
@@ -299,6 +302,7 @@ u256 EVMInstructionInterpreter::eval(
 	case Instruction::RETURNDATASIZE:
 		return m_state.returndata.size();
 	case Instruction::RETURNDATACOPY:
+		chargeCopyCost(arg[2]);
 		if (accessMemory(arg[0], arg[2]))
 			copyZeroExtended(
 				m_state.memory, m_state.returndata,
@@ -307,6 +311,7 @@ u256 EVMInstructionInterpreter::eval(
 		logTrace(_instruction, arg);
 		return 0;
 	case Instruction::MCOPY:
+		chargeCopyCost(arg[2]);
 		if (accessMemory(arg[1], arg[2]) && accessMemory(arg[0], arg[2]))
 			copyZeroExtendedWithOverlap(
 				m_state.memory,
@@ -567,6 +572,7 @@ u256 EVMInstructionInterpreter::evalBuiltin(
 
 	if (fun == "datacopy")
 	{
+		chargeCopyCost(_evaluatedArguments.at(2));
 		// This is identical to codecopy.
 		if (
 			_evaluatedArguments.at(2) != 0 &&
@@ -741,6 +747,16 @@ std::pair<bool, size_t> EVMInstructionInterpreter::isInputMemoryPtrModified(
 	}
 	else
 		return {false, 0};
+}
+
+void EVMInstructionInterpreter::chargeCopyCost(u256 const& _size)
+{
+	// Cap to s_maxRangeSize; anything larger won't actually copy (accessMemory rejects it).
+	u256 const cappedSize = std::min(_size, u256(s_maxRangeSize));
+	size_t const words = size_t((cappedSize + 31) / 32);
+	m_state.numInstructions += words;
+	if (m_state.maxInstructions > 0 && m_state.numInstructions >= m_state.maxInstructions)
+		BOOST_THROW_EXCEPTION(InstructionLimitReached());
 }
 
 h256 EVMInstructionInterpreter::blobHash(u256 const& _index)

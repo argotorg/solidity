@@ -166,6 +166,10 @@ private:
 		return m_disableMemoryWriteInstructions;
 	}
 
+	/// Charges instruction cost proportional to the number of 32-byte words in @param _size.
+	/// Throws InstructionLimitReached if the configured limit is exceeded.
+	void chargeCopyCost(u256 const& _size);
+
 	langutil::EVMVersion m_evmVersion;
 	InterpreterState& m_state;
 	/// Flag to disable trace of instructions that write to memory.
