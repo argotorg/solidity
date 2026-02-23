@@ -162,7 +162,17 @@ u256 EVMInstructionInterpreter::eval(
 	case Instruction::SMOD:
 		return arg[1] == 0 ? 0 : s2u(u2s(arg[0]) % u2s(arg[1]));
 	case Instruction::EXP:
+	{
+		// Square-and-multiply costs O(bits in exponent). Charge one extra per bit.
+		if (arg[1] != 0)
+		{
+			size_t const bits = static_cast<size_t>(msb(arg[1])) + 1;
+			m_state.numInstructions += bits;
+			if (m_state.maxInstructions > 0 && m_state.numInstructions >= m_state.maxInstructions)
+				BOOST_THROW_EXCEPTION(InstructionLimitReached());
+		}
 		return exp256(arg[0], arg[1]);
+	}
 	case Instruction::NOT:
 		return ~arg[0];
 	case Instruction::LT:
@@ -424,6 +434,7 @@ u256 EVMInstructionInterpreter::eval(
 		) ? 1 : 0;
 	case Instruction::RETURN:
 	{
+		chargeCopyCost(arg[1]);
 		m_state.returndata = {};
 		if (accessMemory(arg[0], arg[1]))
 			m_state.returndata = m_state.readMemory(arg[0], arg[1]);
