@@ -20,7 +20,7 @@ function build_fuzzers
   cd "${BUILDDIR}"
   cmake .. -DCMAKE_BUILD_TYPE="${CMAKE_BUILD_TYPE:-Release}" -DCCACHE=OFF \
     -DCMAKE_TOOLCHAIN_FILE="${ROOTDIR}"/cmake/toolchains/libfuzzer.cmake
-  make ossfuzz ossfuzz_proto ossfuzz_abiv2 -j 4
+  make ossfuzz ossfuzz_proto ossfuzz_abiv2 -j 8
 }
 
 generate_protobuf_bindings
