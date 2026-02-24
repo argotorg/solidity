@@ -79,9 +79,12 @@ To be consistent and aid better evaluation of the utility of the fuzzing diction
 ## Executables generated
 
 - `yulProto_diff_ssa_cfg_ossfuzz.cpp` exe is `yul_proto_diff_ssa_cfg_ossfuzz`.
-  Generates random YUL, compiles via two pipelines, compares via hevm
+  Generates random YUL via Protobuf, compiles via two pipelines, compares via hevm
 - `yulProto_diff_ossfuzz.cpp`: exe is `yul_diff_ssa_cfg_ossfuzz`. Generates
-  random YUL, compiles with and without optimisation, compares via YUL
+  random YUL via Protobuf, compiles with and without optimisation, compares via YUL
   interpreter
-- `yulProtoFuzzer.cpp`: exe is`yul_proto_ossfuzz`. Runs different optimizer
-  steps on YUL and hopes it crashes
+- `yulProtoFuzzer.cpp`: exe is`yul_proto_ossfuzz`. Generates random YUL via Protobuf,
+  runs different optimizer steps, and hopes it crashes
+- `strictasm_diff_ossfuzz`: exe is `strictasm_diff_ossfuzz.cpp`. Interprets random characters
+  as strict assembly code, compiles with and without optimisation, compares via
+  YUL interpreter
