@@ -75,3 +75,13 @@ To be consistent and aid better evaluation of the utility of the fuzzing diction
 
 [1]: https://github.com/google/oss-fuzz
 [2]: https://github.com/google/oss-fuzz/issues/1114#issuecomment-360660201
+
+## Executables generated
+
+- `yulProto_diff_ssa_cfg_ossfuzz.cpp` exe is `yul_proto_diff_ssa_cfg_ossfuzz`.
+  Generates random YUL, compiles via two pipelines, compares via hevm
+- `yulProto_diff_ossfuzz.cpp`: exe is `yul_diff_ssa_cfg_ossfuzz`. Generates
+  random YUL, compiles with and without optimisation, compares via YUL
+  interpreter
+- `yulProtoFuzzer.cpp`: exe is`yul_proto_ossfuzz`. Runs different optimizer
+  steps on YUL and hopes it crashes
