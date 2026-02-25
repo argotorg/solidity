@@ -57,11 +57,17 @@ SyntaxTest::SyntaxTest(
 		toString(CompileViaYul::OnlyOnEOF)
 	);
 
-	solUnimplementedAssert(m_compileViaYul != CompileViaYul::Also,
-		"'compileViaYul: also' is not yet supported in syntax tests.");
+	if (m_compileViaYul == CompileViaYul::Also)
+		solUnimplemented("'compileViaYul: also' is not yet supported in syntax tests.");
 
-	if (bytecodeFormat().contains(BytecodeFormat::EOFv1) && m_compileViaYul == CompileViaYul::False)
-		BOOST_THROW_EXCEPTION(std::runtime_error("Compilation to EOF requires using Yul IR"));
+	if (m_compileViaYul == CompileViaYul::False)
+	{
+		soltestAssert(!solidity::test::CommonOptions::get().eofVersion().has_value());
+		if (bytecodeFormat().contains(BytecodeFormat::EOFv1))
+			BOOST_THROW_EXCEPTION(std::runtime_error(
+				"Conflicting test settings: 'bytecodeFormat' includes EOF, which requires compilation via IR, but 'compileViaYul' is set to false."
+			));
+	}
 
 	m_optimiseYul = m_reader.boolSetting("optimize-yul", true);
 	m_experimental = m_reader.boolSetting("experimental", false);

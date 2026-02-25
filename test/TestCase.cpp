@@ -166,7 +166,7 @@ void EVMVersionRestrictedTestCase::processBytecodeFormatSetting()
 		return;
 
 	// TODO: This is naive implementation because for now we support only one EOF version.
-	if (!bytecodeFormat().contains(BytecodeFormat::EOFv1) && eofVersion.has_value())
+	if (bytecodeFormat().contains(BytecodeFormat::Legacy) && eofVersion.has_value())
 		m_shouldRun = false;
 	else if (bytecodeFormat().contains(BytecodeFormat::EOFv1) && !eofVersion.has_value())
 		m_shouldRun = false;
