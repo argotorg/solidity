@@ -66,7 +66,6 @@ contract C {
 // via yul disabled because of stack issues.
 
 // ====
-// compileViaYul: false
 // bytecodeFormat: legacy
 // ----
 // f1(bytes[1]): 0x20, 0x20, 0x3, hex"0102030000000000000000000000000000000000000000000000000000000000" -> 0x3, 0x1, 0x2, 0x3

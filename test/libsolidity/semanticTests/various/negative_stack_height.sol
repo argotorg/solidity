@@ -62,10 +62,11 @@ contract C {
 // via yul disabled because of stack issues.
 
 // ====
-// compileViaYul: false
 // bytecodeFormat: legacy
 // ----
 // constructor() ->
+// gas irOptimized: 73780
+// gas irOptimized code: 255600
 // gas legacy: 92268
 // gas legacy code: 483000
 // gas legacyOptimized: 75022
