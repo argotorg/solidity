@@ -11,3 +11,8 @@ Solidity by Example
 .. include:: examples/micropayment.rst
 
 .. include:: examples/modular.rst
+
+.. toctree::
+   :maxdepth: 1
+
+   examples/output-selection.rst
