@@ -24,14 +24,14 @@
 #include <set>
 #include <vector>
 
-namespace solidity::yul::ssa
+namespace solidity::yul::ssa::traversal
 {
 
 /// Performs a topological sort on the forward CFG (no back/cross edges)
-class ForwardSSACFGTopologicalSort
+class ForwardTopologicalSort
 {
 public:
-	explicit ForwardSSACFGTopologicalSort(SSACFG const& _cfg);
+	explicit ForwardTopologicalSort(SSACFG const& _cfg);
 
 	std::vector<SSACFG::BlockId::ValueType> const& preOrder() const { return m_preOrder; }
 	std::vector<SSACFG::BlockId::ValueType> const& postOrder() const { return m_postOrder; }

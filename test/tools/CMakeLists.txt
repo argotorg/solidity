@@ -53,6 +53,10 @@ add_executable(isoltest
 	../libyul/YulOptimizerTest.cpp
 	../libyul/YulOptimizerTestCommon.cpp
 	../libyul/YulInterpreterTest.cpp
+	../libyul/ssa/StackLayoutGeneratorTest.cpp
+	../libyul/ssa/StackLayoutGeneratorTest.h
+	../libyul/ssa/StackShufflerTest.cpp
+	../libyul/ssa/StackShufflerTest.h
 )
 target_compile_definitions(isoltest PRIVATE ISOLTEST)
 target_link_libraries(isoltest PRIVATE evmc libsolc solidity yulInterpreter evmasm Boost::boost Boost::program_options Boost::unit_test_framework Threads::Threads)

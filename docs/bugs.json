@@ -1,5 +1,19 @@
 [
     {
+        "uid": "SOL-2026-1",
+        "name": "TransientStorageClearingHelperCollision",
+        "summary": "Clearing both storage and transient storage variables in the same contract may result in only one of these locations being cleared.",
+        "description": "The IR-based code generator provides a set of Yul helper functions for basic operations, such as clearing, copying, encoding or type conversions. Not all functions are used by every contract. The codegen appends them to the generated sources individually, only when an operation that would invoke one of them is encountered. Utility functions are often specialized for different types and locations. Since Yul does not support generic functions, specialization is done by generating multiple versions of the same function, with the information distinguishing the variants embedded in their names. However, if not all the necessary bits of distinguishing information are properly accounted for, two helpers may end up with the same name, causing a collision. In this situation the codegen includes only one of them, with calls to both variants invoking it. This happened with the ``set_to_zero`` helper used when an area of transient or persistent storage needs to be cleared. The helper name was missing the location information, which resulted in a collision between the persistent and transient storage variants for the same type. This meant that contracts clearing both locations would actually clear only one, leaving the other untouched. Which location ended up being cleared depended on the order in which the code generator processed the input. The necessary condition to trigger the bug was the use of ``delete`` operator on a transient storage variable. This was due to value types being the only types supported in transient storage and ``delete`` being the only operation invoking the helper allowed on such types. The other necessary condition was clearing of persistent storage and in this case the range of affected operations was wider: operator ``delete``, array ``pop()`` or assignment that resulted in a longer array being overwritten with a shorter one. The cleared variable itself also did not necessarily have to be of the same type. It was enough that a matching value type was nested in it. It also did not always have to be the exact same value type - clearing operations on reference types are usually performed at slot granularity, treating every slot as ``uint256`` rather than clearing every value packed into it individually. To trigger the bug both operations had to be present within the same piece of bytecode. Independent contracts, not related through inheritance, would not affect each other this way. The presence of one operation only in creation code and the other only in deployed code would not trigger the bug either.",
+        "link": "https://blog.soliditylang.org/2026/02/18/transient-storage-clearing-helper-collision-bug/",
+        "introduced": "0.8.28",
+        "fixed": "0.8.34",
+        "severity": "high",
+        "conditions": {
+            "viaIR": true,
+            "evmVersion": ">=cancun"
+        }
+    },
+    {
         "uid": "SOL-2025-1",
         "name": "LostStorageArrayWriteOnSlotOverflow",
         "summary": "Operations that involve clearing or copying from arrays that straddle the end of storage could result in silent data retention.",

@@ -78,10 +78,13 @@ EVMAssemblyTest::EVMAssemblyTest(std::string const& _filename):
 		"none"
 	);
 	m_optimizerSettings = Assembly::OptimiserSettings::translateSettings(OptimiserSettings::preset(optimizationPreset));
+	size_t defaultExpectedExecutionsPerDeployment = m_optimizerSettings.expectedExecutionsPerDeployment;
 	m_optimizerSettings.expectedExecutionsPerDeployment = m_reader.sizetSetting(
 		"optimizer.expectedExecutionsPerDeployment",
 		m_optimizerSettings.expectedExecutionsPerDeployment
 	);
+	m_usingDefaultExpectedExecutionsPerDeployment =
+		m_optimizerSettings.expectedExecutionsPerDeployment == defaultExpectedExecutionsPerDeployment;
 
 	auto const optimizerComponentSetting = [&](std::string const& _component, bool& _setting) {
 		_setting = m_reader.boolSetting("optimizer." + _component, _setting);
@@ -131,6 +134,14 @@ TestCase::TestResult EVMAssemblyTest::run(std::ostream& _stream, std::string con
 		m_obtainedResult = "AssemblyImportException: "s + _exception.what() + "\n";
 		return checkResult(_stream, _linePrefix, _formatted);
 	}
+
+	soltestAssert(evmAssemblyStack.evmAssembly());
+	if (!m_usingDefaultExpectedExecutionsPerDeployment && evmAssemblyStack.evmAssembly()->numSubs() == 0)
+		// This is a common mistake. We can't issue a warning here, so let's report it as an error.
+		BOOST_THROW_EXCEPTION(std::runtime_error(
+			"The custom value specified for optimizer.expectedExecutionsPerDeployment has no effect "
+			"on the creation assembly, which is the only assembly in the test."
+		));
 
 	try
 	{

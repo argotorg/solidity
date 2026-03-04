@@ -35,8 +35,8 @@
 // graph[fontname="DejaVu Sans"]
 // node[shape=box,fontname="DejaVu Sans"];
 //
-// Entry0 [label="Entry"];
-// Entry0 -> Block0_0;
+// Entry [label="Entry"];
+// Entry -> Block0_0;
 // Block0_0 [fillcolor="#FF746C", style=filled, label="\
 // Block 0; (0, max 0)\nLiveIn: \l\
 // LiveOut: \l\nUsed: \l\n"];

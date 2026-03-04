@@ -9,7 +9,7 @@ contract C {
     uint8[][] dst1;
     uint8[][] dst2;
     uint8[][2] dst3;
-    uint8[][] dst4;
+    uint8[2][] dst4;
 
     constructor() {
         src1[1] = new uint8[][](2);
@@ -45,10 +45,10 @@ contract C {
         dst2 = src2[0];
 
         require(dst2.length == 2);
-        require(dst2[0][0] == src2[1][0][0]);
-        require(dst2[0][1] == src2[1][0][1]);
-        require(dst2[1][0] == src2[1][1][0]);
-        require(dst2[1][1] == src2[1][1][1]);
+        require(dst2[0][0] == src2[0][0][0]);
+        require(dst2[0][1] == src2[0][0][1]);
+        require(dst2[1][0] == src2[0][1][0]);
+        require(dst2[1][1] == src2[0][1][1]);
     }
 
     function test3() public {
@@ -61,24 +61,22 @@ contract C {
 
     function test4() public {
         dst4 = src4[1];
-        require(dst4.length == 2);
-        require(dst4[0][0] == src4[0][0][0]);
-        require(dst4[0][1] == src4[0][0][1]);
-        require(dst4[1][0] == src4[0][1][0]);
-        require(dst4[1][1] == src4[0][1][1]);
+        require(dst4.length == 1);
+        require(dst4[0][0] == src4[1][0][0]);
+        require(dst4[0][1] == src4[1][0][1]);
     }
 }
 // ----
 // test1() ->
-// gas irOptimized: 150488
+// gas irOptimized: 150449
 // gas legacy: 156275
-// gas legacyOptimized: 151018
-// test2() -> FAILURE
-// gas irOptimized: 150389
-// gas legacy: 155998
-// gas legacyOptimized: 150684
+// gas legacyOptimized: 150983
+// test2() ->
+// gas irOptimized: 147342
+// gas legacy: 153508
+// gas legacyOptimized: 148067
 // test3() ->
 // gas irOptimized: 124300
 // gas legacy: 130649
 // gas legacyOptimized: 125142
-// test4() -> FAILURE
+// test4() ->

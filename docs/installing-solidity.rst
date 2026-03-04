@@ -31,8 +31,7 @@ Remix
 *We recommend Remix for small contracts and for quickly learning Solidity.*
 
 `Access Remix online <https://remix.ethereum.org/>`_, you do not need to install anything.
-If you want to use it without connection to the Internet, go to
-https://github.com/ethereum/remix-live/tree/gh-pages#readme and follow the instructions on that page.
+If you want to use it without connection to the Internet, download Remix Desktop from `the releases page <https://github.com/remix-project-org/remix-desktop/releases/>`_.
 Remix is also a convenient option for testing nightly builds
 without installing multiple Solidity versions.
 
@@ -143,7 +142,7 @@ available for some distributions:
     Exercise caution when using them.
 
 There is also a `snap package <https://snapcraft.io/solc>`_, however, it is **currently unmaintained**.
-It is installable in all the `supported Linux distros <https://snapcraft.io/docs/core/install>`_. To
+It is installable in all the `supported Linux distros <https://snapcraft.io/docs/reference/administration/distribution-support/>`_. To
 install the latest stable version of solc:
 
 .. code-block:: bash

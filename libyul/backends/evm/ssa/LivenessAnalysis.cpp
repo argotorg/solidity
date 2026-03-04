@@ -145,11 +145,6 @@ LivenessAnalysis::LivenessData LivenessAnalysis::blockExitValues(SSACFG::BlockId
 			for (auto const& valueId: _functionReturn.returnValues | ranges::views::filter(excludingLiteralsFilter()))
 				result.insert(valueId);
 		},
-		[&](SSACFG::BasicBlock::JumpTable const& _jt)
-		{
-			if (excludingLiteralsFilter()(_jt.value))
-				result.insert(_jt.value);
-		},
 		[](SSACFG::BasicBlock::Jump const&) {},
 		[&](SSACFG::BasicBlock::ConditionalJump const& _conditionalJump)
 		{

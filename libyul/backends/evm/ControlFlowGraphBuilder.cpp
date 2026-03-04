@@ -258,7 +258,7 @@ std::unique_ptr<CFG> ControlFlowGraphBuilder::build(
 ControlFlowGraphBuilder::ControlFlowGraphBuilder(
 	CFG& _graph,
 	AsmAnalysisInfo const& _analysisInfo,
-	std::map<FunctionDefinition const*, ControlFlowSideEffects> const& _functionSideEffects,
+	std::unordered_map<FunctionDefinition const*, ControlFlowSideEffects> const& _functionSideEffects,
 	Dialect const& _dialect
 ):
 	m_graph(_graph),

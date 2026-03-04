@@ -119,7 +119,7 @@ Metadata Hash Options
 
 The compiler now appends the `IPFS <https://ipfs.io/>`_ hash of the metadata file to the end of the bytecode by default
 (for details, see documentation on :doc:`contract metadata <metadata>`). Before 0.6.0, the compiler appended the
-`Swarm <https://ethersphere.github.io/swarm-home/>`_ hash by default, and in order to still support this behavior,
+`Swarm <https://www.ethswarm.org/>`_ hash by default, and in order to still support this behavior,
 the new command-line option ``--metadata-hash`` was introduced. It allows you to select the hash to be produced and
 appended, by passing either ``ipfs`` or ``swarm`` as value to the ``--metadata-hash`` command-line option.
 Passing the value ``none`` completely removes the hash.

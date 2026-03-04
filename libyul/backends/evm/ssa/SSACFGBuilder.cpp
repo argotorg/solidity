@@ -139,10 +139,6 @@ SSACFG::ValueId SSACFGBuilder::tryRemoveTrivialPhi(SSACFG::ValueId _phi)
 				if (_condJump.condition == _phi)
 					_condJump.condition = same;
 			},
-			[_phi, same](SSACFG::BasicBlock::JumpTable& _jumpTable) {
-				if (_jumpTable.value == _phi)
-					_jumpTable.value = same;
-			},
 			[](SSACFG::BasicBlock::Jump&) {},
 			[](SSACFG::BasicBlock::MainExit&) {},
 			[](SSACFG::BasicBlock::Terminated&) {}
@@ -172,7 +168,6 @@ void SSACFGBuilder::cleanUnreachable()
 					_addChild(_jump.zero);
 					_addChild(_jump.nonZero);
 				},
-				[](SSACFG::BasicBlock::JumpTable const&) { yulAssert(false); },
 				[](SSACFG::BasicBlock::FunctionReturn const&) {},
 				[](SSACFG::BasicBlock::Terminated const&) {},
 				[](SSACFG::BasicBlock::MainExit const&) {}
@@ -312,113 +307,77 @@ void SSACFGBuilder::operator()(Switch const& _switch)
 {
 	auto expression = std::visit(*this, *_switch.expression);
 
-	auto useJumpTableForSwitch = [](Switch const&) {
-		// TODO: check for EOF support & tight switch values.
-		return false;
-	};
-	if (useJumpTableForSwitch(_switch))
+	if (auto const* constantExpression = std::get_if<Literal>(_switch.expression.get()))
 	{
-		// TODO: also generate a subtraction to shift tight, but non-zero switch cases - or, alternative,
-		// transform to zero-based tight switches on Yul if possible.
-		std::map<u256, SSACFG::BlockId> cases;
-		std::optional<SSACFG::BlockId> defaultCase;
-		std::vector<std::tuple<SSACFG::BlockId, std::reference_wrapper<Block const>>> children;
-		for (auto const& _case: _switch.cases)
+		Case const* matchedCase = nullptr;
+		// select case that matches (or default if available)
+		for (auto const& switchCase: _switch.cases)
 		{
-			auto blockId = m_graph.makeBlock(debugDataOf(_case.body));
-			if (_case.value)
-				cases[_case.value->value.value()] = blockId;
-			else
-				defaultCase = blockId;
-			children.emplace_back(blockId, std::ref(_case.body));
+			if (!switchCase.value)
+				matchedCase = &switchCase;
+			if (switchCase.value && switchCase.value->value.value() == constantExpression->value.value())
+			{
+				matchedCase = &switchCase;
+				break;
+			}
 		}
-		auto afterSwitch = m_graph.makeBlock(debugDataOf(currentBlock()));
-
-		tableJump(debugDataOf(_switch), expression, cases, defaultCase ? *defaultCase : afterSwitch);
-		for (auto [blockId, block]: children)
+		if (matchedCase)
 		{
-			sealBlock(blockId);
-			m_currentBlock = blockId;
-			(*this)(block);
-			jump(debugDataOf(currentBlock()), afterSwitch);
+			// inject directly into the current block
+			(*this)(matchedCase->body);
 		}
-		sealBlock(afterSwitch);
-		m_currentBlock = afterSwitch;
+		return;
 	}
-	else
-	{
-		if (auto const* constantExpression = std::get_if<Literal>(_switch.expression.get()))
-		{
-			Case const* matchedCase = nullptr;
-			// select case that matches (or default if available)
-			for (auto const& switchCase: _switch.cases)
-			{
-				if (!switchCase.value)
-					matchedCase = &switchCase;
-				if (switchCase.value && switchCase.value->value.value() == constantExpression->value.value())
-				{
-					matchedCase = &switchCase;
-					break;
-				}
-			}
-			if (matchedCase)
-			{
-				// inject directly into the current block
-				(*this)(matchedCase->body);
-			}
-			return;
-		}
 
-		std::optional<BuiltinHandle> equalityBuiltinHandle = m_dialect.equalityFunctionHandle();
-		yulAssert(equalityBuiltinHandle);
+	std::optional<BuiltinHandle> equalityBuiltinHandle = m_dialect.equalityFunctionHandle();
+	yulAssert(equalityBuiltinHandle);
 
-		auto makeValueCompare = [&](Case const& _case) {
-			FunctionCall const& ghostCall = m_graph.ghostCalls.emplace_back(FunctionCall{
+	auto makeValueCompare = [&](Case const& _case) {
+		FunctionCall const& ghostCall = m_graph.ghostCalls.emplace_back(FunctionCall{
+			debugDataOf(_case),
+			BuiltinName{{}, *equalityBuiltinHandle},
+			{*_case.value /* skip second argument */ }
+		});
+		auto outputValue = m_graph.newVariable(m_currentBlock);
+		currentBlock().operations.emplace_back(SSACFG::Operation{
+			{outputValue},
+			SSACFG::BuiltinCall{
 				debugDataOf(_case),
-				BuiltinName{{}, *equalityBuiltinHandle},
-				{*_case.value /* skip second argument */ }
-			});
-			auto outputValue = m_graph.newVariable(m_currentBlock);
-			currentBlock().operations.emplace_back(SSACFG::Operation{
-				{outputValue},
-				SSACFG::BuiltinCall{
-					debugDataOf(_case),
-					m_dialect.builtin(*equalityBuiltinHandle),
-					ghostCall
-				},
-				{m_graph.newLiteral(debugDataOf(_case), _case.value->value.value()), expression}
-			});
-			return outputValue;
-		};
+				m_dialect.builtin(*equalityBuiltinHandle),
+				ghostCall
+			},
+			{m_graph.newLiteral(debugDataOf(_case), _case.value->value.value()), expression}
+		});
+		return outputValue;
+	};
 
-		auto afterSwitch = m_graph.makeBlock(debugDataOf(currentBlock()));
-		yulAssert(!_switch.cases.empty(), "");
-		for (auto const& switchCase: _switch.cases | ranges::views::drop_last(1))
-		{
-			yulAssert(switchCase.value, "");
-			auto caseBranch = m_graph.makeBlock(debugDataOf(switchCase.body));
-			auto elseBranch = m_graph.makeBlock(debugDataOf(_switch));
+	auto afterSwitch = m_graph.makeBlock(debugDataOf(currentBlock()));
+	yulAssert(!_switch.cases.empty(), "");
+	for (auto const& switchCase: _switch.cases | ranges::views::drop_last(1))
+	{
+		yulAssert(switchCase.value, "");
+		auto caseBranch = m_graph.makeBlock(debugDataOf(switchCase.body));
+		auto elseBranch = m_graph.makeBlock(debugDataOf(_switch));
 
-			conditionalJump(debugDataOf(switchCase), makeValueCompare(switchCase), caseBranch, elseBranch);
-			sealBlock(caseBranch);
-			sealBlock(elseBranch);
-			m_currentBlock = caseBranch;
-			(*this)(switchCase.body);
-			jump(debugDataOf(switchCase.body), afterSwitch);
-			m_currentBlock = elseBranch;
-		}
-		Case const& switchCase = _switch.cases.back();
-		if (switchCase.value)
-		{
-			auto caseBranch = m_graph.makeBlock(debugDataOf(switchCase.body));
-			conditionalJump(debugDataOf(switchCase), makeValueCompare(switchCase), caseBranch, afterSwitch);
-			sealBlock(caseBranch);
-			m_currentBlock = caseBranch;
-		}
+		conditionalJump(debugDataOf(switchCase), makeValueCompare(switchCase), caseBranch, elseBranch);
+		sealBlock(caseBranch);
+		sealBlock(elseBranch);
+		m_currentBlock = caseBranch;
 		(*this)(switchCase.body);
 		jump(debugDataOf(switchCase.body), afterSwitch);
-		sealBlock(afterSwitch);
+		m_currentBlock = elseBranch;
 	}
+	Case const& switchCase = _switch.cases.back();
+	if (switchCase.value)
+	{
+		auto caseBranch = m_graph.makeBlock(debugDataOf(switchCase.body));
+		conditionalJump(debugDataOf(switchCase), makeValueCompare(switchCase), caseBranch, afterSwitch);
+		sealBlock(caseBranch);
+		m_currentBlock = caseBranch;
+	}
+	(*this)(switchCase.body);
+	jump(debugDataOf(switchCase.body), afterSwitch);
+	sealBlock(afterSwitch);
 }
 void SSACFGBuilder::operator()(ForLoop const& _loop)
 {
@@ -754,23 +713,6 @@ void SSACFGBuilder::jump(
 	yulAssert(!blockInfo(_target).sealed);
 	m_graph.block(_target).entries.insert(m_currentBlock);
 	m_currentBlock = _target;
-}
-
-void SSACFGBuilder::tableJump(
-	langutil::DebugData::ConstPtr _debugData,
-	SSACFG::ValueId _value,
-	std::map<u256, SSACFG::BlockId> _cases,
-	SSACFG::BlockId _defaultCase)
-{
-	for (auto caseBlock: _cases | ranges::views::values)
-	{
-		yulAssert(!blockInfo(caseBlock).sealed);
-		m_graph.block(caseBlock).entries.insert(m_currentBlock);
-	}
-	yulAssert(!blockInfo(_defaultCase).sealed);
-	m_graph.block(_defaultCase).entries.insert(m_currentBlock);
-	currentBlock().exit = SSACFG::BasicBlock::JumpTable{std::move(_debugData), _value, std::move(_cases), _defaultCase};
-	m_currentBlock = {};
 }
 
 FunctionDefinition const* SSACFGBuilder::findFunctionDefinition(Scope::Function const* _function) const

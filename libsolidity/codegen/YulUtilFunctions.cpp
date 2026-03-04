@@ -4357,7 +4357,22 @@ std::string YulUtilFunctions::zeroValueFunction(Type const& _type, bool _splitFu
 
 std::string YulUtilFunctions::storageSetToZeroFunction(Type const& _type, VariableDeclaration::Location _location)
 {
-	std::string const functionName = "storage_set_to_zero_" + _type.identifier();
+	solAssert(
+		_location == VariableDeclaration::Location::Transient ||
+		_location == VariableDeclaration::Location::Unspecified,
+		"Invalid location for the storage_set_to_zero function"
+	);
+
+	if (dynamic_cast<ReferenceType const*>(&_type))
+		solAssert(
+			_location == VariableDeclaration::Location::Unspecified &&
+			_type.dataStoredIn(DataLocation::Storage)
+		);
+
+	std::string const functionName =
+		(_location == VariableDeclaration::Location::Transient ? "transient_"s : "") +
+		"storage_set_to_zero_" +
+		_type.identifier();
 
 	return m_functionCollector.createFunction(functionName, [&]() {
 		if (_type.isValueType())

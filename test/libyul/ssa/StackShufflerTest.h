@@ -18,12 +18,19 @@
 
 #pragma once
 
-#include <libyul/backends/evm/ssa/ControlFlow.h>
-#include <libsolutil/JSON.h>
+#include <test/TestCase.h>
 
-namespace solidity::yul::ssa::json
+#include <memory>
+
+namespace solidity::yul::test::ssa
 {
 
-Json exportControlFlow(ControlFlow const& _controlFlow, ControlFlowLiveness const* _liveness);
+class ShufflingTest: public frontend::test::TestCase
+{
+public:
+	static std::unique_ptr<TestCase> create(Config const& _config);
+	explicit ShufflingTest(std::string const& _filename);
+	TestResult run(std::ostream& _stream, std::string const& _linePrefix, bool _formatted) override;
+};
 
 }

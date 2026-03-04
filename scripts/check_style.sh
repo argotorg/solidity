@@ -47,19 +47,19 @@ FORMATERROR=$(
 (
     preparedGrep "#include \"" | grep -E -v -e "license.h" -e "BuildInfo.h"  # Use include with <> characters
     preparedGrep "\<(if|for|while|switch)\(" # no space after "if", "for", "while" or "switch"
-    preparedGrep "\<for\>\s*\([^=]*\>\s:\s.*\)" # no space before range based for-loop
-    preparedGrep "\<if\>\s*\(.*\)\s*\{\s*$" # "{\n" on same line as "if"
+    preparedGrep "\<for\>[[:space:]]*\([^=]*\>[[:space:]]:[[:space:]].*\)" # no space before range based for-loop
+    preparedGrep "\<if\>[[:space:]]*\(.*\)[[:space:]]*\{[[:space:]]*$" # "{\n" on same line as "if"
     preparedGrep "namespace .*\{"
-    preparedGrep "[,\(<]\s*const " # const on left side of type
-    preparedGrep "^\s*(static)?\s*const " # const on left side of type (beginning of line)
+    preparedGrep "[,\(<][[:space:]]*const " # const on left side of type
+    preparedGrep "^[[:space:]]*(static)?[[:space:]]*const " # const on left side of type (beginning of line)
     preparedGrep "^ [^*]|[^*] 	|	 [^*]" # uses spaces for indentation or mixes spaces and tabs
-    preparedGrep "[a-zA-Z0-9_]\s*[&][a-zA-Z_]" | grep -E -v "return [&]" # right-aligned reference ampersand (needs to exclude return)
+    preparedGrep "[a-zA-Z0-9_][[:space:]]*[&][a-zA-Z_]" | grep -E -v "return [&]" # right-aligned reference ampersand (needs to exclude return)
     # right-aligned reference pointer star (needs to exclude return and comments)
-    preparedGrep "[a-zA-Z0-9_]\s*[*][a-zA-Z_]" | grep -E -v -e "return [*]" -e ":[0-9]+:\s*\*\s" -e "//"
+    preparedGrep "[a-zA-Z0-9_][[:space:]]*[*][a-zA-Z_]" | grep -E -v -e "return [*]" -e ":[0-9]+:[[:space:]]*\*[[:space:]]" -e "//"
     # unqualified move()/forward() checks, i.e. make sure that std::move() and std::forward() are used instead of move() and forward()
     preparedGrep "move\(.+\)" | grep -v "std::move" | grep -E "[^a-z]move"
     preparedGrep "forward\(.+\)" | grep -v "std::forward" | grep -E "[^a-z]forward"
-) | grep -E -v -e "^[a-zA-Z./]*:[0-9]*:\s*/[/*]" -e "^test/" || true
+) | grep -E -v -e "^[a-zA-Z./]*:[0-9]*:[[:space:]]*/[/*]" -e "^test/" || true
 )
 
 # Special error handling for `using namespace std;` exclusion, since said statement can be present in the test directory

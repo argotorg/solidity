@@ -26,6 +26,8 @@
 
 #include <boost/algorithm/string/trim.hpp>
 
+#include <fmt/format.h>
+
 #include <sstream>
 #include <string>
 #include <vector>

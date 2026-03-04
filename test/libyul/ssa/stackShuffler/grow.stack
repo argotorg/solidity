@@ -1,0 +1,12 @@
+// need to grow the stack to reach target stack size but still fulfill args requirements
+initial: [JUNK, JUNK, JUNK, v15]
+targetStackTop: [JUNK, JUNK, JUNK, JUNK, v15]
+targetStackTailSet: {}
+targetStackSize: 5
+// ----
+//             |      0      1      2      3      4
+//             +-----------------------------------
+//    (initial)|      *      *      *    v15
+//         DUP1|      *      *      *    v15    v15
+//             +-----------------------------------
+//     (target)|      *      *      *      *    v15

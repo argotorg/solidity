@@ -20,6 +20,8 @@
 
 #include <libyul/optimiser/ASTWalker.h>
 
+#include <unordered_map>
+
 namespace solidity::yul
 {
 
@@ -33,15 +35,15 @@ class FunctionReferenceResolver: private ASTWalker
 {
 public:
 	explicit FunctionReferenceResolver(Block const& _ast);
-	std::map<FunctionCall const*, FunctionDefinition const*> const& references() const { return m_functionReferences; }
+	std::unordered_map<FunctionCall const*, FunctionDefinition const*> const& references() const { return m_functionReferences; }
 
 private:
 	using ASTWalker::operator();
 	void operator()(FunctionCall const& _functionCall) override;
 	void operator()(Block const& _block) override;
 
-	std::map<FunctionCall const*, FunctionDefinition const*> m_functionReferences;
-	std::vector<std::map<YulName, FunctionDefinition const*>> m_scopes;
+	std::unordered_map<FunctionCall const*, FunctionDefinition const*> m_functionReferences;
+	std::vector<std::unordered_map<YulName, FunctionDefinition const*>> m_scopes;
 };
 
 

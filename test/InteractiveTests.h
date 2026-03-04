@@ -30,6 +30,9 @@
 #include <test/libsolidity/SyntaxTest.h>
 #include <test/libsolidity/SemanticTest.h>
 #include <test/libsolidity/SMTCheckerTest.h>
+
+#include <test/libyul/ssa/StackLayoutGeneratorTest.h>
+#include <test/libyul/ssa/StackShufflerTest.h>
 #include <test/libyul/ControlFlowGraphTest.h>
 #include <test/libyul/SSAControlFlowGraphTest.h>
 #include <test/libyul/EVMCodeTransformTest.h>
@@ -72,6 +75,8 @@ Testsuite const g_interactiveTestsuites[] = {
 	{"Yul Object Compiler",         "libyul",      "objectCompiler",                false, false, &yul::test::ObjectCompilerTest::create},
 	{"Yul Control Flow Graph",      "libyul",      "yulControlFlowGraph",           false, false, &yul::test::ControlFlowGraphTest::create},
 	{"Yul SSA Control Flow Graph",  "libyul",      "yulSSAControlFlowGraph",        false, false, &yul::test::SSAControlFlowGraphTest::create},
+	{"Yul SSA StackShuffling",      "libyul",      "ssa/stackShuffler",             false, false, &yul::test::ssa::ShufflingTest::create},
+	{"Yul SSA StackLayoutGenerator","libyul",      "ssa/stackLayoutGenerator",      false, false, &yul::test::ssa::StackLayoutGeneratorTest::create},
 	{"Yul Stack Layout",            "libyul",      "yulStackLayout",                false, false, &yul::test::StackLayoutGeneratorTest::create},
 	{"Yul Stack Shuffling",         "libyul",      "yulStackShuffling",             false, false, &yul::test::StackShufflingTest::create},
 	{"Control Flow Side Effects",   "libyul",      "controlFlowSideEffects",        false, false, &yul::test::ControlFlowSideEffectsTest::create},

@@ -1,0 +1,18 @@
+// todo: The upper two junk slots should be popped immediately, they are completely superfluous.
+initial: [JUNK, JUNK, v56, v57, JUNK, JUNK]
+targetStackTop: [JUNK, JUNK, v56, v57, lit0, v56, lit11]
+targetStackTailSet: {}
+targetStackSize: 7
+// ----
+//             |      0      1      2      3      4      5      6 |      7
+//             +------------------------------------------------- +-------
+//    (initial)|      *      *    v56    v57      *      *
+//   PUSH lit11|      *      *    v56    v57      *      *  lit11
+//         DUP5|      *      *    v56    v57      *      *  lit11 |    v56
+//        SWAP2|      *      *    v56    v57      *    v56  lit11 |      *
+//          POP|      *      *    v56    v57      *    v56  lit11
+//    PUSH lit0|      *      *    v56    v57      *    v56  lit11 |   lit0
+//        SWAP3|      *      *    v56    v57   lit0    v56  lit11 |      *
+//          POP|      *      *    v56    v57   lit0    v56  lit11
+//             +------------------------------------------------- +-------
+//     (target)|      *      *    v56    v57   lit0    v56  lit11 |

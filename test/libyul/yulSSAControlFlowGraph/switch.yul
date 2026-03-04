@@ -19,8 +19,8 @@
 // graph[fontname="DejaVu Sans"]
 // node[shape=box,fontname="DejaVu Sans"];
 //
-// Entry0 [label="Entry"];
-// Entry0 -> Block0_0;
+// Entry [label="Entry"];
+// Entry -> Block0_0;
 // Block0_0 [label="\
 // Block 0; (0, max 5)\nLiveIn: \l\
 // LiveOut: v1[1]\l\nUsed: \l\nv0 := calldataload(0x03)\l\
