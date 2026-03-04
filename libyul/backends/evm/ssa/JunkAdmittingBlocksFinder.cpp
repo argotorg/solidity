@@ -23,7 +23,7 @@
 namespace solidity::yul::ssa
 {
 
-JunkAdmittingBlocksFinder::JunkAdmittingBlocksFinder(SSACFG const& _cfg, ForwardSSACFGTopologicalSort const& _topologicalSort):
+JunkAdmittingBlocksFinder::JunkAdmittingBlocksFinder(SSACFG const& _cfg, traversal::ForwardTopologicalSort const& _topologicalSort):
 	m_blockAllowsJunk(_cfg.numBlocks(), false)
 {
 	// special case: only one block here, we mark it as junkable in case it's not a function return

@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include <libyul/backends/evm/ssa/SSACFGTopologicalSort.h>
+#include <libyul/backends/evm/ssa/traversal/ForwardTopologicalSort.h>
 #include <libyul/backends/evm/ssa/SSACFG.h>
 
 #include <libsolutil/DisjointSet.h>
@@ -39,7 +39,7 @@ class SSACFGLoopNestingForest
 	using BlockIdValue = SSACFG::BlockId::ValueType;
 
 public:
-	explicit SSACFGLoopNestingForest(ForwardSSACFGTopologicalSort const& _sort);
+	explicit SSACFGLoopNestingForest(traversal::ForwardTopologicalSort const& _sort);
 
 	/// blocks which are not contained in a loop get assigned the loop parent numeric_limit<size_t>::max()
 	std::vector<BlockIdValue> const& loopParents() const { return m_loopParents; }
@@ -51,7 +51,7 @@ private:
 	void findLoop(BlockIdValue _potentialHeader);
 	void collapse(std::set<BlockIdValue> const& _loopBody, BlockIdValue _loopHeader);
 
-	ForwardSSACFGTopologicalSort const& m_sort;
+	traversal::ForwardTopologicalSort const& m_sort;
 	SSACFG const& m_cfg;
 
 	util::ContiguousDisjointSet<BlockIdValue> m_vertexPartition;

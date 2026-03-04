@@ -2013,12 +2013,14 @@
     },
     "0.8.28": {
         "bugs": [
+            "TransientStorageClearingHelperCollision",
             "LostStorageArrayWriteOnSlotOverflow"
         ],
         "released": "2024-10-09"
     },
     "0.8.29": {
         "bugs": [
+            "TransientStorageClearingHelperCollision",
             "LostStorageArrayWriteOnSlotOverflow"
         ],
         "released": "2025-03-12"
@@ -2039,23 +2041,33 @@
     },
     "0.8.30": {
         "bugs": [
+            "TransientStorageClearingHelperCollision",
             "LostStorageArrayWriteOnSlotOverflow"
         ],
         "released": "2025-05-07"
     },
     "0.8.31": {
         "bugs": [
+            "TransientStorageClearingHelperCollision",
             "LostStorageArrayWriteOnSlotOverflow"
         ],
         "released": "2025-12-03"
     },
     "0.8.32": {
-        "bugs": [],
+        "bugs": [
+            "TransientStorageClearingHelperCollision"
+        ],
         "released": "2025-12-18"
     },
     "0.8.33": {
-        "bugs": [],
+        "bugs": [
+            "TransientStorageClearingHelperCollision"
+        ],
         "released": "2025-12-18"
+    },
+    "0.8.34": {
+        "bugs": [],
+        "released": "2026-02-18"
     },
     "0.8.4": {
         "bugs": [

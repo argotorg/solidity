@@ -299,7 +299,7 @@ commands:
   run_soltest_all:
     parameters:
       # NOTE: If not specified, soltest_all.sh will use the default values as specified in the script.
-      # In other words, it will execute for all EVM versions that are not marked as deprecated.
+      # In other words, it will execute for all EVM versions that are not marked as low priority.
       evm_versions:
         description: "List of EVM versions (separated by space)."
         type: string
@@ -1392,7 +1392,7 @@ jobs:
       - store_artifacts_test_results
       - matrix_notify_failure_unless_pr
 
-  t_ubu_soltest_deprecated_evm_versions: &t_ubu_soltest_deprecated_evm_versions
+  t_ubu_soltest_low_priority_evm_versions: &t_ubu_soltest_low_priority_evm_versions
     <<: *base_ubuntu2404_large
     parallelism: 50
     steps:
@@ -1400,7 +1400,18 @@ jobs:
       - attach_workspace:
           at: build
       - run_soltest_all:
-          evm_versions: homestead byzantium constantinople petersburg
+          # We test most EVM versions on every PR. The ones below are the exceptions.
+          #
+          # We do not test these at all. We were never doing that and no point starting now since
+          # they are deprecated anyway:
+          # - tangerineWhistle
+          # - spuriousDragon
+          #
+          # These have a low chance of breaking so we only run them in nightly to save credits:
+          # - byzantium: deprecated, if it breaks, homestead likely will as well
+          # - petersburg: no changes compared to constantinople
+          # - prague: no changes compared to cancun
+          evm_versions: byzantium petersburg prague
       - store_test_results:
           path: test_results/
       - store_artifacts_test_results
@@ -2259,7 +2270,7 @@ workflows:
 
       # Deprecated EVM versions tests
       - b_ubu: *requires_nothing
-      - t_ubu_soltest_deprecated_evm_versions: *requires_b_ubu
+      - t_ubu_soltest_low_priority_evm_versions: *requires_b_ubu
 
       # Build in a Docker container (on Alpine Linux)
       - b_alpine_docker: *requires_nothing

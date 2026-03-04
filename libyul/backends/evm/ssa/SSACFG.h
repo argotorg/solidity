@@ -135,13 +135,6 @@ public:
 			langutil::DebugData::ConstPtr debugData{};
 			BlockId target;
 		};
-		struct JumpTable
-		{
-			langutil::DebugData::ConstPtr debugData{};
-			ValueId value;
-			std::map<u256, BlockId> cases;
-			BlockId defaultCase;
-		};
 		struct FunctionReturn
 		{
 			langutil::DebugData::ConstPtr debugData{};
@@ -152,7 +145,7 @@ public:
 		std::set<BlockId> entries;
 		std::set<ValueId> phis;
 		std::vector<Operation> operations;
-		std::variant<MainExit, Jump, ConditionalJump, JumpTable, FunctionReturn, Terminated> exit = MainExit{};
+		std::variant<MainExit, Jump, ConditionalJump, FunctionReturn, Terminated> exit = MainExit{};
 		template<typename Callable>
 		void forEachExit(Callable&& _callable) const
 		{
@@ -162,12 +155,6 @@ public:
 			{
 				_callable(conditionalJump->nonZero);
 				_callable(conditionalJump->zero);
-			}
-			else if (auto* jumpTable = std::get_if<JumpTable>(&exit))
-			{
-				for (auto _case: jumpTable->cases | ranges::views::values)
-					_callable(_case);
-				_callable(jumpTable->defaultCase);
 			}
 		}
 
@@ -316,3 +303,42 @@ public:
 };
 
 }
+
+template<>
+struct fmt::formatter<solidity::yul::ssa::SSACFG::BlockId>
+{
+	static auto constexpr parse(format_parse_context& ctx) -> decltype(ctx.begin()) { return ctx.begin(); }
+
+	template<typename FormatContext>
+	auto format(solidity::yul::ssa::SSACFG::BlockId const& _blockId, FormatContext& _ctx) const -> decltype(_ctx.out())
+	{
+		if (!_blockId.hasValue())
+			return fmt::format_to(_ctx.out(), "empty");
+		return fmt::format_to(_ctx.out(), "{}", _blockId.value);
+	}
+};
+
+template<>
+struct fmt::formatter<solidity::yul::ssa::SSACFG::ValueId>
+{
+	static auto constexpr parse(format_parse_context& ctx) -> decltype(ctx.begin()) { return ctx.begin(); }
+
+	template<typename FormatContext>
+	auto format(solidity::yul::ssa::SSACFG::ValueId const& _valueId, FormatContext& _ctx) const -> decltype(_ctx.out())
+	{
+		if (!_valueId.hasValue())
+			return fmt::format_to(_ctx.out(), "empty");
+		switch (_valueId.kind())
+		{
+		case solidity::yul::ssa::SSACFG::ValueId::Kind::Literal:
+			return fmt::format_to(_ctx.out(), "lit{}", _valueId.value());
+		case solidity::yul::ssa::SSACFG::ValueId::Kind::Variable:
+			return fmt::format_to(_ctx.out(), "v{}", _valueId.value());
+		case solidity::yul::ssa::SSACFG::ValueId::Kind::Phi:
+			return fmt::format_to(_ctx.out(), "phi{}", _valueId.value());
+		case solidity::yul::ssa::SSACFG::ValueId::Kind::Unreachable:
+			return fmt::format_to(_ctx.out(), "unreachable");
+		}
+		solidity::util::unreachable();
+	}
+};

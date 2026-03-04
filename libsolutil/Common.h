@@ -43,6 +43,7 @@
 #include <boost/version.hpp>
 
 #include <cstdint>
+#include <concepts>
 #include <functional>
 #include <map>
 #include <string>
@@ -51,6 +52,13 @@
 
 namespace solidity
 {
+
+namespace concepts
+{
+/// Concept denoting some arithmetic type.
+template <typename T>
+concept arithmetic = std::integral<T> || std::floating_point<T>;
+}
 
 // Binary data types.
 using bytes = std::vector<uint8_t>;

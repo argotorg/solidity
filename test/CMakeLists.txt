@@ -173,6 +173,10 @@ set(libyul_sources
     libyul/YulOptimizerTest.h
     libyul/YulOptimizerTestCommon.cpp
     libyul/YulOptimizerTestCommon.h
+    libyul/ssa/StackLayoutGeneratorTest.cpp
+    libyul/ssa/StackLayoutGeneratorTest.h
+    libyul/ssa/StackShufflerTest.cpp
+    libyul/ssa/StackShufflerTest.h
 )
 detect_stray_source_files("${libyul_sources}" "libyul/")
 

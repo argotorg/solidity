@@ -1,0 +1,14 @@
+// populate an empty stack with junk
+initial: []
+targetStackTop: []
+targetStackTailSet: {}
+targetStackSize: 3
+// ----
+//             |      0      1      2
+//             +---------------------
+//    (initial)|
+//    PUSH JUNK|      *
+//    PUSH JUNK|      *      *
+//    PUSH JUNK|      *      *      *
+//             +---------------------
+//     (target)|

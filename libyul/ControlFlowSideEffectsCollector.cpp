@@ -162,8 +162,8 @@ void ControlFlowBuilder::newConnectedNode()
 
 ControlFlowNode* ControlFlowBuilder::newNode()
 {
-	m_nodes.emplace_back(std::make_shared<ControlFlowNode>());
-	return m_nodes.back().get();
+	m_nodes.emplace_back();
+	return &m_nodes.back();
 }
 
 

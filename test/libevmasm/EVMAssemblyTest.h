@@ -75,6 +75,7 @@ private:
 	AssemblyFormat m_assemblyFormat{};
 	std::string m_selectedOutputs;
 	evmasm::Assembly::OptimiserSettings m_optimizerSettings;
+	bool m_usingDefaultExpectedExecutionsPerDeployment{};
 };
 
 }

@@ -22,7 +22,7 @@
 
 using namespace solidity::yul::ssa;
 
-SSACFGLoopNestingForest::SSACFGLoopNestingForest(ForwardSSACFGTopologicalSort const& _sort):
+SSACFGLoopNestingForest::SSACFGLoopNestingForest(traversal::ForwardTopologicalSort const& _sort):
 	m_sort(_sort),
 	m_cfg(_sort.cfg()),
 	m_vertexPartition(m_cfg.numBlocks()),

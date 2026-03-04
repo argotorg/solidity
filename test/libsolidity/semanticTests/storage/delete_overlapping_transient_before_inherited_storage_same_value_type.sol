@@ -1,0 +1,25 @@
+contract Base {
+    uint256 public x;
+
+    function deleteX() internal {
+        delete x;
+    }
+}
+
+contract C is Base {
+    uint256 transient t;
+
+    function setAndClear() external {
+        x = 1;
+        t = 2;
+        delete t;
+        assert(t == 0);
+        deleteX();
+    }
+}
+
+// ====
+// EVMVersion: >=cancun
+// ----
+// setAndClear() ->
+// x() -> 0

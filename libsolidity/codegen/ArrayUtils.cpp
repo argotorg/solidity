@@ -402,7 +402,6 @@ void ArrayUtils::clearArray(ArrayType const& _typeIn) const
 					ArrayUtils(_context).clearStorageLoop(TypeProvider::uint256());
 				else
 					ArrayUtils(_context).clearStorageLoop(_type.baseType());
-				_context << Instruction::POP;
 			}
 			solAssert(_context.stackHeight() == stackHeightStart - 2, "");
 		}
@@ -425,9 +424,10 @@ void ArrayUtils::clearDynamicArray(ArrayType const& _type) const
 		// stack: ref old_length
 		m_context << Instruction::DUP1 << u256(31) << Instruction::LT;
 		evmasm::AssemblyItem longByteArray = m_context.appendConditionalJump();
-		m_context << Instruction::POP;
+		// Short byte array: no data slots to clear, just pop and exit
+		m_context << Instruction::POP << Instruction::POP;
 		m_context.appendJumpTo(endTag);
-		m_context.adjustStackOffset(1); // needed because of jump
+		m_context.adjustStackOffset(2); // the longByteArray path has 2 more items on stack
 		m_context << longByteArray;
 	}
 	// stack: ref old_length
@@ -444,7 +444,6 @@ void ArrayUtils::clearDynamicArray(ArrayType const& _type) const
 		clearStorageLoop(_type.baseType());
 	// cleanup
 	m_context << endTag;
-	m_context << Instruction::POP;
 }
 
 void ArrayUtils::incrementDynamicArraySize(ArrayType const& _type) const
@@ -585,13 +584,13 @@ void ArrayUtils::clearStorageLoop(Type const* _type) const
 	m_context.callLowLevelFunction(
 		"$clearStorageLoop_" + _type->identifier(),
 		2,
-		1,
+		0,
 		[_type](CompilerContext& _context)
 		{
 			unsigned stackHeightStart = _context.stackHeight();
 			if (_type->category() == Type::Category::Mapping)
 			{
-				_context << Instruction::POP;
+				_context << Instruction::POP << Instruction::POP;
 				return;
 			}
 			// stack: start_pos slot_count
@@ -618,9 +617,8 @@ void ArrayUtils::clearStorageLoop(Type const* _type) const
 			// cleanup
 			_context << zeroLoopEnd;
 			// stack: start_pos slot_count i
-			_context << Instruction::POP << Instruction::POP;
-			// stack: start_pos
-			solAssert(_context.stackHeight() == stackHeightStart - 1, "");
+			_context << Instruction::POP << Instruction::POP << Instruction::POP;
+			solAssert(_context.stackHeight() == stackHeightStart - 2, "");
 		}
 	);
 }

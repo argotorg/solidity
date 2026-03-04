@@ -16,7 +16,7 @@
 */
 // SPDX-License-Identifier: GPL-3.0
 
-#include <libyul/backends/evm/ssa/SSACFGJsonExporter.h>
+#include <libyul/backends/evm/ssa/io/JSONExporter.h>
 
 #include <libyul/Utilities.h>
 
@@ -31,7 +31,7 @@
 using namespace solidity;
 using namespace solidity::yul;
 using namespace solidity::yul::ssa;
-using namespace solidity::yul::ssa::json;
+using namespace solidity::yul::ssa::io::json;
 
 namespace
 {
@@ -134,8 +134,6 @@ Json exportBlock(SSACFG const& _cfg, SSACFG::BlockId _entryId, LivenessAnalysis 
 	Json blocksJson = Json::array();
 	util::BreadthFirstSearch<SSACFG::BlockId> bfs{{{_entryId}}};
 	bfs.run([&](SSACFG::BlockId _blockId, auto _addChild) {
-		auto const& block = _cfg.block(_blockId);
-		// Convert current block to JSON
 		Json blockJson = toJson(_cfg, _blockId, _liveness);
 
 		Json exitBlockJson = Json::object();
@@ -162,11 +160,8 @@ Json exportBlock(SSACFG const& _cfg, SSACFG::BlockId _entryId, LivenessAnalysis 
 			},
 			[&](SSACFG::BasicBlock::Terminated const&) {
 				exitBlockJson["type"] = "Terminated";
-			},
-			[&](SSACFG::BasicBlock::JumpTable const&) {
-				yulAssert(false);
 			}
-		}, block.exit);
+		}, _cfg.block(_blockId).exit);
 		blockJson["exit"] = exitBlockJson;
 		blocksJson.emplace_back(blockJson);
 	});
@@ -188,7 +183,7 @@ Json exportFunction(SSACFG const& _cfg, LivenessAnalysis const* _liveness)
 
 }
 
-Json json::exportControlFlow(ControlFlow const& _controlFlow, ControlFlowLiveness const* _liveness)
+Json io::json::exportControlFlow(ControlFlow const& _controlFlow, ControlFlowLiveness const* _liveness)
 {
 	if (_liveness)
 		yulAssert(&_liveness->controlFlow.get() == &_controlFlow);

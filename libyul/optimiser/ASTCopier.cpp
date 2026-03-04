@@ -180,7 +180,5 @@ NameWithDebugData ASTCopier::translate(NameWithDebugData const& _typedName)
 
 YulName FunctionCopier::translateIdentifier(YulName _name)
 {
-	if (m_translations.count(_name))
-		return m_translations.at(_name);
-	return _name;
+	return util::valueOrDefault(m_translations, _name, _name);
 }

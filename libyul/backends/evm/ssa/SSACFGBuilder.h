@@ -147,13 +147,6 @@ private:
 		SSACFG::BlockId _target
 	);
 
-	void tableJump(
-		langutil::DebugData::ConstPtr _debugData,
-		SSACFG::ValueId _value,
-		std::map<u256, SSACFG::BlockId> _cases,
-		SSACFG::BlockId _defaultCase
-	);
-
 	FunctionDefinition const* findFunctionDefinition(Scope::Function const* _function) const;
 };
 

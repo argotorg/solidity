@@ -1,0 +1,14 @@
+// here, the algorithm should prefer a swap of junk into tail over pop and dup
+initial: [v0, JUNK, v2]
+targetStackTop: [lit2, v2, v0]
+targetStackTailSet: {}
+targetStackSize: 4
+// ----
+//             |      0 |      1      2      3
+//             +------- +---------------------
+//    (initial)|     v0 |      *     v2
+//    PUSH lit2|     v0 |      *     v2   lit2
+//        SWAP2|     v0 |   lit2     v2      *
+//        SWAP3|      * |   lit2     v2     v0
+//             +------- +---------------------
+//     (target)|     {} |   lit2     v2     v0
