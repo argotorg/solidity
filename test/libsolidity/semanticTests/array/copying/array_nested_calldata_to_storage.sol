@@ -34,14 +34,20 @@ contract c {
         return (a4[0][0] + a4[1][1]);
     }
 }
-// ====
-// compileViaYul: true
 // ----
 // test1(uint256[][]): 0x20, 2, 0x40, 0x40, 2, 23, 42 -> 2, 65
 // gas irOptimized: 180918
+// gas legacy: 183520
+// gas legacyOptimized: 181225
 // test2(uint256[][2]): 0x20, 0x40, 0x40, 2, 23, 42 -> 2, 65
 // gas irOptimized: 157604
+// gas legacy: 160493
+// gas legacyOptimized: 158080
 // test3(uint256[2][]): 0x20, 2, 23, 42, 23, 42 -> 2, 65
 // gas irOptimized: 134685
+// gas legacy: 137646
+// gas legacyOptimized: 135248
 // test4(uint256[2][2]): 23, 42, 23, 42 -> 65
 // gas irOptimized: 111177
+// gas legacy: 114181
+// gas legacyOptimized: 111517

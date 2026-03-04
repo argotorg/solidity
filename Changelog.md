@@ -3,6 +3,7 @@
 Language Features:
 
 Compiler Features:
+* Code Generator: Enable copying of nested calldata dynamic arrays to storage in the legacy code generator.
 
 Bugfixes:
 

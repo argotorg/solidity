@@ -25,12 +25,16 @@ contract C {
         return s3;
     }
 }
-// ====
-// compileViaYul: true
 // ----
 // test1((uint8[],uint8[2])[][]): 0x20, 2, 0x40, 0x0140, 1, 0x20, 0x60, 3, 7, 2, 1, 2, 2, 0x40, 0x0100, 0x60, 17, 19, 2, 11, 13, 0x60, 31, 37, 2, 23, 29 -> 0x20, 2, 0x40, 0x0140, 1, 0x20, 0x60, 3, 7, 2, 1, 2, 2, 0x40, 0x0100, 0x60, 17, 19, 2, 11, 13, 0x60, 31, 37, 2, 23, 29
 // gas irOptimized: 309034
+// gas legacy: 324711
+// gas legacyOptimized: 309352
 // test2((uint8[],uint8[2])[][1]): 0x20, 0x20, 1, 0x20, 0x60, 17, 19, 2, 11, 13 -> 0x20, 0x20, 1, 0x20, 0x60, 17, 19, 2, 11, 13
 // gas irOptimized: 118320
+// gas legacy: 124247
+// gas legacyOptimized: 118230
 // test3((uint8[],uint8[2])[1][]): 0x20, 2, 0x40, 0x0120, 0x20, 0x60, 3, 7, 2, 1, 2, 0x20, 0x60, 17, 19, 2, 11, 13 -> 0x20, 2, 0x40, 0x0120, 0x20, 0x60, 3, 7, 2, 1, 2, 0x20, 0x60, 17, 19, 2, 11, 13
 // gas irOptimized: 190993
+// gas legacy: 202845
+// gas legacyOptimized: 191247

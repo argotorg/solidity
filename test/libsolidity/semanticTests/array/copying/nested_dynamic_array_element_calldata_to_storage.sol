@@ -26,11 +26,12 @@ contract C {
 	require(a2[1].length == 0);
     }
 }
-// ====
-// compileViaYul: true
 // ----
 // test(uint8[][][]): 0x20, 2, 0x40, 0x60, 0, 2, 0x40, 0x80, 1, 7, 2, 8, 9
 // gas irOptimized: 137891
+// gas legacy: 140273
+// gas legacyOptimized: 138487
 // test2(uint8[][]): 0x20, 2, 0x40, 0x80, 1, 7, 2, 8, 9
 // gas irOptimized: 164249
-// gas legacyOptimized: 120228
+// gas legacy: 167430
+// gas legacyOptimized: 164772

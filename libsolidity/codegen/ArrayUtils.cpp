@@ -58,24 +58,11 @@ void ArrayUtils::copyArrayToStorage(ArrayType const& _targetType, ArrayType cons
 		m_context << swapInstruction(i);
 	// stack: target_ref source_ref [source_length]
 
-	if (_sourceType.baseType()->category() == Type::Category::Array)
+	// TODO: This limitation can now be removed since we use Yul utility functions that handle non-value types correctly.
+	// The old inline assembly implementation couldn't handle copying arrays of non-value types from memory or calldata to storage,
+	// but the Yul functions support them. We keep this check temporarily for backward compatibility.
+	if (_sourceType.baseType()->category() != Type::Category::Array)
 	{
-		// TODO: This limitation can now be removed since we use Yul utility functions that handle nested arrays correctly.
-		// The old inline assembly implementation couldn't handle nested calldata dynamic arrays, but the Yul functions
-		// support them through recursive calls. We keep this check temporarily for backward compatibility.
-		auto const& sourceBaseArrayType = dynamic_cast<ArrayType const&>(*_sourceType.baseType());
-		solUnimplementedAssert(
-			!fromCalldata ||
-			!_sourceType.isDynamicallyEncoded() ||
-			!sourceBaseArrayType.isDynamicallySized(),
-			"Copying nested calldata dynamic arrays to storage is not implemented in the old code generator."
-		);
-	}
-	else
-	{
-		// TODO: This limitation can now be removed since we use Yul utility functions that handle non-value types correctly.
-		// The old inline assembly implementation couldn't handle copying arrays of non-value types from memory or calldata to storage,
-		// but the Yul functions support them. We keep this check temporarily for backward compatibility.
 		bool fromMemoryOrCalldata = _sourceType.location() == DataLocation::Memory || _sourceType.location() == DataLocation::CallData;
 		solUnimplementedAssert(
 			_sourceType.baseType()->isValueType() || !fromMemoryOrCalldata,
