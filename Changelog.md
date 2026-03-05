@@ -3,6 +3,7 @@
 Language Features:
 
 Compiler Features:
+ * Yul Optimizer: Replace YulString-based name management with numerical label IDs.
 
 Bugfixes:
 

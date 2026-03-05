@@ -60,14 +60,13 @@ bool StackShufflingTest::parse(std::string const& _source)
 				if (scanner.currentToken() == Token::LBrack)
 				{
 					scanner.next();
-					std::string functionName = scanner.currentLiteral();
+					std::string functionLabel = scanner.currentLiteral();
+					auto const functionLabelID = m_labelRegistryBuilder.define(functionLabel);
 					auto call = yul::FunctionCall{
-						{}, yul::Identifier{{}, YulName(functionName)}, {}
+						{}, yul::Identifier{{}, functionLabelID}, {}
 					};
 					stack.emplace_back(FunctionCallReturnLabelSlot{
-						m_functions.insert(
-							make_pair(functionName, call)
-						).first->second
+						m_functions.emplace(functionLabelID, call).first->second
 					});
 					expectToken(Token::RBrack);
 				}
@@ -83,14 +82,15 @@ bool StackShufflingTest::parse(std::string const& _source)
 				expectToken(Token::LBrack);
 				scanner.next();
 				std::string functionName = scanner.currentLiteral();
+				auto const functionLabelID = m_labelRegistryBuilder.define(functionName);
 				auto call = yul::FunctionCall{
-					{}, yul::Identifier{{}, YulName(functionName)}, {}
+					{}, yul::Identifier{{}, functionLabelID}, {}
 				};
 				expectToken(Token::Comma);
 				scanner.next();
 				size_t index = size_t(atoi(scanner.currentLiteral().c_str()));
 				stack.emplace_back(TemporarySlot{
-					m_functions.insert(make_pair(functionName, call)).first->second,
+					m_functions.emplace(functionLabelID, call).first->second,
 					index
 				});
 				expectToken(Token::RBrack);
@@ -108,7 +108,8 @@ bool StackShufflingTest::parse(std::string const& _source)
 				expectToken(Token::LBrack);
 				scanner.next(); // read number of ghost variables as ghostVariableId
 				std::string ghostVariableId = scanner.currentLiteral();
-				Scope::Variable ghostVar = Scope::Variable{YulName(literal + "[" + ghostVariableId + "]")};
+				auto const ghostID = m_labelRegistryBuilder.addGhost();
+				Scope::Variable ghostVar = Scope::Variable{ghostID};
 				stack.emplace_back(VariableSlot{
 					m_variables.insert(std::make_pair(ghostVar.name, ghostVar)).first->second
 				});
@@ -116,11 +117,10 @@ bool StackShufflingTest::parse(std::string const& _source)
 			}
 			else
 			{
-				Scope::Variable var = Scope::Variable{YulName(literal)};
+				auto const labelID = m_labelRegistryBuilder.define(literal);
+				Scope::Variable var = Scope::Variable{labelID};
 				stack.emplace_back(VariableSlot{
-					m_variables.insert(
-						make_pair(literal, var)
-					).first->second
+					m_variables.emplace(labelID, var).first->second
 				});
 			}
 			scanner.next();
@@ -160,6 +160,8 @@ TestCase::TestResult StackShufflingTest::run(std::ostream& _stream, std::string 
 		return TestResult::FatalError;
 	}
 
+	CFG cfg;
+	cfg.labels = std::make_unique<ASTLabelRegistry>(m_labelRegistryBuilder.build());
 	std::ostringstream output;
 	size_t operations = 0;
 	createStackLayout(
@@ -168,15 +170,15 @@ TestCase::TestResult StackShufflingTest::run(std::ostream& _stream, std::string 
 		[&](unsigned _swapDepth) // swap
 		{
 			++operations;
-			output << stackToString(m_sourceStack, dialect) << std::endl;
+			output << stackToString(m_sourceStack, cfg, dialect) << std::endl;
 			output << "SWAP" << _swapDepth << std::endl;
 		},
 		[&](StackSlot const& _slot) // dupOrPush
 		{
 			++operations;
-			output << stackToString(m_sourceStack, dialect) << std::endl;
+			output << stackToString(m_sourceStack, cfg, dialect) << std::endl;
 			if (canBeFreelyGenerated(_slot))
-				output << "PUSH " << stackSlotToString(_slot, dialect) << std::endl;
+				output << "PUSH " << stackSlotToString(_slot, cfg, dialect) << std::endl;
 			else
 			{
 				if (auto depth = util::findOffset(m_sourceStack | ranges::views::reverse, _slot))
@@ -187,13 +189,13 @@ TestCase::TestResult StackShufflingTest::run(std::ostream& _stream, std::string 
 		},
 		[&](){ // pop
 			++operations;
-			output << stackToString(m_sourceStack, dialect) << std::endl;
+			output << stackToString(m_sourceStack, cfg, dialect) << std::endl;
 			output << "POP" << std::endl;
 		},
 		m_maximumStackDepth
     );
 
-	output << stackToString(m_sourceStack, dialect) << std::endl;
+	output << stackToString(m_sourceStack, cfg, dialect) << std::endl;
 	output << operations << " operations" << std::endl;
 	m_obtainedResult = output.str();
 

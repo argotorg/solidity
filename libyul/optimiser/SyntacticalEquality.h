@@ -22,9 +22,9 @@
 #pragma once
 
 #include <libyul/ASTForward.h>
-#include <libyul/YulName.h>
 
 #include <map>
+#include <memory>
 #include <type_traits>
 
 namespace solidity::yul

@@ -39,7 +39,7 @@ public:
 	enum class EdgeStyle { Solid, Dashed };
 	enum class RankDir { TB, BT, LR, RL };
 
-	DotExporterBase(SSACFG const& _cfg, size_t _functionIndex, RankDir _rankDir = RankDir::LR);
+	DotExporterBase(ASTLabelRegistry const& _labels, SSACFG const& _cfg, size_t _functionIndex, RankDir _rankDir = RankDir::LR);
 	virtual ~DotExporterBase() = default;
 
 	std::string exportBlocks(SSACFG::BlockId _entry, bool _wrapInDigraph = true);
@@ -62,6 +62,7 @@ protected:
 	/// Escapes a string for use inside dot label text (escapes quotes and backslashes).
 	static std::string escapeLabel(std::string_view _str);
 
+	ASTLabelRegistry const& m_labels;
 	SSACFG const& m_cfg;
 	size_t m_functionIndex;
 	RankDir m_rankDir;

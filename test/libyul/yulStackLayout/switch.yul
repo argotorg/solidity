@@ -37,12 +37,12 @@
 // sload\l\
 // [ y z TMP[sload, 0] ]\l\
 // [ y z TMP[sload, 0] ]\l\
-// Assignment(GHOST[0])\l\
-// [ y z GHOST[0] ]\l\
-// [ y z GHOST[0] GHOST[0] 0x00 ]\l\
+// Assignment(GHOST[5])\l\
+// [ y z GHOST[5] ]\l\
+// [ y z GHOST[5] GHOST[5] 0x00 ]\l\
 // eq\l\
-// [ y z GHOST[0] TMP[eq, 0] ]\l\
-// [ y z GHOST[0] TMP[eq, 0] ]\l\
+// [ y z GHOST[5] TMP[eq, 0] ]\l\
+// [ y z GHOST[5] TMP[eq, 0] ]\l\
 // "];
 // Block0 -> Block0Exit;
 // Block0Exit [label="{ TMP[eq, 0]| { <0> Zero | <1> NonZero }}" shape=Mrecord];
@@ -50,8 +50,8 @@
 // Block0Exit:1 -> Block2;
 //
 // Block1 [label="\
-// [ y z GHOST[0] ]\l\
-// [ y z GHOST[0] 0x01 ]\l\
+// [ y z GHOST[5] ]\l\
+// [ y z GHOST[5] 0x01 ]\l\
 // eq\l\
 // [ y z TMP[eq, 0] ]\l\
 // [ y z TMP[eq, 0] ]\l\

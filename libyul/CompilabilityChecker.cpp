@@ -42,7 +42,7 @@ CompilabilityChecker::CompilabilityChecker(
 
 		yul::AsmAnalysisInfo analysisInfo = yul::AsmAnalyzer::analyzeStrictAssertCorrect(
 			noOutputDialect,
-			_object.code()->root(),
+			*_object.code(),
 			_object.summarizeStructure()
 		);
 
@@ -56,7 +56,7 @@ CompilabilityChecker::CompilabilityChecker(
 		CodeTransform transform(
 			assembly,
 			analysisInfo,
-			_object.code()->root(),
+			*_object.code(),
 			noOutputDialect,
 			builtinContext,
 			_optimizeStackAllocation

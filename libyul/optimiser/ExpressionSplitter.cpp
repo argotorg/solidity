@@ -35,9 +35,9 @@ using namespace solidity::yul;
 using namespace solidity::util;
 using namespace solidity::langutil;
 
-ExpressionSplitter::ExpressionSplitter(Dialect const& _dialect, NameDispenser& _nameDispenser):
+ExpressionSplitter::ExpressionSplitter(Dialect const& _dialect, LabelIDDispenser& _labelIDDispenser):
 	m_dialect(_dialect),
-	m_nameDispenser(_nameDispenser)
+	m_labelIDDispenser(_labelIDDispenser)
 {}
 
 ExpressionSplitter::~ExpressionSplitter() = default;
@@ -105,7 +105,7 @@ void ExpressionSplitter::outlineExpression(Expression& _expr)
 	visit(_expr);
 
 	langutil::DebugData::ConstPtr debugData = debugDataOf(_expr);
-	YulName var = m_nameDispenser.newName({});
+	YulName const var = m_labelIDDispenser.newID();
 	m_statementsToPrefix.emplace_back(VariableDeclaration{
 		debugData,
 		{{NameWithDebugData{debugData, var}}},

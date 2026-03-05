@@ -24,7 +24,6 @@
 #pragma once
 
 #include <libyul/ASTForward.h>
-#include <libyul/YulName.h>
 
 #include <libsolutil/CommonData.h>
 
@@ -55,11 +54,13 @@ public:
 
 	explicit AsmPrinter(
 		Dialect const& _dialect,
+		ASTLabelRegistry const& _labels,
 		std::optional<std::map<unsigned, std::shared_ptr<std::string const>>> const& _sourceIndexToName = {},
 		langutil::DebugInfoSelection const& _debugInfoSelection = langutil::DebugInfoSelection::Default(),
 		langutil::CharStreamProvider const* _soliditySourceProvider = nullptr
 	):
 		m_dialect(_dialect),
+		m_labels(_labels),
 		m_debugInfoSelection(_debugInfoSelection),
 		m_soliditySourceProvider(_soliditySourceProvider)
 	{
@@ -102,6 +103,7 @@ private:
 	}
 
 	Dialect const& m_dialect;
+	ASTLabelRegistry const& m_labels;
 	std::map<std::string, unsigned> m_nameToSourceIndex;
 	langutil::SourceLocation m_lastLocation = {};
 	langutil::DebugInfoSelection m_debugInfoSelection = {};

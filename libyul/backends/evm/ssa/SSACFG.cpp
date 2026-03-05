@@ -56,8 +56,8 @@ std::string formatPhi(SSACFG const& _cfg, SSACFG::PhiValue const& _phiValue)
 class SSACFGDotExporter: public io::DotExporterBase
 {
 public:
-	SSACFGDotExporter(SSACFG const& _cfg, size_t _functionIndex, LivenessAnalysis const* _liveness):
-		DotExporterBase(_cfg, _functionIndex),
+	SSACFGDotExporter(ASTLabelRegistry const& _labels, SSACFG const& _cfg, size_t _functionIndex, LivenessAnalysis const* _liveness):
+		DotExporterBase(_labels, _cfg, _functionIndex),
 		m_liveness(_liveness)
 	{
 		if (_liveness)
@@ -103,13 +103,13 @@ protected:
 		for (auto const& operation: block.operations)
 		{
 			std::string const label = std::visit(GenericVisitor{
-				[&](SSACFG::Call const& _call) {
-					return _call.function.get().name.str();
+				[&](SSACFG::Call const& _call) -> std::string {
+					return std::string(m_labels[_call.function.get().name]);
 				},
-				[&](SSACFG::BuiltinCall const& _call) {
+				[&](SSACFG::BuiltinCall const& _call) -> std::string {
 					return _call.builtin.get().name;
 				},
-				[&](SSACFG::LiteralAssignment const&)
+				[&](SSACFG::LiteralAssignment const&) -> std::string
 				{
 					yulAssert(operation.inputs.size() == 1);
 					return operation.inputs.back().str(m_cfg);
@@ -171,12 +171,13 @@ std::string SSACFG::ValueId::str(SSACFG const& _cfg) const
 
 
 std::string SSACFG::toDot(
+	ASTLabelRegistry const& _labels,
 	bool _includeDiGraphDefinition,
 	std::optional<size_t> _functionIndex,
 	LivenessAnalysis const* _liveness
 ) const
 {
-	SSACFGDotExporter exporter(*this, _functionIndex.value_or(function ? 1 : 0), _liveness);
+	SSACFGDotExporter exporter(_labels, *this, _functionIndex.value_or(function ? 1 : 0), _liveness);
 	if (function)
 		return exporter.exportFunction(*function, _includeDiGraphDefinition);
 	else

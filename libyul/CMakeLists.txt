@@ -42,8 +42,6 @@ add_library(yul
 	ScopeFiller.h
 	Utilities.cpp
 	Utilities.h
-	YulName.h
-	YulString.h
 	backends/evm/AbstractAssembly.h
 	backends/evm/AsmCodeGen.cpp
 	backends/evm/AsmCodeGen.h
@@ -173,12 +171,8 @@ add_library(yul
 	optimiser/Metrics.h
 	optimiser/NameCollector.cpp
 	optimiser/NameCollector.h
-	optimiser/NameDispenser.cpp
-	optimiser/NameDispenser.h
 	optimiser/NameDisplacer.cpp
 	optimiser/NameDisplacer.h
-	optimiser/NameSimplifier.cpp
-	optimiser/NameSimplifier.h
 	optimiser/OptimiserStep.h
 	optimiser/OptimizerUtilities.cpp
 	optimiser/OptimizerUtilities.h
@@ -222,8 +216,6 @@ add_library(yul
 	optimiser/UnusedPruner.h
 	optimiser/VarDeclInitializer.cpp
 	optimiser/VarDeclInitializer.h
-	optimiser/VarNameCleaner.cpp
-	optimiser/VarNameCleaner.h
 )
 
 target_link_libraries(yul PUBLIC evmasm solutil langutil smtutil fmt::fmt-header-only)

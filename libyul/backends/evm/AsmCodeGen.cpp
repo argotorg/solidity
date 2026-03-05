@@ -34,7 +34,7 @@ using namespace solidity::util;
 using namespace solidity::langutil;
 
 void CodeGenerator::assemble(
-	Block const& _parsedData,
+	AST const& _parsedData,
 	AsmAnalysisInfo& _analysisInfo,
 	evmasm::Assembly& _assembly,
 	langutil::EVMVersion _evmVersion,
@@ -58,7 +58,7 @@ void CodeGenerator::assemble(
 			CodeTransform::UseNamedLabels::YesAndForceUnique :
 			CodeTransform::UseNamedLabels::Never
 	);
-	transform(_parsedData);
+	transform(_parsedData.root());
 	if (!transform.stackErrors().empty())
 		assertThrow(
 			false,

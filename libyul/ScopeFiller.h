@@ -39,6 +39,8 @@ struct NameWithDebugData;
 struct Scope;
 struct AsmAnalysisInfo;
 
+class ASTLabelRegistry;
+
 /**
  * Fills scopes with identifiers and checks for name clashes.
  * Does not resolve references.
@@ -46,7 +48,7 @@ struct AsmAnalysisInfo;
 class ScopeFiller
 {
 public:
-	ScopeFiller(AsmAnalysisInfo& _info, langutil::ErrorReporter& _errorReporter);
+	ScopeFiller(AsmAnalysisInfo& _info, langutil::ErrorReporter& _errorReporter, ASTLabelRegistry const& _labels);
 
 	bool operator()(Literal const&) { return true; }
 	bool operator()(Identifier const&) { return true; }
@@ -74,6 +76,7 @@ private:
 	Scope& scope(Block const* _block);
 
 	Scope* m_currentScope = nullptr;
+	ASTLabelRegistry const& m_labels;
 	AsmAnalysisInfo& m_info;
 	langutil::ErrorReporter& m_errorReporter;
 };

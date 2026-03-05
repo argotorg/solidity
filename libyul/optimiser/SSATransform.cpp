@@ -22,8 +22,8 @@
 
 #include <libyul/optimiser/SSATransform.h>
 
+#include <libyul/optimiser/LabelIDDispenser.h>
 #include <libyul/optimiser/NameCollector.h>
-#include <libyul/optimiser/NameDispenser.h>
 #include <libyul/AST.h>
 
 #include <libsolutil/CommonData.h>
@@ -43,7 +43,7 @@ class IntroduceSSA: public ASTModifier
 {
 public:
 	explicit IntroduceSSA(
-		NameDispenser& _nameDispenser,
+		LabelIDDispenser& _nameDispenser,
 		std::set<YulName> const& _variablesToReplace
 	):
 		m_nameDispenser(_nameDispenser),
@@ -53,7 +53,7 @@ public:
 	void operator()(Block& _block) override;
 
 private:
-	NameDispenser& m_nameDispenser;
+	LabelIDDispenser& m_nameDispenser;
 	std::set<YulName> const& m_variablesToReplace;
 };
 
@@ -85,8 +85,8 @@ void IntroduceSSA::operator()(Block& _block)
 				NameWithDebugDataList newVariables;
 				for (auto const& var: varDecl.variables)
 				{
-					YulName oldName = var.name;
-					YulName newName = m_nameDispenser.newName(oldName);
+					YulName const oldName = var.name;
+					YulName const newName = m_nameDispenser.newID(oldName);
 					newVariables.emplace_back(NameWithDebugData{debugData, newName});
 					statements.emplace_back(VariableDeclaration{
 						debugData,
@@ -112,8 +112,8 @@ void IntroduceSSA::operator()(Block& _block)
 				NameWithDebugDataList newVariables;
 				for (auto const& var: assignment.variableNames)
 				{
-					YulName oldName = var.name;
-					YulName newName = m_nameDispenser.newName(oldName);
+					YulName const oldName = var.name;
+					YulName const newName = m_nameDispenser.newID(oldName);
 					newVariables.emplace_back(NameWithDebugData{debugData, newName});
 					statements.emplace_back(Assignment{
 						debugData,
@@ -139,7 +139,7 @@ class IntroduceControlFlowSSA: public ASTModifier
 {
 public:
 	explicit IntroduceControlFlowSSA(
-		NameDispenser& _nameDispenser,
+		LabelIDDispenser& _nameDispenser,
 		std::set<YulName> const& _variablesToReplace
 	):
 		m_nameDispenser(_nameDispenser),
@@ -152,7 +152,7 @@ public:
 	void operator()(Block& _block) override;
 
 private:
-	NameDispenser& m_nameDispenser;
+	LabelIDDispenser& m_nameDispenser;
 	std::set<YulName> const& m_variablesToReplace;
 	/// Variables (that are to be replaced) currently in scope.
 	std::set<YulName> m_variablesInScope;
@@ -218,7 +218,7 @@ void IntroduceControlFlowSSA::operator()(Block& _block)
 			std::vector<Statement> toPrepend;
 			for (YulName toReassign: m_variablesToReassign)
 			{
-				YulName newName = m_nameDispenser.newName(toReassign);
+				YulName const newName = m_nameDispenser.newID(toReassign);
 				toPrepend.emplace_back(VariableDeclaration{
 					debugDataOf(_s),
 					{NameWithDebugData{debugDataOf(_s), newName}},

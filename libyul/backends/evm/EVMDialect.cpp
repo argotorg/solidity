@@ -313,7 +313,6 @@ bool EVMDialect::reservedIdentifier(std::string_view _name) const
 EVMDialect const& EVMDialect::strictAssemblyForEVM(langutil::EVMVersion _evmVersion, std::optional<uint8_t> _eofVersion)
 {
 	static std::map<std::pair<langutil::EVMVersion, std::optional<uint8_t>>, std::unique_ptr<EVMDialect const>> dialects;
-	static YulStringRepository::ResetCallback callback{[&] { dialects.clear(); }};
 	if (!dialects[{_evmVersion, _eofVersion}])
 		dialects[{_evmVersion, _eofVersion}] = std::make_unique<EVMDialect>(_evmVersion, _eofVersion, false);
 	return *dialects[{_evmVersion, _eofVersion}];
@@ -322,7 +321,6 @@ EVMDialect const& EVMDialect::strictAssemblyForEVM(langutil::EVMVersion _evmVers
 EVMDialect const& EVMDialect::strictAssemblyForEVMObjects(langutil::EVMVersion _evmVersion, std::optional<uint8_t> _eofVersion)
 {
 	static std::map<std::pair<langutil::EVMVersion, std::optional<uint8_t>>, std::unique_ptr<EVMDialect const>> dialects;
-	static YulStringRepository::ResetCallback callback{[&] { dialects.clear(); }};
 	if (!dialects[{_evmVersion, _eofVersion}])
 		dialects[{_evmVersion, _eofVersion}] = std::make_unique<EVMDialect>(_evmVersion, _eofVersion, true);
 	return *dialects[{_evmVersion, _eofVersion}];

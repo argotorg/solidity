@@ -21,10 +21,10 @@
 #include <libyul/optimiser/ASTCopier.h>
 #include <libyul/optimiser/CallGraphGenerator.h>
 #include <libyul/optimiser/NameCollector.h>
-#include <libyul/optimiser/NameDispenser.h>
+#include <libyul/optimiser/LabelIDDispenser.h>
 
+#include <libyul/ASTForward.h>
 #include <libyul/AST.h>
-#include <libyul/YulName.h>
 #include <libsolutil/CommonData.h>
 
 #include <range/v3/algorithm/any_of.hpp>
@@ -66,8 +66,8 @@ void FunctionSpecializer::operator()(FunctionCall& _f)
 
 	if (ranges::any_of(arguments, [](auto& _a) { return _a.has_value(); }))
 	{
-		YulName oldName = std::move(identifier.name);
-		auto newName = m_nameDispenser.newName(oldName);
+		YulName const oldName = identifier.name;
+		auto newName = m_nameDispenser.newID(oldName);
 
 		m_oldToNewMap[oldName].emplace_back(std::make_pair(newName, arguments));
 
@@ -91,7 +91,7 @@ FunctionDefinition FunctionSpecializer::specialize(
 		NameCollector{_f, NameCollector::OnlyVariables}.names(),
 		[&](auto& _name) -> std::pair<YulName, YulName>
 		{
-			return std::make_pair(_name, m_nameDispenser.newName(_name));
+			return std::make_pair(_name, m_nameDispenser.newID(_name));
 		},
 		std::map<YulName, YulName>{}
 	);

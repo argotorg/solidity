@@ -34,23 +34,23 @@
 namespace solidity::yul
 {
 
-inline std::string stackSlotToString(StackSlot const& _slot, Dialect const& _dialect)
+inline std::string stackSlotToString(StackSlot const& _slot, CFG const& _cfg, Dialect const& _dialect)
 {
 	return std::visit(util::GenericVisitor{
-		[&](FunctionCallReturnLabelSlot const& _ret) -> std::string { return "RET[" + std::string(resolveFunctionName(_ret.call.get().functionName, _dialect)) + "]"; },
+		[&](FunctionCallReturnLabelSlot const& _ret) -> std::string { return "RET[" + std::string(resolveFunctionName(_ret.call.get().functionName, *_cfg.labels, _dialect)) + "]"; },
 		[](FunctionReturnLabelSlot const&) -> std::string { return "RET"; },
-		[](VariableSlot const& _var) { return _var.variable.get().name.str(); },
+		[&](VariableSlot const& _var) { return std::string{_cfg.labelOf(_var.variable.get().name)}; },
 		[](LiteralSlot const& _lit) { return toCompactHexWithPrefix(_lit.value); },
-		[&](TemporarySlot const& _tmp) -> std::string { return "TMP[" + std::string(resolveFunctionName(_tmp.call.get().functionName, _dialect)) + ", " + std::to_string(_tmp.index) + "]"; },
+		[&](TemporarySlot const& _tmp) -> std::string { return "TMP[" + std::string(resolveFunctionName(_tmp.call.get().functionName, *_cfg.labels, _dialect)) + ", " + std::to_string(_tmp.index) + "]"; },
 		[](JunkSlot const&) -> std::string { return "JUNK"; }
 	}, _slot);
 }
 
-inline std::string stackToString(Stack const& _stack, Dialect const& _dialect)
+inline std::string stackToString(Stack const& _stack, CFG const& _cfg, Dialect const& _dialect)
 {
 	std::string result("[ ");
 	for (auto const& slot: _stack)
-		result += stackSlotToString(slot, _dialect) + ' ';
+		result += stackSlotToString(slot, _cfg, _dialect) + ' ';
 	result += ']';
 	return result;
 }

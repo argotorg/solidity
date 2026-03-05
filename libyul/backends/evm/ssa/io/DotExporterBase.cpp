@@ -31,7 +31,8 @@ using namespace solidity::yul;
 using namespace solidity::yul::ssa;
 using namespace solidity::yul::ssa::io;
 
-DotExporterBase::DotExporterBase(SSACFG const& _cfg, size_t const _functionIndex, RankDir const _rankDir):
+DotExporterBase::DotExporterBase(ASTLabelRegistry const& _labels, SSACFG const& _cfg, size_t const _functionIndex, RankDir const _rankDir):
+	m_labels(_labels),
 	m_cfg(_cfg),
 	m_functionIndex(_functionIndex),
 	m_rankDir(_rankDir)
@@ -175,19 +176,19 @@ std::string DotExporterBase::exportFunction(Scope::Function const& _function, bo
 	if (_wrapInDigraph)
 		out << fmt::format("digraph SSACFG {{\nnodesep=0.7;\ngraph[fontname=\"DejaVu Sans\", rankdir={}]\nnode[shape=box,fontname=\"DejaVu Sans\"];\n\n", m_rankDir);
 
-	static auto constexpr returnsTransform = [](auto const& functionReturnValue) { return escapeLabel(functionReturnValue.get().name.str()); };
+	auto const returnsTransform = [this](auto const& functionReturnValue) { return escapeLabel(m_labels[functionReturnValue.get().name]); };
 	static auto constexpr argsTransform = [](auto const& arg) { return fmt::format("v{}", std::get<1>(arg).value()); };
-	auto const entryHandle = fmt::format("FunctionEntry_{}_{}", escapeId(_function.name.str()), m_cfg.entry.value);
+	auto const entryHandle = fmt::format("FunctionEntry_{}_{}", escapeId(m_labels[_function.name]), m_cfg.entry.value);
 	if (!m_cfg.returns.empty())
 		out << fmt::format("{} [label=\"function {}:\n {} := {}({})\"];\n",
-			entryHandle, escapeLabel(_function.name.str()),
+			entryHandle, escapeLabel(m_labels[_function.name]),
 			fmt::join(m_cfg.returns | ranges::views::transform(returnsTransform), ", "),
-			escapeLabel(_function.name.str()),
+			escapeLabel(m_labels[_function.name]),
 			fmt::join(m_cfg.arguments | ranges::views::transform(argsTransform), ", "));
 	else
 		out << fmt::format("{} [label=\"function {}:\n {}({})\"];\n",
-			entryHandle, escapeLabel(_function.name.str()),
-			escapeLabel(_function.name.str()),
+			entryHandle, escapeLabel(m_labels[_function.name]),
+			escapeLabel(m_labels[_function.name]),
 			fmt::join(m_cfg.arguments | ranges::views::transform(argsTransform), ", "));
 	out << fmt::format("{} -> {};\n", entryHandle, formatBlockHandle(m_cfg.entry));
 	traverse(out, m_cfg.entry);

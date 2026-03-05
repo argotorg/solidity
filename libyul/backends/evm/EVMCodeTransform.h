@@ -77,7 +77,7 @@ public:
 	CodeTransform(
 		AbstractAssembly& _assembly,
 		AsmAnalysisInfo& _analysisInfo,
-		Block const& _block,
+		AST const& _ast,
 		EVMDialect const& _dialect,
 		BuiltinContext& _builtinContext,
 		bool _allowStackOpt = false,
@@ -86,7 +86,8 @@ public:
 	): CodeTransform(
 		_assembly,
 		_analysisInfo,
-		_block,
+		_ast.root(),
+		_ast.labels(),
 		_allowStackOpt,
 		_dialect,
 		_builtinContext,
@@ -108,6 +109,7 @@ protected:
 		AbstractAssembly& _assembly,
 		AsmAnalysisInfo& _analysisInfo,
 		Block const& _block,
+		ASTLabelRegistry const& _labels,
 		bool _allowStackOpt,
 		EVMDialect const& _dialect,
 		BuiltinContext& _builtinContext,
@@ -194,6 +196,7 @@ private:
 	AbstractAssembly& m_assembly;
 	AsmAnalysisInfo& m_info;
 	Scope* m_scope = nullptr;
+	ASTLabelRegistry const& m_labels;
 	EVMDialect const& m_dialect;
 	BuiltinContext& m_builtinContext;
 	bool const m_allowStackOpt = true;

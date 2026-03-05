@@ -117,12 +117,12 @@
 // mload\l\
 // [ c RET a b x TMP[mload, 0] ]\l\
 // [ c RET a b x TMP[mload, 0] ]\l\
-// Assignment(GHOST[0])\l\
-// [ c RET a b x GHOST[0] ]\l\
-// [ c RET a b x GHOST[0] GHOST[0] 0x00 ]\l\
+// Assignment(GHOST[7])\l\
+// [ c RET a b x GHOST[7] ]\l\
+// [ c RET a b x GHOST[7] GHOST[7] 0x00 ]\l\
 // eq\l\
-// [ c RET a b x GHOST[0] TMP[eq, 0] ]\l\
-// [ c RET a b x GHOST[0] TMP[eq, 0] ]\l\
+// [ c RET a b x GHOST[7] TMP[eq, 0] ]\l\
+// [ c RET a b x GHOST[7] TMP[eq, 0] ]\l\
 // "];
 // Block4 -> Block4Exit;
 // Block4Exit [label="{ TMP[eq, 0]| { <0> Zero | <1> NonZero }}" shape=Mrecord];
@@ -148,11 +148,11 @@
 // Block6Exit -> Block5;
 //
 // Block7 [label="\
-// [ c RET a b x GHOST[0] ]\l\
-// [ c RET a b x GHOST[0] GHOST[0] 0x01 ]\l\
+// [ c RET a b x GHOST[7] ]\l\
+// [ c RET a b x GHOST[7] GHOST[7] 0x01 ]\l\
 // eq\l\
-// [ c RET a b x GHOST[0] TMP[eq, 0] ]\l\
-// [ c RET a b x GHOST[0] TMP[eq, 0] ]\l\
+// [ c RET a b x GHOST[7] TMP[eq, 0] ]\l\
+// [ c RET a b x GHOST[7] TMP[eq, 0] ]\l\
 // "];
 // Block7 -> Block7Exit;
 // Block7Exit [label="{ TMP[eq, 0]| { <0> Zero | <1> NonZero }}" shape=Mrecord];
@@ -171,11 +171,11 @@
 // Block8Exit -> Block3;
 //
 // Block9 [label="\
-// [ c RET a b x GHOST[0] ]\l\
-// [ c RET a b x GHOST[0] GHOST[0] 0x02 ]\l\
+// [ c RET a b x GHOST[7] ]\l\
+// [ c RET a b x GHOST[7] GHOST[7] 0x02 ]\l\
 // eq\l\
-// [ c RET a b x GHOST[0] TMP[eq, 0] ]\l\
-// [ c RET a b x GHOST[0] TMP[eq, 0] ]\l\
+// [ c RET a b x GHOST[7] TMP[eq, 0] ]\l\
+// [ c RET a b x GHOST[7] TMP[eq, 0] ]\l\
 // "];
 // Block9 -> Block9Exit;
 // Block9Exit [label="{ TMP[eq, 0]| { <0> Zero | <1> NonZero }}" shape=Mrecord];
@@ -193,8 +193,8 @@
 // Block10 -> Block10Exit;
 //
 // Block11 [label="\
-// [ c RET a b x GHOST[0] ]\l\
-// [ c RET a b x GHOST[0] 0x03 ]\l\
+// [ c RET a b x GHOST[7] ]\l\
+// [ c RET a b x GHOST[7] 0x03 ]\l\
 // eq\l\
 // [ c RET a b x TMP[eq, 0] ]\l\
 // [ c RET a b x TMP[eq, 0] ]\l\

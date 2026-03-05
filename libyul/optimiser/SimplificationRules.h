@@ -25,7 +25,6 @@
 
 #include <libyul/ASTForward.h>
 #include <libyul/Builtins.h>
-#include <libyul/YulName.h>
 
 #include <libsolutil/CommonData.h>
 #include <libsolutil/Numeric.h>

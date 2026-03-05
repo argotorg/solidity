@@ -70,7 +70,7 @@ bool AsmAnalyzer::analyze(Block const& _block)
 	{
 		// FIXME: Pass location of the object name. Now it's a location of first code section in yul
 		validateObjectStructure(nativeLocationOf(_block));
-		if (!(ScopeFiller(m_info, m_errorReporter))(_block))
+		if (!(ScopeFiller(m_info, m_errorReporter, m_labels))(_block))
 			return false;
 
 		(*this)(_block);
@@ -103,12 +103,13 @@ AsmAnalysisInfo AsmAnalyzer::analyzeStrictAssertCorrect(
 	Object::Structure _objectStructure
 )
 {
-	return analyzeStrictAssertCorrect(_dialect, _ast.root(), std::move(_objectStructure));
+	return analyzeStrictAssertCorrect(_dialect, _ast.root(), _ast.labels(), std::move(_objectStructure));
 }
 
 AsmAnalysisInfo AsmAnalyzer::analyzeStrictAssertCorrect(
 	Dialect const& _dialect,
 	Block const& _astRoot,
+	ASTLabelRegistry const& _labels,
 	Object::Structure _objectStructure
 )
 {
@@ -119,6 +120,7 @@ AsmAnalysisInfo AsmAnalyzer::analyzeStrictAssertCorrect(
 		analysisInfo,
 		errors,
 		_dialect,
+		_labels,
 		{},
 		std::move(_objectStructure)
 	).analyze(_astRoot);
@@ -146,7 +148,7 @@ AsmAnalysisInfo AsmAnalyzer::analyzeStrictAssertCorrect(
 		yulAssert(errors.hasErrors(), "Yul analysis failed but did not report any errors.");
 		yulAssert(false, fmt::format(
 			"{}\n\nExpected valid Yul, but errors were reported during analysis:\n{}",
-			AsmPrinter{_dialect}(_astRoot),
+			AsmPrinter{_dialect, _labels}(_astRoot),
 			formatErrors(errorList)
 		));
 	}
@@ -179,7 +181,7 @@ size_t AsmAnalyzer::operator()(Literal const& _literal)
 
 size_t AsmAnalyzer::operator()(Identifier const& _identifier)
 {
-	yulAssert(!_identifier.name.empty());
+	yulAssert(!m_labels.empty(_identifier.name));
 	auto watcher = m_errorReporter.errorWatcher();
 
 	if (m_currentScope->lookup(_identifier.name, GenericVisitor{
@@ -189,7 +191,7 @@ size_t AsmAnalyzer::operator()(Identifier const& _identifier)
 				m_errorReporter.declarationError(
 					4990_error,
 					nativeLocationOf(_identifier),
-					fmt::format("Variable {} used before it was declared.", _identifier.name.str())
+					fmt::format("Variable {} used before it was declared.", m_labels[_identifier.name])
 				);
 		},
 		[&](Scope::Function const&)
@@ -197,7 +199,7 @@ size_t AsmAnalyzer::operator()(Identifier const& _identifier)
 			m_errorReporter.typeError(
 				6041_error,
 				nativeLocationOf(_identifier),
-				fmt::format("Function {} used without being called.", _identifier.name.str())
+				fmt::format("Function {} used without being called.", m_labels[_identifier.name])
 			);
 		}
 	}))
@@ -223,7 +225,7 @@ size_t AsmAnalyzer::operator()(Identifier const& _identifier)
 			m_errorReporter.declarationError(
 				8198_error,
 				nativeLocationOf(_identifier),
-				fmt::format("Identifier \"{}\" not found.", _identifier.name.str())
+				fmt::format("Identifier \"{}\" not found.", m_labels[_identifier.name])
 			);
 
 	}
@@ -262,7 +264,7 @@ void AsmAnalyzer::operator()(Assignment const& _assignment)
 				nativeLocationOf(_assignment),
 				fmt::format(
 					"Variable {} occurs multiple times on the left-hand side of the assignment.",
-					_variableName.name.str()
+					m_labels[_variableName.name]
 				)
 			);
 
@@ -274,7 +276,7 @@ void AsmAnalyzer::operator()(Assignment const& _assignment)
 			nativeLocationOf(_assignment),
 			fmt::format(
 				"Variable count for assignment to \"{}\" does not match number of values ({} vs. {})",
-				joinHumanReadable(applyMap(_assignment.variableNames, [](auto const& _identifier){ return _identifier.name.str(); })),
+				joinHumanReadable(applyMap(_assignment.variableNames, [&](auto const& _identifier){ return m_labels[_identifier.name]; })),
 				numVariables,
 				numRhsValues
 			)
@@ -309,7 +311,7 @@ void AsmAnalyzer::operator()(VariableDeclaration const& _varDecl)
 				nativeLocationOf(_varDecl),
 				fmt::format(
 					"Variable count mismatch for declaration of \"{}\": {} variables and {} values.",
-					joinHumanReadable(applyMap(_varDecl.variables, [](auto const& _identifier){ return _identifier.name.str(); })),
+					joinHumanReadable(applyMap(_varDecl.variables, [&](auto const& _identifier){ return m_labels[_identifier.name]; })),
 					numVariables,
 					numValues
 				)
@@ -324,7 +326,7 @@ void AsmAnalyzer::operator()(VariableDeclaration const& _varDecl)
 
 void AsmAnalyzer::operator()(FunctionDefinition const& _funDef)
 {
-	yulAssert(!_funDef.name.empty());
+	yulAssert(!m_labels.empty(_funDef.name));
 	expectValidIdentifier(_funDef.name, nativeLocationOf(_funDef));
 	Block const* virtualBlock = m_info.virtualBlocks.at(&_funDef).get();
 	yulAssert(virtualBlock, "");
@@ -437,7 +439,7 @@ size_t AsmAnalyzer::operator()(FunctionCall const& _funCall)
 						m_errorReporter.declarationError(
 							4619_error,
 							nativeLocationOf(_identifier),
-							fmt::format("Function \"{}\" not found.", _identifier.name.str())
+							fmt::format("Function \"{}\" not found.", m_labels[_identifier.name])
 						);
 					yulAssert(!watcher.ok(), "Expected a reported error.");
 				}
@@ -452,7 +454,7 @@ size_t AsmAnalyzer::operator()(FunctionCall const& _funCall)
 			nativeLocationOf(_funCall.functionName),
 			fmt::format(
 				"Function \"{}\" expects {} arguments but got {}.",
-				resolveFunctionName(_funCall.functionName, m_dialect),
+				resolveFunctionName(_funCall.functionName, m_labels, m_dialect),
 				*numParameters,
 				_funCall.arguments.size()
 			)
@@ -481,7 +483,7 @@ size_t AsmAnalyzer::operator()(FunctionCall const& _funCall)
 				);
 			else if (*literalArgumentKind == LiteralKind::String)
 			{
-				std::string_view functionName = resolveFunctionName(_funCall.functionName, m_dialect);
+				std::string_view functionName = resolveFunctionName(_funCall.functionName, m_labels, m_dialect);
 				if (functionName == "datasize" || functionName == "dataoffset")
 				{
 					auto const& argumentAsLiteral = std::get<Literal>(arg);
@@ -540,7 +542,7 @@ size_t AsmAnalyzer::operator()(FunctionCall const& _funCall)
 			}
 			else if (*literalArgumentKind == LiteralKind::Number)
 			{
-				std::string_view functionName = resolveFunctionName(_funCall.functionName, m_dialect);
+				std::string_view const functionName = resolveFunctionName(_funCall.functionName, m_labels, m_dialect);
 				if (functionName == "auxdataloadn")
 				{
 					auto const& argumentAsLiteral = std::get<Literal>(arg);
@@ -669,7 +671,7 @@ void AsmAnalyzer::expectUnlimitedStringLiteral(Literal const& _literal)
 
 void AsmAnalyzer::checkAssignment(Identifier const& _variable)
 {
-	yulAssert(!_variable.name.empty());
+	yulAssert(!m_labels.empty(_variable.name));
 	auto watcher = m_errorReporter.errorWatcher();
 	bool hasVariable = false;
 	bool found = false;
@@ -690,7 +692,7 @@ void AsmAnalyzer::checkAssignment(Identifier const& _variable)
 			m_errorReporter.declarationError(
 				1133_error,
 				nativeLocationOf(_variable),
-				fmt::format("Variable {} used before it was declared.", _variable.name.str())
+				fmt::format("Variable {} used before it was declared.", m_labels[_variable.name])
 			);
 		else
 			hasVariable = true;
@@ -723,7 +725,7 @@ Scope& AsmAnalyzer::scope(Block const* _block)
 
 void AsmAnalyzer::expectValidIdentifier(YulName _identifier, SourceLocation const& _location)
 {
-	std::string_view const label = _identifier.str();
+	std::string_view const label = m_labels[_identifier];
 	// NOTE: the leading dot case is handled by the parser not allowing it.
 	if (label.ends_with('.'))
 		m_errorReporter.syntaxError(
@@ -922,7 +924,7 @@ bool AsmAnalyzer::validateInstructions(evmasm::Instruction _instr, SourceLocatio
 bool AsmAnalyzer::validateInstructions(FunctionCall const& _functionCall)
 {
 	return validateInstructions(
-		resolveFunctionName(_functionCall.functionName, m_dialect),
+		resolveFunctionName(_functionCall.functionName, m_labels, m_dialect),
 		nativeLocationOf(_functionCall.functionName)
 	);
 }

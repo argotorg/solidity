@@ -37,6 +37,8 @@
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 
+#include <fmt/format.h>
+
 #include <cctype>
 #include <memory>
 #include <regex>

@@ -34,6 +34,8 @@
 
 #include <boost/algorithm/string.hpp>
 
+#include <fmt/format.h>
+
 #include <algorithm>
 #include <regex>
 
@@ -125,7 +127,9 @@ std::unique_ptr<AST> Parser::parseInline(std::shared_ptr<Scanner> const& _scanne
 		m_scanner = _scanner;
 		if (m_useSourceLocationFrom == UseSourceLocationFrom::Comments)
 			fetchDebugDataFromComment();
-		return std::make_unique<AST>(m_dialect, parseBlock());
+		ASTLabelRegistryBuilder labelRegistryBuilder;
+		auto block = parseBlock(labelRegistryBuilder);
+		return std::make_unique<AST>(m_dialect, labelRegistryBuilder.build(), std::move(block));
 	}
 	catch (FatalError const&)
 	{
@@ -329,35 +333,35 @@ std::optional<std::pair<std::string_view, std::optional<int>>> Parser::parseASTI
 		return std::nullopt;
 }
 
-Block Parser::parseBlock()
+Block Parser::parseBlock(ASTLabelRegistryBuilder& _labelRegistryBuilder)
 {
 	RecursionGuard recursionGuard(*this);
 	Block block = createWithDebugData<Block>();
 	expectToken(Token::LBrace);
 	while (currentToken() != Token::RBrace)
-		block.statements.emplace_back(parseStatement());
+		block.statements.emplace_back(parseStatement(_labelRegistryBuilder));
 	updateLocationEndFrom(block.debugData, currentLocation());
 	advance();
 	return block;
 }
 
-Statement Parser::parseStatement()
+Statement Parser::parseStatement(ASTLabelRegistryBuilder& _labelRegistryBuilder)
 {
 	RecursionGuard recursionGuard(*this);
 	switch (currentToken())
 	{
 	case Token::Let:
-		return parseVariableDeclaration();
+		return parseVariableDeclaration(_labelRegistryBuilder);
 	case Token::Function:
-		return parseFunctionDefinition();
+		return parseFunctionDefinition(_labelRegistryBuilder);
 	case Token::LBrace:
-		return parseBlock();
+		return parseBlock(_labelRegistryBuilder);
 	case Token::If:
 	{
 		If _if = createWithDebugData<If>();
 		advance();
-		_if.condition = std::make_unique<Expression>(parseExpression());
-		_if.body = parseBlock();
+		_if.condition = std::make_unique<Expression>(parseExpression(_labelRegistryBuilder));
+		_if.body = parseBlock(_labelRegistryBuilder);
 		updateLocationEndFrom(_if.debugData, nativeLocationOf(_if.body));
 		return Statement{std::move(_if)};
 	}
@@ -365,11 +369,11 @@ Statement Parser::parseStatement()
 	{
 		Switch _switch = createWithDebugData<Switch>();
 		advance();
-		_switch.expression = std::make_unique<Expression>(parseExpression());
+		_switch.expression = std::make_unique<Expression>(parseExpression(_labelRegistryBuilder));
 		while (currentToken() == Token::Case)
-			_switch.cases.emplace_back(parseCase());
+			_switch.cases.emplace_back(parseCase(_labelRegistryBuilder));
 		if (currentToken() == Token::Default)
-			_switch.cases.emplace_back(parseCase());
+			_switch.cases.emplace_back(parseCase(_labelRegistryBuilder));
 		if (currentToken() == Token::Default)
 			fatalParserError(6931_error, "Only one default case allowed.");
 		else if (currentToken() == Token::Case)
@@ -380,7 +384,7 @@ Statement Parser::parseStatement()
 		return Statement{std::move(_switch)};
 	}
 	case Token::For:
-		return parseForLoop();
+		return parseForLoop(_labelRegistryBuilder);
 	case Token::Break:
 	{
 		Statement stmt{createWithDebugData<Break>()};
@@ -410,13 +414,13 @@ Statement Parser::parseStatement()
 	// Options left:
 	// Expression/FunctionCall
 	// Assignment
-	std::variant<Literal, Identifier, BuiltinName> elementary(parseLiteralOrIdentifier());
+	std::variant<Literal, Identifier, BuiltinName> elementary(parseLiteralOrIdentifier(_labelRegistryBuilder));
 
 	switch (currentToken())
 	{
 	case Token::LParen:
 	{
-		Expression expr = parseCall(std::move(elementary));
+		Expression expr = parseCall(_labelRegistryBuilder, std::move(elementary));
 		return ExpressionStatement{debugDataOf(expr), std::move(expr)};
 	}
 	case Token::Comma:
@@ -460,7 +464,7 @@ Statement Parser::parseStatement()
 					else
 					{
 						expectToken(Token::Comma);
-						elementary = parseLiteralOrIdentifier();
+						elementary = parseLiteralOrIdentifier(_labelRegistryBuilder);
 					}
 				}
 			}, elementary);
@@ -469,7 +473,7 @@ Statement Parser::parseStatement()
 
 		expectToken(Token::AssemblyAssign);
 
-		assignment.value = std::make_unique<Expression>(parseExpression());
+		assignment.value = std::make_unique<Expression>(parseExpression(_labelRegistryBuilder));
 		updateLocationEndFrom(assignment.debugData, nativeLocationOf(*assignment.value));
 
 		return Statement{std::move(assignment)};
@@ -483,7 +487,7 @@ Statement Parser::parseStatement()
 	return {};
 }
 
-Case Parser::parseCase()
+Case Parser::parseCase(ASTLabelRegistryBuilder& _labelRegistryBuilder)
 {
 	RecursionGuard recursionGuard(*this);
 	Case _case = createWithDebugData<Case>();
@@ -492,19 +496,19 @@ Case Parser::parseCase()
 	else if (currentToken() == Token::Case)
 	{
 		advance();
-		std::variant<Literal, Identifier, BuiltinName> literal = parseLiteralOrIdentifier();
+		std::variant<Literal, Identifier, BuiltinName> literal = parseLiteralOrIdentifier(_labelRegistryBuilder);
 		if (!std::holds_alternative<Literal>(literal))
 			fatalParserError(4805_error, "Literal expected.");
 		_case.value = std::make_unique<Literal>(std::get<Literal>(std::move(literal)));
 	}
 	else
 		yulAssert(false, "Case or default case expected.");
-	_case.body = parseBlock();
+	_case.body = parseBlock(_labelRegistryBuilder);
 	updateLocationEndFrom(_case.debugData, nativeLocationOf(_case.body));
 	return _case;
 }
 
-ForLoop Parser::parseForLoop()
+ForLoop Parser::parseForLoop(ASTLabelRegistryBuilder& _labelRegistryBuilder)
 {
 	RecursionGuard recursionGuard(*this);
 
@@ -513,13 +517,13 @@ ForLoop Parser::parseForLoop()
 	ForLoop forLoop = createWithDebugData<ForLoop>();
 	expectToken(Token::For);
 	m_currentForLoopComponent = ForLoopComponent::ForLoopPre;
-	forLoop.pre = parseBlock();
+	forLoop.pre = parseBlock(_labelRegistryBuilder);
 	m_currentForLoopComponent = ForLoopComponent::None;
-	forLoop.condition = std::make_unique<Expression>(parseExpression());
+	forLoop.condition = std::make_unique<Expression>(parseExpression(_labelRegistryBuilder));
 	m_currentForLoopComponent = ForLoopComponent::ForLoopPost;
-	forLoop.post = parseBlock();
+	forLoop.post = parseBlock(_labelRegistryBuilder);
 	m_currentForLoopComponent = ForLoopComponent::ForLoopBody;
-	forLoop.body = parseBlock();
+	forLoop.body = parseBlock(_labelRegistryBuilder);
 	updateLocationEndFrom(forLoop.debugData, nativeLocationOf(forLoop.body));
 
 	m_currentForLoopComponent = outerForLoopComponent;
@@ -527,22 +531,25 @@ ForLoop Parser::parseForLoop()
 	return forLoop;
 }
 
-Expression Parser::parseExpression(bool _unlimitedLiteralArgument)
+Expression Parser::parseExpression(ASTLabelRegistryBuilder& _labelRegistryBuilder, bool const _unlimitedLiteralArgument)
 {
 	RecursionGuard recursionGuard(*this);
 
-	std::variant<Literal, Identifier, BuiltinName> operation = parseLiteralOrIdentifier(_unlimitedLiteralArgument);
+	std::variant<Literal, Identifier, BuiltinName> operation = parseLiteralOrIdentifier(
+		_labelRegistryBuilder,
+		_unlimitedLiteralArgument
+	);
 	return visit(GenericVisitor{
 		[&](Identifier& _identifier) -> Expression
 		{
 			if (currentToken() == Token::LParen)
-				return parseCall(std::move(operation));
+				return parseCall(_labelRegistryBuilder, std::move(operation));
 			return std::move(_identifier);
 		},
 		[&](BuiltinName& _builtin) -> Expression
 		{
 			if (currentToken() == Token::LParen)
-				return parseCall(std::move(operation));
+				return parseCall(_labelRegistryBuilder, std::move(operation));
 			fatalParserError(
 				7104_error,
 				nativeLocationOf(_builtin),
@@ -557,7 +564,10 @@ Expression Parser::parseExpression(bool _unlimitedLiteralArgument)
 	}, operation);
 }
 
-std::variant<Literal, Identifier, BuiltinName> Parser::parseLiteralOrIdentifier(bool _unlimitedLiteralArgument)
+std::variant<Literal, Identifier, BuiltinName> Parser::parseLiteralOrIdentifier(
+	ASTLabelRegistryBuilder& _labelRegistryBuilder,
+	bool const _unlimitedLiteralArgument
+)
 {
 	RecursionGuard recursionGuard(*this);
 	switch (currentToken())
@@ -568,7 +578,10 @@ std::variant<Literal, Identifier, BuiltinName> Parser::parseLiteralOrIdentifier(
 		if (std::optional<BuiltinHandle> const builtinHandle = m_dialect.findBuiltin(currentLiteral()))
 			literalOrIdentifier = BuiltinName{createDebugData(), *builtinHandle};
 		else
-			literalOrIdentifier = Identifier{createDebugData(), YulName{currentLiteral()}};
+		{
+			auto const labelID = _labelRegistryBuilder.define(currentLiteral());
+			literalOrIdentifier = Identifier{createDebugData(), YulName{labelID}};
+		}
 		advance();
 		return literalOrIdentifier;
 	}
@@ -610,7 +623,7 @@ std::variant<Literal, Identifier, BuiltinName> Parser::parseLiteralOrIdentifier(
 			expectToken(Token::Colon);
 			updateLocationEndFrom(literal.debugData, currentLocation());
 			auto const typedLiteralLocation = SourceLocation::smallestCovering(literalLocation, currentLocation());
-			std::ignore = expectAsmIdentifier();
+			std::ignore = expectAsmIdentifier(_labelRegistryBuilder);
 			raiseUnsupportedTypesError(typedLiteralLocation);
 		}
 
@@ -625,14 +638,14 @@ std::variant<Literal, Identifier, BuiltinName> Parser::parseLiteralOrIdentifier(
 	return {};
 }
 
-VariableDeclaration Parser::parseVariableDeclaration()
+VariableDeclaration Parser::parseVariableDeclaration(ASTLabelRegistryBuilder& _labelRegistryBuilder)
 {
 	RecursionGuard recursionGuard(*this);
 	VariableDeclaration varDecl = createWithDebugData<VariableDeclaration>();
 	expectToken(Token::Let);
 	while (true)
 	{
-		varDecl.variables.emplace_back(parseNameWithDebugData());
+		varDecl.variables.emplace_back(parseNameWithDebugData(_labelRegistryBuilder));
 		if (currentToken() == Token::Comma)
 			expectToken(Token::Comma);
 		else
@@ -641,7 +654,7 @@ VariableDeclaration Parser::parseVariableDeclaration()
 	if (currentToken() == Token::AssemblyAssign)
 	{
 		expectToken(Token::AssemblyAssign);
-		varDecl.value = std::make_unique<Expression>(parseExpression());
+		varDecl.value = std::make_unique<Expression>(parseExpression(_labelRegistryBuilder));
 		updateLocationEndFrom(varDecl.debugData, nativeLocationOf(*varDecl.value));
 	}
 	else
@@ -650,7 +663,7 @@ VariableDeclaration Parser::parseVariableDeclaration()
 	return varDecl;
 }
 
-FunctionDefinition Parser::parseFunctionDefinition()
+FunctionDefinition Parser::parseFunctionDefinition(ASTLabelRegistryBuilder& _labelRegistryBuilder)
 {
 	RecursionGuard recursionGuard(*this);
 
@@ -666,11 +679,11 @@ FunctionDefinition Parser::parseFunctionDefinition()
 
 	FunctionDefinition funDef = createWithDebugData<FunctionDefinition>();
 	expectToken(Token::Function);
-	funDef.name = expectAsmIdentifier();
+	funDef.name = expectAsmIdentifier(_labelRegistryBuilder);
 	expectToken(Token::LParen);
 	while (currentToken() != Token::RParen)
 	{
-		funDef.parameters.emplace_back(parseNameWithDebugData());
+		funDef.parameters.emplace_back(parseNameWithDebugData(_labelRegistryBuilder));
 		if (currentToken() == Token::RParen)
 			break;
 		expectToken(Token::Comma);
@@ -681,7 +694,7 @@ FunctionDefinition Parser::parseFunctionDefinition()
 		expectToken(Token::RightArrow);
 		while (true)
 		{
-			funDef.returnVariables.emplace_back(parseNameWithDebugData());
+			funDef.returnVariables.emplace_back(parseNameWithDebugData(_labelRegistryBuilder));
 			if (currentToken() == Token::LBrace)
 				break;
 			expectToken(Token::Comma);
@@ -689,7 +702,7 @@ FunctionDefinition Parser::parseFunctionDefinition()
 	}
 	bool preInsideFunction = m_insideFunction;
 	m_insideFunction = true;
-	funDef.body = parseBlock();
+	funDef.body = parseBlock(_labelRegistryBuilder);
 	m_insideFunction = preInsideFunction;
 	updateLocationEndFrom(funDef.debugData, nativeLocationOf(funDef.body));
 
@@ -697,7 +710,10 @@ FunctionDefinition Parser::parseFunctionDefinition()
 	return funDef;
 }
 
-FunctionCall Parser::parseCall(std::variant<Literal, Identifier, BuiltinName>&& _initialOp)
+FunctionCall Parser::parseCall(
+	ASTLabelRegistryBuilder& _labelRegistryBuilder,
+	std::variant<Literal, Identifier, BuiltinName>&& _initialOp
+)
 {
 	RecursionGuard recursionGuard(*this);
 
@@ -726,11 +742,21 @@ FunctionCall Parser::parseCall(std::variant<Literal, Identifier, BuiltinName>&& 
 	expectToken(Token::LParen);
 	if (currentToken() != Token::RParen)
 	{
-		functionCall.arguments.emplace_back(parseExpression(isUnlimitedLiteralArgument(argumentIndex++)));
+		functionCall.arguments.emplace_back(
+			parseExpression(
+				_labelRegistryBuilder,
+				isUnlimitedLiteralArgument(argumentIndex++)
+			)
+		);
 		while (currentToken() != Token::RParen)
 		{
 			expectToken(Token::Comma);
-			functionCall.arguments.emplace_back(parseExpression(isUnlimitedLiteralArgument(argumentIndex++)));
+			functionCall.arguments.emplace_back(
+				parseExpression(
+					_labelRegistryBuilder,
+					isUnlimitedLiteralArgument(argumentIndex++)
+				)
+			);
 		}
 	}
 	updateLocationEndFrom(functionCall.debugData, currentLocation());
@@ -738,35 +764,36 @@ FunctionCall Parser::parseCall(std::variant<Literal, Identifier, BuiltinName>&& 
 	return functionCall;
 }
 
-NameWithDebugData Parser::parseNameWithDebugData()
+NameWithDebugData Parser::parseNameWithDebugData(ASTLabelRegistryBuilder& _labelRegistryBuilder)
 {
 	RecursionGuard recursionGuard(*this);
 	NameWithDebugData typedName = createWithDebugData<NameWithDebugData>();
 	auto const nameLocation = currentLocation();
-	typedName.name = expectAsmIdentifier();
+	typedName.name = expectAsmIdentifier(_labelRegistryBuilder);
 	if (currentToken() == Token::Colon)
 	{
 		expectToken(Token::Colon);
 		updateLocationEndFrom(typedName.debugData, currentLocation());
 		auto const typedNameLocation = SourceLocation::smallestCovering(nameLocation, currentLocation());
-		std::ignore = expectAsmIdentifier();
+		std::ignore = expectAsmIdentifier(_labelRegistryBuilder);
 		raiseUnsupportedTypesError(typedNameLocation);
 	}
 
 	return typedName;
 }
 
-YulName Parser::expectAsmIdentifier()
+YulName Parser::expectAsmIdentifier(ASTLabelRegistryBuilder& _labelRegistryBuilder)
 {
-	YulName name{currentLiteral()};
-	if (currentToken() == Token::Identifier && m_dialect.findBuiltin(name.str()))
+	std::string_view const identifier = currentLiteral();
+	if (currentToken() == Token::Identifier && m_dialect.findBuiltin(identifier))
 		// Non-fatal. We'll continue and wrongly parse it as an identifier. May lead to some spurious
 		// errors after this point, but likely also much more useful ones.
 		m_errorReporter.parserError(
 			5568_error,
 			currentLocation(),
-			"Cannot use builtin function name \"" + name.str() + "\" as identifier name."
+			fmt::format("Cannot use builtin function name \"{}\" as identifier name.", identifier)
 		);
+	YulName const name = _labelRegistryBuilder.define(identifier);
 	// NOTE: We keep the expectation here to ensure the correct source location for the error above.
 	expectToken(Token::Identifier);
 	return name;

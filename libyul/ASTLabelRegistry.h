@@ -28,6 +28,8 @@
 namespace solidity::yul
 {
 
+using YulName = std::size_t;
+
 /// Instances of the `ASTLabelRegistry` are immutable containers describing a labelling of nodes inside the AST.
 /// Each element of the AST that possesses a label has a `ASTLabelRegistry::LabelID`, with which the label can
 /// be queried in O(1).
@@ -43,7 +45,7 @@ class ASTLabelRegistry
 {
 public:
 	/// unsafe to use from a different registry instance, it is up to the user to safeguard against this
-	using LabelID = size_t;
+	using LabelID = YulName;
 
 	ASTLabelRegistry();
 	ASTLabelRegistry(std::vector<std::string> _labels, std::vector<size_t> _idToLabelMapping);

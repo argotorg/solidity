@@ -57,11 +57,9 @@
 #include <libyul/optimiser/SyntacticalEquality.h>
 #include <libyul/optimiser/UnusedAssignEliminator.h>
 #include <libyul/optimiser/UnusedStoreEliminator.h>
-#include <libyul/optimiser/VarNameCleaner.h>
 #include <libyul/optimiser/LoadResolver.h>
 #include <libyul/optimiser/LoopInvariantCodeMotion.h>
 #include <libyul/optimiser/Metrics.h>
-#include <libyul/optimiser/NameSimplifier.h>
 #include <libyul/backends/evm/ConstantOptimiser.h>
 #include <libyul/AsmAnalysis.h>
 #include <libyul/AsmAnalysisInfo.h>
@@ -95,18 +93,27 @@ void OptimiserSuite::run(
 	std::string_view _optimisationSequence,
 	std::string_view _optimisationCleanupSequence,
 	std::optional<size_t> _expectedExecutionsPerDeployment,
-	std::set<YulName> const& _externallyUsedIdentifiers
+	std::set<std::string> const& _externallyUsedIdentifiers
 )
 {
 	yulAssert(_object.dialect());
 	auto const& dialect = *_object.dialect();
 	EVMDialect const* evmDialect = dynamic_cast<EVMDialect const*>(_object.dialect());
+	auto const originalLabels = _object.code()->labels();
+
+	std::set<std::string> reservedIdentifiers = _externallyUsedIdentifiers;
+	std::set<YulName> reservedNames;
+	for (auto const& identifier: reservedIdentifiers)
+		if (auto maybeNodeId = originalLabels.findIDForLabel(identifier))
+			reservedNames.insert(*maybeNodeId);
+
+	LabelIDDispenser dispenser{originalLabels, reservedIdentifiers};
+
 	bool usesOptimizedCodeGenerator =
 		_optimizeStackAllocation &&
 		evmDialect &&
 		evmDialect->evmVersion().canOverchargeGasForCall() &&
 		evmDialect->providesObjectAccess();
-	std::set<YulName> reservedIdentifiers = _externallyUsedIdentifiers;
 
 	Block astRoot;
 	{
@@ -114,12 +121,12 @@ void OptimiserSuite::run(
 		astRoot = std::get<Block>(Disambiguator(
 			dialect,
 			*_object.analysisInfo,
-			reservedIdentifiers
+			dispenser,
+			reservedNames
 		)(_object.code()->root()));
 	}
 
-	NameDispenser dispenser{dialect, astRoot, reservedIdentifiers};
-	OptimiserStepContext context{dialect, dispenser, reservedIdentifiers, _expectedExecutionsPerDeployment};
+	OptimiserStepContext context{dialect, dispenser, reservedNames, _expectedExecutionsPerDeployment};
 
 	OptimiserSuite suite(context, Debug::None);
 
@@ -139,7 +146,7 @@ void OptimiserSuite::run(
 	if (!usesOptimizedCodeGenerator)
 	{
 		PROFILER_PROBE("StackCompressor", probe);
-		_object.setCode(std::make_shared<AST>(dialect, std::move(astRoot)));
+		_object.setCode(std::make_shared<AST>(dialect, dispenser, std::move(astRoot)));
 		astRoot = std::get<1>(StackCompressor::run(
 			_object,
 			_optimizeStackAllocation,
@@ -167,7 +174,7 @@ void OptimiserSuite::run(
 			{
 				{
 					PROFILER_PROBE("StackCompressor", probe);
-					_object.setCode(std::make_shared<AST>(dialect, std::move(astRoot)));
+					_object.setCode(std::make_shared<AST>(dialect, dispenser, std::move(astRoot)));
 					astRoot = std::get<1>(StackCompressor::run(
 						_object,
 						_optimizeStackAllocation,
@@ -177,7 +184,7 @@ void OptimiserSuite::run(
 				if (evmDialect->providesObjectAccess())
 				{
 					PROFILER_PROBE("StackLimitEvader", probe);
-					_object.setCode(std::make_shared<AST>(dialect, std::move(astRoot)));
+					_object.setCode(std::make_shared<AST>(dialect, dispenser, std::move(astRoot)));
 					astRoot = StackLimitEvader::run(suite.m_context, _object);
 				}
 			}
@@ -186,22 +193,12 @@ void OptimiserSuite::run(
 		{
 			PROFILER_PROBE("StackLimitEvader", probe);
 			yulAssert(!evmDialect->eofVersion().has_value(), "");
-			_object.setCode(std::make_shared<AST>(dialect, std::move(astRoot)));
+			_object.setCode(std::make_shared<AST>(dialect, dispenser, std::move(astRoot)));
 			astRoot = StackLimitEvader::run(suite.m_context, _object);
 		}
 	}
 
-	dispenser.reset(astRoot);
-	{
-		PROFILER_PROBE("NameSimplifier", probe);
-		NameSimplifier::run(suite.m_context, astRoot);
-	}
-	{
-		PROFILER_PROBE("VarNameCleaner", probe);
-		VarNameCleaner::run(suite.m_context, astRoot);
-	}
-
-	_object.setCode(std::make_shared<AST>(dialect, std::move(astRoot)));
+	_object.setCode(std::make_shared<AST>(dialect, dispenser, std::move(astRoot)));
 	_object.analysisInfo = std::make_shared<AsmAnalysisInfo>(AsmAnalyzer::analyzeStrictAssertCorrect(_object));
 }
 
@@ -262,7 +259,6 @@ std::map<std::string, std::unique_ptr<OptimiserStep>> const& OptimiserSuite::all
 			UnusedPruner,
 			VarDeclInitializer
 		>();
-	// Does not include VarNameCleaner because it destroys the property of unique names.
 	// Does not include NameSimplifier.
 	return instance;
 }
@@ -489,7 +485,7 @@ void OptimiserSuite::runSequence(std::vector<std::string> const& _steps, Block& 
 			else
 			{
 				std::cout << "== Running " << step << " changed the AST." << std::endl;
-				std::cout << AsmPrinter{m_context.dialect}(_ast) << std::endl;
+				std::cout << AsmPrinter{m_context.dialect, m_context.dispenser.consolidateLabels(_ast, m_context.dialect)}(_ast) << std::endl;
 				copy = std::make_unique<Block>(std::get<Block>(ASTCopier{}(_ast)));
 			}
 		}

@@ -101,10 +101,10 @@ TestCase::TestResult FunctionSideEffects::run(std::ostream& _stream, std::string
 	for (auto const& fun: functionSideEffects)
 	{
 		auto const& functionNameStr = std::visit(GenericVisitor{
-			[](YulName const& _name) { return _name.str(); },
-			[&](BuiltinHandle const& _builtin) { return yulStack.dialect().builtin(_builtin).name; }
+			[&](YulName const& _name) { return yulStack.parserResult()->code()->labels()[_name]; },
+			[&](BuiltinHandle const& _builtin) -> std::string_view { return yulStack.dialect().builtin(_builtin).name; }
 		}, fun.first);
-		functionSideEffectsStr[functionNameStr] = toString(fun.second);
+		functionSideEffectsStr.emplace(functionNameStr, toString(fun.second));
 	}
 
 	m_obtainedResult.clear();

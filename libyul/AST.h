@@ -24,8 +24,8 @@
 #pragma once
 
 #include <libyul/ASTForward.h>
+#include <libyul/ASTLabelRegistry.h>
 #include <libyul/Builtins.h>
-#include <libyul/YulName.h>
 
 #include <liblangutil/DebugData.h>
 
@@ -38,6 +38,7 @@ namespace solidity::yul
 {
 
 class Dialect;
+class LabelIDDispenser;
 
 struct NameWithDebugData { langutil::DebugData::ConstPtr debugData; YulName name; };
 using NameWithDebugDataList = std::vector<NameWithDebugData>;
@@ -109,12 +110,25 @@ struct Leave { langutil::DebugData::ConstPtr debugData; };
 class AST
 {
 public:
-	AST(Dialect const& _dialect, Block _root): m_dialect(_dialect), m_root(std::move(_root)) {}
+	AST(Dialect const& _dialect, ASTLabelRegistry _labels, Block _root):
+		m_dialect(_dialect),
+		m_labels(std::move(_labels)),
+		m_root(std::move(_root))
+	{}
+	/// Creates a new AST instance by generating labels based on the state of the dispenser plus the entered block.
+	/// One could also call `_dispenser.consolidateLabels` beforehand, but then special care has to be taken
+	/// to not inline it into one constructor call. The order of evaluation is not defined.
+	AST(Dialect const& _dialect, LabelIDDispenser const& _dispenser, Block _root);
 
 	Dialect const& dialect() const { return m_dialect; }
 	Block const& root() const { return m_root; }
+	ASTLabelRegistry const& labels() const { return m_labels; }
+
+	std::string_view labelOf(ASTLabelRegistry::LabelID const _id) const { return m_labels[_id]; }
+
 private:
 	Dialect const& m_dialect;
+	ASTLabelRegistry m_labels;
 	Block m_root;
 };
 

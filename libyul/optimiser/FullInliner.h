@@ -21,10 +21,10 @@
 #pragma once
 
 #include <libyul/ASTForward.h>
+#include <libyul/ASTLabelRegistry.h>
 
 #include <libyul/optimiser/ASTCopier.h>
 #include <libyul/optimiser/ASTWalker.h>
-#include <libyul/optimiser/NameDispenser.h>
 #include <libyul/optimiser/OptimiserStep.h>
 #include <libyul/Exceptions.h>
 
@@ -93,7 +93,7 @@ public:
 private:
 	enum Pass { InlineTiny, InlineRest };
 
-	FullInliner(Block& _ast, NameDispenser& _dispenser, Dialect const& _dialect);
+	FullInliner(Block& _ast, LabelIDDispenser& _dispenser, Dialect const& _dialect);
 	void run(Pass _pass);
 
 	/// @returns a map containing the maximum depths of a call chain starting at each
@@ -120,7 +120,7 @@ private:
 	/// Variables that are constants (used for inlining heuristic)
 	std::set<YulName> m_constants;
 	std::map<YulName, size_t> m_functionSizes;
-	NameDispenser& m_nameDispenser;
+	LabelIDDispenser& m_nameDispenser;
 	Dialect const& m_dialect;
 };
 
@@ -131,7 +131,7 @@ private:
 class InlineModifier: public ASTModifier
 {
 public:
-	InlineModifier(FullInliner& _driver, NameDispenser& _nameDispenser, YulName _functionName, Dialect const& _dialect):
+	InlineModifier(FullInliner& _driver, LabelIDDispenser& _nameDispenser, YulName _functionName, Dialect const& _dialect):
 		m_currentFunction(std::move(_functionName)),
 		m_driver(_driver),
 		m_nameDispenser(_nameDispenser),
@@ -144,9 +144,9 @@ private:
 	std::optional<std::vector<Statement>> tryInlineStatement(Statement& _statement);
 	std::vector<Statement> performInline(Statement& _statement, FunctionCall& _funCall);
 
-	YulName m_currentFunction;
+	YulName m_currentFunction = ASTLabelRegistry::emptyID();
 	FullInliner& m_driver;
-	NameDispenser& m_nameDispenser;
+	LabelIDDispenser& m_nameDispenser;
 	Dialect const& m_dialect;
 };
 
@@ -159,7 +159,7 @@ class BodyCopier: public ASTCopier
 {
 public:
 	BodyCopier(
-		NameDispenser& _nameDispenser,
+		LabelIDDispenser& _nameDispenser,
 		std::map<YulName, YulName> _variableReplacements
 	):
 		m_nameDispenser(_nameDispenser),
@@ -173,7 +173,7 @@ public:
 
 	YulName translateIdentifier(YulName _name) override;
 
-	NameDispenser& m_nameDispenser;
+	LabelIDDispenser& m_nameDispenser;
 	std::map<YulName, YulName> m_variableReplacements;
 };
 

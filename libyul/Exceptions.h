@@ -21,10 +21,10 @@
 
 #pragma once
 
+#include <libyul/ASTForward.h>
+
 #include <libsolutil/Exceptions.h>
 #include <libsolutil/Assertions.h>
-
-#include <libyul/YulName.h>
 
 #include <boost/preprocessor/cat.hpp>
 #include <boost/preprocessor/facilities/empty.hpp>
@@ -50,8 +50,8 @@ struct StackTooDeepError: virtual YulException
 	{
 		*this << util::errinfo_comment(_message);
 	}
-	YulName functionName;
-	YulName variable;
+	YulName functionName{};
+	YulName variable{};
 	int depth;
 };
 

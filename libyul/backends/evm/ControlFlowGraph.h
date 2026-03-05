@@ -29,6 +29,8 @@
 
 #include <libsolutil/Numeric.h>
 
+#include <fmt/format.h>
+
 #include <functional>
 #include <list>
 #include <vector>
@@ -237,11 +239,26 @@ struct CFG
 	/// Ghost calls are used for the equality comparisons of the switch condition ghost variable with
 	/// the switch case literals when transforming the control flow of a switch to a sequence of conditional jumps.
 	std::list<yul::FunctionCall> ghostCalls;
+	/// AST labels
+	std::unique_ptr<ASTLabelRegistry> labels;
+	std::string_view labelOf(ASTLabelRegistry::LabelID const _id) const
+	{
+		yulAssert(labels, "AST labels must be part of the CFG to use the labelOf functionality.");
+		if (!labels->ghost(_id))
+			return (*labels)[_id];
+
+		// to satisfy the `labelOf(id) -> string_view` interface, the backing strings are cached here
+		auto const [it, _] = ghostLabelsCache.try_emplace(_id, fmt::format("GHOST[{}]", _id));
+		return it->second;
+	}
 
 	BasicBlock& makeBlock(langutil::DebugData::ConstPtr _debugData)
 	{
 		return blocks.emplace_back(BasicBlock{std::move(_debugData), {}, {}});
 	}
+
+private:
+	mutable std::map<ASTLabelRegistry::LabelID, std::string> ghostLabelsCache;
 };
 
 }

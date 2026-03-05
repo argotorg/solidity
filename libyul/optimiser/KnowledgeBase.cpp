@@ -210,7 +210,7 @@ KnowledgeBase::VariableOffset KnowledgeBase::setOffset(YulName _variable, Variab
 	m_offsets[_variable] = _value;
 	// Constants are not tracked in m_groupMembers because
 	// the "representative" can never be reset.
-	if (!_value.reference.empty())
+	if (!ASTLabelRegistry::empty(_value.reference))
 		m_groupMembers[_value.reference].insert(_variable);
 	return _value;
 }

@@ -76,8 +76,8 @@ TestCase::TestResult SSAControlFlowGraphTest::run(std::ostream& _stream, std::st
 		yulStack.parserResult()->code()->root(),
 		true
 	);
-	ssa::ControlFlowLiveness liveness(*controlFlow);
-	m_obtainedResult = controlFlow->toDot(&liveness);
+	ssa::ControlFlowLiveness const liveness(*controlFlow);
+	m_obtainedResult = controlFlow->toDot(yulStack.parserResult()->code()->labels(), &liveness);
 
 	auto result = checkResult(_stream, _linePrefix, _formatted);
 

@@ -19,7 +19,6 @@
 #pragma once
 
 #include <libyul/optimiser/ASTWalker.h>
-#include <libyul/optimiser/NameDispenser.h>
 #include <libyul/optimiser/OptimiserStep.h>
 
 #include <libyul/AST.h>
@@ -67,7 +66,7 @@ public:
 private:
 	explicit FunctionSpecializer(
 		std::set<FunctionHandle> _recursiveFunctions,
-		NameDispenser& _nameDispenser
+		LabelIDDispenser& _nameDispenser
 	):
 		m_recursiveFunctions(std::move(_recursiveFunctions)),
 		m_nameDispenser(_nameDispenser)
@@ -103,7 +102,7 @@ private:
 	/// We skip specializing recursive functions. Need backtracking to properly deal with them.
 	std::set<FunctionHandle> const m_recursiveFunctions;
 
-	NameDispenser& m_nameDispenser;
+	LabelIDDispenser& m_nameDispenser;
 };
 
 }

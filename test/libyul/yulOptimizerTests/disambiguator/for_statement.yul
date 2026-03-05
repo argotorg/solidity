@@ -16,6 +16,6 @@
 //         function eq_function(x, y) -> z
 //         { }
 //         for { let a_1 } eq_function(a_1, a_1) { a_1 := a_1 }
-//         { let b_2 := a_1 }
+//         { let b_1 := a_1 }
 //     }
 // }

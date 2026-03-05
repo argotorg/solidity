@@ -37,6 +37,8 @@
 #include <boost/test/data/test_case.hpp>
 #include <boost/test/unit_test.hpp>
 
+#include <fmt/format.h>
+
 #include <memory>
 #include <optional>
 #include <string>
@@ -72,7 +74,8 @@ std::shared_ptr<AST> parse(std::string const& _source, Dialect const& _dialect, 
 		if (yul::AsmAnalyzer(
 			analysisInfo,
 			errorReporter,
-			_dialect
+			_dialect,
+			parserResult->labels()
 		).analyze(parserResult->root()))
 			return parserResult;
 	}

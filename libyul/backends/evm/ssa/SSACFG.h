@@ -29,7 +29,10 @@
 
 #include <libsolutil/Numeric.h>
 
+#include <fmt/format.h>
+
 #include <range/v3/view/map.hpp>
+
 #include <deque>
 #include <functional>
 #include <list>
@@ -257,6 +260,7 @@ public:
 	}
 
 	std::string toDot(
+		ASTLabelRegistry const& _labels,
 		bool _includeDiGraphDefinition=true,
 		std::optional<size_t> _functionIndex=std::nullopt,
 		LivenessAnalysis const* _liveness=nullptr

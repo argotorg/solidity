@@ -46,8 +46,8 @@ public:
 		StepThroughNode,
 	};
 
-	Inspector(std::string const& _source, InterpreterState const& _state)
-		:m_source(_source), m_state(_state) {}
+	Inspector(std::string const& _source, InterpreterState const& _state, ASTLabelRegistry const& _labels):
+		m_source(_source), m_state(_state), m_labels(_labels) {}
 
 	/* Asks the user what action to take.
 	 * @returns NodeAction::RunNode if the current AST node (and all children nodes!) should be
@@ -86,6 +86,8 @@ private:
 	/// State of the interpreter
 	InterpreterState const& m_state;
 
+	ASTLabelRegistry const& m_labels;
+
 	/// Last user query command
 	std::string m_lastInput;
 
@@ -112,12 +114,13 @@ public:
 		std::shared_ptr<Inspector> _inspector,
 		InterpreterState& _state,
 		Dialect const& _dialect,
+		ASTLabelRegistry const& _labels,
 		Scope& _scope,
 		bool _disableExternalCalls,
 		bool _disableMemoryTracing,
 		std::map<YulName, u256> _variables = {}
 	):
-		Interpreter(_state, _dialect, _scope, _disableExternalCalls, _disableMemoryTracing, _variables),
+		Interpreter(_state, _dialect, _labels, _scope, _disableExternalCalls, _disableMemoryTracing, _variables),
 		m_inspector(_inspector)
 	{
 	}
@@ -158,12 +161,13 @@ public:
 		std::shared_ptr<Inspector> _inspector,
 		InterpreterState& _state,
 		Dialect const& _dialect,
+		ASTLabelRegistry const& _labels,
 		Scope& _scope,
 		std::map<YulName, u256> const& _variables,
 		bool _disableExternalCalls,
 		bool _disableMemoryTrace
 	):
-		ExpressionEvaluator(_state, _dialect, _scope, _variables, _disableExternalCalls, _disableMemoryTrace),
+		ExpressionEvaluator(_state, _dialect, _labels, _scope, _variables, _disableExternalCalls, _disableMemoryTrace),
 		m_inspector(_inspector)
 	{}
 
@@ -185,6 +189,7 @@ protected:
 			m_inspector,
 			m_state,
 			m_dialect,
+			m_labels,
 			m_scope,
 			m_disableExternalCalls,
 			m_disableMemoryTrace,
@@ -196,10 +201,12 @@ protected:
 		return std::make_unique<InspectedInterpreter>(
 			std::make_unique<Inspector>(
 				m_inspector->source(),
-				_state
+				_state,
+				m_labels
 			),
 			_state,
 			m_dialect,
+			m_labels,
 			_scope,
 			m_disableExternalCalls,
 			m_disableMemoryTrace

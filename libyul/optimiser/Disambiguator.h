@@ -21,12 +21,12 @@
 
 #pragma once
 
+#include <libyul/optimiser/ASTCopier.h>
+#include <libyul/optimiser/LabelIDDispenser.h>
+
 #include <libyul/ASTForward.h>
 #include <libyul/AsmAnalysisInfo.h>
-#include <libyul/optimiser/ASTCopier.h>
-#include <libyul/optimiser/NameDispenser.h>
 
-#include <optional>
 #include <set>
 
 namespace solidity::yul
@@ -42,12 +42,13 @@ public:
 	explicit Disambiguator(
 		Dialect const& _dialect,
 		AsmAnalysisInfo const& _analysisInfo,
+		LabelIDDispenser& _labelIDDispenser,
 		std::set<YulName> const& _externallyUsedIdentifiers = {}
 	):
 		m_info(_analysisInfo),
 		m_dialect(_dialect),
 		m_externallyUsedIdentifiers(_externallyUsedIdentifiers),
-		m_nameDispenser(_dialect, m_externallyUsedIdentifiers)
+		m_labelIDDispenser(_labelIDDispenser)
 	{
 	}
 
@@ -67,7 +68,7 @@ protected:
 
 	std::vector<Scope*> m_scopes;
 	std::map<void const*, YulName> m_translations;
-	NameDispenser m_nameDispenser;
+	LabelIDDispenser& m_labelIDDispenser;
 };
 
 }

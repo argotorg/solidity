@@ -91,8 +91,6 @@ DEFINE_PROTO_FUZZER(Program const& _input)
 		of.write(yul_source.data(), static_cast<std::streamsize>(yul_source.size()));
 	}
 
-	YulStringRepository::reset();
-
 	solidity::frontend::OptimiserSettings settings = solidity::frontend::OptimiserSettings::full();
 	settings.runYulOptimiser = false;
 	settings.optimizeStackAllocation = false;

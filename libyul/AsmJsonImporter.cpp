@@ -35,6 +35,8 @@
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string.hpp>
 
+#include <fmt/format.h>
+
 #include <vector>
 
 using namespace solidity::langutil;
@@ -53,7 +55,8 @@ SourceLocation const AsmJsonImporter::createSourceLocation(Json const& _node)
 
 AST AsmJsonImporter::createAST(solidity::Json const& _node)
 {
-	return {m_dialect, createBlock(_node)};
+	auto block = createBlock(_node);
+	return {m_dialect, m_labelRegistryBuilder.build(), std::move(block)};
 }
 
 template <class T>
@@ -79,7 +82,7 @@ Json AsmJsonImporter::member(Json const& _node, std::string const& _name)
 NameWithDebugData AsmJsonImporter::createNameWithDebugData(Json const& _node)
 {
 	auto nameWithDebugData = createAsmNode<NameWithDebugData>(_node);
-	nameWithDebugData.name = YulName{member(_node, "name").get<std::string>()};
+	nameWithDebugData.name = m_labelRegistryBuilder.define(member(_node, "name").get<std::string>());
 	return nameWithDebugData;
 }
 
@@ -234,7 +237,7 @@ Leave AsmJsonImporter::createLeave(Json const& _node)
 Identifier AsmJsonImporter::createIdentifier(Json const& _node)
 {
 	auto identifier = createAsmNode<Identifier>(_node);
-	identifier.name = YulName(member(_node, "name").get<std::string>());
+	identifier.name = m_labelRegistryBuilder.define(member(_node, "name").get<std::string>());
 	return identifier;
 }
 
@@ -293,7 +296,7 @@ VariableDeclaration AsmJsonImporter::createVariableDeclaration(Json const& _node
 FunctionDefinition AsmJsonImporter::createFunctionDefinition(Json const& _node)
 {
 	auto funcDef = createAsmNode<FunctionDefinition>(_node);
-	funcDef.name = YulName{member(_node, "name").get<std::string>()};
+	funcDef.name = m_labelRegistryBuilder.define(member(_node, "name").get<std::string>());
 
 	if (_node.contains("parameters"))
 		for (auto const& var: member(_node, "parameters"))

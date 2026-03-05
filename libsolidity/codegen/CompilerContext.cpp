@@ -38,7 +38,6 @@
 #include <libyul/backends/evm/EVMMetrics.h>
 #include <libyul/optimiser/Suite.h>
 #include <libyul/Object.h>
-#include <libyul/YulName.h>
 #include <libyul/Utilities.h>
 
 #include <libsolutil/Whiskers.h>
@@ -48,6 +47,8 @@
 #include <liblangutil/ErrorReporter.h>
 #include <liblangutil/Scanner.h>
 #include <liblangutil/SourceReferenceFormatter.h>
+
+#include <range/v3/algorithm/find.hpp>
 
 #include <utility>
 
@@ -388,13 +389,18 @@ void CompilerContext::appendInlineAssembly(
 {
 	unsigned startStackHeight = stackHeight();
 
-	std::set<yul::YulName> externallyUsedIdentifiers;
-	for (auto const& fun: _externallyUsedFunctions)
-		externallyUsedIdentifiers.insert(yul::YulName(fun));
-	for (auto const& var: _localVariables)
-		externallyUsedIdentifiers.insert(yul::YulName(var));
-
+	std::set<std::string> const externallyUsedIdentifiers = _externallyUsedFunctions + _localVariables;
 	yul::ExternalIdentifierAccess identifierAccess;
+
+	ErrorList errors;
+	ErrorReporter errorReporter(errors);
+	langutil::CharStream charStream(_assembly, _sourceName);
+	yul::EVMDialect const& dialect = yul::EVMDialect::strictAssemblyForEVM(m_evmVersion, std::nullopt);
+	std::optional<langutil::SourceLocation> locationOverride;
+	if (!_system)
+		locationOverride = m_asm->currentSourceLocation();
+	std::shared_ptr<yul::AST const> parserResult
+		= yul::Parser(errorReporter, dialect, std::move(locationOverride)).parse(charStream);
 	identifierAccess.resolve = [&](
 		yul::Identifier const& _identifier,
 		yul::IdentifierContext,
@@ -403,7 +409,7 @@ void CompilerContext::appendInlineAssembly(
 	{
 		if (_insideFunction)
 			return false;
-		return util::contains(_localVariables, _identifier.name.str());
+		return util::contains(_localVariables, parserResult->labelOf(_identifier.name));
 	};
 	identifierAccess.generateCode = [&](
 		yul::Identifier const& _identifier,
@@ -412,7 +418,7 @@ void CompilerContext::appendInlineAssembly(
 	)
 	{
 		solAssert(_context == yul::IdentifierContext::RValue || _context == yul::IdentifierContext::LValue, "");
-		auto it = std::find(_localVariables.begin(), _localVariables.end(), _identifier.name.str());
+		auto const it = ranges::find(_localVariables, parserResult->labelOf(_identifier.name));
 		solAssert(it != _localVariables.end(), "");
 		auto stackDepth = static_cast<size_t>(distance(it, _localVariables.end()));
 		size_t stackDiff = static_cast<size_t>(_assembly.stackHeight()) - startStackHeight + stackDepth;
@@ -433,16 +439,6 @@ void CompilerContext::appendInlineAssembly(
 		}
 	};
 
-	ErrorList errors;
-	ErrorReporter errorReporter(errors);
-	langutil::CharStream charStream(_assembly, _sourceName);
-	yul::EVMDialect const& dialect = yul::EVMDialect::strictAssemblyForEVM(m_evmVersion, std::nullopt);
-	std::optional<langutil::SourceLocation> locationOverride;
-	if (!_system)
-		locationOverride = m_asm->currentSourceLocation();
-	std::shared_ptr<yul::AST> parserResult =
-		yul::Parser(errorReporter, dialect, std::move(locationOverride))
-		.parse(charStream);
 #ifdef SOL_OUTPUT_ASM
 	std::cout << yul::AsmPrinter::format(*parserResult) << std::endl;
 #endif
@@ -471,6 +467,7 @@ void CompilerContext::appendInlineAssembly(
 			analysisInfo,
 			errorReporter,
 			dialect,
+			parserResult->labels(),
 			identifierAccess.resolve
 		).analyze(parserResult->root());
 	if (!parserResult || errorReporter.hasErrorsWarningsOrInfos() || !analyzerResult)
@@ -517,7 +514,7 @@ void CompilerContext::appendInlineAssembly(
 
 	solAssert(!errorReporter.hasErrorsWarningsOrInfos(), "Failed to analyze inline assembly block.");
 	yul::CodeGenerator::assemble(
-		toBeAssembledAST->root(),
+		*toBeAssembledAST,
 		analysisInfo,
 		*m_asm,
 		m_evmVersion,
@@ -532,7 +529,7 @@ void CompilerContext::appendInlineAssembly(
 }
 
 
-void CompilerContext::optimizeYul(yul::Object& _object, OptimiserSettings const& _optimiserSettings, std::set<yul::YulName> const& _externalIdentifiers)
+void CompilerContext::optimizeYul(yul::Object& _object, OptimiserSettings const& _optimiserSettings, std::set<std::string> const& _externalIdentifiers)
 {
 	yulAssert(_object.dialect());
 	auto const* evmDialect = dynamic_cast<yul::EVMDialect const*>(_object.dialect());

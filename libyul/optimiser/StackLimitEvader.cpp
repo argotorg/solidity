@@ -19,7 +19,6 @@
 #include <libyul/optimiser/StackLimitEvader.h>
 #include <libyul/optimiser/CallGraphGenerator.h>
 #include <libyul/optimiser/FunctionCallFinder.h>
-#include <libyul/optimiser/NameDispenser.h>
 #include <libyul/optimiser/NameCollector.h>
 #include <libyul/optimiser/StackToMemoryMover.h>
 #include <libyul/backends/evm/ControlFlowGraphBuilder.h>
@@ -91,7 +90,7 @@ struct MemoryOffsetAllocator
 			for (YulName variable: *unreachables)
 				// The empty case is a function with too many arguments or return values,
 				// which was already handled above.
-				if (!variable.empty() && !slotAllocations.count(variable))
+				if (!ASTLabelRegistry::empty(variable) && !slotAllocations.contains(variable))
 					slotAllocations[variable] = requiredSlots++;
 		}
 
@@ -142,9 +141,10 @@ Block StackLimitEvader::run(
 		yul::AsmAnalysisInfo analysisInfo = yul::AsmAnalyzer::analyzeStrictAssertCorrect(
 			*evmDialect,
 			astRoot,
+			_object.code()->labels(),
 			_object.summarizeStructure()
 		);
-		std::unique_ptr<CFG> cfg = ControlFlowGraphBuilder::build(analysisInfo, *evmDialect, astRoot);
+		std::unique_ptr<CFG> cfg = ControlFlowGraphBuilder::build(analysisInfo, _context.dispenser, *evmDialect, astRoot);
 		run(_context, astRoot, StackLayoutGenerator::reportStackTooDeep(*cfg, *evmDialect));
 	}
 	else

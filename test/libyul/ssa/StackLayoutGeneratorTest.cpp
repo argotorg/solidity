@@ -56,8 +56,8 @@ namespace
 class StackLayoutDotExporter: public io::DotExporterBase
 {
 public:
-	StackLayoutDotExporter(SSACFG const& _cfg, std::size_t _functionIndex, SSACFGStackLayout const& _layout):
-		DotExporterBase(_cfg, _functionIndex),
+	StackLayoutDotExporter(yul::ASTLabelRegistry const& _labels, SSACFG const& _cfg, std::size_t _functionIndex, SSACFGStackLayout const& _layout):
+		DotExporterBase(_labels, _cfg, _functionIndex),
 		m_layout(_layout)
 	{
 	}
@@ -83,7 +83,7 @@ protected:
 
 			std::visit(GenericVisitor{
 				[&](SSACFG::Call const& _call) {
-					_out << escapeLabel(_call.function.get().name.str());
+					_out << escapeLabel(m_labels[_call.function.get().name]);
 				},
 				[&](SSACFG::BuiltinCall const& _call) {
 					_out << escapeLabel(_call.builtin.get().name);
@@ -164,7 +164,7 @@ frontend::test::TestCase::TestResult StackLayoutGeneratorTest::run(std::ostream&
 				LivenessAnalysis(cfg),
 				gatherCallSites(cfg)
 			);
-			StackLayoutDotExporter exporter(cfg, index, layout);
+			StackLayoutDotExporter exporter(object.code()->labels(), cfg, index, layout);
 			if (cfg.function)
 				m_obtainedResult += exporter.exportFunction(*cfg.function, false);
 			else

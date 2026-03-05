@@ -133,20 +133,26 @@ protected:
 		return r;
 	}
 
-	Block parseBlock();
-	Statement parseStatement();
-	Case parseCase();
-	ForLoop parseForLoop();
+	Block parseBlock(ASTLabelRegistryBuilder& _labelRegistryBuilder);
+	Statement parseStatement(ASTLabelRegistryBuilder& _labelRegistryBuilder);
+	Case parseCase(ASTLabelRegistryBuilder& _labelRegistryBuilder);
+	ForLoop parseForLoop(ASTLabelRegistryBuilder& _labelRegistryBuilder);
 	/// Parses a functional expression that has to push exactly one stack element
-	Expression parseExpression(bool _unlimitedLiteralArgument = false);
+	Expression parseExpression(ASTLabelRegistryBuilder& _labelRegistryBuilder, bool _unlimitedLiteralArgument = false);
 	/// Parses an elementary operation, i.e. a literal, identifier, instruction or
 	/// builtin function call (only the name).
-	std::variant<Literal, Identifier, BuiltinName> parseLiteralOrIdentifier(bool _unlimitedLiteralArgument = false);
-	VariableDeclaration parseVariableDeclaration();
-	FunctionDefinition parseFunctionDefinition();
-	FunctionCall parseCall(std::variant<Literal, Identifier, BuiltinName>&& _index);
-	NameWithDebugData parseNameWithDebugData();
-	YulName expectAsmIdentifier();
+	std::variant<Literal, Identifier, BuiltinName> parseLiteralOrIdentifier(
+		ASTLabelRegistryBuilder& _labelRegistryBuilder,
+		bool _unlimitedLiteralArgument = false
+	);
+	VariableDeclaration parseVariableDeclaration(ASTLabelRegistryBuilder& _labelRegistryBuilder);
+	FunctionDefinition parseFunctionDefinition(ASTLabelRegistryBuilder& _labelRegistryBuilder);
+	FunctionCall parseCall(
+		ASTLabelRegistryBuilder& _labelRegistryBuilder,
+		std::variant<Literal, Identifier, BuiltinName>&& _index
+	);
+	NameWithDebugData parseNameWithDebugData(ASTLabelRegistryBuilder& _labelRegistryBuilder);
+	YulName expectAsmIdentifier(ASTLabelRegistryBuilder& _labelRegistryBuilder);
 	void raiseUnsupportedTypesError(langutil::SourceLocation const& _location) const;
 
 	/// Reports an error if we are currently not inside the body part of a for loop.

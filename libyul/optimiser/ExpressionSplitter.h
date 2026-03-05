@@ -24,7 +24,7 @@
 #include <libyul/ASTForward.h>
 
 #include <libyul/optimiser/ASTWalker.h>
-#include <libyul/optimiser/NameDispenser.h>
+#include <libyul/optimiser/LabelIDDispenser.h>
 
 #include <vector>
 
@@ -70,7 +70,7 @@ public:
 private:
 	ExpressionSplitter(
 		Dialect const& _dialect,
-		NameDispenser& _nameDispenser
+		LabelIDDispenser& _labelIDDispenser
 	);
 	~ExpressionSplitter() override;
 
@@ -83,7 +83,7 @@ private:
 	/// at the statement level.
 	std::vector<Statement> m_statementsToPrefix;
 	Dialect const& m_dialect;
-	NameDispenser& m_nameDispenser;
+	LabelIDDispenser& m_labelIDDispenser;
 };
 
 }

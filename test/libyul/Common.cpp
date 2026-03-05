@@ -78,15 +78,18 @@ YulStack yul::test::parseYul(
 	return yulStack;
 }
 
-yul::Block yul::test::disambiguate(std::string const& _source)
+AST yul::test::disambiguate(std::string const& _source)
 {
 	YulStack yulStack = parseYul(_source);
 	soltestAssert(!yulStack.hasErrorsWarningsOrInfos());
-	return std::get<Block>(Disambiguator(
+	LabelIDDispenser nameDispenser(yulStack.parserResult()->code()->labels());
+	auto block = std::get<Block>(Disambiguator(
 		yulStack.dialect(),
 		*yulStack.parserResult()->analysisInfo,
+		nameDispenser,
 		{}
 	)(yulStack.parserResult()->code()->root()));
+	return AST{yulStack.dialect(), nameDispenser, std::move(block)};
 }
 
 std::string yul::test::format(std::string const& _source)

@@ -19,11 +19,11 @@
  * Scopes for identifiers.
  */
 
+#include <libyul/ASTForward.h>
 #include <libyul/Scope.h>
 
 using namespace solidity;
 using namespace solidity::yul;
-using namespace solidity::util;
 
 bool Scope::registerVariable(YulName _name)
 {

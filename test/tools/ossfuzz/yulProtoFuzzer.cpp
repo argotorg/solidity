@@ -58,8 +58,6 @@ DEFINE_PROTO_FUZZER(Program const& _input)
 	if (yul_source.size() > 1200)
 		return;
 
-	YulStringRepository::reset();
-
 	// YulStack entry point
 	YulStack stack(
 		version,

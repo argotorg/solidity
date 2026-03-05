@@ -18,7 +18,6 @@
 #pragma once
 
 #include <libyul/optimiser/Metrics.h>
-#include <libyul/optimiser/NameDispenser.h>
 
 #include <libyul/AST.h>
 
@@ -54,7 +53,7 @@ FunctionDefinition createLinkingFunction(
 	std::pair<std::vector<bool>, std::vector<bool>> const& _usedParametersAndReturns,
 	YulName const& _originalFunctionName,
 	YulName const& _linkingFunctionName,
-	NameDispenser& _nameDispenser
+	LabelIDDispenser& _nameDispenser
 );
 
 }

@@ -462,7 +462,7 @@ struct ReservedErrorSelector: public PostTypeChecker::Checker
 class YulLValueChecker : public solidity::yul::ASTWalker
 {
 public:
-	YulLValueChecker(ASTString const& _identifierName): m_identifierName(_identifierName) {}
+	YulLValueChecker(ASTString const& _identifierName, yul::ASTLabelRegistry const& _yulLabels): m_identifierName(_identifierName), m_yulLabels(_yulLabels) {}
 	bool willBeWrittenTo() const { return m_willBeWrittenTo; }
 	using solidity::yul::ASTWalker::operator();
 	void operator()(solidity::yul::Assignment const& _assignment) override
@@ -472,12 +472,13 @@ public:
 
 		if (ranges::any_of(
 			_assignment.variableNames,
-			[&](auto const& yulIdentifier) { return yulIdentifier.name.str() == m_identifierName; }
+			[&](auto const& yulIdentifier) { return m_yulLabels[yulIdentifier.name] == m_identifierName; }
 		))
 			m_willBeWrittenTo = true;
 	}
 private:
 	ASTString const& m_identifierName;
+	yul::ASTLabelRegistry const& m_yulLabels;
 	bool m_willBeWrittenTo = false;
 };
 
@@ -505,7 +506,7 @@ public:
 		if (m_willBeWrittenTo)
 			return;
 
-		YulLValueChecker yulChecker{m_declaration->name()};
+		YulLValueChecker yulChecker{m_declaration->name(), _inlineAssembly.operations().labels()};
 		yulChecker(_inlineAssembly.operations().root());
 		m_willBeWrittenTo = yulChecker.willBeWrittenTo();
 	}

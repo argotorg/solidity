@@ -16,7 +16,7 @@
 */
 #include <libyul/optimiser/StackToMemoryMover.h>
 #include <libyul/optimiser/NameCollector.h>
-#include <libyul/optimiser/NameDispenser.h>
+#include <libyul/optimiser/LabelIDDispenser.h>
 #include <libyul/backends/evm/EVMDialect.h>
 
 #include <libyul/AST.h>
@@ -149,7 +149,7 @@ void StackToMemoryMover::operator()(FunctionDefinition& _functionDefinition)
 			std::not_fn(m_memoryOffsetTracker)
 		) | ranges::to<NameWithDebugDataList>;
 		// Generate new function without return variable and with only the non-moved parameters.
-		YulName newFunctionName = m_context.dispenser.newName(_functionDefinition.name);
+		YulName newFunctionName = m_context.dispenser.newID(_functionDefinition.name);
 		m_newFunctionDefinitions.emplace_back(FunctionDefinition{
 			_functionDefinition.debugData,
 			newFunctionName,
@@ -160,7 +160,7 @@ void StackToMemoryMover::operator()(FunctionDefinition& _functionDefinition)
 		// Generate new names for the arguments to maintain disambiguation.
 		std::map<YulName, YulName> newArgumentNames;
 		for (NameWithDebugData const& _var: stackParameters)
-			newArgumentNames[_var.name] = m_context.dispenser.newName(_var.name);
+			newArgumentNames[_var.name] = m_context.dispenser.newID(_var.name);
 		for (auto& parameter: _functionDefinition.parameters)
 			parameter.name = util::valueOrDefault(newArgumentNames, parameter.name, parameter.name);
 		// Replace original function by a call to the new function and an assignment to the return variable from memory.
@@ -257,7 +257,7 @@ void StackToMemoryMover::operator()(Block& _block)
 				rhs = std::make_unique<Expression>(generateMemoryLoad(m_context.dialect, debugData, *rhsSlot));
 			else
 			{
-				YulName tempVarName = m_nameDispenser.newName(lhsVar.name);
+				YulName tempVarName = m_nameDispenser.newID(lhsVar.name);
 				tempDecl.variables.emplace_back(NameWithDebugData{lhsVar.debugData, tempVarName});
 				rhs = std::make_unique<Expression>(Identifier{debugData, tempVarName});
 			}

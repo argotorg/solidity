@@ -21,8 +21,8 @@
 
 #pragma once
 
+#include <libyul/ASTForward.h>
 #include <libyul/optimiser/ASTWalker.h>
-#include <libyul/YulName.h>
 
 #include <map>
 #include <set>

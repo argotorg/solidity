@@ -104,6 +104,7 @@ private:
 	bool const m_resolveInsideCode;
 
 	InlineAssemblyAnnotation* m_yulAnnotation = nullptr;
+	yul::ASTLabelRegistry const* m_yulLabels = nullptr;
 	bool m_yulInsideFunction = false;
 	bool m_typeContext = false;
 };

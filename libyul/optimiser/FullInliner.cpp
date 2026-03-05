@@ -28,7 +28,7 @@
 #include <libyul/optimiser/Metrics.h>
 #include <libyul/optimiser/SSAValueTracker.h>
 #include <libyul/optimiser/Semantics.h>
-#include <libyul/optimiser/CallGraphGenerator.h>
+#include <libyul/optimiser/LabelIDDispenser.h>
 #include <libyul/backends/evm/EVMDialect.h>
 #include <libyul/Exceptions.h>
 #include <libyul/AST.h>
@@ -51,7 +51,7 @@ void FullInliner::run(OptimiserStepContext& _context, Block& _ast)
 	inliner.run(Pass::InlineRest);
 }
 
-FullInliner::FullInliner(Block& _ast, NameDispenser& _dispenser, Dialect const& _dialect):
+FullInliner::FullInliner(Block& _ast, LabelIDDispenser& _dispenser, Dialect const& _dialect):
 	m_ast(_ast),
 	m_recursiveFunctions(CallGraphGenerator::callGraph(_ast).recursiveFunctions()),
 	m_nameDispenser(_dispenser),
@@ -129,7 +129,7 @@ void FullInliner::run(Pass _pass)
 std::map<FunctionHandle, size_t> FullInliner::callDepths() const
 {
 	CallGraph cg = CallGraphGenerator::callGraph(m_ast);
-	cg.functionCalls.erase(""_yulname);
+	cg.functionCalls.erase(ASTLabelRegistry::emptyID());
 
 	// Remove calls to builtin functions.
 	for (auto& call: cg.functionCalls)
@@ -307,7 +307,7 @@ std::vector<Statement> InlineModifier::performInline(Statement& _statement, Func
 	// helper function to create a new variable that is supposed to model
 	// an existing variable.
 	auto newVariable = [&](NameWithDebugData const& _existingVariable, Expression* _value) {
-		YulName newName = m_nameDispenser.newName(_existingVariable.name);
+		YulName newName = m_nameDispenser.newID(_existingVariable.name);
 		variableReplacements[_existingVariable.name] = newName;
 		VariableDeclaration varDecl{_funCall.debugData, {{_funCall.debugData, newName}}, {}};
 		if (_value)
@@ -359,7 +359,7 @@ std::vector<Statement> InlineModifier::performInline(Statement& _statement, Func
 Statement BodyCopier::operator()(VariableDeclaration const& _varDecl)
 {
 	for (auto const& var: _varDecl.variables)
-		m_variableReplacements[var.name] = m_nameDispenser.newName(var.name);
+		m_variableReplacements[var.name] = m_nameDispenser.newID(var.name);
 	return ASTCopier::operator()(_varDecl);
 }
 

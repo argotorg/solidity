@@ -27,7 +27,7 @@ ControlFlowLiveness::ControlFlowLiveness(ControlFlow const& _controlFlow):
 	cfgLiveness(_controlFlow.functionGraphs | ranges::views::transform([](auto const& _cfg) { return std::make_unique<LivenessAnalysis>(*_cfg); }) | ranges::to<std::vector>)
 { }
 
-std::string ControlFlowLiveness::toDot() const
+std::string ControlFlowLiveness::toDot(ASTLabelRegistry const& _labels) const
 {
-	return controlFlow.get().toDot(this);
+	return controlFlow.get().toDot(_labels, this);
 }

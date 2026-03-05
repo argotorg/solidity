@@ -24,6 +24,7 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/test/data/test_case.hpp>
 #include <boost/algorithm/string/replace.hpp>
+
 #include <liblangutil/EVMVersion.h>
 #include <libsolidity/interface/OptimiserSettings.h>
 #include <libsolidity/interface/StandardCompiler.h>
@@ -32,6 +33,8 @@
 #include <libsolutil/CommonData.h>
 #include <test/Metadata.h>
 #include <test/Common.h>
+
+#include <fmt/format.h>
 
 #include <algorithm>
 #include <set>

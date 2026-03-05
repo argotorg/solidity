@@ -25,7 +25,6 @@
 #include <libyul/ControlFlowSideEffects.h>
 #include <libyul/Exceptions.h>
 #include <libyul/SideEffects.h>
-#include <libyul/YulString.h>
 
 #include <optional>
 #include <string>

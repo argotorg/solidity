@@ -32,6 +32,8 @@
 
 #include <libevmasm/Instruction.h>
 
+#include <fmt/format.h>
+
 #include <range/v3/view/reverse.hpp>
 
 #include <range/v3/algorithm/max.hpp>
@@ -50,6 +52,7 @@ CodeTransform::CodeTransform(
 	AbstractAssembly& _assembly,
 	AsmAnalysisInfo& _analysisInfo,
 	Block const& _block,
+	ASTLabelRegistry const& _labels,
 	bool _allowStackOpt,
 	EVMDialect const& _dialect,
 	BuiltinContext& _builtinContext,
@@ -61,6 +64,7 @@ CodeTransform::CodeTransform(
 ):
 	m_assembly(_assembly),
 	m_info(_analysisInfo),
+	m_labels(_labels),
 	m_dialect(_dialect),
 	m_builtinContext(_builtinContext),
 	m_allowStackOpt(_allowStackOpt),
@@ -385,6 +389,7 @@ void CodeTransform::operator()(FunctionDefinition const& _function)
 		m_assembly,
 		m_info,
 		_function.body,
+		m_labels,
 		m_allowStackOpt,
 		m_dialect,
 		m_builtinContext,
@@ -420,7 +425,7 @@ void CodeTransform::operator()(FunctionDefinition const& _function)
 		m_assembly.markAsInvalid();
 		for (StackTooDeepError& stackError: subTransform.m_stackErrors)
 		{
-			if (stackError.functionName.empty())
+			if (ASTLabelRegistry::empty(stackError.functionName))
 				stackError.functionName = _function.name;
 			m_stackErrors.emplace_back(std::move(stackError));
 		}
@@ -460,11 +465,11 @@ void CodeTransform::operator()(FunctionDefinition const& _function)
 				_function.name,
 				YulName{},
 				static_cast<int>(stackLayout.size()) - 17,
-				"The function " +
-				_function.name.str() +
-				" has " +
-				std::to_string(stackLayout.size() - 17) +
-				" parameters or return variables too many to fit the stack size."
+				fmt::format(
+					"The function {} has {} parameters or return variables too many to fit the stack size.",
+					m_labels[_function.name],
+					stackLayout.size() - 17
+				)
 			);
 			stackError(std::move(error), m_assembly.stackHeight() - static_cast<int>(_function.parameters.size()));
 		}
@@ -603,7 +608,7 @@ void CodeTransform::createFunctionEntryID(FunctionDefinition const& _function)
 			!nameAlreadySeen
 		) ?
 		m_assembly.namedLabel(
-			_function.name.str(),
+			std::string{m_labels[_function.name]},
 			_function.parameters.size(),
 			_function.returnVariables.size(),
 			astID
@@ -783,12 +788,12 @@ size_t CodeTransform::variableHeightDiff(Scope::Variable const& _var, YulName _v
 		m_stackErrors.emplace_back(
 			_varName,
 			heightDiff - limit,
-			"Variable " +
-			_varName.str() +
-			" is " +
-			std::to_string(heightDiff - limit) +
-			" slot(s) too deep inside the stack. " +
-			stackTooDeepString
+			fmt::format(
+				"Variable {} is {} slot(s) too deep inside the stack. {}",
+				m_labels[_varName],
+				heightDiff - limit,
+				stackTooDeepString
+			)
 		);
 		m_assembly.markAsInvalid();
 		return _forSwap ? 2 : 1;

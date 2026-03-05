@@ -26,6 +26,7 @@
 namespace solidity::yul
 {
 
+struct Block;
 class Dialect;
 
 /// Can spawn new `LabelID`s which depend on `LabelID`s from a parent label registry. Once generation is completed,
@@ -52,11 +53,13 @@ public:
 	LabelID newGhost();
 
 	/// Creates a new label registry based on the added labels.
-	/// Ghost IDs are always preserved, as these are not referenced in the AST.
 	/// Labels are guaranteed to be valid and not reserved if and only if they were valid and not reserved in the
 	/// original registry. No new invalid and/or reserved labels are introduced.
-	ASTLabelRegistry generateNewLabels(std::set<LabelID> const& _usedIDs, Dialect const& _dialect) const;
-	ASTLabelRegistry generateNewLabels(Dialect const& _dialect) const;
+	/// Note: unlike the `Block` overload, this overload does not automatically include ghost IDs.
+	/// The caller must include them in `_usedIDs` explicitly if needed.
+	ASTLabelRegistry consolidateLabels(std::set<LabelID> const& _usedIDs, Dialect const& _dialect) const;
+	/// Collects used IDs from the AST (including ghost IDs automatically) and creates a new label registry.
+	ASTLabelRegistry consolidateLabels(Block const& _astRoot, Dialect const& _dialect) const;
 private:
 	/// For newly added label IDs, this yields the parent ID which is contained in the provided registry.
 	/// For label IDs which already are not new, this function is the identity.

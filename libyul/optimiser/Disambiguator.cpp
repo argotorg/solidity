@@ -39,7 +39,7 @@ YulName Disambiguator::translateIdentifier(YulName const _originalName)
 	Scope::Identifier const* id = m_scopes.back()->lookup(_originalName);
 	assertThrow(id, OptimizerException, "");
 	if (!m_translations.contains(id))
-		m_translations[id] = m_nameDispenser.newName(_originalName);
+		m_translations[id] = m_labelIDDispenser.newID(_originalName);
 	return m_translations.at(id);
 }
 

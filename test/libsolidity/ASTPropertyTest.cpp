@@ -33,6 +33,8 @@
 #include <range/v3/range/conversion.hpp>
 #include <range/v3/view/split.hpp>
 
+#include <fmt/format.h>
+
 #include <queue>
 
 using namespace solidity::util;

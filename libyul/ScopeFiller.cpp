@@ -30,6 +30,8 @@
 
 #include <libsolutil/CommonData.h>
 
+#include <fmt/format.h>
+
 #include <memory>
 #include <functional>
 
@@ -38,8 +40,8 @@ using namespace solidity::yul;
 using namespace solidity::util;
 using namespace solidity::langutil;
 
-ScopeFiller::ScopeFiller(AsmAnalysisInfo& _info, ErrorReporter& _errorReporter):
-	m_info(_info), m_errorReporter(_errorReporter)
+ScopeFiller::ScopeFiller(AsmAnalysisInfo& _info, ErrorReporter& _errorReporter, ASTLabelRegistry const& _labels):
+	m_labels(_labels), m_info(_info), m_errorReporter(_errorReporter)
 {
 	m_currentScope = &scope(nullptr);
 }
@@ -141,7 +143,7 @@ bool ScopeFiller::registerVariable(NameWithDebugData const& _name, SourceLocatio
 		m_errorReporter.declarationError(
 			1395_error,
 			_location,
-			"Variable name " + _name.name.str() + " already taken in this scope."
+			fmt::format("Variable name {} already taken in this scope.", m_labels[_name.name])
 		);
 		return false;
 	}
@@ -156,7 +158,7 @@ bool ScopeFiller::registerFunction(FunctionDefinition const& _funDef)
 		m_errorReporter.declarationError(
 			6052_error,
 			nativeLocationOf(_funDef),
-			"Function name " + _funDef.name.str() + " already taken in this scope."
+			fmt::format("Function name {} already taken in this scope.", m_labels[_funDef.name])
 		);
 		return false;
 	}

@@ -941,6 +941,7 @@ bool TypeChecker::visit(InlineAssembly const& _inlineAssembly)
 		*_inlineAssembly.annotation().analysisInfo,
 		m_errorReporter,
 		_inlineAssembly.dialect(),
+		_inlineAssembly.operations().labels(),
 		identifierAccess
 	);
 	if (!analyzer.analyze(_inlineAssembly.operations().root()))

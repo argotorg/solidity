@@ -84,8 +84,8 @@
 //
 // Block4 [label="\
 // mload: [ x ] => [ TMP[mload, 0] ]\l\
-// Assignment(GHOST[0]): [ TMP[mload, 0] ] => [ GHOST[0] ]\l\
-// eq: [ GHOST[0] 0x00 ] => [ TMP[eq, 0] ]\l\
+// Assignment(GHOST[7]): [ TMP[mload, 0] ] => [ GHOST[7] ]\l\
+// eq: [ GHOST[7] 0x00 ] => [ TMP[eq, 0] ]\l\
 // "];
 // Block4 -> Block4Exit;
 // Block4Exit [label="{ TMP[eq, 0]| { <0> Zero | <1> NonZero }}" shape=Mrecord];
@@ -93,7 +93,7 @@
 // Block4Exit:1 -> Block6;
 //
 // Block5 [label="\
-// eq: [ GHOST[0] 0x01 ] => [ TMP[eq, 0] ]\l\
+// eq: [ GHOST[7] 0x01 ] => [ TMP[eq, 0] ]\l\
 // "];
 // Block5 -> Block5Exit;
 // Block5Exit [label="{ TMP[eq, 0]| { <0> Zero | <1> NonZero }}" shape=Mrecord];
@@ -108,7 +108,7 @@
 // Block6Exit -> Block3;
 //
 // Block7 [label="\
-// eq: [ GHOST[0] 0x02 ] => [ TMP[eq, 0] ]\l\
+// eq: [ GHOST[7] 0x02 ] => [ TMP[eq, 0] ]\l\
 // "];
 // Block7 -> Block7Exit;
 // Block7Exit [label="{ TMP[eq, 0]| { <0> Zero | <1> NonZero }}" shape=Mrecord];
@@ -122,7 +122,7 @@
 // Block8 -> Block8Exit;
 //
 // Block9 [label="\
-// eq: [ GHOST[0] 0x03 ] => [ TMP[eq, 0] ]\l\
+// eq: [ GHOST[7] 0x03 ] => [ TMP[eq, 0] ]\l\
 // "];
 // Block9 -> Block9Exit;
 // Block9Exit [label="{ TMP[eq, 0]| { <0> Zero | <1> NonZero }}" shape=Mrecord];

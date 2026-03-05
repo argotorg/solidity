@@ -22,8 +22,8 @@
 #pragma once
 
 #include <libyul/ASTForward.h>
+#include <libyul/ASTLabelRegistry.h>
 #include <libyul/Dialect.h>
-#include <libyul/YulName.h>
 
 #include <libsolutil/Common.h>
 #include <libsolutil/Numeric.h>
@@ -85,12 +85,12 @@ private:
 	 */
 	struct VariableOffset
 	{
-		YulName reference;
+		YulName reference{};
 		u256 offset;
 
 		bool isAbsolute() const
 		{
-			return reference.empty();
+			return reference == ASTLabelRegistry::emptyID();
 		}
 
 		std::optional<u256> absoluteValue() const

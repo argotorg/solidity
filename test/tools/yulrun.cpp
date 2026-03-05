@@ -91,7 +91,7 @@ void interpret(std::string const& _source, bool _inspect, bool _disableExternalC
 	try
 	{
 		if (_inspect)
-			InspectedInterpreter::run(std::make_shared<Inspector>(_source, state), state, *ast, _disableExternalCalls, /*disableMemoryTracing=*/false);
+			InspectedInterpreter::run(std::make_shared<Inspector>(_source, state, ast->labels()), state, *ast, _disableExternalCalls, /*disableMemoryTracing=*/false);
 		else
 			Interpreter::run(state, *ast, _disableExternalCalls, /*disableMemoryTracing=*/false);
 	}

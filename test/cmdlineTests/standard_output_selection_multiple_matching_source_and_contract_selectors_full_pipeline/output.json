@@ -70,12 +70,12 @@ object \"A_1\" {
 object \"A_1\" {
     code {
         {
-            let _1 := memoryguard(0x80)
-            mstore(64, _1)
+            let _2 := memoryguard(0x80)
+            mstore(64, _2)
             if callvalue() { revert(0, 0) }
-            let _2 := datasize(\"A_1_deployed\")
-            codecopy(_1, dataoffset(\"A_1_deployed\"), _2)
-            return(_1, _2)
+            let _1 := datasize(\"A_1_deployed\")
+            codecopy(_2, dataoffset(\"A_1_deployed\"), _1)
+            return(_2, _1)
         }
     }
     /// @use-src 0:\"C\"
@@ -105,12 +105,12 @@ object \"A_1\" {
 object \"A_5\" {
     code {
         {
-            let _1 := memoryguard(0x80)
-            mstore(64, _1)
+            let _2 := memoryguard(0x80)
+            mstore(64, _2)
             if callvalue() { revert(0, 0) }
-            let _2 := datasize(\"A_5_deployed\")
-            codecopy(_1, dataoffset(\"A_5_deployed\"), _2)
-            return(_1, _2)
+            let _1 := datasize(\"A_5_deployed\")
+            codecopy(_2, dataoffset(\"A_5_deployed\"), _1)
+            return(_2, _1)
         }
     }
     /// @use-src 1:\"D\"

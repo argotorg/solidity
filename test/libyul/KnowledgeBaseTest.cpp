@@ -29,8 +29,8 @@
 #include <libyul/optimiser/ASTCopier.h>
 #include <libyul/optimiser/KnowledgeBase.h>
 #include <libyul/optimiser/SSAValueTracker.h>
-#include <libyul/optimiser/NameDispenser.h>
 #include <libyul/optimiser/CommonSubexpressionEliminator.h>
+#include <libyul/optimiser/LabelIDDispenser.h>
 #include <libyul/backends/evm/EVMDialect.h>
 
 #include <boost/test/unit_test.hpp>
@@ -51,7 +51,7 @@ protected:
 		m_object = yulStack.parserResult();
 
 		auto astRoot = std::get<Block>(yul::ASTCopier{}(m_object->code()->root()));
-		NameDispenser dispenser(*m_object->dialect(), astRoot);
+		LabelIDDispenser dispenser(m_object->code()->labels());
 		std::set<YulName> reserved;
 		OptimiserStepContext context{*m_object->dialect(), dispenser, reserved, 0};
 		CommonSubexpressionEliminator::run(context, astRoot);
@@ -60,7 +60,7 @@ protected:
 		for (auto const& [name, expression]: m_ssaValues.values())
 			m_values[name].value = expression;
 
-		m_object->setCode(std::make_shared<AST>(*m_object->dialect(), std::move(astRoot)));
+		m_object->setCode(std::make_shared<AST>(*m_object->dialect(), dispenser, std::move(astRoot)));
 		return KnowledgeBase(
 			[this](YulName _var) { return util::valueOrNullptr(m_values, _var); },
 			*m_object->dialect()
@@ -85,14 +85,22 @@ BOOST_AUTO_TEST_CASE(basic)
 		let e := sub(a, b)
 	})");
 
-	BOOST_CHECK(!kb.knownToBeDifferent("a"_yulname, "b"_yulname));
+	const auto& labels = m_object->code()->labels();
+	std::map<std::string, YulName> labelToIdMap;
+	for (auto const label: {"a", "b", "c", "e", "zero"})
+	{
+		auto const maybeNodeId = labels.findIDForLabel(label);
+		yulAssert(maybeNodeId);
+		labelToIdMap[label] = *maybeNodeId;
+	}
+	BOOST_CHECK(!kb.knownToBeDifferent(labelToIdMap["a"], labelToIdMap["b"]));
 	// This only works if the variable names are the same.
 	// It assumes that SSA+CSE+Simplifier actually replaces the variables.
-	BOOST_CHECK(!kb.valueIfKnownConstant("a"_yulname));
-	BOOST_CHECK(kb.valueIfKnownConstant("zero"_yulname) == u256(0));
-	BOOST_CHECK(kb.differenceIfKnownConstant("a"_yulname, "b"_yulname) == u256(0));
-	BOOST_CHECK(kb.differenceIfKnownConstant("a"_yulname, "c"_yulname) == u256(0));
-	BOOST_CHECK(kb.valueIfKnownConstant("e"_yulname) == u256(0));
+	BOOST_CHECK(!kb.valueIfKnownConstant(labelToIdMap["a"]));
+	BOOST_CHECK(kb.valueIfKnownConstant(labelToIdMap["zero"]) == u256(0));
+	BOOST_CHECK(kb.differenceIfKnownConstant(labelToIdMap["a"], labelToIdMap["b"]) == u256(0));
+	BOOST_CHECK(kb.differenceIfKnownConstant(labelToIdMap["a"], labelToIdMap["c"]) == u256(0));
+	BOOST_CHECK(kb.valueIfKnownConstant(labelToIdMap["e"]) == u256(0));
 }
 
 BOOST_AUTO_TEST_CASE(difference)
@@ -105,21 +113,29 @@ BOOST_AUTO_TEST_CASE(difference)
 		let e := sub(c, 12)
 	})");
 
-	BOOST_CHECK(kb.differenceIfKnownConstant("c"_yulname, "b"_yulname) ==
+	const auto& labels = m_object->code()->labels();
+	std::map<std::string, YulName> labelToIdMap;
+	for (auto const label: {"a", "b", "c", "d", "e"})
+	{
+		auto const maybeNodeId = labels.findIDForLabel(label);
+		yulAssert(maybeNodeId);
+		labelToIdMap[label] = *maybeNodeId;
+	}
+	BOOST_CHECK(kb.differenceIfKnownConstant(labelToIdMap["c"], labelToIdMap["b"]) ==
 		u256(20)
 	);
-	BOOST_CHECK(kb.differenceIfKnownConstant("b"_yulname, "c"_yulname) ==
+	BOOST_CHECK(kb.differenceIfKnownConstant(labelToIdMap["b"], labelToIdMap["c"]) ==
 		u256(-20)
 	);
-	BOOST_CHECK(!kb.knownToBeDifferentByAtLeast32("b"_yulname, "c"_yulname));
-	BOOST_CHECK(kb.knownToBeDifferentByAtLeast32("b"_yulname, "d"_yulname));
-	BOOST_CHECK(kb.knownToBeDifferentByAtLeast32("a"_yulname, "b"_yulname));
-	BOOST_CHECK(kb.knownToBeDifferentByAtLeast32("b"_yulname, "a"_yulname));
+	BOOST_CHECK(!kb.knownToBeDifferentByAtLeast32(labelToIdMap["b"], labelToIdMap["c"]));
+	BOOST_CHECK(kb.knownToBeDifferentByAtLeast32(labelToIdMap["b"], labelToIdMap["d"]));
+	BOOST_CHECK(kb.knownToBeDifferentByAtLeast32(labelToIdMap["a"], labelToIdMap["b"]));
+	BOOST_CHECK(kb.knownToBeDifferentByAtLeast32(labelToIdMap["b"], labelToIdMap["a"]));
 
-	BOOST_CHECK(kb.differenceIfKnownConstant("e"_yulname, "a"_yulname) == u256(208));
-	BOOST_CHECK(kb.differenceIfKnownConstant("e"_yulname, "b"_yulname) == u256(8));
-	BOOST_CHECK(kb.differenceIfKnownConstant("a"_yulname, "e"_yulname) == u256(-208));
-	BOOST_CHECK(kb.differenceIfKnownConstant("b"_yulname, "e"_yulname) == u256(-8));
+	BOOST_CHECK(kb.differenceIfKnownConstant(labelToIdMap["e"], labelToIdMap["a"]) == u256(208));
+	BOOST_CHECK(kb.differenceIfKnownConstant(labelToIdMap["e"], labelToIdMap["b"]) == u256(8));
+	BOOST_CHECK(kb.differenceIfKnownConstant(labelToIdMap["a"], labelToIdMap["e"]) == u256(-208));
+	BOOST_CHECK(kb.differenceIfKnownConstant(labelToIdMap["b"], labelToIdMap["e"]) == u256(-8));
 }
 
 

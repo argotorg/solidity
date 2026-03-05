@@ -242,11 +242,11 @@ bool SwitchCaseCompareByLiteralValue::operator()(Case const* _lhs, Case const* _
 	return Less<Literal*>{}(_lhs->value.get(), _rhs->value.get());
 }
 
-std::string_view yul::resolveFunctionName(FunctionName const& _functionName, Dialect const& _dialect)
+std::string_view yul::resolveFunctionName(FunctionName const& _functionName, ASTLabelRegistry const& _labels, Dialect const& _dialect)
 {
 	GenericVisitor visitor{
-		[&](Identifier const& _identifier) -> std::string const& { return _identifier.name.str(); },
-		[&](BuiltinName const& _builtin) -> std::string const& { return _dialect.builtin(_builtin.handle).name; }
+		[&](Identifier const& _identifier) -> std::string_view { return _labels[_identifier.name]; },
+		[&](BuiltinName const& _builtin) -> std::string_view { return _dialect.builtin(_builtin.handle).name; }
 	};
 	return std::visit(visitor, _functionName);
 }

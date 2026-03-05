@@ -19,6 +19,7 @@
 #pragma once
 
 #include <libyul/ASTForward.h>
+#include <libyul/ASTLabelRegistry.h>
 #include <libyul/Object.h>
 
 #include <liblangutil/EVMVersion.h>
@@ -77,6 +78,7 @@ private:
 	struct CachedObject
 	{
 		std::shared_ptr<Block const> optimizedAST;
+		std::unique_ptr<ASTLabelRegistry> labels;
 		Dialect const* dialect;
 	};
 
@@ -86,7 +88,7 @@ private:
 	void overwriteWithOptimizedObject(util::h256 _cacheKey, Object& _object) const;
 
 	static std::optional<util::h256> calculateCacheKey(
-		Block const& _ast,
+		AST const& _ast,
 		ObjectDebugData const& _debugData,
 		Settings const& _settings,
 		bool _isCreation

@@ -18,7 +18,6 @@
 
 #pragma once
 
-#include <libyul/optimiser/NameDispenser.h>
 #include <libyul/AST.h>
 
 #include <liblangutil/Exceptions.h>
@@ -66,8 +65,7 @@ public:
 	Program(Program const& program);
 	Program(Program&& program):
 		m_ast(std::move(program.m_ast)),
-		m_dialect{program.m_dialect},
-		m_nameDispenser(std::move(program.m_nameDispenser))
+		m_dialect{program.m_dialect}
 	{}
 	Program operator=(Program const& program) = delete;
 	Program operator=(Program&& program) = delete;
@@ -77,6 +75,7 @@ public:
 
 	size_t codeSize(yul::CodeWeights const& _weights) const { return computeCodeSize(m_ast->root(), _weights); }
 	yul::Block const& ast() const { return m_ast->root(); }
+	yul::ASTLabelRegistry const& labels() const { return m_ast->labels(); }
 
 	friend std::ostream& operator<<(std::ostream& _stream, Program const& _program);
 	std::string toJson() const;
@@ -87,8 +86,7 @@ private:
 		std::unique_ptr<yul::AST> _ast
 	):
 		m_ast(std::move(_ast)),
-		m_dialect{_dialect},
-		m_nameDispenser(_dialect, m_ast->root(), {})
+		m_dialect{_dialect}
 	{}
 
 	static std::variant<std::unique_ptr<yul::AST>, langutil::ErrorList> parseObject(
@@ -106,7 +104,6 @@ private:
 	);
 	static std::unique_ptr<yul::AST> applyOptimisationSteps(
 		yul::Dialect const& _dialect,
-		yul::NameDispenser& _nameDispenser,
 		std::unique_ptr<yul::AST> _ast,
 		std::vector<std::string> const& _optimisationSteps
 	);
@@ -114,7 +111,6 @@ private:
 
 	std::unique_ptr<yul::AST> m_ast;
 	yul::Dialect const& m_dialect;
-	yul::NameDispenser m_nameDispenser;
 };
 
 }

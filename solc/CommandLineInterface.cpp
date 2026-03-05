@@ -66,6 +66,8 @@
 #include <boost/filesystem/operations.hpp>
 #include <boost/algorithm/string.hpp>
 
+#include <fmt/format.h>
+
 #ifdef _WIN32 // windows
 	#include <io.h>
 	#define isatty _isatty

@@ -22,8 +22,8 @@
 // Block0 [label="\
 // sstore: [ 0x00 0x00 ] => [ ]\l\
 // sload: [ 0x00 ] => [ TMP[sload, 0] ]\l\
-// Assignment(GHOST[0]): [ TMP[sload, 0] ] => [ GHOST[0] ]\l\
-// eq: [ GHOST[0] 0x00 ] => [ TMP[eq, 0] ]\l\
+// Assignment(GHOST[2]): [ TMP[sload, 0] ] => [ GHOST[2] ]\l\
+// eq: [ GHOST[2] 0x00 ] => [ TMP[eq, 0] ]\l\
 // "];
 // Block0 -> Block0Exit;
 // Block0Exit [label="{ TMP[eq, 0]| { <0> Zero | <1> NonZero }}" shape=Mrecord];
@@ -31,7 +31,7 @@
 // Block0Exit:1 -> Block2;
 //
 // Block1 [label="\
-// eq: [ GHOST[0] 0x01 ] => [ TMP[eq, 0] ]\l\
+// eq: [ GHOST[2] 0x01 ] => [ TMP[eq, 0] ]\l\
 // "];
 // Block1 -> Block1Exit;
 // Block1Exit [label="{ TMP[eq, 0]| { <0> Zero | <1> NonZero }}" shape=Mrecord];

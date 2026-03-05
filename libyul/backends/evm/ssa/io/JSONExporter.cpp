@@ -43,13 +43,13 @@ Json toJson(SSACFG const& _cfg, std::vector<SSACFG::ValueId> const& _values)
 	return ret;
 }
 
-Json toJson(Json& _ret, SSACFG const& _cfg, SSACFG::Operation const& _operation)
+Json toJson(Json& _ret, ASTLabelRegistry const& _labels, SSACFG const& _cfg, SSACFG::Operation const& _operation)
 {
 	Json opJson = Json::object();
 	std::visit(util::GenericVisitor{
 		[&](SSACFG::Call const& _call) {
 			_ret["type"] = "FunctionCall";
-			opJson["op"] = _call.function.get().name.str();
+			opJson["op"] = _labels[_call.function.get().name];
 		},
 		[&](SSACFG::LiteralAssignment const&) {
 			yulAssert(_operation.inputs.size() == 1);
@@ -88,7 +88,7 @@ Json toJson(Json& _ret, SSACFG const& _cfg, SSACFG::Operation const& _operation)
 	return opJson;
 }
 
-Json toJson(SSACFG const& _cfg, SSACFG::BlockId _blockId, LivenessAnalysis const* _liveness)
+Json toJson(ASTLabelRegistry const& _labels, SSACFG const& _cfg, SSACFG::BlockId _blockId, LivenessAnalysis const* _liveness)
 {
 	auto const valueToString = [&](LivenessAnalysis::LivenessData::LiveCounts::value_type const& _live) { return _live.first.str(_cfg); };
 
@@ -124,17 +124,17 @@ Json toJson(SSACFG const& _cfg, SSACFG::BlockId _blockId, LivenessAnalysis const
 		}
 	}
 	for (auto const& operation: block.operations)
-		blockJson["instructions"].push_back(toJson(blockJson, _cfg, operation));
+		blockJson["instructions"].push_back(toJson(blockJson, _labels, _cfg, operation));
 
 	return blockJson;
 }
 
-Json exportBlock(SSACFG const& _cfg, SSACFG::BlockId _entryId, LivenessAnalysis const* _liveness)
+Json exportBlock(ASTLabelRegistry const& _labels, SSACFG const& _cfg, SSACFG::BlockId _entryId, LivenessAnalysis const* _liveness)
 {
 	Json blocksJson = Json::array();
 	util::BreadthFirstSearch<SSACFG::BlockId> bfs{{{_entryId}}};
 	bfs.run([&](SSACFG::BlockId _blockId, auto _addChild) {
-		Json blockJson = toJson(_cfg, _blockId, _liveness);
+		Json blockJson = toJson(_labels, _cfg, _blockId, _liveness);
 
 		Json exitBlockJson = Json::object();
 		std::visit(util::GenericVisitor{
@@ -169,7 +169,7 @@ Json exportBlock(SSACFG const& _cfg, SSACFG::BlockId _entryId, LivenessAnalysis 
 	return blocksJson;
 }
 
-Json exportFunction(SSACFG const& _cfg, LivenessAnalysis const* _liveness)
+Json exportFunction(ASTLabelRegistry const& _labels, SSACFG const& _cfg, LivenessAnalysis const* _liveness)
 {
 	Json functionJson = Json::object();
 	functionJson["type"] = "Function";
@@ -177,25 +177,25 @@ Json exportFunction(SSACFG const& _cfg, LivenessAnalysis const* _liveness)
 	static auto constexpr argsTransform = [](auto const& _arg) { return fmt::format("v{}", std::get<1>(_arg).value()); };
 	functionJson["arguments"] = _cfg.arguments | ranges::views::transform(argsTransform) | ranges::to<std::vector>;
 	functionJson["numReturns"] = _cfg.returns.size();
-	functionJson["blocks"] = exportBlock(_cfg, _cfg.entry, _liveness);
+	functionJson["blocks"] = exportBlock(_labels, _cfg, _cfg.entry, _liveness);
 	return functionJson;
 }
 
 }
 
-Json io::json::exportControlFlow(ControlFlow const& _controlFlow, ControlFlowLiveness const* _liveness)
+Json io::json::exportControlFlow(ASTLabelRegistry const& _labels, ControlFlow const& _controlFlow, ControlFlowLiveness const* _liveness)
 {
 	if (_liveness)
 		yulAssert(&_liveness->controlFlow.get() == &_controlFlow);
 
 	Json yulObjectJson = Json::object();
-	yulObjectJson["blocks"] = exportBlock(*_controlFlow.mainGraph(), SSACFG::BlockId{0}, _liveness ? _liveness->cfgLiveness.front().get() : nullptr);
+	yulObjectJson["blocks"] = exportBlock(_labels, *_controlFlow.mainGraph(), SSACFG::BlockId{0}, _liveness ? _liveness->cfgLiveness.front().get() : nullptr);
 
 	Json functionsJson = Json::object();
 	size_t index = 1;
 	for (auto const& [function, functionGraph]: _controlFlow.functionGraphMapping | ranges::views::drop(1))
 	{
-		functionsJson[function->name.str()] = exportFunction(*functionGraph, _liveness ? _liveness->cfgLiveness[index++].get() : nullptr);
+		functionsJson[_labels[function->name]] = exportFunction(_labels, *functionGraph, _liveness ? _liveness->cfgLiveness[index++].get() : nullptr);
 	}
 	yulObjectJson["functions"] = functionsJson;
 

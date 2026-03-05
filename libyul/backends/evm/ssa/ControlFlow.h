@@ -37,7 +37,7 @@ struct ControlFlowLiveness{
 	std::reference_wrapper<ControlFlow const> controlFlow;
 	std::vector<std::unique_ptr<LivenessAnalysis>> cfgLiveness;
 
-	std::string toDot() const;
+	std::string toDot(ASTLabelRegistry const& _labels) const;
 };
 
 struct ControlFlow
@@ -61,7 +61,7 @@ struct ControlFlow
 		return functionGraphs.at(_id).get();
 	}
 
-	std::string toDot(ControlFlowLiveness const* _liveness=nullptr) const
+	std::string toDot(ASTLabelRegistry const& _labels, ControlFlowLiveness const* _liveness=nullptr) const
 	{
 		if (_liveness)
 			yulAssert(&_liveness->controlFlow.get() == this);
@@ -70,6 +70,7 @@ struct ControlFlow
 
 		for (size_t index=0; index < functionGraphs.size(); ++index)
 			output << functionGraphs[index]->toDot(
+				_labels,
 				false,
 				index,
 				_liveness ? _liveness->cfgLiveness[index].get() : nullptr

@@ -58,8 +58,6 @@ DEFINE_PROTO_FUZZER(Program const& _input)
 		of.write(yul_source.data(), static_cast<std::streamsize>(yul_source.size()));
 	}
 
-	YulStringRepository::reset();
-
 	// YulStack entry point
 	YulStack stack(
 		version,

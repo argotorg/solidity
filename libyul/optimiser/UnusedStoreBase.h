@@ -100,6 +100,5 @@ protected:
 };
 
 enum class UnusedStoreEliminatorKey { Memory, Storage };
-extern template class UnusedStoreBase<YulString>;
 extern template class UnusedStoreBase<UnusedStoreEliminatorKey>;
 }

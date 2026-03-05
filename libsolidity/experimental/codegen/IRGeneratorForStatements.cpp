@@ -34,6 +34,8 @@
 
 #include <range/v3/view/drop_last.hpp>
 
+#include <fmt/format.h>
+
 using namespace solidity;
 using namespace solidity::util;
 using namespace solidity::frontend;
@@ -54,8 +56,16 @@ struct CopyTranslate: public yul::ASTCopier
 {
 	CopyTranslate(
 		IRGenerationContext const& _context,
+		yul::ASTLabelRegistry const& _originalLabels,
+		yul::ASTLabelRegistryBuilder& _labelsBuilder,
 		std::map<yul::Identifier const*, InlineAssemblyAnnotation::ExternalIdentifierInfo> _references
-	): m_context(_context), m_references(std::move(_references)) {}
+	):
+		m_context(_context),
+		m_originalLabels(_originalLabels),
+		m_labelsBuilder(_labelsBuilder),
+		m_references(std::move(_references))
+	{
+	}
 
 	using ASTCopier::operator();
 
@@ -71,7 +81,7 @@ struct CopyTranslate: public yul::ASTCopier
 
 	yul::YulName translateIdentifier(yul::YulName _name) override
 	{
-		return yul::YulName{"usr$" + _name.str()};
+		return m_labelsBuilder.define(fmt::format("usr${}", m_originalLabels[_name]));
 	}
 
 	yul::Identifier translate(yul::Identifier const& _identifier) override
@@ -98,10 +108,12 @@ private:
 		solAssert(type);
 		solAssert(m_context.env->typeEquals(*type, m_context.analysis.typeSystem().type(PrimitiveType::Word, {})));
 		std::string value = IRNames::localVariable(*varDecl);
-		return yul::Identifier{_identifier.debugData, yul::YulName{value}};
+		return yul::Identifier{_identifier.debugData, m_labelsBuilder.define(value)};
 	}
 
 	IRGenerationContext const& m_context;
+	yul::ASTLabelRegistry const& m_originalLabels;
+	yul::ASTLabelRegistryBuilder& m_labelsBuilder;
 	std::map<yul::Identifier const*, InlineAssemblyAnnotation::ExternalIdentifierInfo> m_references;
 };
 
@@ -124,10 +136,13 @@ bool IRGeneratorForStatements::visit(TupleExpression const& _tupleExpression)
 
 bool IRGeneratorForStatements::visit(InlineAssembly const& _assembly)
 {
-	CopyTranslate bodyCopier{m_context, _assembly.annotation().externalReferences};
+	auto const& originalLabels = _assembly.operations().labels();
+	yul::ASTLabelRegistryBuilder labelBuilder{originalLabels};
+	CopyTranslate bodyCopier{m_context, originalLabels, labelBuilder, _assembly.annotation().externalReferences};
 	yul::Statement modified = bodyCopier(_assembly.operations().root());
+	auto const modifiedLabels = labelBuilder.build();
 	solAssert(std::holds_alternative<yul::Block>(modified));
-	m_code << yul::AsmPrinter(_assembly.dialect())(std::get<yul::Block>(modified)) << "\n";
+	m_code << yul::AsmPrinter(_assembly.dialect(), modifiedLabels)(std::get<yul::Block>(modified)) << "\n";
 	return false;
 }
 

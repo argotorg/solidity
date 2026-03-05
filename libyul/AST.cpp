@@ -17,6 +17,9 @@ along with solidity.  If not, see <http://www.gnu.org/licenses/>.
 // SPDX-License-Identifier: GPL-3.0
 
 #include <libyul/AST.h>
+
+#include <libyul/optimiser/LabelIDDispenser.h>
+
 #include <libyul/Exceptions.h>
 
 namespace solidity::yul
@@ -76,5 +79,11 @@ bool LiteralValue::operator<(solidity::yul::LiteralValue const& _rhs) const
 
 	return value() < _rhs.value();
 }
+
+AST::AST(Dialect const& _dialect, LabelIDDispenser const& _dispenser, Block _root):
+	m_dialect(_dialect),
+	m_labels(_dispenser.consolidateLabels(_root, _dialect)),
+	m_root(std::move(_root))
+{}
 
 }

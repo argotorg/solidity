@@ -13,10 +13,10 @@
 //     {
 //         let _1 := 9
 //         mstore(2, _1)
-//         let _4 := _1
-//         let _5 := 0
-//         sstore(_5, _4)
-//         pop(extcall(_5, _5, _5, _5))
-//         sstore(_5, _1)
+//         let _2 := _1
+//         let _3 := 0
+//         sstore(_3, _2)
+//         pop(extcall(_3, _3, _3, _3))
+//         sstore(_3, _1)
 //     }
 // }

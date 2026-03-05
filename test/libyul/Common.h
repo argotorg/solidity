@@ -55,7 +55,7 @@ yul::YulStack parseYul(
 	std::optional<frontend::OptimiserSettings> _optimiserSettings = std::nullopt
 );
 
-Block disambiguate(std::string const& _source);
+AST disambiguate(std::string const& _source);
 std::string format(std::string const& _source);
 
 solidity::yul::Dialect const& dialect(std::string const& _name, langutil::EVMVersion _evmVersion, std::optional<uint8_t> _eofVersion);

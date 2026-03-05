@@ -36,6 +36,8 @@
 
 #include <range/v3/view/transform.hpp>
 
+#include <fmt/format.h>
+
 using namespace solidity;
 using namespace solidity::frontend;
 using namespace solidity::frontend::experimental;
@@ -300,6 +302,7 @@ bool TypeInference::visit(InlineAssembly const& _inlineAssembly)
 		*_inlineAssembly.annotation().analysisInfo,
 		m_errorReporter,
 		_inlineAssembly.dialect(),
+		_inlineAssembly.operations().labels(),
 		identifierAccess
 	);
 	if (!analyzer.analyze(_inlineAssembly.operations().root()))

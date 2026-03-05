@@ -51,6 +51,8 @@
 #include <range/v3/algorithm/all_of.hpp>
 #include <range/v3/view/transform.hpp>
 
+#include <fmt/format.h>
+
 using namespace solidity;
 using namespace solidity::util;
 using namespace solidity::frontend;
@@ -63,8 +65,18 @@ struct CopyTranslate: public yul::ASTCopier
 {
 	using ExternalRefsMap = std::map<yul::Identifier const*, InlineAssemblyAnnotation::ExternalIdentifierInfo>;
 
-	CopyTranslate(IRGenerationContext& _context, ExternalRefsMap const& _references):
-		m_context(_context), m_references(_references) {}
+	CopyTranslate(
+		yul::ASTLabelRegistry const& _originalLabels,
+		yul::ASTLabelRegistryBuilder& _labelBuilder,
+		IRGenerationContext& _context,
+		ExternalRefsMap const& _references
+	):
+		m_originalLabels(_originalLabels),
+		m_labelBuilder(_labelBuilder),
+		m_context(_context),
+		m_references(_references)
+	{
+	}
 
 	using ASTCopier::operator();
 
@@ -84,7 +96,7 @@ struct CopyTranslate: public yul::ASTCopier
 		// from the Yul dialect we are compiling to. By only translating `YulName`s which correspond to Identifiers,
 		// we are implicitly excluding builtins together with the assumption, that numerical builtin handles
 		// stay identical. Special care has to be taken, that these numerical handles stay consistent.
-		return yul::YulName{"usr$" + _name.str()};
+		return m_labelBuilder.define(fmt::format("usr${}", m_originalLabels[_name]));
 	}
 
 	yul::Identifier translate(yul::Identifier const& _identifier) override
@@ -203,9 +215,11 @@ private:
 		if (isDigit(value.front()))
 			return yul::Literal{_identifier.debugData, yul::LiteralKind::Number, yul::valueOfNumberLiteral(value)};
 		else
-			return yul::Identifier{_identifier.debugData, yul::YulName{value}};
+			return yul::Identifier{_identifier.debugData, m_labelBuilder.define(value)};
 	}
 
+	yul::ASTLabelRegistry const& m_originalLabels;
+	yul::ASTLabelRegistryBuilder& m_labelBuilder;
 	IRGenerationContext& m_context;
 	ExternalRefsMap const& m_references;
 };
@@ -2290,13 +2304,15 @@ bool IRGeneratorForStatements::visit(InlineAssembly const& _inlineAsm)
 	setLocation(_inlineAsm);
 	if (*_inlineAsm.annotation().hasMemoryEffects && !_inlineAsm.annotation().markedMemorySafe)
 		m_context.setMemoryUnsafeInlineAssemblySeen();
-	CopyTranslate bodyCopier{m_context, _inlineAsm.annotation().externalReferences};
-
+	auto const& originalLabels = _inlineAsm.operations().labels();
+	yul::ASTLabelRegistryBuilder labelBuilder{originalLabels};
+	CopyTranslate bodyCopier{originalLabels, labelBuilder, m_context, _inlineAsm.annotation().externalReferences};
 	yul::Statement modified = bodyCopier(_inlineAsm.operations().root());
+	auto const modifiedLabels = labelBuilder.build();
 
 	solAssert(std::holds_alternative<yul::Block>(modified));
 
-	appendCode() << yul::AsmPrinter(_inlineAsm.dialect())(std::get<yul::Block>(modified)) << "\n";
+	appendCode() << yul::AsmPrinter(_inlineAsm.dialect(), modifiedLabels)(std::get<yul::Block>(modified)) << "\n";
 	return false;
 }
 

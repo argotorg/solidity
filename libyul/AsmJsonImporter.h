@@ -23,11 +23,15 @@
 
 #pragma once
 
-#include <libsolutil/JSON.h>
-#include <liblangutil/SourceLocation.h>
 #include <libyul/ASTForward.h>
+#include <libyul/ASTLabelRegistry.h>
 
-#include <utility>
+#include <libsolutil/JSON.h>
+
+#include <liblangutil/SourceLocation.h>
+
+#include <memory>
+#include <vector>
 
 namespace solidity::yul
 {
@@ -78,6 +82,7 @@ private:
 
 	Dialect const& m_dialect;
 	std::vector<std::shared_ptr<std::string const>> const& m_sourceNames;
+	ASTLabelRegistryBuilder m_labelRegistryBuilder;
 };
 
 }

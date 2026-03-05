@@ -43,11 +43,11 @@ std::string inlinableFunctions(std::string const& _source)
 	auto ast = disambiguate(_source);
 
 	InlinableExpressionFunctionFinder funFinder;
-	funFinder(ast);
+	funFinder(ast.root());
 
 	std::vector<std::string> functionNames;
 	for (auto const& f: funFinder.inlinableFunctions())
-		functionNames.emplace_back(f.first.str());
+		functionNames.emplace_back(ast.labelOf(f.first));
 	return boost::algorithm::join(functionNames, ",");
 }
 
@@ -88,7 +88,7 @@ BOOST_AUTO_TEST_CASE(simple_inside_structures)
 		"{"
 			"function h() -> y { y := 2 }"
 		"}"
-	"}"), "h,g,f");
+	"}"), "g,f,h");
 }
 
 BOOST_AUTO_TEST_CASE(negative)

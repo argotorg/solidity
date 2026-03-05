@@ -38,7 +38,6 @@
 #include <libyul/optimiser/Suite.h>
 #include <libyul/Object.h>
 #include <libyul/optimiser/ASTCopier.h>
-#include <libyul/YulName.h>
 
 #include <libevmasm/Instruction.h>
 #include <libevmasm/Assembly.h>
@@ -944,7 +943,7 @@ bool ContractCompiler::visit(InlineAssembly const& _inlineAssembly)
 		solAssert(dialect, "");
 
 		// Create a modifiable copy of the code and analysis
-		object.setCode(std::make_shared<yul::AST>(_inlineAssembly.dialect(), yul::ASTCopier().translate(code->root())));
+		object.setCode(std::make_shared<yul::AST>(_inlineAssembly.dialect(), code->labels(), yul::ASTCopier().translate(code->root())));
 		object.analysisInfo = std::make_shared<yul::AsmAnalysisInfo>(yul::AsmAnalyzer::analyzeStrictAssertCorrect(object));
 
 		m_context.optimizeYul(object, m_optimiserSettings);
@@ -954,7 +953,7 @@ bool ContractCompiler::visit(InlineAssembly const& _inlineAssembly)
 	}
 
 	yul::CodeGenerator::assemble(
-		code->root(),
+		*code,
 		*analysisInfo,
 		*m_context.assemblyPtr(),
 		m_context.evmVersion(),

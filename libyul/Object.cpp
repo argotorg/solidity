@@ -99,7 +99,7 @@ Json Object::toJson() const
 
 	Json codeJson;
 	codeJson["nodeType"] = "YulCode";
-	codeJson["block"] = AsmJsonConverter(*dialect(), 0 /* sourceIndex */)(code()->root());
+	codeJson["block"] = AsmJsonConverter(*dialect(), code()->labels(), 0 /* sourceIndex */)(code()->root());
 
 	Json subObjectsJson = Json::array();
 	for (std::shared_ptr<ObjectNode> const& subObject: subObjects)

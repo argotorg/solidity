@@ -24,6 +24,6 @@
 namespace solidity::yul::ssa::io::json
 {
 
-Json exportControlFlow(ControlFlow const& _controlFlow, ControlFlowLiveness const* _liveness);
+Json exportControlFlow(ASTLabelRegistry const& _labels, ControlFlow const& _controlFlow, ControlFlowLiveness const* _liveness);
 
 }

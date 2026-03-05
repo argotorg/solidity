@@ -2,7 +2,7 @@
     "errors": [
         {
             "component": "general",
-            "formattedMessage": "YulException: Cannot swap Variable value23 with Slot 0x20: too deep in the stack by 9 slots in [ RET value23 value22 value21 value20 value19 value18 value17 value16 value15 value14 value13 value12 value11 value10 value9 value8 value7 value6 value5 value4 value3 value2 value1 value0 pos 0x20 ]
+            "formattedMessage": "YulException: Cannot swap Variable value23 with Slot 0x20: too deep in the stack by 9 slots in [ RET value23 value22 value21 value20 value19 value18 value17 value16 value15 value14 value13 value12 value11 value10 value9 value8 value7 value6 value5 value4 value3 value2 value1 value0 pos_1 0x20 ]
 memoryguard was present.
  --> in.sol:1:1:
   |
@@ -10,7 +10,7 @@ memoryguard was present.
   | ^ (Relevant source part starts here and spans across multiple lines).
 
 ",
-            "message": "Cannot swap Variable value23 with Slot 0x20: too deep in the stack by 9 slots in [ RET value23 value22 value21 value20 value19 value18 value17 value16 value15 value14 value13 value12 value11 value10 value9 value8 value7 value6 value5 value4 value3 value2 value1 value0 pos 0x20 ]
+            "message": "Cannot swap Variable value23 with Slot 0x20: too deep in the stack by 9 slots in [ RET value23 value22 value21 value20 value19 value18 value17 value16 value15 value14 value13 value12 value11 value10 value9 value8 value7 value6 value5 value4 value3 value2 value1 value0 pos_1 0x20 ]
 memoryguard was present.",
             "severity": "error",
             "sourceLocation": {

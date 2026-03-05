@@ -21,13 +21,10 @@
 
 #pragma once
 
-#include <liblangutil/Exceptions.h>
+#include <libyul/ASTForward.h>
 
-#include <libyul/YulName.h>
-
-#include <functional>
-#include <memory>
-#include <optional>
+#include <cstddef>
+#include <map>
 #include <variant>
 
 namespace solidity::yul

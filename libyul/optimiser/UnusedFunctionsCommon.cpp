@@ -18,6 +18,7 @@
 
 #include <libyul/optimiser/UnusedFunctionsCommon.h>
 
+#include <libyul/optimiser/LabelIDDispenser.h>
 #include <libyul/Dialect.h>
 
 #include <libsolutil/CommonData.h>
@@ -32,14 +33,14 @@ FunctionDefinition unusedFunctionsCommon::createLinkingFunction(
 	std::pair<std::vector<bool>, std::vector<bool>> const& _usedParametersAndReturns,
 	YulName const& _originalFunctionName,
 	YulName const& _linkingFunctionName,
-	NameDispenser& _nameDispenser
+	LabelIDDispenser& _nameDispenser
 )
 {
 	auto generateTypedName = [&](NameWithDebugData t)
 	{
 		return NameWithDebugData{
 			t.debugData,
-			_nameDispenser.newName(t.name)
+			_nameDispenser.newID(t.name)
 		};
 	};
 

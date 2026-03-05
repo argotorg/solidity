@@ -25,7 +25,7 @@
 
 #include <libyul/optimiser/ASTWalker.h>
 #include <libyul/optimiser/KnowledgeBase.h>
-#include <libyul/YulName.h>
+#include <libyul/ASTForward.h>
 #include <libyul/AST.h> // Needed for m_zero below.
 #include <libyul/SideEffects.h>
 
@@ -34,6 +34,7 @@
 
 #include <map>
 #include <set>
+#include <unordered_map>
 
 namespace solidity::yul
 {

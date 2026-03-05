@@ -27,6 +27,7 @@
 #include <libyul/optimiser/UnusedPruner.h>
 #include <libyul/optimiser/Metrics.h>
 #include <libyul/optimiser/Semantics.h>
+#include <libyul/optimiser/LabelIDDispenser.h>
 
 #include <libyul/backends/evm/ControlFlowGraphBuilder.h>
 #include <libyul/backends/evm/StackHelpers.h>
@@ -78,7 +79,7 @@ public:
 	using DataFlowAnalyzer::operator();
 	void operator()(FunctionDefinition& _function) override
 	{
-		yulAssert(m_currentFunctionName.empty());
+		yulAssert(ASTLabelRegistry::empty(m_currentFunctionName));
 		m_currentFunctionName = _function.name;
 		DataFlowAnalyzer::operator()(_function);
 		m_currentFunctionName = {};
@@ -264,9 +265,11 @@ std::tuple<bool, Block> StackCompressor::run(
 		yul::AsmAnalysisInfo analysisInfo = yul::AsmAnalyzer::analyzeStrictAssertCorrect(
 			*_object.dialect(),
 			astRoot,
+			_object.code()->labels(),
 			_object.summarizeStructure()
 		);
-		std::unique_ptr<CFG> cfg = ControlFlowGraphBuilder::build(analysisInfo, *_object.dialect(), astRoot);
+		LabelIDDispenser nameDispenser{_object.code()->labels()};
+		std::unique_ptr<CFG> cfg = ControlFlowGraphBuilder::build(analysisInfo, nameDispenser, *_object.dialect(), astRoot);
 		yulAssert(evmDialect);
 		eliminateVariablesOptimizedCodegen(
 			*_object.dialect(),
@@ -280,7 +283,7 @@ std::tuple<bool, Block> StackCompressor::run(
 		for (size_t iterations = 0; iterations < _maxIterations; iterations++)
 		{
 			Object object(_object);
-			object.setCode(std::make_shared<AST>(*_object.dialect(), std::get<Block>(ASTCopier{}(astRoot))));
+			object.setCode(std::make_shared<AST>(*_object.dialect(), _object.code()->labels(), std::get<Block>(ASTCopier{}(astRoot))));
 			std::map<YulName, int> stackSurplus = CompilabilityChecker(object, _optimizeStackAllocation).stackDeficit;
 			if (stackSurplus.empty())
 				return std::make_tuple(true, std::move(astRoot));

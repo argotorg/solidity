@@ -115,7 +115,7 @@ void Interpreter::run(
 )
 {
 	Scope scope;
-	Interpreter{_state, _ast.dialect(), scope, _disableExternalCalls, _disableMemoryTrace}(_ast.root());
+	Interpreter{_state, _ast.dialect(), _ast.labels(), scope, _disableExternalCalls, _disableMemoryTrace}(_ast.root());
 }
 
 void Interpreter::operator()(ExpressionStatement const& _expressionStatement)
@@ -250,14 +250,14 @@ void Interpreter::operator()(Block const& _block)
 
 u256 Interpreter::evaluate(Expression const& _expression)
 {
-	ExpressionEvaluator ev(m_state, m_dialect, *m_scope, m_variables, m_disableExternalCalls, m_disableMemoryTrace);
+	ExpressionEvaluator ev(m_state, m_dialect, m_labels, *m_scope, m_variables, m_disableExternalCalls, m_disableMemoryTrace);
 	ev.visit(_expression);
 	return ev.value();
 }
 
 std::vector<u256> Interpreter::evaluateMulti(Expression const& _expression)
 {
-	ExpressionEvaluator ev(m_state, m_dialect, *m_scope, m_variables, m_disableExternalCalls, m_disableMemoryTrace);
+	ExpressionEvaluator ev(m_state, m_dialect, m_labels, *m_scope, m_variables, m_disableExternalCalls, m_disableMemoryTrace);
 	ev.visit(_expression);
 	return ev.values();
 }

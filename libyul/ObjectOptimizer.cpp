@@ -82,7 +82,7 @@ void ObjectOptimizer::optimize(Object& _object, Settings const& _settings, bool 
 	if (EVMDialect const* evmDialect = dynamic_cast<EVMDialect const*>(&dialect))
 		meter = std::make_unique<GasMeter>(*evmDialect, _isCreation, _settings.expectedExecutionsPerDeployment);
 
-	std::optional<h256> cacheKey = calculateCacheKey(_object.code()->root(), *_object.debugData, _settings, _isCreation);
+	std::optional<h256> cacheKey = calculateCacheKey(*_object.code(), *_object.debugData, _settings, _isCreation);
 	if (cacheKey.has_value() && m_cachedObjects.count(*cacheKey) != 0)
 	{
 		overwriteWithOptimizedObject(*cacheKey, _object);
@@ -107,6 +107,7 @@ void ObjectOptimizer::storeOptimizedObject(util::h256 _cacheKey, Object const& _
 {
 	m_cachedObjects[_cacheKey] = CachedObject{
 		std::make_shared<Block>(ASTCopier{}.translate(_optimizedObject.code()->root())),
+		std::make_unique<ASTLabelRegistry>(_optimizedObject.code()->labels()),
 		&_dialect,
 	};
 }
@@ -118,7 +119,13 @@ void ObjectOptimizer::overwriteWithOptimizedObject(util::h256 _cacheKey, Object&
 
 	yulAssert(cachedObject.optimizedAST);
 	yulAssert(cachedObject.dialect);
-	_object.setCode(std::make_shared<AST>(*cachedObject.dialect, ASTCopier{}.translate(*cachedObject.optimizedAST)));
+	_object.setCode(
+		std::make_shared<AST>(
+			*cachedObject.dialect,
+			ASTLabelRegistry(*cachedObject.labels),
+			ASTCopier{}.translate(*cachedObject.optimizedAST)
+		)
+	);
 	yulAssert(_object.code());
 	yulAssert(_object.dialect());
 
@@ -134,7 +141,7 @@ void ObjectOptimizer::overwriteWithOptimizedObject(util::h256 _cacheKey, Object&
 }
 
 std::optional<h256> ObjectOptimizer::calculateCacheKey(
-	Block const& _ast,
+	AST const& _ast,
 	ObjectDebugData const& _debugData,
 	Settings const& _settings,
 	bool _isCreation
@@ -142,6 +149,7 @@ std::optional<h256> ObjectOptimizer::calculateCacheKey(
 {
 	AsmPrinter asmPrinter(
 		languageToDialect(_settings.language, _settings.evmVersion, _settings.eofVersion),
+		_ast.labels(),
 		_debugData.sourceNames,
 		DebugInfoSelection::All()
 	);
@@ -151,7 +159,7 @@ std::optional<h256> ObjectOptimizer::calculateCacheKey(
 	// in that regard are considered equal here.  This is fine because the optimizer does not keep
 	// them up to date across AST transformations anyway so in any use where they need to be reliable,
 	// we just regenerate them by reparsing the object.
-	rawKey += keccak256(asmPrinter(_ast)).asBytes();
+	rawKey += keccak256(asmPrinter(_ast.root())).asBytes();
 	rawKey += keccak256(_debugData.formatUseSrcComment()).asBytes();
 	rawKey += h256(u256(_settings.language)).asBytes();
 	static_assert(static_cast<uint8_t>(static_cast<bool>(2)) == 1);

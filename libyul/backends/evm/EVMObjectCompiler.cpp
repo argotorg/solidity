@@ -86,6 +86,7 @@ void EVMObjectCompiler::run(Object const& _object, bool _optimize)
 			m_assembly,
 			*_object.analysisInfo,
 			_object.code()->root(),
+			_object.code()->labels(),
 			*evmDialect,
 			context,
 			OptimizedEVMCodeTransform::UseNamedLabels::ForFirstFunctionOfEachName
@@ -118,7 +119,7 @@ void EVMObjectCompiler::run(Object const& _object, bool _optimize)
 		CodeTransform transform{
 			m_assembly,
 			*_object.analysisInfo,
-			_object.code()->root(),
+			*_object.code(),
 			*evmDialect,
 			context,
 			_optimize,

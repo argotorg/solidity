@@ -35,6 +35,8 @@
 
 #include <range/v3/view/transform.hpp>
 
+#include <fmt/format.h>
+
 #include <functional>
 #include <memory>
 
@@ -49,7 +51,7 @@ std::string AsmPrinter::format(
 	DebugInfoSelection const& _debugInfoSelection,
 	CharStreamProvider const* _soliditySourceProvider)
 {
-	return AsmPrinter{_ast.dialect(), _sourceIndexToName, _debugInfoSelection, _soliditySourceProvider}(_ast.root());
+	return AsmPrinter{_ast.dialect(), _ast.labels(), _sourceIndexToName, _debugInfoSelection, _soliditySourceProvider}(_ast.root());
 }
 
 
@@ -74,8 +76,8 @@ std::string AsmPrinter::operator()(Literal const& _literal)
 
 std::string AsmPrinter::operator()(Identifier const& _identifier)
 {
-	yulAssert(!_identifier.name.empty(), "Invalid identifier.");
-	return formatDebugData(_identifier) + _identifier.name.str();
+	yulAssert(!m_labels.empty(_identifier.name), "Invalid identifier.");
+	return fmt::format("{}{}", formatDebugData(_identifier), m_labels[_identifier.name]);
 }
 
 std::string AsmPrinter::operator()(BuiltinName const& _builtin)
@@ -123,10 +125,10 @@ std::string AsmPrinter::operator()(VariableDeclaration const& _variableDeclarati
 
 std::string AsmPrinter::operator()(FunctionDefinition const& _functionDefinition)
 {
-	yulAssert(!_functionDefinition.name.empty(), "Invalid function name.");
+	yulAssert(!m_labels.empty(_functionDefinition.name), "Invalid function name.");
 
 	std::string out = formatDebugData(_functionDefinition);
-	out += "function " + _functionDefinition.name.str() + "(";
+	out += fmt::format("function {}(", m_labels[_functionDefinition.name]);
 	out += boost::algorithm::join(
 		_functionDefinition.parameters | ranges::views::transform(
 			[this](NameWithDebugData argument) { return formatNameWithDebugData(argument); }
@@ -253,8 +255,8 @@ std::string AsmPrinter::operator()(Block const& _block)
 
 std::string AsmPrinter::formatNameWithDebugData(NameWithDebugData _variable)
 {
-	yulAssert(!_variable.name.empty(), "Invalid variable name.");
-	return formatDebugData(_variable) + _variable.name.str();
+	yulAssert(!m_labels.empty(_variable.name), "Invalid variable name.");
+	return fmt::format("{}{}", formatDebugData(_variable), m_labels[_variable.name]);
 }
 
 std::string AsmPrinter::formatSourceLocation(

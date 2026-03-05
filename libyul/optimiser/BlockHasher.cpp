@@ -65,7 +65,7 @@ void ASTHasherBase::hashFunctionCall(FunctionCall const& _funCall)
 		[&](Identifier const& _identifier)
 		{
 			hash64(compileTimeLiteralHash("UserDefined"));
-			hash64(_identifier.name.hash());
+			hash64(_identifier.name);
 		}
 	};
 	std::visit(visitor, _funCall.functionName);
@@ -231,7 +231,7 @@ void ExpressionHasher::operator()(Literal const& _literal)
 void ExpressionHasher::operator()(Identifier const& _identifier)
 {
 	hash64(compileTimeLiteralHash("Identifier"));
-	hash64(_identifier.name.hash());
+	hash64(_identifier.name);
 }
 
 void ExpressionHasher::operator()(FunctionCall const& _funCall)

@@ -8,7 +8,7 @@ object "C_25" {
             {
                 revert_error_ca66f745a3ce8ff40e2ccaf1ad45db7774001b90d25810abd9040049be7bf4bb()
             }
-            constructor_C()
+            constructor_C_25()
             let _1 := allocate_unbounded()
             codecopy(_1, dataoffset("C_25_deployed"), datasize("C_25_deployed"))
             return(_1, datasize("C_25_deployed"))
@@ -17,36 +17,36 @@ object "C_25" {
         { memPtr := mload(64) }
         function revert_error_ca66f745a3ce8ff40e2ccaf1ad45db7774001b90d25810abd9040049be7bf4bb()
         { revert(0, 0) }
-        function shift_left(value) -> newValue
+        function shift_left_0(value) -> newValue
         { newValue := shl(0, value) }
-        function update_byte_slice_shift(value, toInsert) -> result
+        function update_byte_slice_32_shift_0(value_1, toInsert) -> result
         {
             let mask := not(0)
-            toInsert := shift_left(toInsert)
-            value := and(value, not(mask))
-            result := or(value, and(toInsert, mask))
+            toInsert := shift_left_0(toInsert)
+            value_1 := and(value_1, not(mask))
+            result := or(value_1, and(toInsert, mask))
         }
-        function cleanup_rational_by(value) -> cleaned
-        { cleaned := value }
-        function cleanup_uint256(value) -> cleaned
-        { cleaned := value }
-        function identity(value) -> ret
-        { ret := value }
-        function convert_rational_by_to_uint256(value) -> converted
+        function cleanup_t_rational_1026210852590_by_1(value_2) -> cleaned
+        { cleaned := value_2 }
+        function cleanup_t_uint256(value_3) -> cleaned_1
+        { cleaned_1 := value_3 }
+        function identity(value_4) -> ret
+        { ret := value_4 }
+        function convert_t_rational_1026210852590_by_1_to_t_uint256(value_5) -> converted
         {
-            converted := cleanup_uint256(identity(cleanup_rational_by(value)))
+            converted := cleanup_t_uint256(identity(cleanup_t_rational_1026210852590_by_1(value_5)))
         }
-        function prepare_store_uint256(value) -> ret
-        { ret := value }
-        function update_storage_value_offset_rational_by_to_uint256(slot, value)
+        function prepare_store_t_uint256(value_6) -> ret_1
+        { ret_1 := value_6 }
+        function update_storage_value_offset_0_t_rational_1026210852590_by_1_to_t_uint256(slot, value_0)
         {
-            let convertedValue := convert_rational_by_to_uint256(value)
-            sstore(slot, update_byte_slice_shift(sload(slot), prepare_store_uint256(convertedValue)))
+            let convertedValue_0 := convert_t_rational_1026210852590_by_1_to_t_uint256(value_0)
+            sstore(slot, update_byte_slice_32_shift_0(sload(slot), prepare_store_t_uint256(convertedValue_0)))
         }
-        function constructor_C()
+        function constructor_C_25()
         {
-            let expr := 0xeeeeeeeeee
-            update_storage_value_offset_rational_by_to_uint256(0x00, expr)
+            let expr_5 := 0xeeeeeeeeee
+            update_storage_value_offset_0_t_rational_1026210852590_by_1_to_t_uint256(0x00, expr_5)
         }
     }
     /// @use-src 0:"input.sol"
@@ -56,15 +56,15 @@ object "C_25" {
                 mstore(64, memoryguard(0x80))
                 if iszero(lt(calldatasize(), 4))
                 {
-                    let selector := shift_right_unsigned(calldataload(0))
+                    let selector := shift_right_224_unsigned(calldataload(0))
                     switch selector
-                    case 0xc2985578 { external_fun_foo() }
-                    case 0xff2558ff { external_fun_varStorage() }
+                    case 0xc2985578 { external_fun_foo_24() }
+                    case 0xff2558ff { external_fun_varStorage_6() }
                     default { }
                 }
                 revert_error_42b3090547df1d2001c96683413b8cf91c1b902ef5e3cb8d9f6f304cf7446f74()
             }
-            function shift_right_unsigned(value) -> newValue
+            function shift_right_224_unsigned(value) -> newValue
             { newValue := shr(224, value) }
             function allocate_unbounded() -> memPtr
             { memPtr := mload(64) }
@@ -72,150 +72,158 @@ object "C_25" {
             { revert(0, 0) }
             function revert_error_dbdddcbe895c83990c08b3492a0e83918d802a52331272ac6fdb6a7c4aea3b1b()
             { revert(0, 0) }
-            function abi_decode(headStart, dataEnd)
+            function abi_decode_tuple_(headStart, dataEnd)
             {
                 if slt(sub(dataEnd, headStart), 0)
                 {
                     revert_error_dbdddcbe895c83990c08b3492a0e83918d802a52331272ac6fdb6a7c4aea3b1b()
                 }
             }
-            function cleanup_uint256(value) -> cleaned
-            { cleaned := value }
-            function abi_encode_uint256_to_uint256(value, pos)
+            function cleanup_t_uint256(value_1) -> cleaned
+            { cleaned := value_1 }
+            function abi_encode_t_uint256_to_t_uint256_fromStack(value_2, pos)
             {
-                mstore(pos, cleanup_uint256(value))
+                mstore(pos, cleanup_t_uint256(value_2))
             }
-            function abi_encode_uint256(headStart, value0) -> tail
+            function abi_encode_tuple_t_uint256__to_t_uint256__fromStack(headStart_1, value0) -> tail
             {
-                tail := add(headStart, 32)
-                abi_encode_uint256_to_uint256(value0, add(headStart, 0))
+                tail := add(headStart_1, 32)
+                abi_encode_t_uint256_to_t_uint256_fromStack(value0, add(headStart_1, 0))
             }
-            function external_fun_foo()
+            function external_fun_foo_24()
             {
                 if callvalue()
                 {
                     revert_error_ca66f745a3ce8ff40e2ccaf1ad45db7774001b90d25810abd9040049be7bf4bb()
                 }
-                abi_decode(4, calldatasize())
-                let ret := fun_foo()
+                abi_decode_tuple_(4, calldatasize())
+                let ret_0 := fun_foo_24()
                 let memPos := allocate_unbounded()
-                let memEnd := abi_encode_uint256(memPos, ret)
+                let memEnd := abi_encode_tuple_t_uint256__to_t_uint256__fromStack(memPos, ret_0)
                 return(memPos, sub(memEnd, memPos))
             }
-            function shift_right_unsigned_dynamic(bits, value) -> newValue
-            { newValue := shr(bits, value) }
-            function cleanup_from_storage_uint256(value) -> cleaned
-            { cleaned := value }
-            function extract_from_storage_value_dynamict_uint256(slot_value, offset) -> value
+            function shift_right_unsigned_dynamic(bits, value_3) -> newValue_1
             {
-                value := cleanup_from_storage_uint256(shift_right_unsigned_dynamic(mul(offset, 8), slot_value))
+                newValue_1 := shr(bits, value_3)
             }
-            function read_from_storage_split_dynamic_uint256(slot, offset) -> value
+            function cleanup_from_storage_t_uint256(value_4) -> cleaned_1
+            { cleaned_1 := value_4 }
+            function extract_from_storage_value_dynamict_uint256(slot_value, offset) -> value_5
             {
-                value := extract_from_storage_value_dynamict_uint256(sload(slot), offset)
+                value_5 := cleanup_from_storage_t_uint256(shift_right_unsigned_dynamic(mul(offset, 8), slot_value))
             }
-            function getter_fun_varStorage() -> ret
+            function read_from_storage_split_dynamic_t_uint256(slot, offset_1) -> value_6
             {
-                let slot := 0
-                let offset := 0
-                ret := read_from_storage_split_dynamic_uint256(slot, offset)
+                value_6 := extract_from_storage_value_dynamict_uint256(sload(slot), offset_1)
             }
-            function external_fun_varStorage()
+            function getter_fun_varStorage_6() -> ret
+            {
+                let slot_1 := 0
+                let offset_2 := 0
+                ret := read_from_storage_split_dynamic_t_uint256(slot_1, offset_2)
+            }
+            function external_fun_varStorage_6()
             {
                 if callvalue()
                 {
                     revert_error_ca66f745a3ce8ff40e2ccaf1ad45db7774001b90d25810abd9040049be7bf4bb()
                 }
-                abi_decode(4, calldatasize())
-                let ret := getter_fun_varStorage()
-                let memPos := allocate_unbounded()
-                let memEnd := abi_encode_uint256(memPos, ret)
-                return(memPos, sub(memEnd, memPos))
+                abi_decode_tuple_(4, calldatasize())
+                let ret_0_1 := getter_fun_varStorage_6()
+                let memPos_1 := allocate_unbounded()
+                let memEnd_1 := abi_encode_tuple_t_uint256__to_t_uint256__fromStack(memPos_1, ret_0_1)
+                return(memPos_1, sub(memEnd_1, memPos_1))
             }
             function revert_error_42b3090547df1d2001c96683413b8cf91c1b902ef5e3cb8d9f6f304cf7446f74()
             { revert(0, 0) }
-            function zero_value_for_split_uint256() -> ret
-            { ret := 0 }
-            function cleanup_rational_by(value) -> cleaned
-            { cleaned := value }
-            function identity(value) -> ret
-            { ret := value }
-            function convert_rational_by_to_uint256(value) -> converted
+            function zero_value_for_split_t_uint256() -> ret_1
+            { ret_1 := 0 }
+            function cleanup_t_rational_4294967295_by_1(value_7) -> cleaned_2
+            { cleaned_2 := value_7 }
+            function identity(value_8) -> ret_2
+            { ret_2 := value_8 }
+            function convert_t_rational_4294967295_by_1_to_t_uint256(value_9) -> converted
             {
-                converted := cleanup_uint256(identity(cleanup_rational_by(value)))
+                converted := cleanup_t_uint256(identity(cleanup_t_rational_4294967295_by_1(value_9)))
             }
-            function shift_left(value) -> newValue
-            { newValue := shl(0, value) }
-            function update_byte_slice_shift(value, toInsert) -> result
+            function shift_left_0(value_10) -> newValue_2
+            {
+                newValue_2 := shl(0, value_10)
+            }
+            function update_byte_slice_32_shift_0(value_11, toInsert) -> result
             {
                 let mask := not(0)
-                toInsert := shift_left(toInsert)
-                value := and(value, not(mask))
-                result := or(value, and(toInsert, mask))
+                toInsert := shift_left_0(toInsert)
+                value_11 := and(value_11, not(mask))
+                result := or(value_11, and(toInsert, mask))
             }
-            function convert_uint256_to_uint256(value) -> converted
+            function convert_t_uint256_to_t_uint256(value_12) -> converted_1
             {
-                converted := cleanup_uint256(identity(cleanup_uint256(value)))
+                converted_1 := cleanup_t_uint256(identity(cleanup_t_uint256(value_12)))
             }
-            function prepare_store_uint256(value) -> ret
-            { ret := value }
-            function update_transient_storage_value_offset_uint256_to_uint256(slot, value)
+            function prepare_store_t_uint256(value_13) -> ret_3
+            { ret_3 := value_13 }
+            function update_transient_storage_value_offset_0_t_uint256_to_t_uint256(slot_2, value_0)
             {
-                let convertedValue := convert_uint256_to_uint256(value)
-                tstore(slot, update_byte_slice_shift(tload(slot), prepare_store_uint256(convertedValue)))
+                let convertedValue_0 := convert_t_uint256_to_t_uint256(value_0)
+                tstore(slot_2, update_byte_slice_32_shift_0(tload(slot_2), prepare_store_t_uint256(convertedValue_0)))
             }
-            function shift_left_dynamic(bits, value) -> newValue
-            { newValue := shl(bits, value) }
-            function update_byte_slice_dynamic32(value, shiftBytes, toInsert) -> result
+            function shift_left_dynamic(bits_1, value_14) -> newValue_3
+            {
+                newValue_3 := shl(bits_1, value_14)
+            }
+            function update_byte_slice_dynamic32(value_15, shiftBytes, toInsert_1) -> result_1
             {
                 let shiftBits := mul(shiftBytes, 8)
-                let mask := shift_left_dynamic(shiftBits, not(0))
-                toInsert := shift_left_dynamic(shiftBits, toInsert)
-                value := and(value, not(mask))
-                result := or(value, and(toInsert, mask))
+                let mask_1 := shift_left_dynamic(shiftBits, not(0))
+                toInsert_1 := shift_left_dynamic(shiftBits, toInsert_1)
+                value_15 := and(value_15, not(mask_1))
+                result_1 := or(value_15, and(toInsert_1, mask_1))
             }
-            function update_transient_storage_value_uint256_to_uint256(slot, offset, value)
+            function update_transient_storage_value_t_uint256_to_t_uint256(slot_3, offset_3, value_0_1)
             {
-                let convertedValue := convert_uint256_to_uint256(value)
-                tstore(slot, update_byte_slice_dynamic32(tload(slot), offset, prepare_store_uint256(convertedValue)))
+                let convertedValue_0_1 := convert_t_uint256_to_t_uint256(value_0_1)
+                tstore(slot_3, update_byte_slice_dynamic32(tload(slot_3), offset_3, prepare_store_t_uint256(convertedValue_0_1)))
             }
-            function transient_storage_set_to_zero_uint256(slot, offset)
+            function transient_storage_set_to_zero_t_uint256(slot_4, offset_4)
             {
-                let zero := zero_value_for_split_uint256()
-                update_transient_storage_value_uint256_to_uint256(slot, offset, zero)
+                let zero_0 := zero_value_for_split_t_uint256()
+                update_transient_storage_value_t_uint256_to_t_uint256(slot_4, offset_4, zero_0)
             }
-            function update_storage_value_uint256_to_uint256(slot, offset, value)
+            function update_storage_value_t_uint256_to_t_uint256(slot_5, offset_5, value_0_2)
             {
-                let convertedValue := convert_uint256_to_uint256(value)
-                sstore(slot, update_byte_slice_dynamic32(sload(slot), offset, prepare_store_uint256(convertedValue)))
+                let convertedValue_0_2 := convert_t_uint256_to_t_uint256(value_0_2)
+                sstore(slot_5, update_byte_slice_dynamic32(sload(slot_5), offset_5, prepare_store_t_uint256(convertedValue_0_2)))
             }
-            function storage_set_to_zero_uint256(slot, offset)
+            function storage_set_to_zero_t_uint256(slot_6, offset_6)
             {
-                let zero := zero_value_for_split_uint256()
-                update_storage_value_uint256_to_uint256(slot, offset, zero)
+                let zero_0_1 := zero_value_for_split_t_uint256()
+                update_storage_value_t_uint256_to_t_uint256(slot_6, offset_6, zero_0_1)
             }
-            function shift_right_0_unsigned(value) -> newValue
-            { newValue := shr(0, value) }
-            function extract_from_storage_value_offset_uint256(slot_value) -> value
+            function shift_right_0_unsigned(value_16) -> newValue_4
             {
-                value := cleanup_from_storage_uint256(shift_right_0_unsigned(slot_value))
+                newValue_4 := shr(0, value_16)
             }
-            function read_from_storage_split_offset_uint256(slot) -> value
+            function extract_from_storage_value_offset_0_t_uint256(slot_value_1) -> value_17
             {
-                value := extract_from_storage_value_offset_uint256(sload(slot))
+                value_17 := cleanup_from_storage_t_uint256(shift_right_0_unsigned(slot_value_1))
             }
-            function fun_foo() -> var
+            function read_from_storage_split_offset_0_t_uint256(slot_7) -> value_18
             {
-                let zero_uint256 := zero_value_for_split_uint256()
-                var := zero_uint256
-                let expr := 0xffffffff
-                let _1 := convert_rational_by_to_uint256(expr)
-                update_transient_storage_value_offset_uint256_to_uint256(0x00, _1)
-                transient_storage_set_to_zero_uint256(0x00, 0)
-                storage_set_to_zero_uint256(0x00, 0)
-                let _2 := read_from_storage_split_offset_uint256(0x00)
-                let expr_1 := _2
-                var := expr_1
+                value_18 := extract_from_storage_value_offset_0_t_uint256(sload(slot_7))
+            }
+            function fun_foo_24() -> var__9
+            {
+                let zero_t_uint256_1 := zero_value_for_split_t_uint256()
+                var__9 := zero_t_uint256_1
+                let expr_12 := 0xffffffff
+                let _2 := convert_t_rational_4294967295_by_1_to_t_uint256(expr_12)
+                update_transient_storage_value_offset_0_t_uint256_to_t_uint256(0x00, _2)
+                transient_storage_set_to_zero_t_uint256(0x00, 0)
+                storage_set_to_zero_t_uint256(0x00, 0)
+                let _3 := read_from_storage_split_offset_0_t_uint256(0x00)
+                let expr_21 := _3
+                var__9 := expr_21
                 leave
             }
         }

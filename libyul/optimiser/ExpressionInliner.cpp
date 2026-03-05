@@ -50,13 +50,17 @@ void ExpressionInliner::operator()(FunctionDefinition& _fun)
 void ExpressionInliner::visit(Expression& _expression)
 {
 	ASTModifier::visit(_expression);
-	if (std::holds_alternative<FunctionCall>(_expression))
+
+	if (!std::holds_alternative<FunctionCall>(_expression))
+		return;
+
+	FunctionCall const& funCall = std::get<FunctionCall>(_expression);
+	if (auto const* functionNameIdentifier = std::get_if<Identifier>(&funCall.functionName))
 	{
-		FunctionCall& funCall = std::get<FunctionCall>(_expression);
-		YulString const functionName{resolveFunctionName(funCall.functionName, m_dialect)};
-		if (!m_inlinableFunctions.count(functionName))
+		auto const it = m_inlinableFunctions.find(functionNameIdentifier->name);
+		if (it == m_inlinableFunctions.end())
 			return;
-		FunctionDefinition const& fun = *m_inlinableFunctions.at(functionName);
+		FunctionDefinition const& fun = *it->second;
 
 		std::map<YulName, Expression const*> substitutions;
 		for (size_t i = 0; i < funCall.arguments.size(); i++)
