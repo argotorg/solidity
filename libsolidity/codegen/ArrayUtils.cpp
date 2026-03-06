@@ -787,7 +787,14 @@ void ArrayUtils::accessIndex(ArrayType const& _arrayType, bool _doBoundsCheck, b
 		else
 		{
 			if (_arrayType.baseType()->storageSize() != 1)
-				m_context << _arrayType.baseType()->storageSize() << Instruction::MUL;
+			{
+				m_context << _arrayType.baseType()->storageSize();
+				m_context.callYulFunction(
+					m_context.utilFunctions().overflowCheckedIntMulFunction(*TypeProvider::uint256()),
+					2,
+					1
+				);
+			}
 			m_context << Instruction::ADD << u256(0);
 		}
 		m_context << endTag;
