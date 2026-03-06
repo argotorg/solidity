@@ -7,9 +7,7 @@
         "link": "",
         "introduced": "0.1.0",
         "fixed": "0.8.35",
-        "severity": "low",
-        "conditions": {
-        }
+        "severity": "low"
     },
     {
         "uid": "SOL-2026-3",
