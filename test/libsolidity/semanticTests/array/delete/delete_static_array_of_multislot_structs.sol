@@ -15,7 +15,7 @@ contract C {
 }
 // ----
 // fill() ->
-// gas irOptimized: 109888
+// gas irOptimized: 110009
 // gas legacy: 110395
 // gas legacyOptimized: 110037
 // get(uint256): 0 -> 1, 2
