@@ -1196,7 +1196,10 @@ public:
 
 	std::string toString(bool _withoutDataLocation) const override;
 	std::string canonicalName() const override;
-	std::string signatureInExternalFunction(bool) const override { solAssert(false, ""); }
+	std::string signatureInExternalFunction(bool _structsByName) const override
+	{
+		return underlyingType().signatureInExternalFunction(_structsByName);
+	}
 
 protected:
 	std::vector<std::tuple<std::string, Type const*>> makeStackItems() const override;

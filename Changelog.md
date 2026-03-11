@@ -12,6 +12,7 @@ Compiler Features:
 * Yul EVM Code Transform: Improve stack shuffler performance by fixing a BFS deduplication issue.
 
 Bugfixes:
+* Type System: Fix internal compiler error when using user-defined value types in storage arrays or mappings in external library functions.
 
 
 ### 0.8.34 (2026-02-18)
