@@ -97,6 +97,31 @@ function assertFail
     exit 2
 }
 
+function retry
+{
+    local max_attempts="${1:-3}"
+    local delay="${2:-5}"
+    shift 2 || true
+    local command=("$@")
+
+    local attempt=1
+    while true; do
+        if "${command[@]}"; then
+            return 0
+        fi
+
+        if (( attempt >= max_attempts )); then
+            printError "Command failed after ${max_attempts} attempts: ${command[*]}"
+            return 1
+        fi
+
+        printWarning "Command failed (attempt ${attempt}/${max_attempts}): ${command[*]}"
+        printLog "Retrying in ${delay} seconds..."
+        sleep "$delay"
+        ((attempt++))
+    done
+}
+
 function msg_on_error
 {
     local error_message=""

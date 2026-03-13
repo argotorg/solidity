@@ -63,7 +63,7 @@ function yield_liquidator_test
     force_hardhat_compiler_binary "$config_file" "$BINARY_TYPE" "$BINARY_PATH"
     force_hardhat_compiler_settings "$config_file" "$(first_word "$SELECTED_PRESETS")" "$config_var"
     force_hardhat_unlimited_contract_size "$config_file" "$config_var"
-    npm install
+    retry 3 10 npm install
 
     # The contract below is not used in any test and it depends on ISwapRouter which does not exists
     # in the main repository.

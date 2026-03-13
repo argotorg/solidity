@@ -436,7 +436,7 @@ function eth_gas_reporter_settings
     echo "    noColors: true,"
     echo "    showUncalledMethods: false,"            # Exclude entries with no gas for shorter report
     echo "    showMethodSig: true,"                   # Should make diffs more stable if there are overloaded functions
-    echo "    reportFormat: 'legacy',"                # Use v1.x format for compatibility with parse_eth_gas_report.py
+    echo "    outputJSON: true,"                      # Use native JSON output from hardhat-gas-reporter v2
     echo "    outputFile: \"$(gas_report_path "$preset")\""
     echo "}"
 }
@@ -581,7 +581,7 @@ function gas_report_path
 {
     local preset="$1"
 
-    echo "${DIR}/gas-report-${preset}.rst"
+    echo "${DIR}/gas-report-${preset}.json"
 }
 
 function compilation_time_report_path
@@ -593,7 +593,16 @@ function compilation_time_report_path
 
 function gas_report_to_json
 {
-    cat - | "${REPO_ROOT}/scripts/externalTests/parse_eth_gas_report.py" | jq '{gas: .}'
+    # Read JSON output directly from hardhat-gas-reporter v2 and wrap it in {gas: ...} format
+    # Skip invalid JSON to avoid jq parse errors
+    local input
+    input=$(cat -)
+    # Trim whitespace and check if input is non-empty and valid JSON
+    input=$(echo "$input" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+    if [[ -n "$input" ]] && echo "$input" | jq empty 2>/dev/null; then
+        echo "$input" | jq '{gas: .}'
+    fi
+    # If input is empty or invalid JSON, output nothing (same as if file didn't exist)
 }
 
 function detect_hardhat_artifact_dirs
@@ -692,8 +701,10 @@ function store_benchmark_report
     mkdir -p "$report_dir"
 
     {
-        if [[ -e $(gas_report_path "$preset") ]]; then
-            gas_report_to_json < "$(gas_report_path "$preset")"
+        local gas_report_file
+        gas_report_file=$(gas_report_path "$preset")
+        if [[ -e "$gas_report_file" ]] && [[ -s "$gas_report_file" ]]; then
+            gas_report_to_json < "$gas_report_file"
         fi
 
         "bytecode_size_json_from_${framework}_artifacts" | combine_artifact_json
