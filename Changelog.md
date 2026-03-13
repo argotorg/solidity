@@ -10,6 +10,7 @@ Compiler Features:
 * Yul EVM Code Transform: Improve stack shuffler performance by fixing a BFS deduplication issue.
 
 Bugfixes:
+* Yul IR Code Generation: Fix internal compiler error when emitting an event with an indexed function type parameter that requires implicit conversion.
 
 
 ### 0.8.34 (2026-02-18)
