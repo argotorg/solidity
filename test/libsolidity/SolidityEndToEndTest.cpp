@@ -2815,9 +2815,14 @@ BOOST_AUTO_TEST_CASE(include_creation_bytecode_only_once)
 		}
 	)";
 	compileAndRun(sourceCode, 0, "Single");
+	auto const& output = m_compiler.output();
+	auto const* contractDouble = output.contract(std::string_view{"Double"});
+	auto const* contractSingle = output.contract("Single");
+	solAssert(contractDouble);
+	solAssert(contractSingle);
 	BOOST_CHECK_LE(
-		double(m_compiler.object("Double").bytecode.size()),
-		1.2 * double(m_compiler.object("Single").bytecode.size())
+		static_cast<double>(contractDouble->evm.bytecode.object.size()),
+		1.2 * static_cast<double>(contractSingle->evm.bytecode.object.size())
 	);
 }
 

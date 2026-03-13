@@ -12,6 +12,7 @@
 	along with solidity.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "libsolidity/util/StandardJSONOutput.h"
 #include <test/libsolidity/util/TestFunctionCall.h>
 
 #include <test/libsolidity/util/BytesUtils.h>
@@ -159,7 +160,7 @@ std::string TestFunctionCall::format(
 						abiParams = ContractABIUtils::failureParameters(output);
 				}
 				else
-					abiParams = ContractABIUtils::parametersFromJsonOutputs(
+					abiParams = ContractABIUtils::parametersFromABI(
 						_errorReporter,
 						m_contractABI,
 						m_call.signature
@@ -252,7 +253,7 @@ std::string TestFunctionCall::formatBytesParameters(
 	}
 	else
 	{
-		std::optional<ParameterList> abiParams = ContractABIUtils::parametersFromJsonOutputs(
+		std::optional<ParameterList> abiParams = ContractABIUtils::parametersFromABI(
 			_errorReporter,
 			m_contractABI,
 			_signature
@@ -413,7 +414,7 @@ void TestFunctionCall::reset()
 {
 	m_rawBytes = bytes{};
 	m_failure = true;
-	m_contractABI = Json();
+	m_contractABI = output::ABI{};
 	m_calledNonExistingFunction = false;
 }
 

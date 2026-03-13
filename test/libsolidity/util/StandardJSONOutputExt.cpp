@@ -32,10 +32,12 @@ std::vector<Error> const& StandardJSONOutputExt::errors() const
 
 std::vector<Contract const*> const StandardJSONOutputExt::contracts() const
 {
-	return m_base.contracts | ranges::views::values | ranges::views::transform([](auto& inner) {
-		return inner | ranges::views::values;
-	}) | ranges::views::join | ranges::views::transform([](auto& c) {
-		return &c;
+	auto sourceUnits = m_base.contracts | ranges::views::values;
+	auto contracts = sourceUnits | ranges::views::transform([](auto& contracts) {
+		return contracts | ranges::views::values;
+	}) | ranges::views::join;
+	return contracts | ranges::views::transform([](Contract const& contract) {
+		return &contract;
 	}) | ranges::to<std::vector<Contract const*>>();
 }
 

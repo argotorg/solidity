@@ -30,13 +30,6 @@
 namespace solidity::frontend::test
 {
 
-struct AnnotatedEventSignature
-{
-	std::string signature;
-	std::vector<std::string> indexedTypes;
-	std::vector<std::string> nonIndexedTypes;
-};
-
 enum class RequiresYulOptimizer
 {
 	False,
@@ -107,8 +100,6 @@ private:
 	std::map<std::string, Builtin> makeBuiltins();
 	std::vector<SideEffectHook> makeSideEffectHooks() const;
 	std::vector<std::string> eventSideEffectHook(FunctionCall const&) const;
-	std::optional<AnnotatedEventSignature> matchEvent(util::h256 const& hash) const;
-	static std::string formatEventParameter(std::optional<AnnotatedEventSignature> _signature, bool _indexed, size_t _index, bytes const& _data);
 
 	OptimiserSettings optimizerSettingsFor(RequiresYulOptimizer _requiresYulOptimizer);
 

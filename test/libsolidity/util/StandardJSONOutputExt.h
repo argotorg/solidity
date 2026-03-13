@@ -21,7 +21,6 @@
 #include <test/libsolidity/util/Common.h>
 #include <test/libsolidity/util/StandardJSONOutput.h>
 
-#include <optional>
 #include <vector>
 
 namespace solidity::frontend::test
@@ -29,31 +28,34 @@ namespace solidity::frontend::test
 
 using namespace output;
 
+/**
+ * Wraps a StandardJSONOutput with convenience accessors for the test framework.
+ */
 class StandardJSONOutputExt
 {
 public:
-	///
 	explicit StandardJSONOutputExt(StandardJSONOutput _base):
 		m_base(std::move(_base))
 	{}
 
-	///
+	/// @returns true if no errors or only warnings/info messages were produced.
 	bool success() const;
 
-	///
+	/// @returns all errors (including warnings and infos) from the compilation.
 	std::vector<Error> const& errors() const;
 
-	///
+	/// @returns Collected pointers to all contracts across all source units.
 	std::vector<Contract const*> const contracts() const;
 
-	///
+	/// Looks up a contract by its (optionally source-qualified) name.
+	/// If the name is empty, asserts that there is exactly one contract across
+	/// all source units and returns it.
+	/// @returns the contract, or nullptr if not found.
 	Contract const* contract(ContractName const& _contractName = {}) const;
 
 private:
-	///
+	/// The wrapped compiler output.
 	StandardJSONOutput m_base;
-	///
-	mutable std::optional<std::vector<Contract const*>> m_contracts;
 };
 
 }
