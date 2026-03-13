@@ -274,7 +274,7 @@ TypedValue convertType(TypedValue const& _value, Type const& _type)
 		[&](std::monostate const&) {
 			return TypedValue{};
 		}
-	}, _value.value);
+	}, _value.value());
 }
 
 rational truncateToType(rational const& _value, Type const& _type)
@@ -371,24 +371,24 @@ TypedValue ConstantEvaluator::evaluate(ASTNode const& _node)
 void ConstantEvaluator::endVisit(UnaryOperation const& _operation)
 {
 	TypedValue value = evaluate(_operation.subExpression());
-	if (!value.type)
+	if (value.empty())
 		return;
 
-	Type const* resultType = value.type->unaryOperatorResult(_operation.getOperator());
+	Type const* resultType = value.type()->unaryOperatorResult(_operation.getOperator());
 	if (!resultType)
 		return;
 	value = convertType(value, *resultType);
-	if (!std::holds_alternative<rational>(value.value))
+	if (!value.isRational())
 		return;
 
-	if (std::optional<rational> result = evaluateUnaryOperator(_operation.getOperator(), std::get<rational>(value.value)))
+	if (std::optional<rational> result = evaluateUnaryOperator(_operation.getOperator(), value.asRational()))
 	{
 		rational resultValue = *result;
 		if (_operation.getOperator() == Token::BitNot)
 			resultValue = truncateToType(resultValue, *resultType);
 
 		TypedValue convertedValue = convertType(resultValue, *resultType);
-		if (!convertedValue.type)
+		if (!convertedValue.type())
 			m_errorReporter.fatalTypeError(
 				3667_error,
 				_operation.location(),
@@ -402,7 +402,7 @@ void ConstantEvaluator::endVisit(BinaryOperation const& _operation)
 {
 	TypedValue left = evaluate(_operation.leftExpression());
 	TypedValue right = evaluate(_operation.rightExpression());
-	if (!left.type || !right.type)
+	if (!left.type() || !right.type())
 		return;
 
 	// If this is implemented in the future: Comparison operators have a "binaryOperatorResult"
@@ -410,7 +410,7 @@ void ConstantEvaluator::endVisit(BinaryOperation const& _operation)
 	if (TokenTraits::isCompareOp(_operation.getOperator()))
 		return;
 
-	Type const* resultType = left.type->binaryOperatorResult(_operation.getOperator(), right.type);
+	Type const* resultType = left.type()->binaryOperatorResult(_operation.getOperator(), right.type());
 	if (!resultType)
 	{
 		m_errorReporter.fatalTypeError(
@@ -419,9 +419,9 @@ void ConstantEvaluator::endVisit(BinaryOperation const& _operation)
 			"Operator " +
 			std::string(TokenTraits::toString(_operation.getOperator())) +
 			" not compatible with types " +
-			left.type->toString() +
+			left.type()->toString() +
 			" and " +
-			right.type->toString()
+			right.type()->toString()
 			);
 		return;
 	}
@@ -429,15 +429,15 @@ void ConstantEvaluator::endVisit(BinaryOperation const& _operation)
 	left = convertType(left, *resultType);
 	right = convertType(right, *resultType);
 	if (
-		!std::holds_alternative<rational>(left.value) ||
-		!std::holds_alternative<rational>(right.value)
+		!left.isRational() ||
+		!right.isRational()
 	)
 		return;
 
 	if (std::optional<rational> value = evaluateBinaryOperator(
 		_operation.getOperator(),
-		std::get<rational>(left.value),
-		std::get<rational>(right.value)
+		left.asRational(),
+		right.asRational()
 	))
 	{
 		rational resultValue = *value;
@@ -446,7 +446,7 @@ void ConstantEvaluator::endVisit(BinaryOperation const& _operation)
 			resultValue = truncateToType(*value, *resultType);
 
 		TypedValue convertedValue = convertType(resultValue, *resultType);
-		if (!convertedValue.type)
+		if (!convertedValue.type())
 			m_errorReporter.fatalTypeError(
 				2643_error,
 				_operation.location(),
@@ -500,7 +500,7 @@ void ConstantEvaluator::endVisit(FunctionCall const& _functionCall)
 				return;
 			}
 			auto stringArg = evaluate(*(_functionCall.arguments()[0].get()));
-			if (!std::holds_alternative<std::string>(stringArg.value))
+			if (!stringArg.isString())
 			{
 				m_errorReporter.typeError(
 					9796_error,
@@ -510,7 +510,7 @@ void ConstantEvaluator::endVisit(FunctionCall const& _functionCall)
 				return;
 			}
 
-			h256 innerKeccak = keccak256(std::get<std::string>(stringArg.value));
+			h256 innerKeccak = keccak256(stringArg.asString());
 			h256 outerKeccak = keccak256(h256(u256(innerKeccak) - 1));
 			outerKeccak.data()[31] = 0;
 			u256 slot = outerKeccak;
@@ -521,4 +521,36 @@ void ConstantEvaluator::endVisit(FunctionCall const& _functionCall)
 		default:
 			break;
 	}
+}
+
+TypedValue::TypedValue(Type const* _type, TypedValue::Value _value)
+{
+	std::visit(util::GenericVisitor{
+		[&](std::string const&) {
+			solAssert(dynamic_cast<StringLiteralType const*>(_type) || dynamic_cast<ArrayType const*>(_type));
+		},
+		[&](rational const&) {
+			solAssert(dynamic_cast<RationalNumberType const*>(_type) || dynamic_cast<IntegerType const*>(_type));
+		},
+		[&](std::monostate const&) {
+			solAssert(!_type);
+		}
+	}, _value);
+
+	m_type = _type;
+	m_value = std::move(_value);
+}
+
+std::string const& TypedValue::asString() const
+{
+	auto const* stringValue = std::get_if<std::string>(&m_value);
+	solAssert(stringValue);
+	return *stringValue;
+}
+
+rational const& TypedValue::asRational() const
+{
+	auto const* rationalValue = std::get_if<rational>(&m_value);
+	solAssert(rationalValue);
+	return *rationalValue;
 }
