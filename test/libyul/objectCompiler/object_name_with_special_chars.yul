@@ -8,3 +8,6 @@ object "3\"{code{}}e0003" {
 // optimizationPreset: full
 // outputs: Assembly
 // ----
+// Assembly:
+//     /* "source":37:44   */
+//   stop
