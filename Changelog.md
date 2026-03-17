@@ -12,7 +12,7 @@ Compiler Features:
 * Yul EVM Code Transform: Improve stack shuffler performance by fixing a BFS deduplication issue.
 
 Bugfixes:
-* Yul: Fix incorrect serialization of Yul object names containing special characters (e.g. quotes) that were not escaped, producing output that could not be reparsed.
+* Yul: Fix incorrect serialization of Yul object names containing double quotes and escape sequences, producing output that could not be parsed as valid Yul.
 
 
 ### 0.8.34 (2026-02-18)
