@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.13.0)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 set(ETH_CMAKE_DIR   "${CMAKE_CURRENT_LIST_DIR}/cmake"   CACHE PATH "The path to the cmake directory")
 list(APPEND CMAKE_MODULE_PATH ${ETH_CMAKE_DIR})
 

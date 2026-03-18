@@ -59,7 +59,6 @@ YulStack yul::test::parseYul(
 	YulStack yulStack(
 		CommonOptions::get().evmVersion(),
 		CommonOptions::get().eofVersion(),
-		YulStack::Language::StrictAssembly,
 		_optimiserSettings.has_value() ?
 			*_optimiserSettings :
 			(CommonOptions::get().optimize ? OptimiserSettings::standard() : OptimiserSettings::minimal()),

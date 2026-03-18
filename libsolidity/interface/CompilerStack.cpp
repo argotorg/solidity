@@ -850,7 +850,6 @@ YulStack CompilerStack::loadGeneratedIR(std::string const& _ir) const
 	YulStack stack(
 		m_evmVersion,
 		m_eofVersion,
-		YulStack::Language::StrictAssembly,
 		m_optimiserSettings,
 		m_debugInfoSelection,
 		this, // _soliditySourceProvider

@@ -69,7 +69,6 @@ struct MachineAssemblyObject
 class YulStack: public langutil::CharStreamProvider
 {
 public:
-	using Language = yul::Language;
 	enum class Machine { EVM };
 	enum State {
 		Empty,
@@ -81,7 +80,6 @@ public:
 		YulStack(
 			langutil::EVMVersion{},
 			std::nullopt,
-			Language::Assembly,
 			solidity::frontend::OptimiserSettings::none(),
 			langutil::DebugInfoSelection::Default()
 		)
@@ -90,13 +88,11 @@ public:
 	YulStack(
 		langutil::EVMVersion _evmVersion,
 		std::optional<uint8_t> _eofVersion,
-		Language _language,
 		solidity::frontend::OptimiserSettings _optimiserSettings,
 		langutil::DebugInfoSelection const& _debugInfoSelection,
 		langutil::CharStreamProvider const* _soliditySourceProvider = nullptr,
 		std::shared_ptr<ObjectOptimizer> _objectOptimizer = nullptr
 	):
-		m_language(_language),
 		m_evmVersion(_evmVersion),
 		m_eofVersion(_eofVersion),
 		m_optimiserSettings(std::move(_optimiserSettings)),
@@ -174,7 +170,6 @@ private:
 
 	void reportUnimplementedFeatureError(langutil::UnimplementedFeatureError const& _error);
 
-	Language m_language = Language::Assembly;
 	langutil::EVMVersion m_evmVersion;
 	std::optional<uint8_t> m_eofVersion;
 	solidity::frontend::OptimiserSettings m_optimiserSettings;

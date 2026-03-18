@@ -213,7 +213,6 @@ struct CommandLineOptions
 		bool operator!=(Assembly const&) const noexcept = default;
 
 		yul::YulStack::Machine targetMachine = yul::YulStack::Machine::EVM;
-		yul::YulStack::Language inputLanguage = yul::YulStack::Language::StrictAssembly;
 	} assembly;
 
 	struct Linker

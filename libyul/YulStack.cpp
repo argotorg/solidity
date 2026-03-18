@@ -58,7 +58,7 @@ bool YulStack::parse(std::string const& _sourceName, std::string const& _source)
 	{
 		m_charStream = std::make_unique<CharStream>(_source, _sourceName);
 		std::shared_ptr<Scanner> scanner = std::make_shared<Scanner>(*m_charStream);
-		m_parserResult = ObjectParser(m_errorReporter, languageToDialect(m_language, m_evmVersion, m_eofVersion)).parse(scanner, false);
+		m_parserResult = ObjectParser(m_errorReporter, EVMDialect::strictAssemblyForEVMObjects(m_evmVersion, m_eofVersion)).parse(scanner, false);
 	}
 	catch (UnimplementedFeatureError const& _error)
 	{
@@ -130,7 +130,6 @@ void YulStack::optimize()
 		m_objectOptimizer->optimize(
 			*m_parserResult,
 			ObjectOptimizer::Settings{
-				m_language,
 				m_evmVersion,
 				m_eofVersion,
 				optimizeStackAllocation,
@@ -166,7 +165,7 @@ bool YulStack::analyzeParsed(Object& _object)
 	AsmAnalyzer analyzer(
 		*_object.analysisInfo,
 		m_errorReporter,
-		languageToDialect(m_language, m_evmVersion, m_eofVersion),
+		EVMDialect::strictAssemblyForEVMObjects(m_evmVersion, m_eofVersion),
 		{},
 		_object.summarizeStructure()
 	);
@@ -210,7 +209,6 @@ void YulStack::reparse()
 	YulStack cleanStack(
 		m_evmVersion,
 		m_eofVersion,
-		m_language,
 		m_optimiserSettings,
 		m_debugInfoSelection,
 		m_soliditySourceProvider,
@@ -400,7 +398,7 @@ Json YulStack::cfgJson() const
 		// NOTE: The block Ids are reset for each object
 		std::unique_ptr<ssa::ControlFlow> controlFlow = ssa::SSACFGBuilder::build(
 			*_object.analysisInfo,
-			languageToDialect(m_language, m_evmVersion, m_eofVersion),
+			EVMDialect::strictAssemblyForEVMObjects(m_evmVersion, m_eofVersion),
 			_object.code()->root(),
 			keepLiteralAssignments
 		);

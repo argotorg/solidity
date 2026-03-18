@@ -848,7 +848,7 @@ void CommandLineInterface::processInput()
 		serveLSP();
 		break;
 	case InputMode::Assembler:
-		assembleYul(m_options.assembly.inputLanguage, m_options.assembly.targetMachine);
+		assembleYul(m_options.assembly.targetMachine);
 		break;
 	case InputMode::Linker:
 		link();
@@ -1286,7 +1286,7 @@ std::string CommandLineInterface::objectWithLinkRefsHex(evmasm::LinkerObject con
 	return out;
 }
 
-void CommandLineInterface::assembleYul(yul::YulStack::Language _language, yul::YulStack::Machine _targetMachine)
+void CommandLineInterface::assembleYul(yul::YulStack::Machine _targetMachine)
 {
 	solAssert(m_options.input.mode == InputMode::Assembler);
 
@@ -1298,7 +1298,6 @@ void CommandLineInterface::assembleYul(yul::YulStack::Language _language, yul::Y
 		auto& stack = yulStacks[sourceUnitName] = yul::YulStack(
 			m_options.output.evmVersion,
 			m_options.output.eofVersion,
-			_language,
 			m_options.optimiserSettings(),
 			m_options.output.debugInfoSelection.has_value() ?
 				m_options.output.debugInfoSelection.value() :

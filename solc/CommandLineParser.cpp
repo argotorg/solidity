@@ -631,11 +631,6 @@ General Information)").c_str(),
 			"If not specified, non-EOF bytecode will be generated."
 		)
 		(
-			g_strYul.c_str(),
-			"(disabled) Switch to typed Yul mode. The typed Yul dialect is no longer supported. "
-			"For regular Yul compilation use --strict-assembly instead."
-		)
-		(
 			g_strExperimentalViaIR.c_str(),
 			"Deprecated synonym of --via-ir."
 		)
@@ -680,10 +675,6 @@ General Information)").c_str(),
 			g_strLink.c_str(),
 			("Switch to linker mode, ignoring all options apart from --" + g_strLibraries + " "
 			"and modify binaries in place.").c_str()
-		)
-		(
-			g_strAssemble.c_str(),
-			"Switch to assembly mode and assume input is assembly."
 		)
 		(
 			g_strStrictAssembly.c_str(),
@@ -967,6 +958,12 @@ po::positional_options_description CommandLineParser::positionalOptionsDescripti
 void CommandLineParser::parseArgs(int _argc, char const* const* _argv)
 {
 	po::options_description allOptions = optionsDescription();
+	// Disabled options: still accepted for parsing so that we can produce a proper error message,
+	// but hidden from --help output.
+	allOptions.add_options()
+		(g_strAssemble.c_str(), "")
+		(g_strYul.c_str(), "")
+	;
 	po::positional_options_description filesPositions = positionalOptionsDescription();
 
 	m_options = {};
@@ -1004,7 +1001,6 @@ void CommandLineParser::processArgs()
 		g_strVersion,
 		g_strStandardJSON,
 		g_strLink,
-		g_strAssemble,
 		g_strStrictAssembly,
 		g_strImportAst,
 		g_strLSP,
@@ -1023,7 +1019,7 @@ void CommandLineParser::processArgs()
 		m_options.input.mode = InputMode::StandardJson;
 	else if (m_args.count(g_strLSP))
 		m_options.input.mode = InputMode::LanguageServer;
-	else if (m_args.count(g_strAssemble) > 0 || m_args.count(g_strStrictAssembly) > 0)
+	else if (m_args.contains(g_strStrictAssembly))
 		m_options.input.mode = InputMode::Assembler;
 	else if (m_args.count(g_strLink) > 0)
 		m_options.input.mode = InputMode::Linker;
@@ -1053,6 +1049,13 @@ void CommandLineParser::processArgs()
 		solThrow(
 			CommandLineValidationError,
 			"The typed Yul dialect formerly accessible via --yul is no longer supported, "
+			"please use --strict-assembly instead."
+		);
+
+	if (m_args.contains(g_strAssemble))
+		solThrow(
+			CommandLineValidationError,
+			"The assembly input mode formerly accessible via --assemble is no longer supported, "
 			"please use --strict-assembly instead."
 		);
 
@@ -1356,9 +1359,7 @@ void CommandLineParser::processArgs()
 		}
 
 		// switch to assembly mode
-		using Input = yul::YulStack::Language;
 		using Machine = yul::YulStack::Machine;
-		m_options.assembly.inputLanguage = m_args.count(g_strStrictAssembly) ? Input::StrictAssembly : Input::Assembly;
 
 		if (m_args.count(g_strMachine))
 		{
@@ -1368,30 +1369,15 @@ void CommandLineParser::processArgs()
 			else
 				solThrow(CommandLineValidationError, "Invalid option for --" + g_strMachine + ": " + machine);
 		}
-		if (m_args.count(g_strYulDialect))
+		if (m_args.contains(g_strYulDialect))
 		{
-			std::string dialect = m_args[g_strYulDialect].as<std::string>();
-			if (dialect == g_strEVM)
-				m_options.assembly.inputLanguage = Input::StrictAssembly;
-			else
+			auto const& dialect = m_args[g_strYulDialect].as<std::string>();
+			if (dialect != g_strEVM)
 				solThrow(CommandLineValidationError, "Invalid option for --" + g_strYulDialect + ": " + dialect);
 		}
-		if (
-				(m_options.optimizer.optimizeEvmasm || m_options.optimizer.optimizeYul) &&
-				m_options.assembly.inputLanguage != Input::StrictAssembly
-			)
-			solThrow(
-				CommandLineValidationError,
-				"Optimizer can only be used for strict assembly. Use --"  + g_strStrictAssembly + "."
-			);
 
 		m_options.output.viaSSACFG = m_args.contains(g_strViaSSACFG);
-		if (m_options.output.viaSSACFG)
-			if (m_options.assembly.inputLanguage != Input::StrictAssembly)
-				solThrow(
-					CommandLineValidationError,
-					"--" + g_strViaSSACFG + " can only be used with strict assembly. Use --" + g_strStrictAssembly + "."
-				);
+
 		if (m_options.compiler.outputs.ethdebug || m_options.compiler.outputs.ethdebugRuntime)
 		{
 			if (m_options.output.viaSSACFG)

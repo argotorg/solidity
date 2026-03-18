@@ -39,7 +39,6 @@ public:
 		m_stack(
 			_evmVersion,
 			_eofVersion,
-			solidity::yul::YulStack::Language::StrictAssembly,
 			_optSettings,
 			langutil::DebugInfoSelection::All()
 		),

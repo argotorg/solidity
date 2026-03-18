@@ -43,17 +43,6 @@ using namespace solidity::util;
 using namespace solidity::yul;
 
 
-Dialect const& yul::languageToDialect(Language _language, EVMVersion _version, std::optional<uint8_t> _eofVersion)
-{
-	switch (_language)
-	{
-	case Language::Assembly:
-	case Language::StrictAssembly:
-		return EVMDialect::strictAssemblyForEVMObjects(_version, _eofVersion);
-	}
-	util::unreachable();
-}
-
 void ObjectOptimizer::optimize(Object& _object, Settings const& _settings)
 {
 	yulAssert(_object.subId.empty(), "Not a top-level object.");
@@ -77,10 +66,8 @@ void ObjectOptimizer::optimize(Object& _object, Settings const& _settings, bool 
 			);
 		}
 
-	Dialect const& dialect = languageToDialect(_settings.language, _settings.evmVersion, _settings.eofVersion);
-	std::unique_ptr<GasMeter> meter;
-	if (EVMDialect const* evmDialect = dynamic_cast<EVMDialect const*>(&dialect))
-		meter = std::make_unique<GasMeter>(*evmDialect, _isCreation, _settings.expectedExecutionsPerDeployment);
+	EVMDialect const& dialect = EVMDialect::strictAssemblyForEVMObjects(_settings.evmVersion, _settings.eofVersion);
+	GasMeter const meter(dialect, _isCreation, _settings.expectedExecutionsPerDeployment);
 
 	std::optional<h256> cacheKey = calculateCacheKey(_object.code()->root(), *_object.debugData, _settings, _isCreation);
 	if (cacheKey.has_value() && m_cachedObjects.count(*cacheKey) != 0)
@@ -90,7 +77,7 @@ void ObjectOptimizer::optimize(Object& _object, Settings const& _settings, bool 
 	}
 
 	OptimiserSuite::run(
-		meter.get(),
+		&meter,
 		_object,
 		_settings.optimizeStackAllocation,
 		_settings.yulOptimiserSteps,
@@ -141,7 +128,7 @@ std::optional<h256> ObjectOptimizer::calculateCacheKey(
 )
 {
 	AsmPrinter asmPrinter(
-		languageToDialect(_settings.language, _settings.evmVersion, _settings.eofVersion),
+		EVMDialect::strictAssemblyForEVMObjects(_settings.evmVersion, _settings.eofVersion),
 		_debugData.sourceNames,
 		DebugInfoSelection::All()
 	);
@@ -153,7 +140,6 @@ std::optional<h256> ObjectOptimizer::calculateCacheKey(
 	// we just regenerate them by reparsing the object.
 	rawKey += keccak256(asmPrinter(_ast)).asBytes();
 	rawKey += keccak256(_debugData.formatUseSrcComment()).asBytes();
-	rawKey += h256(u256(_settings.language)).asBytes();
 	static_assert(static_cast<uint8_t>(static_cast<bool>(2)) == 1);
 	rawKey += FixedHash<1>(static_cast<uint8_t>(_settings.optimizeStackAllocation)).asBytes();
 	rawKey += h256(u256(_settings.expectedExecutionsPerDeployment)).asBytes();

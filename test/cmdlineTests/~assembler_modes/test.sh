@@ -24,11 +24,18 @@ function test_solc_assembly_output
     fi
 }
 
-echo '{}' | msg_on_error --silent "$SOLC" - --assemble
 echo '{}' | msg_on_error --silent "$SOLC" - --strict-assembly
 
-# Test in conjunction with --optimize. Using both, --assemble and --optimize should fail.
-echo '{}' | "$SOLC" - --assemble --optimize &>/dev/null && fail "solc --assemble --optimize did not fail as expected."
+# Test that --assemble triggers an error
+set +e
+output=$(echo '{}' | "$SOLC" - --assemble 2>&1)
+failed=$?
+expected="Error: The assembly input mode formerly accessible via --assemble is no longer supported, please use --strict-assembly instead."
+set -e
+if [[ $output != "${expected}" ]] || (( failed == 0 ))
+then
+    fail "Incorrect error response to --assemble flag: $output"
+fi
 
 # Test strict assembly output
 # Non-empty code results in non-empty binary representation with optimizations turned off,

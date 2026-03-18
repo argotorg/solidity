@@ -149,7 +149,6 @@ BOOST_AUTO_TEST_CASE(to_string)
 	YulStack asmStack(
 		solidity::test::CommonOptions::get().evmVersion(),
 		solidity::test::CommonOptions::get().eofVersion(),
-		YulStack::Language::StrictAssembly,
 		solidity::frontend::OptimiserSettings::none(),
 		DebugInfoSelection::AllExceptExperimental()
 	);

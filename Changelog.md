@@ -4,6 +4,7 @@ Language Features:
 * General: Add a builtin that computes the base slot of a storage namespace using the `erc7201` formula from ERC-7201.
 
 Compiler Features:
+* Commandline Interface: Disallow selecting the deprecated assembly input mode that was only accessible via `--assemble` instead of treating it as equivalent to `--strict-assembly`.
 * Commandline Interface: Introduce `--experimental` flag required for enabling the experimental mode.
 * General: Introduce the SSA CFG codegen (experimental).
 * General: Restrict the existing experimental features (`generic-solidity`, `lsp`, `ethdebug`, `eof`, `evm`, `ast-import`, `evmasm-import`, `ir-ast`, `ssa-cfg`) to experimental mode.

@@ -59,7 +59,6 @@ std::pair<std::shared_ptr<AST const>, std::shared_ptr<AsmAnalysisInfo>> parse(st
 	YulStack stack(
 		langutil::EVMVersion(),
 		std::nullopt,
-		YulStack::Language::StrictAssembly,
 		solidity::frontend::OptimiserSettings::none(),
 		DebugInfoSelection::Default()
 	);
