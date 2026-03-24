@@ -91,6 +91,12 @@ BOOST_AUTO_TEST_CASE(legacy_dupn_swapn_encoding_rejects_out_of_range_depths)
 	BOOST_CHECK_THROW(assembleSingleItem(AssemblyItem::swapN(256)), InternalCompilerError);
 }
 
+BOOST_AUTO_TEST_CASE(legacy_dupn_swapn_disassembly_implicit_zero_immediate)
+{
+	BOOST_CHECK_EQUAL(disassemble(util::fromHex("e6"), EVMVersion::amsterdam()), "DUPN 145 ");
+	BOOST_CHECK_EQUAL(disassemble(util::fromHex("e7"), EVMVersion::amsterdam()), "SWAPN 145 ");
+}
+
 BOOST_AUTO_TEST_CASE(all_assembly_items, *boost::unit_test::precondition(nonEOF()))
 {
 	std::map<std::string, unsigned> indices = {

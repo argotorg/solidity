@@ -314,6 +314,7 @@ struct InstructionInfo
 	int ret;            ///< Number of items placed (back) on the stack by this instruction, assuming args items were removed.
 	bool sideEffects;   ///< false if the only effect on the execution environment (apart from gas usage) is a change to a topmost segment of the stack
 	Tier gasPriceTier;  ///< Tier for gas pricing.
+	bool maybeAdditional = false; ///< One immediate byte conditional on opcode-specific conditions.
 };
 
 /// Information on all the instructions.
