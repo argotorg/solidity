@@ -60,10 +60,7 @@ namespace
 uint8_t encodeDupSwapNImmediate(size_t _depth)
 {
 	solAssert(_depth >= 17 && _depth <= 235);
-	if (_depth <= 107)
-		return static_cast<uint8_t>(_depth - 17);
-	else
-		return static_cast<uint8_t>(_depth + 20);
+	return static_cast<uint8_t>(_depth + 111);
 }
 
 /// Produces instruction location info in RAII style. When an assembly instruction is added to the bytecode,
