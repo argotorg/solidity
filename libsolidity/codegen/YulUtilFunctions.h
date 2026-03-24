@@ -326,6 +326,10 @@ public:
 	/// signature: (arrayOffset, arrayLength, sliceStart, sliceEnd) -> offset, length
 	std::string calldataArrayIndexRangeAccess(ArrayType const& _type);
 
+	/// @returns the name of a function that performs index range access on a memory/constant array
+	/// signature: (memPtr, sliceStart, sliceEnd) -> offset, length
+	std::string memoryArrayIndexRangeAccess(ArrayType const& _type);
+
 	/// @returns the name of a function that follows a calldata tail while performing
 	/// bounds checks.
 	/// signature: (baseRef, tailPointer) -> offset[, length]

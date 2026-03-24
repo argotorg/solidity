@@ -920,7 +920,7 @@ ASTPointer<VariableDeclaration> Parser::parseVariableDeclaration(
 
 				isIndexed = true;
 			}
-			else if (token == Token::Constant || token == Token::Immutable)
+			else if (token == Token::Immutable || (token == Token::Constant && !_options.allowLocationSpecifier))
 			{
 				if (mutability != VariableDeclaration::Mutability::Mutable)
 					parserError(
@@ -933,7 +933,7 @@ ASTPointer<VariableDeclaration> Parser::parseVariableDeclaration(
 				else if (token == Token::Immutable)
 					mutability = VariableDeclaration::Mutability::Immutable;
 			}
-			else if (_options.allowLocationSpecifier && TokenTraits::isLocationSpecifier(token))
+			else if (_options.allowLocationSpecifier && (TokenTraits::isLocationSpecifier(token) || token == Token::Constant))
 			{
 				if (location != VariableDeclaration::Location::Unspecified)
 					parserError(3548_error, "Location already specified.");
@@ -949,6 +949,9 @@ ASTPointer<VariableDeclaration> Parser::parseVariableDeclaration(
 						break;
 					case Token::CallData:
 						location = VariableDeclaration::Location::CallData;
+						break;
+					case Token::Constant:
+						location = VariableDeclaration::Location::Constant;
 						break;
 					default:
 						solAssert(false, "Unknown data location.");

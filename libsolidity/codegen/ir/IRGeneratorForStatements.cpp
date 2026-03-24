@@ -336,27 +336,172 @@ IRVariable IRGeneratorForStatements::evaluateExpression(Expression const& _expre
 	}
 }
 
+namespace
+{
+bool isTypeFlat(Type const& _type)
+{
+	if (_type.isValueType())
+		return true;
+	if (auto const* arrayType = dynamic_cast<ArrayType const*>(&_type))
+	{
+		if (arrayType->isDynamicallySized() || arrayType->isByteArrayOrString())
+			return false;
+		return arrayType->baseType()->isValueType();
+	}
+	if (auto const* structType = dynamic_cast<StructType const*>(&_type))
+	{
+		for (auto const& member: structType->structDefinition().members())
+		{
+			Type const* memberType = member->annotation().type;
+			if (!memberType || !memberType->isValueType())
+				return false;
+		}
+		return true;
+	}
+	return false;
+}
+
+bool serializeExpression(Expression const& _expr, Type const& _targetType, bytes& _out)
+{
+	if (auto const* literal = dynamic_cast<Literal const*>(&_expr))
+	{
+		if (literal->annotation().type->category() == Type::Category::RationalNumber)
+		{
+			auto const& rationalType = dynamic_cast<RationalNumberType const&>(*literal->annotation().type);
+			u256 value = rationalType.literalValue(literal);
+			if (_targetType.isValueType())
+			{
+				bytes word(32, 0);
+				for (int i = 31; i >= 0; --i)
+				{
+					word[static_cast<size_t>(i)] = static_cast<uint8_t>(value & 0xff);
+					value >>= 8;
+				}
+				_out += word;
+				return true;
+			}
+		}
+		return false;
+	}
+	if (auto const* tuple = dynamic_cast<TupleExpression const*>(&_expr))
+	{
+		if (!tuple->isInlineArray())
+			return false;
+		auto const* arrayType = dynamic_cast<ArrayType const*>(&_targetType);
+		if (!arrayType || arrayType->isDynamicallySized())
+			return false;
+		auto const& components = tuple->components();
+		for (size_t i = 0; i < components.size(); ++i)
+		{
+			if (!components[i])
+				return false;
+			if (!serializeExpression(*components[i], *arrayType->baseType(), _out))
+				return false;
+		}
+		return true;
+	}
+	if (auto const* funcCall = dynamic_cast<FunctionCall const*>(&_expr))
+	{
+		if (auto const* structType = dynamic_cast<StructType const*>(&_targetType))
+		{
+			auto const& members = structType->structDefinition().members();
+			auto const& args = funcCall->sortedArguments();
+			if (args.size() != members.size())
+				return false;
+			for (size_t i = 0; i < args.size(); ++i)
+			{
+				Type const* memberType = members[i]->annotation().type;
+				if (!memberType || !serializeExpression(*args[i], *memberType, _out))
+					return false;
+			}
+			return true;
+		}
+		if (funcCall->arguments().size() == 1)
+			return serializeExpression(*funcCall->arguments().front(), _targetType, _out);
+		return false;
+	}
+	if (auto const* ident = dynamic_cast<Identifier const*>(&_expr))
+	{
+		if (auto const* varDecl = dynamic_cast<VariableDeclaration const*>(ident->annotation().referencedDeclaration))
+		{
+			if (varDecl->isConstant() && varDecl->value())
+				return serializeExpression(*varDecl->value(), _targetType, _out);
+		}
+	}
+	return false;
+}
+
+std::optional<bytes> serializeConstant(VariableDeclaration const& _constant)
+{
+	Type const* type = _constant.type();
+	if (!type || !isTypeFlat(*type))
+		return std::nullopt;
+	if (!_constant.value())
+		return std::nullopt;
+	bytes result;
+	if (serializeExpression(*_constant.value(), *type, result))
+		return result;
+	return std::nullopt;
+}
+}
+
 std::string IRGeneratorForStatements::constantValueFunction(VariableDeclaration const& _constant)
 {
 	try
 	{
 		std::string functionName = IRNames::constantValueFunction(_constant);
 		return m_context.functionCollector().createFunction(functionName, [&] {
+			Type const& constantType = *_constant.type();
+
+			if (auto const* arrType = dynamic_cast<ArrayType const*>(&constantType); !constantType.isValueType() && (!arrType || !arrType->isByteArrayOrString()))
+			if (auto serialized = serializeConstant(_constant))
+			{
+				std::string dataName = IRNames::constantDataObjectName(_constant);
+				size_t dataSize = serialized->size();
+				m_context.registerConstantData(dataName, std::move(*serialized));
+
+				Whiskers templ(R"(
+					<sourceLocationComment>
+					function <functionName>() -> <ret> {
+						<retFirst> := <allocationFunction>(<dataSize>)
+						datacopy(<retFirst>, dataoffset("<dataName>"), datasize("<dataName>"))
+					}
+				)");
+				templ("sourceLocationComment", dispenseLocationComment(_constant, m_context));
+				templ("functionName", functionName);
+				IRVariable retVar("ret", constantType);
+				templ("ret", retVar.commaSeparatedList());
+				templ("retFirst", retVar.stackSlots().front());
+				templ("allocationFunction", m_utils.allocationFunction());
+				templ("dataSize", std::to_string(dataSize));
+				templ("dataName", dataName);
+				return templ.render();
+			}
+
+			IRGeneratorForStatements generator(m_context, m_utils, m_optimiserSettings);
+			solAssert(_constant.value());
+			IRVariable result = generator.evaluateExpression(*_constant.value(), constantType);
+			IRVariable retVar("ret", constantType);
+
+			std::string assignments;
+			auto retSlots = retVar.stackSlots();
+			auto valSlots = result.stackSlots();
+			solAssert(retSlots.size() == valSlots.size());
+			for (size_t i = 0; i < retSlots.size(); ++i)
+				assignments += retSlots[i] + " := " + valSlots[i] + "\n";
+
 			Whiskers templ(R"(
 				<sourceLocationComment>
 				function <functionName>() -> <ret> {
 					<code>
-					<ret> := <value>
+					<assignments>
 				}
 			)");
 			templ("sourceLocationComment", dispenseLocationComment(_constant, m_context));
 			templ("functionName", functionName);
-			IRGeneratorForStatements generator(m_context, m_utils, m_optimiserSettings);
-			solAssert(_constant.value());
-			Type const& constantType = *_constant.type();
-			templ("value", generator.evaluateExpression(*_constant.value(), constantType).commaSeparatedList());
 			templ("code", generator.code());
-			templ("ret", IRVariable("ret", constantType).commaSeparatedList());
+			templ("ret", retVar.commaSeparatedList());
+			templ("assignments", assignments);
 
 			return templ.render();
 		});
@@ -2130,6 +2275,17 @@ void IRGeneratorForStatements::endVisit(MemberAccess const& _memberAccess)
 					")\n";
 			break;
 		}
+		case DataLocation::Constant:
+		{
+			std::string pos = m_context.newYulVariable();
+			appendCode() << "let " << pos << " := " <<
+				("add(" + expression.part("codeOffset").name() + ", " + structType.memoryOffsetOfMember(member).str() + ")\n");
+			setLValue(_memberAccess, IRLValue{
+				type(_memberAccess),
+				IRLValue::Memory{pos}
+			});
+			break;
+		}
 		default:
 			solAssert(false, "Illegal data location for struct.");
 		}
@@ -2367,7 +2523,7 @@ void IRGeneratorForStatements::endVisit(IndexAccess const& _indexAccess)
 			dynamic_cast<ArraySliceType const&>(baseType).arrayType();
 
 		if (baseType.category() == Type::Category::ArraySlice)
-			solAssert(arrayType.dataStoredIn(DataLocation::CallData) && arrayType.isDynamicallySized());
+			solAssert((arrayType.dataStoredIn(DataLocation::CallData) || arrayType.dataStoredIn(DataLocation::Constant)) && arrayType.isDynamicallySized());
 
 		solAssert(_indexAccess.indexExpression(), "Index expression expected.");
 
@@ -2398,6 +2554,40 @@ void IRGeneratorForStatements::endVisit(IndexAccess const& _indexAccess)
 			case DataLocation::Transient:
 				solUnimplemented("Transient data location is only supported for value types.");
 				break;
+			case DataLocation::Constant:
+			{
+				std::string const indexExpression = expressionAsType(
+					*_indexAccess.indexExpression(),
+					*TypeProvider::uint256()
+				);
+
+				if (baseType.category() == Type::Category::ArraySlice || arrayType.isDynamicallySized())
+				{
+					std::string const baseRef = (baseType.category() == Type::Category::ArraySlice)
+						? IRVariable(_indexAccess.baseExpression()).part("offset").name()
+						: IRVariable(_indexAccess.baseExpression()).part("codeOffset").name();
+					std::string const arrLength = IRVariable(_indexAccess.baseExpression()).part("length").name();
+					appendCode() << "if iszero(lt(" << indexExpression << ", " << arrLength << ")) { " << m_utils.panicFunction(PanicCode::ArrayOutOfBounds) << "() }\n";
+					std::string const memAddress = "add(" + baseRef + ", mul(" + indexExpression + ", 0x20))";
+					setLValue(_indexAccess, IRLValue{
+						*arrayType.baseType(),
+						IRLValue::Memory{memAddress, arrayType.isByteArrayOrString()}
+					});
+				}
+				else
+				{
+					std::string const indexAccessFunction = m_utils.memoryArrayIndexAccessFunction(
+						dynamic_cast<ArrayType const&>(*TypeProvider::withLocation(&arrayType, DataLocation::Memory, false))
+					);
+					std::string const baseRef = IRVariable(_indexAccess.baseExpression()).part("codeOffset").name();
+					std::string const memAddress = indexAccessFunction + "(" + baseRef + ", " + indexExpression + ")";
+					setLValue(_indexAccess, IRLValue{
+						*arrayType.baseType(),
+						IRLValue::Memory{memAddress, arrayType.isByteArrayOrString()}
+					});
+				}
+				break;
+			}
 			case DataLocation::Memory:
 			{
 				std::string const indexAccessFunction = m_utils.memoryArrayIndexAccessFunction(arrayType);
@@ -2513,8 +2703,44 @@ void IRGeneratorForStatements::endVisit(IndexRangeAccess const& _indexRangeAcces
 				sliceEnd.name() << ")\n";
 			break;
 		}
+		case DataLocation::Constant:
+		{
+			solAssert(baseType.isDynamicallySized());
+			IRVariable sliceStart{m_context.newYulVariable(), *TypeProvider::uint256()};
+			if (_indexRangeAccess.startExpression())
+				define(sliceStart, IRVariable{*_indexRangeAccess.startExpression()});
+			else
+				define(sliceStart) << u256(0) << "\n";
+
+			IRVariable sliceEnd{m_context.newYulVariable(), *TypeProvider::uint256()};
+			if (_indexRangeAccess.endExpression())
+				define(sliceEnd, IRVariable{*_indexRangeAccess.endExpression()});
+			else
+				define(sliceEnd, IRVariable{_indexRangeAccess.baseExpression()}.part("length"));
+
+			std::string baseOffset = (baseType.category() == Type::Category::ArraySlice)
+				? IRVariable{_indexRangeAccess.baseExpression()}.part("offset").name()
+				: IRVariable{_indexRangeAccess.baseExpression()}.part("codeOffset").name();
+			std::string baseLength = IRVariable{_indexRangeAccess.baseExpression()}.part("length").name();
+
+			appendCode() << Whiskers(R"(
+				if gt(<start>, <end>) { <revertStartAfterEnd>() }
+				if gt(<end>, <length>) { <revertGreaterThanLength>() }
+			)")
+			("start", sliceStart.name())
+			("end", sliceEnd.name())
+			("length", baseLength)
+			("revertStartAfterEnd", m_utils.revertReasonIfDebugFunction("Slice starts after end"))
+			("revertGreaterThanLength", m_utils.revertReasonIfDebugFunction("Slice is greater than length"))
+			.render();
+
+			IRVariable range{_indexRangeAccess};
+			define(range.part("offset")) << "add(" << baseOffset << ", mul(" << sliceStart.name() << ", 0x20))\n";
+			define(range.part("length")) << "sub(" << sliceEnd.name() << ", " << sliceStart.name() << ")\n";
+			break;
+		}
 		default:
-			solUnimplemented("Index range accesses is implemented only on calldata arrays.");
+			solUnimplemented("Index range accesses is implemented only on calldata or constant arrays.");
 	}
 }
 
@@ -3236,6 +3462,8 @@ void IRGeneratorForStatements::writeToLValue(IRLValue const& _lvalue, IRVariable
 					solAssert(valueReferenceType);
 					if (valueReferenceType->dataStoredIn(DataLocation::Memory))
 						appendCode() << "mstore(" + _memory.address + ", " + _value.part("mpos").name() + ")\n";
+					else if (valueReferenceType->dataStoredIn(DataLocation::Constant))
+						appendCode() << "mstore(" + _memory.address + ", " + _value.part("codeOffset").name() + ")\n";
 					else
 						appendCode() << "mstore(" + _memory.address + ", " + m_utils.conversionFunction(_value.type(), _lvalue.type) + "(" + _value.commaSeparatedList() + "))\n";
 				}

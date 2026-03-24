@@ -60,6 +60,7 @@ struct IRNames
 	static std::string constructor(ContractDefinition const& _contract);
 	static std::string libraryAddressImmutable();
 	static std::string constantValueFunction(VariableDeclaration const& _constant);
+	static std::string constantDataObjectName(VariableDeclaration const& _constant);
 	static std::string localVariable(VariableDeclaration const& _declaration);
 	static std::string localVariable(Expression const& _expression);
 	/// @returns the variable name that can be used to inspect the success or failure of an external

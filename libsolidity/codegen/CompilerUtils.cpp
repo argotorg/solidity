@@ -1027,6 +1027,9 @@ void CompilerUtils::convertType(
 		case DataLocation::Transient:
 			solUnimplemented("Transient data location is only supported for value types.");
 			break;
+		case DataLocation::Constant:
+			solUnimplemented("Constant composite types require compilation via the IR pipeline (use --via-ir).");
+			break;
 		case DataLocation::Memory:
 		{
 			// Copy the array to a free position in memory, unless it is already in memory.
@@ -1174,6 +1177,9 @@ void CompilerUtils::convertType(
 		case DataLocation::Transient:
 			solUnimplemented("Transient data location is only supported for value types.");
 			break;
+		case DataLocation::Constant:
+			solUnimplemented("Constant composite types require compilation via the IR pipeline (use --via-ir).");
+			break;
 		case DataLocation::Memory:
 			// Copy the array to a free position in memory, unless it is already in memory.
 			switch (typeOnStack.location())
@@ -1215,6 +1221,9 @@ void CompilerUtils::convertType(
 			}
 			case DataLocation::Transient:
 				solUnimplemented("Transient data location is only supported for value types.");
+				break;
+			case DataLocation::Constant:
+				solUnimplemented("Constant composite types require compilation via the IR pipeline (use --via-ir).");
 				break;
 			case DataLocation::CallData:
 			{

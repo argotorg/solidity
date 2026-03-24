@@ -5,5 +5,5 @@ contract test {
 // ----
 // DeclarationError 8297: (32-48): The "immutable" keyword can only be used for state variables.
 // DeclarationError 8297: (66-80): The "immutable" keyword can only be used for state variables.
-// DeclarationError 1788: (102-117): The "constant" keyword can only be used for state variables or variables at file level.
-// DeclarationError 1788: (135-148): The "constant" keyword can only be used for state variables or variables at file level.
+// TypeError 6651: (102-117): Data location can only be specified for array, struct or mapping types, but "constant" was given.
+// TypeError 6651: (135-148): Data location can only be specified for array, struct or mapping types, but "constant" was given.

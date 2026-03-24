@@ -109,6 +109,12 @@ std::string IRNames::constantValueFunction(VariableDeclaration const& _constant)
 	return "constant_" + _constant.name() + "_" + std::to_string(_constant.id());
 }
 
+std::string IRNames::constantDataObjectName(VariableDeclaration const& _constant)
+{
+	solAssert(_constant.isConstant(), "");
+	return "cdo_" + _constant.name() + "_" + std::to_string(_constant.id());
+}
+
 std::string IRNames::localVariable(VariableDeclaration const& _declaration)
 {
 	return "var_" + _declaration.name() + '_' + std::to_string(_declaration.id());

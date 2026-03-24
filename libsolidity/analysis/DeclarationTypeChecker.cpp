@@ -418,6 +418,7 @@ void DeclarationTypeChecker::endVisit(VariableDeclaration const& _variable)
 				case Location::Storage: return "\"storage\"";
 				case Location::Transient: return "\"transient\"";
 				case Location::CallData: return "\"calldata\"";
+				case Location::Constant: return "\"constant\"";
 				case Location::Unspecified: return "none";
 			}
 			return {};
@@ -514,6 +515,9 @@ void DeclarationTypeChecker::endVisit(VariableDeclaration const& _variable)
 			case Location::Transient:
 				solUnimplemented("Transient data location cannot be used in this kind of variable or parameter declaration.");
 				break;
+			case Location::Constant:
+				typeLoc = DataLocation::Constant;
+				break;
 			case Location::Unspecified:
 				solAssert(!_variable.hasReferenceOrMappingType(), "Data location not properly set.");
 		}
@@ -528,10 +532,35 @@ void DeclarationTypeChecker::endVisit(VariableDeclaration const& _variable)
 	if (_variable.isConstant() && !type->isValueType())
 	{
 		bool allowed = false;
+		bool isByteArrayOrString = false;
 		if (auto arrayType = dynamic_cast<ArrayType const*>(type))
-			allowed = arrayType->isByteArrayOrString();
+		{
+			isByteArrayOrString = arrayType->isByteArrayOrString();
+			if (isByteArrayOrString)
+				allowed = true;
+			else
+				allowed = !arrayType->containsNestedMapping();
+		}
+		else if (auto structType = dynamic_cast<StructType const*>(type))
+		{
+			bool membersResolved = true;
+			for (auto const& member: structType->structDefinition().members())
+				if (!member->annotation().type)
+				{
+					membersResolved = false;
+					break;
+				}
+			allowed = !membersResolved || !structType->containsNestedMapping();
+		}
+		else if (dynamic_cast<MappingType const*>(type))
+			allowed = false;
 		if (!allowed)
-			m_errorReporter.fatalTypeError(9259_error, _variable.location(), "Only constants of value type and byte array type are implemented.");
+			m_errorReporter.fatalTypeError(9259_error, _variable.location(), "Constants of this type are not supported. Only value types, arrays, structs, and byte/string types without mappings are allowed.");
+		if (!isByteArrayOrString)
+		{
+			if (auto ref = dynamic_cast<ReferenceType const*>(type))
+				type = TypeProvider::withLocation(ref, DataLocation::Constant, false);
+		}
 	}
 
 	if (!type->isValueType())

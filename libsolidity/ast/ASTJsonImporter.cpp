@@ -1218,6 +1218,8 @@ VariableDeclaration::Location ASTJsonImporter::location(Json const& _node)
 		return VariableDeclaration::Location::CallData;
 	else if (storageLocStr == "transient")
 		return VariableDeclaration::Location::Transient;
+	else if (storageLocStr == "constant")
+		return VariableDeclaration::Location::Constant;
 	else
 		astAssert(false, "Unknown location declaration");
 

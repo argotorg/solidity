@@ -852,6 +852,8 @@ std::set<VariableDeclaration::Location> VariableDeclaration::allowedDataLocation
 			locations.insert(Location::Storage);
 		if (!isTryCatchParameter() && !isConstructorParameter())
 			locations.insert(Location::CallData);
+		if (!isConstructorParameter() && isInternalCallableParameter())
+			locations.insert(Location::Constant);
 
 		return locations;
 	}

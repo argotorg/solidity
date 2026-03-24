@@ -1,0 +1,550 @@
+{
+  "absolutePath": "a",
+  "exportedSymbols": {
+    "C": [
+      39
+    ]
+  },
+  "id": 40,
+  "nodeType": "SourceUnit",
+  "nodes": [
+    {
+      "abstract": false,
+      "baseContracts": [],
+      "canonicalName": "C",
+      "contractDependencies": [],
+      "contractKind": "contract",
+      "fullyImplemented": true,
+      "id": 39,
+      "linearizedBaseContracts": [
+        39
+      ],
+      "name": "C",
+      "nameLocation": "9:1:1",
+      "nodeType": "ContractDefinition",
+      "nodes": [
+        {
+          "canonicalName": "C.Config",
+          "id": 5,
+          "members": [
+            {
+              "constant": false,
+              "id": 2,
+              "mutability": "mutable",
+              "name": "fee",
+              "nameLocation": "41:3:1",
+              "nodeType": "VariableDeclaration",
+              "scope": 5,
+              "src": "33:11:1",
+              "stateVariable": false,
+              "storageLocation": "default",
+              "typeDescriptions": {
+                "typeIdentifier": "t_uint256",
+                "typeString": "uint256"
+              },
+              "typeName": {
+                "id": 1,
+                "name": "uint256",
+                "nodeType": "ElementaryTypeName",
+                "src": "33:7:1",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                }
+              },
+              "visibility": "internal"
+            },
+            {
+              "constant": false,
+              "id": 4,
+              "mutability": "mutable",
+              "name": "admin",
+              "nameLocation": "54:5:1",
+              "nodeType": "VariableDeclaration",
+              "scope": 5,
+              "src": "46:13:1",
+              "stateVariable": false,
+              "storageLocation": "default",
+              "typeDescriptions": {
+                "typeIdentifier": "t_address",
+                "typeString": "address"
+              },
+              "typeName": {
+                "id": 3,
+                "name": "address",
+                "nodeType": "ElementaryTypeName",
+                "src": "46:7:1",
+                "stateMutability": "nonpayable",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_address",
+                  "typeString": "address"
+                }
+              },
+              "visibility": "internal"
+            }
+          ],
+          "name": "Config",
+          "nameLocation": "24:6:1",
+          "nodeType": "StructDefinition",
+          "scope": 39,
+          "src": "17:45:1",
+          "visibility": "public"
+        },
+        {
+          "constant": true,
+          "id": 15,
+          "mutability": "constant",
+          "name": "cfg",
+          "nameLocation": "83:3:1",
+          "nodeType": "VariableDeclaration",
+          "scope": 39,
+          "src": "67:49:1",
+          "stateVariable": true,
+          "storageLocation": "default",
+          "typeDescriptions": {
+            "typeIdentifier": "t_struct$_Config_$5_constant_ptr",
+            "typeString": "struct C.Config"
+          },
+          "typeName": {
+            "id": 7,
+            "nodeType": "UserDefinedTypeName",
+            "pathNode": {
+              "id": 6,
+              "name": "Config",
+              "nameLocations": [
+                "67:6:1"
+              ],
+              "nodeType": "IdentifierPath",
+              "referencedDeclaration": 5,
+              "src": "67:6:1"
+            },
+            "referencedDeclaration": 5,
+            "src": "67:6:1",
+            "typeDescriptions": {
+              "typeIdentifier": "t_struct$_Config_$5_storage_ptr",
+              "typeString": "struct C.Config"
+            }
+          },
+          "value": {
+            "arguments": [
+              {
+                "hexValue": "3432",
+                "id": 9,
+                "isConstant": false,
+                "isLValue": false,
+                "isPure": true,
+                "kind": "number",
+                "lValueRequested": false,
+                "nodeType": "Literal",
+                "src": "96:2:1",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_rational_42_by_1",
+                  "typeString": "int_const 42"
+                },
+                "value": "42"
+              },
+              {
+                "arguments": [
+                  {
+                    "hexValue": "307831323334",
+                    "id": 12,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": true,
+                    "kind": "number",
+                    "lValueRequested": false,
+                    "nodeType": "Literal",
+                    "src": "108:6:1",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_rational_4660_by_1",
+                      "typeString": "int_const 4660"
+                    },
+                    "value": "0x1234"
+                  }
+                ],
+                "expression": {
+                  "argumentTypes": [
+                    {
+                      "typeIdentifier": "t_rational_4660_by_1",
+                      "typeString": "int_const 4660"
+                    }
+                  ],
+                  "id": 11,
+                  "isConstant": false,
+                  "isLValue": false,
+                  "isPure": true,
+                  "lValueRequested": false,
+                  "nodeType": "ElementaryTypeNameExpression",
+                  "src": "100:7:1",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_type$_t_address_$",
+                    "typeString": "type(address)"
+                  },
+                  "typeName": {
+                    "id": 10,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "100:7:1",
+                    "typeDescriptions": {}
+                  }
+                },
+                "id": 13,
+                "isConstant": false,
+                "isLValue": false,
+                "isPure": true,
+                "kind": "typeConversion",
+                "lValueRequested": false,
+                "nameLocations": [],
+                "names": [],
+                "nodeType": "FunctionCall",
+                "src": "100:15:1",
+                "tryCall": false,
+                "typeDescriptions": {
+                  "typeIdentifier": "t_address",
+                  "typeString": "address"
+                }
+              }
+            ],
+            "expression": {
+              "argumentTypes": [
+                {
+                  "typeIdentifier": "t_rational_42_by_1",
+                  "typeString": "int_const 42"
+                },
+                {
+                  "typeIdentifier": "t_address",
+                  "typeString": "address"
+                }
+              ],
+              "id": 8,
+              "name": "Config",
+              "nodeType": "Identifier",
+              "overloadedDeclarations": [],
+              "referencedDeclaration": 5,
+              "src": "89:6:1",
+              "typeDescriptions": {
+                "typeIdentifier": "t_type$_t_struct$_Config_$5_storage_ptr_$",
+                "typeString": "type(struct C.Config storage pointer)"
+              }
+            },
+            "id": 14,
+            "isConstant": false,
+            "isLValue": false,
+            "isPure": true,
+            "kind": "structConstructorCall",
+            "lValueRequested": false,
+            "nameLocations": [],
+            "names": [],
+            "nodeType": "FunctionCall",
+            "src": "89:27:1",
+            "tryCall": false,
+            "typeDescriptions": {
+              "typeIdentifier": "t_struct$_Config_$5_memory_ptr",
+              "typeString": "struct C.Config memory"
+            }
+          },
+          "visibility": "internal"
+        },
+        {
+          "constant": true,
+          "id": 26,
+          "mutability": "constant",
+          "name": "arr",
+          "nameLocation": "142:3:1",
+          "nodeType": "VariableDeclaration",
+          "scope": 39,
+          "src": "122:44:1",
+          "stateVariable": true,
+          "storageLocation": "default",
+          "typeDescriptions": {
+            "typeIdentifier": "t_array$_t_uint256_$3_constant_ptr",
+            "typeString": "uint256[3]"
+          },
+          "typeName": {
+            "baseType": {
+              "id": 16,
+              "name": "uint256",
+              "nodeType": "ElementaryTypeName",
+              "src": "122:7:1",
+              "typeDescriptions": {
+                "typeIdentifier": "t_uint256",
+                "typeString": "uint256"
+              }
+            },
+            "id": 18,
+            "length": {
+              "hexValue": "33",
+              "id": 17,
+              "isConstant": false,
+              "isLValue": false,
+              "isPure": true,
+              "kind": "number",
+              "lValueRequested": false,
+              "nodeType": "Literal",
+              "src": "130:1:1",
+              "typeDescriptions": {
+                "typeIdentifier": "t_rational_3_by_1",
+                "typeString": "int_const 3"
+              },
+              "value": "3"
+            },
+            "nodeType": "ArrayTypeName",
+            "src": "122:10:1",
+            "typeDescriptions": {
+              "typeIdentifier": "t_array$_t_uint256_$3_storage_ptr",
+              "typeString": "uint256[3]"
+            }
+          },
+          "value": {
+            "components": [
+              {
+                "arguments": [
+                  {
+                    "hexValue": "31",
+                    "id": 21,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": true,
+                    "kind": "number",
+                    "lValueRequested": false,
+                    "nodeType": "Literal",
+                    "src": "157:1:1",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_rational_1_by_1",
+                      "typeString": "int_const 1"
+                    },
+                    "value": "1"
+                  }
+                ],
+                "expression": {
+                  "argumentTypes": [
+                    {
+                      "typeIdentifier": "t_rational_1_by_1",
+                      "typeString": "int_const 1"
+                    }
+                  ],
+                  "id": 20,
+                  "isConstant": false,
+                  "isLValue": false,
+                  "isPure": true,
+                  "lValueRequested": false,
+                  "nodeType": "ElementaryTypeNameExpression",
+                  "src": "149:7:1",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_type$_t_uint256_$",
+                    "typeString": "type(uint256)"
+                  },
+                  "typeName": {
+                    "id": 19,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "149:7:1",
+                    "typeDescriptions": {}
+                  }
+                },
+                "id": 22,
+                "isConstant": false,
+                "isLValue": false,
+                "isPure": true,
+                "kind": "typeConversion",
+                "lValueRequested": false,
+                "nameLocations": [],
+                "names": [],
+                "nodeType": "FunctionCall",
+                "src": "149:10:1",
+                "tryCall": false,
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                }
+              },
+              {
+                "hexValue": "32",
+                "id": 23,
+                "isConstant": false,
+                "isLValue": false,
+                "isPure": true,
+                "kind": "number",
+                "lValueRequested": false,
+                "nodeType": "Literal",
+                "src": "161:1:1",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_rational_2_by_1",
+                  "typeString": "int_const 2"
+                },
+                "value": "2"
+              },
+              {
+                "hexValue": "33",
+                "id": 24,
+                "isConstant": false,
+                "isLValue": false,
+                "isPure": true,
+                "kind": "number",
+                "lValueRequested": false,
+                "nodeType": "Literal",
+                "src": "164:1:1",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_rational_3_by_1",
+                  "typeString": "int_const 3"
+                },
+                "value": "3"
+              }
+            ],
+            "id": 25,
+            "isConstant": false,
+            "isInlineArray": true,
+            "isLValue": false,
+            "isPure": true,
+            "lValueRequested": false,
+            "nodeType": "TupleExpression",
+            "src": "148:18:1",
+            "typeDescriptions": {
+              "typeIdentifier": "t_array$_t_uint256_$3_memory_ptr",
+              "typeString": "uint256[3] memory"
+            }
+          },
+          "visibility": "internal"
+        },
+        {
+          "body": {
+            "id": 37,
+            "nodeType": "Block",
+            "src": "234:17:1",
+            "statements": [
+              {
+                "expression": {
+                  "expression": {
+                    "id": 34,
+                    "name": "c",
+                    "nodeType": "Identifier",
+                    "overloadedDeclarations": [],
+                    "referencedDeclaration": 29,
+                    "src": "243:1:1",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_struct$_Config_$5_constant_ptr",
+                      "typeString": "struct C.Config constant"
+                    }
+                  },
+                  "id": 35,
+                  "isConstant": false,
+                  "isLValue": true,
+                  "isPure": false,
+                  "lValueRequested": false,
+                  "memberLocation": "245:3:1",
+                  "memberName": "fee",
+                  "nodeType": "MemberAccess",
+                  "referencedDeclaration": 2,
+                  "src": "243:5:1",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "functionReturnParameters": 33,
+                "id": 36,
+                "nodeType": "Return",
+                "src": "236:12:1"
+              }
+            ]
+          },
+          "id": 38,
+          "implemented": true,
+          "kind": "function",
+          "modifiers": [],
+          "name": "f",
+          "nameLocation": "181:1:1",
+          "nodeType": "FunctionDefinition",
+          "parameters": {
+            "id": 30,
+            "nodeType": "ParameterList",
+            "parameters": [
+              {
+                "constant": false,
+                "id": 29,
+                "mutability": "mutable",
+                "name": "c",
+                "nameLocation": "199:1:1",
+                "nodeType": "VariableDeclaration",
+                "scope": 38,
+                "src": "183:17:1",
+                "stateVariable": false,
+                "storageLocation": "constant",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_struct$_Config_$5_constant_ptr",
+                  "typeString": "struct C.Config"
+                },
+                "typeName": {
+                  "id": 28,
+                  "nodeType": "UserDefinedTypeName",
+                  "pathNode": {
+                    "id": 27,
+                    "name": "Config",
+                    "nameLocations": [
+                      "183:6:1"
+                    ],
+                    "nodeType": "IdentifierPath",
+                    "referencedDeclaration": 5,
+                    "src": "183:6:1"
+                  },
+                  "referencedDeclaration": 5,
+                  "src": "183:6:1",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_struct$_Config_$5_storage_ptr",
+                    "typeString": "struct C.Config"
+                  }
+                },
+                "visibility": "internal"
+              }
+            ],
+            "src": "182:19:1"
+          },
+          "returnParameters": {
+            "id": 33,
+            "nodeType": "ParameterList",
+            "parameters": [
+              {
+                "constant": false,
+                "id": 32,
+                "mutability": "mutable",
+                "name": "",
+                "nameLocation": "-1:-1:-1",
+                "nodeType": "VariableDeclaration",
+                "scope": 38,
+                "src": "225:7:1",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 31,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "225:7:1",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "visibility": "internal"
+              }
+            ],
+            "src": "224:9:1"
+          },
+          "scope": 39,
+          "src": "172:79:1",
+          "stateMutability": "pure",
+          "virtual": false,
+          "visibility": "internal"
+        }
+      ],
+      "scope": 40,
+      "src": "0:253:1",
+      "usedErrors": [],
+      "usedEvents": []
+    }
+  ],
+  "src": "0:254:1"
+}
