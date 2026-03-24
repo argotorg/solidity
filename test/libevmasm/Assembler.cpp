@@ -56,6 +56,41 @@ namespace
 
 BOOST_AUTO_TEST_SUITE(Assembler)
 
+BOOST_AUTO_TEST_CASE(legacy_dupn_swapn_encoding_boundaries_and_wraparound)
+{
+	Assembly assembly{EVMVersion::amsterdam(), false, {}, {}};
+
+	assembly.append(AssemblyItem::dupN(17));
+	assembly.append(AssemblyItem::dupN(144));
+	assembly.append(AssemblyItem::dupN(145));
+	assembly.append(AssemblyItem::dupN(235));
+	assembly.append(AssemblyItem::swapN(17));
+	assembly.append(AssemblyItem::swapN(144));
+	assembly.append(AssemblyItem::swapN(145));
+	assembly.append(AssemblyItem::swapN(235));
+
+	BOOST_CHECK_EQUAL(assembly.assemble().toHex(), "e680e6ffe600e65ae780e7ffe700e75a");
+}
+
+BOOST_AUTO_TEST_CASE(legacy_dupn_swapn_encoding_rejects_out_of_range_depths)
+{
+	auto assembleSingleItem = [](AssemblyItem const& _item)
+	{
+		Assembly assembly{EVMVersion::amsterdam(), false, {}, {}};
+		assembly.append(_item);
+		assembly.assemble();
+	};
+
+	BOOST_CHECK_THROW(assembleSingleItem(AssemblyItem::dupN(1)), InternalCompilerError);
+	BOOST_CHECK_THROW(assembleSingleItem(AssemblyItem::dupN(16)), InternalCompilerError);
+	BOOST_CHECK_THROW(assembleSingleItem(AssemblyItem::dupN(236)), InternalCompilerError);
+	BOOST_CHECK_THROW(assembleSingleItem(AssemblyItem::dupN(256)), InternalCompilerError);
+	BOOST_CHECK_THROW(assembleSingleItem(AssemblyItem::swapN(1)), InternalCompilerError);
+	BOOST_CHECK_THROW(assembleSingleItem(AssemblyItem::swapN(16)), InternalCompilerError);
+	BOOST_CHECK_THROW(assembleSingleItem(AssemblyItem::swapN(236)), InternalCompilerError);
+	BOOST_CHECK_THROW(assembleSingleItem(AssemblyItem::swapN(256)), InternalCompilerError);
+}
+
 BOOST_AUTO_TEST_CASE(all_assembly_items, *boost::unit_test::precondition(nonEOF()))
 {
 	std::map<std::string, unsigned> indices = {
