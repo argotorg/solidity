@@ -4,6 +4,7 @@
 		"C": {"urls": ["in.sol"]}
 	},
 	"settings": {
+		"experimental": true,
 		"outputSelection": {
 			"*": {
 				"*": ["*", "ir", "irAst", "irOptimized", "irOptimizedAst"]

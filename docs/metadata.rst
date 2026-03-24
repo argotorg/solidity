@@ -136,6 +136,12 @@ explanatory purposes.
         "compilationTarget": {
           "myDirectory/myFile.sol": "MyContract"
         },
+        // Optional (false if omitted): Indicates whether experimental mode has been enabled.
+        // Always matches the value of the `experimental` flag in CBOR metadata.
+        // Note that experimental mode being enabled does not necessarily mean that any
+        // experimental features were actually used, or if they were, that those features
+        // affected the bytecode.
+        "experimental": true,
         // Required for Solidity: Addresses for libraries used.
         // Note that metadata has a different format for "libraries" field than the standard JSON input.
         // metadata format = { "MyLib.sol:MyLib": "0x123123..." }
@@ -197,12 +203,14 @@ Below are all the possible fields:
 .. code-block:: javascript
 
     {
+      // Present if "bytecodeHash" was "ipfs" in compiler settings
       "ipfs": "<metadata hash>",
-      // If "bytecodeHash" was "bzzr1" in compiler settings not "ipfs" but "bzzr1"
+      // Present if "bytecodeHash" was "bzzr1" in compiler settings
       "bzzr1": "<metadata hash>",
       // Previous versions were using "bzzr0" instead of "bzzr1"
       "bzzr0": "<metadata hash>",
-      // If any experimental features that affect code generation are used
+      // Present if experimental mode has been enabled either via "--experimental" flag or
+      // "settings.experimental" option in Standard JSON
       "experimental": true,
       "solc": "<compiler version>"
     }

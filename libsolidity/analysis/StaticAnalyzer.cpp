@@ -314,15 +314,18 @@ bool StaticAnalyzer::visit(BinaryOperation const& _operation)
 	if (
 		*_operation.rightExpression().annotation().isPure &&
 		(_operation.getOperator() == Token::Div || _operation.getOperator() == Token::Mod) &&
-		ConstantEvaluator::evaluate(m_errorReporter, _operation.leftExpression())
+		ConstantEvaluator::evaluate(m_errorReporter, _operation.leftExpression()).type
 	)
-		if (auto rhs = ConstantEvaluator::evaluate(m_errorReporter, _operation.rightExpression()))
-			if (rhs->value == 0)
-				m_errorReporter.typeError(
-					1211_error,
-					_operation.location(),
-					(_operation.getOperator() == Token::Div) ? "Division by zero." : "Modulo zero."
-				);
+		if (
+			auto rhs = ConstantEvaluator::evaluate(m_errorReporter, _operation.rightExpression());
+			std::holds_alternative<rational>(rhs.value) &&
+			std::get<rational>(rhs.value) == 0
+		)
+			m_errorReporter.typeError(
+				1211_error,
+				_operation.location(),
+				(_operation.getOperator() == Token::Div) ? "Division by zero." : "Modulo zero."
+			);
 
 	return true;
 }
@@ -337,13 +340,16 @@ bool StaticAnalyzer::visit(FunctionCall const& _functionCall)
 		{
 			solAssert(_functionCall.arguments().size() == 3, "");
 			if (*_functionCall.arguments()[2]->annotation().isPure)
-				if (auto lastArg = ConstantEvaluator::evaluate(m_errorReporter, *(_functionCall.arguments())[2]))
-					if (lastArg->value == 0)
-						m_errorReporter.typeError(
-							4195_error,
-							_functionCall.location(),
-							"Arithmetic modulo zero."
-						);
+				if (
+					auto lastArg = ConstantEvaluator::evaluate(m_errorReporter, *(_functionCall.arguments())[2]);
+					std::holds_alternative<rational>(lastArg.value) &&
+					std::get<rational>(lastArg.value) == 0
+				)
+					m_errorReporter.typeError(
+						4195_error,
+						_functionCall.location(),
+						"Arithmetic modulo zero."
+					);
 		}
 		if (
 			m_currentContract &&

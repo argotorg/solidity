@@ -11,13 +11,13 @@ from gas_diff_stats import collect_statistics
 class TestGasDiffStats(unittest.TestCase):
     def test_collect_statistics_should_fail_on_empty_diff(self):
         with self.assertRaises(RuntimeError):
-            self.assertEqual(collect_statistics(""), (0, 0, 0, 0, 0, 0))
+            self.assertEqual(collect_statistics(""), (0, 0, 0, 0, 0, 0, 0, 0))
 
     def test_collect_statistics_should_accept_whitespace_only_diff(self):
         # TODO: Should it really work this way?
         # If we're rejecting empty diff, not sure why whitespace is accepted.
-        self.assertEqual(collect_statistics("\n"), (0, 0, 0, 0, 0, 0))
-        self.assertEqual(collect_statistics("\n  \n\t\n\n"), (0, 0, 0, 0, 0, 0))
+        self.assertEqual(collect_statistics("\n"), (0, 0, 0, 0, 0, 0, 0, 0))
+        self.assertEqual(collect_statistics("\n  \n\t\n\n"), (0, 0, 0, 0, 0, 0, 0, 0))
 
     def test_collect_statistics_should_report_sum_of_gas_costs(self):
         diff_output = dedent("""
@@ -48,9 +48,11 @@ class TestGasDiffStats(unittest.TestCase):
             98438588 + 98438589,          # -irOptimized
             98438580 + 98438580,          # -legacyOptimized
             102095 + 98438774 + 98438774, # -legacy
+            0,                            # -ssaCFGOptimized
             25388 + 25389,                # +irOptimized
             25380 + 25380,                # +legacyOptimized
             76495 + 98413174 + 98413174,  # +legacy
+            0,                            # +ssaCFGOptimized
         ))
 
     def test_collect_statistics_should_ignore_ir_costs(self):
@@ -65,9 +67,11 @@ class TestGasDiffStats(unittest.TestCase):
             0, # -irOptimized
             0, # -legacyOptimized
             1, # -legacy
+            0, # -ssaCFGOptimized
             0, # +irOptimized
             0, # +legacyOptimized
             3, # +legacy
+            0, # +ssaCFGOptimized
         ))
 
     def test_collect_statistics_should_ignore_unchanged_costs(self):
@@ -81,9 +85,11 @@ class TestGasDiffStats(unittest.TestCase):
             0, # -irOptimized
             0, # -legacyOptimized
             1, # -legacy
+            0, # -ssaCFGOptimized
             0, # +irOptimized
             0, # +legacyOptimized
             3, # +legacy
+            0, # +ssaCFGOptimized
         ))
 
     def test_collect_statistics_should_include_code_deposit_in_total_cost(self):
@@ -103,7 +109,9 @@ class TestGasDiffStats(unittest.TestCase):
             1,         # -irOptimized
             300,       # -legacyOptimized
             900000020, # -legacy
+            0,         # -ssaCFGOptimized
             54000,     # +irOptimized
             87000000,  # +legacyOptimized
             600000,    # +legacy
+            0,         # +ssaCFGOptimized
         ))

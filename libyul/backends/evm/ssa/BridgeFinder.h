@@ -21,7 +21,7 @@
 
 #include <libyul/backends/evm/ssa/SSACFG.h>
 
-#include <range/v3/view/concat.hpp>
+#include <range/v3/algorithm/find.hpp>
 
 #include <cstdint>
 #include <optional>
@@ -79,7 +79,7 @@ private:
 		SSACFG::BlockId const& _neighbor,
 		size_t& _time,
 		SSACFG::BlockId const& _vertex,
-		std::set<SSACFG::BlockId> const& _vertexEntries,
+		std::vector<SSACFG::BlockId> const& _vertexEntries,
 		std::optional<SSACFG::BlockId> const& _parent
 	)
 	{
@@ -93,8 +93,8 @@ private:
 			if (m_low[_neighbor.value] > m_disc[_vertex.value])
 			{
 				// vertex <-> neighbor is a bridge in the undirected graph
-				bool const edgeNeighborToVertex = _vertexEntries.contains(_neighbor);
-				bool const edgeVertexToNeighbor = m_cfg.block(_neighbor).entries.contains(_vertex);
+				bool const edgeNeighborToVertex = ranges::find(_vertexEntries, _neighbor) != _vertexEntries.end();
+				bool const edgeVertexToNeighbor = ranges::find(m_cfg.block(_neighbor).entries, _vertex) != m_cfg.block(_neighbor).entries.end();
 
 				// special case: if it's the entry itself, we mark it as bridge vertex (provided correct orientation),
 				// so that functions which do nothing but revert have their whole tree marked as such (sans loops)

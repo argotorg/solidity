@@ -24,8 +24,6 @@
 
 #include <iosfwd>
 #include <string>
-#include <vector>
-#include <utility>
 
 namespace solidity::frontend::test
 {

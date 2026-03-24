@@ -1,0 +1,15 @@
+{
+	"language": "Solidity",
+	"sources": {
+		"A.sol": {
+			"content": "contract A {}"
+		}
+	},
+	"settings": {
+		"experimental": true,
+		"viaSSACFG": true,
+		"outputSelection": {
+			"*": {"*": ["evm.bytecode.ethdebug"]}
+		}
+	}
+}

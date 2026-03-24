@@ -21,8 +21,12 @@
 #include <libyul/backends/evm/ssa/StackShuffler.h>
 
 #include <range/v3/numeric/accumulate.hpp>
+#include <range/v3/view/iota.hpp>
+#include <range/v3/view/zip.hpp>
 
 #include <boost/container/flat_map.hpp>
+
+#include <fmt/ranges.h>
 
 using namespace solidity::yul::ssa;
 
@@ -40,10 +44,11 @@ std::size_t solidity::yul::ssa::findOptimalTargetSize
 	StackData const& _stackData,
 	StackData const& _targetArgs,
 	LivenessAnalysis::LivenessData const& _targetLiveOut,
-	bool const _canIntroduceJunk
+	bool const _canIntroduceJunk,
+	bool const _hasFunctionReturnLabel
 )
 {
-	std::size_t const minSize = _targetLiveOut.size() + _targetArgs.size();
+	std::size_t const minSize = _targetLiveOut.size() + _targetArgs.size() + (_hasFunctionReturnLabel ? 1 : 0);
 	boost::container::flat_map<StackSlot, std::size_t> deficit;
 	for (auto const& v: _targetLiveOut | ranges::views::keys)
 		deficit[StackSlot::makeValueID(v)]++;
@@ -134,10 +139,37 @@ CallSites solidity::yul::ssa::gatherCallSites(SSACFG const& _cfg)
 			}
 		});
 
-		for (auto const& operation: block.operations)
-			if (auto const* call = std::get_if<SSACFG::Call>(&operation.kind))
+		for (auto const opId: block.operations)
+			if (auto const* call = std::get_if<SSACFG::Call>(&_cfg.operation(opId).kind))
 				if (call->canContinue)
 					result.addCallSite(&call->call.get());
 	}
+	return result;
+}
+
+std::string ValidationResult::formatErrors() const
+{
+	return fmt::format("{}", fmt::join(m_errors, "\n"));
+}
+
+ValidationResult solidity::yul::ssa::checkLayoutCompatibility(StackData const& _current, StackData const& _desired)
+{
+	ValidationResult result;
+	if (_current.size() != _desired.size())
+		return result.addError(fmt::format(
+			"size mismatch: {} = len({}) =/= len({}) = {}",
+			_current.size(), stackToString(_current), stackToString(_desired), _desired.size()
+		));
+	for (auto&& [index, currentSlot, desiredSlot]: ranges::zip_view(ranges::views::iota(0), _current, _desired))
+		if (!desiredSlot.isJunk() && currentSlot != desiredSlot)
+			result.addError(fmt::format(
+				"stack element mismatch: {} = {}[{}] =/= {}[{}] = {}",
+				slotToString(currentSlot),
+				stackToString(_current),
+				index,
+				stackToString(_desired),
+				index,
+				slotToString(desiredSlot)
+			));
 	return result;
 }

@@ -21,14 +21,28 @@
 #include <libyul/backends/evm/ssa/PhiInverse.h>
 #include <libyul/backends/evm/ssa/Stack.h>
 
+#include <string>
+#include <vector>
+
 namespace solidity::yul::ssa
 {
+
+class ValidationResult
+{
+public:
+	bool ok() const { return m_errors.empty(); }
+	std::string formatErrors() const;
+	ValidationResult& addError(std::string _msg) { m_errors.push_back(std::move(_msg)); return *this; }
+	std::vector<std::string> const& errors() const { return m_errors; }
+private:
+	std::vector<std::string> m_errors;
+};
 
 struct CountingInstructionsCallbacks
 {
 	std::size_t numOps = 0;
-	void swap(std::size_t) { ++numOps; }
-	void dup(std::size_t) { ++numOps; }
+	void swap(StackDepth) { ++numOps; }
+	void dup(StackDepth) { ++numOps; }
 	void push(StackSlot const&) { ++numOps; }
 	void pop() { ++numOps; }
 };
@@ -36,8 +50,12 @@ struct CountingInstructionsCallbacks
 /// Transform stack data by replacing all its phi variables with their respective preimages.
 StackData stackPreImage(StackData _stack, PhiInverse const& _phiInverse);
 
-std::size_t findOptimalTargetSize(StackData const& _stackData, StackData const& _targetArgs, LivenessAnalysis::LivenessData const& _targetLiveOut, bool _canIntroduceJunk);
+std::size_t findOptimalTargetSize(StackData const& _stackData, StackData const& _targetArgs, LivenessAnalysis::LivenessData const& _targetLiveOut, bool _canIntroduceJunk, bool _hasFunctionReturnLabel);
 
 CallSites gatherCallSites(SSACFG const& _cfg);
+
+/// Checks that _current and _desired have the same size and that each slot matches,
+/// treating junk slots in _desired as wildcards.
+ValidationResult checkLayoutCompatibility(StackData const& _current, StackData const& _desired);
 
 }

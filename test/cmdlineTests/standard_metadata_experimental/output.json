@@ -1,0 +1,77 @@
+{
+    "contracts": {
+        "C": {
+            "C": {
+                "ir": "/// ethdebug: enabled
+/// @use-src 0:\"C\"
+object \"C_2\" {
+    code {
+        /// @src 0:56:69
+        mstore(64, memoryguard(128))
+        if callvalue() { revert_error_ca66f745a3ce8ff40e2ccaf1ad45db7774001b90d25810abd9040049be7bf4bb() }
+
+        constructor_C_2()
+
+        let _1 := allocate_unbounded()
+        codecopy(_1, dataoffset(\"C_2_deployed\"), datasize(\"C_2_deployed\"))
+
+        return(_1, datasize(\"C_2_deployed\"))
+
+        function allocate_unbounded() -> memPtr {
+            memPtr := mload(64)
+        }
+
+        function revert_error_ca66f745a3ce8ff40e2ccaf1ad45db7774001b90d25810abd9040049be7bf4bb() {
+            revert(0, 0)
+        }
+
+        /// @src 0:56:69
+        function constructor_C_2() {
+
+            /// @src 0:56:69
+
+        }
+        /// @src 0:56:69
+
+    }
+    /// @use-src 0:\"C\"
+    object \"C_2_deployed\" {
+        code {
+            /// @src 0:56:69
+            mstore(64, memoryguard(128))
+
+            revert_error_42b3090547df1d2001c96683413b8cf91c1b902ef5e3cb8d9f6f304cf7446f74()
+
+            function shift_right_224_unsigned(value) -> newValue {
+                newValue :=
+
+                shr(224, value)
+
+            }
+
+            function allocate_unbounded() -> memPtr {
+                memPtr := mload(64)
+            }
+
+            function revert_error_42b3090547df1d2001c96683413b8cf91c1b902ef5e3cb8d9f6f304cf7446f74() {
+                revert(0, 0)
+            }
+
+        }
+
+        data \".metadata\" hex\"<BYTECODE REMOVED>\"
+    }
+
+}
+
+",
+                "metadata": "{\"compiler\":{\"version\":\"<VERSION REMOVED>\"},\"language\":\"Solidity\",\"output\":{\"abi\":[],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"C\":\"C\"},\"evmVersion\":\"osaka\",\"experimental\":true,\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[],\"viaIR\":true},\"sources\":{\"C\":{\"keccak256\":\"0x5cf617b1707a484e3c4bd59643013dec76ab7d75900b46855214729ae3e0ceb0\",\"license\":\"GPL-3.0\",\"urls\":[\"bzz-raw://ac418a02dfadf87234150d3568f33269e3f49460345cb39300e017a6d755eff2\",\"dweb:/ipfs/QmQq3owBu25x2WV46HB1WyKzJpxiAPecU7eMKqtXCF7eeS\"]}},\"version\":1}"
+            }
+        }
+    },
+    "sources": {
+        "C": {
+            "id": 0
+        }
+    }
+}

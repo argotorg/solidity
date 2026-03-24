@@ -1,0 +1,14 @@
+// we want to replace JUNK at the bottom of the stack with the top value, all other slots must be preserved exactly
+initial: [JUNK, v2, v1, v0]
+targetStackTop: [v0, v2, v1, v0]
+targetStackTailSet: {}
+targetStackSize: 4
+// ----
+//             |      0      1      2      3 |      4
+//             +---------------------------- +-------
+//    (initial)|      *     v2     v1     v0
+//         DUP1|      *     v2     v1     v0 |     v0
+//        SWAP4|     v0     v2     v1     v0 |      *
+//          POP|     v0     v2     v1     v0
+//             +---------------------------- +-------
+//     (target)|     v0     v2     v1     v0 |

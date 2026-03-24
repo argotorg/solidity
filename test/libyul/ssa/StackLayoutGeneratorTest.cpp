@@ -74,7 +74,7 @@ protected:
 
 		for (std::size_t i = 0; i < block.operations.size(); ++i)
 		{
-			auto const& operation = block.operations[i];
+			auto const& operation = m_cfg.operation(block.operations[i]);
 			yulAssert(i < blockLayout->operationIn.size());
 			auto operationStack = blockLayout->operationIn[i];
 
@@ -162,7 +162,8 @@ frontend::test::TestCase::TestResult StackLayoutGeneratorTest::run(std::ostream&
 			auto const& cfg = *controlFlow->functionGraphs[index];
 			SSACFGStackLayout const layout = StackLayoutGenerator::generate(
 				LivenessAnalysis(cfg),
-				gatherCallSites(cfg)
+				gatherCallSites(cfg),
+				static_cast<ControlFlow::FunctionGraphID>(index)
 			);
 			StackLayoutDotExporter exporter(cfg, index, layout);
 			if (cfg.function)

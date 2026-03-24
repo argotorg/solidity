@@ -1,10 +1,20 @@
 ### 0.8.35 (unreleased)
 
 Language Features:
+* General: Add a builtin that computes the base slot of a storage namespace using the `erc7201` formula from ERC-7201.
 
 Compiler Features:
+* Commandline Interface: Disallow selecting the deprecated assembly input mode that was only accessible via `--assemble` instead of treating it as equivalent to `--strict-assembly`.
+* Commandline Interface: Introduce `--experimental` flag required for enabling the experimental mode.
+* General: Introduce the SSA CFG codegen (experimental).
+* General: Restrict the existing experimental features (`generic-solidity`, `lsp`, `ethdebug`, `eof`, `evm`, `ast-import`, `evmasm-import`, `ir-ast`, `ssa-cfg`) to experimental mode.
+* Metadata: Store the state of the experimental mode in JSON and CBOR metadata. In CBOR this broadens the meaning of the existing `experimental` field, which used to indicate only the presence of certain experimental pragmas in the source.
+* Standard JSON Interface: Introduce `settings.experimental` setting required for enabling the experimental mode.
+* Yul Optimizer: Improve performance of control flow side effects collector and function references resolver.
 
 Bugfixes:
+* Yul: Fix incorrect serialization of Yul object names containing double quotes and escape sequences, producing output that could not be parsed as valid Yul.
+* Yul EVM Code Transform: Improve stack shuffler performance by fixing a BFS deduplication issue.
 
 
 ### 0.8.34 (2026-02-18)
@@ -14,7 +24,6 @@ Important Bugfixes:
 
 
 Compiler Features:
-* Yul Optimizer: Improve performance of control flow side effects collector and function references resolver.
 * Yul Optimizer: Remove redundant prerequisite steps from the default optimizer sequence.
 
 

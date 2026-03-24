@@ -9,6 +9,7 @@ type word2 = __builtin("word");
 type fun1(T, U) = __builtin("fun");
 type fun2(T, U) = __builtin("fun");
 // ====
+// experimental: true
 // EVMVersion: >=constantinople
 // ----
 // Warning 2264: (0-29): Experimental features are turned on. Do not use experimental features on live deployments.

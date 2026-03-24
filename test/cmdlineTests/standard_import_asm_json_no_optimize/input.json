@@ -28,6 +28,7 @@
         }
     },
     "settings": {
+        "experimental": true,
         "outputSelection": {
             "*": {
                 "": ["evm.assembly"]

@@ -193,7 +193,7 @@ more details on error handling and when to use which function.
 ``revert(string memory reason)``
     abort execution and revert state changes, providing an explanatory string
 
-.. index:: keccak256, ripemd160, sha256, ecrecover, addmod, mulmod, cryptography,
+.. index:: keccak256, ripemd160, sha256, ecrecover, addmod, mulmod, cryptography, erc7201,
 
 .. _mathematical-and-cryptographic-functions:
 
@@ -245,6 +245,12 @@ Mathematical and Cryptographic Functions
 .. note::
 
     When running ``sha256``, ``ripemd160`` or ``ecrecover`` on a *private blockchain*, you might encounter Out-of-Gas. This is because these functions are implemented as "precompiled contracts" and only really exist after they receive the first message (although their contract code is hardcoded). Messages to non-existing contracts are more expensive and thus the execution might run into an Out-of-Gas error. A workaround for this problem is to first send Wei (1 for example) to each of the contracts before you use them in your actual contracts. This is not an issue on the main or test net.
+
+``erc7201(string memory id) returns (uint)``
+    compute the base slot of a storage namespace of a given ``id`` according to the ``erc7201`` formula defined by `ERC-7201<https://eips.ethereum.org/EIPS/eip-7201>`.
+    The formula is equivalent to ``keccak256(keccak256(id) - 1) & ~0xff``.
+    The builtin accepts arbitrary strings, including ones containing whitespace.
+    The function can be used in compile-time context.
 
 .. index:: balance, codehash, send, transfer, call, callcode, delegatecall, staticcall
 

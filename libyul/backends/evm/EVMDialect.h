@@ -91,7 +91,7 @@ public:
 
 	langutil::EVMVersion evmVersion() const { return m_evmVersion; }
 	std::optional<uint8_t> eofVersion() const { return m_eofVersion; }
-	size_t reachableStackDepth() const { return m_eofVersion.has_value() ? 256 : 16; }
+	size_t reachableStackDepth() const { return m_eofVersion.has_value() ? 256 : m_evmVersion.reachableStackDepth(); }
 
 	bool providesObjectAccess() const { return m_objectAccess; }
 

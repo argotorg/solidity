@@ -63,6 +63,23 @@ function yield_liquidator_test
     force_hardhat_compiler_binary "$config_file" "$BINARY_TYPE" "$BINARY_PATH"
     force_hardhat_compiler_settings "$config_file" "$(first_word "$SELECTED_PRESETS")" "$config_var"
     force_hardhat_unlimited_contract_size "$config_file" "$config_var"
+    # TODO: Remove after https://github.com/Uniswap/sdks/issues/557 is resolved
+    # Pin broken @uniswap/* packages via overrides. The following versions were published with
+    # 'workspace:*' deps that npm cannot resolve (EUNSUPPORTEDPROTOCOL), causing a silent exit-1:
+    #   @uniswap/v3-sdk@3.29.2  (via smart-order-router -> ^3.7.0)
+    #   @uniswap/v4-sdk@1.29.2  (via smart-order-router -> router-sdk -> ^1.20.0)
+    #   @uniswap/v2-sdk@4.19.2  (via smart-order-router -> router-sdk -> ^4.14.0)
+    # Cannot just run npm install with unbroken version because these are indirect dependencies.
+    node -e "
+        const fs = require('fs');
+        const p = JSON.parse(fs.readFileSync('package.json'));
+        p.overrides = Object.assign(p.overrides || {}, {
+            '@uniswap/v3-sdk': '3.29.1',
+            '@uniswap/v4-sdk': '1.29.1',
+            '@uniswap/v2-sdk': '4.19.1',
+        });
+        fs.writeFileSync('package.json', JSON.stringify(p, null, 2));
+    "
     npm install
 
     # The contract below is not used in any test and it depends on ISwapRouter which does not exists

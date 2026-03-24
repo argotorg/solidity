@@ -338,8 +338,10 @@ void DeclarationTypeChecker::endVisit(ArrayTypeName const& _typeName)
 		std::optional<rational> lengthValue;
 		if (length->annotation().type && length->annotation().type->category() == Type::Category::RationalNumber)
 			lengthValue = dynamic_cast<RationalNumberType const&>(*length->annotation().type).value();
-		else if (std::optional<ConstantEvaluator::TypedRational> value = ConstantEvaluator::evaluate(m_errorReporter, *length))
-			lengthValue = value->value;
+		else if (ConstantEvaluator::TypedValue value = ConstantEvaluator::evaluate(m_errorReporter, *length);
+			std::holds_alternative<rational>(value.value)
+		)
+			lengthValue = std::get<rational>(value.value);
 
 		if (!lengthValue)
 			m_errorReporter.typeError(

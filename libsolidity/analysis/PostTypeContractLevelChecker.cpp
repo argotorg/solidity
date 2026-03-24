@@ -92,7 +92,6 @@ void PostTypeContractLevelChecker::checkStorageLayoutSpecifier(ContractDefinitio
 
 	if (!*baseSlotExpression.annotation().isPure)
 	{
-		// TODO: introduce and handle erc7201 as a builtin function
 		m_errorReporter.typeError(
 			1139_error,
 			baseSlotExpression.location(),
@@ -137,8 +136,9 @@ void PostTypeContractLevelChecker::checkStorageLayoutSpecifier(ContractDefinitio
 	rational baseSlotRationalValue;
 	if (integerType)
 	{
-		std::optional<ConstantEvaluator::TypedRational> typedRational = ConstantEvaluator::evaluate(m_errorReporter, baseSlotExpression);
-		if (!typedRational)
+		ConstantEvaluator::TypedValue typedRational = ConstantEvaluator::evaluate(m_errorReporter, baseSlotExpression);
+		solAssert(!typedRational.type || dynamic_cast<IntegerType const*>(typedRational.type));
+		if (!typedRational.type)
 		{
 			m_errorReporter.typeError(
 				1505_error,
@@ -148,7 +148,8 @@ void PostTypeContractLevelChecker::checkStorageLayoutSpecifier(ContractDefinitio
 			);
 			return;
 		}
-		baseSlotRationalValue = typedRational->value;
+		solAssert(std::holds_alternative<rational>(typedRational.value));
+		baseSlotRationalValue = std::get<rational>(typedRational.value);
 	}
 	else
 	{

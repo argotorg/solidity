@@ -281,6 +281,10 @@ Input Description
         "stopAfter": "parsing",
         // Optional: List of remappings
         "remappings": [ ":g=/dir" ],
+        // Optional: Experimental mode toggle (Default: false)
+        // Makes it possible to use experimental features (but does not enable any such feature by itself).
+        // The use of this mode is recorded in contract metadata.
+        "experimental": true,
         // Optional: Optimizer settings
         "optimizer": {
           // Turn on the optimizer. Optional. Default: false.
@@ -365,6 +369,9 @@ Input Description
         // Optional: Change compilation pipeline to go through the Yul intermediate representation.
         // This is false by default.
         "viaIR": true,
+        // Optional: Turn on SSA CFG-based code generation via the IR (experimental).
+        // Implies viaIR: true. This is false by default.
+        "viaSSACFG": false,
         // Optional: Debugging settings
         "debug": {
           // How to treat revert (and require) reason strings. Settings are
@@ -383,8 +390,11 @@ Input Description
           //     - `<end>` is the index of the first byte after that location.
           // - `snippet`: A single-line code snippet from the location indicated by `@src`.
           //     The snippet is quoted and follows the corresponding `@src` annotation.
-          // - `*`: Wildcard value that can be used to request everything.
-          "debugInfo": ["location", "snippet"]
+          // - `ast-id`: Annotations of the form `@ast-id <id>` over elements that can be mapped back to a definition in the original Solidity file.
+          //   `<id>` is a node ID in the Solidity AST ('ast' output).
+          // - `ethdebug`: Ethdebug annotations (experimental).
+          // - `*`: Wildcard value that can be used to request all non-experimental components.
+          "debugInfo": ["location", "snippet", "ast-id", "ethdebug"]
         },
         // Metadata settings (optional)
         "metadata": {
@@ -435,13 +445,15 @@ Input Description
         //   userdoc - User documentation (natspec)
         //   metadata - Metadata
         //   ir - Yul intermediate representation of the code before optimization
-        //   irAst - AST of Yul intermediate representation of the code before optimization
+        //   irAst - AST of Yul intermediate representation of the code before optimization (experimental)
         //   irOptimized - Intermediate representation after optimization
-        //   irOptimizedAst - AST of intermediate representation after optimization
-        //   storageLayout - Slots, offsets and types of the contract's state variables in storage.
-        //   transientStorageLayout - Slots, offsets and types of the contract's state variables in transient storage.
+        //   irOptimizedAst - AST of intermediate representation after optimization (experimental)
+        //   storageLayout - Slots, offsets and types of the contract's state variables in storage
+        //   transientStorageLayout - Slots, offsets and types of the contract's state variables in transient storage
         //   evm.assembly - New assembly format
         //   evm.legacyAssembly - Old-style assembly format in JSON
+        //   evm.bytecode.ethdebug - Debug information in ethdebug format (ethdebug/format/program schema). Can only be requested when compiling via IR. (experimental)
+        //   evm.deployedBytecode.ethdebug - Like evm.bytecode.ethdebug, but for the runtime part of the contract (experimental)
         //   evm.bytecode.functionDebugData - Debugging information at function level
         //   evm.bytecode.object - Bytecode object
         //   evm.bytecode.opcodes - Opcodes list
@@ -452,6 +464,7 @@ Input Description
         //   evm.deployedBytecode.immutableReferences - Map from AST ids to bytecode ranges that reference immutables
         //   evm.methodIdentifiers - The list of function hashes
         //   evm.gasEstimates - Function gas estimates
+        //   yulCFGJson - Control Flow Graph (CFG) of the Single Static Assignment (SSA) form of the contract (experimental)
         //
         // Note that using `evm`, `evm.bytecode`, etc. will select every
         // target part of that output. Additionally, `*` can be used as a wildcard to request everything.
@@ -604,6 +617,8 @@ Output Description
               "legacyAssembly": {},
               // Bytecode and related details.
               "bytecode": {
+                // Ethdebug output (experimental)
+                "ethdebug": {/* ... */},
                 // Debugging data at the level of functions.
                 "functionDebugData": {
                   // Now follows a set of functions including compiler-internal and
@@ -646,6 +661,8 @@ Output Description
                 }
               },
               "deployedBytecode": {
+                // Ethdebug output (experimental)
+                "ethdebug": {/* ... */},
                 /* ..., */ // The same layout as above.
                 "immutableReferences": {
                   // There are two references to the immutable with AST ID 3, both 32 bytes long. One is
@@ -670,11 +687,15 @@ Output Description
                 "internal": {
                   "heavyLifting()": "infinite"
                 }
-              }
+              },
+              // Yul CFG representation of the SSA form (experimental)
+              "yulCFGJson": {/* ... */}
             }
           }
         }
-      }
+      },
+      // Global Ethdebug output (experimental)
+      "ethdebug": {/* ... */ }
     }
 
 
@@ -696,3 +717,59 @@ Error Types
 13. ``YulException``: Error during Yul code generation - this should be reported as an issue.
 14. ``Warning``: A warning, which didn't stop the compilation, but should be addressed if possible.
 15. ``Info``: Information that the compiler thinks the user might find useful, but is not dangerous and does not necessarily need to be addressed.
+
+.. index:: ! Experimental mode, ! --experimental
+.. _experimental-mode:
+
+Experimental Mode
+*****************
+
+Some language and compiler features included in stable releases are not themselves considered stable.
+They are sparsely documented, if at all, often not adequately tested, and thus not yet intended for production use.
+In many cases it is possible to develop a big feature incrementally, with each iteration being already stable.
+Sometimes, however, it is preferable to start with a prototype and stabilize it over multiple releases, while receiving feedback from users.
+To prevent accidental use, such features can be only accessed by enabling the experimental mode.
+
+There are no backwards compatibility guarantees for experimental features.
+They are subject to change in breaking ways in non-breaking releases of the compiler.
+Only major changes affecting them are recorded in the changelog.
+
+To enable the experimental mode, use the ``--experimental`` flag on the command line,
+or the analogous ``settings.experimental`` boolean setting in the Standard JSON input.
+
+Note that the use of this mode is recorded in the metadata:
+
+- ``experimental`` flag in CBOR metadata is set to ``true``,
+- ``settings.experimental`` in JSON metadata is set to ``true``,
+
+.. note::
+    Prior to version 0.8.34, most of the experimental features were usable without any extra safeguards.
+    Some were gated behind ``pragma experimental``, but this was not done consistently.
+    The information about them was also only recorded in CBOR metadata and even then not always.
+    The main goal of the experimental mode is to systematize this and make users fully aware when relying on features which are unfinished or not production-ready.
+
+The table below details all currently available experimental features.
+
++-----------------------+--------------------------+------------------+-------------------------------------------------------------------+
+| Feature               | ID                       | Affects bytecode | Flag/pragma                                                       |
++=======================+==========================+==================+===================================================================+
+| AST import            | ``ast-import``           | yes              | ``--import-ast``                                                  |
++-----------------------+--------------------------+------------------+-------------------------------------------------------------------+
+| LSP                   | ``lsp``                  | no               | ``--lsp``                                                         |
++-----------------------+--------------------------+------------------+-------------------------------------------------------------------+
+| EVM Assembly import   | ``evmasm-import``        | yes              | ``--import-asm-json``                                             |
++-----------------------+--------------------------+------------------+-------------------------------------------------------------------+
+| Generic Solidity      | ``generic-solidity``     | yes              | ``pragma experimental solidity``                                  |
++-----------------------+--------------------------+------------------+-------------------------------------------------------------------+
+| IR AST                | ``ir-ast``               | no               | ``--ir-ast-json``, ``--ir-optimized-ast-json``                    |
++-----------------------+--------------------------+------------------+-------------------------------------------------------------------+
+| EOF                   | ``eof``                  | yes              | ``--experimental-eof-version``                                    |
++-----------------------+--------------------------+------------------+-------------------------------------------------------------------+
+| Non-mainnet EVMs      | ``evm``                  | yes              | ``--evm-version <version name>``                                  |
++-----------------------+--------------------------+------------------+-------------------------------------------------------------------+
+| Ethdebug              | ``ethdebug``             | no               | ``--ethdebug``, ``--ethdebug-runtime``, ``--debug-info ethdebug`` |
++-----------------------+--------------------------+------------------+-------------------------------------------------------------------+
+|                       |                          | no               | ``--yul-cfg-json``                                                |
+| SSA CFG               + ``ssa-cfg``              +------------------+-------------------------------------------------------------------+
+|                       |                          | yes              | ``--via-ssa-cfg``                                                 |
++-----------------------+--------------------------+------------------+-------------------------------------------------------------------+

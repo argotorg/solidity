@@ -16,6 +16,7 @@
 */
 // SPDX-License-Identifier: GPL-3.0
 
+#include <libsolidity/analysis/ConstantEvaluator.h>
 #include <libsolidity/ast/AST.h>
 #include <libsolidity/ast/ASTUtils.h>
 #include <libsolidity/ast/ASTVisitor.h>
@@ -137,4 +138,22 @@ u256 layoutBaseForInheritanceHierarchy(ContractDefinition const& _topLevelContra
 	return 0;
 }
 
+std::optional<u256> erc7201CompileTimeValue(FunctionCall const& _erc7201Call)
+{
+	auto const* erc7201Function = dynamic_cast<MagicVariableDeclaration const*>(ASTNode::referencedDeclaration(_erc7201Call.expression()));
+	solAssert(erc7201Function);
+	solAssert(erc7201Function->functionType(true /* internal */)->kind() == FunctionType::Kind::ERC7201);
+
+	auto evaluatedResult = ConstantEvaluator::tryEvaluate(_erc7201Call);
+
+	if (std::holds_alternative<std::monostate>(evaluatedResult.value))
+		return std::nullopt;
+
+	solAssert(std::holds_alternative<rational>(evaluatedResult.value));
+	auto rationalValue = std::get<rational>(evaluatedResult.value);
+	solAssert(rationalValue.denominator() == 1);
+	bigint baseSlot = rationalValue.numerator();
+	solAssert(baseSlot <= std::numeric_limits<u256>::max());
+	return u256(baseSlot);
+}
 }

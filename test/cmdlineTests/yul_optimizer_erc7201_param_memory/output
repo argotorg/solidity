@@ -1,0 +1,48 @@
+Optimized IR:
+/// @use-src 0:"input.sol"
+object "C_16" {
+    code {
+        {
+            let _1 := memoryguard(0x80)
+            mstore(64, _1)
+            if callvalue() { revert(0, 0) }
+            let _2 := datasize("C_16_deployed")
+            codecopy(_1, dataoffset("C_16_deployed"), _2)
+            return(_1, _2)
+        }
+    }
+    /// @use-src 0:"input.sol"
+    object "C_16_deployed" {
+        code {
+            {
+                let _1 := memoryguard(0x80)
+                if iszero(lt(calldatasize(), 4))
+                {
+                    if eq(0x26121ff0, shr(224, calldataload(0)))
+                    {
+                        if callvalue() { revert(0, 0) }
+                        if slt(add(calldatasize(), not(3)), 0) { revert(0, 0) }
+                        let newFreePtr := add(_1, 64)
+                        if or(gt(newFreePtr, 0xffffffffffffffff), lt(newFreePtr, _1))
+                        {
+                            mstore(0, shl(224, 0x4e487b71))
+                            mstore(4, 0x41)
+                            revert(0, 0x24)
+                        }
+                        mstore(64, newFreePtr)
+                        mstore(_1, 12)
+                        let _2 := add(_1, 32)
+                        mstore(_2, "example.main")
+                        mstore(0, add(keccak256(_2, 12), not(0)))
+                        let slot := and(keccak256(0, 32), not(255))
+                        let memPos := mload(64)
+                        mstore(memPos, slot)
+                        return(memPos, 32)
+                    }
+                }
+                revert(0, 0)
+            }
+        }
+        data ".metadata" hex"<BYTECODE REMOVED>"
+    }
+}

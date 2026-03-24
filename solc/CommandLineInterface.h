@@ -95,7 +95,7 @@ private:
 	/// @returns the full object with library placeholder hints in hex.
 	static std::string objectWithLinkRefsHex(evmasm::LinkerObject const& _obj);
 
-	void assembleYul(yul::YulStack::Language _language, yul::YulStack::Machine _targetMachine);
+	void assembleYul(yul::YulStack::Machine _targetMachine);
 
 	void outputCompilationResults();
 

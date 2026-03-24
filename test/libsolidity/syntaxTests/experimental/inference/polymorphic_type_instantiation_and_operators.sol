@@ -46,6 +46,7 @@ function fun(a: T(int: P3), b: T(str: P4)) {
     C.foo(b, b);
 }
 // ====
+// experimental: true
 // EVMVersion: >=constantinople
 // compileViaYul: true
 // ----

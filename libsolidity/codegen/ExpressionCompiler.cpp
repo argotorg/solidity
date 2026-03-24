@@ -32,6 +32,8 @@
 #include <libsolidity/ast/ASTUtils.h>
 #include <libsolidity/ast/TypeProvider.h>
 
+#include <libsolidity/analysis/ConstantEvaluator.h>
+
 #include <libevmasm/GasMeter.h>
 #include <libsolutil/Common.h>
 #include <libsolutil/FunctionSelector.h>
@@ -273,7 +275,7 @@ void ExpressionCompiler::appendStateVariableAccessor(VariableDeclaration const& 
 		retSizeOnStack = returnTypes.front()->sizeOnStack();
 	}
 	solAssert(retSizeOnStack == utils().sizeOnStack(returnTypes), "");
-	if (retSizeOnStack > 15)
+	if (retSizeOnStack + 1 > m_context.reachableStackDepth())
 		BOOST_THROW_EXCEPTION(
 			StackTooDeepError() <<
 			errinfo_sourceLocation(_varDecl.location()) <<
@@ -355,7 +357,7 @@ bool ExpressionCompiler::visit(Assignment const& _assignment)
 		}
 		if (lvalueSize > 0)
 		{
-			if (itemSize + lvalueSize > 16)
+			if (itemSize + lvalueSize > m_context.reachableStackDepth())
 				BOOST_THROW_EXCEPTION(
 					StackTooDeepError() <<
 					errinfo_sourceLocation(_assignment.location()) <<
@@ -923,6 +925,49 @@ bool ExpressionCompiler::visit(FunctionCall const& _functionCall)
 				utils().packedEncode({argType}, TypePointers());
 				utils().toSizeAfterFreeMemoryPointer();
 				m_context << Instruction::KECCAK256;
+			}
+			break;
+		}
+		case FunctionType::Kind::ERC7201:
+		{
+			solAssert(arguments.size() == 1);
+			Type const* argType = arguments.front()->annotation().type;
+			solAssert(argType);
+			arguments.front()->accept(*this);
+			if (dynamic_cast<StringLiteralType const*>(argType))
+			{
+				std::optional<u256> slot = erc7201CompileTimeValue(_functionCall);
+				solAssert(slot.has_value());
+				m_context << *slot;
+			}
+			// `bytes memory` does not conform to ERC7201 spec, so analysis rejects it.
+			// Internally string and bytes have the same representation though, so generating code for it is still possible.
+			else if (*argType == *TypeProvider::stringMemory() || *argType == *TypeProvider::bytesMemory())
+			{
+				// stack layout: string_mem
+				ArrayUtils(m_context).retrieveLength(*TypeProvider::bytesMemory());
+				// stack layout: string_mem length
+				m_context << Instruction::SWAP1;
+				// stack layout: length string_mem
+				// adjust to start of string data, first slot is size
+				m_context << u256(32) << Instruction::ADD;
+				// stack layout: length string_data_ptr
+				m_context.callYulFunction(m_context.utilFunctions().erc7201(), 2, 1);
+			}
+			else
+			{
+				solAssert(!argType->dataStoredIn(DataLocation::Memory));
+				solAssert(argType->isImplicitlyConvertibleTo(*TypeProvider::stringMemory()));
+
+				// stack layout: string_ref
+				utils().fetchFreeMemoryPointer();
+				// stack layout: string_ref mem_start_ptr
+				utils().packedEncode({argType}, TypePointers());
+				// stack layout: mem_end_ptr
+				utils().toSizeAfterFreeMemoryPointer();
+				// stack layout: length mem_ptr_start
+
+				m_context.callYulFunction(m_context.utilFunctions().erc7201(), 2, 1);
 			}
 			break;
 		}

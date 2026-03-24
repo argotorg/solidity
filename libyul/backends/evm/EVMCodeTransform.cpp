@@ -179,7 +179,7 @@ void CodeTransform::operator()(VariableDeclaration const& _varDecl)
 			bool foundUnusedSlot = false;
 			for (auto it = m_unusedStackSlots.begin(); it != m_unusedStackSlots.end(); ++it)
 			{
-				if (m_assembly.stackHeight() - *it > 17)
+				if (m_assembly.stackHeight() - *it > static_cast<int>(m_dialect.reachableStackDepth() + 1))
 					continue;
 				foundUnusedSlot = true;
 				auto slot = static_cast<size_t>(*it);
@@ -454,16 +454,18 @@ void CodeTransform::operator()(FunctionDefinition const& _function)
 				&std::get<Scope::Variable>(virtualFunctionScope->identifiers.at(returnVariable.name))
 			)) = static_cast<int>(n);
 
-		if (stackLayout.size() > 17)
+		size_t const reachableStackDepth = m_dialect.reachableStackDepth();
+		if (stackLayout.size() > reachableStackDepth + 1)
 		{
+			size_t const unreachableSlots = stackLayout.size() - (reachableStackDepth + 1);
 			StackTooDeepError error(
 				_function.name,
 				YulName{},
-				static_cast<int>(stackLayout.size()) - 17,
+				static_cast<int>(unreachableSlots),
 				"The function " +
 				_function.name.str() +
 				" has " +
-				std::to_string(stackLayout.size() - 17) +
+				std::to_string(unreachableSlots) +
 				" parameters or return variables too many to fit the stack size."
 			);
 			stackError(std::move(error), m_assembly.stackHeight() - static_cast<int>(_function.parameters.size()));
@@ -777,7 +779,7 @@ size_t CodeTransform::variableHeightDiff(Scope::Variable const& _var, YulName _v
 	yulAssert(m_context->variableStackHeights.count(&_var), "");
 	size_t heightDiff = static_cast<size_t>(m_assembly.stackHeight()) - m_context->variableStackHeights[&_var];
 	yulAssert(heightDiff > (_forSwap ? 1 : 0), "Negative stack difference for variable.");
-	size_t limit = _forSwap ? 17 : 16;
+	size_t limit = m_dialect.reachableStackDepth() + (_forSwap ? 1 : 0);
 	if (heightDiff > limit)
 	{
 		m_stackErrors.emplace_back(

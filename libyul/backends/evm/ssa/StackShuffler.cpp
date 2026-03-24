@@ -159,6 +159,24 @@ bool State::isSourceCompatible(StackOffset const _sourceOffset1, StackOffset con
 		m_stackData[_sourceOffset1.value] == m_stackData[_sourceOffset2.value];
 }
 
+bool State::isSafeToSwapWithTop(StackOffset const _offset) const
+{
+	auto const& top = m_stackData.back();
+	yulAssert(_offset.value < size());
+	auto const& slot = m_stackData[_offset.value];
+	return !isArgsCompatible(_offset, _offset) && // the offset isn't already in the right position wrt args
+		!isArgsCompatible(StackOffset{size() - 1}, StackOffset{size() - 1}) && // the top isn't already in the right position wrt args
+		(
+			!requiredInArgs(top) || // current top can go into tail, ie it's not required as arg or
+			countReachable(top) > 1 // there's more of it in reachable stack depth
+		) &&
+		(
+			target().tailSize <= _offset.value ||  // sourceOffset not in tail
+			!requiredInTail(slot) ||  // we're in tail but sourceOffset not needed in tail
+			(countInTail(slot) > 1 && requiredInTail(slot))  // swapping source offset away from tail doesn't decrease tail correctness
+		);
+}
+
 Target const& State::target() const
 {
 	return m_target;

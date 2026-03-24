@@ -30,6 +30,7 @@
 #include <tuple>
 #include <unordered_map>
 #include <vector>
+#include <liblangutil/EVMVersion.h>
 #include <libsolutil/CommonIO.h>
 #include <libsolutil/Exceptions.h>
 #include <libevmasm/ExpressionClasses.h>
@@ -66,7 +67,11 @@ public:
 	using Id = ExpressionClasses::Id;
 	using StoreOperation = KnownState::StoreOperation;
 
-	explicit CommonSubexpressionEliminator(KnownState const& _state): m_initialState(_state), m_state(_state) {}
+	explicit CommonSubexpressionEliminator(KnownState const& _state, langutil::EVMVersion _evmVersion):
+		m_initialState(_state),
+		m_state(_state),
+		m_evmVersion(_evmVersion)
+	{}
 
 	/// Feeds AssemblyItems into the eliminator and @returns the iterator pointing at the first
 	/// item that must be fed into a new instance of the eliminator.
@@ -93,6 +98,7 @@ private:
 	/// The item that breaks the basic block, can be nullptr.
 	/// It is usually appended to the block but can be optimized in some cases.
 	AssemblyItem const* m_breakingItem = nullptr;
+	langutil::EVMVersion const m_evmVersion;
 };
 
 /**
@@ -108,7 +114,11 @@ public:
 
 	/// Initializes the code generator with the given classes and store operations.
 	/// The store operations have to be sorted by sequence number in ascending order.
-	CSECodeGenerator(ExpressionClasses& _expressionClasses, StoreOperations const& _storeOperations);
+	CSECodeGenerator(
+		ExpressionClasses& _expressionClasses,
+		StoreOperations const& _storeOperations,
+		langutil::EVMVersion _evmVersion
+	);
 
 	/// @returns the assembly items generated from the given requirements
 	/// @param _initialSequenceNumber starting sequence number, do not generate sequenced operations
@@ -169,6 +179,7 @@ private:
 	/// The set of equivalence classes that should be present on the stack at the end.
 	std::set<Id> m_finalClasses;
 	std::map<int, Id> m_targetStack;
+	langutil::EVMVersion const m_evmVersion;
 };
 
 template <class AssemblyItemIterator>

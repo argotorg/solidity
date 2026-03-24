@@ -71,6 +71,7 @@ function euler_test
     force_hardhat_compiler_binary "$config_file" "$BINARY_TYPE" "$BINARY_PATH"
     force_hardhat_compiler_settings "$config_file" "$(first_word "$SELECTED_PRESETS")"
     force_hardhat_unlimited_contract_size "$config_file"
+    npm install @uniswap/v3-sdk@3.29.1 # TODO: Remove after https://github.com/Uniswap/sdks/issues/557 is resolved
     npm install
     replace_version_pragmas
     neutralize_packaged_contracts

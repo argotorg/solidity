@@ -1,0 +1,23 @@
+{
+	"language": "Yul",
+	"sources":
+	{
+		"A":
+		{
+			"content": "{ let x := mload(0) sstore(add(x, 0), 0) }"
+		}
+	},
+	"settings":
+	{
+		"viaIR": true,
+		"debug": {
+			"debugInfo": [
+				"ethdebug"
+			]
+		},
+		"outputSelection":
+		{
+			"*": { "*": ["evm.bytecode.ethdebug", "evm.deployedBytecode.ethdebug"], "": [ "*" ] }
+		}
+	}
+}

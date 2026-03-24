@@ -1,0 +1,1 @@
+--metadata --experimental --via-ir --ethdebug --no-cbor-metadata --pretty-json --json-indent 4

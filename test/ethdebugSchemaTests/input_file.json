@@ -9,6 +9,7 @@
     }
   },
   "settings": {
+    "experimental": true,
     "viaIR": true,
     "debug": {
       "debugInfo": [

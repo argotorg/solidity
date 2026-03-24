@@ -24,6 +24,7 @@
 #include <libsolutil/Assertions.h>
 
 #include <array>
+#include <cstddef>
 #include <cstdint>
 #include <optional>
 #include <string>
@@ -146,6 +147,7 @@ public:
 	bool hasMcopy() const { return *this >= cancun(); }
 	bool supportsTransientStorage() const { return *this >= cancun(); }
 	bool supportsEOF() const { return *this >= firstWithEOF(); }
+	constexpr size_t reachableStackDepth() const { return 16; }
 
 	bool hasOpcode(evmasm::Instruction _opcode, std::optional<uint8_t> _eofVersion) const;
 

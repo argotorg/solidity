@@ -85,6 +85,8 @@ public:
 	bool targetArbitrary(StackOffset _targetOffset) const;
 	/// Yields whether two slots on the current stack are same, respecting stack size limits
 	bool isSourceCompatible(StackOffset _sourceOffset1, StackOffset _sourceOffset2) const;
+	/// Checks if swapping the current offset with top makes progress toward target
+	bool isSafeToSwapWithTop(StackOffset _offset) const;
 	/// Shuffling target information
 	Target const& target() const;
 
@@ -167,6 +169,14 @@ public:
 		}
 
 		yulAssert(i < maxIterations, fmt::format("Maximum iterations reached on {}", stackToString(_stack.data())));
+	}
+
+	static void shuffle(
+		Stack<Callback>& _stack,
+		StackData const& _target
+	)
+	{
+		shuffle(_stack, _target, {}, _target.size());
 	}
 
 private:
@@ -306,73 +316,49 @@ private:
 			// no need to dup deep junk
 			if (endangeredSlot.isJunk())
 				continue;
-			// check if we have more of the same slot further up in the stack
 			bool const neededInArgs = _state.targetArgsCount(endangeredSlot) > _state.countInArgs(endangeredSlot);
 			bool const needMore = _state.targetMinCount(endangeredSlot) > _state.count(endangeredSlot);
-			if (neededInArgs || needMore)
+			if (!neededInArgs && !needMore)
+				continue;
+			// if we ever need more of a slot then this can only happen if it is something we require in the arguments
+			yulAssert(_state.requiredInArgs(endangeredSlot));
+			// if there's a shallower slot with the same info that is reachable, skip this one
+			std::optional<StackDepth> depth = _stack.findSlotDepth(endangeredSlot);
+			yulAssert(depth);
+			bool const haveMoreAbove = *depth < _stack.offsetToDepth(sourceOffset);
+			if (haveMoreAbove)
+				continue;
+
+			if (_stack.dupReachable(sourceOffset))
 			{
-				// if we ever need more of a slot then this can only happen if it is something we require
-				// in the arguments
-				yulAssert(_state.requiredInArgs(endangeredSlot));
-
-				auto const haveMoreAbove = [&]
+				// if we can safely swap the current stack top with the endangered slot, we do that instead of DUP
+				if (_state.isSafeToSwapWithTop(sourceOffset))
 				{
-					for (StackOffset offset{sourceOffset.value + 1}; offset < _stack.size(); ++offset.value)
-					{
-						if (_stack[offset] == endangeredSlot)
-							return true;
-					}
-					return false;
-				}();
-
-				// if we have more of the same further above, just unconditionally skip this one
-				if (haveMoreAbove)
-					continue;
-
-				if (_stack.dupReachable(sourceOffset))
-				{
-
-					// if we can safely swap the current stack top with the endangered slot, we do that instead of DUP
-					if (
-						!_state.isArgsCompatible(sourceOffset, sourceOffset) && // the offset isn't already in the right position wrt args
-						!_state.isArgsCompatible(StackOffset{_stack.size() - 1}, StackOffset{_stack.size() - 1}) && // the top isn't already in the right position wrt args
-						(
-							!_state.requiredInArgs(_stack.top()) || // current top can go into tail, ie it's not required as arg or
-							_state.countReachable(_stack.top()) > 1 // there's more of it in reachable stack depth
-						) &&
-						(
-							_state.target().tailSize <= sourceOffset.value ||  // sourceOffset not in tail
-							!_state.requiredInTail(endangeredSlot) ||  // we're in tail but sourceOffset not needed in tail
-							(_state.countInTail(endangeredSlot) > 1 && _state.requiredInTail(endangeredSlot))  // swapping source offset away from tail doesn't decrease tail correctness
-						)
-					)
-					{
-						// top can go into the tail bit, swap it down
-						_stack.swap(sourceOffset);
-						return true;
-					}
-					else
-					{
-						// we need more of the slot that is about to go out of reach, dup it
-						_stack.dup(sourceOffset);
-						return true;
-					}
+					// top can go into the tail bit, swap it down
+					_stack.swap(sourceOffset);
+					return true;
 				}
 				else
 				{
-					std::optional<StackDepth> depth = _stack.findSlotDepth(_stack[sourceOffset]);
-					yulAssert(depth);
-					// if there's a shallower slot with the same info that is reachable, skip this one
-					if (*depth < _stack.offsetToDepth(sourceOffset))
-						continue;
-
-					// the slot we need something in the args region of is unreachable, try compressing the stack,
-					// first looking at the top
-					if (shrinkStack(_stack, _state))
-						return true;
-
-					yulAssert(false, fmt::format("Stack too deep, can't reach slot at depth {}", depth->value));
+					// we need more of the slot that is about to go out of reach, dup it
+					_stack.dup(sourceOffset);
+					return true;
 				}
+			}
+			else
+			{
+				// even if it is not dup reachable, it still might be swappable
+				if (_stack.isValidSwapTarget(sourceOffset) && _state.isSafeToSwapWithTop(sourceOffset))
+				{
+					_stack.swap(sourceOffset);
+					return true;
+				}
+				// the slot we need something in the args region of is unreachable, try compressing the stack,
+				// first looking at the top
+				if (shrinkStack(_stack, _state))
+					return true;
+
+				yulAssert(false, fmt::format("Stack too deep, can't reach slot at depth {}", depth->value));
 			}
 		}
 		return false;
@@ -386,7 +372,7 @@ private:
 			return false;
 
 		// if we have at least one slot in the args section, try to fix something there
-		if (!_stack.empty() && _stack.size() >= _state.target().tailSize)
+		if (_stack.size() > _state.target().tailSize)
 		{
 			StackOffset const stackTop{_stack.size() - 1};
 			// if the stack top isn't where it likes to be right now, try to put it somewhere more sensible
@@ -401,28 +387,28 @@ private:
 				{
 					// try swapping it with something in the tail that also fixes the top
 					for (StackOffset offset: _state.stackTailRange())
-						if (_stack.swapReachable(offset) && _state.isArgsCompatible(offset, stackTop))
+						if (_stack.isValidSwapTarget(offset) && _state.isArgsCompatible(offset, stackTop))
 						{
 							_stack.swap(offset);
 							return true;
 						}
 					// otherwise try swapping it with something that needs to go into args
 					for (StackOffset offset: _state.stackTailRange())
-						if (_stack.swapReachable(offset) && _state.countInArgs(_stack[offset]) < _state.targetArgsCount(_stack[offset]))
+						if (_stack.isValidSwapTarget(offset) && _state.countInArgs(_stack[offset]) < _state.targetArgsCount(_stack[offset]))
 						{
 							_stack.swap(offset);
 							return true;
 						}
 					// otherwise try swapping it with something that can be popped
 					for (StackOffset offset: _state.stackTailRange())
-						if (_stack.swapReachable(offset) && _stack.canBeFreelyGenerated(_stack[offset]) && !_stack[offset].isLiteralValueID())
+						if (_stack.isValidSwapTarget(offset) && _stack.canBeFreelyGenerated(_stack[offset]) && !_stack[offset].isLiteralValueID())
 						{
 							_stack.swap(offset);
 							return true;
 						}
 					// otherwise try swapping it with a literal
 					for (StackOffset offset: _state.stackTailRange())
-						if (_stack.swapReachable(offset) && _stack[offset].isLiteralValueID())
+						if (_stack.isValidSwapTarget(offset) && _stack[offset].isLiteralValueID())
 						{
 							_stack.swap(offset);
 							return true;
@@ -435,7 +421,7 @@ private:
 					if (
 						offset != stackTop &&
 						_stack[offset] != _stack[stackTop] &&  // don't swap identical values (no-op)
-						_stack.swapReachable(offset) &&
+						_stack.isValidSwapTarget(offset) &&
 						_state.isArgsCompatible(offset, stackTop) &&
 						_state.isArgsCompatible(stackTop, offset) &&
 						!_state.targetArbitrary(offset)
@@ -450,7 +436,7 @@ private:
 					if (
 						offset != stackTop &&
 						_stack[offset] != _stack[stackTop] &&  // don't swap identical values (no-op)
-						_stack.swapReachable(offset) &&
+						_stack.isValidSwapTarget(offset) &&
 						!_state.isArgsCompatible(offset, offset) &&
 						_state.isArgsCompatible(stackTop, offset)
 					)
@@ -462,7 +448,7 @@ private:
 				// try swapping top with a tail slot that has what we need at top
 				for (StackOffset tailOffset: _state.stackTailRange())
 					if (
-						_stack.swapReachable(tailOffset) &&
+						_stack.isValidSwapTarget(tailOffset) &&
 						_state.isArgsCompatible(tailOffset, stackTop) &&
 						(!_state.requiredInTail(_stack[tailOffset]) || _state.countInTail(_stack[tailOffset]) > 1) &&
 						// current top can safely go to tail (not needed in args, or we have excess)
@@ -480,7 +466,7 @@ private:
 			// swap up any slot in args that is out of position and has a slot available in args that it can occupy
 			for (StackOffset offset: _state.stackArgsRange())
 			{
-				bool const reachable = _stack.swapReachable(offset);
+				bool const reachable = _stack.isValidSwapTarget(offset);
 				bool const identical = _state.isArgsCompatible(offset, stackTop) && !_state.targetArbitrary(stackTop);
 				if (
 					reachable &&
@@ -495,7 +481,7 @@ private:
 					for (StackOffset targetOffset: _state.stackArgsRange())
 						if (
 							targetOffset != offset &&  // we shouldn't be looking at the very same offset
-							_stack.swapReachable(targetOffset) &&  // the target offset should be within reach
+							_stack.isValidSwapTarget(targetOffset) &&  // the target offset should be within reach
 							_state.isArgsCompatible(offset, targetOffset) &&  // we can put offset -> targetOffset
 							!_state.isArgsCompatible(targetOffset, targetOffset)  // targetOffset doesn't like where it is
 						)
@@ -576,7 +562,7 @@ private:
 					// within dup-reach or we can just push it
 					if (auto depth = _stack.findSlotDepth(arg))
 					{
-						yulAssert(depth->value == 0 || _stack.swapReachable(*depth));
+						yulAssert(!_stack.isBeyondSwapRange(*depth));
 						// if we can't outright dup the slot, let's shrink the stack first
 						if (!_stack.dupReachable(*depth))
 						{
@@ -626,7 +612,7 @@ private:
 				{
 					auto const& slotAtTailOffset = _stack[tailOffset];
 					if (
-						_stack.swapReachable(tailOffset) &&  // we can swap that deep
+						_stack.isValidSwapTarget(tailOffset) &&  // we can swap that deep
 						(!_state.requiredInTail(slotAtTailOffset) || _state.countInTail(slotAtTailOffset) > 1) &&  // dont need it in tail or it's available more than once
 						_state.requiredInArgs(slotAtTailOffset) &&  // we need the tail offset slot in args
 						_state.targetArgsCount(slotAtTailOffset) > _state.countInArgs(slotAtTailOffset)  // we don't already have enough of it in args
@@ -643,7 +629,7 @@ private:
 				// find the lowest swappable slot in tail that can be popped but is no literal, swap
 				for (StackOffset tailOffset: _state.stackTailRange())
 					if (
-						_stack.swapReachable(tailOffset) &&
+						_stack.isValidSwapTarget(tailOffset) &&
 						_stack.canBeFreelyGenerated(_stack[tailOffset]) &&
 						!_stack[tailOffset].isLiteralValueID()
 					)
@@ -658,7 +644,7 @@ private:
 				// find the lowest swappable slot in tail that is a literal, swap
 				for (StackOffset tailOffset: _state.stackTailRange())
 					if (
-						_stack.swapReachable(tailOffset) &&
+						_stack.isValidSwapTarget(tailOffset) &&
 						_stack[tailOffset].isLiteralValueID()
 					)
 					{
@@ -718,7 +704,7 @@ private:
 				for (StackOffset argsOffset: _state.stackArgsRange())
 					if (
 						_stack[argsOffset] != _stack[stackTop] &&  // don't swap identical values (no-op)
-						_stack.swapReachable(argsOffset) &&
+						_stack.isValidSwapTarget(argsOffset) &&
 						_state.isArgsCompatible(stackTop, argsOffset) &&
 						!_state.isArgsCompatible(argsOffset, argsOffset)
 					)
@@ -748,7 +734,7 @@ private:
 				for (StackOffset tailOffset: _state.stackTailRange() | ranges::views::reverse)
 					if (
 						_stack[tailOffset] != _stack[stackTop] &&  // don't swap identical values (no-op)
-						_stack.swapReachable(tailOffset) &&  // we can reach the offset
+						_stack.isValidSwapTarget(tailOffset) &&  // we can reach the offset
 						!(_state.requiredInTail(_stack[tailOffset]) && _state.countInTail(_stack[tailOffset]) <= 1)  // it's okay to swap the tail offset out
 					)
 					{
@@ -823,7 +809,7 @@ private:
 				}
 				else
 				{
-					if (!_stack.swapReachable(*depth))
+					if (_stack.isBeyondSwapRange(*depth))
 						return _stack.depthToOffset(*depth);
 				}
 			}

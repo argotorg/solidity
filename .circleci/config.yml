@@ -194,7 +194,7 @@ commands:
     parameters:
       version:
         type: string
-        default: "nightly"
+        default: "stable"
       install_path:
         type: string
         default: /home/circleci/bin
@@ -204,41 +204,55 @@ commands:
           command: |
             FOUNDRY_REPO="foundry-rs/foundry"
             FOUNDRY_VERSION="<< parameters.version >>"
-            # Make authenticated requests when the Github token is available
-            if [[ -n "$GITHUB_READ_TOKEN" ]]; then
-              EXTRA_HEADERS=(--header 'Authorization: Bearer '"${GITHUB_READ_TOKEN}")
+            RELEASE_URL="https://github.com/${FOUNDRY_REPO}/releases/download/${FOUNDRY_VERSION}"
+            echo "export FOUNDRY_VERSION=${FOUNDRY_VERSION}" >> "$BASH_ENV"
+            echo "export RELEASE_URL=${RELEASE_URL}" >> "$BASH_ENV"
+            ATTESTATION_URL=$(curl --silent --location --fail "${RELEASE_URL}/foundry_${FOUNDRY_VERSION}_linux_amd64.attestation.txt") || {
+              echo "Failed to fetch attestation file"
+              exit 1
+            }
+            ATTESTATION_JSON=$(curl --silent --location --fail --header "Accept: application/json" "${ATTESTATION_URL}") || {
+              echo "Failed to fetch attestation JSON"
+              exit 1
+            }
+            RELEASE_SHA=$(echo "${ATTESTATION_JSON}" | jq --raw-output '.payload.attestation.sourceRepositoryDigest')
+            if [[ -z "$RELEASE_SHA" || "$RELEASE_SHA" == "null" ]]; then
+              echo "Failed to extract release SHA from attestation"
+              exit 1
             fi
-            FOUNDRY_RELEASE_SHA=$(curl \
-              --silent \
-              --fail \
-              --show-error \
-              "${EXTRA_HEADERS[@]}" \
-              "https://api.github.com/repos/${FOUNDRY_REPO}/git/refs/tags/${FOUNDRY_VERSION}" \
-              | jq --raw-output .object.sha \
-            )
-            echo "export FOUNDRY_REPO=$FOUNDRY_REPO" >> "$BASH_ENV"
-            echo "export FOUNDRY_VERSION=$FOUNDRY_VERSION" >> "$BASH_ENV"
-            echo "export FOUNDRY_RELEASE_TAG='${FOUNDRY_VERSION}'" >> "$BASH_ENV"
-            # Save commit sha for caching
-            echo "$FOUNDRY_RELEASE_SHA" > /tmp/workspace/foundry-release-sha
+            echo "${RELEASE_SHA}" > /tmp/workspace/foundry-release-sha
+            # Extract forge checksum from the attestation
+            EXPECTED_FORGE_CHECKSUM=$(echo "${ATTESTATION_JSON}" | jq --raw-output '.payload.attestation.subjects[] | select(.subjectName=="forge") | .subjectDigest' | sed 's/sha256://')
+            if [[ -z "$EXPECTED_FORGE_CHECKSUM" || "$EXPECTED_FORGE_CHECKSUM" == "null" ]]; then
+              echo "Failed to extract forge checksum from attestation"
+              exit 1
+            fi
+            echo "export EXPECTED_FORGE_CHECKSUM=${EXPECTED_FORGE_CHECKSUM}" >> "$BASH_ENV"
       - restore_cache:
           keys:
-            - foundry-<< parameters.version >>-{{ arch }}-{{ checksum "/tmp/workspace/foundry-release-sha" }}
+            - foundry-v1-<< parameters.version >>-{{ arch }}-{{ checksum "/tmp/workspace/foundry-release-sha" }}
       # WARNING! If you edit anything between here and save_cache, remember to invalidate the cache manually.
       - run:
           name: Install foundry
           command: |
-            ! forge --version 2> /dev/null
-            curl \
-              --fail \
-              --location \
-              --output /tmp/foundry.tar.gz \
-              "https://github.com/${FOUNDRY_REPO}/releases/download/${FOUNDRY_RELEASE_TAG}/foundry_${FOUNDRY_VERSION}_linux_amd64.tar.gz"
-            cd "<< parameters.install_path >>"
-            tar --extract --gzip --file /tmp/foundry.tar.gz --one-top-level
-            ln --symbolic --force foundry/{forge,anvil,cast,chisel} .
+            if forge --version 2> /dev/null; then
+              echo "Foundry already cached, skipping install"
+            else
+              curl --fail --location --output /tmp/foundry.tar.gz "${RELEASE_URL}/foundry_${FOUNDRY_VERSION}_linux_amd64.tar.gz"
+              cd "<< parameters.install_path >>"
+              tar --extract --gzip --file /tmp/foundry.tar.gz --one-top-level
+              # TODO: Use `gh attestation verify foundry/forge --owner foundry-rs` for signature verification.
+              # Current approach only verifies checksum without validating the signature.
+              # https://docs.github.com/en/actions/how-tos/secure-your-work/use-artifact-attestations/use-artifact-attestations#verifying-an-artifact-attestation-for-binaries
+              ACTUAL=$(sha256sum foundry/forge | cut --delimiter=' ' --fields=1)
+              if [[ "$EXPECTED_FORGE_CHECKSUM" != "$ACTUAL" ]]; then
+                echo "Checksum mismatch: expected $EXPECTED_FORGE_CHECKSUM, got $ACTUAL"
+                exit 1
+              fi
+              ln --symbolic --force foundry/{forge,anvil,cast,chisel} .
+            fi
       - save_cache:
-          key: foundry-<< parameters.version >>-{{ arch }}-{{ checksum "/tmp/workspace/foundry-release-sha" }}
+          key: foundry-v1-<< parameters.version >>-{{ arch }}-{{ checksum "/tmp/workspace/foundry-release-sha" }}
           paths:
             - << parameters.install_path >>
 
@@ -1646,9 +1660,6 @@ jobs:
       python2:
         type: boolean
         default: false
-      foundry_version:
-        type:  string
-        default: "nightly"
     docker:
       - image: << parameters.image >>
     resource_class: << parameters.resource_class >>
@@ -1662,8 +1673,7 @@ jobs:
       - checkout
       - attach_workspace:
           at: /tmp/workspace
-      - install_foundry:
-          version: << parameters.foundry_version >>
+      - install_foundry
       - run:
           name: Ensure pnpm is installed if npm is present
           command: |

@@ -90,7 +90,7 @@ GasEstimator::GasConsumption GasEstimator::functionalEstimation(
 	auto state = std::make_shared<KnownState>();
 
 	unsigned parametersSize = CompilerUtils::sizeOnStack(_function.parameters());
-	if (parametersSize > 16)
+	if (parametersSize > m_evmVersion.reachableStackDepth())
 		return GasConsumption::infinite();
 
 	// Store an invalid return value on the stack, so that the path estimator breaks upon reaching

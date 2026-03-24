@@ -56,7 +56,6 @@ TestCase::TestResult EVMCodeTransformTest::run(std::ostream& _stream, std::strin
 	YulStack yulStack(
 		CommonOptions::get().evmVersion(),
 		CommonOptions::get().eofVersion(),
-		YulStack::Language::StrictAssembly,
 		settings,
 		DebugInfoSelection::AllExceptExperimental()
 	);

@@ -117,6 +117,8 @@ private:
 		FunctionType const* _functionType
 	);
 
+	void typeCheckERC7201Builtin(FunctionCall const& _functionCall, FunctionType const* _functionType);
+
 	bool visit(ImportDirective const&) override;
 
 	void endVisit(InheritanceSpecifier const& _inheritance) override;

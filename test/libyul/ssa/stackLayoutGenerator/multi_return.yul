@@ -42,17 +42,17 @@
 //  x, y := pair(v0)"];
 // FunctionEntry_pair_0 -> Block1_0;
 // Block1_0 [label="\
-// IN: [v0]\l\
+// IN: [ReturnLabel[1], v0]\l\
 // \l\
-// [v0, lit1, v0]\l\
+// [ReturnLabel[1], v0, lit1, v0]\l\
 // add\l\
-// [v0, v1]\l\
+// [ReturnLabel[1], v0, v1]\l\
 // \l\
-// [v1, lit2, v0]\l\
+// [ReturnLabel[1], v1, lit2, v0]\l\
 // add\l\
-// [v1, v2]\l\
+// [ReturnLabel[1], v1, v2]\l\
 // \l\
-// OUT: [v1, v2]\l\
+// OUT: [v1, v2, ReturnLabel[1]]\l\
 // "];
 // Block1_0Exit [label="FunctionReturn[v1, v2]"];
 // Block1_0 -> Block1_0Exit;

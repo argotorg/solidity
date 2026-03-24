@@ -64,7 +64,6 @@ DEFINE_PROTO_FUZZER(Program const& _input)
 	YulStack stack(
 		version,
 		std::nullopt,
-		YulStack::Language::StrictAssembly,
 		solidity::frontend::OptimiserSettings::full(),
 		DebugInfoSelection::All()
 	);

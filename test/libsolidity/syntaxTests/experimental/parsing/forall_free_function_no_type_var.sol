@@ -3,6 +3,7 @@ pragma experimental solidity;
 forall ()
 function f(x: ()) {}
 // ====
+// experimental: true
 // EVMVersion: >=constantinople
 // compileViaYul: true
 // ----

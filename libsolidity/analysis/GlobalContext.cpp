@@ -62,7 +62,8 @@ int magicVariableToID(std::string const& _name)
 		{"tx", -26},
 		{"type", -27},
 		{"this", -28},
-		{"blobhash", -29}
+		{"blobhash", -29},
+		{"erc7201", -30}
 	};
 
 	if (auto id = magicVariables.find(_name); id != magicVariables.end())
@@ -83,6 +84,7 @@ inline std::vector<std::shared_ptr<MagicVariableDeclaration const>> constructMag
 		magicVarDecl("block", TypeProvider::magic(MagicType::Kind::Block)),
 		magicVarDecl("blockhash", TypeProvider::function(strings{"uint256"}, strings{"bytes32"}, FunctionType::Kind::BlockHash, StateMutability::View)),
 		magicVarDecl("ecrecover", TypeProvider::function(strings{"bytes32", "uint8", "bytes32", "bytes32"}, strings{"address"}, FunctionType::Kind::ECRecover, StateMutability::Pure)),
+		magicVarDecl("erc7201", TypeProvider::function(strings{"string memory"}, strings{"uint256"}, FunctionType::Kind::ERC7201, StateMutability::Pure)),
 		magicVarDecl("gasleft", TypeProvider::function(strings(), strings{"uint256"}, FunctionType::Kind::GasLeft, StateMutability::View)),
 		magicVarDecl("keccak256", TypeProvider::function(strings{"bytes memory"}, strings{"bytes32"}, FunctionType::Kind::KECCAK256, StateMutability::Pure)),
 		magicVarDecl("msg", TypeProvider::magic(MagicType::Kind::Message)),

@@ -25,6 +25,7 @@ class Kind(Enum):
     IrOptimized = 2
     Legacy = 3
     LegacyOptimized = 4
+    SsaCFGOptimized = 5
 
 class Diff(Enum):
     Minus = 1
@@ -43,6 +44,7 @@ gas_ir = string("gas ir").result(Kind.Ir)
 gas_ir_optimized = string("gas irOptimized").result(Kind.IrOptimized)
 gas_legacy_optimized = string("gas legacyOptimized").result(Kind.LegacyOptimized)
 gas_legacy = string("gas legacy").result(Kind.Legacy)
+gas_ssa_cfg_optimized = string("gas ssaCFGOptimized").result(Kind.SsaCFGOptimized)
 code_suffix = string("code")
 
 def number() -> int:
@@ -61,7 +63,7 @@ def diff_string() -> (Kind, Diff, int):
     diff_kind = yield minus | plus
     yield comment
     yield space
-    codegen_kind = yield gas_ir_optimized ^ gas_ir ^ gas_legacy_optimized ^ gas_legacy
+    codegen_kind = yield gas_ssa_cfg_optimized ^ gas_ir_optimized ^ gas_ir ^ gas_legacy_optimized ^ gas_legacy
     yield optional(space)
     yield optional(code_suffix)
     yield colon
@@ -69,11 +71,11 @@ def diff_string() -> (Kind, Diff, int):
     val = yield number()
     return (diff_kind, codegen_kind, val)
 
-def collect_statistics(lines) -> (int, int, int, int, int, int):
+def collect_statistics(lines) -> (int, int, int, int, int, int, int, int):
     """Returns
 
-    (old_ir_optimized, old_legacy_optimized, old_legacy, new_ir_optimized,
-    new_legacy_optimized, new_legacy)
+    (old_ir_optimized, old_legacy_optimized, old_legacy, old_ssa_cfg_optimized,
+    new_ir_optimized, new_legacy_optimized, new_legacy, new_ssa_cfg_optimized)
 
     All the values in the same file (in the diff) are summed up.
 
@@ -88,7 +90,7 @@ def collect_statistics(lines) -> (int, int, int, int, int, int):
         if (parsed := diff_string.parse(line)) is not None
     ]
     diff_kinds = [Diff.Minus, Diff.Plus]
-    codegen_kinds = [Kind.IrOptimized, Kind.LegacyOptimized, Kind.Legacy]
+    codegen_kinds = [Kind.IrOptimized, Kind.LegacyOptimized, Kind.Legacy, Kind.SsaCFGOptimized]
     return tuple(
         sum(
             val
@@ -141,23 +143,25 @@ def semantictest_statistics(base_branch: str):
         parsed = parse_git_diff(fname)
         if parsed is None:
             continue
-        assert len(parsed) == 6
-        ir_optimized = stat(parsed[0], parsed[3])
-        legacy_optimized = stat(parsed[1], parsed[4])
-        legacy = stat(parsed[2], parsed[5])
+        assert len(parsed) == 8
+        ir_optimized = stat(parsed[0], parsed[4])
+        legacy_optimized = stat(parsed[1], parsed[5])
+        legacy = stat(parsed[2], parsed[6])
+        ssa_cfg_optimized = stat(parsed[3], parsed[7])
         fname = f"`{fname.split('/', 3)[-1]}`"
         average = ((
-            percent_or_zero(parsed[0], parsed[3]) +
-            percent_or_zero(parsed[1], parsed[4]) +
-            percent_or_zero(parsed[2], parsed[5])
-        ) / 3)
-        table += [[average, fname, ir_optimized, legacy_optimized, legacy]]
+            percent_or_zero(parsed[0], parsed[4]) +
+            percent_or_zero(parsed[1], parsed[5]) +
+            percent_or_zero(parsed[2], parsed[6]) +
+            percent_or_zero(parsed[3], parsed[7])
+        ) / 4)
+        table += [[average, fname, ir_optimized, legacy_optimized, legacy, ssa_cfg_optimized]]
 
     sorted_table = [row[1:] for row in sorted(table, reverse=True)]
 
     if table:
         print("<details><summary>Click for a table of gas differences</summary>\n")
-        table_header = ["File name", "IR optimized", "Legacy optimized", "Legacy"]
+        table_header = ["File name", "IR optimized", "Legacy optimized", "Legacy", "SSA CFG optimized"]
         print(tabulate(sorted_table, headers=table_header, tablefmt="github"))
         print("</details>")
     else:

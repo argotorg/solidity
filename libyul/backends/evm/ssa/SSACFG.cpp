@@ -40,17 +40,21 @@ using namespace solidity::yul::ssa;
 namespace
 {
 
-std::string formatPhi(SSACFG const& _cfg, SSACFG::PhiValue const& _phiValue)
+/// Build a human-readable Phi/Upsilon annotation for a phi value.
+/// Shows which upsilons feed it, listed per predecessor block.
+std::string formatPhi(SSACFG const& _cfg, SSACFG::ValueId _phiId)
 {
-	auto const transform = [&](SSACFG::ValueId const& valueId) { return valueId.str(_cfg); };
-	std::vector<std::string> formattedArgs;
-	formattedArgs.reserve(_phiValue.arguments.size());
-	for (auto const& [arg, entry]: ranges::zip_view(_phiValue.arguments | ranges::views::transform(transform), _cfg.block(_phiValue.block).entries))
-		formattedArgs.push_back(fmt::format("Block {} => {}", entry.value, arg));
-	if (!formattedArgs.empty())
-		return fmt::format("φ(\\l\\\n\t{}\\l\\\n)", fmt::join(formattedArgs, ",\\l\\\n\t"));
-	else
-		return "φ()";
+	// Collect all upsilons targeting _phiId from the whole CFG.
+	std::vector<std::string> formattedUpsilons;
+	for (SSACFG::BlockId::ValueType bv = 0; bv < _cfg.numBlocks(); ++bv)
+		for (auto const& u: _cfg.block(SSACFG::BlockId{bv}).upsilons)
+			if (u.phi == _phiId)
+				formattedUpsilons.push_back(
+					fmt::format("Block {} => {}", bv, u.value.str(_cfg))
+				);
+	if (!formattedUpsilons.empty())
+		return fmt::format("φ(\\l\\\n\t{}\\l\\\n)", fmt::join(formattedUpsilons, ",\\l\\\n\t"));
+	return "φ()";
 }
 
 class SSACFGDotExporter: public io::DotExporterBase
@@ -96,12 +100,10 @@ protected:
 			_out << fmt::format("\\\nBlock {}\\n", _blockId.value);
 
 		for (auto const& phi: block.phis)
+			_out << fmt::format("phi{} := {}\\l\\\n", phi.value(), formatPhi(m_cfg, phi));
+		for (auto const opId: block.operations)
 		{
-			auto const& phiInfo = m_cfg.phiInfo(phi);
-			_out << fmt::format("phi{} := {}\\l\\\n", phi.value(), formatPhi(m_cfg, phiInfo));
-		}
-		for (auto const& operation: block.operations)
-		{
+			auto const& operation = m_cfg.operation(opId);
 			std::string const label = std::visit(GenericVisitor{
 				[&](SSACFG::Call const& _call) {
 					return _call.function.get().name.str();
@@ -155,7 +157,7 @@ private:
 
 }
 
-std::string SSACFG::ValueId::str(SSACFG const& _cfg) const
+std::string ValueId::str(SSACFG const& _cfg) const
 {
 	if (!hasValue())
 		return "INVALID";

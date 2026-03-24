@@ -56,15 +56,15 @@ using Slot = StackSlot;
 using ValueId = SSACFG::ValueId;
 struct StackManipulationCallbacks
 {
-	void swap(size_t _depth) const
+	void swap(StackDepth _depth) const
 	{
 		if (hook)
-			(*hook)(fmt::format("SWAP{}", _depth));
+			(*hook)(fmt::format("SWAP{}", _depth.value));
 	}
-	void dup(size_t const _depth) const
+	void dup(StackDepth const _depth) const
 	{
 		if (hook)
-			(*hook)(fmt::format("DUP{}", _depth));
+			(*hook)(fmt::format("DUP{}", _depth.value));
 	}
 	void push(Slot const& _slot) const
 	{

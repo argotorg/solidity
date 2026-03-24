@@ -1,0 +1,11 @@
+{
+    "errors": [
+        {
+            "component": "general",
+            "formattedMessage": "SSA CFG codegen does not yet support ethdebug.",
+            "message": "SSA CFG codegen does not yet support ethdebug.",
+            "severity": "error",
+            "type": "UnimplementedFeatureError"
+        }
+    ]
+}

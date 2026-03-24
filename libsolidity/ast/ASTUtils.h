@@ -24,11 +24,12 @@ namespace solidity::frontend
 {
 
 class ASTNode;
+class ContractDefinition;
 class Declaration;
 class Expression;
+class FunctionCall;
 class SourceUnit;
 class VariableDeclaration;
-class ContractDefinition;
 
 /// Find the topmost referenced constant variable declaration when the given variable
 /// declaration value is an identifier. Works only for constant variable declarations.
@@ -60,5 +61,9 @@ bigint contractStorageSizeUpperBound(ContractDefinition const& _contract, Variab
 /// The value is zero also when the contract is an interface or a library (and cannot have storage).
 /// Assumes analysis was successful.
 u256 layoutBaseForInheritanceHierarchy(ContractDefinition const& _topLevelContract, DataLocation _location);
+
+/// @returns The storage namespace base address using the ERC-7201 formula, if it can be calculated at compile time.
+/// Assumes FunctionCall refers to erc7201 builtin.
+std::optional<u256> erc7201CompileTimeValue(FunctionCall const& _erc7201Call);
 
 }

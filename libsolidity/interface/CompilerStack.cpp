@@ -229,6 +229,18 @@ void CompilerStack::setViaIR(bool _viaIR)
 	m_viaIR = _viaIR;
 }
 
+void CompilerStack::setExperimental(bool _experimental)
+{
+	solAssert(m_stackState < ParsedAndImported, "Must set experimental before parsing.");
+	m_experimental = _experimental;
+}
+
+void CompilerStack::setViaSSACFG(bool _viaSSACFG)
+{
+	solAssert(m_stackState < CompilationSuccessful, "Must set SSA CFG codegen before compilation.");
+	m_viaSSACFG = _viaSSACFG;
+}
+
 void CompilerStack::setEVMVersion(langutil::EVMVersion _version)
 {
 	solAssert(m_stackState < ParsedAndImported, "Must set EVM version before parsing.");
@@ -319,6 +331,7 @@ void CompilerStack::reset(bool _keepSettings)
 		m_importRemapper.clear();
 		m_libraries.clear();
 		m_viaIR = false;
+		m_viaSSACFG = false;
 		m_evmVersion = langutil::EVMVersion();
 		m_eofVersion.reset();
 		m_modelCheckerSettings = ModelCheckerSettings{};
@@ -366,7 +379,7 @@ bool CompilerStack::parse()
 
 		for (size_t i = 0; i < sourcesToParse.size(); ++i)
 		{
-			std::string const& path = sourcesToParse[i];
+			std::string const path = sourcesToParse[i];
 			Source& source = m_sources[path];
 			source.ast = parser.parse(*source.charStream);
 			if (!source.ast)
@@ -450,6 +463,19 @@ void CompilerStack::importASTs(std::map<std::string, Json> const& _sources)
 	storeContractDefinitions();
 }
 
+namespace
+{
+
+bool onlySafeExperimentalFeaturesActivated(std::set<ExperimentalFeature> const& _features)
+{
+	for (auto const feature: _features)
+		if (!ExperimentalFeatureWithoutWarning.contains(feature))
+			return false;
+	return true;
+}
+
+}
+
 bool CompilerStack::analyze()
 {
 	solAssert(m_stackState == ParsedAndImported, "Must call analyze only after parsing was successful.");
@@ -467,7 +493,7 @@ bool CompilerStack::analyze()
 	{
 		bool experimentalSolidity = isExperimentalSolidity();
 
-		SyntaxChecker syntaxChecker(m_errorReporter, m_optimiserSettings.runYulOptimiser);
+		SyntaxChecker syntaxChecker(m_errorReporter, m_optimiserSettings.runYulOptimiser, m_experimental);
 		for (Source const* source: m_sourceOrder)
 			if (source->ast && !syntaxChecker.checkSyntax(*source->ast))
 				noErrors = false;
@@ -526,6 +552,10 @@ bool CompilerStack::analyze()
 
 	if (!noErrors)
 		return false;
+
+	for (Source const* source: m_sourceOrder)
+		if (source->ast && !m_experimental)
+			solAssert(onlySafeExperimentalFeaturesActivated(source->ast->annotation().experimentalFeatures));
 
 	m_stackState = AnalysisSuccessful;
 	return true;
@@ -750,6 +780,9 @@ CompilerStack::PipelineConfig CompilerStack::requestedPipelineConfig(ContractDef
 bool CompilerStack::compile(State _stopAfter)
 {
 	m_stopAfter = _stopAfter;
+
+	solAssert(!m_viaSSACFG || m_experimental, "SSA CFG code generation is an experimental feature. It requires experimental mode to be enabled.");
+
 	if (m_stackState < AnalysisSuccessful)
 		if (!parseAndAnalyze(_stopAfter))
 			return false;
@@ -817,7 +850,6 @@ YulStack CompilerStack::loadGeneratedIR(std::string const& _ir) const
 	YulStack stack(
 		m_evmVersion,
 		m_eofVersion,
-		YulStack::Language::StrictAssembly,
 		m_optimiserSettings,
 		m_debugInfoSelection,
 		this, // _soliditySourceProvider
@@ -1468,17 +1500,6 @@ void CompilerStack::annotateInternalFunctionIDs()
 	}
 }
 
-namespace
-{
-bool onlySafeExperimentalFeaturesActivated(std::set<ExperimentalFeature> const& features)
-{
-	for (auto const feature: features)
-		if (!ExperimentalFeatureWithoutWarning.count(feature))
-			return false;
-	return true;
-}
-}
-
 void CompilerStack::assembleYul(
 	ContractDefinition const& _contract,
 	std::shared_ptr<evmasm::Assembly> _assembly,
@@ -1682,7 +1703,7 @@ void CompilerStack::generateEVMFromIR(ContractDefinition const& _contract)
 
 	std::string deployedName = IRNames::deployedObject(_contract);
 	solAssert(!deployedName.empty(), "");
-	tie(compiledContract.evmAssembly, compiledContract.evmRuntimeAssembly) = stack.assembleEVMWithDeployed(deployedName);
+	tie(compiledContract.evmAssembly, compiledContract.evmRuntimeAssembly) = stack.assembleEVMWithDeployed(deployedName, m_viaSSACFG);
 
 	if (stack.hasErrors())
 	{
@@ -1838,8 +1859,12 @@ std::string CompilerStack::createMetadata(Contract const& _contract, bool _forIR
 	if (_forIR)
 		meta["settings"]["viaIR"] = _forIR;
 	meta["settings"]["evmVersion"] = m_evmVersion.name();
+	if (m_experimental)
+		meta["settings"]["experimental"] = m_experimental;
 	if (m_eofVersion.has_value())
 		meta["settings"]["eofVersion"] = *m_eofVersion;
+	if (m_viaSSACFG)
+		meta["settings"]["viaSSACFG"] = m_viaSSACFG;
 	meta["settings"]["compilationTarget"][_contract.contract->sourceUnitName()] =
 		*_contract.contract->annotation().canonicalName;
 
@@ -1949,9 +1974,13 @@ bytes CompilerStack::createCBORMetadata(Contract const& _contract, bool _forIR) 
 	if (m_metadataFormat == MetadataFormat::NoMetadata)
 		return bytes{};
 
-	bool const experimentalMode = !onlySafeExperimentalFeaturesActivated(
+	bool const usesExperimentalSyntax = !_contract.contract->sourceUnit().annotation().experimentalFeatures.empty();
+	bool const onlySafeExperimentalFeatures = onlySafeExperimentalFeaturesActivated(
 		_contract.contract->sourceUnit().annotation().experimentalFeatures
 	);
+
+	if (m_eofVersion.has_value() || (usesExperimentalSyntax && !onlySafeExperimentalFeatures))
+		solAssert(m_experimental, "Experimental mode not enabled");
 
 	std::string meta = (_forIR == m_viaIR ? metadata(_contract) : createMetadata(_contract, _forIR));
 
@@ -1964,7 +1993,7 @@ bytes CompilerStack::createCBORMetadata(Contract const& _contract, bool _forIR) 
 	else
 		solAssert(m_metadataHash == MetadataHash::None, "Invalid metadata hash");
 
-	if (experimentalMode || m_eofVersion.has_value())
+	if (m_experimental)
 		encoder.pushBool("experimental", true);
 	if (m_metadataFormat == MetadataFormat::WithReleaseVersionTag)
 		encoder.pushBytes("solc", VersionCompactBytes);

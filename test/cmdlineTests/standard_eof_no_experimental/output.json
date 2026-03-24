@@ -1,0 +1,11 @@
+{
+    "errors": [
+        {
+            "component": "general",
+            "formattedMessage": "'eofVersion' setting is experimental and can only be used with the 'settings.experimental' option enabled.",
+            "message": "'eofVersion' setting is experimental and can only be used with the 'settings.experimental' option enabled.",
+            "severity": "error",
+            "type": "FatalError"
+        }
+    ]
+}

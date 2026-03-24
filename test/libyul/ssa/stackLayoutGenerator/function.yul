@@ -47,17 +47,17 @@
 //  r := f(v0, v1)"];
 // FunctionEntry_f_0 -> Block1_0;
 // Block1_0 [label="\
-// IN: [v1, v0]\l\
+// IN: [ReturnLabel[1], v1, v0]\l\
 // \l\
-// [v0, v1, v0]\l\
+// [ReturnLabel[1], v0, v1, v0]\l\
 // add\l\
-// [v0, v2]\l\
+// [ReturnLabel[1], v0, v2]\l\
 // \l\
-// [v0, v2]\l\
+// [ReturnLabel[1], v0, v2]\l\
 // sub\l\
-// [v3]\l\
+// [ReturnLabel[1], v3]\l\
 // \l\
-// OUT: [v3]\l\
+// OUT: [v3, ReturnLabel[1]]\l\
 // "];
 // Block1_0Exit [label="FunctionReturn[v3]"];
 // Block1_0 -> Block1_0Exit;
@@ -65,13 +65,13 @@
 //  g()"];
 // FunctionEntry_g_0 -> Block2_0;
 // Block2_0 [label="\
-// IN: []\l\
+// IN: [ReturnLabel[2]]\l\
 // \l\
-// [lit0, lit1]\l\
+// [ReturnLabel[2], lit0, lit1]\l\
 // sstore\l\
-// []\l\
+// [ReturnLabel[2]]\l\
 // \l\
-// OUT: []\l\
+// OUT: [ReturnLabel[2]]\l\
 // "];
 // Block2_0Exit [label="FunctionReturn[]"];
 // Block2_0 -> Block2_0Exit;
@@ -97,9 +97,9 @@
 //  v, w := i()"];
 // FunctionEntry_i_0 -> Block4_0;
 // Block4_0 [label="\
-// IN: []\l\
+// IN: [ReturnLabel[4]]\l\
 // \l\
-// OUT: []\l\
+// OUT: [lit1, lit2, ReturnLabel[4]]\l\
 // "];
 // Block4_0Exit [label="FunctionReturn[0x0202, 0x0303]"];
 // Block4_0 -> Block4_0Exit;

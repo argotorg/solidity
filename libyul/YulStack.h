@@ -69,7 +69,6 @@ struct MachineAssemblyObject
 class YulStack: public langutil::CharStreamProvider
 {
 public:
-	using Language = yul::Language;
 	enum class Machine { EVM };
 	enum State {
 		Empty,
@@ -81,7 +80,6 @@ public:
 		YulStack(
 			langutil::EVMVersion{},
 			std::nullopt,
-			Language::Assembly,
 			solidity::frontend::OptimiserSettings::none(),
 			langutil::DebugInfoSelection::Default()
 		)
@@ -90,13 +88,11 @@ public:
 	YulStack(
 		langutil::EVMVersion _evmVersion,
 		std::optional<uint8_t> _eofVersion,
-		Language _language,
 		solidity::frontend::OptimiserSettings _optimiserSettings,
 		langutil::DebugInfoSelection const& _debugInfoSelection,
 		langutil::CharStreamProvider const* _soliditySourceProvider = nullptr,
 		std::shared_ptr<ObjectOptimizer> _objectOptimizer = nullptr
 	):
-		m_language(_language),
 		m_evmVersion(_evmVersion),
 		m_eofVersion(_eofVersion),
 		m_optimiserSettings(std::move(_optimiserSettings)),
@@ -118,7 +114,7 @@ public:
 	void optimize();
 
 	/// Run the assembly step (should only be called after parseAndAnalyze).
-	MachineAssemblyObject assemble(Machine _machine);
+	MachineAssemblyObject assemble(Machine _machine, bool _viaSSACFG = false);
 
 	/// Run the assembly step (should only be called after parseAndAnalyze).
 	/// In addition to the value returned by @a assemble, returns
@@ -126,7 +122,8 @@ public:
 	/// Only available for EVM.
 	std::pair<MachineAssemblyObject, MachineAssemblyObject>
 	assembleWithDeployed(
-		std::optional<std::string_view> _deployName = {}
+		std::optional<std::string_view> _deployName = {},
+		bool _viaSSACFG = false
 	);
 
 	/// Run the assembly step (should only be called after parseAndAnalyze).
@@ -134,7 +131,8 @@ public:
 	/// Only available for EVM.
 	std::pair<std::shared_ptr<evmasm::Assembly>, std::shared_ptr<evmasm::Assembly>>
 	assembleEVMWithDeployed(
-		std::optional<std::string_view> _deployName = {}
+		std::optional<std::string_view> _deployName = {},
+		bool _viaSSACFG = false
 	);
 
 	/// @returns the errors generated during parsing, analysis (and potentially assembly).
@@ -161,7 +159,7 @@ private:
 	bool analyzeParsed();
 	bool analyzeParsed(yul::Object& _object);
 
-	void compileEVM(yul::AbstractAssembly& _assembly, bool _optimize) const;
+	void compileEVM(yul::AbstractAssembly& _assembly, bool _optimize, bool _viaSSACFG) const;
 
 	/// Prints the Yul object stored internally and parses it again.
 	/// This ensures that the debug info in the AST matches the source that printing would produce
@@ -172,7 +170,6 @@ private:
 
 	void reportUnimplementedFeatureError(langutil::UnimplementedFeatureError const& _error);
 
-	Language m_language = Language::Assembly;
 	langutil::EVMVersion m_evmVersion;
 	std::optional<uint8_t> m_eofVersion;
 	solidity::frontend::OptimiserSettings m_optimiserSettings;

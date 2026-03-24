@@ -84,9 +84,9 @@ std::vector<solidity::frontend::test::FunctionCall> TestFileParser::parseFunctio
 							BOOST_THROW_EXCEPTION(TestParserError("Expected function call before gas usage filter."));
 
 						std::string runType = m_scanner.currentLiteral();
-						if (std::set<std::string>{"ir", "irOptimized", "legacy", "legacyOptimized"}.count(runType) == 0)
+						if (std::set<std::string>{"ir", "irOptimized", "legacy", "legacyOptimized", "ssaCFG", "ssaCFGOptimized"}.count(runType) == 0)
 							BOOST_THROW_EXCEPTION(TestParserError(
-								"Expected \"ir\", \"irOptimized\", \"legacy\", or \"legacyOptimized\"."
+								"Expected \"ir\", \"irOptimized\", \"legacy\", \"legacyOptimized\", \"ssaCFG\", or \"ssaCFGOptimized\"."
 							));
 						m_scanner.scanNextToken();
 

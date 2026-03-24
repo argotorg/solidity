@@ -21,6 +21,10 @@
 
 #include <libyul/backends/evm/EVMObjectCompiler.h>
 
+#include <libyul/backends/evm/ssa/CodeTransform.h>
+#include <libyul/backends/evm/ssa/SSACFGBuilder.h>
+#include <libyul/backends/evm/ssa/ControlFlow.h>
+
 #include <libyul/backends/evm/EVMCodeTransform.h>
 #include <libyul/backends/evm/EVMDialect.h>
 #include <libyul/backends/evm/OptimizedEVMCodeTransform.h>
@@ -37,14 +41,15 @@ using namespace solidity::yul;
 void EVMObjectCompiler::compile(
 	Object const& _object,
 	AbstractAssembly& _assembly,
-	bool _optimize
+	bool _optimize,
+	bool _viaSSACFG
 )
 {
 	EVMObjectCompiler compiler(_assembly);
-	compiler.run(_object, _optimize);
+	compiler.run(_object, _optimize, _viaSSACFG);
 }
 
-void EVMObjectCompiler::run(Object const& _object, bool _optimize)
+void EVMObjectCompiler::run(Object const& _object, bool _optimize, bool _viaSSACFG)
 {
 	yulAssert(_object.dialect());
 	auto const* evmDialect = dynamic_cast<EVMDialect const*>(_object.dialect());
@@ -61,7 +66,7 @@ void EVMObjectCompiler::run(Object const& _object, bool _optimize)
 			auto subAssemblyAndID = m_assembly.createSubAssembly(isCreation, subObject->name);
 			context.subIDs[subObject->name] = subAssemblyAndID.second;
 			subObject->subId = subAssemblyAndID.second;
-			compile(*subObject, *subAssemblyAndID.first, _optimize);
+			compile(*subObject, *subAssemblyAndID.first, _optimize, _viaSSACFG);
 		}
 		else
 		{
@@ -82,33 +87,51 @@ void EVMObjectCompiler::run(Object const& _object, bool _optimize)
 	}
 	if (_optimize && evmDialect->evmVersion().canOverchargeGasForCall())
 	{
-		auto stackErrors = OptimizedEVMCodeTransform::run(
-			m_assembly,
-			*_object.analysisInfo,
-			_object.code()->root(),
-			*evmDialect,
-			context,
-			OptimizedEVMCodeTransform::UseNamedLabels::ForFirstFunctionOfEachName
-		);
-		if (!stackErrors.empty())
+		if (_viaSSACFG)
 		{
-			yulAssert(evmDialect->providesObjectAccess());
-			auto const memoryGuardHandle = evmDialect->findBuiltin("memoryguard");
-			yulAssert(memoryGuardHandle, "Compiling with object access, memoryguard should be available as builtin.");
-			std::vector<FunctionCall const*> memoryGuardCalls = findFunctionCalls(
+			std::unique_ptr<ssa::ControlFlow> controlFlow = ssa::SSACFGBuilder::build(
+				*_object.analysisInfo,
+				*_object.dialect(),
 				_object.code()->root(),
-				*memoryGuardHandle
+				false
 			);
-			auto stackError = stackErrors.front();
-			std::string msg = stackError.comment() ? *stackError.comment() : "";
-			if (memoryGuardCalls.empty())
-				msg += "\nNo memoryguard was present. "
-					"Consider using memory-safe assembly only and annotating it via "
-					"'assembly (\"memory-safe\") { ... }'.";
-			else
-				msg += "\nmemoryguard was present.";
-			stackError << util::errinfo_comment(msg);
-			BOOST_THROW_EXCEPTION(stackError);
+			ssa::ControlFlowLiveness const liveness(*controlFlow);
+			ssa::CodeTransform::run(
+				m_assembly,
+				liveness,
+				context
+			);
+		}
+		else
+		{
+			auto stackErrors = OptimizedEVMCodeTransform::run(
+				m_assembly,
+				*_object.analysisInfo,
+				_object.code()->root(),
+				*evmDialect,
+				context,
+				OptimizedEVMCodeTransform::UseNamedLabels::ForFirstFunctionOfEachName
+			);
+			if (!stackErrors.empty())
+			{
+				yulAssert(evmDialect->providesObjectAccess());
+				auto const memoryGuardHandle = evmDialect->findBuiltin("memoryguard");
+				yulAssert(memoryGuardHandle, "Compiling with object access, memoryguard should be available as builtin.");
+				std::vector<FunctionCall const*> memoryGuardCalls = findFunctionCalls(
+					_object.code()->root(),
+					*memoryGuardHandle
+				);
+				auto stackError = stackErrors.front();
+				std::string msg = stackError.comment() ? *stackError.comment() : "";
+				if (memoryGuardCalls.empty())
+					msg += "\nNo memoryguard was present. "
+						"Consider using memory-safe assembly only and annotating it via "
+						"'assembly (\"memory-safe\") { ... }'.";
+				else
+					msg += "\nmemoryguard was present.";
+				stackError << util::errinfo_comment(msg);
+				BOOST_THROW_EXCEPTION(stackError);
+			}
 		}
 	}
 	else

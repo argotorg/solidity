@@ -1,0 +1,1 @@
+Error: Standard JSON input mode is incompatible with the --experimental flag. Instead, please use the 'settings.experimental' setting in your Standard JSON input file to enable experimental mode.

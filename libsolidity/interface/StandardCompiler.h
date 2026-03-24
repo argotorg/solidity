@@ -89,6 +89,8 @@ private:
 		Json outputSelection;
 		ModelCheckerSettings modelCheckerSettings = ModelCheckerSettings{};
 		bool viaIR = false;
+		bool viaSSACFG = false;
+		bool experimental = false;
 	};
 
 	/// Parses the input json (and potentially invokes the read callback) and either returns

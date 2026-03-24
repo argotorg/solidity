@@ -40,7 +40,7 @@ using namespace solidity::yul;
 
 std::string Data::toString(DebugInfoSelection const&, CharStreamProvider const*) const
 {
-	return "data \"" + name + "\" hex\"" + util::toHex(data) + "\"";
+	return "data " + util::escapeAndQuoteString(name) + " hex\"" + util::toHex(data) + "\"";
 }
 
 std::string Object::toString(
@@ -64,7 +64,7 @@ std::string Object::toString(
 
 	return
 		debugData->formatUseSrcComment() +
-		"object \"" + name + "\" {\n" +
+		"object " + util::escapeAndQuoteString(name) + " {\n" +
 		indent(inner) + "\n" +
 		"}";
 }

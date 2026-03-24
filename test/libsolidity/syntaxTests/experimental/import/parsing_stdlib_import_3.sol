@@ -2,6 +2,7 @@ pragma experimental solidity;
 
 import { identity } from std.stub;
 // ====
+// experimental: true
 // EVMVersion: >=constantinople
 // compileViaYul: true
 // ----

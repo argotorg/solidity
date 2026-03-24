@@ -408,9 +408,9 @@ The full contract
             require(msg.sender == recipient);
             require(isValidSignature(amount, signature));
 
+            freeze();
             (bool success, ) = recipient.call{value: amount}("");
             require(success);
-            freeze();
             (success, ) = sender.call{value: address(this).balance}("");
             require(success);
         }

@@ -1,0 +1,97 @@
+Optimized IR:
+/// @use-src 0:"input.sol"
+object "C_15" {
+    code {
+        {
+            let _1 := memoryguard(0x80)
+            mstore(64, _1)
+            if callvalue() { revert(0, 0) }
+            let _2 := sload(0x00)
+            let length := 0x00
+            length := shr(1, _2)
+            let outOfPlaceEncoding := and(_2, 1)
+            if iszero(outOfPlaceEncoding) { length := and(length, 0x7f) }
+            if eq(outOfPlaceEncoding, lt(length, 32))
+            {
+                mstore(0x00, shl(224, 0x4e487b71))
+                mstore(4, 0x22)
+                revert(0x00, 0x24)
+            }
+            if gt(length, 31)
+            {
+                if gt(length, 12)
+                {
+                    mstore(0x00, 0x00)
+                    let data := keccak256(0x00, 32)
+                    let oldSlotCount := shr(5, add(length, 31))
+                    let i := 0x00
+                    for { } lt(i, oldSlotCount) { i := add(i, 1) }
+                    { sstore(add(data, i), 0x00) }
+                }
+            }
+            sstore(0x00, add("example.main", 24))
+            let _3 := datasize("C_15_deployed")
+            codecopy(_1, dataoffset("C_15_deployed"), _3)
+            return(_1, _3)
+        }
+    }
+    /// @use-src 0:"input.sol"
+    object "C_15_deployed" {
+        code {
+            {
+                let _1 := memoryguard(0x80)
+                if iszero(lt(calldatasize(), 4))
+                {
+                    if eq(0x26121ff0, shr(224, calldataload(0)))
+                    {
+                        if callvalue() { revert(0, 0) }
+                        if slt(add(calldatasize(), not(3)), 0) { revert(0, 0) }
+                        let ret := 0
+                        let slotValue := sload(0)
+                        let length := 0
+                        length := shr(1, slotValue)
+                        let outOfPlaceEncoding := and(slotValue, 1)
+                        if iszero(outOfPlaceEncoding) { length := and(length, 0x7f) }
+                        if eq(outOfPlaceEncoding, lt(length, 32))
+                        {
+                            mstore(0, shl(224, 0x4e487b71))
+                            mstore(4, 0x22)
+                            revert(0, 0x24)
+                        }
+                        mstore(_1, length)
+                        let updated_pos := add(_1, 32)
+                        switch outOfPlaceEncoding
+                        case 0 {
+                            mstore(updated_pos, and(slotValue, not(255)))
+                            ret := add(add(_1, shl(5, iszero(iszero(length)))), 32)
+                        }
+                        case 1 {
+                            mstore(0, 0)
+                            let dataPos := 18569430475105882587588266137607568536673111973893317399460219858819262702947
+                            let i := 0
+                            for { } lt(i, length) { i := add(i, 32) }
+                            {
+                                mstore(add(add(_1, i), 32), sload(dataPos))
+                                dataPos := add(dataPos, 1)
+                            }
+                            ret := add(add(_1, i), 32)
+                        }
+                        let newFreePtr := add(_1, and(add(sub(ret, _1), 31), not(31)))
+                        if or(gt(newFreePtr, 0xffffffffffffffff), lt(newFreePtr, _1))
+                        {
+                            mstore(0, shl(224, 0x4e487b71))
+                            mstore(4, 0x41)
+                            revert(0, 0x24)
+                        }
+                        mstore(64, newFreePtr)
+                        mstore(0, add(keccak256(updated_pos, mload(_1)), not(0)))
+                        mstore(newFreePtr, and(keccak256(0, 32), not(255)))
+                        return(newFreePtr, 32)
+                    }
+                }
+                revert(0, 0)
+            }
+        }
+        data ".metadata" hex"<BYTECODE REMOVED>"
+    }
+}

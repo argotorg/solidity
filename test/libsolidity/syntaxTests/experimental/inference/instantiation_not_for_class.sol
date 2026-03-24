@@ -5,6 +5,7 @@ type U;
 
 instantiation T: U {}
 // ====
+// experimental: true
 // EVMVersion: >=constantinople
 // compileViaYul: true
 // ----

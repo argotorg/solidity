@@ -31,6 +31,7 @@
 #include <libsolidity/codegen/ReturnInfo.h>
 #include <libsolidity/ast/TypeProvider.h>
 #include <libsolidity/ast/ASTUtils.h>
+#include <libsolidity/analysis/ConstantEvaluator.h>
 
 #include <libevmasm/GasMeter.h>
 
@@ -1421,6 +1422,36 @@ void IRGeneratorForStatements::endVisit(FunctionCall const& _functionCall)
 				", " <<
 				(arrayLengthFunction + "(" + array.commaSeparatedList() +")") <<
 				")\n";
+		}
+		break;
+	}
+	case FunctionType::Kind::ERC7201:
+	{
+		solAssert(arguments.size() == 1);
+		Type const* argType = arguments.front()->annotation().type;
+		solAssert(argType);
+		if (dynamic_cast<StringLiteralType const*>(argType))
+		{
+			std::optional<u256> slot = erc7201CompileTimeValue(_functionCall);
+			solAssert(slot.has_value());
+			define(_functionCall) << formatNumber(*slot) << "\n";
+		}
+		else
+		{
+			Whiskers templ(R"(
+				<erc7201Builtin>(<arrayDataArea>(<namespaceID>), <arrayLength>(<namespaceID>))
+			)");
+
+			IRVariable stringArg = convert(*arguments[0], *TypeProvider::stringMemory());
+			solAssert(stringArg.stackSlots().size() == 1);
+			std::string namespaceID = stringArg.stackSlots().front();
+
+			templ("arrayDataArea", m_utils.arrayDataAreaFunction(*TypeProvider::stringMemory()));
+			templ("arrayLength", m_utils.arrayLengthFunction(*TypeProvider::stringMemory()));
+			templ("namespaceID", namespaceID);
+			templ("erc7201Builtin", m_utils.erc7201());
+
+			define(_functionCall) << templ.render();
 		}
 		break;
 	}

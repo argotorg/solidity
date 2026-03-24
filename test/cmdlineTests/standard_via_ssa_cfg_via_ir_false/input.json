@@ -1,0 +1,13 @@
+{
+	"language": "Solidity",
+	"sources": {
+		"A.sol": {
+			"content": "contract A {}"
+		}
+	},
+	"settings": {
+		"experimental": true,
+		"viaIR": false,
+		"viaSSACFG": true
+	}
+}

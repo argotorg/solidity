@@ -672,7 +672,7 @@ bool ContractCompiler::visit(FunctionDefinition const& _function)
 	for (size_t i = 0; i < c_returnValuesSize; ++i)
 		stackLayout.push_back(static_cast<int>(i));
 
-	if (stackLayout.size() > 17)
+	if (stackLayout.size() > m_context.reachableStackDepth() + 1)
 		BOOST_THROW_EXCEPTION(
 			StackTooDeepError() <<
 			errinfo_sourceLocation(_function.location()) <<
@@ -842,7 +842,7 @@ bool ContractCompiler::visit(InlineAssembly const& _inlineAssembly)
 					}
 					else
 						solAssert(variable->type()->sizeOnStack() == 1, "");
-					if (stackDiff < 1 || stackDiff > 16)
+					if (stackDiff < 1 || stackDiff > m_context.reachableStackDepth())
 						BOOST_THROW_EXCEPTION(
 							StackTooDeepError() <<
 							errinfo_sourceLocation(_inlineAssembly.location()) <<
@@ -916,7 +916,7 @@ bool ContractCompiler::visit(InlineAssembly const& _inlineAssembly)
 			else
 				solAssert(suffix.empty(), "");
 
-			if (stackDiff > 16 || stackDiff < 1)
+			if (stackDiff > m_context.reachableStackDepth() || stackDiff < 1)
 				BOOST_THROW_EXCEPTION(
 					StackTooDeepError() <<
 					errinfo_sourceLocation(_inlineAssembly.location()) <<

@@ -6,6 +6,7 @@ function f() {}
 
 instantiation f: C {}
 // ====
+// experimental: true
 // EVMVersion: >=constantinople
 // compileViaYul: true
 // ----

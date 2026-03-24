@@ -42,6 +42,8 @@ TestCase::TestResult FunctionDependencyGraphTest::run(std::ostream& _stream, std
 	compiler().setSources(StringMap{{"", m_source}});
 	compiler().setViaIR(true);
 	compiler().setOptimiserSettings(OptimiserSettings::none());
+	// Experimental on by default as function dependency analysis is a part of Generic Solidity implementation
+	compiler().setExperimental(true);
 	if (!compiler().compile(CompilerStack::AnalysisSuccessful))
 	{
 		printPrefixed(_stream, formatErrors(filteredErrors(), _formatted), _linePrefix);

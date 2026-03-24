@@ -26,6 +26,7 @@
 #include <range/v3/algorithm/count.hpp>
 #include <range/v3/algorithm/min_element.hpp>
 #include <range/v3/algorithm/replace.hpp>
+#include <range/v3/view/transform.hpp>
 #include <range/v3/to_container.hpp>
 
 #include <boost/container/flat_map.hpp>
@@ -77,15 +78,25 @@ void declareJunk(StackType& _stack, LivenessAnalysis::LivenessData const& _live)
 
 }
 
-SSACFGStackLayout StackLayoutGenerator::generate(LivenessAnalysis const& _liveness, CallSites const& _callSites)
+SSACFGStackLayout StackLayoutGenerator::generate(
+	LivenessAnalysis const& _liveness,
+	CallSites const& _callSites,
+	ControlFlow::FunctionGraphID const _graphID
+)
 {
-	return StackLayoutGenerator(_liveness, _callSites).m_resultLayout;
+	return StackLayoutGenerator(_liveness, _callSites, _graphID).m_resultLayout;
 }
 
-StackLayoutGenerator::StackLayoutGenerator(LivenessAnalysis const& _liveness, CallSites const& _callSites):
+StackLayoutGenerator::StackLayoutGenerator(
+	LivenessAnalysis const& _liveness,
+	CallSites const& _callSites,
+	ControlFlow::FunctionGraphID const _graphID
+):
 	m_cfg(_liveness.cfg()),
 	m_liveness(_liveness),
 	m_callSites(_callSites),
+	m_graphID(_graphID),
+	m_hasFunctionReturnLabel(_liveness.cfg().function && _liveness.cfg().canContinue),
 	m_junkAdmittingBlocksFinder(std::make_unique<JunkAdmittingBlocksFinder>(_liveness.cfg(), _liveness.topologicalSort())),
 	m_resultLayout(m_cfg.numBlocks())
 {
@@ -132,11 +143,13 @@ void StackLayoutGenerator::defineStackIn(SSACFG::BlockId const& _blockId)
 	if (_blockId == m_cfg.entry)
 	{
 		if (m_cfg.function)
-			blockLayout.stackIn =
-				m_cfg.arguments |
-				ranges::views::reverse |
-				ranges::views::transform([](auto&& _variableAndValueId) -> Slot { return Slot::makeValueID(std::get<1>(_variableAndValueId)); }) |
-				ranges::to<std::vector>;
+		{
+			blockLayout.stackIn.reserve(m_cfg.arguments.size() + (m_hasFunctionReturnLabel ? 1u : 0u));
+			if (m_hasFunctionReturnLabel)
+				blockLayout.stackIn.push_back(Slot::makeFunctionReturnLabel(m_graphID));
+			for (auto const& [_, valueID]: m_cfg.arguments | ranges::views::reverse)
+				blockLayout.stackIn.push_back(Slot::makeValueID(valueID));
+		}
 		m_resultLayout[_blockId] = blockLayout;
 		return;
 	}
@@ -163,35 +176,38 @@ void StackLayoutGenerator::defineStackIn(SSACFG::BlockId const& _blockId)
 	{
 		// we have more than one entry and need to unify or at the very least apply phi fct.
 		auto const& liveIn = m_liveness.liveIn(_blockId);
+		// Pre-compute each parent's phi-term proposal (declareJunk + handlePhiFunctions) once
+		std::vector<StackData> proposals(parentExits.size());
+		for (std::size_t i = 0; i < parentExits.size(); ++i)
+		{
+			if (!parentExits[i].second)
+				continue;
+			proposals[i] = *parentExits[i].second;
+			{
+				StackType stack(proposals[i], {});
+				declareJunk(stack, liveIn);
+			}
+			handlePhiFunctions(proposals[i], PhiInverse(m_cfg, parentExits[i].first, _blockId), liveIn);
+		}
 		std::vector cumulativeCosts(parentExits.size(), std::numeric_limits<std::size_t>::max());
 		for (std::size_t i = 0; i < parentExits.size(); ++i)
 		{
 			if (!parentExits[i].second)
 				continue;
 			std::size_t cumulativeCost = 0;
-			auto referenceStackIn = *parentExits[i].second;
-			{
-				StackType stack(referenceStackIn, {});
-				declareJunk(stack, liveIn);
-			}
-			handlePhiFunctions(referenceStackIn, PhiInverse(m_cfg, parentExits[i].first, _blockId), liveIn);
 			for (std::size_t j = 0; j < parentExits.size(); ++j)
 			{
-				if (j != i)
-				{
-					if (parentExits[j].second != nullptr)
-					{
-						auto otherStackIn = *parentExits[j].second;
-						StackType stack(otherStackIn, {});
-						StackShuffler<StackType::Callbacks>::shuffle(
-							stack,
-							stackPreImage(referenceStackIn, PhiInverse(m_cfg, parentExits[j].first, _blockId)),
-							{},
-							referenceStackIn.size()
-						);
-						cumulativeCost += stack.callbacks().numOps;
-					}
-				}
+				if (j == i || !parentExits[j].second)
+					continue;
+				auto proposalCopy = proposals[j];
+				StackType stack(proposalCopy, {});
+				StackShuffler<StackType::Callbacks>::shuffle(
+					stack,
+					proposals[i],
+					{},
+					proposals[i].size()
+				);
+				cumulativeCost += stack.callbacks().numOps;
 			}
 			cumulativeCosts[i] = cumulativeCost;
 		}
@@ -199,10 +215,7 @@ void StackLayoutGenerator::defineStackIn(SSACFG::BlockId const& _blockId)
 			std::distance(cumulativeCosts.begin(), ranges::min_element(cumulativeCosts))
 		);
 		yulAssert(parentExits[argMin].second);
-		blockLayout.stackIn = *parentExits[argMin].second;
-		StackType stack(blockLayout.stackIn, {});
-		declareJunk(stack, liveIn);
-		handlePhiFunctions(blockLayout.stackIn, PhiInverse(m_cfg, parentExits[argMin].first, _blockId), liveIn);
+		blockLayout.stackIn = std::move(proposals[argMin]);
 	}
 	m_resultLayout[_blockId] = blockLayout;
 }
@@ -223,7 +236,7 @@ void StackLayoutGenerator::visitBlock(SSACFG::BlockId const& _blockId)
 	blockLayout.operationIn.reserve(block.operations.size());
 	for (std::size_t operationIndex = 0; operationIndex < block.operations.size(); ++operationIndex)
 	{
-		SSACFG::Operation const& operation = block.operations[operationIndex];
+		SSACFG::Operation const& operation = m_cfg.operation(block.operations[operationIndex]);
 		LivenessAnalysis::LivenessData opLiveOut = operationsLiveOut[operationIndex];
 		auto opLiveOutWithoutOutputs = opLiveOut;
 		for (auto const& output: operation.outputs)
@@ -247,7 +260,7 @@ void StackLayoutGenerator::visitBlock(SSACFG::BlockId const& _blockId)
 			)
 				stack.declareJunk(depth);
 
-		std::size_t const targetSize = findOptimalTargetSize(stack.data(), requiredStackTop, opLiveOutWithoutOutputs, junkCanBeAdded);
+		std::size_t const targetSize = findOptimalTargetSize(stack.data(), requiredStackTop, opLiveOutWithoutOutputs, junkCanBeAdded, m_hasFunctionReturnLabel);
 		StackShuffler<StackType::Callbacks>::shuffle(
 			stack,
 			requiredStackTop,
@@ -275,7 +288,7 @@ void StackLayoutGenerator::visitBlock(SSACFG::BlockId const& _blockId)
 		if (!conditionSlotAlreadyFinal)
 		{
 			auto const condition = Slot::makeValueID(cjump->condition);
-			auto const targetSize = findOptimalTargetSize(stack.data(), {condition}, blockLiveOut, false);
+			auto const targetSize = findOptimalTargetSize(stack.data(), {condition}, blockLiveOut, false, m_hasFunctionReturnLabel);
 			StackShuffler<StackType::Callbacks>::shuffle(
 				stack, {condition}, blockLiveOut, targetSize
 			);
@@ -305,6 +318,15 @@ void StackLayoutGenerator::visitBlock(SSACFG::BlockId const& _blockId)
 				declareJunk(zeroStack, zeroLiveIn);
 			}
 		}
+	}
+
+	if (auto const* functionReturn = std::get_if<SSACFG::BasicBlock::FunctionReturn>(&block.exit))
+	{
+		yulAssert(m_hasFunctionReturnLabel, "When there is a proper function return, we need to have a label for it");
+		// in case there are return values, let's bring the function return label to the top
+		StackData returnStack = functionReturn->returnValues | ranges::views::transform(StackSlot::makeValueID) | ranges::to<std::vector>;
+		returnStack.push_back(StackSlot::makeFunctionReturnLabel(m_graphID));
+		StackShuffler<StackType::Callbacks>::shuffle(stack, returnStack);
 	}
 
 	blockLayout.stackOut = currentStackData;

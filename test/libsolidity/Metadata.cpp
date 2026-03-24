@@ -138,7 +138,7 @@ BOOST_AUTO_TEST_CASE(metadata_stamp)
 			}
 
 			if (metadataFormat == CompilerStack::MetadataFormat::NoMetadata)
-				BOOST_CHECK(cborMetadata.count("solc") == 0);
+				BOOST_CHECK(cborMetadata.empty());
 			else
 			{
 				BOOST_CHECK(cborMetadata.count("solc") == 1);
@@ -146,6 +146,7 @@ BOOST_AUTO_TEST_CASE(metadata_stamp)
 					BOOST_CHECK(cborMetadata.at("solc") == util::toHex(VersionCompactBytes));
 				else
 					BOOST_CHECK(cborMetadata.at("solc") == VersionStringStrict);
+				BOOST_CHECK(!cborMetadata.contains("experimental"));
 			}
 		}
 }
@@ -177,6 +178,7 @@ BOOST_AUTO_TEST_CASE(metadata_stamp_experimental)
 			compilerStack.setEVMVersion(solidity::test::CommonOptions::get().evmVersion());
 			compilerStack.setOptimiserSettings(solidity::test::CommonOptions::get().optimize);
 			compilerStack.setMetadataHash(metadataHash);
+			compilerStack.setExperimental(true); // Experimental pragma requires it
 			BOOST_REQUIRE_MESSAGE(compilerStack.compile(), "Compiling contract failed");
 			bytes const& bytecode = compilerStack.runtimeObject("test").bytecode;
 			std::string const& metadata = compilerStack.metadata("test");
@@ -211,7 +213,7 @@ BOOST_AUTO_TEST_CASE(metadata_stamp_experimental)
 			}
 
 			if (metadataFormat == CompilerStack::MetadataFormat::NoMetadata)
-				BOOST_CHECK(cborMetadata.count("solc") == 0);
+				BOOST_CHECK(cborMetadata.empty());
 			else
 			{
 				BOOST_CHECK(cborMetadata.count("solc") == 1);
@@ -219,7 +221,7 @@ BOOST_AUTO_TEST_CASE(metadata_stamp_experimental)
 					BOOST_CHECK(cborMetadata.at("solc") == util::toHex(VersionCompactBytes));
 				else
 					BOOST_CHECK(cborMetadata.at("solc") == VersionStringStrict);
-				BOOST_CHECK(cborMetadata.count("experimental") == 1);
+				BOOST_CHECK(cborMetadata.contains("experimental"));
 				BOOST_CHECK(cborMetadata.at("experimental") == "true");
 			}
 		}
@@ -415,6 +417,51 @@ BOOST_AUTO_TEST_CASE(metadata_viair)
 		);
 
 		BOOST_CHECK(parsedCBORMetadata.count("experimental") == 0);
+	};
+
+	check(sourceCode, true);
+	check(sourceCode, false);
+}
+
+BOOST_AUTO_TEST_CASE(metadata_viassacfg)
+{
+	static auto constexpr sourceCode = R"(
+		pragma solidity >=0.0;
+		contract test {
+		}
+	)";
+
+	auto check = [](char const* _src, bool _viaSSACFG)
+	{
+		CompilerStack compilerStack;
+		compilerStack.setSources({{"", _src}});
+		compilerStack.setEVMVersion(solidity::test::CommonOptions::get().evmVersion());
+		compilerStack.setOptimiserSettings(solidity::test::CommonOptions::get().optimize);
+		compilerStack.setViaIR(true);
+		compilerStack.setExperimental(true);
+		compilerStack.setViaSSACFG(_viaSSACFG);
+		BOOST_REQUIRE_MESSAGE(compilerStack.compile(), "Compiling contract failed");
+
+		Json metadata;
+		BOOST_REQUIRE(util::jsonParseStrict(compilerStack.metadata("test"), metadata));
+		BOOST_CHECK(solidity::test::isValidMetadata(metadata));
+		BOOST_CHECK(metadata.contains("settings"));
+		BOOST_CHECK(metadata["settings"].contains("viaIR"));
+		BOOST_CHECK(metadata["settings"]["viaIR"].get<bool>());
+		if (_viaSSACFG)
+		{
+			BOOST_CHECK(metadata["settings"].contains("viaSSACFG"));
+			BOOST_CHECK(metadata["settings"]["viaSSACFG"].get<bool>());
+		}
+		else
+			BOOST_CHECK(!metadata["settings"].contains("viaSSACFG"));
+
+		std::map<std::string, std::string> const parsedCBORMetadata = requireParsedCBORMetadata(
+			compilerStack.runtimeObject("test").bytecode,
+			CompilerStack::MetadataFormat::WithReleaseVersionTag
+		);
+
+		BOOST_CHECK(parsedCBORMetadata.contains("experimental"));
 	};
 
 	check(sourceCode, true);

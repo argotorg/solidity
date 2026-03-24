@@ -25,7 +25,8 @@ and is located in the header of a contract definition.
 The layout specifier can be placed either before or after the inheritance specifier, and can appear at most once.
 The ``base-slot-expression`` must be an :ref:`integer literal<rational_literals>` expression
 that can be evaluated at compilation time and yields a value in the range of ``uint256``.
-The use of constants initialized using such expressions is also allowed.
+The use of constants initialized using such expressions and
+the :ref:`built-in function erc7201<mathematical-and-cryptographic-functions>` is also allowed.
 
 A custom layout cannot make contract's storage "wrap around".
 If the selected base slot would push the static variables past the end of storage,

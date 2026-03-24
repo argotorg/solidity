@@ -31,6 +31,8 @@
 #include <libsmtutil/SolverInterface.h>
 #include <libsolidity/interface/Version.h>
 
+#include <range/v3/algorithm/find.hpp>
+
 #include <map>
 #include <optional>
 #include <ostream>
@@ -110,6 +112,7 @@ BOOST_AUTO_TEST_CASE(cli_mode_options)
 			"/tmp=/usr/lib/",
 			"a:b=c/d",
 			":contract.sol=",
+			"--experimental",
 			"--base-path=/home/user/",
 			"--include-path=/usr/lib/include/",
 			"--include-path=/home/user/include",
@@ -154,7 +157,8 @@ BOOST_AUTO_TEST_CASE(cli_mode_options)
 			"--model-checker-show-unsupported",
 			"--model-checker-solvers=z3,smtlib2",
 			"--model-checker-targets=underflow,divByZero",
-			"--model-checker-timeout=5"
+			"--model-checker-timeout=5",
+			"--via-ssa-cfg"
 		};
 
 		if (inputMode == InputMode::CompilerWithASTImport)
@@ -163,6 +167,7 @@ BOOST_AUTO_TEST_CASE(cli_mode_options)
 			};
 
 		CommandLineOptions expectedOptions;
+		expectedOptions.experimental = true;
 		expectedOptions.input.mode = inputMode;
 		expectedOptions.input.paths = {"contract.sol", "/tmp/projects/token.sol", "/home/user/lib/dex.sol", "file", "input.json"};
 		expectedOptions.input.remappings = {
@@ -181,6 +186,7 @@ BOOST_AUTO_TEST_CASE(cli_mode_options)
 		expectedOptions.output.overwriteFiles = true;
 		expectedOptions.output.evmVersion = EVMVersion::spuriousDragon();
 		expectedOptions.output.viaIR = true;
+		expectedOptions.output.viaSSACFG = true;
 		expectedOptions.output.revertStrings = RevertStrings::Strip;
 		expectedOptions.output.debugInfoSelection = DebugInfoSelection::fromString("location");
 		expectedOptions.formatting.json = JsonFormat{JsonFormat::Pretty, 7};
@@ -247,9 +253,8 @@ BOOST_AUTO_TEST_CASE(no_import_callback)
 	std::vector<std::vector<std::string>> commandLinePerInputMode = {
 		{"solc", "--no-import-callback", "contract.sol"},
 		{"solc", "--standard-json", "--no-import-callback", "input.json"},
-		{"solc", "--assemble", "--no-import-callback", "input.yul"},
 		{"solc", "--strict-assembly", "--no-import-callback", "input.yul"},
-		{"solc", "--import-ast", "--no-import-callback", "ast.json"},
+		{"solc", "--experimental", "--import-ast", "--no-import-callback", "ast.json"},
 		{"solc", "--link", "--no-import-callback", "input.bin"},
 	};
 
@@ -269,16 +274,13 @@ BOOST_AUTO_TEST_CASE(via_ir_options)
 
 BOOST_AUTO_TEST_CASE(assembly_mode_options)
 {
-	static std::vector<std::tuple<std::vector<std::string>, YulStack::Machine, YulStack::Language>> const allowedCombinations = {
-		{{"--machine=evm", "--yul-dialect=evm", "--assemble"}, YulStack::Machine::EVM, YulStack::Language::StrictAssembly},
-		{{"--machine=evm", "--yul-dialect=evm", "--strict-assembly"}, YulStack::Machine::EVM, YulStack::Language::StrictAssembly},
-		{{"--machine=evm", "--assemble"}, YulStack::Machine::EVM, YulStack::Language::Assembly},
-		{{"--machine=evm", "--strict-assembly"}, YulStack::Machine::EVM, YulStack::Language::StrictAssembly},
-		{{"--assemble"}, YulStack::Machine::EVM, YulStack::Language::Assembly},
-		{{"--strict-assembly"}, YulStack::Machine::EVM, YulStack::Language::StrictAssembly},
+	static std::vector<std::tuple<std::vector<std::string>, YulStack::Machine>> const allowedCombinations = {
+		{{"--machine=evm", "--yul-dialect=evm", "--strict-assembly"}, YulStack::Machine::EVM},
+		{{"--machine=evm", "--strict-assembly"}, YulStack::Machine::EVM},
+		{{"--strict-assembly"}, YulStack::Machine::EVM},
 	};
 
-	for (auto const& [assemblyOptions, expectedMachine, expectedLanguage]: allowedCombinations)
+	for (auto const& [assemblyOptions, expectedMachine]: allowedCombinations)
 	{
 		std::vector<std::string> commandLine = {
 			"solc",
@@ -312,14 +314,13 @@ BOOST_AUTO_TEST_CASE(assembly_mode_options)
 			"--bin",
 			"--ir-optimized",
 			"--ast-compact-json",
+			"--experimental",
+			"--optimize",
+			"--optimize-runs=1000",
+			"--yul-optimizations=agf",
+			"--via-ssa-cfg",
 		};
 		commandLine += assemblyOptions;
-		if (expectedLanguage == YulStack::Language::StrictAssembly)
-			commandLine += std::vector<std::string>{
-				"--optimize",
-				"--optimize-runs=1000",
-				"--yul-optimizations=agf",
-			};
 
 		CommandLineOptions expectedOptions;
 		expectedOptions.input.mode = InputMode::Assembler;
@@ -341,7 +342,6 @@ BOOST_AUTO_TEST_CASE(assembly_mode_options)
 		expectedOptions.output.debugInfoSelection = DebugInfoSelection::fromString("location");
 		expectedOptions.formatting.json = JsonFormat {JsonFormat::Pretty, 1};
 		expectedOptions.assembly.targetMachine = expectedMachine;
-		expectedOptions.assembly.inputLanguage = expectedLanguage;
 		expectedOptions.linker.libraries = {
 			{"dir1/file1.sol:L", h160("1234567890123456789012345678901234567890")},
 			{"dir2/file2.sol:L", h160("1111122222333334444455555666667777788888")},
@@ -353,13 +353,12 @@ BOOST_AUTO_TEST_CASE(assembly_mode_options)
 		expectedOptions.compiler.outputs.binary = true;
 		expectedOptions.compiler.outputs.irOptimized = true;
 		expectedOptions.compiler.outputs.astCompactJson = true;
-		if (expectedLanguage == YulStack::Language::StrictAssembly)
-		{
-			expectedOptions.optimizer.optimizeEvmasm = true;
-			expectedOptions.optimizer.optimizeYul = true;
-			expectedOptions.optimizer.yulSteps = "agf";
-			expectedOptions.optimizer.expectedExecutionsPerDeployment = 1000;
-		}
+		expectedOptions.experimental = true;
+		expectedOptions.optimizer.optimizeEvmasm = true;
+		expectedOptions.optimizer.optimizeYul = true;
+		expectedOptions.optimizer.yulSteps = "agf";
+		expectedOptions.optimizer.expectedExecutionsPerDeployment = 1000;
+		expectedOptions.output.viaSSACFG = true;
 
 		CommandLineOptions parsedOptions = parseCommandLine(commandLine);
 
@@ -421,20 +420,21 @@ BOOST_AUTO_TEST_CASE(invalid_options_input_modes_combinations)
 {
 	std::map<std::string, std::vector<std::string>> invalidOptionInputModeCombinations = {
 		// TODO: This should eventually contain all options.
-		{"--experimental-via-ir", {"--assemble", "--strict-assembly", "--standard-json", "--link"}},
-		{"--via-ir", {"--assemble", "--strict-assembly", "--standard-json", "--link"}},
-		{"--metadata-literal", {"--assemble", "--strict-assembly", "--standard-json", "--link"}},
-		{"--metadata-hash=swarm", {"--assemble", "--strict-assembly", "--standard-json", "--link"}},
-		{"--model-checker-show-proved-safe", {"--assemble", "--strict-assembly", "--standard-json", "--link"}},
-		{"--model-checker-show-unproved", {"--assemble", "--strict-assembly", "--standard-json", "--link"}},
-		{"--model-checker-show-unsupported", {"--assemble", "--strict-assembly", "--standard-json", "--link"}},
-		{"--model-checker-div-mod-no-slacks", {"--assemble", "--strict-assembly", "--standard-json", "--link"}},
-		{"--model-checker-engine=bmc", {"--assemble", "--strict-assembly", "--standard-json", "--link"}},
-		{"--model-checker-invariants=contract,reentrancy", {"--assemble", "--strict-assembly", "--standard-json", "--link"}},
-		{"--model-checker-solvers=z3,smtlib2", {"--assemble", "--strict-assembly", "--standard-json", "--link"}},
-		{"--model-checker-timeout=5", {"--assemble", "--strict-assembly", "--standard-json", "--link"}},
-		{"--model-checker-contracts=contract1.yul:A,contract2.yul:B", {"--assemble", "--strict-assembly", "--standard-json", "--link"}},
-		{"--model-checker-targets=underflow,divByZero", {"--assemble", "--strict-assembly", "--standard-json", "--link"}}
+		{"--experimental-via-ir", {"--strict-assembly", "--standard-json", "--link", "--import-asm-json"}},
+		{"--via-ir", {"--strict-assembly", "--standard-json", "--link", "--import-asm-json"}},
+		{"--metadata-literal", {"--strict-assembly", "--standard-json", "--link", "--import-asm-json"}},
+		{"--metadata-hash=swarm", {"--strict-assembly", "--standard-json", "--link", "--import-asm-json"}},
+		{"--model-checker-show-proved-safe", {"--strict-assembly", "--standard-json", "--link", "--import-asm-json"}},
+		{"--model-checker-show-unproved", {"--strict-assembly", "--standard-json", "--link", "--import-asm-json"}},
+		{"--model-checker-show-unsupported", {"--strict-assembly", "--standard-json", "--link", "--import-asm-json"}},
+		{"--model-checker-div-mod-no-slacks", {"--strict-assembly", "--standard-json", "--link", "--import-asm-json"}},
+		{"--model-checker-engine=bmc", {"--strict-assembly", "--standard-json", "--link", "--import-asm-json"}},
+		{"--model-checker-invariants=contract,reentrancy", {"--strict-assembly", "--standard-json", "--link", "--import-asm-json"}},
+		{"--model-checker-solvers=z3,smtlib2", {"--strict-assembly", "--standard-json", "--link", "--import-asm-json"}},
+		{"--model-checker-timeout=5", {"--strict-assembly", "--standard-json", "--link", "--import-asm-json"}},
+		{"--model-checker-contracts=contract1.yul:A,contract2.yul:B", {"--strict-assembly", "--standard-json", "--link", "--import-asm-json"}},
+		{"--model-checker-targets=underflow,divByZero", {"--strict-assembly", "--standard-json", "--link", "--import-asm-json"}},
+		{"--via-ssa-cfg", {"--standard-json", "--link", "--import-asm-json"}}
 	};
 
 	for (auto const& [optionName, inputModes]: invalidOptionInputModeCombinations)
@@ -447,8 +447,25 @@ BOOST_AUTO_TEST_CASE(invalid_options_input_modes_combinations)
 
 			std::vector<std::string> commandLine = {"solc", optionName, "file", inputMode};
 
+			static auto constexpr isExperimental = [](std::string_view const _cliFlag) -> bool {
+				auto const& experimentalOpts = CommandLineParser::experimentalOptionNames();
+				return ranges::find(experimentalOpts, _cliFlag.substr(2)) != ranges::end(experimentalOpts);
+			};
+			bool needsExperimentalMode = isExperimental(optionNameWithoutValue) || isExperimental(inputMode);
+			if (needsExperimentalMode)
+				commandLine.emplace_back("--experimental");
+
 			std::string expectedMessage = "The following options are not supported in the current input mode: " + optionNameWithoutValue;
-			auto hasCorrectMessage = [&](CommandLineValidationError const& _exception) { return _exception.what() == expectedMessage; };
+			// When --experimental is combined with --standard-json, a different error fires first
+			// (standard JSON mode is incompatible with --experimental flag). Accept that too.
+			auto hasCorrectMessage = [&](CommandLineValidationError const& _exception)
+			{
+				std::string const what = _exception.what();
+				return what == expectedMessage || (
+					needsExperimentalMode &&
+					what.starts_with("Standard JSON input mode is incompatible with the --experimental flag.")
+				);
+			};
 
 			BOOST_CHECK_EXCEPTION(parseCommandLine(commandLine), CommandLineValidationError, hasCorrectMessage);
 		}
@@ -482,6 +499,8 @@ BOOST_AUTO_TEST_CASE(optimizer_flags)
 		for (auto const& [optimizerFlags, expectedOptimizerSettings]: settingsMap)
 		{
 			std::vector<std::string> commandLine = {"solc", inputModeFlag, "file"};
+			if (inputMode == InputMode::CompilerWithASTImport)
+				commandLine.emplace_back("--experimental");
 			commandLine += optimizerFlags;
 			BOOST_CHECK(parseCommandLine(commandLine).optimiserSettings() == expectedOptimizerSettings);
 		}
@@ -630,39 +649,105 @@ BOOST_AUTO_TEST_CASE(invalid_optimizer_sequence_without_optimize)
 
 BOOST_AUTO_TEST_CASE(ethdebug)
 {
-	CommandLineOptions commandLineOptions = parseCommandLine({"solc", "contract.sol", "--debug-info", "ethdebug", "--ethdebug", "--via-ir"});
+	CommandLineOptions commandLineOptions = parseCommandLine({"solc", "contract.sol", "--experimental", "--debug-info", "ethdebug", "--ethdebug", "--via-ir"});
 	BOOST_CHECK_EQUAL(commandLineOptions.compiler.outputs.ethdebug, true);
 	BOOST_CHECK_EQUAL(commandLineOptions.compiler.outputs.ethdebugRuntime, false);
 	BOOST_CHECK_EQUAL(commandLineOptions.output.debugInfoSelection.has_value(), true);
 	BOOST_CHECK_EQUAL(commandLineOptions.output.debugInfoSelection->ethdebug, true);
-	commandLineOptions = parseCommandLine({"solc", "contract.sol", "--debug-info", "ethdebug", "--ethdebug-runtime", "--via-ir"});
+	commandLineOptions = parseCommandLine({"solc", "contract.sol", "--experimental", "--debug-info", "ethdebug", "--ethdebug-runtime", "--via-ir"});
 	BOOST_CHECK_EQUAL(commandLineOptions.compiler.outputs.ethdebug, false);
 	BOOST_CHECK_EQUAL(commandLineOptions.compiler.outputs.ethdebugRuntime, true);
 	BOOST_CHECK_EQUAL(commandLineOptions.output.debugInfoSelection.has_value(), true);
 	BOOST_CHECK_EQUAL(commandLineOptions.output.debugInfoSelection->ethdebug, true);
-	commandLineOptions = parseCommandLine({"solc", "contract.sol", "--ethdebug", "--via-ir"});
+	commandLineOptions = parseCommandLine({"solc", "contract.sol", "--experimental", "--ethdebug", "--via-ir"});
 	BOOST_CHECK_EQUAL(commandLineOptions.compiler.outputs.ethdebug, true);
 	BOOST_CHECK_EQUAL(commandLineOptions.compiler.outputs.ethdebugRuntime, false);
 	// debug-info "ethdebug" selected implicitly,
 	// if compiled with --ethdebug or --ethdebug-runtime and no debug-info was selected.
 	BOOST_CHECK_EQUAL(commandLineOptions.output.debugInfoSelection.has_value(), true);
 	BOOST_CHECK_EQUAL(commandLineOptions.output.debugInfoSelection->ethdebug, true);
-	commandLineOptions = parseCommandLine({"solc", "contract.sol", "--ethdebug-runtime", "--via-ir"});
+	commandLineOptions = parseCommandLine({"solc", "contract.sol", "--experimental", "--ethdebug-runtime", "--via-ir"});
 	BOOST_CHECK_EQUAL(commandLineOptions.compiler.outputs.ethdebug, false);
 	BOOST_CHECK_EQUAL(commandLineOptions.compiler.outputs.ethdebugRuntime, true);
 	BOOST_CHECK_EQUAL(commandLineOptions.output.debugInfoSelection.has_value(), true);
 	BOOST_CHECK_EQUAL(commandLineOptions.output.debugInfoSelection->ethdebug, true);
-	commandLineOptions = parseCommandLine({"solc", "contract.sol", "--ethdebug", "--ethdebug-runtime", "--via-ir"});
+	commandLineOptions = parseCommandLine({"solc", "contract.sol", "--experimental", "--ethdebug", "--ethdebug-runtime", "--via-ir"});
 	BOOST_CHECK_EQUAL(commandLineOptions.compiler.outputs.ethdebug, true);
 	BOOST_CHECK_EQUAL(commandLineOptions.compiler.outputs.ethdebugRuntime, true);
 	BOOST_CHECK_EQUAL(commandLineOptions.output.debugInfoSelection.has_value(), true);
 	BOOST_CHECK_EQUAL(commandLineOptions.output.debugInfoSelection->ethdebug, true);
-	commandLineOptions = parseCommandLine({"solc", "contract.sol", "--debug-info", "ethdebug", "--ir"});
+	commandLineOptions = parseCommandLine({"solc", "contract.sol", "--experimental", "--debug-info", "ethdebug", "--ir"});
 	BOOST_CHECK_EQUAL(commandLineOptions.compiler.outputs.ethdebug, false);
 	BOOST_CHECK_EQUAL(commandLineOptions.compiler.outputs.ethdebugRuntime, false);
 	BOOST_CHECK_EQUAL(commandLineOptions.compiler.outputs.ir, true);
 	BOOST_CHECK_EQUAL(commandLineOptions.output.debugInfoSelection.has_value(), true);
 	BOOST_CHECK_EQUAL(commandLineOptions.output.debugInfoSelection->ethdebug, true);
+}
+
+BOOST_AUTO_TEST_CASE(experimental_features_without_experimental_flag)
+{
+	std::vector<std::string> const experimentalFeatures {
+		"--lsp",
+		"--import-ast",
+		"--import-asm-json",
+		"--ir-ast-json",
+		"--ir-optimized-ast-json",
+		"--yul-cfg-json",
+		"--ethdebug",
+		"--ethdebug-runtime",
+		"--via-ssa-cfg"
+	};
+
+	std::string expectedErrorMessage;
+	auto hasCorrectMessage = [&](CommandLineValidationError const& _exception) { return _exception.what() == expectedErrorMessage; };
+
+	for (auto const& experimentalFeature: experimentalFeatures)
+	{
+		expectedErrorMessage =
+			fmt::format(
+				"The following options are only available in experimental mode: {}. "
+				"To enable experimental mode, use the --experimental flag.",
+				experimentalFeature
+			);
+
+		std::vector<std::string> const commandLineOptions{"solc", experimentalFeature, "contract.sol"};
+		BOOST_CHECK_EXCEPTION(parseCommandLine(commandLineOptions), CommandLineValidationError, hasCorrectMessage);
+	}
+
+	std::vector<std::string> const commandLineOptions{"solc", "--experimental-eof-version", "1", "contract.sol"};
+	expectedErrorMessage = "The following options are only available in experimental mode: --experimental-eof-version. To enable experimental mode, use the --experimental flag.";
+	BOOST_CHECK_EXCEPTION(parseCommandLine(commandLineOptions), CommandLineValidationError, hasCorrectMessage);
+}
+
+BOOST_AUTO_TEST_CASE(via_ssa_cfg_smoke)
+{
+	auto const commandLineOptions = parseCommandLine({"solc", "--experimental", "--via-ssa-cfg", "contract.sol"});
+	BOOST_CHECK_EQUAL(commandLineOptions.output.viaSSACFG, true);
+	BOOST_CHECK_EQUAL(commandLineOptions.output.viaIR, true);
+}
+
+BOOST_AUTO_TEST_CASE(debug_info_ethdebug_without_experimental_flag)
+{
+	std::string const expectedErrorMessage =
+		"Ethdebug annotations are experimental and can only be included in --debug-info in experimental mode. "
+		"To enable experimental mode, use the --experimental flag.";
+
+	auto hasCorrectMessage = [&](CommandLineValidationError const& _exception) { return _exception.what() == expectedErrorMessage; };
+
+	std::vector<std::string> const commandLineOptions{"solc", "--debug-info", "ethdebug", "contract.sol"};
+	BOOST_CHECK_EXCEPTION(parseCommandLine(commandLineOptions), CommandLineValidationError, hasCorrectMessage);
+}
+
+BOOST_AUTO_TEST_CASE(experimental_flag_with_standard_json)
+{
+	std::string const expectedErrorMessage =
+		"Standard JSON input mode is incompatible with the --experimental flag. "
+		"Instead, please use the 'settings.experimental' setting in your Standard JSON input file to enable experimental mode.";
+
+	auto hasCorrectMessage = [&](CommandLineValidationError const& _exception) { return _exception.what() == expectedErrorMessage; };
+
+	std::vector<std::string> const commandLineOptions{"solc", "--experimental", "--standard-json", "input.json"};
+	BOOST_CHECK_EXCEPTION(parseCommandLine(commandLineOptions), CommandLineValidationError, hasCorrectMessage);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

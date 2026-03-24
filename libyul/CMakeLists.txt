@@ -74,6 +74,8 @@ add_library(yul
 	backends/evm/VariableReferenceCounter.h
 	backends/evm/VariableReferenceCounter.cpp
 	backends/evm/ssa/BridgeFinder.h
+	backends/evm/ssa/CodeTransform.cpp
+	backends/evm/ssa/CodeTransform.h
 	backends/evm/ssa/ControlFlow.cpp
 	backends/evm/ssa/ControlFlow.h
 	backends/evm/ssa/JunkAdmittingBlocksFinder.cpp
@@ -88,6 +90,8 @@ add_library(yul
 	backends/evm/ssa/SSACFG.h
 	backends/evm/ssa/SSACFGBuilder.cpp
 	backends/evm/ssa/SSACFGBuilder.h
+	backends/evm/ssa/SSACFGDebugInfo.h
+	backends/evm/ssa/SSACFGTypes.h
 	backends/evm/ssa/Stack.cpp
 	backends/evm/ssa/Stack.h
 	backends/evm/ssa/StackLayout.h

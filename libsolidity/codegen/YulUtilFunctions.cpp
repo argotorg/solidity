@@ -1297,6 +1297,23 @@ std::string YulUtilFunctions::wrappingIntExpFunction(
 	});
 }
 
+std::string YulUtilFunctions::erc7201()
+{
+	std::string functionName = "erc7201";
+	return m_functionCollector.createFunction(functionName, [&]() {
+		Whiskers templ(R"(
+			function erc7201(namespaceIDDataPtr, namespaceIDLength) -> slot {
+				let innerKeccak := keccak256(namespaceIDDataPtr, namespaceIDLength)
+				mstore(0, sub(innerKeccak, 1))
+				// slot = keccak256(keccak256(id) - 1) & ~0xff
+				slot := and(keccak256(0, 32), not(0xff))
+			}
+		)");
+
+		return templ.render();
+	});
+}
+
 std::string YulUtilFunctions::arrayLengthFunction(ArrayType const& _type)
 {
 	std::string functionName = "array_length_" + _type.identifier();

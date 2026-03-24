@@ -951,7 +951,7 @@ std::map<u256, u256> const& Assembly::optimiseInternal(
 			while (iter != items.end())
 			{
 				KnownState emptyState;
-				CommonSubexpressionEliminator eliminator{emptyState};
+				CommonSubexpressionEliminator eliminator{emptyState, m_evmVersion};
 				auto orig = iter;
 				iter = eliminator.feedItems(iter, items.end(), usesMSize);
 				bool shouldReplace = false;

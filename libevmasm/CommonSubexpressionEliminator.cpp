@@ -62,7 +62,7 @@ std::vector<AssemblyItem> CommonSubexpressionEliminator::getOptimizedItems()
 	for (int height = minHeight; height <= m_state.stackHeight(); ++height)
 		targetStackContents[height] = m_state.stackElement(height, langutil::DebugData::create());
 
-	AssemblyItems items = CSECodeGenerator(m_state.expressionClasses(), m_storeOperations).generateCode(
+	AssemblyItems items = CSECodeGenerator(m_state.expressionClasses(), m_storeOperations, m_evmVersion).generateCode(
 		m_initialState.sequenceNumber(),
 		m_initialState.stackHeight(),
 		initialStackContents,
@@ -126,9 +126,11 @@ void CommonSubexpressionEliminator::optimizeBreakingItem()
 
 CSECodeGenerator::CSECodeGenerator(
 	ExpressionClasses& _expressionClasses,
-	std::vector<CSECodeGenerator::StoreOperation> const& _storeOperations
+	std::vector<CSECodeGenerator::StoreOperation> const& _storeOperations,
+	langutil::EVMVersion _evmVersion
 ):
-	m_expressionClasses(_expressionClasses)
+	m_expressionClasses(_expressionClasses),
+	m_evmVersion(_evmVersion)
 {
 	for (auto const& store: _storeOperations)
 		m_storeOperations[std::make_pair(store.target, store.slot)].push_back(store);
@@ -407,7 +409,7 @@ void CSECodeGenerator::generateClassElement(Id _c, bool _allowSequenced)
 		m_stack.erase(m_stackHeight - static_cast<int>(i));
 	}
 	appendItem(*expr.item);
-	if (expr.item->type() != Operation || instructionInfo(expr.item->instruction(), EVMVersion()).ret == 1)
+	if (expr.item->type() != Operation || instructionInfo(expr.item->instruction(), m_evmVersion).ret == 1)
 	{
 		m_stack[m_stackHeight] = _c;
 		m_classPositions[_c].insert(m_stackHeight);
@@ -415,7 +417,7 @@ void CSECodeGenerator::generateClassElement(Id _c, bool _allowSequenced)
 	else
 	{
 		assertThrow(
-			instructionInfo(expr.item->instruction(), EVMVersion()).ret == 0,
+			instructionInfo(expr.item->instruction(), m_evmVersion).ret == 0,
 			OptimizerException,
 			"Invalid number of return values."
 		);
@@ -472,8 +474,9 @@ bool CSECodeGenerator::removeStackTopIfPossible()
 void CSECodeGenerator::appendDup(int _fromPosition, langutil::DebugData::ConstPtr _debugData)
 {
 	assertThrow(_fromPosition != c_invalidPosition, OptimizerException, "");
+	int reachableStackDepth = static_cast<int>(m_evmVersion.reachableStackDepth());
 	int instructionNum = 1 + m_stackHeight - _fromPosition;
-	assertThrow(instructionNum <= 16, StackTooDeepException, util::stackTooDeepString);
+	assertThrow(instructionNum <= reachableStackDepth, StackTooDeepException, util::stackTooDeepString);
 	assertThrow(1 <= instructionNum, OptimizerException, "Invalid stack access.");
 	appendItem(AssemblyItem(dupInstruction(static_cast<unsigned>(instructionNum)), std::move(_debugData)));
 	m_stack[m_stackHeight] = m_stack[_fromPosition];
@@ -485,8 +488,9 @@ void CSECodeGenerator::appendOrRemoveSwap(int _fromPosition, langutil::DebugData
 	assertThrow(_fromPosition != c_invalidPosition, OptimizerException, "");
 	if (_fromPosition == m_stackHeight)
 		return;
+	int reachableStackDepth = static_cast<int>(m_evmVersion.reachableStackDepth());
 	int instructionNum = m_stackHeight - _fromPosition;
-	assertThrow(instructionNum <= 16, StackTooDeepException, util::stackTooDeepString);
+	assertThrow(instructionNum <= reachableStackDepth, StackTooDeepException, util::stackTooDeepString);
 	assertThrow(1 <= instructionNum, OptimizerException, "Invalid stack access.");
 	appendItem(AssemblyItem(swapInstruction(static_cast<unsigned>(instructionNum)), std::move(_debugData)));
 

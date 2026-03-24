@@ -2398,6 +2398,34 @@ void TypeChecker::typeCheckBytesConcatFunction(
 	}
 }
 
+void TypeChecker::typeCheckERC7201Builtin(FunctionCall const& _functionCall, FunctionType const* _functionType)
+{
+	// erc7201 builtin accepts only 1 argument. Invalid cases with different number
+	// of arguments are treated after by function `typeCheckFunctionGeneralChecks`
+	if (_functionCall.arguments().size() > 0)
+	{
+		Type const* argumentType = _functionCall.arguments()[0].get()->annotation().type;
+		solAssert(argumentType);
+		auto const* arrayType = dynamic_cast<ArrayType const*>(argumentType);
+
+		if (
+			!dynamic_cast<StringLiteralType const*>(argumentType) &&
+			(!arrayType || !arrayType->isString())
+		)
+		{
+			std::string errorMsg = "The argument to erc7201 builtin must be a string.";
+			if (arrayType && arrayType->isByteArray())
+				errorMsg += " The supplied argument has type bytes.";
+			m_errorReporter.typeError(
+				6896_error,
+				_functionCall.arguments()[0]->location(),
+				errorMsg
+			);
+		}
+	}
+	typeCheckFunctionGeneralChecks(_functionCall, _functionType);
+}
+
 void TypeChecker::typeCheckFunctionGeneralChecks(
 	FunctionCall const& _functionCall,
 	FunctionTypePointer _functionType
@@ -2825,6 +2853,10 @@ bool TypeChecker::visit(FunctionCall const& _functionCall)
 			returnTypes = functionType->returnParameterTypes();
 			break;
 		}
+		case FunctionType::Kind::ERC7201:
+			typeCheckERC7201Builtin(_functionCall, functionType);
+			returnTypes = functionType->returnParameterTypes();
+			break;
 		default:
 		{
 			typeCheckFunctionCall(_functionCall, functionType);

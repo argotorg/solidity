@@ -96,12 +96,14 @@ private:
 		std::ostream& _stream,
 		std::string const& _linePrefix,
 		bool _formatted,
-		bool _isYulRun
+		bool _isYulRun,
+		bool _isSSACFGRun = false
 	);
 	TestResult tryRunTestWithYulOptimizer(
 		std::ostream& _stream,
 		std::string const& _linePrefix,
-		bool _formatted
+		bool _formatted,
+		bool _isSSACFGRun = false
 	);
 	bool checkGasCostExpectation(TestFunctionCall& io_test, bool _compileViaYul) const;
 	std::map<std::string, Builtin> makeBuiltins();
@@ -119,6 +121,8 @@ private:
 	std::vector<SideEffectHook> const m_sideEffectHooks;
 	bool m_testCaseWantsYulRun = true;
 	bool m_testCaseWantsLegacyRun = true;
+	bool m_testCaseWantsSSACFGRun = false;
+	bool m_isSSACFGRun = false;
 	bool m_runWithABIEncoderV1Only = false;
 	bool m_allowNonExistingFunctions = false;
 	bool m_gasCostFailure = false;

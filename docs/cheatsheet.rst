@@ -97,7 +97,7 @@ Validations and Assertions
 - ``revert()``: abort execution and revert state changes
 - ``revert(string memory message)``: abort execution and revert state changes providing an explanatory string
 
-.. index:: cryptography, keccak256, sha256, ripemd160, ecrecover, addmod, mulmod
+.. index:: cryptography, keccak256, sha256, ripemd160, ecrecover, addmod, mulmod, erc7201
 
 Mathematical and Cryptographic Functions
 ========================================
@@ -111,6 +111,8 @@ Mathematical and Cryptographic Functions
   arbitrary precision and does not wrap around at ``2**256``. Assert that ``k != 0`` starting from version 0.5.0.
 - ``mulmod(uint x, uint y, uint k) returns (uint)``: compute ``(x * y) % k`` where the multiplication is performed
   with arbitrary precision and does not wrap around at ``2**256``. Assert that ``k != 0`` starting from version 0.5.0.
+- ``erc7201(string memory id) returns (uint)``: compute the base slot of an ``erc7201`` storage namespace.
+  Can be used in compile time context.
 
 .. index:: this, super, selfdestruct
 

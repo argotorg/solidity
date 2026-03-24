@@ -1,0 +1,59 @@
+Optimized IR:
+/// @use-src 0:"input.sol"
+object "C_14" {
+    code {
+        {
+            let _1 := memoryguard(0x80)
+            mstore(64, _1)
+            if callvalue() { revert(0, 0) }
+            let _2 := datasize("C_14_deployed")
+            codecopy(_1, dataoffset("C_14_deployed"), _2)
+            return(_1, _2)
+        }
+    }
+    /// @use-src 0:"input.sol"
+    object "C_14_deployed" {
+        code {
+            {
+                let _1 := memoryguard(0x80)
+                if iszero(lt(calldatasize(), 4))
+                {
+                    if eq(0x91e145ef, shr(224, calldataload(0)))
+                    {
+                        if callvalue() { revert(0, 0) }
+                        if slt(add(calldatasize(), not(3)), 32) { revert(0, 0) }
+                        let offset := calldataload(4)
+                        if gt(offset, 0xffffffffffffffff) { revert(0, 0) }
+                        if iszero(slt(add(offset, 35), calldatasize())) { revert(0, 0) }
+                        let length := calldataload(add(4, offset))
+                        let _2 := gt(length, 0xffffffffffffffff)
+                        if _2 { revert(0, 0) }
+                        let _3 := gt(add(add(offset, length), 36), calldatasize())
+                        if _3 { revert(0, 0) }
+                        _2 := 0
+                        let newFreePtr := add(_1, and(add(and(add(length, 0x1f), not(31)), 63), not(31)))
+                        if or(gt(newFreePtr, 0xffffffffffffffff), lt(newFreePtr, _1))
+                        {
+                            mstore(0, shl(224, 0x4e487b71))
+                            mstore(4, 0x41)
+                            revert(0, 36)
+                        }
+                        mstore(64, newFreePtr)
+                        mstore(_1, length)
+                        let dst := add(_1, 32)
+                        _3 := 0
+                        calldatacopy(dst, add(offset, 36), length)
+                        mstore(add(add(_1, length), 32), 0)
+                        mstore(0, add(keccak256(dst, mload(_1)), not(0)))
+                        let slot := and(keccak256(0, 32), not(255))
+                        let memPos := mload(64)
+                        mstore(memPos, slot)
+                        return(memPos, 32)
+                    }
+                }
+                revert(0, 0)
+            }
+        }
+        data ".metadata" hex"<BYTECODE REMOVED>"
+    }
+}

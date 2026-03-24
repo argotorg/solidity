@@ -8,6 +8,7 @@
 		}
 	},
 	"settings": {
+		"experimental": true,
 		"debug": {"debugInfo": ["ethdebug"]},
 		"outputSelection": {
 			"*": {"*": ["evm.bytecode.ethdebug"]}

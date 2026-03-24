@@ -1,0 +1,11 @@
+{
+    "errors": [
+        {
+            "component": "general",
+            "formattedMessage": "\"settings.viaSSACFG\" requires compilation via IR.",
+            "message": "\"settings.viaSSACFG\" requires compilation via IR.",
+            "severity": "error",
+            "type": "JSONError"
+        }
+    ]
+}

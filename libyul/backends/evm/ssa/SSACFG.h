@@ -21,6 +21,9 @@
 
 #pragma once
 
+#include <libyul/backends/evm/ssa/SSACFGDebugInfo.h>
+#include <libyul/backends/evm/ssa/SSACFGTypes.h>
+
 #include <libyul/AST.h>
 #include <libyul/AsmAnalysisInfo.h>
 #include <libyul/Dialect.h>
@@ -42,77 +45,42 @@ class LivenessAnalysis;
 class SSACFG
 {
 public:
-	SSACFG() = default;
+	using DebugInfo = SSACFGDebugInfo;
+
+	explicit SSACFG(std::unique_ptr<DebugInfo> _debugInfo = std::make_unique<DebugInfo>()):
+		debugInfo(std::move(_debugInfo))
+	{}
+
 	SSACFG(SSACFG const&) = delete;
 	SSACFG(SSACFG&&) = delete;
 	SSACFG& operator=(SSACFG const&) = delete;
 	SSACFG& operator=(SSACFG&&) = delete;
 	~SSACFG() = default;
 
-	struct BlockId
-	{
-		using ValueType = std::uint32_t;
-		ValueType value = std::numeric_limits<ValueType>::max();
-		bool hasValue() const { return value != std::numeric_limits<ValueType>::max(); }
-		auto operator<=>(BlockId const&) const = default;
-	};
-	class ValueId
-	{
-	public:
-		enum class Kind: std::uint8_t
-		{
-			Literal,
-			Variable,
-			Phi,
-			Unreachable
-		};
-		using ValueType = std::uint32_t;
-
-		constexpr ValueId() = default;
-		constexpr ValueId(ValueType const _value, Kind const _kind): m_value(_value), m_kind(_kind) {}
-		constexpr ValueId(ValueId const&) = default;
-		constexpr ValueId(ValueId&&) = default;
-		constexpr ValueId& operator=(ValueId const&) = default;
-		constexpr ValueId& operator=(ValueId&&) = default;
-
-		static ValueId constexpr makeLiteral(ValueType const& _value) { return ValueId{_value, Kind::Literal}; }
-		static ValueId constexpr makeVariable(ValueType const& _value) { return ValueId{_value, Kind::Variable}; }
-		static ValueId constexpr makePhi(ValueType const& _value) { return ValueId{_value, Kind::Phi}; }
-		static ValueId constexpr makeUnreachable() { return ValueId{0u, Kind::Unreachable}; }
-
-		bool constexpr isLiteral() const noexcept { return m_kind == Kind::Literal; }
-		bool constexpr isVariable() const noexcept { return m_kind == Kind::Variable; }
-		bool constexpr isPhi() const noexcept { return m_kind == Kind::Phi; }
-		bool constexpr isUnreachable() const noexcept { return m_kind == Kind::Unreachable; }
-
-		bool constexpr hasValue() const { return m_value != std::numeric_limits<ValueType>::max(); }
-		ValueType constexpr value() const noexcept { return m_value; }
-		Kind constexpr kind() const noexcept { return m_kind; }
-		std::string str(SSACFG const& _cfg) const;
-
-		auto operator<=>(ValueId const&) const = default;
-
-	private:
-		ValueType m_value{std::numeric_limits<ValueType>::max()};
-		Kind m_kind{Kind::Unreachable};
-	};
+	using BlockId = ssa::BlockId;
+	using OperationId = ssa::OperationId;
+	using ValueId = ssa::ValueId;
 
 	struct BuiltinCall
 	{
-		langutil::DebugData::ConstPtr debugData;
 		std::reference_wrapper<BuiltinFunction const> builtin;
 		std::reference_wrapper<FunctionCall const> call;
 	};
 	struct Call
 	{
-		langutil::DebugData::ConstPtr debugData;
 		std::reference_wrapper<Scope::Function const> function;
 		std::reference_wrapper<FunctionCall const> call;
 		bool canContinue;
 	};
-	struct LiteralAssignment
+	struct LiteralAssignment {};
+
+	/// Upsilon records a phi pre-image at a block exit.
+	/// Upsilon(value, phi) means: the value flowing into `phi` from this block is `value`.
+	/// Lives in the predecessor block; the corresponding Phi lives in the successor.
+	struct Upsilon
 	{
-		langutil::DebugData::ConstPtr debugData;
+		ValueId value;  ///< pre-image value for the phi
+		ValueId phi;    ///< target phi
 	};
 
 	struct Operation {
@@ -125,26 +93,25 @@ public:
 		struct MainExit {};
 		struct ConditionalJump
 		{
-			langutil::DebugData::ConstPtr debugData{};
 			ValueId condition;
 			BlockId nonZero;
 			BlockId zero;
 		};
 		struct Jump
 		{
-			langutil::DebugData::ConstPtr debugData{};
 			BlockId target;
 		};
 		struct FunctionReturn
 		{
-			langutil::DebugData::ConstPtr debugData{};
 			std::vector<ValueId> returnValues;
 		};
 		struct Terminated {};
-		langutil::DebugData::ConstPtr debugData;
-		std::set<BlockId> entries;
-		std::set<ValueId> phis;
-		std::vector<Operation> operations;
+		std::vector<BlockId> entries;
+		std::vector<ValueId> phis;
+		std::vector<OperationId> operations;
+		/// Upsilon assignments placed at the block exit (before the terminator).
+		/// They record the phi pre-images for successor blocks.
+		std::vector<Upsilon> upsilons;
 		std::variant<MainExit, Jump, ConditionalJump, FunctionReturn, Terminated> exit = MainExit{};
 		template<typename Callable>
 		void forEachExit(Callable&& _callable) const
@@ -178,48 +145,63 @@ public:
 			return std::holds_alternative<Jump>(exit);
 		}
 	};
+
 	BlockId makeBlock(langutil::DebugData::ConstPtr _debugData)
 	{
 		BlockId blockId { static_cast<BlockId::ValueType>(m_blocks.size()) };
-		m_blocks.emplace_back(BasicBlock{std::move(_debugData), {}, {}, {}, BasicBlock::Terminated{}});
+		m_blocks.emplace_back(BasicBlock{{}, {}, {}, {}, BasicBlock::Terminated{}});
+		if (debugInfo)
+			debugInfo->setBlockDebugData(blockId, std::move(_debugData));
 		return blockId;
 	}
 	BasicBlock& block(BlockId _id) { return m_blocks.at(_id.value); }
 	BasicBlock const& block(BlockId _id) const { return m_blocks.at(_id.value); }
 	size_t numBlocks() const { return m_blocks.size(); }
 
+	OperationId makeOperation(Operation _op, langutil::DebugData::ConstPtr _debugData = {})
+	{
+		OperationId id{static_cast<OperationId::ValueType>(m_operations.size())};
+		m_operations.emplace_back(std::move(_op));
+		if (debugInfo && _debugData)
+			debugInfo->setOperationDebugData(id, std::move(_debugData));
+		return id;
+	}
+	Operation& operation(OperationId _id) { return m_operations.at(_id.value); }
+	Operation const& operation(OperationId _id) const { return m_operations.at(_id.value); }
+
 private:
 	std::vector<BasicBlock> m_blocks;
+	std::vector<Operation> m_operations;
 public:
 	struct LiteralValue {
-		langutil::DebugData::ConstPtr debugData;
 		u256 value;
 	};
 	struct VariableValue {
-		langutil::DebugData::ConstPtr debugData;
 		BlockId definingBlock;
 	};
 	struct PhiValue {
-		langutil::DebugData::ConstPtr debugData;
 		BlockId block;
-		std::vector<ValueId> arguments;
 	};
 	struct UnreachableValue {};
 	ValueId newPhi(BlockId const _definingBlock)
 	{
-		auto const& block = m_blocks.at(_definingBlock.value);
-		m_phis.emplace_back(PhiValue{debugDataOf(block), _definingBlock, std::vector<ValueId>{}});
+		m_phis.emplace_back(PhiValue{_definingBlock});
 		auto const value = m_phis.size() - 1;
 		yulAssert(value < std::numeric_limits<ValueId::ValueType>::max());
-		return ValueId::makePhi(static_cast<ValueId::ValueType>(value));
+		auto const id = ValueId::makePhi(static_cast<ValueId::ValueType>(value));
+		if (debugInfo)
+			debugInfo->setValueDebugData(id, debugInfo->blockDebugData(_definingBlock));
+		return id;
 	}
 	ValueId newVariable(BlockId const _definingBlock)
 	{
-		auto const& block = m_blocks.at(_definingBlock.value);
-		m_variables.emplace_back(VariableValue{debugDataOf(block), _definingBlock});
+		m_variables.emplace_back(VariableValue{_definingBlock});
 		auto const value = m_variables.size() - 1;
 		yulAssert(value < std::numeric_limits<ValueId::ValueType>::max());
-		return ValueId::makeVariable(static_cast<ValueId::ValueType>(value));
+		auto const id = ValueId::makeVariable(static_cast<ValueId::ValueType>(value));
+		if (debugInfo)
+			debugInfo->setValueDebugData(id, debugInfo->blockDebugData(_definingBlock));
+		return id;
 	}
 
 	ValueId unreachableValue()
@@ -239,21 +221,14 @@ public:
 			return valueId;
 		}
 
-
-		m_literals.emplace_back(LiteralValue{std::move(_debugData), std::move(_value)});
+		m_literals.emplace_back(LiteralValue{std::move(_value)});
 		auto const value = m_literals.size() - 1;
 		yulAssert(value < std::numeric_limits<ValueId::ValueType>::max());
 		auto const literalId = ValueId::makeLiteral(static_cast<ValueId::ValueType>(value));
+		if (debugInfo)
+			debugInfo->setValueDebugData(literalId, std::move(_debugData));
 		m_literalMapping.emplace(_value, literalId);
 		return literalId;
-	}
-
-	size_t phiArgumentIndex(BlockId const _source, BlockId const _target) const
-	{
-		auto const& targetBlock = block(_target);
-		auto idx = util::findOffset(targetBlock.entries, _source);
-		yulAssert(idx, fmt::format("Target block {} not found as entry in one of the exits of the current block {}.", _target.value, _source.value));
-		return *idx;
 	}
 
 	std::string toDot(
@@ -290,7 +265,7 @@ private:
 	std::vector<VariableValue> m_variables;
 	std::optional<ValueId> m_unreachableValue;
 public:
-	langutil::DebugData::ConstPtr debugData;
+	std::unique_ptr<DebugInfo> debugInfo;
 	BlockId entry = BlockId{0};
 	std::set<BlockId> exits;
 	Scope::Function const* function = nullptr;
@@ -303,42 +278,3 @@ public:
 };
 
 }
-
-template<>
-struct fmt::formatter<solidity::yul::ssa::SSACFG::BlockId>
-{
-	static auto constexpr parse(format_parse_context& ctx) -> decltype(ctx.begin()) { return ctx.begin(); }
-
-	template<typename FormatContext>
-	auto format(solidity::yul::ssa::SSACFG::BlockId const& _blockId, FormatContext& _ctx) const -> decltype(_ctx.out())
-	{
-		if (!_blockId.hasValue())
-			return fmt::format_to(_ctx.out(), "empty");
-		return fmt::format_to(_ctx.out(), "{}", _blockId.value);
-	}
-};
-
-template<>
-struct fmt::formatter<solidity::yul::ssa::SSACFG::ValueId>
-{
-	static auto constexpr parse(format_parse_context& ctx) -> decltype(ctx.begin()) { return ctx.begin(); }
-
-	template<typename FormatContext>
-	auto format(solidity::yul::ssa::SSACFG::ValueId const& _valueId, FormatContext& _ctx) const -> decltype(_ctx.out())
-	{
-		if (!_valueId.hasValue())
-			return fmt::format_to(_ctx.out(), "empty");
-		switch (_valueId.kind())
-		{
-		case solidity::yul::ssa::SSACFG::ValueId::Kind::Literal:
-			return fmt::format_to(_ctx.out(), "lit{}", _valueId.value());
-		case solidity::yul::ssa::SSACFG::ValueId::Kind::Variable:
-			return fmt::format_to(_ctx.out(), "v{}", _valueId.value());
-		case solidity::yul::ssa::SSACFG::ValueId::Kind::Phi:
-			return fmt::format_to(_ctx.out(), "phi{}", _valueId.value());
-		case solidity::yul::ssa::SSACFG::ValueId::Kind::Unreachable:
-			return fmt::format_to(_ctx.out(), "unreachable");
-		}
-		solidity::util::unreachable();
-	}
-};

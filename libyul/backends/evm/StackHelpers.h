@@ -186,13 +186,13 @@ private:
 	static bool bringUpTargetSlot(ShuffleOperations& _ops, size_t _targetOffset)
 	{
 		std::list<size_t> toVisit{_targetOffset};
-		std::set<size_t> visited;
+		// mark on enqueue
+		std::set<size_t> visited{_targetOffset};
 
 		while (!toVisit.empty())
 		{
 			auto offset = *toVisit.begin();
 			toVisit.erase(toVisit.begin());
-			visited.emplace(offset);
 			if (_ops.targetMultiplicity(offset) > 0)
 			{
 				_ops.pushOrDupTarget(offset);
@@ -204,11 +204,12 @@ private:
 					!_ops.isCompatible(nextOffset, nextOffset) &&
 					_ops.isCompatible(nextOffset, offset)
 				)
-					if (!visited.count(nextOffset))
+					if (visited.insert(nextOffset).second)  // insert returns false if already present
 						toVisit.emplace_back(nextOffset);
 		}
 		return false;
 	}
+
 	/// Performs a single stack operation, transforming the source layout closer to the target layout.
 	template<typename... Args>
 	static bool shuffleStep(Args&&... args)
