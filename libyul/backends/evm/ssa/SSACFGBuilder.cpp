@@ -20,6 +20,7 @@
  */
 
 #include <libyul/backends/evm/ssa/SSACFGBuilder.h>
+#include <libyul/backends/evm/ssa/SSACFGTrivialPhiEliminator.h>
 
 #include <libyul/backends/evm/ssa/ControlFlow.h>
 
@@ -32,7 +33,6 @@
 #include <libsolutil/StringUtils.h>
 #include <libsolutil/Visitor.h>
 
-#include <range/v3/algorithm/replace.hpp>
 #include <range/v3/range/conversion.hpp>
 #include <range/v3/view/drop_last.hpp>
 #include <range/v3/view/enumerate.hpp>
@@ -87,129 +87,10 @@ std::unique_ptr<ControlFlow> SSACFGBuilder::build(
 	if (!builder.blockInfo(builder.m_currentBlock).sealed)
 		builder.sealBlock(builder.m_currentBlock);
 	mainGraph.block(builder.m_currentBlock).exit = SSACFG::BasicBlock::MainExit{};
-	builder.cleanUnreachable();
+	eliminateTrivialPhis(mainGraph);
 	return controlFlow;
 }
 
-SSACFG::ValueId SSACFGBuilder::tryRemoveTrivialPhi(SSACFG::ValueId _phi)
-{
-	// TODO: double-check if this is sane
-	auto const& phiInfo = m_graph.phiInfo(_phi);
-	yulAssert(blockInfo(phiInfo.block).sealed);
-
-	// Collect upsilon values targeting this phi.
-	SSACFG::ValueId same;
-	for (auto const& entry: m_graph.block(phiInfo.block).entries)
-		for (auto const& u: m_graph.block(entry).upsilons)
-			if (u.phi == _phi)
-			{
-				if (u.value == same || u.value == _phi)
-					continue;  // unique value or self-reference
-				if (same.hasValue())
-					return _phi;  // phi merges at least two distinct values -> not trivial
-				same = u.value;
-			}
-	if (!same.hasValue())
-	{
-		// This will happen for unreachable paths.
-		// TODO: check how best to deal with this
-		same = m_graph.unreachableValue();
-	}
-
-	std::erase(m_graph.block(phiInfo.block).phis, _phi);
-
-	std::vector<SSACFG::ValueId> phiUses;
-	for (SSACFG::BlockId::ValueType blockIdValue = 0; blockIdValue < m_graph.numBlocks(); ++blockIdValue)
-	{
-		auto& block = m_graph.block(SSACFG::BlockId{blockIdValue});
-		for (auto blockPhi: block.phis)
-		{
-			yulAssert(blockPhi.hasValue());
-			yulAssert(blockPhi != _phi, "Phis should be defined in exactly one block, _phi was erased.");
-		}
-		// Replace _phi with same in upsilon values and collect affected phis.
-		for (auto& u: block.upsilons)
-			if (u.value == _phi)
-			{
-				u.value = same;
-				phiUses.push_back(u.phi);
-			}
-		// Erase upsilons targeting _phi.
-		std::erase_if(block.upsilons, [_phi](auto const& u) { return u.phi == _phi; });
-		for (auto opId: block.operations)
-			ranges::replace(m_graph.operation(opId).inputs, _phi, same);
-		std::visit(util::GenericVisitor{
-			[_phi, same](SSACFG::BasicBlock::FunctionReturn& _functionReturn) {
-				ranges::replace(_functionReturn.returnValues, _phi, same);
-			},
-			[_phi, same](SSACFG::BasicBlock::ConditionalJump& _condJump) {
-				if (_condJump.condition == _phi)
-					_condJump.condition = same;
-			},
-			[](SSACFG::BasicBlock::Jump&) {},
-			[](SSACFG::BasicBlock::MainExit&) {},
-			[](SSACFG::BasicBlock::Terminated&) {}
-		}, block.exit);
-	}
-	for (auto& currentVariableDefs: m_currentDef | ranges::views::values)
-		ranges::replace(currentVariableDefs, _phi, same);
-
-	for (auto phiUse: phiUses)
-		tryRemoveTrivialPhi(phiUse);
-
-	return same;
-}
-
-/// Removes edges to blocks that are not reachable.
-void SSACFGBuilder::cleanUnreachable()
-{
-	// Determine which blocks are reachable from the entry.
-	util::BreadthFirstSearch<SSACFG::BlockId> reachabilityCheck{{m_graph.entry}};
-	reachabilityCheck.run([&](SSACFG::BlockId _blockId, auto&& _addChild) {
-		auto const& block = m_graph.block(_blockId);
-		visit(util::GenericVisitor{
-				[&](SSACFG::BasicBlock::Jump const& _jump) {
-					_addChild(_jump.target);
-				},
-				[&](SSACFG::BasicBlock::ConditionalJump const& _jump) {
-					_addChild(_jump.zero);
-					_addChild(_jump.nonZero);
-				},
-				[](SSACFG::BasicBlock::FunctionReturn const&) {},
-				[](SSACFG::BasicBlock::Terminated const&) {},
-				[](SSACFG::BasicBlock::MainExit const&) {}
-			}, block.exit);
-	});
-
-	// Remove unreachable predecessor entries.
-	for (SSACFG::BlockId blockId: reachabilityCheck.visited)
-	{
-		auto& block = m_graph.block(blockId);
-		std::erase_if(block.entries, [&](auto const& entry) { return !reachabilityCheck.visited.contains(entry); });
-	}
-
-	// Remove upsilons that are now invalid:
-	//   - upsilons in unreachable blocks (their block will never execute), or
-	//   - upsilons with an unreachable value (product of earlier trivial-phi removal).
-	// Collect the affected target phis so we can attempt trivial-phi removal afterward.
-	std::vector<SSACFG::ValueId> maybeTrivialPhi;
-	for (SSACFG::BlockId blockId{0}; blockId.value < m_graph.numBlocks(); ++blockId.value)
-	{
-		auto& block = m_graph.block(blockId);
-		bool const isReachable = reachabilityCheck.visited.contains(blockId);
-
-		for (auto const& u: block.upsilons)
-			if (!isReachable || u.value.isUnreachable())
-				maybeTrivialPhi.push_back(u.phi);
-
-		std::erase_if(block.upsilons, [&](SSACFG::Upsilon const& u) {
-			return !isReachable || u.value.isUnreachable();
-		});
-	}
-
-	for (auto const phi: maybeTrivialPhi)
-		tryRemoveTrivialPhi(phi);
-}
 
 void SSACFGBuilder::buildFunctionGraph(
 	Scope::Function const* _function,
@@ -255,7 +136,7 @@ void SSACFGBuilder::buildFunctionGraph(
 	cfg.exits.insert(builder.m_currentBlock);
 	// Artificial explicit function exit (`leave`) at the end of the body.
 	builder(Leave{debugDataOf(*_functionDefinition)});
-	builder.cleanUnreachable();
+	eliminateTrivialPhis(cfg);
 }
 
 void SSACFGBuilder::operator()(ExpressionStatement const& _expressionStatement)
@@ -610,8 +491,9 @@ SSACFG::ValueId SSACFGBuilder::zero()
 
 SSACFG::ValueId SSACFGBuilder::readVariable(Scope::Variable const& _variable, SSACFG::BlockId _block)
 {
-	if (auto const& def = currentDef(_variable, _block))
-		return *def;
+	auto const& def = currentDef(_variable, _block);
+	if (def.hasValue())
+		return def;
 	return readVariableRecursive(_variable, _block);
 }
 
@@ -637,10 +519,7 @@ SSACFG::ValueId SSACFGBuilder::readVariableRecursive(Scope::Variable const& _var
 		val = m_graph.newPhi(_block);
 		block.phis.push_back(val);
 		writeVariable(_variable, _block, val);
-		// we call tryRemoveTrivialPhi explicitly opposed to what is presented in Algorithm 2, as our implementation
-		// does not call it in addPhiOperands to avoid removing phis in unsealed blocks
 		addPhiOperands(_variable, val);
-		val = tryRemoveTrivialPhi(val);
 	}
 	writeVariable(_variable, _block, val);
 	return val;
@@ -697,15 +576,12 @@ Scope::Variable const& SSACFGBuilder::lookupVariable(YulName _name) const
 
 void SSACFGBuilder::sealBlock(SSACFG::BlockId _block)
 {
-	// this method deviates from Algorithm 4 in the reference paper,
-	// as it would lead to tryRemoveTrivialPhi being called on unsealed blocks
 	auto& info = blockInfo(_block);
 	yulAssert(!info.sealed, "Trying to seal already sealed block.");
+	// emit upsilons for all incomplete phis before marking the block as sealed
 	for (auto&& [phi, variable] : info.incompletePhis)
 		addPhiOperands(variable, phi);
 	info.sealed = true;
-	for (auto& [phi, _]: info.incompletePhis)
-		phi = tryRemoveTrivialPhi(phi);
 }
 
 

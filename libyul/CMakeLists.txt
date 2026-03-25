@@ -91,6 +91,8 @@ add_library(yul
 	backends/evm/ssa/SSACFGBuilder.cpp
 	backends/evm/ssa/SSACFGBuilder.h
 	backends/evm/ssa/SSACFGDebugInfo.h
+	backends/evm/ssa/SSACFGTrivialPhiEliminator.cpp
+	backends/evm/ssa/SSACFGTrivialPhiEliminator.h
 	backends/evm/ssa/SSACFGTypes.h
 	backends/evm/ssa/Stack.cpp
 	backends/evm/ssa/Stack.h

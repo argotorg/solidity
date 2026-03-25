@@ -40,6 +40,7 @@
 #include <libyul/ControlFlowSideEffectsCollector.h>
 #include <libyul/backends/evm/ssa/SSACFG.h>
 #include <stack>
+#include <unordered_map>
 
 namespace solidity::yul::ssa
 {
@@ -85,8 +86,6 @@ public:
 	SSACFG::ValueId operator()(Literal const& _literal);
 
 private:
-	void cleanUnreachable();
-	SSACFG::ValueId tryRemoveTrivialPhi(SSACFG::ValueId _phi);
 	void assign(std::vector<std::reference_wrapper<Scope::Variable const>> _variables, Expression const* _expression);
 	std::vector<SSACFG::ValueId> visitFunctionCall(FunctionCall const& _call);
 	void registerFunctionDefinition(FunctionDefinition const& _functionDefinition);
@@ -133,9 +132,9 @@ private:
 	}
 	void sealBlock(SSACFG::BlockId _block);
 
-	std::map<
+	std::unordered_map<
 		Scope::Variable const*,
-		std::vector<std::optional<SSACFG::ValueId>>
+		std::vector<SSACFG::ValueId>
 	> m_currentDef;
 
 	struct ForLoopInfo {
@@ -144,7 +143,7 @@ private:
 	};
 	std::stack<ForLoopInfo> m_forLoopInfo;
 
-	std::optional<SSACFG::ValueId>& currentDef(Scope::Variable const& _variable, SSACFG::BlockId _block)
+	SSACFG::ValueId& currentDef(Scope::Variable const& _variable, SSACFG::BlockId _block)
 	{
 		auto& varDefs = m_currentDef[&_variable];
 		if (varDefs.size() <= _block.value)
