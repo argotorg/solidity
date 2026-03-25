@@ -896,14 +896,8 @@ std::string const CompilerStack::lastContractName(std::optional<std::string> con
 	{
 		auto const sourceIt = m_sources.find(*_sourceName);
 		if (sourceIt != m_sources.end())
-		{
-			if (std::string contractName = collectLastContractNameFromSource(sourceIt->second); !contractName.empty())
-				return contractName;
-		}
-
-		// Fallback: if the requested source name is not present in m_sources (e.g. main source
-		// name mismatch during interactive update), or if it has no contracts, return the last
-		// contract from any source.
+			return collectLastContractNameFromSource(sourceIt->second);
+		return {};
 	}
 
 	std::string contractName;
