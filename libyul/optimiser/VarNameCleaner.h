@@ -89,6 +89,9 @@ private:
 	/// Set of names that are in use.
 	std::set<YulName> m_usedNames;
 
+	/// Next suffix to try per stripped base name, avoids O(n²) probing.
+	mutable std::map<YulName, size_t> m_nextSuffix;
+
 	/// Maps old to new names.
 	std::map<YulName, YulName> m_translatedNames;
 

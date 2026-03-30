@@ -55,6 +55,8 @@ void VarNameCleaner::operator()(FunctionDefinition& _funDef)
 	m_usedNames = m_namesToKeep;
 	std::map<YulName, YulName> globalTranslatedNames;
 	swap(globalTranslatedNames, m_translatedNames);
+	std::map<YulName, size_t> globalNextSuffix;
+	swap(globalNextSuffix, m_nextSuffix);
 
 	renameVariables(_funDef.parameters);
 	renameVariables(_funDef.returnVariables);
@@ -62,6 +64,7 @@ void VarNameCleaner::operator()(FunctionDefinition& _funDef)
 
 	swap(globalUsedNames, m_usedNames);
 	swap(globalTranslatedNames, m_translatedNames);
+	swap(globalNextSuffix, m_nextSuffix);
 
 	m_insideFunction = false;
 }
@@ -99,12 +102,19 @@ YulName VarNameCleaner::findCleanName(YulName const& _name) const
 	if (!isUsedName(newName))
 		return newName;
 
-	// create new name with suffix (by finding a free identifier)
-	for (size_t i = 1; i < std::numeric_limits<decltype(i)>::max(); ++i)
+	// Use a per-base-name counter to avoid O(n²) probing when many
+	// variables share the same stripped base name.
+	size_t& nextSuffix = m_nextSuffix[newName];
+	if (nextSuffix == 0)
+		nextSuffix = 1;
+	for (; nextSuffix < std::numeric_limits<size_t>::max(); ++nextSuffix)
 	{
-		YulName newNameSuffixed = YulName{newName.str() + "_" + std::to_string(i)};
+		YulName newNameSuffixed = YulName{newName.str() + "_" + std::to_string(nextSuffix)};
 		if (!isUsedName(newNameSuffixed))
+		{
+			++nextSuffix;
 			return newNameSuffixed;
+		}
 	}
 	yulAssert(false, "Exhausted by attempting to find an available suffix.");
 }

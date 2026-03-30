@@ -15,6 +15,7 @@ Compiler Features:
 * Standard JSON Interface: Introduce `settings.experimental` setting required for enabling the experimental mode.
 * Standard JSON Interface: Replace the top-level ``ethdebug`` output with ``ethdebug.resources`` and ``ethdebug.compilation``. Decouple ethdebug outputs from binary compilation so that global ethdebug outputs can be produced without generating bytecode.
 * Yul Optimizer: Improve performance of control flow side effects collector and function references resolver.
+* Yul Optimizer: Fix O(n²) performance in ``VarNameCleaner`` when many variables share the same base name.
 
 Bugfixes:
 * Yul: Fix incorrect serialization of Yul object names containing double quotes and escape sequences, producing output that could not be parsed as valid Yul.
