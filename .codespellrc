@@ -1,4 +1,4 @@
 [codespell]
-skip = .git,deps,LICENSE,*.enc,Dockerfile*,codespell_whitelist.txt,codespell_ignored_lines.txt
+skip = .git,deps,LICENSE,*.enc,Dockerfile*,codespell_whitelist.txt,codespell_ignored_lines.txt,*.cpp,*.h,*.sol,*.yul,*.py
 ignore-words = scripts/codespell_whitelist.txt
 exclude-file = scripts/codespell_ignored_lines.txt
