@@ -165,7 +165,6 @@ set(libyul_sources
     libyul/StackShufflingTest.h
     libyul/SyntaxTest.h
     libyul/SyntaxTest.cpp
-    libyul/VarNameCleanerPerf.cpp
     libyul/YulInterpreterTest.cpp
     libyul/YulInterpreterTest.h
     libyul/YulOptimizerTest.cpp
