@@ -28,4 +28,3 @@ contract Test {
 // compileViaYul: true
 // ----
 // test() -> 0x20
-// gas legacy: 131966
