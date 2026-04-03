@@ -2162,6 +2162,8 @@ std::string YulUtilFunctions::copyValueArrayToStorageFunction(ArrayType const& _
 				if gt(length, 0xffffffffffffffff) { <panic>() }
 				<resizeArray>(dst, length)
 
+				if iszero(length) { leave }
+
 				let srcPtr := <srcDataLocation>(src)
 				let dstSlot := <dstDataLocation>(dst)
 
