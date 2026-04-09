@@ -104,7 +104,9 @@ YulName VarNameCleaner::findCleanName(YulName const& _name) const
 
 	// Use a per-base-name counter to avoid O(n²) probing when many
 	// variables share the same stripped base name.
-	size_t nextSuffix = util::valueOrDefault(m_nextSuffix, newName, static_cast<size_t>(1));
+	size_t& nextSuffix = m_nextSuffix.at(newName);
+	if (nextSuffix == 0)
+		nextSuffix = 1;
 	for (; nextSuffix < std::numeric_limits<size_t>::max(); ++nextSuffix)
 	{
 		YulName newNameSuffixed = YulName{newName.str() + "_" + std::to_string(nextSuffix)};
