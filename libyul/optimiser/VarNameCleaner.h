@@ -75,7 +75,7 @@ private:
 
 	/// Looks out for a "clean name" the given @p name could be trimmed down to.
 	/// @returns a trimmed down and "clean name" in case it found one, none otherwise.
-	YulName findCleanName(YulName const& name) const;
+	YulName findCleanName(YulName const& name);
 
 	/// Tests whether a given name was already used within this pass
 	/// or was set to be kept.

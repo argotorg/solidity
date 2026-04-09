@@ -96,7 +96,7 @@ void VarNameCleaner::operator()(Identifier& _identifier)
 		_identifier.name = name->second;
 }
 
-YulName VarNameCleaner::findCleanName(YulName const& _name) const
+YulName VarNameCleaner::findCleanName(YulName const& _name)
 {
 	auto newName = stripSuffix(_name);
 	if (!isUsedName(newName))
