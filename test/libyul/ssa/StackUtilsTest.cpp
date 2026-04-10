@@ -62,8 +62,8 @@ BOOST_AUTO_TEST_CASE(requireAdmissibleShuffle_throws_stack_too_deep_error)
 			stackTooDeepResult,
 			"source stack [v1]"
 		),
-		StackTooDeepError,
-		[](StackTooDeepError const& _exception)
+		langutil::StackTooDeepError,
+		[](langutil::StackTooDeepError const& _exception)
 		{
 			BOOST_TEST(
 				errorMessage(_exception) ==
