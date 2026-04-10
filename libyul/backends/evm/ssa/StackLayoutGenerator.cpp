@@ -31,6 +31,9 @@
 #include <range/v3/to_container.hpp>
 
 #include <boost/container/flat_map.hpp>
+
+#include <fmt/format.h>
+
 #include <queue>
 
 using namespace solidity::yul::ssa;
@@ -198,7 +201,15 @@ void StackLayoutGenerator::defineStackIn(SSACFG::BlockId const& _blockId)
 					{},
 					proposals[i].size()
 				);
-				yulAssert(shuffleResult.status == StackShufflerResult::Status::Admissible);
+				requireAdmissibleShuffle(
+					fmt::format("SSA stack-in proposal evaluation for block {}", _blockId.value),
+					shuffleResult,
+					fmt::format(
+						"candidate {}, source proposal {}",
+						stackToString(proposals[i]),
+						stackToString(proposals[j])
+					)
+				);
 				cumulativeCost += stack.callbacks().opGas;
 			}
 			cumulativeCosts[i] = cumulativeCost;
@@ -261,13 +272,23 @@ void StackLayoutGenerator::visitBlock(SSACFG::BlockId const& _blockId)
 			m_hasFunctionReturnLabel
 		);
 		{
+			StackData const preShuffle = stack.data();
 			auto const shuffleResult = StackShuffler<StackType::Callbacks>::shuffle(
 				stack,
 				requiredStackTop,
 				opLiveOutWithoutOutputs,
 				targetSize
 			);
-			yulAssert(shuffleResult.status == StackShufflerResult::Status::Admissible);
+			requireAdmissibleShuffle(
+				fmt::format("SSA stack layout operation {} shuffle in block {}", operationIndex, _blockId.value),
+				shuffleResult,
+				fmt::format(
+					"source stack {}, target args {}, target size {}",
+					stackToString(preShuffle),
+					stackToString(requiredStackTop),
+					targetSize
+				)
+			);
 		}
 
 		blockLayout.operationIn.push_back(currentStackData);
@@ -297,10 +318,20 @@ void StackLayoutGenerator::visitBlock(SSACFG::BlockId const& _blockId)
 						false,
 						m_hasFunctionReturnLabel
 					);
+					StackData const preShuffle = stack.data();
 					auto const shuffleResult = StackShuffler<StackType::Callbacks>::shuffle(
 						stack, {condition}, blockLiveOut, targetSize
 					);
-					yulAssert(shuffleResult.status == StackShufflerResult::Status::Admissible);
+					requireAdmissibleShuffle(
+						fmt::format("SSA conditional-jump shuffle in block {}", _blockId.value),
+						shuffleResult,
+						fmt::format(
+							"source stack {}, target args {}, target size {}",
+							stackToString(preShuffle),
+							stackToString(StackData{condition}),
+							targetSize
+						)
+					);
 				}
 
 				yulAssert(!stack.empty() && stack.top().isValueID() && stack.top().valueID() == _cJump.condition);
@@ -322,8 +353,13 @@ void StackLayoutGenerator::visitBlock(SSACFG::BlockId const& _blockId)
 				// in case there are return values, let's bring the function return label to the top
 				StackData returnStack = _functionReturn.returnValues | ranges::views::transform(StackSlot::makeValueID) | ranges::to<std::vector>;
 				returnStack.push_back(StackSlot::makeFunctionReturnLabel(m_graphID));
+				StackData const preShuffle = stack.data();
 				auto const shuffleResult = StackShuffler<StackType::Callbacks>::shuffle(stack, returnStack);
-				yulAssert(shuffleResult.status == StackShufflerResult::Status::Admissible);
+				requireAdmissibleShuffle(
+					fmt::format("SSA function-return shuffle in block {}", _blockId.value),
+					shuffleResult,
+					fmt::format("source stack {}, target stack {}", stackToString(preShuffle), stackToString(returnStack))
+				);
 				blockLayout.exitIn = currentStackData;
 			},
 			[&](SSACFG::BasicBlock::Jump const& _jump) {

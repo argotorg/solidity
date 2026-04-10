@@ -177,6 +177,7 @@ set(libyul_sources
     libyul/ssa/StackLayoutGeneratorTest.h
     libyul/ssa/StackShufflerTest.cpp
     libyul/ssa/StackShufflerTest.h
+    libyul/ssa/StackUtilsTest.cpp
 )
 detect_stray_source_files("${libyul_sources}" "libyul/")
 

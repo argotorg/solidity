@@ -22,10 +22,13 @@
 #include <libyul/backends/evm/ssa/Stack.h>
 
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace solidity::yul::ssa
 {
+
+struct StackShufflerResult;
 
 class ValidationResult
 {
@@ -61,6 +64,12 @@ struct GasAccumulatingCallbacks
 
 /// Transform stack data by replacing all its phi variables with their respective preimages.
 StackData stackPreImage(StackData _stack, PhiInverse const& _phiInverse);
+
+void requireAdmissibleShuffle(
+	std::string_view _context,
+	StackShufflerResult const& _shuffleResult,
+	std::string _details = {}
+);
 
 std::size_t findOptimalTargetSize(
 	StackData const& _stackData,

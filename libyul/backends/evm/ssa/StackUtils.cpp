@@ -20,6 +20,8 @@
 
 #include <libyul/backends/evm/ssa/StackShuffler.h>
 
+#include <liblangutil/Exceptions.h>
+
 #include <libevmasm/GasMeter.h>
 
 #include <range/v3/numeric/accumulate.hpp>
@@ -31,6 +33,45 @@
 #include <fmt/ranges.h>
 
 using namespace solidity::yul::ssa;
+
+namespace
+{
+
+char const* stackShufflerStatusToString(StackShufflerResult::Status _status)
+{
+	switch (_status)
+	{
+	case StackShufflerResult::Status::Continue:
+		return "Continue";
+	case StackShufflerResult::Status::Admissible:
+		return "Admissible";
+	case StackShufflerResult::Status::StackTooDeep:
+		return "StackTooDeep";
+	case StackShufflerResult::Status::MaxIterationsReached:
+		return "MaxIterationsReached";
+	}
+	solAssert(false, "Unknown StackShufflerResult status.");
+}
+
+std::string formatShuffleFailure(
+	std::string_view _context,
+	StackShufflerResult const& _shuffleResult,
+	std::string_view _details
+)
+{
+	std::string message = fmt::format(
+		"{} failed with {}",
+		_context,
+		stackShufflerStatusToString(_shuffleResult.status)
+	);
+	if (_shuffleResult.status == StackShufflerResult::Status::StackTooDeep)
+		message += fmt::format(" (culprit: {})", slotToString(_shuffleResult.culprit));
+	if (!_details.empty())
+		message += fmt::format(": {}", _details);
+	return message;
+}
+
+}
 
 void GasAccumulatingCallbacks::swap(StackDepth _depth)
 {
@@ -77,6 +118,21 @@ StackData solidity::yul::ssa::stackPreImage(StackData _stack, PhiInverse const& 
 	return _stack;
 }
 
+void solidity::yul::ssa::requireAdmissibleShuffle(
+	std::string_view _context,
+	StackShufflerResult const& _shuffleResult,
+	std::string _details
+)
+{
+	if (_shuffleResult.status == StackShufflerResult::Status::Admissible)
+		return;
+
+	std::string const message = formatShuffleFailure(_context, _shuffleResult, _details);
+	if (_shuffleResult.status == StackShufflerResult::Status::StackTooDeep)
+		solThrow(langutil::StackTooDeepError, message);
+	solThrow(langutil::InternalCompilerError, message);
+}
+
 std::size_t solidity::yul::ssa::findOptimalTargetSize
 (
 	StackData const& _stackData,
@@ -107,7 +163,22 @@ std::size_t solidity::yul::ssa::findOptimalTargetSize
 		data = _stackData;
 		Stack<OpsCountingCallbacks> countOpsStack(data, {});
 		auto const shuffleResult = StackShuffler<OpsCountingCallbacks>::shuffle(countOpsStack, _targetArgs, _targetLiveOut, _targetSize);
-		yulAssert(shuffleResult.status == StackShufflerResult::Status::Admissible);
+		requireAdmissibleShuffle(
+			"SSA stack target-size evaluation",
+			shuffleResult,
+			fmt::format(
+				"source stack {}, target args {}, live-out {{{}}}, target size {}",
+				stackToString(_stackData),
+				stackToString(_targetArgs),
+				fmt::join(
+					_targetLiveOut | ranges::views::keys | ranges::views::transform(
+						[](auto const& _value) { return slotToString(StackSlot::makeValueID(_value)); }
+					),
+					", "
+				),
+				_targetSize
+			)
+		);
 		yulAssert(countOpsStack.size() == _targetSize);
 		return countOpsStack.callbacks().numOps;
 	};

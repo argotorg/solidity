@@ -185,8 +185,13 @@ void CodeTransform::operator()(SSACFG::BlockId const _blockId)
 	// Shuffle to the block's exit layout before dispatching the exit.
 	// This ensures the condition is on top for ConditionalJump, phi pre-images are
 	// in the right positions for jumps, and return values are accessible for FunctionReturn.
+	StackData const preShuffle = m_stack.data();
 	auto const shuffleResult = StackShuffler<AssemblyCallbacks>::shuffle(m_stack, blockLayout->exitIn);
-	yulAssert(shuffleResult.status == StackShufflerResult::Status::Admissible);
+	requireAdmissibleShuffle(
+		fmt::format("SSA codegen block {} exit shuffle", _blockId.value),
+		shuffleResult,
+		fmt::format("source stack {}, target stack {}", stackToString(preShuffle), stackToString(blockLayout->exitIn))
+	);
 
 	// handle the block exit
 	std::visit(util::GenericVisitor{ [this, &_blockId](auto const& exit) { (*this)(_blockId, exit); } }, block.exit);
@@ -211,8 +216,13 @@ void CodeTransform::operator()(SSACFG::OperationId _opId, StackData const& _oper
 
 	// prepare stack for operation
 	{
+		StackData const preShuffle = m_stack.data();
 		auto const shuffleResult = StackShuffler<AssemblyCallbacks>::shuffle(m_stack, _operationInputLayout);
-		yulAssert(shuffleResult.status == StackShufflerResult::Status::Admissible);
+		requireAdmissibleShuffle(
+			fmt::format("SSA codegen operation {} input shuffle", _opId.value),
+			shuffleResult,
+			fmt::format("source stack {}, target stack {}", stackToString(preShuffle), stackToString(_operationInputLayout))
+		);
 	}
 
 	// check that the assembly stack height corresponds to the stack size after shuffling
@@ -400,8 +410,13 @@ void CodeTransform::prepareBlockExitStack(StackData const& _target, PhiInverse c
 	auto const pulledBackTarget = stackPreImage(_target, _phiInverse);
 	// shuffle to target
 	{
+		StackData const preShuffle = m_stack.data();
 		auto const shuffleResult = StackShuffler<AssemblyCallbacks>::shuffle(m_stack, pulledBackTarget);
-		yulAssert(shuffleResult.status == StackShufflerResult::Status::Admissible);
+		requireAdmissibleShuffle(
+			"SSA codegen branch-exit shuffle",
+			shuffleResult,
+			fmt::format("source stack {}, target stack {}", stackToString(preShuffle), stackToString(pulledBackTarget))
+		);
 	}
 	// check that shuffling was successful
 	assertLayoutCompatibility(m_stack.data(), pulledBackTarget);

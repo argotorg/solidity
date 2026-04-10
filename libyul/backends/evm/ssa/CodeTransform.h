@@ -26,6 +26,8 @@
 
 #include <libevmasm/Instruction.h>
 
+#include <fmt/format.h>
+
 namespace solidity::yul
 {
 struct BuiltinContext;
