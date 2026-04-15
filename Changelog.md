@@ -8,6 +8,7 @@ Compiler Features:
 * Yul Optimizer: Improve performance of `DataFlowAnalyzer` using flat hash containers.
 
 Bugfixes:
+* Constant Evaluator: Fix spurious arithmetic error when computing constant values for `~`, `>>` and `<<`, which are now cleaned up and sign extended, maintaining consistency with code generation.
 * Parser: Fix inverted version pragma range comparison for components in the range [2**31, 2**32).
 
 Build System:
