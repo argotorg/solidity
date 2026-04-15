@@ -167,14 +167,14 @@ std::optional<rational> ConstantEvaluator::evaluateBinaryOperator(Token _operato
 		else if (_right < 0)
 			return std::nullopt;
 		else if (_right > std::numeric_limits<uint32_t>::max())
-			return std::nullopt;
+			return 0;
 		if (_left.numerator() == 0)
 			return 0;
 		else
 		{
 			uint32_t exponent = _right.numerator().convert_to<uint32_t>();
 			if (!fitsPrecisionBase2(abs(_left.numerator()), exponent))
-				return std::nullopt;
+				return 0;
 			return _left.numerator() * boost::multiprecision::pow(bigint(2), exponent);
 		}
 		break;
@@ -188,7 +188,7 @@ std::optional<rational> ConstantEvaluator::evaluateBinaryOperator(Token _operato
 		else if (_right < 0)
 			return std::nullopt;
 		else if (_right > std::numeric_limits<uint32_t>::max())
-			return std::nullopt;
+			return 0;
 		if (_left.numerator() == 0)
 			return 0;
 		else
@@ -277,6 +277,29 @@ TypedValue convertType(TypedValue const& _value, Type const& _type)
 	}, _value.value);
 }
 
+rational truncateToType(rational const& _value, Type const& _type)
+{
+	if (_type.category() == Type::Category::RationalNumber)
+		return _value;
+
+	auto const* integerType = dynamic_cast<IntegerType const*>(&_type);
+	solAssert(integerType);
+
+	solAssert(_value.denominator() == 1);
+	bigint integerValue = _value.numerator();
+
+	unsigned int numBits = integerType->numBits();
+	bigint mask = (bigint(1) << numBits) - 1;
+	// clean bits out of range
+	integerValue = integerValue & mask;
+
+	// extend sign if needed
+	if (integerType->isSigned() && boost::multiprecision::bit_test(integerValue, numBits - 1))
+		integerValue = integerValue | ~mask;
+
+	return rational(integerValue);
+}
+
 TypedValue constantToTypedValue(Type const& _type)
 {
 	if (_type.category() == Type::Category::RationalNumber)
@@ -360,7 +383,11 @@ void ConstantEvaluator::endVisit(UnaryOperation const& _operation)
 
 	if (std::optional<rational> result = evaluateUnaryOperator(_operation.getOperator(), std::get<rational>(value.value)))
 	{
-		TypedValue convertedValue = convertType(*result, *resultType);
+		rational resultValue = *result;
+		if (_operation.getOperator() == Token::BitNot)
+			resultValue = truncateToType(resultValue, *resultType);
+
+		TypedValue convertedValue = convertType(resultValue, *resultType);
 		if (!convertedValue.type)
 			m_errorReporter.fatalTypeError(
 				3667_error,
@@ -413,7 +440,12 @@ void ConstantEvaluator::endVisit(BinaryOperation const& _operation)
 		std::get<rational>(right.value)
 	))
 	{
-		TypedValue convertedValue = convertType(*value, *resultType);
+		rational resultValue = *value;
+		// Shift left might produce a value out of range of the result type
+		if (_operation.getOperator() == Token::SHL)
+			resultValue = truncateToType(*value, *resultType);
+
+		TypedValue convertedValue = convertType(resultValue, *resultType);
 		if (!convertedValue.type)
 			m_errorReporter.fatalTypeError(
 				2643_error,
