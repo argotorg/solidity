@@ -23,13 +23,12 @@
 
 #pragma once
 
+#include <libyul/Builtins.h>
+
 #include <variant>
 
 namespace solidity::yul
 {
-
-class YulString;
-using YulName = YulString;
 
 enum class LiteralKind;
 class LiteralValue;
@@ -50,7 +49,6 @@ struct Leave;
 struct ExpressionStatement;
 struct Block;
 struct BuiltinName;
-struct BuiltinHandle;
 class AST;
 
 struct NameWithDebugData;

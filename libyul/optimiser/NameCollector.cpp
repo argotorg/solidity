@@ -60,21 +60,21 @@ void ReferencesCounter::operator()(FunctionCall const& _funCall)
 	ASTWalker::operator()(_funCall);
 }
 
-std::map<FunctionHandle, size_t> ReferencesCounter::countReferences(Block const& _block)
+std::unordered_map<FunctionHandle, size_t> ReferencesCounter::countReferences(Block const& _block)
 {
 	ReferencesCounter counter;
 	counter(_block);
 	return std::move(counter.m_references);
 }
 
-std::map<FunctionHandle, size_t> ReferencesCounter::countReferences(FunctionDefinition const& _function)
+std::unordered_map<FunctionHandle, size_t> ReferencesCounter::countReferences(FunctionDefinition const& _function)
 {
 	ReferencesCounter counter;
 	counter(_function);
 	return std::move(counter.m_references);
 }
 
-std::map<FunctionHandle, size_t> ReferencesCounter::countReferences(Expression const& _expression)
+std::unordered_map<FunctionHandle, size_t> ReferencesCounter::countReferences(Expression const& _expression)
 {
 	ReferencesCounter counter;
 	counter.visit(_expression);
@@ -86,28 +86,28 @@ void VariableReferencesCounter::operator()(Identifier const& _identifier)
 	++m_references[_identifier.name];
 }
 
-std::map<YulName, size_t> VariableReferencesCounter::countReferences(Block const& _block)
+std::unordered_map<YulName, size_t> VariableReferencesCounter::countReferences(Block const& _block)
 {
 	VariableReferencesCounter counter;
 	counter(_block);
 	return std::move(counter.m_references);
 }
 
-std::map<YulName, size_t> VariableReferencesCounter::countReferences(FunctionDefinition const& _function)
+std::unordered_map<YulName, size_t> VariableReferencesCounter::countReferences(FunctionDefinition const& _function)
 {
 	VariableReferencesCounter counter;
 	counter(_function);
 	return std::move(counter.m_references);
 }
 
-std::map<YulName, size_t> VariableReferencesCounter::countReferences(Expression const& _expression)
+std::unordered_map<YulName, size_t> VariableReferencesCounter::countReferences(Expression const& _expression)
 {
 	VariableReferencesCounter counter;
 	counter.visit(_expression);
 	return std::move(counter.m_references);
 }
 
-std::map<YulName, size_t> VariableReferencesCounter::countReferences(Statement const& _statement)
+std::unordered_map<YulName, size_t> VariableReferencesCounter::countReferences(Statement const& _statement)
 {
 	VariableReferencesCounter counter;
 	counter.visit(_statement);

@@ -46,14 +46,14 @@ using namespace solidity::yul;
 
 void UnusedStoreEliminator::run(OptimiserStepContext& _context, Block& _ast)
 {
-	std::map<FunctionHandle, SideEffects> functionSideEffects = SideEffectsPropagator::sideEffects(
+	std::unordered_map<FunctionHandle, SideEffects> functionSideEffects = SideEffectsPropagator::sideEffects(
 		_context.dialect,
 		CallGraphGenerator::callGraph(_ast)
 	);
 
 	SSAValueTracker ssaValues;
 	ssaValues(_ast);
-	std::map<YulName, AssignedValue> values;
+	std::unordered_map<YulName, AssignedValue> values;
 	for (auto const& [name, expression]: ssaValues.values())
 		values[name] = AssignedValue{expression, {}};
 
@@ -82,9 +82,9 @@ void UnusedStoreEliminator::run(OptimiserStepContext& _context, Block& _ast)
 
 UnusedStoreEliminator::UnusedStoreEliminator(
 	Dialect const& _dialect,
-	std::map<FunctionHandle, SideEffects> const& _functionSideEffects,
-	std::map<YulName, ControlFlowSideEffects> _controlFlowSideEffects,
-	std::map<YulName, AssignedValue> const& _ssaValues,
+	std::unordered_map<FunctionHandle, SideEffects> const& _functionSideEffects,
+	std::unordered_map<YulName, ControlFlowSideEffects> _controlFlowSideEffects,
+	std::unordered_map<YulName, AssignedValue> const& _ssaValues,
 	bool _ignoreMemory
 ):
 	UnusedStoreBase(_dialect),

@@ -673,7 +673,7 @@ bool statementNeedsReturnVariableSetup(Statement const& _statement, std::vector<
 		std::holds_alternative<Assignment>(_statement)
 	)
 	{
-		std::map<YulName, size_t> references = VariableReferencesCounter::countReferences(_statement);
+		std::unordered_map<YulName, size_t> references = VariableReferencesCounter::countReferences(_statement);
 		auto isReferenced = [&references](NameWithDebugData const& _returnVariable) {
 			return references.count(_returnVariable.name);
 		};

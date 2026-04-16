@@ -29,6 +29,8 @@
 #include <libyul/optimiser/Semantics.h>
 
 #include <map>
+#include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 namespace solidity::yul
@@ -121,7 +123,7 @@ public:
 
 	explicit UnusedAssignEliminator(
 		Dialect const& _dialect,
-		std::map<YulName, ControlFlowSideEffects> _controlFlowSideEffects
+		std::unordered_map<YulName, ControlFlowSideEffects> _controlFlowSideEffects
 	):
 		UnusedStoreBase(_dialect),
 		m_controlFlowSideEffects(_controlFlowSideEffects)
@@ -143,8 +145,8 @@ private:
 
 	void markUsed(YulName _variable);
 
-	std::set<YulName> m_returnVariables;
-	std::map<YulName, ControlFlowSideEffects> m_controlFlowSideEffects;
+	std::unordered_set<YulName> m_returnVariables;
+	std::unordered_map<YulName, ControlFlowSideEffects> m_controlFlowSideEffects;
 };
 
 }

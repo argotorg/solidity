@@ -24,7 +24,7 @@
 #include <libyul/ASTForward.h>
 #include <libyul/optimiser/ASTWalker.h>
 
-#include <map>
+#include <unordered_map>
 
 namespace solidity::yul
 {
@@ -93,7 +93,7 @@ private:
 private:
 	Block* m_currentBlock = nullptr;            ///< Pointer to current block holding the statement being visited.
 	size_t m_latestStatementInBlock = 0;        ///< Offset to m_currentBlock's statements of the last visited statement.
-	std::map<YulName, size_t> m_references;   ///< Holds reference counts to all variable declarations in current block.
+	std::unordered_map<YulName, size_t> m_references;   ///< Holds reference counts to all variable declarations in current block.
 };
 
 }

@@ -18,7 +18,11 @@
 
 #pragma once
 
+#include <libyul/YulName.h>
+
 #include <cstddef>
+#include <functional>
+#include <variant>
 
 namespace solidity::yul
 {
@@ -32,4 +36,26 @@ struct BuiltinHandle
 	bool operator<(BuiltinHandle const& _other) const { return id < _other.id; }
 };
 
+}
+
+namespace std
+{
+template<> struct hash<solidity::yul::BuiltinHandle>
+{
+	size_t operator()(solidity::yul::BuiltinHandle const& _handle) const
+	{
+		return std::hash<size_t>{}(_handle.id);
+	}
+};
+
+template<> struct hash<std::variant<solidity::yul::YulName, solidity::yul::BuiltinHandle>>
+{
+	size_t operator()(std::variant<solidity::yul::YulName, solidity::yul::BuiltinHandle> const& _handle) const
+	{
+		return std::visit(
+			[](auto const& _v) { return std::hash<std::decay_t<decltype(_v)>>{}(_v); },
+			_handle
+		);
+	}
+};
 }

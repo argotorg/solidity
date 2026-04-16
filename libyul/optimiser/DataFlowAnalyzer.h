@@ -32,8 +32,12 @@
 #include <libsolutil/Numeric.h>
 #include <libsolutil/Common.h>
 
+#include <boost/container_hash/hash.hpp>
+
 #include <map>
 #include <set>
+#include <unordered_map>
+#include <unordered_set>
 
 namespace solidity::yul
 {
@@ -89,7 +93,7 @@ public:
 	explicit DataFlowAnalyzer(
 		Dialect const& _dialect,
 		MemoryAndStorage _analyzeStores,
-		std::map<FunctionHandle, SideEffects> _functionSideEffects = {}
+		std::unordered_map<FunctionHandle, SideEffects> _functionSideEffects = {}
 	);
 
 	using ASTModifier::operator();
@@ -105,7 +109,7 @@ public:
 	/// @returns the current value of the given variable, if known - always movable.
 	AssignedValue const* variableValue(YulName _variable) const { return util::valueOrNullptr(m_state.value, _variable); }
 	std::vector<YulName> const* sortedReferences(YulName _variable) const { return util::valueOrNullptr(m_state.sortedReferences, _variable); }
-	std::map<YulName, AssignedValue> const& allValues() const { return m_state.value; }
+	std::unordered_map<YulName, AssignedValue> const& allValues() const { return m_state.value; }
 	std::optional<YulName> storageValue(YulName _key) const;
 	std::optional<YulName> memoryValue(YulName _key) const;
 	std::optional<YulName> keccakValue(YulName _start, YulName _length) const;
@@ -165,20 +169,29 @@ protected:
 	Dialect const& m_dialect;
 	/// Side-effects of user-defined functions. Worst-case side-effects are assumed
 	/// if this is not provided or the function is not found.
-	std::map<FunctionHandle, SideEffects> m_functionSideEffects;
+	std::unordered_map<FunctionHandle, SideEffects> m_functionSideEffects;
 
 private:
+	struct YulNamePairHash
+	{
+		size_t operator()(std::pair<YulName, YulName> const& _pair) const
+		{
+			size_t seed = std::hash<YulName>{}(_pair.first);
+			boost::hash_combine(seed, std::hash<YulName>{}(_pair.second));
+			return seed;
+		}
+	};
 	struct Environment
 	{
 		std::unordered_map<YulName, YulName> storage;
 		std::unordered_map<YulName, YulName> memory;
 		/// If keccak[s, l] = y then y := keccak256(s, l) occurs in the code.
-		std::map<std::pair<YulName, YulName>, YulName> keccak;
+		std::unordered_map<std::pair<YulName, YulName>, YulName, YulNamePairHash> keccak;
 	};
 	struct State
 	{
 		/// Current values of variables, always movable.
-		std::map<YulName, AssignedValue> value;
+		std::unordered_map<YulName, AssignedValue> value;
 		/// m_references[a].contains(b) <=> the current expression assigned to a references b
 		/// The mapped vectors _must always_ be sorted
 		std::unordered_map<YulName, std::vector<YulName>> sortedReferences;
@@ -213,7 +226,7 @@ protected:
 	struct Scope
 	{
 		explicit Scope(bool _isFunction): isFunction(_isFunction) {}
-		std::set<YulName> variables;
+		std::unordered_set<YulName> variables;
 		bool isFunction;
 	};
 	/// Special expression whose address will be used in m_value.

@@ -222,17 +222,17 @@ ControlFlowSideEffectsCollector::ControlFlowSideEffectsCollector(
 				if (calledSideEffects.canRevert)
 					functionSideEffects.canRevert = true;
 
-				if (m_functionReferences.count(call))
-					_recurse(*m_functionReferences.at(call), _recurse);
+				if (auto it = m_functionReferences.find(call); it != m_functionReferences.end())
+					_recurse(*it->second, _recurse);
 			}
 		};
 		_visit(*function, _visit);
 	}
 }
 
-std::map<YulName, ControlFlowSideEffects> ControlFlowSideEffectsCollector::functionSideEffectsNamed() const
+std::unordered_map<YulName, ControlFlowSideEffects> ControlFlowSideEffectsCollector::functionSideEffectsNamed() const
 {
-	std::map<YulName, ControlFlowSideEffects> result;
+	std::unordered_map<YulName, ControlFlowSideEffects> result;
 	for (auto&& [function, sideEffects]: m_functionSideEffects)
 		yulAssert(result.insert({function->name, sideEffects}).second);
 	return result;

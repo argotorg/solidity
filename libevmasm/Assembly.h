@@ -39,6 +39,7 @@
 #include <sstream>
 #include <memory>
 #include <map>
+#include <unordered_map>
 #include <utility>
 
 namespace solidity::evmasm
@@ -303,7 +304,7 @@ protected:
 		size_t returns;
 	};
 
-	std::map<std::string, NamedTagInfo> m_namedTags;
+	std::unordered_map<std::string, NamedTagInfo> m_namedTags;
 	std::map<util::h256, bytes> m_data;
 	/// Data that is appended to the very end of the contract.
 	bytes m_auxiliaryData;

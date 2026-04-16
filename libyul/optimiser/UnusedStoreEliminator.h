@@ -32,6 +32,7 @@
 #include <libevmasm/SemanticInformation.h>
 
 #include <map>
+#include <unordered_map>
 #include <vector>
 
 namespace solidity::yul
@@ -62,9 +63,9 @@ public:
 
 	explicit UnusedStoreEliminator(
 		Dialect const& _dialect,
-		std::map<FunctionHandle, SideEffects> const& _functionSideEffects,
-		std::map<YulName, ControlFlowSideEffects> _controlFlowSideEffects,
-		std::map<YulName, AssignedValue> const& _ssaValues,
+		std::unordered_map<FunctionHandle, SideEffects> const& _functionSideEffects,
+		std::unordered_map<YulName, ControlFlowSideEffects> _controlFlowSideEffects,
+		std::unordered_map<YulName, AssignedValue> const& _ssaValues,
 		bool _ignoreMemory
 	);
 
@@ -122,9 +123,9 @@ private:
 	std::optional<YulName> identifierNameIfSSA(Expression const& _expression) const;
 
 	bool const m_ignoreMemory;
-	std::map<FunctionHandle, SideEffects> const& m_functionSideEffects;
-	std::map<YulName, ControlFlowSideEffects> m_controlFlowSideEffects;
-	std::map<YulName, AssignedValue> const& m_ssaValues;
+	std::unordered_map<FunctionHandle, SideEffects> const& m_functionSideEffects;
+	std::unordered_map<YulName, ControlFlowSideEffects> m_controlFlowSideEffects;
+	std::unordered_map<YulName, AssignedValue> const& m_ssaValues;
 
 	std::map<Statement const*, Operation> m_storeOperations;
 

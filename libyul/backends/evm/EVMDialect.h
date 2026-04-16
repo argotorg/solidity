@@ -33,6 +33,7 @@
 #include <optional>
 #include <set>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 namespace solidity::yul
@@ -109,13 +110,22 @@ protected:
 
 	static EVMBuiltins const& allBuiltins();
 
+public:
+	struct StringHashTransparent
+	{
+		using is_transparent = void;
+		size_t operator()(std::string_view _s) const { return std::hash<std::string_view>{}(_s); }
+	};
+	using ReservedIdentifiers = std::unordered_set<std::string, StringHashTransparent, std::equal_to<>>;
+
+protected:
 	bool const m_objectAccess;
 	langutil::EVMVersion const m_evmVersion;
 	std::optional<uint8_t> m_eofVersion;
 	std::unordered_map<std::string_view, BuiltinHandle> m_builtinFunctionsByName;
 	std::vector<BuiltinFunctionForEVM const*> m_functions;
 	std::array<std::unique_ptr<BuiltinFunctionForEVM>, verbatimIDOffset> mutable m_verbatimFunctions{};
-	std::set<std::string, std::less<>> m_reserved;
+	ReservedIdentifiers m_reserved;
 
 	std::optional<BuiltinHandle> m_discardFunction;
 	std::optional<BuiltinHandle> m_equalityFunction;

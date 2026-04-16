@@ -87,13 +87,13 @@ FunctionDefinition FunctionSpecializer::specialize(
 {
 	yulAssert(_arguments.size() == _f.parameters.size(), "");
 
-	std::map<YulName, YulName> translatedNames = applyMap(
+	std::unordered_map<YulName, YulName> translatedNames = applyMap(
 		NameCollector{_f, NameCollector::OnlyVariables}.names(),
 		[&](auto& _name) -> std::pair<YulName, YulName>
 		{
 			return std::make_pair(_name, m_nameDispenser.newName(_name));
 		},
-		std::map<YulName, YulName>{}
+		std::unordered_map<YulName, YulName>{}
 	);
 
 	FunctionDefinition newFunction = std::get<FunctionDefinition>(FunctionCopier{translatedNames}(_f));

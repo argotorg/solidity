@@ -24,7 +24,7 @@
 #include <libyul/optimiser/ASTCopier.h>
 #include <libyul/YulName.h>
 
-#include <map>
+#include <unordered_map>
 
 namespace solidity::yul
 {
@@ -35,13 +35,13 @@ namespace solidity::yul
 class Substitution: public ASTCopier
 {
 public:
-	Substitution(std::map<YulName, Expression const*> const& _substitutions):
+	Substitution(std::unordered_map<YulName, Expression const*> const& _substitutions):
 		m_substitutions(_substitutions)
 	{}
 	Expression translate(Expression const& _expression) override;
 
 private:
-	std::map<YulName, Expression const*> const& m_substitutions;
+	std::unordered_map<YulName, Expression const*> const& m_substitutions;
 };
 
 }

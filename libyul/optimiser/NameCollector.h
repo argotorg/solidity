@@ -22,10 +22,12 @@
 #pragma once
 
 #include <libyul/optimiser/ASTWalker.h>
+#include <libyul/Builtins.h>
 #include <libyul/YulName.h>
 
 #include <map>
 #include <set>
+#include <unordered_map>
 
 namespace solidity::yul
 {
@@ -76,12 +78,12 @@ public:
 	void operator()(Identifier const& _identifier) override;
 	void operator()(FunctionCall const& _funCall) override;
 
-	static std::map<FunctionHandle, size_t> countReferences(Block const& _block);
-	static std::map<FunctionHandle, size_t> countReferences(FunctionDefinition const& _function);
-	static std::map<FunctionHandle, size_t> countReferences(Expression const& _expression);
+	static std::unordered_map<FunctionHandle, size_t> countReferences(Block const& _block);
+	static std::unordered_map<FunctionHandle, size_t> countReferences(FunctionDefinition const& _function);
+	static std::unordered_map<FunctionHandle, size_t> countReferences(Expression const& _expression);
 
 private:
-	std::map<FunctionHandle, size_t> m_references;
+	std::unordered_map<FunctionHandle, size_t> m_references;
 };
 
 /**
@@ -93,13 +95,13 @@ public:
 	using ASTWalker::operator ();
 	void operator()(Identifier const& _identifier) override;
 
-	static std::map<YulName, size_t> countReferences(Block const& _block);
-	static std::map<YulName, size_t> countReferences(FunctionDefinition const& _function);
-	static std::map<YulName, size_t> countReferences(Expression const& _expression);
-	static std::map<YulName, size_t> countReferences(Statement const& _statement);
+	static std::unordered_map<YulName, size_t> countReferences(Block const& _block);
+	static std::unordered_map<YulName, size_t> countReferences(FunctionDefinition const& _function);
+	static std::unordered_map<YulName, size_t> countReferences(Expression const& _expression);
+	static std::unordered_map<YulName, size_t> countReferences(Statement const& _statement);
 
 private:
-	std::map<YulName, size_t> m_references;
+	std::unordered_map<YulName, size_t> m_references;
 };
 
 /**

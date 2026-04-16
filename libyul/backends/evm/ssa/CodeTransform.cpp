@@ -29,6 +29,8 @@
 #include <range/v3/view/take_last.hpp>
 #include <range/v3/view/zip.hpp>
 
+#include <unordered_set>
+
 using namespace solidity::yul;
 using namespace solidity::yul::ssa;
 
@@ -80,7 +82,7 @@ CodeTransform::FunctionLabels CodeTransform::registerFunctionLabels(
 	AbstractAssembly& _assembly, ControlFlow const& _controlFlow)
 {
 	FunctionLabels functionLabels;
-	std::set<YulString> assignedFunctionNames;
+	std::unordered_set<YulString> assignedFunctionNames;
 
 	for (auto const& [_function, _functionGraph]: _controlFlow.functionGraphMapping)
 	{

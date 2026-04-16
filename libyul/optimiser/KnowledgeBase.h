@@ -29,6 +29,8 @@
 #include <libsolutil/Numeric.h>
 
 #include <map>
+#include <set>
+#include <unordered_map>
 #include <functional>
 
 namespace solidity::yul
@@ -69,7 +71,7 @@ public:
 		m_subBuiltinHandle(_dialect.findBuiltin("sub"))
 	{}
 	/// Constructor to use if source code is in SSA form and values are constant.
-	explicit KnowledgeBase(std::map<YulName, AssignedValue> const& _ssaValues, Dialect const& _dialect);
+	explicit KnowledgeBase(std::unordered_map<YulName, AssignedValue> const& _ssaValues, Dialect const& _dialect);
 
 	bool knownToBeDifferent(YulName _a, YulName _b);
 	std::optional<u256> differenceIfKnownConstant(YulName _a, YulName _b);
@@ -123,10 +125,12 @@ private:
 
 	/// Offsets for each variable to one representative per group.
 	/// The empty string is the representative of the constant value zero.
-	std::map<YulName, VariableOffset> m_offsets;
+	std::unordered_map<YulName, VariableOffset> m_offsets;
 	/// Last known value of each variable we queried.
-	std::map<YulName, Expression const*> m_lastKnownValue;
+	std::unordered_map<YulName, Expression const*> m_lastKnownValue;
 	/// For each representative, variables that use it to offset from.
+	/// NOTE: Must be std::map with std::set<YulName> inner container because
+	/// reset() picks a new representative via `*group->begin()` (deterministic minimum).
 	std::map<YulName, std::set<YulName>> m_groupMembers;
 };
 

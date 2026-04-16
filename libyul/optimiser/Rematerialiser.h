@@ -24,6 +24,9 @@
 #include <libyul/optimiser/DataFlowAnalyzer.h>
 #include <libyul/optimiser/OptimiserStep.h>
 
+#include <unordered_map>
+#include <unordered_set>
+
 namespace solidity::yul
 {
 
@@ -67,8 +70,8 @@ protected:
 	using ASTModifier::visit;
 	void visit(Expression& _e) override;
 
-	std::map<YulName, size_t> m_referenceCounts;
-	std::set<YulName> m_varsToAlwaysRematerialize;
+	std::unordered_map<YulName, size_t> m_referenceCounts;
+	std::unordered_set<YulName> m_varsToAlwaysRematerialize;
 	bool m_onlySelectedVariables = false;
 };
 

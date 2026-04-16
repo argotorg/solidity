@@ -22,6 +22,8 @@
 #include <libyul/Dialect.h>
 #include <libsolutil/Common.h>
 
+#include <unordered_map>
+
 namespace solidity::yul
 {
 
@@ -42,12 +44,12 @@ public:
 private:
 	explicit ConditionalUnsimplifier(
 		Dialect const& _dialect,
-		std::map<YulName, ControlFlowSideEffects> const& _sideEffects
+		std::unordered_map<YulName, ControlFlowSideEffects> const& _sideEffects
 	):
 		m_dialect(_dialect), m_functionSideEffects(_sideEffects)
 	{}
 	Dialect const& m_dialect;
-	std::map<YulName, ControlFlowSideEffects> const& m_functionSideEffects;
+	std::unordered_map<YulName, ControlFlowSideEffects> const& m_functionSideEffects;
 };
 
 }

@@ -27,6 +27,7 @@
 
 #include <map>
 #include <set>
+#include <unordered_map>
 
 namespace solidity::yul
 {
@@ -62,11 +63,11 @@ public:
 private:
 	DeadCodeEliminator(
 		Dialect const& _dialect,
-		std::map<YulName, ControlFlowSideEffects> _sideEffects
+		std::unordered_map<YulName, ControlFlowSideEffects> _sideEffects
 	): m_dialect(_dialect), m_functionSideEffects(std::move(_sideEffects)) {}
 
 	Dialect const& m_dialect;
-	std::map<YulName, ControlFlowSideEffects> m_functionSideEffects;
+	std::unordered_map<YulName, ControlFlowSideEffects> m_functionSideEffects;
 };
 
 }

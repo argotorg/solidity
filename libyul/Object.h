@@ -35,6 +35,8 @@
 #include <memory>
 #include <set>
 #include <limits>
+#include <unordered_map>
+#include <unordered_set>
 
 namespace solidity::yul
 {
@@ -108,9 +110,9 @@ public:
 		/// The name of the object
 		std::string objectName;
 		/// Available dot-separated paths to nested objects (relative to current object).
-		std::set<std::string> objectPaths;
+		std::unordered_set<std::string> objectPaths;
 		/// Available dot-separated paths to nested data entries (relative to current object).
-		std::set<std::string> dataPaths;
+		std::unordered_set<std::string> dataPaths;
 
 		/// Checks if a path is available.
 		bool contains(std::string const& _path) const { return containsObject(_path) || containsData(_path); }
@@ -147,7 +149,7 @@ public:
 	evmasm::SubAssemblyID subId{};
 
 	std::vector<std::shared_ptr<ObjectNode>> subObjects;
-	std::map<std::string, size_t, std::less<>> subIndexByName;
+	std::unordered_map<std::string, size_t> subIndexByName;
 	std::shared_ptr<yul::AsmAnalysisInfo> analysisInfo;
 
 	std::shared_ptr<ObjectDebugData const> debugData;

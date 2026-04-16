@@ -59,7 +59,7 @@ void ExpressionInliner::visit(Expression& _expression)
 			return;
 		FunctionDefinition const& fun = *it->second;
 
-		std::map<YulName, Expression const*> substitutions;
+		std::unordered_map<YulName, Expression const*> substitutions;
 		for (size_t i = 0; i < funCall.arguments.size(); i++)
 		{
 			Expression const& arg = funCall.arguments[i];

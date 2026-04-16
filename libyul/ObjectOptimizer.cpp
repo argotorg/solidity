@@ -100,8 +100,9 @@ void ObjectOptimizer::storeOptimizedObject(util::h256 _cacheKey, Object const& _
 
 void ObjectOptimizer::overwriteWithOptimizedObject(util::h256 _cacheKey, Object& _object) const
 {
-	yulAssert(m_cachedObjects.count(_cacheKey) != 0);
-	CachedObject const& cachedObject = m_cachedObjects.at(_cacheKey);
+	auto it = m_cachedObjects.find(_cacheKey);
+	yulAssert(it != m_cachedObjects.end());
+	CachedObject const& cachedObject = it->second;
 
 	yulAssert(cachedObject.optimizedAST);
 	yulAssert(cachedObject.dialect);

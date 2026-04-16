@@ -131,8 +131,8 @@ Object::Structure Object::summarizeStructure() const
 
 	structure.objectPaths =
 		name.empty() || util::contains(name, '.') ?
-		std::set<std::string>{} :
-		std::set<std::string>{name};
+		std::unordered_set<std::string>{} :
+		std::unordered_set<std::string>{name};
 
 	structure.objectName = name;
 

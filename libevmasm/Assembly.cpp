@@ -741,15 +741,18 @@ std::shared_ptr<std::string const> Assembly::sharedSourceName(std::string const&
 AssemblyItem Assembly::namedTag(std::string const& _name, size_t _params, size_t _returns, std::optional<uint64_t> _sourceID)
 {
 	assertThrow(!_name.empty(), AssemblyException, "Empty named tag.");
-	if (m_namedTags.count(_name))
+	if (auto it = m_namedTags.find(_name); it != m_namedTags.end())
 	{
-		assertThrow(m_namedTags.at(_name).params == _params, AssemblyException, "");
-		assertThrow(m_namedTags.at(_name).returns == _returns, AssemblyException, "");
-		assertThrow(m_namedTags.at(_name).sourceID == _sourceID, AssemblyException, "");
+		assertThrow(it->second.params == _params, AssemblyException, "");
+		assertThrow(it->second.returns == _returns, AssemblyException, "");
+		assertThrow(it->second.sourceID == _sourceID, AssemblyException, "");
+		return AssemblyItem{Tag, it->second.id};
 	}
-	else
-		m_namedTags[_name] = {static_cast<size_t>(newTag().data()), _sourceID, _params, _returns};
-	return AssemblyItem{Tag, m_namedTags.at(_name).id};
+	auto [it, _] = m_namedTags.emplace(
+		_name,
+		NamedTagInfo{static_cast<size_t>(newTag().data()), _sourceID, _params, _returns}
+	);
+	return AssemblyItem{Tag, it->second.id};
 }
 
 AssemblyItem Assembly::newFunctionCall(uint16_t _functionID) const

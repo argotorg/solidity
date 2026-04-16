@@ -27,6 +27,8 @@
 #include <map>
 #include <set>
 #include <string>
+#include <unordered_map>
+#include <unordered_set>
 
 namespace solidity::yul
 {
@@ -84,13 +86,13 @@ private:
 	Dialect const& m_dialect;
 
 	/// These names will not be modified.
-	std::set<YulName> m_namesToKeep;
+	std::unordered_set<YulName> m_namesToKeep;
 
 	/// Set of names that are in use.
-	std::set<YulName> m_usedNames;
+	std::unordered_set<YulName> m_usedNames;
 
 	/// Maps old to new names.
-	std::map<YulName, YulName> m_translatedNames;
+	std::unordered_map<YulName, YulName> m_translatedNames;
 
 	/// Whether the traverse is inside a function definition.
 	/// Used to assert that a function definition cannot be inside another.

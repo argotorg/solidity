@@ -33,6 +33,7 @@
 #include <libsolutil/Algorithms.h>
 
 #include <limits>
+#include <unordered_set>
 
 using namespace solidity;
 using namespace solidity::yul;
@@ -41,7 +42,7 @@ using namespace solidity::yul;
 SideEffectsCollector::SideEffectsCollector(
 		Dialect const& _dialect,
 		Expression const& _expression,
-		std::map<FunctionHandle, SideEffects> const* _functionSideEffects
+		std::unordered_map<FunctionHandle, SideEffects> const* _functionSideEffects
 ):
 	SideEffectsCollector(_dialect, _functionSideEffects)
 {
@@ -57,7 +58,7 @@ SideEffectsCollector::SideEffectsCollector(Dialect const& _dialect, Statement co
 SideEffectsCollector::SideEffectsCollector(
 	Dialect const& _dialect,
 	Block const& _ast,
-	std::map<FunctionHandle, SideEffects> const* _functionSideEffects
+	std::unordered_map<FunctionHandle, SideEffects> const* _functionSideEffects
 ):
 	SideEffectsCollector(_dialect, _functionSideEffects)
 {
@@ -67,7 +68,7 @@ SideEffectsCollector::SideEffectsCollector(
 SideEffectsCollector::SideEffectsCollector(
 	Dialect const& _dialect,
 	ForLoop const& _ast,
-	std::map<FunctionHandle, SideEffects> const* _functionSideEffects
+	std::unordered_map<FunctionHandle, SideEffects> const* _functionSideEffects
 ):
 	SideEffectsCollector(_dialect, _functionSideEffects)
 {
@@ -81,8 +82,13 @@ void SideEffectsCollector::operator()(FunctionCall const& _functionCall)
 	FunctionHandle functionHandle = functionNameToHandle(_functionCall.functionName);
 	if (BuiltinFunction const* builtin = resolveBuiltinFunction(_functionCall.functionName, m_dialect))
 		m_sideEffects += builtin->sideEffects;
-	else if (m_functionSideEffects && m_functionSideEffects->count(functionHandle))
-		m_sideEffects += m_functionSideEffects->at(functionHandle);
+	else if (m_functionSideEffects)
+	{
+		if (auto it = m_functionSideEffects->find(functionHandle); it != m_functionSideEffects->end())
+			m_sideEffects += it->second;
+		else
+			m_sideEffects += SideEffects::worst();
+	}
 	else
 		m_sideEffects += SideEffects::worst();
 }
@@ -117,7 +123,7 @@ void MSizeFinder::operator()(FunctionCall const& _functionCall)
 			m_msizeFound = true;
 }
 
-std::map<FunctionHandle, SideEffects> SideEffectsPropagator::sideEffects(
+std::unordered_map<FunctionHandle, SideEffects> SideEffectsPropagator::sideEffects(
 	Dialect const& _dialect,
 	CallGraph const& _directCallGraph
 )
@@ -128,7 +134,7 @@ std::map<FunctionHandle, SideEffects> SideEffectsPropagator::sideEffects(
 	// In the future, we should refine that, because the property
 	// is actually a bit different from "not movable".
 
-	std::map<FunctionHandle, SideEffects> ret;
+	std::unordered_map<FunctionHandle, SideEffects> ret;
 	for (auto const& function: _directCallGraph.functionsWithLoops)
 	{
 		ret[function].movable = false;
@@ -149,7 +155,7 @@ std::map<FunctionHandle, SideEffects> SideEffectsPropagator::sideEffects(
 	{
 		FunctionHandle funName = call.first;
 		SideEffects sideEffects;
-		auto _visit = [&, visited = std::set<FunctionHandle>{}](FunctionHandle _function, auto&& _recurse) mutable {
+		auto _visit = [&, visited = std::unordered_set<FunctionHandle>{}](FunctionHandle _function, auto&& _recurse) mutable {
 			if (!visited.insert(_function).second)
 				return;
 			if (sideEffects == SideEffects::worst())
@@ -242,8 +248,9 @@ bool TerminationFinder::containsNonContinuingFunctionCall(Expression const& _exp
 
 		yulAssert(std::holds_alternative<Identifier>(functionCall->functionName));
 		auto const& name = std::get<Identifier>(functionCall->functionName).name;
-		if (m_functionSideEffects && m_functionSideEffects->count(name))
-			return !m_functionSideEffects->at(name).canContinue;
+		if (m_functionSideEffects)
+			if (auto it = m_functionSideEffects->find(name); it != m_functionSideEffects->end())
+				return !it->second.canContinue;
 	}
 	return false;
 }

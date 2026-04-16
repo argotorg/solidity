@@ -37,7 +37,7 @@ VarNameCleaner::VarNameCleaner(
 	std::set<YulName> _namesToKeep
 ):
 	m_dialect{_dialect},
-	m_namesToKeep{std::move(_namesToKeep)},
+	m_namesToKeep(_namesToKeep.begin(), _namesToKeep.end()),
 	m_translatedNames{}
 {
 	for (auto const& statement: _ast.statements)
@@ -51,9 +51,9 @@ void VarNameCleaner::operator()(FunctionDefinition& _funDef)
 	yulAssert(!m_insideFunction, "");
 	m_insideFunction = true;
 
-	std::set<YulName> globalUsedNames = std::move(m_usedNames);
+	std::unordered_set<YulName> globalUsedNames = std::move(m_usedNames);
 	m_usedNames = m_namesToKeep;
-	std::map<YulName, YulName> globalTranslatedNames;
+	std::unordered_map<YulName, YulName> globalTranslatedNames;
 	swap(globalTranslatedNames, m_translatedNames);
 
 	renameVariables(_funDef.parameters);

@@ -26,6 +26,7 @@
 #include <map>
 #include <set>
 #include <string>
+#include <unordered_map>
 
 namespace solidity::yul
 {
@@ -66,7 +67,7 @@ private:
 	void translate(YulName& _name);
 
 	OptimiserStepContext& m_context;
-	std::map<YulName, YulName> m_translations;
+	std::unordered_map<YulName, YulName> m_translations;
 };
 
 }

@@ -43,7 +43,7 @@ UnusedPruner::UnusedPruner(
 	Dialect const& _dialect,
 	Block& _ast,
 	bool _allowMSizeOptimization,
-	std::map<FunctionHandle, SideEffects> const* _functionSideEffects,
+	std::unordered_map<FunctionHandle, SideEffects> const* _functionSideEffects,
 	std::set<YulName> const& _externallyUsedFunctions
 ):
 	m_dialect(_dialect),
@@ -122,7 +122,7 @@ void UnusedPruner::runUntilStabilised(
 	Dialect const& _dialect,
 	Block& _ast,
 	bool _allowMSizeOptimization,
-	std::map<FunctionHandle, SideEffects> const* _functionSideEffects,
+	std::unordered_map<FunctionHandle, SideEffects> const* _functionSideEffects,
 	std::set<YulName> const& _externallyUsedFunctions
 )
 {
@@ -147,7 +147,7 @@ void UnusedPruner::runUntilStabilisedOnFullAST(
 	std::set<YulName> const& _externallyUsedFunctions
 )
 {
-	std::map<FunctionHandle, SideEffects> functionSideEffects =
+	std::unordered_map<FunctionHandle, SideEffects> functionSideEffects =
 		SideEffectsPropagator::sideEffects(_dialect, CallGraphGenerator::callGraph(_ast));
 	bool allowMSizeOptimization = !MSizeFinder::containsMSize(_dialect, _ast);
 	runUntilStabilised(_dialect, _ast, allowMSizeOptimization, &functionSideEffects, _externallyUsedFunctions);
@@ -159,7 +159,7 @@ bool UnusedPruner::used(YulName _name) const
 	return it != m_references.end() && it->second > 0;
 }
 
-void UnusedPruner::subtractReferences(std::map<FunctionHandle, size_t> const& _subtrahend)
+void UnusedPruner::subtractReferences(std::unordered_map<FunctionHandle, size_t> const& _subtrahend)
 {
 	for (auto const& ref: _subtrahend)
 	{

@@ -87,7 +87,7 @@ bool isLowLevelControlFlowInstruction(evmasm::Instruction const& _instruction)
 	}
 }
 
-std::set<std::string, std::less<>> createReservedIdentifiers(langutil::EVMVersion _evmVersion, std::optional<uint8_t> _eofVersion)
+EVMDialect::ReservedIdentifiers createReservedIdentifiers(langutil::EVMVersion _evmVersion, std::optional<uint8_t> _eofVersion)
 {
 	// TODO remove this in 0.9.0. We allow creating functions or identifiers in Yul with the name
 	// basefee for VMs before london.
@@ -149,7 +149,7 @@ std::set<std::string, std::less<>> createReservedIdentifiers(langutil::EVMVersio
 			!langutil::EVMVersion::firstWithEOF().hasOpcode(_instr, std::nullopt);
 	};
 
-	std::set<std::string, std::less<>> reserved;
+	EVMDialect::ReservedIdentifiers reserved;
 	for (auto const& instr: evmasm::c_instructions)
 	{
 		std::string name = toLower(instr.first);
@@ -165,19 +165,17 @@ std::set<std::string, std::less<>> createReservedIdentifiers(langutil::EVMVersio
 		)
 			reserved.emplace(name);
 	}
-	reserved += std::vector<std::string>{
+	reserved.insert({
 		"linkersymbol",
 		"datasize",
 		"dataoffset",
 		"datacopy",
 		"setimmutable",
 		"loadimmutable",
-	};
+	});
 
 	if (_eofVersion.has_value())
-		reserved += std::vector<std::string>{
-			"auxdataloadn",
-		};
+		reserved.insert({"auxdataloadn"});
 
 	return reserved;
 }
