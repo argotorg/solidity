@@ -92,9 +92,9 @@ public:
 			YulName varName = _varDecl.variables.front().name;
 			if (AssignedValue const* value = variableValue(varName))
 			{
-				yulAssert(!m_expressionCodeCost.count(varName), "");
 				m_candidates.emplace_back(m_currentFunctionName, varName);
-				m_expressionCodeCost[varName] = CodeCost::codeCost(m_dialect, *value->value);
+				auto [it, inserted] = m_expressionCodeCost.try_emplace(varName, CodeCost::codeCost(m_dialect, *value->value));
+				yulAssert(inserted, "");
 			}
 		}
 	}

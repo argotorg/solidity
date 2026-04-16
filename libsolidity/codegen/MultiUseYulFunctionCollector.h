@@ -25,7 +25,7 @@
 #include <functional>
 #include <map>
 #include <string>
-#include <set>
+#include <unordered_set>
 
 namespace solidity::frontend
 {
@@ -57,7 +57,7 @@ public:
 	bool contains(std::string const& _name) const { return m_requestedFunctions.count(_name) > 0; }
 
 private:
-	std::set<std::string> m_requestedFunctions;
+	std::unordered_set<std::string> m_requestedFunctions;
 	std::string m_code;
 };
 

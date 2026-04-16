@@ -31,7 +31,7 @@ bool Scope::registerVariable(YulName _name)
 		return false;
 	Variable variable;
 	variable.name = _name;
-	identifiers[_name] = variable;
+	identifiers.try_emplace(_name, variable);
 	return true;
 }
 
@@ -39,7 +39,7 @@ bool Scope::registerFunction(YulName _name, size_t _numArguments, size_t _numRet
 {
 	if (exists(_name))
 		return false;
-	identifiers[_name] = Function{_numArguments, _numReturns, _name};
+	identifiers.try_emplace(_name, Function{_numArguments, _numReturns, _name});
 	return true;
 }
 

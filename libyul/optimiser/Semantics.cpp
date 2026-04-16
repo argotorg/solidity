@@ -158,8 +158,8 @@ std::map<FunctionHandle, SideEffects> SideEffectsPropagator::sideEffects(
 				sideEffects += _dialect.builtin(*builtinHandle).sideEffects;
 			else
 			{
-				if (ret.count(_function))
-					sideEffects += ret[_function];
+				if (auto it = ret.find(_function); it != ret.end())
+					sideEffects += it->second;
 				for (FunctionHandle const& callee: _directCallGraph.functionCalls.at(_function))
 					_recurse(callee, _recurse);
 			}

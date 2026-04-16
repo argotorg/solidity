@@ -24,7 +24,7 @@
 #include <libyul/ASTForward.h>
 #include <libyul/optimiser/ASTWalker.h>
 
-#include <set>
+#include <unordered_set>
 
 namespace solidity::yul
 {
@@ -56,7 +56,7 @@ private:
 	void checkAllowed(FunctionName const& _name);
 
 	bool m_foundDisallowedIdentifier = false;
-	std::set<YulName> m_disallowedIdentifiers;
+	std::unordered_set<YulName> m_disallowedIdentifiers;
 	std::map<YulName, FunctionDefinition const*> m_inlinableFunctions;
 };
 

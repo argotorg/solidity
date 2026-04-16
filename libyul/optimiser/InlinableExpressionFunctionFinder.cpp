@@ -56,7 +56,7 @@ void InlinableExpressionFunctionFinder::operator()(FunctionDefinition const& _fu
 				// would not be valid here if we were searching inside a functionally inlinable
 				// function body.
 				assertThrow(m_disallowedIdentifiers.empty() && !m_foundDisallowedIdentifier, OptimizerException, "");
-				m_disallowedIdentifiers = std::set<YulName>{retVariable, _function.name};
+				m_disallowedIdentifiers = std::unordered_set<YulName>{retVariable, _function.name};
 				std::visit(*this, *assignment.value);
 				if (!m_foundDisallowedIdentifier)
 					m_inlinableFunctions[_function.name] = &_function;

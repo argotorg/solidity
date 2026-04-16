@@ -179,7 +179,7 @@ AssemblyItems CSECodeGenerator::generateCode(
 	// generate the target stack elements
 	for (auto const& targetItem: m_targetStack)
 	{
-		if (m_stack.count(targetItem.first) && m_stack.at(targetItem.first) == targetItem.second)
+		if (auto it = m_stack.find(targetItem.first); it != m_stack.end() && it->second == targetItem.second)
 			continue; // already there
 		generateClassElement(targetItem.second);
 		assertThrow(!m_classPositions[targetItem.second].empty(), OptimizerException, "");
@@ -427,12 +427,13 @@ void CSECodeGenerator::generateClassElement(Id _c, bool _allowSequenced)
 
 int CSECodeGenerator::classElementPosition(Id _id) const
 {
+	auto it = m_classPositions.find(_id);
 	assertThrow(
-		m_classPositions.count(_id) && !m_classPositions.at(_id).empty(),
+		it != m_classPositions.end() && !it->second.empty(),
 		OptimizerException,
 		"Element requested but is not present."
 	);
-	return *max_element(m_classPositions.at(_id).begin(), m_classPositions.at(_id).end());
+	return *max_element(it->second.begin(), it->second.end());
 }
 
 bool CSECodeGenerator::canBeRemoved(Id _element, Id _result, int _fromPosition)
@@ -443,8 +444,11 @@ bool CSECodeGenerator::canBeRemoved(Id _element, Id _result, int _fromPosition)
 
 	bool haveCopy = m_classPositions.at(_element).size() > 1;
 	if (m_finalClasses.count(_element))
+	{
 		// It is part of the target stack. It can be removed if it is a copy that is not in the target position.
-		return haveCopy && (!m_targetStack.count(_fromPosition) || m_targetStack[_fromPosition] != _element);
+		auto tsIt = m_targetStack.find(_fromPosition);
+		return haveCopy && (tsIt == m_targetStack.end() || tsIt->second != _element);
+	}
 	else if (!haveCopy)
 	{
 		// Can be removed unless it is needed by a class that has not been computed yet.

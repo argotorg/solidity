@@ -61,12 +61,12 @@ std::set<YulName> SSAValueTracker::ssaVariables(Block const& _ast)
 
 void SSAValueTracker::setValue(YulName _name, Expression const* _value)
 {
+	if (!_value)
+		_value = &m_zero;
+	auto [it, inserted] = m_values.emplace(_name, _value);
 	assertThrow(
-		m_values.count(_name) == 0,
+		inserted,
 		OptimizerException,
 		"Source needs to be disambiguated."
 	);
-	if (!_value)
-		_value = &m_zero;
-	m_values[_name] = _value;
 }

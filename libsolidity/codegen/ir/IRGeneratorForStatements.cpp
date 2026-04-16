@@ -73,8 +73,8 @@ struct CopyTranslate: public yul::ASTCopier
 	{
 		// The operator() function is only called in lvalue context. In rvalue context,
 		// only translate(yul::Identifier) is called.
-		if (m_references.count(&_identifier))
-			return translateReference(_identifier);
+		if (auto it = m_references.find(&_identifier); it != m_references.end())
+			return translateReference(_identifier, it->second);
 		else
 			return ASTCopier::operator()(_identifier);
 	}
@@ -90,10 +90,11 @@ struct CopyTranslate: public yul::ASTCopier
 
 	yul::Identifier translate(yul::Identifier const& _identifier) override
 	{
-		if (!m_references.count(&_identifier))
+		auto it = m_references.find(&_identifier);
+		if (it == m_references.end())
 			return ASTCopier::translate(_identifier);
 
-		yul::Expression translated = translateReference(_identifier);
+		yul::Expression translated = translateReference(_identifier, it->second);
 		solAssert(std::holds_alternative<yul::Identifier>(translated));
 		return std::get<yul::Identifier>(std::move(translated));
 	}
@@ -103,9 +104,8 @@ private:
 	/// Translates a reference to a local variable, potentially including
 	/// a suffix. Might return a literal, which causes this to be invalid in
 	/// lvalue-context.
-	yul::Expression translateReference(yul::Identifier const& _identifier)
+	yul::Expression translateReference(yul::Identifier const& _identifier, InlineAssemblyAnnotation::ExternalIdentifierInfo const& reference)
 	{
-		auto const& reference = m_references.at(&_identifier);
 		auto const varDecl = dynamic_cast<VariableDeclaration const*>(reference.declaration);
 		solUnimplementedAssert(varDecl);
 		std::string const& suffix = reference.suffix;

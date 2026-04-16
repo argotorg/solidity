@@ -267,11 +267,13 @@ struct SwapComparison: SimplePeepholeOptimizerMethod<SwapComparison>
 
 		if (
 			_swap == Instruction::SWAP1 &&
-			_op.type() == Operation &&
-			swappableOps.count(_op.instruction())
+			_op.type() == Operation
 		)
 		{
-			*_out = swappableOps.at(_op.instruction());
+			auto it = swappableOps.find(_op.instruction());
+			if (it == swappableOps.end())
+				return false;
+			*_out = it->second;
 			return true;
 		}
 		else

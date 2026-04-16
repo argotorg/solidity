@@ -29,6 +29,7 @@
 
 #include <optional>
 #include <stack>
+#include <unordered_set>
 
 namespace solidity::langutil
 {
@@ -198,7 +199,7 @@ private:
 	BuiltinContext& m_builtinContext;
 	bool const m_allowStackOpt = true;
 	UseNamedLabels const m_useNamedLabelsForFunctions = UseNamedLabels::Never;
-	std::set<YulName> m_assignedNamedLabels;
+	std::unordered_set<YulName> m_assignedNamedLabels;
 	ExternalIdentifierAccess::CodeGenerator m_identifierAccessCodeGen;
 	std::shared_ptr<Context> m_context;
 

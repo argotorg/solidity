@@ -126,8 +126,9 @@ void CodeTransform::freeUnusedVariables(bool _popUnusedSlotsAtStackTop)
 void CodeTransform::deleteVariable(Scope::Variable const& _var)
 {
 	yulAssert(m_allowStackOpt, "");
-	yulAssert(m_context->variableStackHeights.count(&_var) > 0, "");
-	m_unusedStackSlots.insert(static_cast<int>(m_context->variableStackHeights[&_var]));
+	auto it = m_context->variableStackHeights.find(&_var);
+	yulAssert(it != m_context->variableStackHeights.end(), "");
+	m_unusedStackSlots.insert(static_cast<int>(it->second));
 	m_context->variableStackHeights.erase(&_var);
 	m_context->variableReferences.erase(&_var);
 	m_variablesScheduledForDeletion.erase(&_var);
@@ -361,8 +362,9 @@ void CodeTransform::operator()(Switch const& _switch)
 void CodeTransform::operator()(FunctionDefinition const& _function)
 {
 	yulAssert(m_scope, "");
-	yulAssert(m_scope->identifiers.count(_function.name), "");
-	Scope::Function& function = std::get<Scope::Function>(m_scope->identifiers.at(_function.name));
+	auto it = m_scope->identifiers.find(_function.name);
+	yulAssert(it != m_scope->identifiers.end(), "");
+	Scope::Function& function = std::get<Scope::Function>(it->second);
 
 	size_t height = 1;
 	yulAssert(m_info.scopes.at(&_function.body), "");
@@ -615,8 +617,9 @@ void CodeTransform::createFunctionEntryID(FunctionDefinition const& _function)
 
 AbstractAssembly::LabelID CodeTransform::functionEntryID(Scope::Function const& _scopeFunction) const
 {
-	yulAssert(m_context->functionEntryIDs.count(&_scopeFunction), "");
-	return m_context->functionEntryIDs.at(&_scopeFunction);
+	auto it = m_context->functionEntryIDs.find(&_scopeFunction);
+	yulAssert(it != m_context->functionEntryIDs.end(), "");
+	return it->second;
 }
 
 void CodeTransform::visitExpression(Expression const& _expression)
@@ -776,8 +779,9 @@ void CodeTransform::generateAssignment(Identifier const& _variableName)
 
 size_t CodeTransform::variableHeightDiff(Scope::Variable const& _var, YulName _varName, bool _forSwap)
 {
-	yulAssert(m_context->variableStackHeights.count(&_var), "");
-	size_t heightDiff = static_cast<size_t>(m_assembly.stackHeight()) - m_context->variableStackHeights[&_var];
+	auto it = m_context->variableStackHeights.find(&_var);
+	yulAssert(it != m_context->variableStackHeights.end(), "");
+	size_t heightDiff = static_cast<size_t>(m_assembly.stackHeight()) - it->second;
 	yulAssert(heightDiff > (_forSwap ? 1 : 0), "Negative stack difference for variable.");
 	size_t limit = m_dialect.reachableStackDepth() + (_forSwap ? 1 : 0);
 	if (heightDiff > limit)

@@ -40,9 +40,8 @@ std::string MultiUseYulFunctionCollector::requestedFunctions()
 
 std::string MultiUseYulFunctionCollector::createFunction(std::string const& _name, std::function<std::string()> const& _creator)
 {
-	if (!m_requestedFunctions.count(_name))
+	if (m_requestedFunctions.insert(_name).second)
 	{
-		m_requestedFunctions.insert(_name);
 		std::string fun = _creator();
 		solAssert(!fun.empty(), "");
 		solAssert(fun.find("function " + _name + "(") != std::string::npos, "Function not properly named.");
@@ -57,9 +56,8 @@ std::string MultiUseYulFunctionCollector::createFunction(
 )
 {
 	solAssert(!_name.empty(), "");
-	if (!m_requestedFunctions.count(_name))
+	if (m_requestedFunctions.insert(_name).second)
 	{
-		m_requestedFunctions.insert(_name);
 		std::vector<std::string> arguments;
 		std::vector<std::string> returnParameters;
 		std::string body = _creator(arguments, returnParameters);

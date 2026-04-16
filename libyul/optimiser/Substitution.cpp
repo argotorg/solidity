@@ -31,9 +31,9 @@ Expression Substitution::translate(Expression const& _expression)
 	if (std::holds_alternative<Identifier>(_expression))
 	{
 		YulName name = std::get<Identifier>(_expression).name;
-		if (m_substitutions.count(name))
+		if (auto it = m_substitutions.find(name); it != m_substitutions.end())
 			// No recursive substitution
-			return ASTCopier().translate(*m_substitutions.at(name));
+			return ASTCopier().translate(*it->second);
 	}
 	return ASTCopier::translate(_expression);
 }

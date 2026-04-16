@@ -22,6 +22,7 @@
 
 #include <optional>
 #include <string>
+#include <unordered_set>
 #include <variant>
 #include <vector>
 
@@ -186,7 +187,7 @@ private:
 	size_t m_numTypeVariables = 0;
 	std::map<PrimitiveType, TypeConstructor> m_primitiveTypeConstructors;
 	std::map<PrimitiveClass, TypeClass> m_primitiveTypeClasses;
-	std::set<std::string> m_canonicalTypeNames;
+	std::unordered_set<std::string> m_canonicalTypeNames;
 	std::vector<TypeConstructorInfo> m_typeConstructors;
 	std::vector<TypeClassInfo> m_typeClasses;
 	TypeEnvironment m_globalTypeEnvironment{*this};

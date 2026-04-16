@@ -79,7 +79,7 @@ void NameDisplacer::checkAndReplaceNew(YulName& _name)
 
 void NameDisplacer::checkAndReplace(YulName& _name) const
 {
-	if (m_translations.count(_name))
-		_name = m_translations.at(_name);
+	if (auto it = m_translations.find(_name); it != m_translations.end())
+		_name = it->second;
 }
 

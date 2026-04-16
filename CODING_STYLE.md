@@ -229,7 +229,47 @@ Example:
 
 See [this issue](https://stackoverflow.com/questions/614302/c-header-order/614333#614333 "C header order") for the reason: this makes it easier to find missing includes in header files.
 
-## 13. Recommended reading
+## 13. Associative Containers
+
+1. Prefer `std::unordered_map` / `std::unordered_set` over `std::map` / `std::set` when iteration order does not matter (i.e. the container is used only for lookup, membership testing, or deduplication).
+2. Avoid multiple sequential lookups on the same key. Use a single `find` and reuse the iterator:
+
+Yes:
+```cpp
+if (auto it = m_map.find(key); it != m_map.end())
+	use(it->second);
+```
+
+No:
+```cpp
+if (m_map.count(key))
+	use(m_map.at(key));
+```
+
+3. For "insert if absent" patterns, prefer `insert().second` or `try_emplace` over `count` + `insert`/`operator[]`:
+
+Yes:
+```cpp
+if (auto [it, inserted] = m_set.insert(value); inserted)
+	onNewElement();
+
+auto [it, inserted] = m_map.try_emplace(key);
+if (inserted)
+	it->second = computeValue();
+```
+
+No:
+```cpp
+if (!m_set.count(value))
+{
+	m_set.insert(value);
+	onNewElement();
+}
+```
+
+4. Use `std::erase_if` (C++20) instead of manual erase-while-iterate loops on associative containers.
+
+## 14. Recommended reading
 
 - Herb Sutter and Bjarne Stroustrup:
   - [C++ Core Guidelines](https://github.com/isocpp/CppCoreGuidelines/blob/master/CppCoreGuidelines.md)
