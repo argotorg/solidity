@@ -9,6 +9,7 @@ contract C {
 // revertStrings: debug
 // ABIEncoderV1Only: true
 // compileViaYul: false
+// bytecodeFormat: legacy
 // ----
 // d(bytes): 0x20, 0x20, 0x0000000000000000000000000000000000000000000000000000000000000000 -> 0
 // d(bytes): 0x100, 0x20, 0x0000000000000000000000000000000000000000000000000000000000000000 -> FAILURE, hex"08c379a0", 0x20, 43, "ABI calldata decoding: invalid h", "ead pointer"

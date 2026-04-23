@@ -7,5 +7,6 @@ contract C {
 
 // ====
 // compileViaYul: false
+// bytecodeFormat: legacy
 // ----
 // UnimplementedFeatureError 1834: (35-125): Copying nested calldata dynamic arrays to storage is not implemented in the old code generator.

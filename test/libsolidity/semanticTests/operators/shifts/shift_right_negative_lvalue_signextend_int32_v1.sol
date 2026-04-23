@@ -7,6 +7,7 @@ contract C {
 // ====
 // ABIEncoderV1Only: true
 // compileViaYul: false
+// bytecodeFormat: legacy
 // ----
 // f(int32,uint32): 0xffffff99, 0x00 -> 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff99
 // f(int32,uint32): 0xffffff99, 0x01 -> 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffcc

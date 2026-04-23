@@ -15,6 +15,7 @@ contract C {
 
 // ====
 // compileViaYul: false
+// bytecodeFormat: legacy
 // ----
 // f(bool): false -> 1
 // f(bool): true -> 2

@@ -5,6 +5,7 @@ contract C {
 // ====
 // ABIEncoderV1Only: true
 // compileViaYul: false
+// bytecodeFormat: legacy
 // ----
 // f(bool): true -> true
 // f(bool): false -> false

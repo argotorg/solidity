@@ -13,5 +13,6 @@ contract Test {
 }
 // ====
 // compileViaYul: false
+// bytecodeFormat: legacy
 // ----
 // f() -> true

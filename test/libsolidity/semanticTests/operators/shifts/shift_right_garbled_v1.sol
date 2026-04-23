@@ -11,6 +11,7 @@ contract C {
 // ====
 // ABIEncoderV1Only: true
 // compileViaYul: false
+// bytecodeFormat: legacy
 // ----
 // f(uint8,uint8): 0x00, 0x04 -> 0x0f
 // f(uint8,uint8): 0x00, 0x1004 -> 0x0f

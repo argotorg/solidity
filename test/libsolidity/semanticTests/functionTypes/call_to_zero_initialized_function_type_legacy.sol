@@ -23,5 +23,6 @@ contract C {
 }
 // ====
 // compileViaYul: false
+// bytecodeFormat: legacy
 // ----
 // t() -> FAILURE

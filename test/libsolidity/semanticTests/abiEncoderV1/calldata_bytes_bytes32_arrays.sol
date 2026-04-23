@@ -10,5 +10,6 @@ contract C {
 }
 // ====
 // compileViaYul: false
+// bytecodeFormat: legacy
 // ----
 // f(bool,bytes,bytes32[2]): true, 0x80, "a", "b", 4, "abcd" -> true, 0x80, "a", "b", 4, "abcd"

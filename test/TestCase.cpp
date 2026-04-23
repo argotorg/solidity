@@ -150,17 +150,26 @@ void EVMVersionRestrictedTestCase::processBytecodeFormatSetting()
 	// EOF only available since Osaka
 	solAssert(!eofVersion.has_value() || solidity::test::CommonOptions::get().evmVersion().supportsEOF());
 
-	std::string bytecodeFormatString = m_reader.stringSetting("bytecodeFormat", "legacy,>=EOFv1");
-	if (bytecodeFormatString == "legacy,>=EOFv1" || bytecodeFormatString == ">=EOFv1,legacy")
+	auto const bytecodeFormatStr = m_reader.stringSetting("bytecodeFormat", "legacy,>=EOFv1");
+	if (bytecodeFormatStr == "legacy,>=EOFv1" || bytecodeFormatStr == ">=EOFv1,legacy")
+		m_bytecodeFormat = {BytecodeFormat::Legacy, BytecodeFormat::EOFv1};
+	else if (bytecodeFormatStr == "legacy")
+		m_bytecodeFormat = {BytecodeFormat::Legacy};
+	else if (bytecodeFormatStr == ">=EOFv1")
+		m_bytecodeFormat = {BytecodeFormat::EOFv1};
+	else if (bytecodeFormatStr.empty())
+		BOOST_THROW_EXCEPTION(std::runtime_error{"The 'bytecodeFormat' setting requires at least one value."});
+	else
+		BOOST_THROW_EXCEPTION(std::runtime_error{"Invalid bytecodeFormat flag: \"" + bytecodeFormatStr + "\""});
+
+	if (bytecodeFormat().contains(BytecodeFormat::Legacy) && bytecodeFormat().contains(BytecodeFormat::EOFv1))
 		return;
 
 	// TODO: This is naive implementation because for now we support only one EOF version.
-	if (bytecodeFormatString == "legacy" && eofVersion.has_value())
+	if (bytecodeFormat().contains(BytecodeFormat::Legacy) && eofVersion.has_value())
 		m_shouldRun = false;
-	else if (bytecodeFormatString == ">=EOFv1" && !eofVersion.has_value())
+	else if (bytecodeFormat().contains(BytecodeFormat::EOFv1) && !eofVersion.has_value())
 		m_shouldRun = false;
-	else if (bytecodeFormatString != "legacy" && bytecodeFormatString != ">=EOFv1" )
-		BOOST_THROW_EXCEPTION(std::runtime_error{"Invalid bytecodeFormat flag: \"" + bytecodeFormatString + "\""});
 }
 
 EVMVersionRestrictedTestCase::EVMVersionRestrictedTestCase(std::string const& _filename):
@@ -169,3 +178,16 @@ EVMVersionRestrictedTestCase::EVMVersionRestrictedTestCase(std::string const& _f
 	processEVMVersionSetting();
 	processBytecodeFormatSetting();
 }
+
+std::ostream& solidity::frontend::test::operator<<(std::ostream& _output, CompileViaYul _compileViaYul)
+{
+	switch (_compileViaYul)
+	{
+	case CompileViaYul::False: _output << "false"; break;
+	case CompileViaYul::True: _output << "true"; break;
+	case CompileViaYul::Also: _output << "also"; break;
+	case CompileViaYul::OnlyOnEOF: _output << "onlyOnEOF"; break;
+	}
+	return _output;
+}
+

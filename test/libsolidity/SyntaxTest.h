@@ -54,7 +54,7 @@ protected:
 
 	bool m_optimiseYul{};
 	bool m_experimental{};
-	std::string m_compileViaYul{};
+	CompileViaYul m_compileViaYul{};
 	langutil::Error::Severity m_minSeverity{};
 	PipelineStage m_stopAfter;
 };

@@ -9,5 +9,6 @@ contract C {
 // ====
 // ABIEncoderV1Only: true
 // compileViaYul: false
+// bytecodeFormat: legacy
 // ----
 // f() -> 0x40, 0xa0, 0x40, 0x20, 0x0, 0x0

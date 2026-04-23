@@ -13,6 +13,7 @@ contract test {
 // EVMVersion: >=byzantium
 // ABIEncoderV1Only: true
 // compileViaYul: false
+// bytecodeFormat: legacy
 // ----
 // get(uint8): 0 -> 0
 // get(uint8): 0x01 -> 0

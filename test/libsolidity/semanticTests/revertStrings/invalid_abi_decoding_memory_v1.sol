@@ -17,6 +17,7 @@ contract C {
 // revertStrings: debug
 // ABIEncoderV1Only: true
 // compileViaYul: false
+// bytecodeFormat: legacy
 // ----
 // f(uint256,uint256,uint256): 0, 0x200, 0x60 -> FAILURE, hex"08c379a0", 0x20, 39, "ABI memory decoding: invalid dat", "a start"
 // f(uint256,uint256,uint256): 0, 0x20, 0x60 -> FAILURE, hex"08c379a0", 0x20, 40, "ABI memory decoding: invalid dat", "a length"
