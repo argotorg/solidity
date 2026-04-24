@@ -1481,33 +1481,41 @@ LinkerObject const& Assembly::assembleLegacy() const
 					instructionLocationEmitter.emit();
 					ret.bytecode.push_back(static_cast<uint8_t>(Instruction::MSTORE8));
 				}
-				else if (offsets[i] >= static_cast<size_t>(32 - width))
+				else
 				{
-					// Partial width (2-31 bytes): read-modify-write.
-					// MSTORE always writes 32 bytes, so we offset the write by (width - 32) and
-					// use a mask to preserve the (32 - width) preceding bytes.
-					// addr = dest_base + offset + width - 32
-					// keepMask = ~((1 << (width * 8)) - 1)   (preserves high bytes, clears low `width` bytes)
+					// Partial width (2-31 bytes): left-shift read-modify-write.
+					// Left-align the value via MUL, then MSTORE at the original offset.
+					// Uses MUL instead of SHL for pre-Constantinople compatibility.
+					//
+					// multiplier = 1 << ((32 - width) * 8)
+					// keepMask   = multiplier - 1  (preserves trailing 32-width bytes)
 					//
 					// Stack in: [value, dest_base]  (dest_base on top)
-					// PUSH adjOff ADD: [value, addr]
-					// SWAP1:           [addr, value]
-					// DUP2:            [addr, value, addr]
-					// MLOAD:           [addr, value, old]
-					// PUSH mask AND:   [addr, value, masked]
-					// OR:              [addr, patched]
-					// SWAP1:           [patched, addr]
-					// MSTORE:          []
-					size_t adjustedOffset = offsets[i] + width - 32;
-					u256 keepMask = ~((u256(1) << (width * 8)) - 1);
+					// PUSH off ADD:          [value, addr]
+					// SWAP1:                 [addr, value]
+					// PUSH multiplier MUL:   [addr, shifted]
+					// DUP2:                  [addr, shifted, addr]
+					// MLOAD:                 [addr, shifted, old]
+					// PUSH keepMask AND:     [addr, shifted, masked]
+					// OR:                    [addr, patched]
+					// SWAP1:                 [patched, addr]
+					// MSTORE:                []
+					u256 multiplier = u256(1) << ((32 - width) * 8);
+					u256 keepMask = multiplier - 1;
 
-					bytes offsetBytes = toCompactBigEndian(u256(adjustedOffset));
+					bytes offsetBytes = toCompactBigEndian(u256(offsets[i]));
 					ret.bytecode.push_back(static_cast<uint8_t>(pushInstruction(static_cast<unsigned>(offsetBytes.size()))));
 					ret.bytecode += offsetBytes;
 					instructionLocationEmitter.emit();
 					ret.bytecode.push_back(static_cast<uint8_t>(Instruction::ADD));
 					instructionLocationEmitter.emit();
 					ret.bytecode.push_back(static_cast<uint8_t>(Instruction::SWAP1));
+					instructionLocationEmitter.emit();
+					bytes mulBytes = toCompactBigEndian(multiplier);
+					ret.bytecode.push_back(static_cast<uint8_t>(pushInstruction(static_cast<unsigned>(mulBytes.size()))));
+					ret.bytecode += mulBytes;
+					instructionLocationEmitter.emit();
+					ret.bytecode.push_back(static_cast<uint8_t>(Instruction::MUL));
 					instructionLocationEmitter.emit();
 					ret.bytecode.push_back(static_cast<uint8_t>(Instruction::DUP2));
 					instructionLocationEmitter.emit();
@@ -1524,63 +1532,6 @@ LinkerObject const& Assembly::assembleLegacy() const
 					ret.bytecode.push_back(static_cast<uint8_t>(Instruction::SWAP1));
 					instructionLocationEmitter.emit();
 					ret.bytecode.push_back(static_cast<uint8_t>(Instruction::MSTORE));
-				}
-				else
-				{
-					// Partial width (2-31 bytes) at an early offset where offset < 32 - width:
-					// the read-modify-write address adjustment would underflow, so fall back
-					// to byte-by-byte MSTORE8.
-					// Stack in: [value, dest_base]  (dest_base on top)
-					for (size_t byteIdx = 0; byteIdx < width; ++byteIdx)
-					{
-						bool last = (byteIdx == static_cast<size_t>(width) - 1);
-						// Duplicate value and dest_base for all but the last byte.
-						if (!last)
-						{
-							ret.bytecode.push_back(static_cast<uint8_t>(Instruction::DUP2));
-							instructionLocationEmitter.emit();
-							ret.bytecode.push_back(static_cast<uint8_t>(Instruction::DUP2));
-							instructionLocationEmitter.emit();
-						}
-						// Stack: [value, dest_base] (either originals or copies)
-						// Compute dest_base + offsets[i] + byteIdx
-						size_t byteOffset = offsets[i] + byteIdx;
-						bytes offsetBytes = toCompactBigEndian(u256(byteOffset));
-						ret.bytecode.push_back(static_cast<uint8_t>(pushInstruction(static_cast<unsigned>(offsetBytes.size()))));
-						ret.bytecode += offsetBytes;
-						instructionLocationEmitter.emit();
-						ret.bytecode.push_back(static_cast<uint8_t>(Instruction::ADD));
-						instructionLocationEmitter.emit();
-						// Stack: [value, addr]
-						ret.bytecode.push_back(static_cast<uint8_t>(Instruction::SWAP1));
-						instructionLocationEmitter.emit();
-						// Stack: [addr, value]
-						// Extract the byte: divide by 256^(width - 1 - byteIdx) to shift right.
-						// Uses DIV instead of SHR for EVM version compatibility.
-						unsigned shiftBytes_ = static_cast<unsigned>(width - 1 - byteIdx);
-						if (shiftBytes_ > 0)
-						{
-							u256 divisor = u256(1) << (shiftBytes_ * 8);
-							bytes divisorBytes = toCompactBigEndian(divisor);
-							ret.bytecode.push_back(static_cast<uint8_t>(pushInstruction(static_cast<unsigned>(divisorBytes.size()))));
-							ret.bytecode += divisorBytes;
-							instructionLocationEmitter.emit();
-							// Stack: [addr, value, divisor]
-							ret.bytecode.push_back(static_cast<uint8_t>(Instruction::SWAP1));
-							instructionLocationEmitter.emit();
-							// Stack: [addr, divisor, value]
-							ret.bytecode.push_back(static_cast<uint8_t>(Instruction::DIV));
-							instructionLocationEmitter.emit();
-							// Stack: [addr, value / divisor]
-						}
-						// Stack: [addr, byte_value] (low byte is what we want)
-						// MSTORE8(offset, value): pops offset first, then value.
-						// Need [byte_value, addr] with addr on top.
-						ret.bytecode.push_back(static_cast<uint8_t>(Instruction::SWAP1));
-						instructionLocationEmitter.emit();
-						ret.bytecode.push_back(static_cast<uint8_t>(Instruction::MSTORE8));
-						instructionLocationEmitter.emit();
-					}
 				}
 				// No emit needed here, it's taken care of by the destructor of instructionLocationEmitter.
 			}

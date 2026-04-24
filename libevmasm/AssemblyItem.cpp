@@ -181,20 +181,10 @@ size_t AssemblyItem::bytesRequired(size_t _addressLength, langutil::EVMVersion _
 		if (immutableOccurrences != 0)
 		{
 			if (m_immutableByteWidth >= 2 && m_immutableByteWidth < 32)
-			{
-				// RMW path (normal case, offset >= 32 - width):
-				// Last:     PUSH<n> ADD SWAP1 DUP2 MLOAD PUSH32<mask> AND OR SWAP1 MSTORE = 10 + 32 + 32
-				// Non-last: DUP2 DUP2 + above = 12 + 32 + 32
-				size_t rmwCost = (immutableOccurrences - 1) * (12 + 32 + 32) + (10 + 32 + 32);
-				// Byte-by-byte fallback (early offset, offset < 32 - width):
-				// Non-last byte: DUP2 DUP2 PUSH33 ADD SWAP1 PUSH33 SWAP1 DIV SWAP1 MSTORE8 = 74 bytes
-				// Last byte (no shift/dup): PUSH33 ADD SWAP1 SWAP1 MSTORE8 = 37 bytes
-				// Per occurrence: (width - 1) * 74 + 37
-				// Non-last occurrence adds outer DUP2 DUP2: +2
-				size_t perOccurrence = (static_cast<size_t>(m_immutableByteWidth) - 1) * 74 + 37;
-				size_t byteByByteCost = immutableOccurrences * perOccurrence + (immutableOccurrences - 1) * 2;
-				return std::max(rmwCost, byteByByteCost);
-			}
+				// Left-shift RMW: PUSH ADD SWAP1 PUSH MUL DUP2 MLOAD PUSH AND OR SWAP1 MSTORE
+				// = 12 opcodes + 3 PUSH immediates (up to 32 bytes each) = 12 + 32*3 = 108
+				// Non-last occurrence adds DUP2 DUP2: +2 = 110
+				return (immutableOccurrences - 1) * (14 + 32 * 3) + (12 + 32 * 3);
 			else
 				// (DUP DUP PUSH<n> ADD MSTORE[8])* (PUSH<n> ADD MSTORE[8])
 				return (immutableOccurrences - 1) * (5 + 32) + (3 + 32);
@@ -546,18 +536,9 @@ size_t AssemblyItem::opcodeCount() const noexcept
 			if (m_immutableOccurrences.value() != 0)
 			{
 				if (m_immutableByteWidth >= 2 && m_immutableByteWidth < 32)
-				{
-					// RMW path: PUSH ADD SWAP1 DUP2 MLOAD PUSH AND OR SWAP1 MSTORE = 10 opcodes.
-					// Non-last add DUP2 DUP2 = 12 opcodes.
-					size_t rmwCount = (*m_immutableOccurrences - 1) * 12 + 10;
-					// Byte-by-byte fallback:
-					// Non-last byte: DUP2 DUP2 PUSH ADD SWAP1 PUSH SWAP1 DIV SWAP1 MSTORE8 = 10 opcodes.
-					// Last byte (no shift/dup): PUSH ADD SWAP1 SWAP1 MSTORE8 = 5 opcodes.
-					// Per occurrence: (width - 1) * 10 + 5. Non-last occurrence adds outer DUP2 DUP2: +2.
-					size_t perOccurrence = (static_cast<size_t>(m_immutableByteWidth) - 1) * 10 + 5;
-					size_t byteByByteCount = *m_immutableOccurrences * perOccurrence + (*m_immutableOccurrences - 1) * 2;
-					return std::max(rmwCount, byteByByteCount);
-				}
+					// Left-shift RMW: PUSH ADD SWAP1 PUSH MUL DUP2 MLOAD PUSH AND OR SWAP1 MSTORE = 12.
+					// Non-last occurrence adds DUP2 DUP2 = 14.
+					return (*m_immutableOccurrences - 1) * 14 + 12;
 				else
 					// Per occurrence: PUSH ADD MSTORE[8] = 3 opcodes.
 					// Non-last add DUP2 DUP2 = 5 opcodes.
