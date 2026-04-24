@@ -34,7 +34,18 @@ namespace solidity::evmasm
  */
 struct LinkerObject
 {
-	using ImmutableRefs = std::pair<std::string, std::vector<size_t>>;
+	struct ImmutableRefs
+	{
+		std::string identifier;
+		uint8_t length = 32;
+		std::vector<size_t> offsets;
+
+		bool operator<(ImmutableRefs const& _other) const
+		{
+			return std::tie(identifier, length, offsets) < std::tie(_other.identifier, _other.length, _other.offsets);
+		}
+	};
+
 	/// The bytecode.
 	bytes bytecode;
 

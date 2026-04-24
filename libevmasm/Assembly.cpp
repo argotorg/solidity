@@ -100,6 +100,27 @@ private:
 	size_t m_instructionLocationStart{};
 };
 
+/// Parses an immutable identifier that may have a byte width suffix encoded as "@N".
+/// Returns the original identifier and the byte width (defaulting to 32 if no suffix).
+std::pair<std::string, uint8_t> parseImmutableIdentifierWithWidth(std::string const& _identifier)
+{
+	auto atPos = _identifier.rfind('@');
+	if (atPos != std::string::npos && atPos + 1 < _identifier.size())
+	{
+		std::string const widthStr = _identifier.substr(atPos + 1);
+		try
+		{
+			size_t consumed = 0;
+			unsigned long width = std::stoul(widthStr, &consumed);
+			if (consumed == widthStr.size() && width >= 1 && width <= 32)
+				return {_identifier.substr(0, atPos), static_cast<uint8_t>(width)};
+		}
+		catch (std::invalid_argument const&) {}
+		catch (std::out_of_range const&) {}
+	}
+	return {_identifier, 32};
+}
+
 }
 
 std::map<std::string, std::shared_ptr<std::string const>> Assembly::s_sharedSourceNames;
@@ -307,12 +328,16 @@ AssemblyItem Assembly::createAssemblyItemFromJSON(Json const& _json, std::vector
 		else if (name == "PUSHIMMUTABLE")
 		{
 			requireValueDefinedForInstruction(name, value);
-			result = {AssemblyItemType::PushImmutable, storeImmutableHash(value)};
+			auto [identifier, byteWidth] = parseImmutableIdentifierWithWidth(value);
+			result = {AssemblyItemType::PushImmutable, storeImmutableHash(identifier)};
+			result.setImmutableByteWidth(byteWidth);
 		}
 		else if (name == "ASSIGNIMMUTABLE")
 		{
 			requireValueDefinedForInstruction(name, value);
-			result = {AssemblyItemType::AssignImmutable, storeImmutableHash(value)};
+			auto [identifier, byteWidth] = parseImmutableIdentifierWithWidth(value);
+			result = {AssemblyItemType::AssignImmutable, storeImmutableHash(identifier)};
+			result.setImmutableByteWidth(byteWidth);
 		}
 		else if (name == "tag")
 		{
@@ -527,7 +552,11 @@ Json Assembly::assemblyJSON(std::map<std::string, unsigned> const& _sourceIndice
 		if (name == "PUSHLIB")
 			data = m_libraries.at(h256(data));
 		else if (name == "PUSHIMMUTABLE" || name == "ASSIGNIMMUTABLE")
+		{
 			data = m_immutables.at(h256(data));
+			if (item.immutableByteWidth() != 32)
+				data += "@" + std::to_string(item.immutableByteWidth());
+		}
 		if (!data.empty())
 			jsonItem["value"] = data;
 		jsonItem["source"] = sourceIndex;
@@ -802,18 +831,22 @@ AssemblyItem Assembly::newPushLibraryAddress(std::string const& _identifier)
 	return AssemblyItem{PushLibraryAddress, h};
 }
 
-AssemblyItem Assembly::newPushImmutable(std::string const& _identifier)
+AssemblyItem Assembly::newPushImmutable(std::string const& _identifier, uint8_t _byteWidth)
 {
 	h256 h(util::keccak256(_identifier));
 	m_immutables[h] = _identifier;
-	return AssemblyItem{PushImmutable, h};
+	AssemblyItem item{PushImmutable, h};
+	item.setImmutableByteWidth(_byteWidth);
+	return item;
 }
 
-AssemblyItem Assembly::newImmutableAssignment(std::string const& _identifier)
+AssemblyItem Assembly::newImmutableAssignment(std::string const& _identifier, uint8_t _byteWidth)
 {
 	h256 h(util::keccak256(_identifier));
 	m_immutables[h] = _identifier;
-	return AssemblyItem{AssignImmutable, h};
+	AssemblyItem item{AssignImmutable, h};
+	item.setImmutableByteWidth(_byteWidth);
+	return item;
 }
 
 AssemblyItem Assembly::newAuxDataLoadN(size_t _offset) const
@@ -1287,7 +1320,9 @@ LinkerObject const& Assembly::assembleLegacy() const
 	for (auto const& item: items)
 		if (item.type() == AssignImmutable)
 		{
-			item.setImmutableOccurrences(immutableReferencesBySub[item.data()].second.size());
+			auto const& ref = immutableReferencesBySub[item.data()];
+			item.setImmutableOccurrences(ref.offsets.size());
+			item.setImmutableByteWidth(ref.length);
 			setsImmutables = true;
 		}
 		else if (item.type() == PushImmutable)
@@ -1389,21 +1424,30 @@ LinkerObject const& Assembly::assembleLegacy() const
 			break;
 		}
 		case PushImmutable:
-			ret.bytecode.push_back(static_cast<uint8_t>(Instruction::PUSH32));
-			// Maps keccak back to the "identifier" std::string of that immutable.
-			ret.immutableReferences[item.data()].first = m_immutables.at(item.data());
-			// Record the bytecode offset of the PUSH32 argument.
-			ret.immutableReferences[item.data()].second.emplace_back(ret.bytecode.size());
-			// Advance bytecode by 32 bytes (default initialized).
-			ret.bytecode.resize(ret.bytecode.size() + 32);
+		{
+			auto const width = item.immutableByteWidth();
+			ret.bytecode.push_back(static_cast<uint8_t>(pushInstruction(width)));
+			auto& ref = ret.immutableReferences[item.data()];
+			if (ref.offsets.empty())
+			{
+				ref.identifier = m_immutables.at(item.data());
+				ref.length = width;
+			}
+			else
+				solAssert(ref.length == width, "Inconsistent immutable byte width.");
+			ref.offsets.emplace_back(ret.bytecode.size());
+			ret.bytecode.resize(ret.bytecode.size() + width);
 			break;
+		}
 		case VerbatimBytecode:
 			ret.bytecode += assembleVerbatimBytecode(item);
 			break;
 		case AssignImmutable:
 		{
-			// Expect 2 elements on stack (source, dest_base)
-			auto const& offsets = immutableReferencesBySub[item.data()].second;
+			// Expect 2 elements on stack (value, dest_base)
+			auto const& immutableRef = immutableReferencesBySub[item.data()];
+			auto const& offsets = immutableRef.offsets;
+			auto const width = immutableRef.length;
 			for (size_t i = 0; i < offsets.size(); ++i)
 			{
 				if (i != offsets.size() - 1)
@@ -1415,13 +1459,129 @@ LinkerObject const& Assembly::assembleLegacy() const
 					instructionLocationEmitter.emit();
 				}
 				// TODO: should we make use of the constant optimizer methods for pushing the offsets?
-				bytes offsetBytes = toCompactBigEndian(u256(offsets[i]));
-				ret.bytecode.push_back(static_cast<uint8_t>(pushInstruction(static_cast<unsigned>(offsetBytes.size()))));
-				ret.bytecode += offsetBytes;
-				instructionLocationEmitter.emit();
-				ret.bytecode.push_back(static_cast<uint8_t>(Instruction::ADD));
-				instructionLocationEmitter.emit();
-				ret.bytecode.push_back(static_cast<uint8_t>(Instruction::MSTORE));
+				if (width == 32)
+				{
+					// Full-width: simple MSTORE.
+					bytes offsetBytes = toCompactBigEndian(u256(offsets[i]));
+					ret.bytecode.push_back(static_cast<uint8_t>(pushInstruction(static_cast<unsigned>(offsetBytes.size()))));
+					ret.bytecode += offsetBytes;
+					instructionLocationEmitter.emit();
+					ret.bytecode.push_back(static_cast<uint8_t>(Instruction::ADD));
+					instructionLocationEmitter.emit();
+					ret.bytecode.push_back(static_cast<uint8_t>(Instruction::MSTORE));
+				}
+				else if (width == 1)
+				{
+					// Single byte: use MSTORE8.
+					bytes offsetBytes = toCompactBigEndian(u256(offsets[i]));
+					ret.bytecode.push_back(static_cast<uint8_t>(pushInstruction(static_cast<unsigned>(offsetBytes.size()))));
+					ret.bytecode += offsetBytes;
+					instructionLocationEmitter.emit();
+					ret.bytecode.push_back(static_cast<uint8_t>(Instruction::ADD));
+					instructionLocationEmitter.emit();
+					ret.bytecode.push_back(static_cast<uint8_t>(Instruction::MSTORE8));
+				}
+				else if (offsets[i] >= static_cast<size_t>(32 - width))
+				{
+					// Partial width (2-31 bytes): read-modify-write.
+					// MSTORE always writes 32 bytes, so we offset the write by (width - 32) and
+					// use a mask to preserve the (32 - width) preceding bytes.
+					// addr = dest_base + offset + width - 32
+					// keepMask = ~((1 << (width * 8)) - 1)   (preserves high bytes, clears low `width` bytes)
+					//
+					// Stack in: [value, dest_base]  (dest_base on top)
+					// PUSH adjOff ADD: [value, addr]
+					// SWAP1:           [addr, value]
+					// DUP2:            [addr, value, addr]
+					// MLOAD:           [addr, value, old]
+					// PUSH mask AND:   [addr, value, masked]
+					// OR:              [addr, patched]
+					// SWAP1:           [patched, addr]
+					// MSTORE:          []
+					size_t adjustedOffset = offsets[i] + width - 32;
+					u256 keepMask = ~((u256(1) << (width * 8)) - 1);
+
+					bytes offsetBytes = toCompactBigEndian(u256(adjustedOffset));
+					ret.bytecode.push_back(static_cast<uint8_t>(pushInstruction(static_cast<unsigned>(offsetBytes.size()))));
+					ret.bytecode += offsetBytes;
+					instructionLocationEmitter.emit();
+					ret.bytecode.push_back(static_cast<uint8_t>(Instruction::ADD));
+					instructionLocationEmitter.emit();
+					ret.bytecode.push_back(static_cast<uint8_t>(Instruction::SWAP1));
+					instructionLocationEmitter.emit();
+					ret.bytecode.push_back(static_cast<uint8_t>(Instruction::DUP2));
+					instructionLocationEmitter.emit();
+					ret.bytecode.push_back(static_cast<uint8_t>(Instruction::MLOAD));
+					instructionLocationEmitter.emit();
+					bytes maskBytes = toCompactBigEndian(keepMask);
+					ret.bytecode.push_back(static_cast<uint8_t>(pushInstruction(static_cast<unsigned>(maskBytes.size()))));
+					ret.bytecode += maskBytes;
+					instructionLocationEmitter.emit();
+					ret.bytecode.push_back(static_cast<uint8_t>(Instruction::AND));
+					instructionLocationEmitter.emit();
+					ret.bytecode.push_back(static_cast<uint8_t>(Instruction::OR));
+					instructionLocationEmitter.emit();
+					ret.bytecode.push_back(static_cast<uint8_t>(Instruction::SWAP1));
+					instructionLocationEmitter.emit();
+					ret.bytecode.push_back(static_cast<uint8_t>(Instruction::MSTORE));
+				}
+				else
+				{
+					// Partial width (2-31 bytes) at an early offset where offset < 32 - width:
+					// the read-modify-write address adjustment would underflow, so fall back
+					// to byte-by-byte MSTORE8.
+					// Stack in: [value, dest_base]  (dest_base on top)
+					for (size_t byteIdx = 0; byteIdx < width; ++byteIdx)
+					{
+						bool last = (byteIdx == static_cast<size_t>(width) - 1);
+						// Duplicate value and dest_base for all but the last byte.
+						if (!last)
+						{
+							ret.bytecode.push_back(static_cast<uint8_t>(Instruction::DUP2));
+							instructionLocationEmitter.emit();
+							ret.bytecode.push_back(static_cast<uint8_t>(Instruction::DUP2));
+							instructionLocationEmitter.emit();
+						}
+						// Stack: [value, dest_base] (either originals or copies)
+						// Compute dest_base + offsets[i] + byteIdx
+						size_t byteOffset = offsets[i] + byteIdx;
+						bytes offsetBytes = toCompactBigEndian(u256(byteOffset));
+						ret.bytecode.push_back(static_cast<uint8_t>(pushInstruction(static_cast<unsigned>(offsetBytes.size()))));
+						ret.bytecode += offsetBytes;
+						instructionLocationEmitter.emit();
+						ret.bytecode.push_back(static_cast<uint8_t>(Instruction::ADD));
+						instructionLocationEmitter.emit();
+						// Stack: [value, addr]
+						ret.bytecode.push_back(static_cast<uint8_t>(Instruction::SWAP1));
+						instructionLocationEmitter.emit();
+						// Stack: [addr, value]
+						// Extract the byte: divide by 256^(width - 1 - byteIdx) to shift right.
+						// Uses DIV instead of SHR for EVM version compatibility.
+						unsigned shiftBytes_ = static_cast<unsigned>(width - 1 - byteIdx);
+						if (shiftBytes_ > 0)
+						{
+							u256 divisor = u256(1) << (shiftBytes_ * 8);
+							bytes divisorBytes = toCompactBigEndian(divisor);
+							ret.bytecode.push_back(static_cast<uint8_t>(pushInstruction(static_cast<unsigned>(divisorBytes.size()))));
+							ret.bytecode += divisorBytes;
+							instructionLocationEmitter.emit();
+							// Stack: [addr, value, divisor]
+							ret.bytecode.push_back(static_cast<uint8_t>(Instruction::SWAP1));
+							instructionLocationEmitter.emit();
+							// Stack: [addr, divisor, value]
+							ret.bytecode.push_back(static_cast<uint8_t>(Instruction::DIV));
+							instructionLocationEmitter.emit();
+							// Stack: [addr, value / divisor]
+						}
+						// Stack: [addr, byte_value] (low byte is what we want)
+						// MSTORE8(offset, value): pops offset first, then value.
+						// Need [byte_value, addr] with addr on top.
+						ret.bytecode.push_back(static_cast<uint8_t>(Instruction::SWAP1));
+						instructionLocationEmitter.emit();
+						ret.bytecode.push_back(static_cast<uint8_t>(Instruction::MSTORE8));
+						instructionLocationEmitter.emit();
+					}
+				}
 				// No emit needed here, it's taken care of by the destructor of instructionLocationEmitter.
 			}
 			if (offsets.empty())

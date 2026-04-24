@@ -34,6 +34,27 @@ using namespace solidity::yul;
 namespace
 {
 
+/// Parses an immutable identifier that may have a byte width suffix encoded as "@N".
+/// Returns the original identifier and the byte width (defaulting to 32 if no suffix).
+std::pair<std::string, uint8_t> parseImmutableIdentifier(std::string const& _identifier)
+{
+	auto atPos = _identifier.rfind('@');
+	if (atPos != std::string::npos && atPos + 1 < _identifier.size())
+	{
+		std::string const widthStr = _identifier.substr(atPos + 1);
+		try
+		{
+			size_t consumed = 0;
+			unsigned long width = std::stoul(widthStr, &consumed);
+			if (consumed == widthStr.size() && width >= 1 && width <= 32)
+				return {_identifier.substr(0, atPos), static_cast<uint8_t>(width)};
+		}
+		catch (std::invalid_argument const&) {}
+		catch (std::out_of_range const&) {}
+	}
+	return {_identifier, 32};
+}
+
 BuiltinFunctionForEVM createFunction(
 	std::string const& _name,
 	size_t _params,
@@ -215,8 +236,9 @@ BuiltinFunctionForEVM setimmutableBuiltin()
 			BuiltinContext&
 		) {
 			yulAssert(_call.arguments.size() == 3, "");
-			auto const identifier = (formatLiteral(std::get<Literal>(_call.arguments[1])));
-			_assembly.appendImmutableAssignment(identifier);
+			auto const rawIdentifier = formatLiteral(std::get<Literal>(_call.arguments[1]));
+			auto const [identifier, byteWidth] = parseImmutableIdentifier(rawIdentifier);
+			_assembly.appendImmutableAssignment(identifier, byteWidth);
 		}
 	);
 }
@@ -236,7 +258,9 @@ BuiltinFunctionForEVM loadimmutableBuiltin()
 			BuiltinContext&
 		) {
 			yulAssert(_call.arguments.size() == 1, "");
-			_assembly.appendImmutable(formatLiteral(std::get<Literal>(_call.arguments.front())));
+			auto const rawIdentifier = formatLiteral(std::get<Literal>(_call.arguments.front()));
+			auto const [identifier, byteWidth] = parseImmutableIdentifier(rawIdentifier);
+			_assembly.appendImmutable(identifier, byteWidth);
 		}
 	);
 }

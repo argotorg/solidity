@@ -207,10 +207,11 @@ SubAssemblyID ContractCompiler::packIntoContractCreator(ContractDefinition const
 	for (auto const& immutable: immutables | ranges::views::reverse)
 	{
 		auto slotNames = m_context.immutableVariableSlotNames(*immutable);
+		uint8_t byteWidth = immutableByteWidth(*immutable->annotation().type);
 		for (auto&& slotName: slotNames | ranges::views::reverse)
 		{
 			m_context << u256(0);
-			m_context.appendImmutableAssignment(slotName);
+			m_context.appendImmutableAssignment(slotName, byteWidth);
 		}
 	}
 	if (!immutables.empty())

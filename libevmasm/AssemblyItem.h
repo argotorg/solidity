@@ -308,6 +308,8 @@ public:
 	size_t m_modifierDepth = 0;
 
 	void setImmutableOccurrences(size_t _n) const { m_immutableOccurrences = _n; }
+	void setImmutableByteWidth(uint8_t _width) const { solAssert(_width >= 1 && _width <= 32); m_immutableByteWidth = _width; }
+	uint8_t immutableByteWidth() const { return m_immutableByteWidth; }
 
 	struct FunctionSignature
 	{
@@ -341,6 +343,8 @@ private:
 	mutable std::shared_ptr<u256> m_pushedValue;
 	/// Number of PushImmutable's with the same hash. Only used for AssignImmutable.
 	mutable std::optional<size_t> m_immutableOccurrences;
+	/// Byte width of the immutable value (1-32). Only valid for PushImmutable/AssignImmutable.
+	mutable uint8_t m_immutableByteWidth = 32;
 };
 
 inline size_t bytesRequired(AssemblyItems const& _items, size_t _addressLength, langutil::EVMVersion _evmVersion, Precision _precision = Precision::Precise)

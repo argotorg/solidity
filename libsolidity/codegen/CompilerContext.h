@@ -238,9 +238,9 @@ public:
 	/// Appends the address (virtual, will be filled in by linker) of a library.
 	void appendLibraryAddress(std::string const& _identifier) { m_asm->appendLibraryAddress(_identifier); }
 	/// Appends an immutable variable. The value will be filled in by the constructor.
-	void appendImmutable(std::string const& _identifier) { m_asm->appendImmutable(_identifier); }
+	void appendImmutable(std::string const& _identifier, uint8_t _byteWidth = 32) { m_asm->appendImmutable(_identifier, _byteWidth); }
 	/// Appends an assignment to an immutable variable. Only valid in creation code.
-	void appendImmutableAssignment(std::string const& _identifier) { m_asm->appendImmutableAssignment(_identifier); }
+	void appendImmutableAssignment(std::string const& _identifier, uint8_t _byteWidth = 32) { m_asm->appendImmutableAssignment(_identifier, _byteWidth); }
 	/// Appends a zero-address that can be replaced by something else at deploy time (if the
 	/// position in bytecode is known).
 	void appendDeployTimeAddress() { m_asm->append(evmasm::PushDeployTimeAddress); }

@@ -3336,7 +3336,13 @@ IRVariable IRGeneratorForStatements::readFromLValue(IRLValue const& _lvalue)
 			else
 			{
 				if (!m_context.eofVersion().has_value())
-					define(result) << "loadimmutable(\"" << std::to_string(_immutable.variable->id()) << "\")\n";
+				{
+					std::string id = std::to_string(_immutable.variable->id());
+					uint8_t byteWidth = immutableByteWidth(*_immutable.variable->type());
+					if (byteWidth < 32)
+						id += "@" + std::to_string(byteWidth);
+					define(result) << "loadimmutable(\"" << id << "\")\n";
+				}
 				else
 					define(result) << "auxdataloadn(" << std::to_string(m_context.immutableMemoryOffsetRelative(*_immutable.variable)) << ")\n";
 			}

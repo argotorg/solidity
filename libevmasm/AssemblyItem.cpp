@@ -164,7 +164,7 @@ size_t AssemblyItem::bytesRequired(size_t _addressLength, langutil::EVMVersion _
 	case PushDeployTimeAddress:
 		return 1 + 20;
 	case PushImmutable:
-		return 1 + 32;
+		return 1 + m_immutableByteWidth;
 	case AssignImmutable:
 	{
 		unsigned long immutableOccurrences = 0;
@@ -179,8 +179,26 @@ size_t AssemblyItem::bytesRequired(size_t _addressLength, langutil::EVMVersion _
 		}
 
 		if (immutableOccurrences != 0)
-			// (DUP DUP PUSH <n> ADD MSTORE)* (PUSH <n> ADD MSTORE)
-			return (immutableOccurrences - 1) * (5 + 32) + (3 + 32);
+		{
+			if (m_immutableByteWidth >= 2 && m_immutableByteWidth < 32)
+			{
+				// RMW path (normal case, offset >= 32 - width):
+				// Last:     PUSH<n> ADD SWAP1 DUP2 MLOAD PUSH32<mask> AND OR SWAP1 MSTORE = 10 + 32 + 32
+				// Non-last: DUP2 DUP2 + above = 12 + 32 + 32
+				size_t rmwCost = (immutableOccurrences - 1) * (12 + 32 + 32) + (10 + 32 + 32);
+				// Byte-by-byte fallback (early offset, offset < 32 - width):
+				// Non-last byte: DUP2 DUP2 PUSH33 ADD SWAP1 PUSH33 SWAP1 DIV SWAP1 MSTORE8 = 74 bytes
+				// Last byte (no shift/dup): PUSH33 ADD SWAP1 SWAP1 MSTORE8 = 37 bytes
+				// Per occurrence: (width - 1) * 74 + 37
+				// Non-last occurrence adds outer DUP2 DUP2: +2
+				size_t perOccurrence = (static_cast<size_t>(m_immutableByteWidth) - 1) * 74 + 37;
+				size_t byteByByteCost = immutableOccurrences * perOccurrence + (immutableOccurrences - 1) * 2;
+				return std::max(rmwCost, byteByByteCost);
+			}
+			else
+				// (DUP DUP PUSH<n> ADD MSTORE[8])* (PUSH<n> ADD MSTORE[8])
+				return (immutableOccurrences - 1) * (5 + 32) + (3 + 32);
+		}
 		else
 			// POP POP
 			return 2;
@@ -523,14 +541,28 @@ size_t AssemblyItem::opcodeCount() const noexcept
 	switch (m_type)
 	{
 		case AssemblyItemType::AssignImmutable:
-			// Append empty items if this AssignImmutable was referenced more than once.
-			// For n immutable occurrences the first (n - 1) occurrences will
-			// generate 5 opcodes and the last will generate 3 opcodes,
-			// because it is reusing the 2 top-most elements on the stack.
 			solAssert(m_immutableOccurrences, "");
 
 			if (m_immutableOccurrences.value() != 0)
-				return (*m_immutableOccurrences - 1) * 5 + 3;
+			{
+				if (m_immutableByteWidth >= 2 && m_immutableByteWidth < 32)
+				{
+					// RMW path: PUSH ADD SWAP1 DUP2 MLOAD PUSH AND OR SWAP1 MSTORE = 10 opcodes.
+					// Non-last add DUP2 DUP2 = 12 opcodes.
+					size_t rmwCount = (*m_immutableOccurrences - 1) * 12 + 10;
+					// Byte-by-byte fallback:
+					// Non-last byte: DUP2 DUP2 PUSH ADD SWAP1 PUSH SWAP1 DIV SWAP1 MSTORE8 = 10 opcodes.
+					// Last byte (no shift/dup): PUSH ADD SWAP1 SWAP1 MSTORE8 = 5 opcodes.
+					// Per occurrence: (width - 1) * 10 + 5. Non-last occurrence adds outer DUP2 DUP2: +2.
+					size_t perOccurrence = (static_cast<size_t>(m_immutableByteWidth) - 1) * 10 + 5;
+					size_t byteByByteCount = *m_immutableOccurrences * perOccurrence + (*m_immutableOccurrences - 1) * 2;
+					return std::max(rmwCount, byteByByteCount);
+				}
+				else
+					// Per occurrence: PUSH ADD MSTORE[8] = 3 opcodes.
+					// Non-last add DUP2 DUP2 = 5 opcodes.
+					return (*m_immutableOccurrences - 1) * 5 + 3;
+			}
 			else
 				return 2; // two POP's
 		default:

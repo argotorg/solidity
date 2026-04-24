@@ -438,16 +438,16 @@ Json formatImmutableReferences(std::map<u256, evmasm::LinkerObject::ImmutableRef
 
 	for (auto const& immutableReference: _immutableReferences)
 	{
-		auto const& [identifier, byteOffsets] = immutableReference.second;
+		auto const& refs = immutableReference.second;
 		Json array = Json::array();
-		for (size_t byteOffset: byteOffsets)
+		for (size_t byteOffset: refs.offsets)
 		{
 			Json byteRange;
 			byteRange["start"] = Json::number_unsigned_t(byteOffset);
-			byteRange["length"] = Json::number_unsigned_t(32); // immutable references are currently always 32 bytes wide
+			byteRange["length"] = Json::number_unsigned_t(refs.length);
 			array.emplace_back(byteRange);
 		}
-		ret[identifier] = array;
+		ret[refs.identifier] = array;
 	}
 
 	return ret;
