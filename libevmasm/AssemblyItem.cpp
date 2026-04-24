@@ -181,10 +181,11 @@ size_t AssemblyItem::bytesRequired(size_t _addressLength, langutil::EVMVersion _
 		if (immutableOccurrences != 0)
 		{
 			if (m_immutableByteWidth >= 2 && m_immutableByteWidth < 32)
-				// Left-shift RMW: PUSH ADD SWAP1 PUSH MUL DUP2 MLOAD PUSH AND OR SWAP1 MSTORE
-				// = 12 opcodes + 3 PUSH immediates (up to 32 bytes each) = 12 + 32*3 = 108
-				// Non-last occurrence adds DUP2 DUP2: +2 = 110
-				return (immutableOccurrences - 1) * (14 + 32 * 3) + (12 + 32 * 3);
+				// Left-shift RMW: PUSH ADD SWAP1 PUSH DUP1 SWAP2 MUL SWAP1 PUSH1 SWAP1 SUB
+				//                 DUP3 MLOAD AND OR SWAP1 MSTORE
+				// = 17 opcodes, 14 single-byte + PUSH<off>(1+32) + PUSH<mul>(1+32) + PUSH1(2)
+				// Non-last occurrence adds DUP2 DUP2: +2
+				return (immutableOccurrences - 1) * (16 + 32 * 2) + (14 + 32 * 2 + 2);
 			else
 				// (DUP DUP PUSH<n> ADD MSTORE[8])* (PUSH<n> ADD MSTORE[8])
 				return (immutableOccurrences - 1) * (5 + 32) + (3 + 32);
@@ -536,9 +537,8 @@ size_t AssemblyItem::opcodeCount() const noexcept
 			if (m_immutableOccurrences.value() != 0)
 			{
 				if (m_immutableByteWidth >= 2 && m_immutableByteWidth < 32)
-					// Left-shift RMW: PUSH ADD SWAP1 PUSH MUL DUP2 MLOAD PUSH AND OR SWAP1 MSTORE = 12.
-					// Non-last occurrence adds DUP2 DUP2 = 14.
-					return (*m_immutableOccurrences - 1) * 14 + 12;
+					// Left-shift RMW: 17 opcodes. Non-last occurrence adds DUP2 DUP2 = 19.
+					return (*m_immutableOccurrences - 1) * 19 + 17;
 				else
 					// Per occurrence: PUSH ADD MSTORE[8] = 3 opcodes.
 					// Non-last add DUP2 DUP2 = 5 opcodes.
