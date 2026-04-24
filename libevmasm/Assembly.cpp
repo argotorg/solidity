@@ -1486,52 +1486,51 @@ LinkerObject const& Assembly::assembleLegacy() const
 					// Partial width (2-31 bytes): left-shift read-modify-write.
 					// Left-align the value via MUL, then MSTORE at the original offset.
 					// Uses MUL instead of SHL for pre-Constantinople compatibility.
-					//
-					// multiplier = 1 << ((32 - width) * 8)
-					// keepMask   = multiplier - 1  (preserves trailing 32-width bytes)
-					//
-					// Stack in: [value, dest_base]  (dest_base on top)
-					// PUSH off ADD:          [value, addr]
-					// SWAP1:                 [addr, value]
-					// PUSH multiplier MUL:   [addr, shifted]
-					// DUP2:                  [addr, shifted, addr]
-					// MLOAD:                 [addr, shifted, old]
-					// PUSH keepMask AND:     [addr, shifted, masked]
-					// OR:                    [addr, patched]
-					// SWAP1:                 [patched, addr]
-					// MSTORE:                []
 					u256 multiplier = u256(1) << ((32 - width) * 8);
-					u256 keepMask = multiplier - 1;
+					u256 keepMask = multiplier - 1; // preserves trailing (32 - width) bytes.
 
+					// Stack: [value, dest_base]
 					bytes offsetBytes = toCompactBigEndian(u256(offsets[i]));
 					ret.bytecode.push_back(static_cast<uint8_t>(pushInstruction(static_cast<unsigned>(offsetBytes.size()))));
 					ret.bytecode += offsetBytes;
 					instructionLocationEmitter.emit();
+					// Stack: [value, dest_base, offset]
 					ret.bytecode.push_back(static_cast<uint8_t>(Instruction::ADD));
 					instructionLocationEmitter.emit();
+					// Stack: [value, addr]
 					ret.bytecode.push_back(static_cast<uint8_t>(Instruction::SWAP1));
 					instructionLocationEmitter.emit();
+					// Stack: [addr, value]
 					bytes mulBytes = toCompactBigEndian(multiplier);
 					ret.bytecode.push_back(static_cast<uint8_t>(pushInstruction(static_cast<unsigned>(mulBytes.size()))));
 					ret.bytecode += mulBytes;
 					instructionLocationEmitter.emit();
+					// Stack: [addr, value, multiplier]
 					ret.bytecode.push_back(static_cast<uint8_t>(Instruction::MUL));
 					instructionLocationEmitter.emit();
+					// Stack: [addr, shifted]  (value left-aligned in 32 bytes)
 					ret.bytecode.push_back(static_cast<uint8_t>(Instruction::DUP2));
 					instructionLocationEmitter.emit();
+					// Stack: [addr, shifted, addr]
 					ret.bytecode.push_back(static_cast<uint8_t>(Instruction::MLOAD));
 					instructionLocationEmitter.emit();
+					// Stack: [addr, shifted, old]
 					bytes maskBytes = toCompactBigEndian(keepMask);
 					ret.bytecode.push_back(static_cast<uint8_t>(pushInstruction(static_cast<unsigned>(maskBytes.size()))));
 					ret.bytecode += maskBytes;
 					instructionLocationEmitter.emit();
+					// Stack: [addr, shifted, old, keepMask]
 					ret.bytecode.push_back(static_cast<uint8_t>(Instruction::AND));
 					instructionLocationEmitter.emit();
+					// Stack: [addr, shifted, masked]  (trailing bytes preserved, leading cleared)
 					ret.bytecode.push_back(static_cast<uint8_t>(Instruction::OR));
 					instructionLocationEmitter.emit();
+					// Stack: [addr, patched]
 					ret.bytecode.push_back(static_cast<uint8_t>(Instruction::SWAP1));
 					instructionLocationEmitter.emit();
+					// Stack: [patched, addr]
 					ret.bytecode.push_back(static_cast<uint8_t>(Instruction::MSTORE));
+					// Stack: []
 				}
 				// No emit needed here, it's taken care of by the destructor of instructionLocationEmitter.
 			}
