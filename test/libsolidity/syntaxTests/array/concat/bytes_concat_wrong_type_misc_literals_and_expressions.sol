@@ -33,8 +33,8 @@ contract C {
 }
 // ----
 // TypeError 9640: (697-779): Explicit type conversion not allowed from "bytes32" to "bytes memory".
-// TypeError 1227: (697-782): Index range access is only supported for dynamic calldata arrays.
-// TypeError 1227: (864-870): Index range access is only supported for dynamic calldata arrays.
+// TypeError 1227: (697-782): Index range access is only supported for dynamic calldata or constant arrays.
+// TypeError 1227: (864-870): Index range access is only supported for dynamic calldata or constant arrays.
 // TypeError 8015: (133-138): Invalid type for argument in the bytes.concat function call. bytes or fixed bytes type is required, but bool provided.
 // TypeError 8015: (152-153): Invalid type for argument in the bytes.concat function call. bytes or fixed bytes type is required, but int_const 1 provided.
 // TypeError 8015: (167-171): Invalid type for argument in the bytes.concat function call. bytes or fixed bytes type is required, but int_const 10000000000 provided.

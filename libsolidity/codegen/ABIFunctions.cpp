@@ -318,12 +318,13 @@ std::string ABIFunctions::abiEncodingFunction(
 					return abiEncodingFunctionCalldataArrayWithoutCleanup(*fromArray, *toArray, _options);
 				else
 					return abiEncodingFunctionSimpleArray(*fromArray, *toArray, _options);
-			case DataLocation::Memory:
-				if (fromArray->isByteArrayOrString())
-					return abiEncodingFunctionMemoryByteArray(*fromArray, *toArray, _options);
-				else
-					return abiEncodingFunctionSimpleArray(*fromArray, *toArray, _options);
-			case DataLocation::Storage:
+		case DataLocation::Constant:
+		case DataLocation::Memory:
+			if (fromArray->isByteArrayOrString())
+				return abiEncodingFunctionMemoryByteArray(*fromArray, *toArray, _options);
+			else
+				return abiEncodingFunctionSimpleArray(*fromArray, *toArray, _options);
+		case DataLocation::Storage:
 				if (fromArray->baseType()->storageBytes() <= 16)
 					return abiEncodingFunctionCompactStorageArray(*fromArray, *toArray, _options);
 				else
@@ -611,6 +612,7 @@ std::string ABIFunctions::abiEncodingFunctionSimpleArray(
 		templ("encodeToMemoryFun", abiEncodeAndReturnUpdatedPosFunction(*_from.baseType(), *_to.baseType(), subOptions));
 		switch (_from.location())
 		{
+			case DataLocation::Constant:
 			case DataLocation::Memory:
 				templ("arrayElementAccess", "mload(srcPtr)");
 				break;
@@ -907,6 +909,7 @@ std::string ABIFunctions::abiEncodingFunctionStruct(
 					}
 					break;
 				}
+				case DataLocation::Constant:
 				case DataLocation::Memory:
 				{
 					std::string sourceOffset = toCompactHexWithPrefix(_from.memoryOffsetOfMember(member.name));

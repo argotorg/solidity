@@ -87,7 +87,10 @@ done < <(
       grep -v -E 'license/license_hidden_unicode.sol' |
       grep -v -E 'license/license_unicode.sol' |
       # Skipping tests with 'something.address' as 'address' as the grammar fails on those
-      grep -v -E 'inlineAssembly/external_function_pointer_address.*.sol'
+      grep -v -E 'inlineAssembly/external_function_pointer_address.*.sol' |
+      # Skipping a test with 'uint constant local' because ANTLR accepts 'constant'
+      # as a data location while the Solidity parser only allows it for function parameters.
+      grep -v -E 'parsing/local_const_variable.sol'
 )
 
 YUL_FILES=()

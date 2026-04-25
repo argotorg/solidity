@@ -10,6 +10,7 @@ contract Foo {
 }
 // ----
 // ParserError 3548: (45-51): Location already specified.
+// ParserError 3548: (52-60): Location already specified.
 // ParserError 3548: (78-86): Location already specified.
 // ParserError 3548: (134-141): Location already specified.
 // ParserError 3548: (189-197): Location already specified.

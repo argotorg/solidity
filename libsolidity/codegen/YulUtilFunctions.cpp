@@ -1318,8 +1318,10 @@ std::string YulUtilFunctions::arrayLengthFunction(ArrayType const& _type)
 {
 	std::string functionName = "array_length_" + _type.identifier();
 	return m_functionCollector.createFunction(functionName, [&]() {
+		bool dynOnStack = (_type.location() == DataLocation::CallData ||
+			(_type.location() == DataLocation::Constant && !_type.isByteArrayOrString())) && _type.isDynamicallySized();
 		Whiskers w(R"(
-			function <functionName>(value<?dynamic><?calldata>, len</calldata></dynamic>) -> length {
+			function <functionName>(value<?dynamic><?dynOnStack>, len</dynOnStack></dynamic>) -> length {
 				<?dynamic>
 					<?memory>
 						length := mload(value)
@@ -1330,9 +1332,9 @@ std::string YulUtilFunctions::arrayLengthFunction(ArrayType const& _type)
 							length := <extractByteArrayLength>(length)
 						</byteArray>
 					</storage>
-					<?calldata>
+					<?dynOnStack>
 						length := len
-					</calldata>
+					</dynOnStack>
 				<!dynamic>
 					length := <length>
 				</dynamic>
@@ -1342,9 +1344,10 @@ std::string YulUtilFunctions::arrayLengthFunction(ArrayType const& _type)
 		w("dynamic", _type.isDynamicallySized());
 		if (!_type.isDynamicallySized())
 			w("length", toCompactHexWithPrefix(_type.length()));
-		w("memory", _type.location() == DataLocation::Memory);
+		w("memory", _type.location() == DataLocation::Memory ||
+			(_type.location() == DataLocation::Constant && _type.isByteArrayOrString()));
 		w("storage", _type.location() == DataLocation::Storage);
-		w("calldata", _type.location() == DataLocation::CallData);
+		w("dynOnStack", dynOnStack);
 		if (_type.location() == DataLocation::Storage)
 		{
 			w("byteArray", _type.isByteArrayOrString());
@@ -2025,7 +2028,7 @@ std::string YulUtilFunctions::copyArrayToStorageFunction(ArrayType const& _fromT
 		bool fromCalldata = _fromType.dataStoredIn(DataLocation::CallData);
 		templ("isFromDynamicCalldata", _fromType.isDynamicallySized() && fromCalldata);
 		templ("fromStorage", _fromType.dataStoredIn(DataLocation::Storage));
-		bool fromMemory = _fromType.dataStoredIn(DataLocation::Memory);
+		bool fromMemory = _fromType.dataStoredIn(DataLocation::Memory) || _fromType.dataStoredIn(DataLocation::Constant);
 		templ("fromMemory", fromMemory);
 		templ("fromCalldata", fromCalldata);
 		templ("srcDataLocation", arrayDataAreaFunction(_fromType));
@@ -2119,7 +2122,7 @@ std::string YulUtilFunctions::copyByteArrayToStorageFunction(ArrayType const& _f
 		bool fromStorage = _fromType.dataStoredIn(DataLocation::Storage);
 		templ("fromStorage", fromStorage);
 		bool fromCalldata = _fromType.dataStoredIn(DataLocation::CallData);
-		templ("fromMemory", _fromType.dataStoredIn(DataLocation::Memory));
+		templ("fromMemory", _fromType.dataStoredIn(DataLocation::Memory) || _fromType.dataStoredIn(DataLocation::Constant));
 		templ("fromCalldata", fromCalldata);
 		templ("arrayLength", arrayLengthFunction(_fromType));
 		templ("panic", panicFunction(PanicCode::ResourceError));
@@ -2413,7 +2416,7 @@ std::string YulUtilFunctions::arrayDataAreaFunction(ArrayType const& _type)
 		)")
 		("functionName", functionName)
 		("dynamic", _type.isDynamicallySized())
-		("memory", _type.location() == DataLocation::Memory)
+		("memory", _type.location() == DataLocation::Memory || _type.location() == DataLocation::Constant)
 		("storage", _type.location() == DataLocation::Storage)
 		.render();
 	});
@@ -2583,6 +2586,7 @@ std::string YulUtilFunctions::nextArrayElementFunction(ArrayType const& _type)
 		templ("functionName", functionName);
 		switch (_type.location())
 		{
+		case DataLocation::Constant:
 		case DataLocation::Memory:
 			templ("advance", "0x20");
 			break;
@@ -3470,12 +3474,12 @@ std::string YulUtilFunctions::conversionFunction(Type const& _from, Type const& 
 			(fromType.arrayType().isByteArrayOrString() && targetType.isByteArrayOrString())
 		);
 		solAssert(
-			fromType.arrayType().dataStoredIn(DataLocation::CallData) &&
+			(fromType.arrayType().dataStoredIn(DataLocation::CallData) || fromType.arrayType().dataStoredIn(DataLocation::Constant)) &&
 			fromType.arrayType().isDynamicallySized() &&
 			!fromType.arrayType().baseType()->isDynamicallyEncoded()
 		);
 
-		if (!targetType.dataStoredIn(DataLocation::CallData))
+		if (!targetType.dataStoredIn(DataLocation::CallData) && !targetType.dataStoredIn(DataLocation::Constant))
 			return arrayConversionFunction(fromType.arrayType(), targetType);
 
 		std::string const functionName =
@@ -3596,6 +3600,12 @@ std::string YulUtilFunctions::conversionFunction(Type const& _from, Type const& 
 			solAssert(fromStructType.structDefinition() == toStructType.structDefinition(), "");
 
 			if (fromStructType.location() == toStructType.location() && toStructType.isPointer())
+				body = "converted := value";
+			else if (
+				(fromStructType.location() == DataLocation::Constant && toStructType.location() == DataLocation::Memory) ||
+				(fromStructType.location() == DataLocation::Memory && toStructType.location() == DataLocation::Constant) ||
+				(fromStructType.location() == DataLocation::Constant && toStructType.location() == DataLocation::Constant)
+			)
 				body = "converted := value";
 			else
 			{
@@ -3741,7 +3751,7 @@ std::string YulUtilFunctions::bytesToFixedBytesConversionFunction(ArrayType cons
 		templ("fromCalldata", fromCalldata);
 		templ("arrayLen", arrayLengthFunction(_from));
 		templ("fixedBytesLen", std::to_string(_to.numBytes()));
-		templ("fromMemory", _from.dataStoredIn(DataLocation::Memory));
+		templ("fromMemory", _from.dataStoredIn(DataLocation::Memory) || _from.dataStoredIn(DataLocation::Constant));
 		templ("fromStorage", _from.dataStoredIn(DataLocation::Storage));
 		templ("dataArea", arrayDataAreaFunction(_from));
 		if (fromCalldata)
@@ -3827,7 +3837,7 @@ std::string YulUtilFunctions::copyStructToStorageFunction(StructType const& _fro
 			)");
 			bool fromCalldata = _from.location() == DataLocation::CallData;
 			t("fromCalldata", fromCalldata);
-			bool fromMemory = _from.location() == DataLocation::Memory;
+			bool fromMemory = _from.location() == DataLocation::Memory || _from.location() == DataLocation::Constant;
 			t("fromMemory", fromMemory);
 			bool fromStorage = _from.location() == DataLocation::Storage;
 			t("fromStorage", fromStorage);
@@ -3896,27 +3906,35 @@ std::string YulUtilFunctions::arrayConversionFunction(ArrayType const& _from, Ar
 		_to.identifier();
 
 	return m_functionCollector.createFunction(functionName, [&]() {
+		auto isDynOnStack = [](ArrayType const& t) {
+			return t.isDynamicallySized() &&
+				(t.dataStoredIn(DataLocation::CallData) ||
+				(t.dataStoredIn(DataLocation::Constant) && !t.isByteArrayOrString()));
+		};
 		Whiskers templ(R"(
-			function <functionName>(value<?fromCalldataDynamic>, length</fromCalldataDynamic>) -> converted <?toCalldataDynamic>, outLength</toCalldataDynamic> {
+			function <functionName>(value<?fromDynOnStack>, length</fromDynOnStack>) -> converted<?toDynOnStack>, outLength</toDynOnStack> {
 				<body>
-				<?toCalldataDynamic>
+				<?toDynOnStack>
 					outLength := <length>
-				</toCalldataDynamic>
+				</toDynOnStack>
 			}
 		)");
 		templ("functionName", functionName);
-		templ("fromCalldataDynamic", _from.dataStoredIn(DataLocation::CallData) && _from.isDynamicallySized());
-		templ("toCalldataDynamic", _to.dataStoredIn(DataLocation::CallData) && _to.isDynamicallySized());
+		templ("fromDynOnStack", isDynOnStack(_from));
+		templ("toDynOnStack", isDynOnStack(_to));
 		templ("length", _from.isDynamicallySized() ? "length" : _from.length().str());
 
 		if (
 			_from == _to ||
 			(_from.dataStoredIn(DataLocation::Memory) && _to.dataStoredIn(DataLocation::Memory)) ||
 			(_from.dataStoredIn(DataLocation::CallData) && _to.dataStoredIn(DataLocation::CallData)) ||
+			(_from.dataStoredIn(DataLocation::Constant) && _to.dataStoredIn(DataLocation::Constant)) ||
+			(_from.dataStoredIn(DataLocation::Constant) && _to.dataStoredIn(DataLocation::Memory)) ||
+			(_from.dataStoredIn(DataLocation::Memory) && _to.dataStoredIn(DataLocation::Constant)) ||
 			_to.dataStoredIn(DataLocation::Storage)
 		)
 			templ("body", "converted := value");
-		else if (_to.dataStoredIn(DataLocation::Memory))
+		else if (_to.dataStoredIn(DataLocation::Memory) || _to.dataStoredIn(DataLocation::Constant))
 			templ(
 				"body",
 				Whiskers(R"(

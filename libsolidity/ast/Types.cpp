@@ -1552,6 +1552,8 @@ TypeResult ReferenceType::unaryOperatorResult(Token _operator) const
 		return isPointer() ? nullptr : TypeProvider::emptyTuple();
 	case DataLocation::Transient:
 		solUnimplemented("Transient data location is only supported for value types.");
+	case DataLocation::Constant:
+		return nullptr;
 	}
 	return nullptr;
 }
@@ -1582,6 +1584,8 @@ std::string ReferenceType::stringForReferencePart() const
 	case DataLocation::Transient:
 		solUnimplemented("Transient data location is only supported for value types.");
 		break;
+	case DataLocation::Constant:
+		return "constant";
 	}
 	solAssert(false, "");
 	return "";
@@ -1603,6 +1607,9 @@ std::string ReferenceType::identifierLocationSuffix() const
 		break;
 	case DataLocation::CallData:
 		id += "_calldata";
+		break;
+	case DataLocation::Constant:
+		id += "_constant";
 		break;
 	}
 	if (isPointer())
@@ -1640,6 +1647,14 @@ BoolResult ArrayType::isImplicitlyConvertibleTo(Type const& _convertTo) const
 	if (convertTo.location() == DataLocation::Storage && !convertTo.isPointer())
 	{
 		// Less restrictive conversion, since we need to copy anyway.
+		if (!baseType()->isImplicitlyConvertibleTo(*convertTo.baseType()))
+			return false;
+		if (convertTo.isDynamicallySized())
+			return true;
+		return !isDynamicallySized() && convertTo.length() >= length();
+	}
+	else if (convertTo.location() == DataLocation::Constant)
+	{
 		if (!baseType()->isImplicitlyConvertibleTo(*convertTo.baseType()))
 			return false;
 		if (convertTo.isDynamicallySized())
@@ -1769,6 +1784,28 @@ BoolResult ArrayType::validForLocation(DataLocation _loc) const
 		case DataLocation::Transient:
 			solUnimplemented("Transient data location is only supported for value types.");
 			break;
+		case DataLocation::Constant:
+		{
+			bigint size = bigint(length());
+			auto type = m_baseType;
+			while (auto arrayType = dynamic_cast<ArrayType const*>(type))
+			{
+				if (arrayType->isDynamicallySized())
+					break;
+				else
+				{
+					size *= arrayType->length();
+					type = arrayType->baseType();
+				}
+			}
+			if (type->isDynamicallySized())
+				size *= type->memoryHeadSize();
+			else
+				size *= type->memoryDataSize();
+			if (size >= std::numeric_limits<unsigned>::max())
+				return BoolResult::err("Type too large for constant data.");
+			break;
+		}
 	}
 	return true;
 }
@@ -1852,6 +1889,11 @@ std::vector<std::tuple<std::string, Type const*>> ArrayType::makeStackItems() co
 		case DataLocation::Transient:
 			solUnimplemented("Transient data location is only supported for value types.");
 			break;
+		case DataLocation::Constant:
+			if (isDynamicallySized() && !isByteArrayOrString())
+				return {std::make_tuple("codeOffset", TypeProvider::uint256()), std::make_tuple("length", TypeProvider::uint256())};
+			else
+				return {std::make_tuple("codeOffset", TypeProvider::uint256())};
 	}
 	solAssert(false, "");
 }
@@ -2050,7 +2092,7 @@ BoolResult ArraySliceType::isImplicitlyConvertibleTo(Type const& _other) const
 	return
 		(*this) == _other ||
 		(
-			m_arrayType.dataStoredIn(DataLocation::CallData) &&
+			(m_arrayType.dataStoredIn(DataLocation::CallData) || m_arrayType.dataStoredIn(DataLocation::Constant)) &&
 			m_arrayType.isDynamicallySized() &&
 			m_arrayType.isImplicitlyConvertibleTo(_other)
 		);
@@ -2609,6 +2651,8 @@ std::vector<std::tuple<std::string, Type const*>> StructType::makeStackItems() c
 		case DataLocation::Transient:
 			solUnimplemented("Transient data location is only supported for value types.");
 			break;
+		case DataLocation::Constant:
+			return {std::make_tuple("codeOffset", TypeProvider::uint256())};
 	}
 	solAssert(false, "");
 }

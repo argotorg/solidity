@@ -2,6 +2,7 @@
 
 Language Features:
 * General: Add a builtin that computes the base slot of a storage namespace using the `erc7201` formula from ERC-7201.
+* General: Allow ``constant`` keyword for composite types (structs, arrays, function pointers) and as a data location for internal function parameters.
 
 Compiler Features:
 * Commandline Interface: Disallow selecting the deprecated assembly input mode that was only accessible via `--assemble` instead of treating it as equivalent to `--strict-assembly`.

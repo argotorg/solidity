@@ -154,6 +154,9 @@ public:
 	util::UniqueVector<ContractDefinition const*> const& subObjectsCreated() const { return m_subObjects; }
 	void addSubObject(ContractDefinition const* _contractDefinition) { m_subObjects.pushBack(_contractDefinition); }
 
+	void registerConstantData(std::string _name, bytes _data) { m_constantDataObjects.emplace_back(std::move(_name), std::move(_data)); }
+	std::vector<std::pair<std::string, bytes>> const& constantDataObjects() const { return m_constantDataObjects; }
+
 	bool memoryUnsafeInlineAssemblySeen() const { return m_memoryUnsafeInlineAssemblySeen; }
 	void setMemoryUnsafeInlineAssemblySeen() { m_memoryUnsafeInlineAssemblySeen = true; }
 
@@ -220,6 +223,8 @@ private:
 	InternalDispatchMap m_internalDispatchMap;
 
 	util::UniqueVector<ContractDefinition const*> m_subObjects;
+
+	std::vector<std::pair<std::string, bytes>> m_constantDataObjects;
 
 	langutil::DebugInfoSelection m_debugInfoSelection = {};
 	langutil::CharStreamProvider const* m_soliditySourceProvider = nullptr;

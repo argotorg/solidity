@@ -468,6 +468,30 @@ bool TypeChecker::visit(FunctionDefinition const& _function)
 	return false;
 }
 
+namespace
+{
+bool isCompileTimeConstantExpression(Expression const& _expr)
+{
+	if (*_expr.annotation().isPure)
+		return true;
+	if (auto const* ident = dynamic_cast<Identifier const*>(&_expr))
+	{
+		if (dynamic_cast<FunctionDefinition const*>(ident->annotation().referencedDeclaration))
+			if (auto const* fType = dynamic_cast<FunctionType const*>(ident->annotation().type))
+				if (fType->kind() == FunctionType::Kind::Internal)
+					return true;
+	}
+	if (auto const* tuple = dynamic_cast<TupleExpression const*>(&_expr))
+	{
+		for (auto const& comp: tuple->components())
+			if (comp && !isCompileTimeConstantExpression(*comp))
+				return false;
+		return true;
+	}
+	return false;
+}
+}
+
 bool TypeChecker::visit(VariableDeclaration const& _variable)
 {
 	_variable.typeName().accept(*this);
@@ -495,7 +519,7 @@ bool TypeChecker::visit(VariableDeclaration const& _variable)
 	{
 		if (!_variable.value())
 			m_errorReporter.typeError(4266_error, _variable.location(), "Uninitialized \"constant\" variable.");
-		else if (!*_variable.value()->annotation().isPure)
+		else if (!*_variable.value()->annotation().isPure && !isCompileTimeConstantExpression(*_variable.value()))
 			m_errorReporter.typeError(
 				8349_error,
 				_variable.value()->location(),
@@ -3579,8 +3603,8 @@ bool TypeChecker::visit(IndexAccess const& _access)
 	case Type::Category::ArraySlice:
 	{
 		auto const& arrayType = dynamic_cast<ArraySliceType const&>(*baseType).arrayType();
-		if (arrayType.location() != DataLocation::CallData || !arrayType.isDynamicallySized())
-			m_errorReporter.typeError(4802_error, _access.location(), "Index access is only implemented for slices of dynamic calldata arrays.");
+		if ((arrayType.location() != DataLocation::CallData && arrayType.location() != DataLocation::Constant) || !arrayType.isDynamicallySized())
+			m_errorReporter.typeError(4802_error, _access.location(), "Index access is only implemented for slices of dynamic calldata or constant arrays.");
 		baseType = &arrayType;
 		[[fallthrough]];
 	}
@@ -3720,8 +3744,11 @@ bool TypeChecker::visit(IndexRangeAccess const& _access)
 	else if (!(arrayType = dynamic_cast<ArrayType const*>(exprType)))
 		m_errorReporter.fatalTypeError(4781_error, _access.location(), "Index range access is only possible for arrays and array slices.");
 
-	if (arrayType->location() != DataLocation::CallData || !arrayType->isDynamicallySized())
-		m_errorReporter.typeError(1227_error, _access.location(), "Index range access is only supported for dynamic calldata arrays.");
+	if (
+		(arrayType->location() != DataLocation::CallData && arrayType->location() != DataLocation::Constant) ||
+		!arrayType->isDynamicallySized()
+	)
+		m_errorReporter.typeError(1227_error, _access.location(), "Index range access is only supported for dynamic calldata or constant arrays.");
 	else if (arrayType->baseType()->isDynamicallyEncoded())
 		m_errorReporter.typeError(2148_error, _access.location(), "Index range access is not supported for arrays with dynamically encoded base types.");
 	_access.annotation().type = TypeProvider::arraySlice(*arrayType);

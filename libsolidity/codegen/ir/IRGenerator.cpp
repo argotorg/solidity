@@ -151,6 +151,7 @@ std::string IRGenerator::generate(
 					<deployedFunctions>
 				}
 				<deployedSubObjects>
+				<constantDataBlocks>
 				data "<metadataName>" hex"<cborMetadata>"
 			}
 			<subObjects>
@@ -240,6 +241,12 @@ std::string IRGenerator::generate(
 	t("deployedSubObjects", subObjectSources(m_context.subObjectsCreated()));
 	t("metadataName", yul::Object::metadataName());
 	t("cborMetadata", util::toHex(_cborMetadata));
+	{
+		std::string cdoBlocks;
+		for (auto const& [name, data]: m_context.constantDataObjects())
+			cdoBlocks += "data \"" + name + "\" hex\"" + util::toHex(data) + "\"\n";
+		t("constantDataBlocks", cdoBlocks);
+	}
 
 	t("useSrcMapDeployed", formatUseSrcMap(m_context));
 

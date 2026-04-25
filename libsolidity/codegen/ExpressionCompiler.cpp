@@ -2143,6 +2143,9 @@ bool ExpressionCompiler::visit(MemberAccess const& _memberAccess)
 				case DataLocation::Transient:
 					solUnimplemented("Transient data location is only supported for value types.");
 					break;
+				case DataLocation::Constant:
+					solUnimplemented("Constant composite types require compilation via the IR pipeline (use --via-ir).");
+					break;
 				case DataLocation::Memory:
 					m_context << Instruction::MLOAD;
 					break;
@@ -2292,6 +2295,9 @@ bool ExpressionCompiler::visit(IndexAccess const& _indexAccess)
 					break;
 				case DataLocation::Transient:
 					solUnimplemented("Transient data location is only supported for value types.");
+					break;
+				case DataLocation::Constant:
+					solUnimplemented("Constant composite types require compilation via the IR pipeline (use --via-ir).");
 					break;
 				case DataLocation::Memory:
 					ArrayUtils(m_context).accessIndex(arrayType);

@@ -683,6 +683,9 @@ void ArrayUtils::retrieveLength(ArrayType const& _arrayType, unsigned _stackDept
 		case DataLocation::Transient:
 			solUnimplemented("Transient data location is only supported for value types.");
 			break;
+		case DataLocation::Constant:
+			solUnimplemented("Constant composite types require compilation via the IR pipeline (use --via-ir).");
+			break;
 		}
 	}
 }
@@ -782,6 +785,9 @@ void ArrayUtils::accessIndex(ArrayType const& _arrayType, bool _doBoundsCheck, b
 	}
 	case DataLocation::Transient:
 		solUnimplemented("Transient data location is only supported for value types.");
+		break;
+	case DataLocation::Constant:
+		solUnimplemented("Constant composite types require compilation via the IR pipeline (use --via-ir).");
 		break;
 	}
 }

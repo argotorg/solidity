@@ -28,6 +28,14 @@ can sometimes be cheaper than immutable values.
 Not all types for constants and immutables are implemented at this time. The only supported types are
 :ref:`strings <strings>` (only for constants) and :ref:`value types <value-types>`.
 
+When using the IR pipeline (``--via-ir``), ``constant`` also supports composite types:
+structs, fixed-size arrays (including nested), arrays of strings, structs with string fields,
+enum arrays, and arrays of internal function pointers.
+Dynamic arrays (``uint256[] constant``) are supported with slicing (``arr[s:e]``).
+
+Additionally, ``constant`` can be used as a data location specifier for parameters of
+``internal`` and ``private`` functions, enabling zero-copy passing of constant references.
+
 .. code-block:: solidity
 
     // SPDX-License-Identifier: GPL-3.0
