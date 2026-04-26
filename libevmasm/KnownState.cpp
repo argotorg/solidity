@@ -216,10 +216,13 @@ KnownState::StoreOperation KnownState::feedItem(AssemblyItem const& _item, bool 
 template <class Mapping> void intersect(Mapping& _this, Mapping const& _other)
 {
 	for (auto it = _this.begin(); it != _this.end();)
-		if (_other.count(it->first) && _other.at(it->first) == it->second)
+	{
+		auto oit = _other.find(it->first);
+		if (oit != _other.end() && oit->second == it->second)
 			++it;
 		else
 			it = _this.erase(it);
+	}
 }
 
 void KnownState::reduceToCommonKnowledge(KnownState const& _other, bool _combineSequenceNumbers)
