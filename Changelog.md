@@ -6,6 +6,7 @@ Compiler Features:
 
 Bugfixes:
 * NatSpec: Disallow `@return` tag in event documentation.
+* Type Checker: Report a proper error instead of triggering an internal compiler error when `string.concat` or `bytes.concat` is called with named arguments.
 
 
 ### 0.8.35 (2026-04-29)
