@@ -151,6 +151,9 @@ ASTPointer<SourceUnit> Parser::parse(CharStream& _charStream)
 				solAssert(m_experimentalSolidityEnabledInCurrentSourceUnit);
 				nodes.push_back(parseTypeClassInstantiation());
 				break;
+			case Token::Illegal:
+				fatalParserError(1108_error, to_string(m_scanner->currentError()));
+				break;
 			default:
 				if (
 					// Workaround because `error` is not a keyword.
@@ -499,6 +502,8 @@ ASTPointer<ContractDefinition> Parser::parseContractDefinition()
 			subNodes.push_back(parseEventDefinition());
 		else if (currentTokenValue == Token::Using)
 			subNodes.push_back(parseUsingDirective());
+		else if (currentTokenValue == Token::Illegal)
+			fatalParserError(1109_error, to_string(m_scanner->currentError()));
 		else
 			fatalParserError(9182_error, "Function, variable, struct or modifier declaration expected.");
 	}

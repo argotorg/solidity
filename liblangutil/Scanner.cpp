@@ -267,19 +267,24 @@ bool Scanner::skipWhitespaceExceptUnicodeLinebreak()
 namespace
 {
 
-/// Tries to scan for an RLO/LRO/RLE/LRE/PDF and keeps track of script writing direction override depth.
+/// Tries to scan for directional formatting and isolate markers and keeps track of script
+/// writing direction override depth.
 ///
 /// @returns ScannerError::NoError in case of successful parsing and directional encodings are paired
 ///          and error code in case the input's lexical parser state is invalid and this error should be reported
 ///          to the user.
 static ScannerError validateBiDiMarkup(CharStream& _stream, size_t _startPosition)
 {
-	static std::array<std::pair<std::string_view, int>, 5> constexpr directionalSequences{
+	static std::array<std::pair<std::string_view, int>, 9> constexpr directionalSequences{
 		std::pair<std::string_view, int>{"\xE2\x80\xAD", 1}, // U+202D (LRO - Left-to-Right Override)
 		std::pair<std::string_view, int>{"\xE2\x80\xAE", 1}, // U+202E (RLO - Right-to-Left Override)
 		std::pair<std::string_view, int>{"\xE2\x80\xAA", 1}, // U+202A (LRE - Left-to-Right Embedding)
 		std::pair<std::string_view, int>{"\xE2\x80\xAB", 1}, // U+202B (RLE - Right-to-Left Embedding)
-		std::pair<std::string_view, int>{"\xE2\x80\xAC", -1} // U+202C (PDF - Pop Directional Formatting
+		std::pair<std::string_view, int>{"\xE2\x80\xAC", -1}, // U+202C (PDF - Pop Directional Formatting)
+		std::pair<std::string_view, int>{"\xE2\x81\xA6", 1}, // U+2066 (LRI - Left-to-Right Isolate)
+		std::pair<std::string_view, int>{"\xE2\x81\xA7", 1}, // U+2067 (RLI - Right-to-Left Isolate)
+		std::pair<std::string_view, int>{"\xE2\x81\xA8", 1}, // U+2068 (FSI - First Strong Isolate)
+		std::pair<std::string_view, int>{"\xE2\x81\xA9", -1} // U+2069 (PDI - Pop Directional Isolate)
 	};
 
 	size_t endPosition = _stream.position();
@@ -464,8 +469,7 @@ Token Scanner::scanMultiLineDocComment()
 	literal.complete();
 	if (!endFound)
 		return setError(ScannerError::IllegalCommentTerminator);
-	else
-		return Token::CommentLiteral;
+	return Token::CommentLiteral;
 }
 
 Token Scanner::scanSlash()
@@ -488,6 +492,9 @@ Token Scanner::scanSlash()
 			m_skippedComments[NextNext].location.sourceName = m_sourceName;
 			m_skippedComments[NextNext].token = Token::CommentLiteral;
 			m_skippedComments[NextNext].location.end = static_cast<int>(scanSingleLineDocComment());
+			ScannerError unicodeDirectionError = validateBiDiMarkup(m_source, static_cast<size_t>(firstSlashPosition));
+			if (unicodeDirectionError != ScannerError::NoError)
+				return setError(unicodeDirectionError);
 			return Token::Whitespace;
 		}
 		else
@@ -520,8 +527,10 @@ Token Scanner::scanSlash()
 			m_skippedComments[NextNext].token = comment;
 			if (comment == Token::Illegal)
 				return Token::Illegal; // error already set
-			else
-				return Token::Whitespace;
+			ScannerError unicodeDirectionError = validateBiDiMarkup(m_source, static_cast<size_t>(firstSlashPosition));
+			if (unicodeDirectionError != ScannerError::NoError)
+				return setError(unicodeDirectionError);
+			return Token::Whitespace;
 		}
 		else
 			return skipMultiLineComment();

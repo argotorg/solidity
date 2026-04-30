@@ -6,6 +6,7 @@ Compiler Features:
 
 Bugfixes:
 * NatSpec: Disallow `@return` tag in event documentation.
+* Parser: Validate paired bidirectional formatting and isolate markers (LRI / RLI / FSI / PDI) and apply the validation to NatSpec doc comments (`///` and `/** */`), closing a Trojan Source mitigation gap.
 
 
 ### 0.8.35 (2026-04-29)
