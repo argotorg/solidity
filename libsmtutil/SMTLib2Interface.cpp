@@ -240,7 +240,7 @@ void SMTLib2Commands::push() {
 }
 
 void SMTLib2Commands::pop() {
-	smtAssert(!m_commands.empty());
+	smtAssert(!m_frameLimits.empty());
 	auto limit = m_frameLimits.back();
 	m_frameLimits.pop_back();
 	while (m_commands.size() > limit)
