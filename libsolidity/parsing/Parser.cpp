@@ -107,6 +107,9 @@ ASTPointer<SourceUnit> Parser::parse(CharStream& _charStream)
 		{
 			switch (m_scanner->currentToken())
 			{
+			case Token::Illegal:
+				fatalParserError(5985_error, to_string(m_scanner->currentError()));
+				break;
 			case Token::Pragma:
 				nodes.push_back(parsePragmaDirective(true));
 				break;
@@ -464,6 +467,8 @@ ASTPointer<ContractDefinition> Parser::parseContractDefinition()
 		Token currentTokenValue = m_scanner->currentToken();
 		if (currentTokenValue == Token::RBrace)
 			break;
+		else if (currentTokenValue == Token::Illegal)
+			fatalParserError(5100_error, to_string(m_scanner->currentError()));
 		else if (
 			(currentTokenValue == Token::Function && m_scanner->peekNextToken() != Token::LParen) ||
 			currentTokenValue == Token::Constructor ||

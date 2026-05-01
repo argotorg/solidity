@@ -5,6 +5,7 @@ Language Features:
 Compiler Features:
 
 Bugfixes:
+* Parser: Reject invalid UTF-8 byte sequences in NatSpec documentation comments instead of crashing during metadata serialization.
 
 
 ### 0.8.35 (2026-04-29)
