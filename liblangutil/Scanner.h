@@ -90,6 +90,8 @@ enum class ScannerError
 	DirectionalOverrideMismatch,
 
 	OctalNotAllowed,
+
+	IllegalCharacterInComment,
 };
 
 std::string to_string(ScannerError _errorCode);

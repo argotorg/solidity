@@ -53,6 +53,7 @@
 #include <liblangutil/Common.h>
 #include <liblangutil/Exceptions.h>
 #include <liblangutil/Scanner.h>
+#include <libsolutil/UTF8.h>
 
 #include <boost/algorithm/string/classification.hpp>
 
@@ -84,6 +85,7 @@ std::string to_string(ScannerError _errorCode)
 		case ScannerError::OctalNotAllowed: return "Octal numbers not allowed.";
 		case ScannerError::DirectionalOverrideUnderflow: return "Unicode direction override underflow in comment or string literal.";
 		case ScannerError::DirectionalOverrideMismatch: return "Mismatching directional override markers in comment or string literal.";
+		case ScannerError::IllegalCharacterInComment: return "Invalid UTF-8 sequence in documentation comment.";
 		default:
 			solAssert(false, "Unhandled case in to_string(ScannerError)");
 			return "";
@@ -488,6 +490,8 @@ Token Scanner::scanSlash()
 			m_skippedComments[NextNext].location.sourceName = m_sourceName;
 			m_skippedComments[NextNext].token = Token::CommentLiteral;
 			m_skippedComments[NextNext].location.end = static_cast<int>(scanSingleLineDocComment());
+			if (!util::validateUTF8(m_skippedComments[NextNext].literal))
+				return setError(ScannerError::IllegalCharacterInComment);
 			return Token::Whitespace;
 		}
 		else
@@ -520,8 +524,9 @@ Token Scanner::scanSlash()
 			m_skippedComments[NextNext].token = comment;
 			if (comment == Token::Illegal)
 				return Token::Illegal; // error already set
-			else
-				return Token::Whitespace;
+			if (!util::validateUTF8(m_skippedComments[NextNext].literal))
+				return setError(ScannerError::IllegalCharacterInComment);
+			return Token::Whitespace;
 		}
 		else
 			return skipMultiLineComment();

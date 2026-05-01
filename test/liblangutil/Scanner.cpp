@@ -797,6 +797,20 @@ BOOST_AUTO_TEST_CASE(multiline_comment_at_eos)
 	BOOST_CHECK_EQUAL(scanner.next(), Token::EOS);
 }
 
+BOOST_AUTO_TEST_CASE(invalid_utf8_in_single_line_doc_comment)
+{
+	TestScanner scanner(std::string("/// invalid \xF7\n"));
+	BOOST_CHECK_EQUAL(scanner.currentToken(), Token::Illegal);
+	BOOST_CHECK_EQUAL(scanner.currentError(), ScannerError::IllegalCharacterInComment);
+}
+
+BOOST_AUTO_TEST_CASE(invalid_utf8_in_multi_line_doc_comment)
+{
+	TestScanner scanner(std::string("/** invalid \xF7 */"));
+	BOOST_CHECK_EQUAL(scanner.currentToken(), Token::Illegal);
+	BOOST_CHECK_EQUAL(scanner.currentError(), ScannerError::IllegalCharacterInComment);
+}
+
 BOOST_AUTO_TEST_CASE(regular_line_break_in_single_line_comment)
 {
 	for (auto const& nl: {"\r", "\n", "\r\n"})
