@@ -1078,7 +1078,17 @@ TypeResult RationalNumberType::binaryOperatorResult(Token _operator, Type const*
 	if (_other->category() == Category::Integer || _other->category() == Category::FixedPoint)
 	{
 		if (isFractional())
-			return TypeResult::err("Fractional literals not supported.");
+		{
+			// A fractional rational literal cannot participate in operations whose
+			// result type is integer-only (shifts, exponentiation, or any operation
+			// against a non-fixed-point integer operand).
+			if (
+				_other->category() == Category::Integer ||
+				TokenTraits::isShiftOp(_operator) ||
+				_operator == Token::Exp
+			)
+				return TypeResult::err("Fractional literals not supported.");
+		}
 		else if (!integerType())
 			return TypeResult::err("Literal too large.");
 
