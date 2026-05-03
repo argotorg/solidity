@@ -44,6 +44,12 @@ emscripten_build/
 /reports/
 /benchmarks/
 
+# Generated Solidity sources produced by the benchmarking infrastructure
+/test/benchmarks/generated/
+
+# Real-world standard-JSON input files (downloaded separately, not committed)
+test/benchmarks/real-world/*.json
+
 # vim stuff
 [._]*.sw[a-p]
 [._]sw[a-p]
