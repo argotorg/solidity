@@ -253,9 +253,6 @@ void DocStringTagParser::checkParameters(
 	std::set<std::string> validParams;
 	for (auto const& p: _callable.parameters())
 		validParams.insert(p->name());
-	if (_callable.returnParameterList())
-		for (auto const& p: _callable.returnParameterList()->parameters())
-			validParams.insert(p->name());
 	auto paramRange = _annotation.docTags.equal_range("param");
 	for (auto i = paramRange.first; i != paramRange.second; ++i)
 		if (!validParams.count(i->second.paramName))
