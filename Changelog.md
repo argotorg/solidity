@@ -3,6 +3,7 @@
 Language Features:
 
 Compiler Features:
+* General: Speed up SHA-256 hashing (`picosha2`) by avoiding per-byte `vector::push_back` when consuming input.
 
 Bugfixes:
 * NatSpec: Disallow `@return` tag in event documentation.
