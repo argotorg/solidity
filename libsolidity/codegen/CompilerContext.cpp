@@ -550,7 +550,8 @@ void CompilerContext::optimizeYul(yul::Object& _object, OptimiserSettings const&
 		_optimiserSettings.yulOptimiserSteps,
 		_optimiserSettings.yulOptimiserCleanupSteps,
 		isCreation? std::nullopt : std::make_optional(_optimiserSettings.expectedExecutionsPerDeployment),
-		_externalIdentifiers
+		_externalIdentifiers,
+		true
 	);
 
 #ifdef SOL_OUTPUT_ASM

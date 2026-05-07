@@ -3,29 +3,31 @@
         "C": {
             "C": {
                 "evm": {
-                    "assembly": "    /* \"C\":79:503  contract C... */
-  0xa0
+                    "assembly": "  not(0x00)
+    /* \"C\":79:503  contract C... */
+  0x80
+  mstore
+  0xc0
   jumpi(tag_5, callvalue)
-  0x1f
   bytecodeSize
+  dup1
   codesize
-  dup2
-  swap1
   sub
-  swap2
-  dup3
-  add
+  swap1
   not(0x1f)
+  0x1f
+  dup4
+  add
   and
   dup4
   add
   swap2
-  sub(shl(0x40, 0x01), 0x01)
   dup4
-  gt
-  dup5
-  dup5
+  dup4
   lt
+  mload(0x68)
+  dup5
+  gt
   or
   tag_3
   jumpi
@@ -46,7 +48,7 @@
   jumpi
   mload
     /* \"C\":153:155  42 */
-  mstore(0x80, 0x2a)
+  mstore(0xa0, 0x2a)
   0x00
     /* \"C\":79:503  contract C... */
   sstore
@@ -58,7 +60,7 @@
   dup3
   codecopy
     /* \"C\":153:155  42 */
-  0x80
+  0xa0
     /* \"C\":79:503  contract C... */
   mload
   dup2
@@ -76,7 +78,8 @@ stop
 
 sub_0: assembly {
         /* \"C\":79:503  contract C... */
-      mstore(0x40, 0x80)
+      mstore(0x40, 0xa0)
+      mstore(0x80, not(0x00))
       jumpi(tag_2, iszero(lt(calldatasize, 0x04)))
       0x00
       dup1
@@ -178,19 +181,19 @@ sub_0: assembly {
       jumpi(tag_22, gt(0x20, returndatasize))
     tag_23:
         /* \"C\":79:503  contract C... */
-      0x1f
-      dup2
-      add
       not(0x1f)
+      0x1f
+      dup3
+      add
       and
       dup4
       add
-      0xffffffffffffffff
+      dup4
       dup2
-      gt
-      dup5
-      dup3
       lt
+      mload(0x68)
+      dup3
+      gt
       or
       tag_24
       jumpi
@@ -333,29 +336,31 @@ sub_0: assembly {
         "D": {
             "D": {
                 "evm": {
-                    "assembly": "    /* \"D\":91:181  contract D is C(3)... */
-  0xa0
+                    "assembly": "  not(0x00)
+    /* \"D\":91:181  contract D is C(3)... */
+  0x80
+  mstore
+  0xc0
   jumpi(tag_5, callvalue)
-  0x1f
   bytecodeSize
+  dup1
   codesize
-  dup2
-  swap1
   sub
-  swap2
-  dup3
-  add
+  swap1
   not(0x1f)
+  0x1f
+  dup4
+  add
   and
   dup4
   add
   swap2
-  sub(shl(0x40, 0x01), 0x01)
   dup4
-  gt
-  dup5
-  dup5
+  dup4
   lt
+  mload(0x68)
+  dup5
+  gt
   or
   tag_3
   jumpi
@@ -376,7 +381,7 @@ sub_0: assembly {
   jumpi
   mload
     /* \"C\":153:155  42 */
-  mstore(0x80, 0x2a)
+  mstore(0xa0, 0x2a)
     /* \"D\":91:181  contract D is C(3)... */
   dup1
     /* \"D\":107:108  3 */
@@ -400,7 +405,7 @@ sub_0: assembly {
   dup3
   codecopy
     /* \"C\":153:155  42 */
-  0x80
+  0xa0
     /* \"D\":91:181  contract D is C(3)... */
   mload
   dup2
@@ -422,7 +427,8 @@ stop
 
 sub_0: assembly {
         /* \"D\":91:181  contract D is C(3)... */
-      mstore(0x40, 0x80)
+      mstore(0x40, 0xa0)
+      mstore(0x80, not(0x00))
       jumpi(tag_2, iszero(lt(calldatasize, 0x04)))
       0x00
       dup1
@@ -524,19 +530,19 @@ sub_0: assembly {
       jumpi(tag_22, gt(0x20, returndatasize))
     tag_23:
         /* \"D\":91:181  contract D is C(3)... */
-      0x1f
-      dup2
-      add
       not(0x1f)
+      0x1f
+      dup3
+      add
       and
       dup4
       add
-      0xffffffffffffffff
+      dup4
       dup2
-      gt
-      dup5
-      dup3
       lt
+      mload(0x68)
+      dup3
+      gt
       or
       tag_24
       jumpi

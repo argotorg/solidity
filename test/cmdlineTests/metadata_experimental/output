@@ -36,7 +36,7 @@ Debug Data (ethdebug/format/program):
             "offset": 0,
             "operation": {
                 "arguments": [
-                    "0x80"
+                    "0xa0"
                 ],
                 "mnemonic": "PUSH1"
             }
@@ -92,7 +92,7 @@ Debug Data (ethdebug/format/program):
             },
             "offset": 5,
             "operation": {
-                "mnemonic": "CALLVALUE"
+                "mnemonic": "PUSH0"
             }
         },
         {
@@ -109,10 +109,7 @@ Debug Data (ethdebug/format/program):
             },
             "offset": 6,
             "operation": {
-                "arguments": [
-                    "0x19"
-                ],
-                "mnemonic": "PUSH1"
+                "mnemonic": "NOT"
             }
         },
         {
@@ -127,9 +124,12 @@ Debug Data (ethdebug/format/program):
                     }
                 }
             },
-            "offset": 8,
+            "offset": 7,
             "operation": {
-                "mnemonic": "JUMPI"
+                "arguments": [
+                    "0x80"
+                ],
+                "mnemonic": "PUSH1"
             }
         },
         {
@@ -146,10 +146,24 @@ Debug Data (ethdebug/format/program):
             },
             "offset": 9,
             "operation": {
-                "arguments": [
-                    "0x0e"
-                ],
-                "mnemonic": "PUSH1"
+                "mnemonic": "MSTORE"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 13,
+                        "offset": 56
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 10,
+            "operation": {
+                "mnemonic": "CALLVALUE"
             }
         },
         {
@@ -167,7 +181,7 @@ Debug Data (ethdebug/format/program):
             "offset": 11,
             "operation": {
                 "arguments": [
-                    "0x1d"
+                    "0x1e"
                 ],
                 "mnemonic": "PUSH1"
             }
@@ -186,7 +200,7 @@ Debug Data (ethdebug/format/program):
             },
             "offset": 13,
             "operation": {
-                "mnemonic": "JUMP"
+                "mnemonic": "JUMPI"
             }
         },
         {
@@ -203,25 +217,8 @@ Debug Data (ethdebug/format/program):
             },
             "offset": 14,
             "operation": {
-                "mnemonic": "JUMPDEST"
-            }
-        },
-        {
-            "context": {
-                "code": {
-                    "range": {
-                        "length": 13,
-                        "offset": 56
-                    },
-                    "source": {
-                        "id": 0
-                    }
-                }
-            },
-            "offset": 15,
-            "operation": {
                 "arguments": [
-                    "0x08"
+                    "0x13"
                 ],
                 "mnemonic": "PUSH1"
             }
@@ -238,7 +235,206 @@ Debug Data (ethdebug/format/program):
                     }
                 }
             },
-            "offset": 17,
+            "offset": 16,
+            "operation": {
+                "arguments": [
+                    "0x22"
+                ],
+                "mnemonic": "PUSH1"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 13,
+                        "offset": 56
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 18,
+            "operation": {
+                "mnemonic": "JUMP"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 13,
+                        "offset": 56
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 19,
+            "operation": {
+                "mnemonic": "JUMPDEST"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 13,
+                        "offset": 56
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 20,
+            "operation": {
+                "arguments": [
+                    "0x0d"
+                ],
+                "mnemonic": "PUSH1"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 13,
+                        "offset": 56
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 22,
+            "operation": {
+                "arguments": [
+                    "0x2d"
+                ],
+                "mnemonic": "PUSH1"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 13,
+                        "offset": 56
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 24,
+            "operation": {
+                "mnemonic": "DUP3"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 13,
+                        "offset": 56
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 25,
+            "operation": {
+                "mnemonic": "CODECOPY"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 13,
+                        "offset": 56
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 26,
+            "operation": {
+                "arguments": [
+                    "0x0d"
+                ],
+                "mnemonic": "PUSH1"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 13,
+                        "offset": 56
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 28,
+            "operation": {
+                "mnemonic": "SWAP1"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 13,
+                        "offset": 56
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 29,
+            "operation": {
+                "mnemonic": "RETURN"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 13,
+                        "offset": 56
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 30,
+            "operation": {
+                "mnemonic": "JUMPDEST"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 13,
+                        "offset": 56
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 31,
             "operation": {
                 "arguments": [
                     "0x28"
@@ -258,132 +454,7 @@ Debug Data (ethdebug/format/program):
                     }
                 }
             },
-            "offset": 19,
-            "operation": {
-                "mnemonic": "DUP3"
-            }
-        },
-        {
-            "context": {
-                "code": {
-                    "range": {
-                        "length": 13,
-                        "offset": 56
-                    },
-                    "source": {
-                        "id": 0
-                    }
-                }
-            },
-            "offset": 20,
-            "operation": {
-                "mnemonic": "CODECOPY"
-            }
-        },
-        {
-            "context": {
-                "code": {
-                    "range": {
-                        "length": 13,
-                        "offset": 56
-                    },
-                    "source": {
-                        "id": 0
-                    }
-                }
-            },
-            "offset": 21,
-            "operation": {
-                "arguments": [
-                    "0x08"
-                ],
-                "mnemonic": "PUSH1"
-            }
-        },
-        {
-            "context": {
-                "code": {
-                    "range": {
-                        "length": 13,
-                        "offset": 56
-                    },
-                    "source": {
-                        "id": 0
-                    }
-                }
-            },
-            "offset": 23,
-            "operation": {
-                "mnemonic": "SWAP1"
-            }
-        },
-        {
-            "context": {
-                "code": {
-                    "range": {
-                        "length": 13,
-                        "offset": 56
-                    },
-                    "source": {
-                        "id": 0
-                    }
-                }
-            },
-            "offset": 24,
-            "operation": {
-                "mnemonic": "RETURN"
-            }
-        },
-        {
-            "context": {
-                "code": {
-                    "range": {
-                        "length": 13,
-                        "offset": 56
-                    },
-                    "source": {
-                        "id": 0
-                    }
-                }
-            },
-            "offset": 25,
-            "operation": {
-                "mnemonic": "JUMPDEST"
-            }
-        },
-        {
-            "context": {
-                "code": {
-                    "range": {
-                        "length": 13,
-                        "offset": 56
-                    },
-                    "source": {
-                        "id": 0
-                    }
-                }
-            },
-            "offset": 26,
-            "operation": {
-                "arguments": [
-                    "0x23"
-                ],
-                "mnemonic": "PUSH1"
-            }
-        },
-        {
-            "context": {
-                "code": {
-                    "range": {
-                        "length": 13,
-                        "offset": 56
-                    },
-                    "source": {
-                        "id": 0
-                    }
-                }
-            },
-            "offset": 28,
+            "offset": 33,
             "operation": {
                 "mnemonic": "JUMP"
             }
@@ -400,7 +471,7 @@ Debug Data (ethdebug/format/program):
                     }
                 }
             },
-            "offset": 29,
+            "offset": 34,
             "operation": {
                 "mnemonic": "JUMPDEST"
             }
@@ -417,7 +488,7 @@ Debug Data (ethdebug/format/program):
                     }
                 }
             },
-            "offset": 30,
+            "offset": 35,
             "operation": {
                 "arguments": [
                     "0x40"
@@ -437,7 +508,7 @@ Debug Data (ethdebug/format/program):
                     }
                 }
             },
-            "offset": 32,
+            "offset": 37,
             "operation": {
                 "mnemonic": "MLOAD"
             }
@@ -454,7 +525,7 @@ Debug Data (ethdebug/format/program):
                     }
                 }
             },
-            "offset": 33,
+            "offset": 38,
             "operation": {
                 "mnemonic": "SWAP1"
             }
@@ -471,7 +542,7 @@ Debug Data (ethdebug/format/program):
                     }
                 }
             },
-            "offset": 34,
+            "offset": 39,
             "operation": {
                 "mnemonic": "JUMP"
             }
@@ -488,7 +559,7 @@ Debug Data (ethdebug/format/program):
                     }
                 }
             },
-            "offset": 35,
+            "offset": 40,
             "operation": {
                 "mnemonic": "JUMPDEST"
             }
@@ -505,7 +576,7 @@ Debug Data (ethdebug/format/program):
                     }
                 }
             },
-            "offset": 36,
+            "offset": 41,
             "operation": {
                 "mnemonic": "PUSH0"
             }
@@ -522,7 +593,7 @@ Debug Data (ethdebug/format/program):
                     }
                 }
             },
-            "offset": 37,
+            "offset": 42,
             "operation": {
                 "mnemonic": "DUP1"
             }
@@ -539,7 +610,7 @@ Debug Data (ethdebug/format/program):
                     }
                 }
             },
-            "offset": 38,
+            "offset": 43,
             "operation": {
                 "mnemonic": "REVERT"
             }

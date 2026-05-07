@@ -994,6 +994,7 @@ std::map<u256, u256> const& Assembly::optimiseInternal(
 			isCreation(),
 			isCreation() ? 1 : _settings.expectedExecutionsPerDeployment,
 			m_evmVersion,
+			_settings.useMemoryConstantOptimiser,
 			*this
 		);
 
@@ -1862,7 +1863,7 @@ Assembly const* Assembly::subAssemblyById(SubAssemblyID const _subId) const
 Assembly::OptimiserSettings Assembly::OptimiserSettings::translateSettings(frontend::OptimiserSettings const& _settings)
 {
 	// Constructing it this way so that we notice changes in the fields.
-	OptimiserSettings asmSettings{false,  false, false, false, false, false, 0};
+	OptimiserSettings asmSettings{false,  false, false, false, false, false, 0, false};
 	asmSettings.runInliner = _settings.runInliner;
 	asmSettings.runJumpdestRemover = _settings.runJumpdestRemover;
 	asmSettings.runPeephole = _settings.runPeephole;

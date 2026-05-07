@@ -4,8 +4,9 @@ object "D_8" {
     code {
         {
             /// @src 0:82:166  "contract D {..."
-            let _1 := memoryguard(0x80)
+            let _1 := memoryguard(0xa0)
             mstore(64, _1)
+            mstore(128, not(0))
             if callvalue() { revert(0, 0) }
             let _2 := datasize("D_8_deployed")
             codecopy(_1, dataoffset("D_8_deployed"), _2)

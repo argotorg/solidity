@@ -69,7 +69,8 @@ public:
 		std::string_view _optimisationSequence,
 		std::string_view _optimisationCleanupSequence,
 		std::optional<size_t> _expectedExecutionsPerDeployment,
-		std::set<YulName> const& _externallyUsedIdentifiers = {}
+		std::set<YulName> const& _externallyUsedIdentifiers = {},
+		bool _useMemoryConstantOptimiser = false
 	);
 
 	/// Ensures that specified sequence of step abbreviations is well-formed and can be executed.

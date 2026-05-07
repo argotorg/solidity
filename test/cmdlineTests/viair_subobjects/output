@@ -10,8 +10,9 @@ object "C_3" {
     code {
         {
             /// @src 0:82:95  "contract C {}"
-            let _1 := memoryguard(0x80)
+            let _1 := memoryguard(0xa0)
             mstore(64, _1)
+            mstore(128, not(0))
             if callvalue() { revert(0, 0) }
             let _2 := datasize("C_3_deployed")
             codecopy(_1, dataoffset("C_3_deployed"), _2)
@@ -42,8 +43,9 @@ object "D_16" {
     code {
         {
             /// @src 0:96:165  "contract D {..."
-            let _1 := memoryguard(0x80)
+            let _1 := memoryguard(0xa0)
             mstore(64, _1)
+            mstore(128, not(0))
             if callvalue() { revert(0, 0) }
             let _2 := datasize("D_16_deployed")
             codecopy(_1, dataoffset("D_16_deployed"), _2)
@@ -55,8 +57,9 @@ object "D_16" {
         code {
             {
                 /// @src 0:96:165  "contract D {..."
-                let _1 := memoryguard(0x80)
+                let _1 := memoryguard(0xa0)
                 mstore(64, _1)
+                mstore(128, not(0))
                 if iszero(lt(calldatasize(), 4))
                 {
                     if eq(0x26121ff0, shr(224, calldataload(0)))
@@ -66,7 +69,7 @@ object "D_16" {
                         /// @src 0:149:156  "new C()"
                         let _2 := datasize("C_3")
                         let _3 := add(_1, _2)
-                        if or(gt(_3, 0xffffffffffffffff), lt(_3, _1))
+                        if or(gt(_3, mload(104)), lt(_3, _1))
                         {
                             /// @src 0:96:165  "contract D {..."
                             mstore(0, shl(224, 0x4e487b71))
@@ -93,8 +96,9 @@ object "D_16" {
             code {
                 {
                     /// @src 0:82:95  "contract C {}"
-                    let _1 := memoryguard(0x80)
+                    let _1 := memoryguard(0xa0)
                     mstore(64, _1)
+                    mstore(128, not(0))
                     if callvalue() { revert(0, 0) }
                     let _2 := datasize("C_3_deployed")
                     codecopy(_1, dataoffset("C_3_deployed"), _2)

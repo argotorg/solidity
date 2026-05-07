@@ -40,6 +40,9 @@ namespace solidity::yul
 class Dialect;
 class GasMeter;
 
+/// @returns true if the block starts with the compiler-generated memory mask initialisation.
+bool blockInitialisesMemoryMask(Block const& _block, EVMDialect const& _dialect);
+
 /**
  * Optimisation stage that replaces constants by expressions that compute them.
  *
@@ -48,9 +51,10 @@ class GasMeter;
 class ConstantOptimiser: public ASTModifier
 {
 public:
-	ConstantOptimiser(EVMDialect const& _dialect, GasMeter const& _meter):
+	ConstantOptimiser(EVMDialect const& _dialect, GasMeter const& _meter, bool _useMemoryConstantOptimiser = false):
 		m_dialect(_dialect),
-		m_meter(_meter)
+		m_meter(_meter),
+		m_useMemoryConstantOptimiser(_useMemoryConstantOptimiser)
 	{}
 
 	void visit(Expression& _e) override;
@@ -65,6 +69,8 @@ private:
 	EVMDialect const& m_dialect;
 	GasMeter const& m_meter;
 	std::map<u256, Representation> m_cache;
+	std::map<u256, Representation> m_memoryCache;
+	bool m_useMemoryConstantOptimiser = false;
 };
 
 class RepresentationFinder
@@ -75,12 +81,16 @@ public:
 		EVMDialect const& _dialect,
 		GasMeter const& _meter,
 		langutil::DebugData::ConstPtr _debugData,
-		std::map<u256, Representation>& _cache
+		std::map<u256, Representation>& _cache,
+		std::map<u256, Representation>& _memoryCache,
+		bool _useMemoryConstantOptimiser
 	):
 		m_dialect(_dialect),
 		m_meter(_meter),
 		m_debugData(std::move(_debugData)),
-		m_cache(_cache)
+		m_cache(_cache),
+		m_memoryCache(_memoryCache),
+		m_useMemoryConstantOptimiser(_useMemoryConstantOptimiser)
 	{}
 
 	/// @returns a cheaper representation for the number than its representation
@@ -91,6 +101,7 @@ private:
 	/// Recursively try to find the cheapest representation of the given number,
 	/// literal if necessary.
 	Representation const& findRepresentation(u256 const& _value);
+	Representation const* memoryRepresentation(u256 const& _value);
 
 	Representation represent(u256 const& _value) const;
 	Representation represent(BuiltinHandle const& _instruction, Representation const& _arg) const;
@@ -104,6 +115,8 @@ private:
 	/// Counter for the complexity of optimization, will stop when it reaches zero.
 	size_t m_maxSteps = 10000;
 	std::map<u256, Representation>& m_cache;
+	std::map<u256, Representation>& m_memoryCache;
+	bool m_useMemoryConstantOptimiser = false;
 };
 
 }

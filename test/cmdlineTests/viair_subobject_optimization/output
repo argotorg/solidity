@@ -1,29 +1,31 @@
 
 ======= input.sol:C =======
 EVM assembly:
+  not(0x00)
     /* "input.sol":61:668  contract C {... */
   0x80
+  mstore
+  0xa0
   jumpi(tag_7, callvalue)
-  0x1f
   bytecodeSize
+  dup1
   codesize
-  dup2
-  swap1
   sub
-  swap2
-  dup3
-  add
+  swap1
   not(0x1f)
+  0x1f
+  dup4
+  add
   and
   dup4
   add
   swap2
-  sub(shl(0x40, 0x01), 0x01)
   dup4
-  gt
-  dup5
-  dup5
+  dup4
   lt
+  mload(0x68)
+  dup5
+  gt
   or
   tag_3
   jumpi
@@ -84,10 +86,11 @@ sub_0: assembly {
 ======= input.sol:D =======
 EVM assembly:
     /* "input.sol":669:772  contract D {... */
-  0x80
+  0xa0
   dup1
   0x40
   mstore
+  mstore(0x80, not(0x00))
   jumpi(tag_1, callvalue)
   dataSize(sub_0)
   swap1
@@ -103,8 +106,11 @@ tag_1:
 stop
 
 sub_0: assembly {
+      not(0x00)
         /* "input.sol":669:772  contract D {... */
       0x80
+      mstore
+      0xa0
       jumpi(tag_1, iszero(lt(calldatasize, 0x04)))
       0x00
       dup1
@@ -117,19 +123,19 @@ sub_0: assembly {
     tag_3:
       jumpi(tag_7, callvalue)
       jumpi(tag_7, slt(add(not(0x03), calldatasize), 0x00))
+      mload(0x68)
         /* "input.sol":745:765  type(C).creationCode */
       dataSize(sub_0)
-      swap1
+      swap2
         /* "input.sol":669:772  contract D {... */
       0x3f
-      dup3
+      dup4
       add
       not(0x1f)
       and
       dup2
       add
-      swap1
-      0xffffffffffffffff
+      swap2
       dup3
       gt
       dup2
@@ -206,29 +212,31 @@ sub_0: assembly {
     stop
 
     sub_0: assembly {
+          not(0x00)
             /* "input.sol":61:668  contract C {... */
           0x80
+          mstore
+          0xa0
           jumpi(tag_7, callvalue)
-          0x1f
           bytecodeSize
+          dup1
           codesize
-          dup2
-          swap1
           sub
-          swap2
-          dup3
-          add
+          swap1
           not(0x1f)
+          0x1f
+          dup4
+          add
           and
           dup4
           add
           swap2
-          sub(shl(0x40, 0x01), 0x01)
           dup4
-          gt
-          dup5
-          dup5
+          dup4
           lt
+          mload(0x68)
+          dup5
+          gt
           or
           tag_3
           jumpi

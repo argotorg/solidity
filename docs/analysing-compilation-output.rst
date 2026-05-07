@@ -28,7 +28,8 @@ The following would be the output of ``solc --asm contract.sol``
     ======= contract.sol:C =======
     EVM assembly:
         /* "contract.sol":0:86  contract C {... */
-      mstore(0x40, 0x80)
+      mstore(0x40, 0xa0)
+      mstore(0x80, not(0x00))
       callvalue
       dup1
       iszero
@@ -50,7 +51,8 @@ The following would be the output of ``solc --asm contract.sol``
 
     sub_0: assembly {
             /* "contract.sol":0:86  contract C {... */
-          mstore(0x40, 0x80)
+          mstore(0x40, 0xa0)
+          mstore(0x80, not(0x00))
           callvalue
           dup1
           iszero

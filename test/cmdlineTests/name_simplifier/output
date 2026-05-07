@@ -4,8 +4,9 @@ object "C_59" {
     code {
         {
             /// @src 0:346:625  "contract C {..."
-            let _1 := memoryguard(0x80)
+            let _1 := memoryguard(0xa0)
             mstore(64, _1)
+            mstore(128, not(0))
             if callvalue() { revert(0, 0) }
             let _2 := datasize("C_59_deployed")
             codecopy(_1, dataoffset("C_59_deployed"), _2)
@@ -17,7 +18,8 @@ object "C_59" {
         code {
             {
                 /// @src 0:346:625  "contract C {..."
-                mstore(64, memoryguard(0x80))
+                mstore(64, memoryguard(0xa0))
+                mstore(128, not(0))
                 if iszero(lt(calldatasize(), 4))
                 {
                     if eq(0xf8eddcc6, shr(224, calldataload(0)))
@@ -25,10 +27,10 @@ object "C_59" {
                         if callvalue() { revert(0, 0) }
                         if slt(add(calldatasize(), not(3)), 32) { revert(0, 0) }
                         let offset := calldataload(4)
-                        if gt(offset, 0xffffffffffffffff) { revert(0, 0) }
+                        if gt(offset, mload(104)) { revert(0, 0) }
                         if iszero(slt(add(offset, 35), calldatasize())) { revert(0, 0) }
                         let length := calldataload(add(4, offset))
-                        if gt(length, 0xffffffffffffffff)
+                        if gt(length, mload(104))
                         {
                             mstore(0, shl(224, 0x4e487b71))
                             mstore(4, 0x41)
@@ -38,7 +40,7 @@ object "C_59" {
                         let memPtr := 0
                         memPtr := mload(64)
                         let newFreePtr := add(memPtr, and(add(_1, 63), not(31)))
-                        if or(gt(newFreePtr, 0xffffffffffffffff), lt(newFreePtr, memPtr))
+                        if or(gt(newFreePtr, mload(104)), lt(newFreePtr, memPtr))
                         {
                             mstore(0, shl(224, 0x4e487b71))
                             mstore(4, 0x41)
@@ -58,7 +60,7 @@ object "C_59" {
                             let memPtr_1 := 0
                             memPtr_1 := mload(64)
                             let newFreePtr_1 := add(memPtr_1, 32)
-                            if or(gt(newFreePtr_1, 0xffffffffffffffff), lt(newFreePtr_1, memPtr_1))
+                            if or(gt(newFreePtr_1, mload(104)), lt(newFreePtr_1, memPtr_1))
                             {
                                 mstore(0, shl(224, 0x4e487b71))
                                 mstore(4, 0x41)
@@ -94,7 +96,7 @@ object "C_59" {
                         let memPtr_2 := 0
                         memPtr_2 := mload(64)
                         let newFreePtr_2 := add(memPtr_2, 160)
-                        if or(gt(newFreePtr_2, 0xffffffffffffffff), lt(newFreePtr_2, memPtr_2))
+                        if or(gt(newFreePtr_2, mload(104)), lt(newFreePtr_2, memPtr_2))
                         {
                             mstore(0, shl(224, 0x4e487b71))
                             mstore(4, 0x41)

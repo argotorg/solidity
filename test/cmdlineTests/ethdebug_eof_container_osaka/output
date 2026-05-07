@@ -34,7 +34,7 @@ Debug Data (ethdebug/format/program):
             "offset": 30,
             "operation": {
                 "arguments": [
-                    "0x80"
+                    "0xa0"
                 ],
                 "mnemonic": "PUSH1"
             }
@@ -90,7 +90,7 @@ Debug Data (ethdebug/format/program):
             },
             "offset": 35,
             "operation": {
-                "mnemonic": "CALLVALUE"
+                "mnemonic": "PUSH0"
             }
         },
         {
@@ -107,10 +107,7 @@ Debug Data (ethdebug/format/program):
             },
             "offset": 36,
             "operation": {
-                "arguments": [
-                    "0x0005"
-                ],
-                "mnemonic": "RJUMPI"
+                "mnemonic": "NOT"
             }
         },
         {
@@ -125,24 +122,7 @@ Debug Data (ethdebug/format/program):
                     }
                 }
             },
-            "offset": 39,
-            "operation": {
-                "mnemonic": "PUSH0"
-            }
-        },
-        {
-            "context": {
-                "code": {
-                    "range": {
-                        "length": 41,
-                        "offset": 60
-                    },
-                    "source": {
-                        "id": 0
-                    }
-                }
-            },
-            "offset": 40,
+            "offset": 37,
             "operation": {
                 "arguments": [
                     "0x80"
@@ -162,7 +142,98 @@ Debug Data (ethdebug/format/program):
                     }
                 }
             },
-            "offset": 42,
+            "offset": 39,
+            "operation": {
+                "mnemonic": "MSTORE"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 40,
+            "operation": {
+                "mnemonic": "CALLVALUE"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 41,
+            "operation": {
+                "arguments": [
+                    "0x0005"
+                ],
+                "mnemonic": "RJUMPI"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 44,
+            "operation": {
+                "mnemonic": "PUSH0"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 45,
+            "operation": {
+                "arguments": [
+                    "0xa0"
+                ],
+                "mnemonic": "PUSH1"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 47,
             "operation": {
                 "arguments": [
                     "0x00"
@@ -182,7 +253,7 @@ Debug Data (ethdebug/format/program):
                     }
                 }
             },
-            "offset": 44,
+            "offset": 49,
             "operation": {
                 "arguments": [
                     "0x0001"
@@ -202,7 +273,7 @@ Debug Data (ethdebug/format/program):
                     }
                 }
             },
-            "offset": 47,
+            "offset": 52,
             "operation": {
                 "mnemonic": "PUSH0"
             }
@@ -219,7 +290,7 @@ Debug Data (ethdebug/format/program):
                     }
                 }
             },
-            "offset": 48,
+            "offset": 53,
             "operation": {
                 "mnemonic": "DUP1"
             }
@@ -236,7 +307,7 @@ Debug Data (ethdebug/format/program):
                     }
                 }
             },
-            "offset": 49,
+            "offset": 54,
             "operation": {
                 "mnemonic": "REVERT"
             }
@@ -270,7 +341,7 @@ Debug Data of the runtime part (ethdebug/format/program):
             "offset": 67,
             "operation": {
                 "arguments": [
-                    "0x80"
+                    "0xa0"
                 ],
                 "mnemonic": "PUSH1"
             }
@@ -326,6 +397,77 @@ Debug Data of the runtime part (ethdebug/format/program):
             },
             "offset": 72,
             "operation": {
+                "mnemonic": "PUSH0"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 73,
+            "operation": {
+                "mnemonic": "NOT"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 74,
+            "operation": {
+                "arguments": [
+                    "0x80"
+                ],
+                "mnemonic": "PUSH1"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 76,
+            "operation": {
+                "mnemonic": "MSTORE"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 77,
+            "operation": {
                 "arguments": [
                     "0x04"
                 ],
@@ -344,7 +486,7 @@ Debug Data of the runtime part (ethdebug/format/program):
                     }
                 }
             },
-            "offset": 74,
+            "offset": 79,
             "operation": {
                 "mnemonic": "CALLDATASIZE"
             }
@@ -361,7 +503,7 @@ Debug Data of the runtime part (ethdebug/format/program):
                     }
                 }
             },
-            "offset": 75,
+            "offset": 80,
             "operation": {
                 "mnemonic": "LT"
             }
@@ -378,7 +520,7 @@ Debug Data of the runtime part (ethdebug/format/program):
                     }
                 }
             },
-            "offset": 76,
+            "offset": 81,
             "operation": {
                 "mnemonic": "ISZERO"
             }
@@ -395,7 +537,7 @@ Debug Data of the runtime part (ethdebug/format/program):
                     }
                 }
             },
-            "offset": 77,
+            "offset": 82,
             "operation": {
                 "arguments": [
                     "0x0003"
@@ -415,7 +557,7 @@ Debug Data of the runtime part (ethdebug/format/program):
                     }
                 }
             },
-            "offset": 80,
+            "offset": 85,
             "operation": {
                 "arguments": [
                     "0x0008"
@@ -435,7 +577,7 @@ Debug Data of the runtime part (ethdebug/format/program):
                     }
                 }
             },
-            "offset": 83,
+            "offset": 88,
             "operation": {
                 "mnemonic": "PUSH0"
             }
@@ -452,7 +594,7 @@ Debug Data of the runtime part (ethdebug/format/program):
                     }
                 }
             },
-            "offset": 84,
+            "offset": 89,
             "operation": {
                 "mnemonic": "CALLDATALOAD"
             }
@@ -469,7 +611,7 @@ Debug Data of the runtime part (ethdebug/format/program):
                     }
                 }
             },
-            "offset": 85,
+            "offset": 90,
             "operation": {
                 "arguments": [
                     "0x0001"
@@ -489,7 +631,7 @@ Debug Data of the runtime part (ethdebug/format/program):
                     }
                 }
             },
-            "offset": 88,
+            "offset": 93,
             "operation": {
                 "arguments": [
                     "0x26121ff0"
@@ -509,7 +651,7 @@ Debug Data of the runtime part (ethdebug/format/program):
                     }
                 }
             },
-            "offset": 93,
+            "offset": 98,
             "operation": {
                 "mnemonic": "EQ"
             }
@@ -526,7 +668,7 @@ Debug Data of the runtime part (ethdebug/format/program):
                     }
                 }
             },
-            "offset": 94,
+            "offset": 99,
             "operation": {
                 "arguments": [
                     "0x0003"
@@ -546,7 +688,7 @@ Debug Data of the runtime part (ethdebug/format/program):
                     }
                 }
             },
-            "offset": 97,
+            "offset": 102,
             "operation": {
                 "arguments": [
                     "0xffec"
@@ -566,7 +708,7 @@ Debug Data of the runtime part (ethdebug/format/program):
                     }
                 }
             },
-            "offset": 100,
+            "offset": 105,
             "operation": {
                 "arguments": [
                     "0x0007"
@@ -586,7 +728,7 @@ Debug Data of the runtime part (ethdebug/format/program):
                     }
                 }
             },
-            "offset": 103,
+            "offset": 108,
             "operation": {
                 "arguments": [
                     "0xe0"
@@ -606,7 +748,7 @@ Debug Data of the runtime part (ethdebug/format/program):
                     }
                 }
             },
-            "offset": 105,
+            "offset": 110,
             "operation": {
                 "mnemonic": "SHR"
             }
@@ -623,7 +765,7 @@ Debug Data of the runtime part (ethdebug/format/program):
                     }
                 }
             },
-            "offset": 106,
+            "offset": 111,
             "operation": {
                 "mnemonic": "RETF"
             }
@@ -640,7 +782,7 @@ Debug Data of the runtime part (ethdebug/format/program):
                     }
                 }
             },
-            "offset": 107,
+            "offset": 112,
             "operation": {
                 "arguments": [
                     "0x40"
@@ -660,7 +802,7 @@ Debug Data of the runtime part (ethdebug/format/program):
                     }
                 }
             },
-            "offset": 109,
+            "offset": 114,
             "operation": {
                 "mnemonic": "MLOAD"
             }
@@ -677,7 +819,7 @@ Debug Data of the runtime part (ethdebug/format/program):
                     }
                 }
             },
-            "offset": 110,
+            "offset": 115,
             "operation": {
                 "mnemonic": "RETF"
             }
@@ -694,94 +836,9 @@ Debug Data of the runtime part (ethdebug/format/program):
                     }
                 }
             },
-            "offset": 111,
-            "operation": {
-                "mnemonic": "PUSH0"
-            }
-        },
-        {
-            "context": {
-                "code": {
-                    "range": {
-                        "length": 41,
-                        "offset": 60
-                    },
-                    "source": {
-                        "id": 0
-                    }
-                }
-            },
-            "offset": 112,
-            "operation": {
-                "mnemonic": "DUP1"
-            }
-        },
-        {
-            "context": {
-                "code": {
-                    "range": {
-                        "length": 41,
-                        "offset": 60
-                    },
-                    "source": {
-                        "id": 0
-                    }
-                }
-            },
-            "offset": 113,
-            "operation": {
-                "mnemonic": "REVERT"
-            }
-        },
-        {
-            "context": {
-                "code": {
-                    "range": {
-                        "length": 41,
-                        "offset": 60
-                    },
-                    "source": {
-                        "id": 0
-                    }
-                }
-            },
-            "offset": 114,
-            "operation": {
-                "mnemonic": "PUSH0"
-            }
-        },
-        {
-            "context": {
-                "code": {
-                    "range": {
-                        "length": 41,
-                        "offset": 60
-                    },
-                    "source": {
-                        "id": 0
-                    }
-                }
-            },
-            "offset": 115,
-            "operation": {
-                "mnemonic": "DUP1"
-            }
-        },
-        {
-            "context": {
-                "code": {
-                    "range": {
-                        "length": 41,
-                        "offset": 60
-                    },
-                    "source": {
-                        "id": 0
-                    }
-                }
-            },
             "offset": 116,
             "operation": {
-                "mnemonic": "REVERT"
+                "mnemonic": "PUSH0"
             }
         },
         {
@@ -798,7 +855,7 @@ Debug Data of the runtime part (ethdebug/format/program):
             },
             "offset": 117,
             "operation": {
-                "mnemonic": "PUSH0"
+                "mnemonic": "DUP1"
             }
         },
         {
@@ -815,7 +872,7 @@ Debug Data of the runtime part (ethdebug/format/program):
             },
             "offset": 118,
             "operation": {
-                "mnemonic": "SWAP2"
+                "mnemonic": "REVERT"
             }
         },
         {
@@ -832,7 +889,7 @@ Debug Data of the runtime part (ethdebug/format/program):
             },
             "offset": 119,
             "operation": {
-                "mnemonic": "SUB"
+                "mnemonic": "PUSH0"
             }
         },
         {
@@ -849,7 +906,7 @@ Debug Data of the runtime part (ethdebug/format/program):
             },
             "offset": 120,
             "operation": {
-                "mnemonic": "SLT"
+                "mnemonic": "DUP1"
             }
         },
         {
@@ -865,6 +922,91 @@ Debug Data of the runtime part (ethdebug/format/program):
                 }
             },
             "offset": 121,
+            "operation": {
+                "mnemonic": "REVERT"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 122,
+            "operation": {
+                "mnemonic": "PUSH0"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 123,
+            "operation": {
+                "mnemonic": "SWAP2"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 124,
+            "operation": {
+                "mnemonic": "SUB"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 125,
+            "operation": {
+                "mnemonic": "SLT"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 126,
             "operation": {
                 "arguments": [
                     "0x0001"
@@ -884,7 +1026,7 @@ Debug Data of the runtime part (ethdebug/format/program):
                     }
                 }
             },
-            "offset": 124,
+            "offset": 129,
             "operation": {
                 "mnemonic": "RETF"
             }
@@ -901,7 +1043,7 @@ Debug Data of the runtime part (ethdebug/format/program):
                     }
                 }
             },
-            "offset": 125,
+            "offset": 130,
             "operation": {
                 "arguments": [
                     "0x0004"
@@ -921,7 +1063,7 @@ Debug Data of the runtime part (ethdebug/format/program):
                     }
                 }
             },
-            "offset": 128,
+            "offset": 133,
             "operation": {
                 "mnemonic": "PUSH0"
             }
@@ -938,7 +1080,7 @@ Debug Data of the runtime part (ethdebug/format/program):
                     }
                 }
             },
-            "offset": 129,
+            "offset": 134,
             "operation": {
                 "mnemonic": "ADD"
             }
@@ -955,7 +1097,7 @@ Debug Data of the runtime part (ethdebug/format/program):
                     }
                 }
             },
-            "offset": 130,
+            "offset": 135,
             "operation": {
                 "mnemonic": "RETF"
             }
@@ -972,7 +1114,7 @@ Debug Data of the runtime part (ethdebug/format/program):
                     }
                 }
             },
-            "offset": 131,
+            "offset": 136,
             "operation": {
                 "mnemonic": "CALLVALUE"
             }
@@ -989,7 +1131,7 @@ Debug Data of the runtime part (ethdebug/format/program):
                     }
                 }
             },
-            "offset": 132,
+            "offset": 137,
             "operation": {
                 "arguments": [
                     "0x0011"
@@ -1009,7 +1151,7 @@ Debug Data of the runtime part (ethdebug/format/program):
                     }
                 }
             },
-            "offset": 135,
+            "offset": 140,
             "operation": {
                 "mnemonic": "CALLDATASIZE"
             }
@@ -1026,7 +1168,7 @@ Debug Data of the runtime part (ethdebug/format/program):
                     }
                 }
             },
-            "offset": 136,
+            "offset": 141,
             "operation": {
                 "arguments": [
                     "0x04"
@@ -1046,7 +1188,7 @@ Debug Data of the runtime part (ethdebug/format/program):
                     }
                 }
             },
-            "offset": 138,
+            "offset": 143,
             "operation": {
                 "arguments": [
                     "0x0005"
@@ -1066,7 +1208,7 @@ Debug Data of the runtime part (ethdebug/format/program):
                     }
                 }
             },
-            "offset": 141,
+            "offset": 146,
             "operation": {
                 "arguments": [
                     "0x0002"
@@ -1086,7 +1228,7 @@ Debug Data of the runtime part (ethdebug/format/program):
                     }
                 }
             },
-            "offset": 144,
+            "offset": 149,
             "operation": {
                 "mnemonic": "DUP1"
             }
@@ -1103,7 +1245,7 @@ Debug Data of the runtime part (ethdebug/format/program):
                     }
                 }
             },
-            "offset": 145,
+            "offset": 150,
             "operation": {
                 "mnemonic": "DUP1"
             }
@@ -1120,7 +1262,7 @@ Debug Data of the runtime part (ethdebug/format/program):
                     }
                 }
             },
-            "offset": 146,
+            "offset": 151,
             "operation": {
                 "arguments": [
                     "0x0006"
@@ -1140,7 +1282,7 @@ Debug Data of the runtime part (ethdebug/format/program):
                     }
                 }
             },
-            "offset": 149,
+            "offset": 154,
             "operation": {
                 "mnemonic": "SUB"
             }
@@ -1157,7 +1299,7 @@ Debug Data of the runtime part (ethdebug/format/program):
                     }
                 }
             },
-            "offset": 150,
+            "offset": 155,
             "operation": {
                 "mnemonic": "SWAP1"
             }
@@ -1174,7 +1316,7 @@ Debug Data of the runtime part (ethdebug/format/program):
                     }
                 }
             },
-            "offset": 151,
+            "offset": 156,
             "operation": {
                 "mnemonic": "RETURN"
             }
@@ -1191,7 +1333,7 @@ Debug Data of the runtime part (ethdebug/format/program):
                     }
                 }
             },
-            "offset": 152,
+            "offset": 157,
             "operation": {
                 "arguments": [
                     "0x0003"
@@ -1211,7 +1353,7 @@ Debug Data of the runtime part (ethdebug/format/program):
                     }
                 }
             },
-            "offset": 155,
+            "offset": 160,
             "operation": {
                 "mnemonic": "PUSH0"
             }
@@ -1228,7 +1370,7 @@ Debug Data of the runtime part (ethdebug/format/program):
                     }
                 }
             },
-            "offset": 156,
+            "offset": 161,
             "operation": {
                 "mnemonic": "DUP1"
             }
@@ -1245,7 +1387,7 @@ Debug Data of the runtime part (ethdebug/format/program):
                     }
                 }
             },
-            "offset": 157,
+            "offset": 162,
             "operation": {
                 "mnemonic": "REVERT"
             }

@@ -8,7 +8,7 @@ EVM assembly:
       "end": 160,
       "name": "PUSH",
       "source": 0,
-      "value": "80"
+      "value": "A0"
     },
     {
       "begin": 60,
@@ -16,6 +16,32 @@ EVM assembly:
       "name": "PUSH",
       "source": 0,
       "value": "40"
+    },
+    {
+      "begin": 60,
+      "end": 160,
+      "name": "MSTORE",
+      "source": 0
+    },
+    {
+      "begin": 60,
+      "end": 160,
+      "name": "PUSH",
+      "source": 0,
+      "value": "0"
+    },
+    {
+      "begin": 60,
+      "end": 160,
+      "name": "NOT",
+      "source": 0
+    },
+    {
+      "begin": 60,
+      "end": 160,
+      "name": "PUSH",
+      "source": 0,
+      "value": "80"
     },
     {
       "begin": 60,
@@ -149,7 +175,7 @@ EVM assembly:
           "end": 160,
           "name": "PUSH",
           "source": 0,
-          "value": "80"
+          "value": "A0"
         },
         {
           "begin": 60,
@@ -157,6 +183,32 @@ EVM assembly:
           "name": "PUSH",
           "source": 0,
           "value": "40"
+        },
+        {
+          "begin": 60,
+          "end": 160,
+          "name": "MSTORE",
+          "source": 0
+        },
+        {
+          "begin": 60,
+          "end": 160,
+          "name": "PUSH",
+          "source": 0,
+          "value": "0"
+        },
+        {
+          "begin": 60,
+          "end": 160,
+          "name": "NOT",
+          "source": 0
+        },
+        {
+          "begin": 60,
+          "end": 160,
+          "name": "PUSH",
+          "source": 0,
+          "value": "80"
         },
         {
           "begin": 60,

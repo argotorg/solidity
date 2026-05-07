@@ -62,7 +62,7 @@ void Compiler::compileContract(
 	ContractCompiler creationCompiler(&runtimeCompiler, m_context, creationSettings);
 	m_runtimeSub = creationCompiler.compileConstructor(_contract, _otherCompilers);
 
-	m_context.optimise(m_optimiserSettings);
+	m_context.optimise(m_optimiserSettings, true);
 
 	solAssert(m_context.appendYulUtilityFunctionsRan(), "appendYulUtilityFunctions() was not called.");
 	solAssert(m_runtimeContext.appendYulUtilityFunctionsRan(), "appendYulUtilityFunctions() was not called.");

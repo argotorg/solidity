@@ -242,8 +242,8 @@ hiding new and different behavior in existing code.
           function f() public {
               uint[] memory arr;
               // allocation size: 576460752303423481
-              // assumes freeMemPtr points to 0x80 initially
-              uint solYulMaxAllocationBeforeMemPtrOverflow = (type(uint64).max - 0x80 - 31) / 32;
+              // assumes freeMemPtr points to 0xa0 initially
+              uint solYulMaxAllocationBeforeMemPtrOverflow = (type(uint64).max - 0xa0 - 31) / 32;
               // freeMemPtr overflows UINT64_MAX
               arr = new uint[](solYulMaxAllocationBeforeMemPtrOverflow);
           }

@@ -15,7 +15,8 @@
 object \"A1_14\" {
     code {
         /// @src 0:58:123  \"contract A1 { function a(uint x) public pure { assert(x > 0); } }\"
-        mstore(64, memoryguard(128))
+        mstore(64, memoryguard(160))
+        mstore(128, not(0))
         if callvalue() { revert_error_ca66f745a3ce8ff40e2ccaf1ad45db7774001b90d25810abd9040049be7bf4bb() }
 
         constructor_A1_14()
@@ -46,7 +47,8 @@ object \"A1_14\" {
     object \"A1_14_deployed\" {
         code {
             /// @src 0:58:123  \"contract A1 { function a(uint x) public pure { assert(x > 0); } }\"
-            mstore(64, memoryguard(128))
+            mstore(64, memoryguard(160))
+            mstore(128, not(0))
 
             if iszero(lt(calldatasize(), 4))
             {
@@ -195,7 +197,8 @@ object \"A1_14\" {
 object \"A2_27\" {
     code {
         /// @src 0:124:189  \"contract A2 { function a(uint x) public pure { assert(x > 0); } }\"
-        mstore(64, memoryguard(128))
+        mstore(64, memoryguard(160))
+        mstore(128, not(0))
         if callvalue() { revert_error_ca66f745a3ce8ff40e2ccaf1ad45db7774001b90d25810abd9040049be7bf4bb() }
 
         constructor_A2_27()
@@ -226,7 +229,8 @@ object \"A2_27\" {
     object \"A2_27_deployed\" {
         code {
             /// @src 0:124:189  \"contract A2 { function a(uint x) public pure { assert(x > 0); } }\"
-            mstore(64, memoryguard(128))
+            mstore(64, memoryguard(160))
+            mstore(128, not(0))
 
             if iszero(lt(calldatasize(), 4))
             {
@@ -377,7 +381,8 @@ object \"A2_27\" {
 object \"A1_42\" {
     code {
         /// @src 1:58:123  \"contract A1 { function b(uint x) public pure { assert(x > 0); } }\"
-        mstore(64, memoryguard(128))
+        mstore(64, memoryguard(160))
+        mstore(128, not(0))
         if callvalue() { revert_error_ca66f745a3ce8ff40e2ccaf1ad45db7774001b90d25810abd9040049be7bf4bb() }
 
         constructor_A1_42()
@@ -408,7 +413,8 @@ object \"A1_42\" {
     object \"A1_42_deployed\" {
         code {
             /// @src 1:58:123  \"contract A1 { function b(uint x) public pure { assert(x > 0); } }\"
-            mstore(64, memoryguard(128))
+            mstore(64, memoryguard(160))
+            mstore(128, not(0))
 
             if iszero(lt(calldatasize(), 4))
             {
@@ -557,7 +563,8 @@ object \"A1_42\" {
 object \"B2_55\" {
     code {
         /// @src 1:124:189  \"contract B2 { function b(uint x) public pure { assert(x > 0); } }\"
-        mstore(64, memoryguard(128))
+        mstore(64, memoryguard(160))
+        mstore(128, not(0))
         if callvalue() { revert_error_ca66f745a3ce8ff40e2ccaf1ad45db7774001b90d25810abd9040049be7bf4bb() }
 
         constructor_B2_55()
@@ -588,7 +595,8 @@ object \"B2_55\" {
     object \"B2_55_deployed\" {
         code {
             /// @src 1:124:189  \"contract B2 { function b(uint x) public pure { assert(x > 0); } }\"
-            mstore(64, memoryguard(128))
+            mstore(64, memoryguard(160))
+            mstore(128, not(0))
 
             if iszero(lt(calldatasize(), 4))
             {

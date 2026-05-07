@@ -7,7 +7,8 @@
 object \"C_54\" {
     code {
         /// @src 0:79:510  \"contract C...\"
-        mstore(64, memoryguard(160))
+        mstore(64, memoryguard(192))
+        mstore(128, not(0))
         if callvalue() { revert_error_ca66f745a3ce8ff40e2ccaf1ad45db7774001b90d25810abd9040049be7bf4bb() }
 
         let _1 := copy_arguments_for_constructor_20_object_C_54()
@@ -16,7 +17,7 @@ object \"C_54\" {
         let _2 := allocate_unbounded()
         codecopy(_2, dataoffset(\"C_54_deployed\"), datasize(\"C_54_deployed\"))
 
-        setimmutable(_2, \"8\", mload(128))
+        setimmutable(_2, \"8\", mload(160))
 
         return(_2, datasize(\"C_54_deployed\"))
 
@@ -142,7 +143,7 @@ object \"C_54\" {
             /// @src 0:160:162  \"42\"
             let expr_7 := 0x2a
             let _3 := convert_t_rational_42_by_1_to_t_int256(expr_7)
-            mstore(128, _3)
+            mstore(160, _3)
 
             /// @src 0:242:247  \"_init\"
             let _4 := var__init_12
@@ -159,7 +160,8 @@ object \"C_54\" {
     object \"C_54_deployed\" {
         code {
             /// @src 0:79:510  \"contract C...\"
-            mstore(64, memoryguard(128))
+            mstore(64, memoryguard(160))
+            mstore(128, not(0))
 
             if iszero(lt(calldatasize(), 4))
             {
@@ -615,7 +617,8 @@ object \"C_54\" {
     code {
         {
             /// @src 0:79:510  \"contract C...\"
-            let _1 := memoryguard(0xa0)
+            let _1 := memoryguard(0xc0)
+            mstore(128, not(0))
             if callvalue() { revert(0, 0) }
             let programSize := datasize(\"C_54\")
             let argSize := sub(codesize(), programSize)
@@ -635,13 +638,13 @@ object \"C_54\" {
             /// @src 0:79:510  \"contract C...\"
             let value := mload(_1)
             /// @src 0:160:162  \"42\"
-            mstore(128, 0x2a)
+            mstore(160, 0x2a)
             /// @src 0:79:510  \"contract C...\"
             sstore(/** @src -1:-1:-1 */ 0, /** @src 0:79:510  \"contract C...\" */ value)
             let _2 := mload(64)
             let _3 := datasize(\"C_54_deployed\")
             codecopy(_2, dataoffset(\"C_54_deployed\"), _3)
-            setimmutable(_2, \"8\", mload(/** @src 0:160:162  \"42\" */ 128))
+            setimmutable(_2, \"8\", mload(/** @src 0:160:162  \"42\" */ 160))
             /// @src 0:79:510  \"contract C...\"
             return(_2, _3)
         }
@@ -651,7 +654,8 @@ object \"C_54\" {
         code {
             {
                 /// @src 0:79:510  \"contract C...\"
-                mstore(64, memoryguard(0x80))
+                mstore(64, memoryguard(0xa0))
+                mstore(128, not(0))
                 if iszero(lt(calldatasize(), 4))
                 {
                     switch shr(224, calldataload(0))
@@ -774,7 +778,8 @@ object \"C_54\" {
 object \"D_72\" {
     code {
         /// @src 1:91:181  \"contract D is C(3)...\"
-        mstore(64, memoryguard(160))
+        mstore(64, memoryguard(192))
+        mstore(128, not(0))
         if callvalue() { revert_error_ca66f745a3ce8ff40e2ccaf1ad45db7774001b90d25810abd9040049be7bf4bb() }
 
         let _1 := copy_arguments_for_constructor_71_object_D_72()
@@ -783,7 +788,7 @@ object \"D_72\" {
         let _2 := allocate_unbounded()
         codecopy(_2, dataoffset(\"D_72_deployed\"), datasize(\"D_72_deployed\"))
 
-        setimmutable(_2, \"8\", mload(128))
+        setimmutable(_2, \"8\", mload(160))
 
         return(_2, datasize(\"D_72_deployed\"))
 
@@ -979,7 +984,7 @@ object \"D_72\" {
             /// @src 0:160:162  \"42\"
             let expr_7 := 0x2a
             let _6 := convert_t_rational_42_by_1_to_t_int256(expr_7)
-            mstore(128, _6)
+            mstore(160, _6)
 
             /// @src 0:242:247  \"_init\"
             let _7 := var__init_12
@@ -996,7 +1001,8 @@ object \"D_72\" {
     object \"D_72_deployed\" {
         code {
             /// @src 1:91:181  \"contract D is C(3)...\"
-            mstore(64, memoryguard(128))
+            mstore(64, memoryguard(160))
+            mstore(128, not(0))
 
             if iszero(lt(calldatasize(), 4))
             {
@@ -1452,7 +1458,8 @@ object \"D_72\" {
     code {
         {
             /// @src 1:91:181  \"contract D is C(3)...\"
-            let _1 := memoryguard(0xa0)
+            let _1 := memoryguard(0xc0)
+            mstore(128, not(0))
             if callvalue() { revert(0, 0) }
             let programSize := datasize(\"D_72\")
             let argSize := sub(codesize(), programSize)
@@ -1472,7 +1479,7 @@ object \"D_72\" {
             /// @src 1:91:181  \"contract D is C(3)...\"
             let value := mload(_1)
             /// @src 0:160:162  \"42\"
-            mstore(128, 0x2a)
+            mstore(160, 0x2a)
             /// @src 1:91:181  \"contract D is C(3)...\"
             let sum := add(/** @src 1:107:108  \"3\" */ 0x03, /** @src 1:91:181  \"contract D is C(3)...\" */ value)
             if and(1, slt(sum, value))
@@ -1485,7 +1492,7 @@ object \"D_72\" {
             let _2 := mload(64)
             let _3 := datasize(\"D_72_deployed\")
             codecopy(_2, dataoffset(\"D_72_deployed\"), _3)
-            setimmutable(_2, \"8\", mload(/** @src 0:160:162  \"42\" */ 128))
+            setimmutable(_2, \"8\", mload(/** @src 0:160:162  \"42\" */ 160))
             /// @src 1:91:181  \"contract D is C(3)...\"
             return(_2, _3)
         }
@@ -1495,7 +1502,8 @@ object \"D_72\" {
         code {
             {
                 /// @src 1:91:181  \"contract D is C(3)...\"
-                mstore(64, memoryguard(0x80))
+                mstore(64, memoryguard(0xa0))
+                mstore(128, not(0))
                 if iszero(lt(calldatasize(), 4))
                 {
                     switch shr(224, calldataload(0))

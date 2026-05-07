@@ -271,10 +271,11 @@ Here is an assembly snippet you can use for allocating memory that follows the p
     }
 
 The first 64 bytes of memory can be used as "scratch space" for short-term
-allocation. The 32 bytes after the free memory pointer (i.e., starting at ``0x60``)
-are meant to be zero permanently and is used as the initial value for
-empty dynamic memory arrays.
-This means that the allocatable memory starts at ``0x80``, which is the initial value
+allocation. The 32 bytes after the free memory pointer slot (i.e., starting at ``0x60``)
+are meant to be zero permanently and are used as the initial value for
+empty dynamic memory arrays. The following 32 bytes are reserved for compiler-generated
+mask constants.
+This means that the allocatable memory starts at ``0xa0``, which is the initial value
 of the free memory pointer.
 
 Elements in memory arrays in Solidity always occupy multiples of 32 bytes (this is

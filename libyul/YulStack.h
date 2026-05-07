@@ -91,7 +91,8 @@ public:
 		solidity::frontend::OptimiserSettings _optimiserSettings,
 		langutil::DebugInfoSelection const& _debugInfoSelection,
 		langutil::CharStreamProvider const* _soliditySourceProvider = nullptr,
-		std::shared_ptr<ObjectOptimizer> _objectOptimizer = nullptr
+		std::shared_ptr<ObjectOptimizer> _objectOptimizer = nullptr,
+		bool _useMemoryConstantOptimiser = false
 	):
 		m_evmVersion(_evmVersion),
 		m_eofVersion(_eofVersion),
@@ -99,7 +100,8 @@ public:
 		m_debugInfoSelection(_debugInfoSelection),
 		m_soliditySourceProvider(_soliditySourceProvider),
 		m_errorReporter(m_errors),
-		m_objectOptimizer(_objectOptimizer ? std::move(_objectOptimizer) : std::make_shared<ObjectOptimizer>())
+		m_objectOptimizer(_objectOptimizer ? std::move(_objectOptimizer) : std::make_shared<ObjectOptimizer>()),
+		m_useMemoryConstantOptimiser(_useMemoryConstantOptimiser)
 	{}
 
 	/// @returns the char stream used during parsing
@@ -188,6 +190,7 @@ private:
 	langutil::ErrorReporter m_errorReporter;
 
 	std::shared_ptr<ObjectOptimizer> m_objectOptimizer;
+	bool m_useMemoryConstantOptimiser = false;
 };
 
 }

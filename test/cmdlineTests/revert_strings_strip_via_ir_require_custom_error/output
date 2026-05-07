@@ -1,10 +1,11 @@
 
 ======= input.sol:C =======
 EVM assembly:
-  0x80
+  0xa0
   dup1
   0x40
   mstore
+  mstore(0x80, not(0x00))
   jumpi(tag_1, callvalue)
   dataSize(sub_0)
   swap1
@@ -20,10 +21,11 @@ tag_1:
 stop
 
 sub_0: assembly {
-      0x80
+      0xa0
       dup1
       0x40
       mstore
+      mstore(0x80, not(0x00))
       jumpi(tag_1, iszero(lt(calldatasize, 0x04)))
       0x00
       dup1
@@ -66,7 +68,7 @@ sub_0: assembly {
       dup2
       dup2
       lt
-      0xffffffffffffffff
+      mload(0x68)
       dup3
       gt
       or

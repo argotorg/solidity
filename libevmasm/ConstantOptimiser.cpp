@@ -24,13 +24,69 @@
 #include <libevmasm/Assembly.h>
 #include <libevmasm/GasMeter.h>
 
+#include <optional>
+
 using namespace solidity;
 using namespace solidity::evmasm;
+
+namespace
+{
+unsigned constexpr maskZeroWordPointer = 0x60;
+unsigned constexpr fullByteMaskPointer = 0x80;
+
+u256 rightAlignedByteMask(unsigned _bytes)
+{
+	solAssert(_bytes <= 32, "");
+	if (_bytes == 32)
+		return ~u256(0);
+	return (u256(1) << (8 * _bytes)) - 1;
+}
+
+std::optional<unsigned> rightAlignedByteMaskSize(u256 const& _value)
+{
+	if (_value <= 0xffff)
+		return std::nullopt;
+
+	for (unsigned bytes = 3; bytes < 32; ++bytes)
+		if (_value == rightAlignedByteMask(bytes))
+			return bytes;
+
+	if (_value == ~u256(0))
+		return 32;
+
+	return std::nullopt;
+}
+
+std::optional<AssemblyItems> memoryMaskRepresentation(u256 const& _value, langutil::EVMVersion _evmVersion)
+{
+	if (!_evmVersion.hasBitwiseShifting())
+		return std::nullopt;
+
+	std::optional<unsigned> bytes = rightAlignedByteMaskSize(_value);
+	if (!bytes)
+		return std::nullopt;
+
+	if (*bytes == 32 && _evmVersion.hasPush0())
+		return std::nullopt;
+
+	return AssemblyItems{u256(maskZeroWordPointer + *bytes), Instruction::MLOAD};
+}
+
+std::optional<u256> memoryMaskValue(u256 const& _offset)
+{
+	if (_offset < maskZeroWordPointer || _offset > fullByteMaskPointer)
+		return std::nullopt;
+
+	unsigned bytes = unsigned(_offset - maskZeroWordPointer);
+	return rightAlignedByteMask(bytes);
+}
+}
 
 unsigned ConstantOptimisationMethod::optimiseConstants(
 	bool _isCreation,
 	size_t _runs,
 	langutil::EVMVersion _evmVersion,
+	bool _useMemoryConstantOptimiser,
 	Assembly& _assembly
 )
 {
@@ -61,15 +117,24 @@ unsigned ConstantOptimisationMethod::optimiseConstants(
 			bigint copyGas = copy.gasNeeded();
 			ComputeMethod compute(params, item.data());
 			bigint computeGas = compute.gasNeeded();
+			std::optional<ComputeMethod> memoryCompute;
+			ComputeMethod const* selectedCompute = &compute;
+			bool const useCompute = computeGas < literalGas && computeGas <= copyGas;
+			if (_useMemoryConstantOptimiser && useCompute)
+			{
+				memoryCompute.emplace(params, item.data(), true);
+				if (memoryCompute->gasNeeded() <= computeGas)
+					selectedCompute = &*memoryCompute;
+			}
 			AssemblyItems replacement;
 			if (copyGas < literalGas && copyGas < computeGas)
 			{
 				replacement = copy.execute(_assembly);
 				optimisations++;
 			}
-			else if (computeGas < literalGas && computeGas <= copyGas)
+			else if (useCompute)
 			{
-				replacement = compute.execute(_assembly);
+				replacement = selectedCompute->execute(_assembly);
 				optimisations++;
 			}
 			if (!replacement.empty())
@@ -231,10 +296,14 @@ AssemblyItems CodeCopyMethod::copyRoutine(AssemblyItem* _pushData) const
 	}
 }
 
-ComputeMethod::ComputeMethod(Params const& _params, u256 const& _value):
+ComputeMethod::ComputeMethod(Params const& _params, u256 const& _value, bool _tryMemoryRepresentation):
 	ConstantOptimisationMethod(_params, _value)
 {
-	m_routine = findRepresentation(m_value);
+	if (_tryMemoryRepresentation)
+		if (std::optional<AssemblyItems> memoryRoutine = memoryMaskRepresentation(m_value, m_params.evmVersion))
+			m_routine = std::move(*memoryRoutine);
+	if (m_routine.empty())
+		m_routine = findRepresentation(m_value);
 	assertThrow(
 		checkRepresentation(m_value, m_routine),
 		OptimizerException,
@@ -363,6 +432,14 @@ bool ComputeMethod::checkRepresentation(u256 const& _value, AssemblyItems const&
 				assertThrow(sp[0] <= u256(255), OptimizerException, "Invalid shift generated.");
 				sp[-1] = sp[-1] >> unsigned(sp[0]);
 				break;
+			case Instruction::MLOAD:
+			{
+				std::optional<u256> value = memoryMaskValue(sp[0]);
+				if (!value)
+					return false;
+				sp[0] = *value;
+				break;
+			}
 			default:
 				return false;
 			}

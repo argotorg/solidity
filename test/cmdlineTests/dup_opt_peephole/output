@@ -2,7 +2,8 @@
 ======= input.sol:C =======
 EVM assembly:
     /* "input.sol":60:171  contract C {... */
-  mstore(0x40, 0x80)
+  mstore(0x40, 0xa0)
+  mstore(0x80, not(0x00))
   callvalue
   dup1
   iszero
@@ -22,7 +23,8 @@ stop
 
 sub_0: assembly {
         /* "input.sol":60:171  contract C {... */
-      mstore(0x40, 0x80)
+      mstore(0x40, 0xa0)
+      mstore(0x80, not(0x00))
       callvalue
       dup1
       iszero

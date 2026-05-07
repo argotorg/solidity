@@ -4,8 +4,9 @@ object "C_12" {
     code {
         {
             /// @src 0:61:418  "contract C {..."
-            let _1 := memoryguard(0x80)
+            let _1 := memoryguard(0xa0)
             mstore(64, _1)
+            mstore(128, not(0))
             if callvalue() { revert(0, 0) }
             /// @src 0:103:238  "assembly {..."
             sstore(0, shl(180, 1))

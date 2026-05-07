@@ -1,10 +1,11 @@
 
 ======= input.sol:C =======
 EVM assembly:
-  0x80
+  0xa0
   dup1
   0x40
   mstore
+  mstore(0x80, not(0x00))
   jumpi(tag_1, callvalue)
   dataSize(sub_0)
   swap1
@@ -29,6 +30,3 @@ sub_0: assembly {
       dup1
       revert
 }
-
-Opcodes:
-PUSH1 0x80 DUP1 PUSH1 0x40 MSTORE CALLVALUE PUSH1 0x13 JUMPI PUSH1 0x11 SWAP1 DUP2 PUSH1 0x18 DUP3 CODECOPY RETURN JUMPDEST PUSH0 DUP1 REVERT INVALID CALLVALUE PUSH1 0xD JUMPI PUSH1 0x7B PUSH0 TSTORE PUSH0 TLOAD PUSH0 SSTORE STOP JUMPDEST PUSH0 DUP1 REVERT 

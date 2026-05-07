@@ -95,7 +95,8 @@ void OptimiserSuite::run(
 	std::string_view _optimisationSequence,
 	std::string_view _optimisationCleanupSequence,
 	std::optional<size_t> _expectedExecutionsPerDeployment,
-	std::set<YulName> const& _externallyUsedIdentifiers
+	std::set<YulName> const& _externallyUsedIdentifiers,
+	bool _useMemoryConstantOptimiser
 )
 {
 	yulAssert(_object.dialect());
@@ -159,7 +160,11 @@ void OptimiserSuite::run(
 		yulAssert(_meter, "");
 		{
 			PROFILER_PROBE("ConstantOptimiser", probe);
-			ConstantOptimiser{*evmDialect, *_meter}(astRoot);
+			ConstantOptimiser{
+				*evmDialect,
+				*_meter,
+				_useMemoryConstantOptimiser && blockInitialisesMemoryMask(astRoot, *evmDialect)
+			}(astRoot);
 		}
 		if (usesOptimizedCodeGenerator)
 		{

@@ -2,7 +2,8 @@
 ======= input.sol:C =======
 EVM assembly:
     /* "input.sol":60:518  contract C... */
-  mstore(0x40, 0x80)
+  mstore(0x40, 0xa0)
+  mstore(0x80, not(0x00))
     /* "input.sol":101:106  int a */
   0x00
     /* "input.sol":181:190  let x,y,z */
@@ -77,7 +78,8 @@ stop
 
 sub_0: assembly {
         /* "input.sol":60:518  contract C... */
-      mstore(0x40, 0x80)
+      mstore(0x40, 0xa0)
+      mstore(0x80, not(0x00))
       revert(0x00, 0x00)
 
     auxdata: <AUXDATA REMOVED>

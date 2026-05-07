@@ -5,15 +5,16 @@
 Layout in Memory
 ****************
 
-Solidity reserves four 32-byte slots, with specific byte ranges (inclusive of endpoints) being used as follows:
+Solidity reserves five 32-byte slots, with specific byte ranges (inclusive of endpoints) being used as follows:
 
 - ``0x00`` - ``0x3f`` (64 bytes): scratch space for hashing methods
 - ``0x40`` - ``0x5f`` (32 bytes): currently allocated memory size (aka. free memory pointer)
 - ``0x60`` - ``0x7f`` (32 bytes): zero slot
+- ``0x80`` - ``0x9f`` (32 bytes): ``0xff`` bytes for memory-backed mask generation
 
 Scratch space can be used between statements (i.e. within inline assembly). The zero slot
 is used as initial value for dynamic memory arrays and should never be written to
-(the free memory pointer points to ``0x80`` initially).
+(the free memory pointer points to ``0xa0`` initially).
 
 Solidity always places new objects at the free memory pointer and
 memory is never freed (this might change in the future).

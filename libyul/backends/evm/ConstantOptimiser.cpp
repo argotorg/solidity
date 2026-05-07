@@ -28,6 +28,7 @@
 
 #include <libsolutil/CommonData.h>
 
+#include <optional>
 #include <variant>
 
 using namespace solidity;
@@ -38,6 +39,89 @@ using Representation = ConstantOptimiser::Representation;
 
 namespace
 {
+unsigned constexpr maskZeroWordPointer = 0x60;
+unsigned constexpr fullByteMaskPointer = 0x80;
+
+u256 rightAlignedByteMask(unsigned _bytes)
+{
+	yulAssert(_bytes <= 32, "");
+	if (_bytes == 32)
+		return ~u256(0);
+	return (u256(1) << (8 * _bytes)) - 1;
+}
+
+std::optional<unsigned> rightAlignedByteMaskSize(u256 const& _value)
+{
+	if (_value <= 0xffff)
+		return std::nullopt;
+
+	for (unsigned bytes = 3; bytes < 32; ++bytes)
+		if (_value == rightAlignedByteMask(bytes))
+			return bytes;
+
+	if (_value == ~u256(0))
+		return 32;
+
+	return std::nullopt;
+}
+
+bool memoryMaskCanReplaceComputedConstant(unsigned _bytes)
+{
+	return _bytes >= 8;
+}
+
+std::optional<u256> memoryMaskValue(u256 const& _offset)
+{
+	if (_offset < maskZeroWordPointer || _offset > fullByteMaskPointer)
+		return std::nullopt;
+
+	unsigned bytes = unsigned(_offset - maskZeroWordPointer);
+	return rightAlignedByteMask(bytes);
+}
+
+bool isNumber(Expression const& _expression, u256 const& _value)
+{
+	auto const* literal = std::get_if<Literal>(&_expression);
+	return
+		literal &&
+		literal->kind == LiteralKind::Number &&
+		!literal->value.unlimited() &&
+		literal->value.value() == _value;
+}
+
+FunctionCall const* builtinFunctionCall(Expression const& _expression, BuiltinHandle const& _handle)
+{
+	auto const* functionCall = std::get_if<FunctionCall>(&_expression);
+	if (!functionCall)
+		return nullptr;
+	auto const* builtin = std::get_if<BuiltinName>(&functionCall->functionName);
+	if (!builtin || !(builtin->handle == _handle))
+		return nullptr;
+	return functionCall;
+}
+
+bool isMemoryStoreAt(ExpressionStatement const& _statement, u256 const& _offset, EVMDialect const& _dialect)
+{
+	std::optional<BuiltinHandle> memoryStore = _dialect.memoryStoreFunctionHandle();
+	if (!memoryStore)
+		return false;
+	FunctionCall const* functionCall = builtinFunctionCall(_statement.expression, *memoryStore);
+	return functionCall && functionCall->arguments.size() == 2 && isNumber(functionCall->arguments.front(), _offset);
+}
+
+bool storesFullByteMask(ExpressionStatement const& _statement, EVMDialect const& _dialect)
+{
+	if (!isMemoryStoreAt(_statement, fullByteMaskPointer, _dialect))
+		return false;
+
+	FunctionCall const& memoryStore = *builtinFunctionCall(_statement.expression, *_dialect.memoryStoreFunctionHandle());
+	std::optional<BuiltinHandle> notFunction = _dialect.auxiliaryBuiltinHandles().not_;
+	if (!notFunction)
+		return false;
+	FunctionCall const* notCall = builtinFunctionCall(memoryStore.arguments.back(), *notFunction);
+	return notCall && notCall->arguments.size() == 1 && isNumber(notCall->arguments.front(), 0);
+}
+
 struct MiniEVMInterpreter
 {
 	explicit MiniEVMInterpreter(EVMDialect const& _dialect): m_dialect(_dialect) {}
@@ -66,6 +150,12 @@ struct MiniEVMInterpreter
 			return args.at(0) > 255 ? 0 : (args.at(1) << unsigned(args.at(0)));
 		case evmasm::Instruction::NOT:
 			return ~args.at(0);
+		case evmasm::Instruction::MLOAD:
+		{
+			std::optional<u256> value = memoryMaskValue(args.at(0));
+			yulAssert(value, "Invalid memory load generated in constant optimizer.");
+			return *value;
+		}
 		default:
 			yulAssert(false, "Invalid operation generated in constant optimizer.");
 		}
@@ -89,6 +179,29 @@ struct MiniEVMInterpreter
 };
 }
 
+bool solidity::yul::blockInitialisesMemoryMask(Block const& _block, EVMDialect const& _dialect)
+{
+	for (Statement const& statement: _block.statements)
+	{
+		if (auto const* nestedBlock = std::get_if<Block>(&statement))
+			return blockInitialisesMemoryMask(*nestedBlock, _dialect);
+
+		if (auto const* expressionStatement = std::get_if<ExpressionStatement>(&statement))
+		{
+			if (storesFullByteMask(*expressionStatement, _dialect))
+				return true;
+			if (isMemoryStoreAt(*expressionStatement, 0x40, _dialect))
+				continue;
+		}
+		else if (std::holds_alternative<VariableDeclaration>(statement))
+			continue;
+
+		return false;
+	}
+
+	return false;
+}
+
 void ConstantOptimiser::visit(Expression& _e)
 {
 	if (std::holds_alternative<Literal>(_e))
@@ -99,7 +212,14 @@ void ConstantOptimiser::visit(Expression& _e)
 
 		if (
 			Expression const* repr =
-				RepresentationFinder(m_dialect, m_meter, debugDataOf(_e), m_cache)
+				RepresentationFinder(
+					m_dialect,
+					m_meter,
+					debugDataOf(_e),
+					m_cache,
+					m_memoryCache,
+					m_useMemoryConstantOptimiser
+				)
 				.tryFindRepresentation(literal.value.value())
 		)
 			_e = ASTCopier{}.translate(*repr);
@@ -114,10 +234,17 @@ Expression const* RepresentationFinder::tryFindRepresentation(u256 const& _value
 		return nullptr;
 
 	Representation const& repr = findRepresentation(_value);
+	if (m_useMemoryConstantOptimiser)
+	{
+		if (Representation const* memoryRepr = memoryRepresentation(_value))
+			if (memoryRepr->cost <= repr.cost)
+				return memoryRepr->expression.get();
+	}
+
 	if (std::holds_alternative<Literal>(*repr.expression))
 		return nullptr;
-	else
-		return repr.expression.get();
+
+	return repr.expression.get();
 }
 
 Representation const& RepresentationFinder::findRepresentation(u256 const& _value)
@@ -182,6 +309,33 @@ Representation const& RepresentationFinder::findRepresentation(u256 const& _valu
 	}
 	yulAssert(MiniEVMInterpreter{m_dialect}.eval(*routine.expression) == _value, "Invalid expression generated.");
 	return m_cache[_value] = std::move(routine);
+}
+
+Representation const* RepresentationFinder::memoryRepresentation(u256 const& _value)
+{
+	if (!m_dialect.evmVersion().hasBitwiseShifting())
+		return nullptr;
+
+	if (m_memoryCache.count(_value))
+		return &m_memoryCache.at(_value);
+
+	std::optional<unsigned> bytes = rightAlignedByteMaskSize(_value);
+	if (!bytes)
+		return nullptr;
+
+	if (!memoryMaskCanReplaceComputedConstant(*bytes))
+		return nullptr;
+
+	if (*bytes == 32 && m_dialect.evmVersion().hasPush0())
+		return nullptr;
+
+	std::optional<BuiltinHandle> memoryLoad = m_dialect.memoryLoadFunctionHandle();
+	if (!memoryLoad)
+		return nullptr;
+
+	Representation repr = represent(*memoryLoad, represent(maskZeroWordPointer + *bytes));
+	yulAssert(MiniEVMInterpreter{m_dialect}.eval(*repr.expression) == _value, "Invalid memory expression generated.");
+	return &m_memoryCache.emplace(_value, std::move(repr)).first->second;
 }
 
 Representation RepresentationFinder::represent(u256 const& _value) const

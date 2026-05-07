@@ -12,7 +12,8 @@
 object \"A_1\" {
     code {
 
-        mstore(64, memoryguard(128))
+        mstore(64, memoryguard(160))
+        mstore(128, not(0))
         if callvalue() { revert_error_ca66f745a3ce8ff40e2ccaf1ad45db7774001b90d25810abd9040049be7bf4bb() }
 
         constructor_A_1()
@@ -39,7 +40,8 @@ object \"A_1\" {
     object \"A_1_deployed\" {
         code {
 
-            mstore(64, memoryguard(128))
+            mstore(64, memoryguard(160))
+            mstore(128, not(0))
 
             revert_error_42b3090547df1d2001c96683413b8cf91c1b902ef5e3cb8d9f6f304cf7446f74()
 
@@ -70,8 +72,9 @@ object \"A_1\" {
 object \"A_1\" {
     code {
         {
-            let _1 := memoryguard(0x80)
+            let _1 := memoryguard(0xa0)
             mstore(64, _1)
+            mstore(128, not(0))
             if callvalue() { revert(0, 0) }
             let _2 := datasize(\"A_1_deployed\")
             codecopy(_1, dataoffset(\"A_1_deployed\"), _2)
@@ -105,8 +108,9 @@ object \"A_1\" {
 object \"A_5\" {
     code {
         {
-            let _1 := memoryguard(0x80)
+            let _1 := memoryguard(0xa0)
             mstore(64, _1)
+            mstore(128, not(0))
             if callvalue() { revert(0, 0) }
             let _2 := datasize(\"A_5_deployed\")
             codecopy(_1, dataoffset(\"A_5_deployed\"), _2)

@@ -1134,17 +1134,18 @@ std::string IRGenerator::memoryInit(bool _useMemoryGuard)
 	// This function should be called at the beginning of the EVM call frame
 	// and thus can assume all memory to be zero, including the contents of
 	// the "zero memory area" (the position CompilerUtils::zeroPointer points to).
+	std::string freeMemoryStart = std::to_string(CompilerUtils::generalPurposeMemoryStart + m_context.reservedMemory());
+	if (_useMemoryGuard)
+		freeMemoryStart = "memoryguard(" + freeMemoryStart + ")";
 	return
 		Whiskers{
-			_useMemoryGuard ?
-			"mstore(<memPtr>, memoryguard(<freeMemoryStart>))" :
-			"mstore(<memPtr>, <freeMemoryStart>)"
+			"mstore(<memPtr>, <freeMemoryStart>)\n"
+			"mstore(<fullByteMaskPtr>, not(0))"
 		}
 		("memPtr", std::to_string(CompilerUtils::freeMemoryPointer))
-		(
-			"freeMemoryStart",
-			std::to_string(CompilerUtils::generalPurposeMemoryStart + m_context.reservedMemory())
-		).render();
+		("fullByteMaskPtr", std::to_string(CompilerUtils::fullByteMaskPointer))
+		("freeMemoryStart", freeMemoryStart)
+		.render();
 }
 
 void IRGenerator::resetContext(ContractDefinition const& _contract, ExecutionContext _context)

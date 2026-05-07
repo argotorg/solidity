@@ -1,7 +1,8 @@
 
 ======= input.sol:C =======
 EVM assembly:
-  mstore(0x40, 0x80)
+  mstore(0x40, 0xa0)
+  mstore(0x80, not(0x00))
   jumpi(tag_4, iszero(callvalue))
   tag_5
   tag_2
@@ -37,7 +38,8 @@ tag_3:
 stop
 
 sub_0: assembly {
-      mstore(0x40, 0x80)
+      mstore(0x40, 0xa0)
+      mstore(0x80, not(0x00))
       jumpi(tag_10, lt(calldatasize, 0x04))
       tag_11
       calldataload(0x00)
@@ -176,7 +178,8 @@ Optimized IR:
 /// @use-src 0:"input.sol"
 object "C_7" {
     code {
-        mstore(64, memoryguard(128))
+        mstore(64, memoryguard(160))
+        mstore(128, not(0))
         if callvalue()
         {
             revert_error_ca66f745a3ce8ff40e2ccaf1ad45db7774001b90d25810abd9040049be7bf4bb()
@@ -195,7 +198,8 @@ object "C_7" {
     /// @use-src 0:"input.sol"
     object "C_7_deployed" {
         code {
-            mstore(64, memoryguard(128))
+            mstore(64, memoryguard(160))
+            mstore(128, not(0))
             if iszero(lt(calldatasize(), 4))
             {
                 let selector := shift_right_224_unsigned(calldataload(0))

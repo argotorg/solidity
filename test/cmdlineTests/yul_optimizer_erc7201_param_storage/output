@@ -3,8 +3,9 @@ Optimized IR:
 object "C_15" {
     code {
         {
-            let _1 := memoryguard(0x80)
+            let _1 := memoryguard(0xa0)
             mstore(64, _1)
+            mstore(128, not(0))
             if callvalue() { revert(0, 0) }
             let _2 := sload(0x00)
             let length := 0x00
@@ -39,7 +40,8 @@ object "C_15" {
     object "C_15_deployed" {
         code {
             {
-                let _1 := memoryguard(0x80)
+                let _1 := memoryguard(0xa0)
+                mstore(128, not(0))
                 if iszero(lt(calldatasize(), 4))
                 {
                     if eq(0x26121ff0, shr(224, calldataload(0)))
@@ -77,7 +79,7 @@ object "C_15" {
                             ret := add(add(_1, i), 32)
                         }
                         let newFreePtr := add(_1, and(add(sub(ret, _1), 31), not(31)))
-                        if or(gt(newFreePtr, 0xffffffffffffffff), lt(newFreePtr, _1))
+                        if or(gt(newFreePtr, mload(104)), lt(newFreePtr, _1))
                         {
                             mstore(0, shl(224, 0x4e487b71))
                             mstore(4, 0x41)

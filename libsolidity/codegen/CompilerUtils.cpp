@@ -45,11 +45,13 @@ using solidity::toCompactHexWithPrefix;
 unsigned const CompilerUtils::dataStartOffset = 4;
 size_t const CompilerUtils::freeMemoryPointer = 64;
 size_t const CompilerUtils::zeroPointer = CompilerUtils::freeMemoryPointer + 32;
-size_t const CompilerUtils::generalPurposeMemoryStart = CompilerUtils::zeroPointer + 32;
+size_t const CompilerUtils::fullByteMaskPointer = CompilerUtils::zeroPointer + 32;
+size_t const CompilerUtils::generalPurposeMemoryStart = CompilerUtils::fullByteMaskPointer + 32;
 
 static_assert(CompilerUtils::freeMemoryPointer >= 64, "Free memory pointer must not overlap with scratch area.");
 static_assert(CompilerUtils::zeroPointer >= CompilerUtils::freeMemoryPointer + 32, "Zero pointer must not overlap with free memory pointer.");
-static_assert(CompilerUtils::generalPurposeMemoryStart >= CompilerUtils::zeroPointer + 32, "General purpose memory must not overlap with zero area.");
+static_assert(CompilerUtils::fullByteMaskPointer == CompilerUtils::zeroPointer + 32, "Full byte mask must immediately follow zero memory.");
+static_assert(CompilerUtils::generalPurposeMemoryStart == CompilerUtils::fullByteMaskPointer + 32, "General purpose memory must immediately follow full byte mask.");
 
 void CompilerUtils::initialiseFreeMemoryPointer()
 {
@@ -57,6 +59,7 @@ void CompilerUtils::initialiseFreeMemoryPointer()
 	solAssert(bigint(generalPurposeMemoryStart) + bigint(reservedMemory) < bigint(1) << 63);
 	m_context << (u256(generalPurposeMemoryStart) + reservedMemory);
 	storeFreeMemoryPointer();
+	m_context << u256(0) << Instruction::NOT << u256(fullByteMaskPointer) << Instruction::MSTORE;
 }
 
 void CompilerUtils::fetchFreeMemoryPointer()

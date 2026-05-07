@@ -54,6 +54,7 @@ public:
 		std::string yulOptimiserSteps;
 		std::string yulOptimiserCleanupSteps;
 		size_t expectedExecutionsPerDeployment;
+		bool useMemoryConstantOptimiser = false;
 	};
 
 	/// Recursively optimizes a Yul object with given settings, reusing cached ASTs where possible

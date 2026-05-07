@@ -24,6 +24,7 @@
 #include <libyul/backends/evm/ssa/io/JSONExporter.h>
 #include <libyul/backends/evm/EthAssemblyAdapter.h>
 #include <libyul/backends/evm/EVMCodeTransform.h>
+#include <libyul/backends/evm/ConstantOptimiser.h>
 #include <libyul/backends/evm/EVMDialect.h>
 #include <libyul/backends/evm/EVMObjectCompiler.h>
 #include <libyul/ObjectParser.h>
@@ -43,6 +44,22 @@ using namespace solidity::frontend;
 using namespace solidity::yul;
 using namespace solidity::langutil;
 using namespace solidity::util;
+
+namespace
+{
+bool allObjectsInitialiseMemoryMask(Object const& _object, EVMDialect const& _dialect)
+{
+	if (_object.hasCode() && !blockInitialisesMemoryMask(_object.code()->root(), _dialect))
+		return false;
+
+	for (auto const& subObject: _object.subObjects)
+		if (auto const* object = dynamic_cast<Object const*>(subObject.get()))
+			if (!allObjectsInitialiseMemoryMask(*object, _dialect))
+				return false;
+
+	return true;
+}
+}
 
 CharStream const& YulStack::charStream(std::string const& _sourceName) const
 {
@@ -135,7 +152,8 @@ void YulStack::optimize()
 				optimizeStackAllocation,
 				yulOptimiserSteps,
 				yulOptimiserCleanupSteps,
-				m_optimiserSettings.expectedExecutionsPerDeployment
+				m_optimiserSettings.expectedExecutionsPerDeployment,
+				m_useMemoryConstantOptimiser
 			}
 		);
 
@@ -212,7 +230,8 @@ void YulStack::reparse()
 		m_optimiserSettings,
 		m_debugInfoSelection,
 		m_soliditySourceProvider,
-		m_objectOptimizer
+		m_objectOptimizer,
+		m_useMemoryConstantOptimiser
 	);
 	bool reanalysisSuccessful = cleanStack.parseAndAnalyze(m_charStream->name(), source);
 	yulAssert(
@@ -326,7 +345,14 @@ YulStack::assembleEVMWithDeployed(std::optional<std::string_view> _deployName, b
 	{
 		compileEVM(adapter, optimize, _viaSSACFG);
 
-		assembly.optimise(evmasm::Assembly::OptimiserSettings::translateSettings(m_optimiserSettings));
+		evmasm::Assembly::OptimiserSettings settings =
+			evmasm::Assembly::OptimiserSettings::translateSettings(m_optimiserSettings);
+		auto const* evmDialect = dynamic_cast<EVMDialect const*>(m_parserResult->dialect());
+		yulAssert(evmDialect, "Expected EVM dialect.");
+		settings.useMemoryConstantOptimiser =
+			m_useMemoryConstantOptimiser &&
+			allObjectsInitialiseMemoryMask(*m_parserResult, *evmDialect);
+		assembly.optimise(settings);
 
 		std::optional<evmasm::SubAssemblyID> subIndex;
 

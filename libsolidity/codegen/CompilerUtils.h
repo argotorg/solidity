@@ -311,6 +311,8 @@ public:
 	static size_t const freeMemoryPointer;
 	/// Position of the memory slot that is always zero.
 	static size_t const zeroPointer;
+	/// Position of the memory word that is always set to all ones.
+	static size_t const fullByteMaskPointer;
 	/// Starting offset for memory available to the user (aka the contract).
 	static size_t const generalPurposeMemoryStart;
 

@@ -51,6 +51,7 @@ public:
 		bool _isCreation,
 		size_t _runs,
 		langutil::EVMVersion _evmVersion,
+		bool _useMemoryConstantOptimiser,
 		Assembly& _assembly
 	);
 
@@ -132,7 +133,7 @@ protected:
 class ComputeMethod: public ConstantOptimisationMethod
 {
 public:
-	ComputeMethod(Params const& _params, u256 const& _value);
+	ComputeMethod(Params const& _params, u256 const& _value, bool _tryMemoryRepresentation = false);
 	~ComputeMethod() override;
 
 	bigint gasNeeded() const override { return gasNeeded(m_routine); }

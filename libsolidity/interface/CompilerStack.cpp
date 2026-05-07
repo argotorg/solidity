@@ -860,7 +860,8 @@ YulStack CompilerStack::loadGeneratedIR(std::string const& _ir) const
 		m_optimiserSettings,
 		m_debugInfoSelection,
 		this, // _soliditySourceProvider
-		m_objectOptimizer
+		m_objectOptimizer,
+		true
 	);
 	bool yulAnalysisSuccessful = stack.parseAndAnalyze("", _ir);
 	solAssert(
