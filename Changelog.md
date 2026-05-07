@@ -23,6 +23,7 @@ Bugfixes:
 * Commandline Interface: Report proper error instead of ICE on non-hex mixed-case address value given via `--libraries`.
 * Type Checker: Report an unimplemented feature error instead of ICE when a variable of a fixed point type is accessed in inline assembly.
 * Yul Optimizer: Fix incorrect removal of `returndatacopy()` operations referencing a stale result of `returndatasize()`.
+* Yul Optimizer: Fix `UnusedStoreEliminator` not being prepared to handle non-SSA code, which led to incorrect removal of `mstore` or `sstore` in certain cases.
 
 Build System:
 * Update minimum version requirement of Boost to 1.83.0 for Windows build. This matches the minimum version for other systems.
