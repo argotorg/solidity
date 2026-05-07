@@ -18,5 +18,6 @@
 //     x := calldataload(32)
 //     let a := y
 //     let outLen := 32
+//     mstore(a, 0xAA)
 //     return(b, outLen)
 // }

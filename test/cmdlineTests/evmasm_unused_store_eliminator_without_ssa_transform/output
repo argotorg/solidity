@@ -29,11 +29,16 @@ sub_0: assembly {
       revert(0x00, 0x00)
     tag_3:
       pop
+      0xaa
       0x20
       0x04
       calldataload
       dup2
       add
+      swap2
+      dup3
+      mstore
+      dup2
       swap1
       dup1
       dup3

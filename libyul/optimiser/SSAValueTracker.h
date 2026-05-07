@@ -52,6 +52,10 @@ public:
 
 	static std::set<YulName> ssaVariables(Block const& _ast);
 
+	/// Determines whether the given expression and all of its identifier
+	/// dependencies are in Static Single Assignment (SSA) form.
+	bool isSSAWithDependencies(Expression const* _expression) const;
+
 private:
 	void setValue(YulName _name, Expression const* _value);
 
