@@ -104,7 +104,7 @@ YulOptimizerTestCommon::YulOptimizerTestCommon(std::shared_ptr<Object const> _ob
 		{"constantOptimiser", [&]() {
 			auto block = std::get<Block>(ASTCopier{}(m_object->code()->root()));
 			updateContext(block);
-			GasMeter meter(dynamic_cast<EVMDialect const&>(*m_object->dialect()), false, 200);
+			GasMeter const meter(dynamic_cast<EVMDialect const&>(*m_object->dialect()), false, 200);
 			ConstantOptimiser{dynamic_cast<EVMDialect const&>(*m_object->dialect()), meter}(block);
 			return block;
 		}},
@@ -403,7 +403,7 @@ YulOptimizerTestCommon::YulOptimizerTestCommon(std::shared_ptr<Object const> _ob
 			ForLoopInitRewriter::run(*m_context, block);
 			FunctionHoister::run(*m_context, block);
 			FunctionGrouper::run(*m_context, block);
-			size_t maxIterations = 16;
+			size_t const maxIterations = 16;
 			{
 				Object object(*m_optimizedObject);
 				object.setCode(std::make_shared<AST>(*m_object->dialect(), std::get<Block>(ASTCopier{}(block))));
@@ -413,7 +413,7 @@ YulOptimizerTestCommon::YulOptimizerTestCommon(std::shared_ptr<Object const> _ob
 			return block;
 		}},
 		{"fullSuite", [&]() {
-			GasMeter meter(dynamic_cast<EVMDialect const&>(*m_object->dialect()), false, 200);
+			GasMeter const meter(dynamic_cast<EVMDialect const&>(*m_object->dialect()), false, 200);
 			OptimiserSuite::run(
 				&meter,
 				*m_optimizedObject,
@@ -446,7 +446,7 @@ YulOptimizerTestCommon::YulOptimizerTestCommon(std::shared_ptr<Object const> _ob
 				using ASTWalker::operator();
 				void operator()(FunctionDefinition const& _function) override
 				{
-					YulName originalFunctionName = m_currentFunction;
+					YulName const originalFunctionName = m_currentFunction;
 					m_currentFunction = _function.name;
 					for (NameWithDebugData const& _argument: _function.parameters)
 						visitVariableName(_argument.name);
@@ -515,7 +515,7 @@ std::string YulOptimizerTestCommon::randomOptimiserStep(unsigned _seed)
 {
 	std::mt19937 prng(_seed);
 	std::uniform_int_distribution<size_t> dist(1, m_namedSteps.size());
-	size_t idx = dist(prng);
+	size_t const idx = dist(prng);
 	size_t count = 1;
 	for (auto &step: m_namedSteps)
 	{

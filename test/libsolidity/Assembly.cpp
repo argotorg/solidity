@@ -90,7 +90,7 @@ evmasm::AssemblyItems compileContract(std::shared_ptr<CharStream> _sourceCode)
 	if (Error::containsErrors(errorReporter.errors()))
 		return AssemblyItems();
 	for (ASTPointer<ASTNode> const& node: sourceUnit->nodes())
-		if (ContractDefinition* contract = dynamic_cast<ContractDefinition*>(node.get()))
+		if (ContractDefinition const* contract = dynamic_cast<ContractDefinition*>(node.get()))
 		{
 			Compiler compiler(
 				solidity::test::CommonOptions::get().evmVersion(),
@@ -130,7 +130,7 @@ void printAssemblyLocations(AssemblyItems const& _items)
 	SourceLocation const* previousLoc = nullptr;
 	for (size_t i = 0; i < locations.size(); ++i)
 	{
-		SourceLocation& loc = locations[i];
+		SourceLocation const& loc = locations[i];
 		if (previousLoc && *previousLoc == loc)
 			repetitions++;
 		else
@@ -167,7 +167,7 @@ BOOST_AUTO_TEST_SUITE(Assembly)
 
 BOOST_AUTO_TEST_CASE(location_test)
 {
-	std::string sourceCode = R"(
+	std::string const sourceCode = R"(
 	pragma abicoder v1;
 	contract test {
 		function f() public returns (uint256 a) {
@@ -175,9 +175,9 @@ BOOST_AUTO_TEST_CASE(location_test)
 		}
 	}
 	)";
-	AssemblyItems items = compileContract(std::make_shared<CharStream>(sourceCode, ""));
-	std::shared_ptr<std::string> sourceName = std::make_shared<std::string>();
-	bool hasShifts = solidity::test::CommonOptions::get().evmVersion().hasBitwiseShifting();
+	AssemblyItems const items = compileContract(std::make_shared<CharStream>(sourceCode, ""));
+	std::shared_ptr<std::string> const sourceName = std::make_shared<std::string>();
+	bool const hasShifts = solidity::test::CommonOptions::get().evmVersion().hasBitwiseShifting();
 
 	auto codegenCharStream = std::make_shared<CharStream>("", "--CODEGEN--");
 
@@ -213,7 +213,7 @@ BOOST_AUTO_TEST_CASE(jump_type)
 		}
 	}
 	)", "");
-	AssemblyItems items = compileContract(sourceCode);
+	AssemblyItems const items = compileContract(sourceCode);
 
 	std::string jumpTypes;
 	for (AssemblyItem const& item: items)

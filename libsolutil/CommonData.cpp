@@ -66,7 +66,7 @@ std::string solidity::util::toHex(bytes const& _data, HexPrefix _prefix, HexCase
 	// Mixed case will be handled inside the loop.
 	char const* chars = _case == HexCase::Upper ? upperHexChars : lowerHexChars;
 	size_t rix = _data.size() - 1;
-	for (uint8_t c: _data)
+	for (uint8_t const c: _data)
 	{
 		// switch hex case every four hexchars
 		if (_case == HexCase::Mixed)
@@ -113,8 +113,8 @@ bytes solidity::util::fromHex(std::string const& _s, WhenError _throw)
 	}
 	for (unsigned i = s; i < _s.size(); i += 2)
 	{
-		int h = fromHex(_s[i], _throw);
-		int l = fromHex(_s[i + 1], _throw);
+		int const h = fromHex(_s[i], _throw);
+		int const l = fromHex(_s[i + 1], _throw);
 		if (h != -1 && l != -1)
 			ret.push_back(static_cast<uint8_t>(h * 16 + l));
 		else
@@ -126,7 +126,7 @@ bytes solidity::util::fromHex(std::string const& _s, WhenError _throw)
 
 bool solidity::util::passesAddressChecksum(std::string const& _str, bool _strict)
 {
-	std::string s = _str.substr(0, 2) == "0x" ? _str : "0x" + _str;
+	std::string const s = _str.substr(0, 2) == "0x" ? _str : "0x" + _str;
 
 	if (s.length() != 42)
 		return false;
@@ -151,8 +151,8 @@ std::string solidity::util::getChecksummedAddress(std::string const& _addr)
 	std::string ret = "0x";
 	for (unsigned i = 0; i < 40; ++i)
 	{
-		char addressCharacter = s[i];
-		uint8_t nibble = hash[i / 2u] >> (4u * (1u - (i % 2u))) & 0xf;
+		char const addressCharacter = s[i];
+		uint8_t const nibble = hash[i / 2u] >> (4u * (1u - (i % 2u))) & 0xf;
 		if (nibble >= 8)
 			ret += toUpper(addressCharacter);
 		else
@@ -200,7 +200,7 @@ std::string solidity::util::escapeAndQuoteString(std::string const& _input)
 {
 	std::string out;
 
-	for (char c: _input)
+	for (char const c: _input)
 		if (c == '\\')
 			out += "\\\\";
 		else if (c == '"')

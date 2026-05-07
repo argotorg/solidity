@@ -37,8 +37,8 @@ struct IRGenerationContext
 	TypeEnvironment const* env = nullptr;
 	void enqueueFunctionDefinition(FunctionDefinition const* _functionDefinition, Type _type)
 	{
-		QueuedFunction queue{_functionDefinition, env->resolve(_type)};
-		for (auto type: generatedFunctions[_functionDefinition])
+		QueuedFunction const queue{_functionDefinition, env->resolve(_type)};
+		for (auto const& type: generatedFunctions[_functionDefinition])
 			if (env->typeEquals(type, _type))
 				return;
 		functionQueue.emplace_back(queue);

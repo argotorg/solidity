@@ -332,7 +332,7 @@ private:
 		int bestDeficit = 0; // Only consider positive deficits
 
 		// Iterate through all slots on the stack that can be DUPed
-		for (StackOffset offset: _state.stackDupReachableRange() | ranges::views::reverse)
+		for (StackOffset const offset: _state.stackDupReachableRange() | ranges::views::reverse)
 		{
 			Slot const& slot = _stack[offset];
 
@@ -343,12 +343,12 @@ private:
 			// Calculate deficit: how many more of this slot do we need?
 			// Uses the deficit of slots which we need to produce more of based on usage counts in liveness.
 			// Prioritizes slots that need more copies to be consumed down the line.
-			int currentCount = static_cast<int>(_state.count(slot));
+			int const currentCount = static_cast<int>(_state.count(slot));
 
 			int liveOutCount = 0;
 			if (slot.isValue() && _state.target().liveOut.contains(slot))
 				liveOutCount = static_cast<int>(_state.target().liveOut.count(slot));
-			int deficit = liveOutCount - currentCount;
+			int const deficit = liveOutCount - currentCount;
 
 			// Update best if this deficit is higher
 			if (deficit > bestDeficit)
@@ -365,7 +365,7 @@ private:
 	static ShuffleHelperResult dupDeepestRelevantTailSlot(Stack<Callback>& _stack, detail::State const& _state)
 	{
 		// dup up the deepest slot that is required in args (or compress if unreachable)
-		for (StackOffset offset: _state.stackRange())
+		for (StackOffset const offset: _state.stackRange())
 		{
 			// if we need the slot in args and there's no slot of the same kind further up
 			if (
@@ -471,7 +471,7 @@ private:
 				// try finding a slot that is compatible with the top and also admits the current top:
 				//		- could be that the top slot is used elsewhere in the args (exclude junk)
 				//		- could be that the top slot is something that is only required in the tail
-				for (StackOffset offset: _state.stackArgsRange())
+				for (StackOffset const offset: _state.stackArgsRange())
 					if (
 						offset != stackTop &&
 						_stack[offset] != _stack[stackTop] &&  // don't swap identical values (no-op)
@@ -486,7 +486,7 @@ private:
 					}
 
 				// try finding a slot in args that wants to have the top, swap that
-				for (StackOffset offset: _state.stackArgsRange())
+				for (StackOffset const offset: _state.stackArgsRange())
 					if (
 						offset != stackTop &&
 						_stack[offset] != _stack[stackTop] &&  // don't swap identical values (no-op)
@@ -500,7 +500,7 @@ private:
 					}
 
 				// try swapping top with a tail slot that has what we need at top
-				for (StackOffset tailOffset: _state.stackTailRange())
+				for (StackOffset const tailOffset: _state.stackTailRange())
 					if (
 						_stack.isValidSwapTarget(tailOffset) &&
 						_state.isArgsCompatible(tailOffset, stackTop) &&
@@ -518,7 +518,7 @@ private:
 			}
 
 			// swap up any slot in args that is out of position and has a slot available in args that it can occupy
-			for (StackOffset offset: _state.stackArgsRange())
+			for (StackOffset const offset: _state.stackArgsRange())
 			{
 				// when offset is already top no swap-up is needed, so it doesn't have to be a valid swap target itself
 				bool const reachable = !_stack.isBeyondSwapRange(offset);
@@ -533,7 +533,7 @@ private:
 				)
 				{
 					// for each `targetOffset` in stack args range, see if we can't swap the out of position `offset` to `targetOffset`
-					for (StackOffset targetOffset: _state.stackArgsRange())
+					for (StackOffset const targetOffset: _state.stackArgsRange())
 						if (
 							targetOffset != offset &&  // we shouldn't be looking at the very same offset
 							_stack.isValidSwapTarget(targetOffset) &&  // the target offset should be within reach
@@ -555,7 +555,7 @@ private:
 				if (!_state.targetArbitrary(offset) && _stack.isValidSwapTarget(offset))
 				{
 					// for each `argOffset` in the stack args range, see if we can swap something into `offset`; reverse to prioritize shallow slots
-					for (StackOffset argOffset: _state.stackArgsRange() | ranges::views::reverse)
+					for (StackOffset const argOffset: _state.stackArgsRange() | ranges::views::reverse)
 					{
 						if (
 							!_state.isSourceCompatible(offset, argOffset) &&  // we're not looking at the same thing
@@ -583,7 +583,7 @@ private:
 			// If there were no other swapping opportunities, try fixing at least the top before we start pushing
 			// more stuff on stack
 			if (!_state.isArgsCompatible(stackTop, stackTop))
-				for (StackOffset offset: _state.stackArgsRange())
+				for (StackOffset const offset: _state.stackArgsRange())
 					if (
 						offset != stackTop &&
 						_stack[offset] != _stack[stackTop] &&  // don't swap identical values (no-op)
@@ -703,7 +703,7 @@ private:
 	static ShuffleHelperResult fixTailSlot(Stack<Callback>& _stack, detail::State const& _state)
 	{
 		yulAssert(_stack.size() <= _state.target().size, "this method assumes that the stack isn't exceeding target size");
-		for (StackOffset offset: _state.stackArgsRange() | ranges::views::reverse)
+		for (StackOffset const offset: _state.stackArgsRange() | ranges::views::reverse)
 		{
 			Slot const& slotAtOffset = _stack[offset];
 			if (
@@ -712,7 +712,7 @@ private:
 			)
 			{
 				// find the lowest swappable slot in tail that needs to go to args, swap
-				for (StackOffset tailOffset: _state.stackTailRange())
+				for (StackOffset const tailOffset: _state.stackTailRange())
 				{
 					auto const& slotAtTailOffset = _stack[tailOffset];
 					if (
@@ -731,7 +731,7 @@ private:
 					}
 				}
 				// find the lowest swappable slot in tail that can be popped but is no literal, swap
-				for (StackOffset tailOffset: _state.stackTailRange())
+				for (StackOffset const tailOffset: _state.stackTailRange())
 					if (
 						_stack.isValidSwapTarget(tailOffset) &&
 						_state.slotCanBeLoadedOrPushed(_stack[tailOffset]) &&
@@ -746,7 +746,7 @@ private:
 						return {ShuffleHelperResult::Status::StackModified};
 					}
 				// find the lowest swappable slot in tail that is a literal, swap
-				for (StackOffset tailOffset: _state.stackTailRange())
+				for (StackOffset const tailOffset: _state.stackTailRange())
 					if (
 						_stack.isValidSwapTarget(tailOffset) &&
 						_stack[tailOffset].isLiteralValue()
@@ -805,7 +805,7 @@ private:
 		{
 			if (_state.requiredInArgs(_stack[stackTop]))
 			{
-				for (StackOffset argsOffset: _state.stackArgsRange())
+				for (StackOffset const argsOffset: _state.stackArgsRange())
 					if (
 						_stack[argsOffset] != _stack[stackTop] &&  // don't swap identical values (no-op)
 						_stack.isValidSwapTarget(argsOffset) &&
@@ -835,7 +835,7 @@ private:
 				}
 
 				// if we need it down there, try to swap down
-				for (StackOffset tailOffset: _state.stackTailRange() | ranges::views::reverse)
+				for (StackOffset const tailOffset: _state.stackTailRange() | ranges::views::reverse)
 					if (
 						_stack[tailOffset] != _stack[stackTop] &&  // don't swap identical values (no-op)
 						_stack.isValidSwapTarget(tailOffset) &&  // we can reach the offset
@@ -873,7 +873,7 @@ private:
 			};
 			std::optional<StackOffset> slotToPop{std::nullopt};
 			std::uint32_t bestScore = 0;
-			for (StackOffset offset: _state.stackSwapReachableRange())
+			for (StackOffset const offset: _state.stackSwapReachableRange())
 				if (std::uint32_t const score = shrinkPriority(offset); score > bestScore)
 				{
 					bestScore = score;

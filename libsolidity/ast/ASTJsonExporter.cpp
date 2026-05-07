@@ -334,7 +334,7 @@ bool ASTJsonExporter::visit(IdentifierPath const& _node)
 {
 	Json nameLocations = Json::array();
 
-	for (SourceLocation location: _node.pathLocations())
+	for (SourceLocation const& location: _node.pathLocations())
 		nameLocations.emplace_back(sourceLocationToString(location));
 
 	setJsonNode(_node, "IdentifierPath", {
@@ -929,7 +929,7 @@ bool ASTJsonExporter::visit(FunctionCall const& _node)
 
 	if (_node.annotation().kind.set())
 	{
-		FunctionCallKind nodeKind = *_node.annotation().kind;
+		FunctionCallKind const nodeKind = *_node.annotation().kind;
 		attributes.emplace_back("kind", functionCallKind(nodeKind));
 	}
 
@@ -1050,7 +1050,7 @@ bool ASTJsonExporter::visit(Literal const& _node)
 
 bool ASTJsonExporter::visit(StructuredDocumentation const& _node)
 {
-	Json text = *_node.text();
+	Json const text = *_node.text();
 	std::vector<std::pair<std::string, Json>> attributes = {
 		std::make_pair("text", text)
 	};

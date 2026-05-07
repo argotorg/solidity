@@ -143,7 +143,7 @@ void ControlFlowGraph::removeUnusedBlocks()
 	{
 		BasicBlock const& block = m_blocks.at(blocksToProcess.back());
 		blocksToProcess.pop_back();
-		for (BlockId tag: block.pushedTags)
+		for (BlockId const tag: block.pushedTags)
 			if (!neededBlocks.count(tag) && m_blocks.count(tag))
 			{
 				neededBlocks.insert(tag);
@@ -166,7 +166,7 @@ void ControlFlowGraph::setPrevLinks()
 {
 	for (auto& idAndBlock: m_blocks)
 	{
-		BasicBlock& block = idAndBlock.second;
+		BasicBlock const& block = idAndBlock.second;
 		switch (block.endType)
 		{
 		case BasicBlock::EndType::JUMPI:
@@ -185,14 +185,14 @@ void ControlFlowGraph::setPrevLinks()
 	// If block ends with jump to not yet linked block, link them removing the jump
 	for (auto& idAndBlock: m_blocks)
 	{
-		BlockId blockId = idAndBlock.first;
+		BlockId const blockId = idAndBlock.first;
 		BasicBlock& block = idAndBlock.second;
 		if (block.endType != BasicBlock::EndType::JUMP || block.end - block.begin < 2)
 			continue;
 		AssemblyItem const& push = m_items.at(block.end - 2);
 		if (push.type() != PushTag)
 			continue;
-		BlockId nextId(push.data());
+		BlockId const nextId(push.data());
 		if (m_blocks.count(nextId) && m_blocks.at(nextId).prev)
 			continue;
 		bool hasLoop = false;
@@ -218,7 +218,7 @@ void ControlFlowGraph::gatherKnowledge()
 {
 	// @todo actually we know that memory is filled with zeros at the beginning,
 	// we could make use of that.
-	KnownStatePointer emptyState = std::make_shared<KnownState>();
+	KnownStatePointer const emptyState = std::make_shared<KnownState>();
 	bool unknownJumpEncountered = false;
 
 	struct WorkQueueItem {
@@ -240,14 +240,14 @@ void ControlFlowGraph::gatherKnowledge()
 
 	while (!workQueue.empty())
 	{
-		WorkQueueItem item = std::move(workQueue.back());
+		WorkQueueItem const item = std::move(workQueue.back());
 		workQueue.pop_back();
 		//@todo we might have to do something like incrementing the sequence number for each JUMPDEST
 		assertThrow(!!item.blockId, OptimizerException, "");
 		if (!m_blocks.count(item.blockId))
 			continue; // too bad, we do not know the tag, probably an invalid jump
 		BasicBlock& block = m_blocks.at(item.blockId);
-		KnownStatePointer state = item.state;
+		KnownStatePointer const state = item.state;
 		if (block.startState)
 		{
 			// We call reduceToCommonKnowledge even in the non-join setting to get the correct
@@ -274,7 +274,7 @@ void ControlFlowGraph::gatherKnowledge()
 			assertThrow(block.begin <= pc && pc == block.end - 1, OptimizerException, "");
 			//@todo in the case of JUMPI, add knowledge about the condition to the state
 			// (for both values of the condition)
-			std::set<u256> tags = state->tagsInExpression(
+			std::set<u256> const tags = state->tagsInExpression(
 				state->stackElement(state->stackHeight(), langutil::DebugData::create())
 			);
 			state->feedItem(m_items.at(pc++));
@@ -292,7 +292,7 @@ void ControlFlowGraph::gatherKnowledge()
 				}
 			}
 			else
-				for (auto tag: tags)
+				for (auto const& tag: tags)
 					addWorkQueueItem(item, BlockId(tag), state);
 		}
 		else if (block.begin <= pc && pc < block.end)
@@ -322,12 +322,12 @@ BasicBlocks ControlFlowGraph::rebuildCode()
 {
 	std::map<BlockId, unsigned> pushes;
 	for (auto& idAndBlock: m_blocks)
-		for (BlockId ref: idAndBlock.second.pushedTags)
+		for (BlockId const ref: idAndBlock.second.pushedTags)
 			if (m_blocks.count(ref))
 				pushes[ref]++;
 
 	std::set<BlockId> blocksToAdd;
-	for (auto it: m_blocks)
+	for (auto const& it: m_blocks)
 		blocksToAdd.insert(it.first);
 	std::set<BlockId> blocksAdded;
 	BasicBlocks blocks;

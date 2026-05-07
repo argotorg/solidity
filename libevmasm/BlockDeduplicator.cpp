@@ -48,7 +48,7 @@ bool BlockDeduplicator::deduplicate()
 	)
 		return false;
 
-	std::function<bool(size_t, size_t)> comparator = [&](size_t _i, size_t _j)
+	std::function<bool(size_t, size_t)> const comparator = [&](size_t _i, size_t _j)
 	{
 		if (_i == _j)
 			return false;
@@ -66,7 +66,7 @@ bool BlockDeduplicator::deduplicate()
 		using diff_type = BlockIterator::difference_type;
 		BlockIterator first{m_items.begin() + diff_type(_i), m_items.end(), &pushFirstTag, &pushSelf};
 		BlockIterator second{m_items.begin() + diff_type(_j), m_items.end(), &pushSecondTag, &pushSelf};
-		BlockIterator end{m_items.end(), m_items.end()};
+		BlockIterator const end{m_items.end(), m_items.end()};
 
 		if (first != end && (*first).type() == Tag)
 			++first;

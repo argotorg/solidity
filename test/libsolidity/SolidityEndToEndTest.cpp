@@ -89,7 +89,7 @@ BOOST_FIXTURE_TEST_SUITE(SolidityEndToEndTest, SolidityEndToEndTestExecutionFram
 
 BOOST_AUTO_TEST_CASE(creation_code_optimizer)
 {
-	std::string codeC = R"(
+	std::string const codeC = R"(
 		contract C {
 			constructor(uint x) {
 			if (x == 0xFFFFFFFFFFFFFFFF42)
@@ -97,7 +97,7 @@ BOOST_AUTO_TEST_CASE(creation_code_optimizer)
 			}
 		}
 	)";
-	std::string codeD = R"(
+	std::string const codeD = R"(
 		contract D {
 			function f() public pure returns (bytes memory) {
 				return type(C).creationCode;
@@ -667,8 +667,8 @@ BOOST_AUTO_TEST_CASE(high_bits_cleaning)
 	compileAndRun(sourceCode);
 	auto high_bits_cleaning_cpp = []() -> u256
 	{
-		uint32_t t = uint32_t(0xffffffff);
-		uint32_t x = t + 10;
+		uint32_t const t = uint32_t(0xffffffff);
+		uint32_t const x = t + 10;
 		if (x >= 0xffffffff)
 			return 0;
 		return x;
@@ -692,7 +692,7 @@ BOOST_AUTO_TEST_CASE(sign_extension)
 	compileAndRun(sourceCode);
 	auto sign_extension_cpp = []() -> u256
 	{
-		int64_t x = -int32_t(0xff);
+		int64_t const x = -int32_t(0xff);
 		if (x >= 0xff)
 			return 0;
 		return u256(x) * -1;
@@ -716,8 +716,8 @@ BOOST_AUTO_TEST_CASE(small_unsigned_types)
 	compileAndRun(sourceCode);
 	auto small_unsigned_types_cpp = []() -> u256
 	{
-		uint32_t t = uint32_t(0xffffff);
-		uint32_t x = t * 0xffffff;
+		uint32_t const t = uint32_t(0xffffff);
+		uint32_t const x = t * 0xffffff;
 		return x / 0x100;
 	};
 	testContractAgainstCpp("run()", small_unsigned_types_cpp);
@@ -907,8 +907,8 @@ BOOST_AUTO_TEST_CASE(inter_contract_calls)
 	compileAndRun(sourceCode, 0, "Main");
 	BOOST_REQUIRE(callContractFunction("setHelper(address)", c_helperAddress) == bytes());
 	BOOST_REQUIRE(callContractFunction("getHelper()", c_helperAddress) == encodeArgs(c_helperAddress));
-	u256 a(3456789);
-	u256 b("0x282837623374623234aa74");
+	u256 const a(3456789);
+	u256 const b("0x282837623374623234aa74");
 	BOOST_REQUIRE(callContractFunction("callHelper(uint256,uint256)", a, b) == encodeArgs(a * b));
 }
 
@@ -938,8 +938,8 @@ BOOST_AUTO_TEST_CASE(inter_contract_calls_with_complex_parameters)
 	compileAndRun(sourceCode, 0, "Main");
 	BOOST_REQUIRE(callContractFunction("setHelper(address)", c_helperAddress) == bytes());
 	BOOST_REQUIRE(callContractFunction("getHelper()", c_helperAddress) == encodeArgs(c_helperAddress));
-	u256 a(3456789);
-	u256 b("0x282837623374623234aa74");
+	u256 const a(3456789);
+	u256 const b("0x282837623374623234aa74");
 	BOOST_REQUIRE(callContractFunction("callHelper(uint256,bool,uint256)", a, true, b) == encodeArgs(a * 3));
 	BOOST_REQUIRE(callContractFunction("callHelper(uint256,bool,uint256)", a, false, b) == encodeArgs(b * 3));
 }
@@ -1002,8 +1002,8 @@ BOOST_AUTO_TEST_CASE(calls_to_this)
 	compileAndRun(sourceCode, 0, "Main");
 	BOOST_REQUIRE(callContractFunction("setHelper(address)", c_helperAddress) == bytes());
 	BOOST_REQUIRE(callContractFunction("getHelper()", c_helperAddress) == encodeArgs(c_helperAddress));
-	u256 a(3456789);
-	u256 b("0x282837623374623234aa74");
+	u256 const a(3456789);
+	u256 const b("0x282837623374623234aa74");
 	BOOST_REQUIRE(callContractFunction("callHelper(uint256,uint256)", a, b) == encodeArgs(a * b + 10));
 }
 
@@ -1037,8 +1037,8 @@ BOOST_AUTO_TEST_CASE(inter_contract_calls_with_local_vars)
 	compileAndRun(sourceCode, 0, "Main");
 	BOOST_REQUIRE(callContractFunction("setHelper(address)", c_helperAddress) == bytes());
 	BOOST_REQUIRE(callContractFunction("getHelper()", c_helperAddress) == encodeArgs(c_helperAddress));
-	u256 a(3456789);
-	u256 b("0x282837623374623234aa74");
+	u256 const a(3456789);
+	u256 const b("0x282837623374623234aa74");
 	BOOST_REQUIRE(callContractFunction("callHelper(uint256,uint256)", a, b) == encodeArgs(a * b + 9));
 }
 
@@ -1084,8 +1084,8 @@ BOOST_AUTO_TEST_CASE(constructor_with_long_arguments)
 			}
 		}
 	)";
-	std::string a = "01234567890123gabddunaouhdaoneudapcgadi4567890789012oneudapcgadi4567890789012oneudapcgadi4567890789012oneudapcgadi4567890789012oneudapcgadi4567890789012oneudapcgadi4567890789012oneudapcgadi4567890789012oneudapcgadi45678907890123456789abcd123456787890123456789abcd90123456789012345678901234567890123456789aboneudapcgadi4567890789012oneudapcgadi4567890789012oneudapcgadi45678907890123456789abcd123456787890123456789abcd90123456789012345678901234567890123456789aboneudapcgadi4567890789012oneudapcgadi4567890789012oneudapcgadi45678907890123456789abcd123456787890123456789abcd90123456789012345678901234567890123456789aboneudapcgadi4567890789012cdef";
-	std::string b = "AUTAHIACIANOTUHAOCUHAOEUNAOEHUNTHDYDHPYDRCPYDRSTITOEUBXHUDGO>PYAUTAHIACIANOTUHAOCUHAOEUNAOEHUNTHDYDHPYDRCPYDRSTITOEUBXHUDGO>PYAUTAHIACIANOTUHAOCUHAOEUNAOEHUNTHDYDHPYDRCPYDRSTITOEUBXHUDGO>PYAUTAHIACIANOTUHAOCUHAOEUNAOEHUNTHDYDHPYDRCPYDRSTITOEUBXHUDGO>PYAUTAHIACIANOTUHAOCUHAOEUNAOEHUNTHDYDHPYDRCPYDRSTITOEUBXHUDGO>PYAUTAHIACIANOTUHAOCUHAOEUNAOEHUNTHDYDHPYDRCPYDRSTITOEUBXHUDGO>PYAUTAHIACIANOTUHAOCUHAOEUNAOEHUNTHDYDHPYDRCPYDRSTITOEUBXHUDGO>PYAUTAHIACIANOTUHAOCUHAOEUNAOEHUNTHDYDHPYDRCPYDRSTITOEUBXHUDGO>PYAUTAHIACIANOTUHAOCUHAOEUNAOEHUNTHDYDHPYDRCPYDRSTITOEUBXHUDGO>PYAUTAHIACIANOTUHAOCUHAOEUNAOEHUNTHDYDHPYDRCPYDRSTITOEUBXHUDGO>PYAUTAHIACIANOTUHAOCUHAOEUNAOEHUNTHDYDHPYDRCPYDRSTITOEUBXHUDGO>PYAUTAHIACIANOTUHAOCUHAOEUNAOEHUNTHDYDHPYDRCPYDRSTITOEUBXHUDGO>PYAUTAHIACIANOTUHAOCUHAOEUNAOEHUNTHDYDHPYDRCPYDRSTITOEUBXHUDGO>PYAUTAHIACIANOTUHAOCUHAOEUNAOEHUNTHDYDHPYDRCPYDRSTITOEUBXHUDGO>PYAUTAHIACIANOTUHAOCUHAOEUNAOEHUNTHDYDHPYDRCPYDRSTITOEUBXHUDGO>PYAUTAHIACIANOTUHAOCUHAOEUNAOEHUNTHDYDHPYDRCPYDRSTITOEUBXHUDGO>PYAUTAHIACIANOTUHAOCUHAOEUNAOEHUNTHDYDHPYDRCPYDRSTITOEUBXHUDGO>PYAUTAHIACIANOTUHAOCUHAOEUNAOEHUNTHDYDHPYDRCPYDRSTITOEUBXHUDGO>PY";
+	std::string const a = "01234567890123gabddunaouhdaoneudapcgadi4567890789012oneudapcgadi4567890789012oneudapcgadi4567890789012oneudapcgadi4567890789012oneudapcgadi4567890789012oneudapcgadi4567890789012oneudapcgadi4567890789012oneudapcgadi45678907890123456789abcd123456787890123456789abcd90123456789012345678901234567890123456789aboneudapcgadi4567890789012oneudapcgadi4567890789012oneudapcgadi45678907890123456789abcd123456787890123456789abcd90123456789012345678901234567890123456789aboneudapcgadi4567890789012oneudapcgadi4567890789012oneudapcgadi45678907890123456789abcd123456787890123456789abcd90123456789012345678901234567890123456789aboneudapcgadi4567890789012cdef";
+	std::string const b = "AUTAHIACIANOTUHAOCUHAOEUNAOEHUNTHDYDHPYDRCPYDRSTITOEUBXHUDGO>PYAUTAHIACIANOTUHAOCUHAOEUNAOEHUNTHDYDHPYDRCPYDRSTITOEUBXHUDGO>PYAUTAHIACIANOTUHAOCUHAOEUNAOEHUNTHDYDHPYDRCPYDRSTITOEUBXHUDGO>PYAUTAHIACIANOTUHAOCUHAOEUNAOEHUNTHDYDHPYDRCPYDRSTITOEUBXHUDGO>PYAUTAHIACIANOTUHAOCUHAOEUNAOEHUNTHDYDHPYDRCPYDRSTITOEUBXHUDGO>PYAUTAHIACIANOTUHAOCUHAOEUNAOEHUNTHDYDHPYDRCPYDRSTITOEUBXHUDGO>PYAUTAHIACIANOTUHAOCUHAOEUNAOEHUNTHDYDHPYDRCPYDRSTITOEUBXHUDGO>PYAUTAHIACIANOTUHAOCUHAOEUNAOEHUNTHDYDHPYDRCPYDRSTITOEUBXHUDGO>PYAUTAHIACIANOTUHAOCUHAOEUNAOEHUNTHDYDHPYDRCPYDRSTITOEUBXHUDGO>PYAUTAHIACIANOTUHAOCUHAOEUNAOEHUNTHDYDHPYDRCPYDRSTITOEUBXHUDGO>PYAUTAHIACIANOTUHAOCUHAOEUNAOEHUNTHDYDHPYDRCPYDRSTITOEUBXHUDGO>PYAUTAHIACIANOTUHAOCUHAOEUNAOEHUNTHDYDHPYDRCPYDRSTITOEUBXHUDGO>PYAUTAHIACIANOTUHAOCUHAOEUNAOEHUNTHDYDHPYDRCPYDRSTITOEUBXHUDGO>PYAUTAHIACIANOTUHAOCUHAOEUNAOEHUNTHDYDHPYDRCPYDRSTITOEUBXHUDGO>PYAUTAHIACIANOTUHAOCUHAOEUNAOEHUNTHDYDHPYDRCPYDRSTITOEUBXHUDGO>PYAUTAHIACIANOTUHAOCUHAOEUNAOEHUNTHDYDHPYDRCPYDRSTITOEUBXHUDGO>PYAUTAHIACIANOTUHAOCUHAOEUNAOEHUNTHDYDHPYDRCPYDRSTITOEUBXHUDGO>PYAUTAHIACIANOTUHAOCUHAOEUNAOEHUNTHDYDHPYDRCPYDRSTITOEUBXHUDGO>PY";
 
 	compileAndRun(sourceCode, 0, "Main", encodeArgs(
 		u256(0x40),
@@ -1262,7 +1262,7 @@ BOOST_AUTO_TEST_CASE(generic_delegatecall)
 
 	for (auto v2: {false, true})
 	{
-		std::string source = "pragma abicoder " + std::string(v2 ? "v2" : "v1") + ";\n" + std::string(sourceCode);
+		std::string const source = "pragma abicoder " + std::string(v2 ? "v2" : "v1") + ";\n" + std::string(sourceCode);
 
 		compileAndRun(source, 0, "Receiver");
 		h160 const c_receiverAddress = m_contractAddress;
@@ -1764,31 +1764,31 @@ BOOST_AUTO_TEST_CASE(return_multiple_strings_of_various_sizes)
 		}
 	)";
 	compileAndRun(sourceCode, 0, "Main");
-	std::string s1(
+	std::string const s1(
 		"abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz"
 		"abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz"
 		"abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz"
 		"abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz"
 	);
-	std::string s2(
+	std::string const s2(
 		"ABCDEFGHIJKLMNOPQRSTUVXYZABCDEFGHIJKLMNOPQRSTUVXYZABCDEFGHIJKLMNOPQRSTUVXYZ"
 		"ABCDEFGHIJKLMNOPQRSTUVXYZABCDEFGHIJKLMNOPQRSTUVXYZABCDEFGHIJKLMNOPQRSTUVXYZ"
 		"ABCDEFGHIJKLMNOPQRSTUVXYZABCDEFGHIJKLMNOPQRSTUVXYZABCDEFGHIJKLMNOPQRSTUVXYZ"
 		"ABCDEFGHIJKLMNOPQRSTUVXYZABCDEFGHIJKLMNOPQRSTUVXYZABCDEFGHIJKLMNOPQRSTUVXYZ"
 		"ABCDEFGHIJKLMNOPQRSTUVXYZABCDEFGHIJKLMNOPQRSTUVXYZABCDEFGHIJKLMNOPQRSTUVXYZ"
 	);
-	std::vector<size_t> lengths{0, 30, 32, 63, 64, 65, 210, 300};
+	std::vector<size_t> const lengths{0, 30, 32, 63, 64, 65, 210, 300};
 	for (auto l1: lengths)
 		for (auto l2: lengths)
 		{
-			bytes dyn1 = encodeArgs(u256(l1), s1.substr(0, l1));
-			bytes dyn2 = encodeArgs(u256(l2), s2.substr(0, l2));
-			bytes args = encodeArgs(u256(0x60), u256(l1), u256(0x60 + dyn1.size())) + dyn1 + dyn2;
+			bytes const dyn1 = encodeArgs(u256(l1), s1.substr(0, l1));
+			bytes const dyn2 = encodeArgs(u256(l2), s2.substr(0, l2));
+			bytes const args = encodeArgs(u256(0x60), u256(l1), u256(0x60 + dyn1.size())) + dyn1 + dyn2;
 			BOOST_REQUIRE(
 				callContractFunction("set(string,uint256,string)", asString(args)) ==
 				encodeArgs(u256(l1))
 			);
-			bytes result = encodeArgs(u256(0x40), u256(0x40 + dyn1.size())) + dyn1 + dyn2;
+			bytes const result = encodeArgs(u256(0x40), u256(0x40 + dyn1.size())) + dyn1 + dyn2;
 			ABI_CHECK(callContractFunction("get()"), result);
 			ABI_CHECK(callContractFunction("s1()"), encodeArgs(0x20) + dyn1);
 			ABI_CHECK(callContractFunction("s2()"), encodeArgs(0x20) + dyn2);
@@ -1812,15 +1812,15 @@ BOOST_AUTO_TEST_CASE(accessor_involving_strings)
 		}
 	)";
 	compileAndRun(sourceCode, 0, "Main");
-	std::string s1("abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz");
-	std::string s2("ABCDEFGHIJKLMNOPQRSTUVXYZABCDEFGHIJKLMNOPQRSTUVXYZABCDEFGHIJKLMNOPQRSTUVXYZ");
-	bytes s1Data = encodeArgs(u256(s1.length()), s1);
-	bytes s2Data = encodeArgs(u256(s2.length()), s2);
-	u256 b = 765;
-	u256 x = 7;
-	u256 y = 123;
-	bytes args = encodeArgs(x, y, u256(0xa0), b, u256(0xa0 + s1Data.size()), s1Data, s2Data);
-	bytes result = encodeArgs(u256(0x60), b, u256(0x60 + s1Data.size()), s1Data, s2Data);
+	std::string const s1("abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz");
+	std::string const s2("ABCDEFGHIJKLMNOPQRSTUVXYZABCDEFGHIJKLMNOPQRSTUVXYZABCDEFGHIJKLMNOPQRSTUVXYZ");
+	bytes const s1Data = encodeArgs(u256(s1.length()), s1);
+	bytes const s2Data = encodeArgs(u256(s2.length()), s2);
+	u256 const b = 765;
+	u256 const x = 7;
+	u256 const y = 123;
+	bytes const args = encodeArgs(x, y, u256(0xa0), b, u256(0xa0 + s1Data.size()), s1Data, s2Data);
+	bytes const result = encodeArgs(u256(0x60), b, u256(0x60 + s1Data.size()), s1Data, s2Data);
 	BOOST_REQUIRE(callContractFunction("set(uint256,uint256,string,uint256,string)", asString(args)) == encodeArgs(true));
 	BOOST_REQUIRE(callContractFunction("data(uint256,uint256)", x, y) == result);
 }
@@ -1845,15 +1845,15 @@ BOOST_AUTO_TEST_CASE(bytes_in_function_calls)
 		}
 	)";
 	compileAndRun(sourceCode, 0, "Main");
-	std::string s1("abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz");
-	std::string s2("ABCDEFGHIJKLMNOPQRSTUVXYZABCDEFGHIJKLMNOPQRSTUVXYZABCDEFGHIJKLMNOPQRSTUVXYZ");
-	std::vector<size_t> lengths{0, 31, 64, 65};
+	std::string const s1("abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz");
+	std::string const s2("ABCDEFGHIJKLMNOPQRSTUVXYZABCDEFGHIJKLMNOPQRSTUVXYZABCDEFGHIJKLMNOPQRSTUVXYZ");
+	std::vector<size_t> const lengths{0, 31, 64, 65};
 	for (auto l1: lengths)
 		for (auto l2: lengths)
 		{
-			bytes dyn1 = encodeArgs(u256(l1), s1.substr(0, l1));
-			bytes dyn2 = encodeArgs(u256(l2), s2.substr(0, l2));
-			bytes args1 = encodeArgs(u256(0x60), u256(l1), u256(0x60 + dyn1.size())) + dyn1 + dyn2;
+			bytes const dyn1 = encodeArgs(u256(l1), s1.substr(0, l1));
+			bytes const dyn2 = encodeArgs(u256(l2), s2.substr(0, l2));
+			bytes const args1 = encodeArgs(u256(0x60), u256(l1), u256(0x60 + dyn1.size())) + dyn1 + dyn2;
 			BOOST_REQUIRE(
 				callContractFunction("setIndirectFromMemory(string,uint256,string)", asString(args1)) ==
 				encodeArgs(u256(l1))
@@ -1861,7 +1861,7 @@ BOOST_AUTO_TEST_CASE(bytes_in_function_calls)
 			ABI_CHECK(callContractFunction("s1()"), encodeArgs(0x20) + dyn1);
 			ABI_CHECK(callContractFunction("s2()"), encodeArgs(0x20) + dyn2);
 			// swapped
-			bytes args2 = encodeArgs(u256(0x60), u256(l1), u256(0x60 + dyn2.size())) + dyn2 + dyn1;
+			bytes const args2 = encodeArgs(u256(0x60), u256(l1), u256(0x60 + dyn2.size())) + dyn2 + dyn1;
 			BOOST_REQUIRE(
 				callContractFunction("setIndirectFromCalldata(string,uint256,string)", asString(args2)) ==
 				encodeArgs(u256(l1))
@@ -1887,12 +1887,12 @@ BOOST_AUTO_TEST_CASE(return_bytes_internal)
 		}
 	)";
 	compileAndRun(sourceCode, 0, "Main");
-	std::string s1("abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz");
-	std::vector<size_t> lengths{0, 31, 64, 65};
+	std::string const s1("abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz");
+	std::vector<size_t> const lengths{0, 31, 64, 65};
 	for (auto l1: lengths)
 	{
-		bytes dyn1 = encodeArgs(u256(l1), s1.substr(0, l1));
-		bytes args1 = encodeArgs(u256(0x20)) + dyn1;
+		bytes const dyn1 = encodeArgs(u256(l1), s1.substr(0, l1));
+		bytes const args1 = encodeArgs(u256(0x20)) + dyn1;
 		BOOST_REQUIRE(
 			callContractFunction("set(bytes)", asString(args1)) ==
 			encodeArgs(u256(l1), u256(0x40)) + dyn1
@@ -1942,8 +1942,8 @@ BOOST_AUTO_TEST_CASE(calldata_struct_function_type)
 	)";
 	compileAndRun(sourceCode, 0, "C");
 
-	bytes fn_C_g = m_contractAddress.asBytes() + util::selectorFromSignatureH32("g(uint256)").asBytes() + bytes(8,0);
-	bytes fn_C_h = m_contractAddress.asBytes() + util::selectorFromSignatureH32("h(uint256)").asBytes() + bytes(8,0);
+	bytes const fn_C_g = m_contractAddress.asBytes() + util::selectorFromSignatureH32("g(uint256)").asBytes() + bytes(8,0);
+	bytes const fn_C_h = m_contractAddress.asBytes() + util::selectorFromSignatureH32("h(uint256)").asBytes() + bytes(8,0);
 	ABI_CHECK(callContractFunctionNoEncoding("f((function))", fn_C_g), encodeArgs(42 * 3));
 	ABI_CHECK(callContractFunctionNoEncoding("f((function))", fn_C_h), encodeArgs(23));
 }
@@ -1961,7 +1961,7 @@ BOOST_AUTO_TEST_CASE(calldata_array_dynamic_three_dimensional)
 		}
 	};
 
-	for (bool outerDynamicallySized: { true, false })
+	for (bool const outerDynamicallySized: { true, false })
 	for (bool middleDynamicallySized: { true, false })
 	for (bool innerDynamicallySized: { true, false })
 	{
@@ -1974,7 +1974,7 @@ BOOST_AUTO_TEST_CASE(calldata_array_dynamic_three_dimensional)
 		arrayType += middleDynamicallySized ? "[]" : "[2]";
 		arrayType += outerDynamicallySized ? "[]" : "[2]";
 
-		std::string sourceCode = R"(
+		std::string const sourceCode = R"(
 			pragma abicoder v2;
 			contract C {
 				function test()" + arrayType + R"( calldata a) external returns (uint256) {
@@ -1996,7 +1996,7 @@ BOOST_AUTO_TEST_CASE(calldata_array_dynamic_three_dimensional)
 		)";
 		compileAndRun(sourceCode, 0, "C");
 
-		bytes encoding = encodeArray(
+		bytes const encoding = encodeArray(
 			outerDynamicallySized,
 			middleDynamicallySized || innerDynamicallySized,
 			data | ranges::views::transform([&](auto const& _middleData) {
@@ -2048,10 +2048,10 @@ BOOST_AUTO_TEST_CASE(literal_strings)
 		}
 	)";
 	compileAndRun(sourceCode, 0, "Test");
-	std::string longStr = "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789001234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678900123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789001234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890";
-	std::string medium = "01234567890123456789012345678901234567890123456789012345678901234567890123456789";
-	std::string shortStr = "123";
-	std::string hello = "Hello, World!";
+	std::string const longStr = "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789001234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678900123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789001234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890";
+	std::string const medium = "01234567890123456789012345678901234567890123456789012345678901234567890123456789";
+	std::string const shortStr = "123";
+	std::string const hello = "Hello, World!";
 
 	ABI_CHECK(callContractFunction("f()"), encodeDyn(hello));
 	ABI_CHECK(callContractFunction("long()"), encodeDyn(longStr));
@@ -2069,8 +2069,8 @@ BOOST_AUTO_TEST_CASE(initialise_string_constant)
 		}
 	)";
 	compileAndRun(sourceCode, 0, "Test");
-	std::string longStr = "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789001234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678900123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789001234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890";
-	std::string shortStr = "abcdef";
+	std::string const longStr = "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789001234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678900123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789001234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890";
+	std::string const shortStr = "abcdef";
 
 	ABI_CHECK(callContractFunction("long()"), encodeDyn(longStr));
 	ABI_CHECK(callContractFunction("short()"), encodeDyn(shortStr));
@@ -2314,7 +2314,7 @@ BOOST_AUTO_TEST_CASE(using_library_mappings_external)
 		)";
 	for (auto v2: {false, true})
 	{
-		std::string prefix = "pragma abicoder " + std::string(v2 ? "v2" : "v1") + ";\n";
+		std::string const prefix = "pragma abicoder " + std::string(v2 ? "v2" : "v1") + ";\n";
 		compileAndRun(prefix + libSourceCode, 0, "Lib");
 		compileAndRun(prefix + sourceCode, 0, "Test", bytes(), std::map<std::string, h160>{{":Lib", m_contractAddress}});
 		ABI_CHECK(callContractFunction("f()"), encodeArgs(u256(2), u256(0), u256(84), u256(46), u256(0), u256(198)));
@@ -2524,7 +2524,7 @@ BOOST_AUTO_TEST_CASE(inline_long_string_return)
 		}
 	)";
 
-	std::string strLong = "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789001234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678900123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789001234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890";
+	std::string const strLong = "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789001234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678900123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789001234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890";
 	compileAndRun(sourceCode, 0, "C");
 	ABI_CHECK(callContractFunction("f()"), encodeDyn(strLong));
 }
@@ -3156,7 +3156,7 @@ BOOST_AUTO_TEST_CASE(bare_call_return_data)
 			calltypes.emplace_back("staticcall");
 		for (std::string const& calltype: calltypes)
 		{
-			std::string sourceCode = R"DELIMITER(
+			std::string const sourceCode = R"DELIMITER(
 				contract A {
 					constructor() {
 					}
@@ -3665,9 +3665,9 @@ BOOST_AUTO_TEST_CASE(code_access)
 	)";
 	compileAndRun(sourceCode, 0, "C");
 	ABI_CHECK(callContractFunction("lengths()"), encodeArgs(true));
-	bytes codeCreation = callContractFunction("creation()");
-	bytes codeRuntime1 = callContractFunction("runtime()");
-	bytes codeRuntime2 = callContractFunction("runtimeAllocCheck()");
+	bytes const codeCreation = callContractFunction("creation()");
+	bytes const codeRuntime1 = callContractFunction("runtime()");
+	bytes const codeRuntime2 = callContractFunction("runtimeAllocCheck()");
 	ABI_CHECK(codeRuntime1, codeRuntime2);
 }
 
@@ -3701,19 +3701,19 @@ BOOST_AUTO_TEST_CASE(contract_name)
 	)";
 
 	compileAndRun(sourceCode, 0, "C");
-	bytes argsC = encodeArgs(u256(0x20), u256(1), "C");
+	bytes const argsC = encodeArgs(u256(0x20), u256(1), "C");
 	ABI_CHECK(callContractFunction("name()"), argsC);
 	ABI_CHECK(callContractFunction("nameAccessor()"), argsC);
 	ABI_CHECK(callContractFunction("constantNameAccessor()"), argsC);
 
 	compileAndRun(sourceCode, 0, "D");
-	bytes argsD = encodeArgs(u256(0x20), u256(1), "D");
+	bytes const argsD = encodeArgs(u256(0x20), u256(1), "D");
 	ABI_CHECK(callContractFunction("name()"), argsD);
 	ABI_CHECK(callContractFunction("name2()"), argsC);
 
-	std::string longName = "ThisIsAVeryLongContractNameExceeding256bits";
+	std::string const longName = "ThisIsAVeryLongContractNameExceeding256bits";
 	compileAndRun(sourceCode, 0, longName);
-	bytes argsLong = encodeArgs(u256(0x20), u256(longName.length()), longName);
+	bytes const argsLong = encodeArgs(u256(0x20), u256(longName.length()), longName);
 	ABI_CHECK(callContractFunction("name()"), argsLong);
 	ABI_CHECK(callContractFunction("nameAccessor()"), argsLong);
 	ABI_CHECK(callContractFunction("constantNameAccessor()"), argsLong);

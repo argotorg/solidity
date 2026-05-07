@@ -343,7 +343,7 @@ void CodeTransform::operator()(SSACFG::BlockId const& _currentBlock, SSACFG::Bas
 
 	{
 		// restore stack to previous state once zero-path is handled
-		ScopedSaveAndRestore restoreStack(m_stackData, StackData(m_stackData));
+		ScopedSaveAndRestore const restoreStack(m_stackData, StackData(m_stackData));
 		yulAssert(m_stackLayout[_conditionalJump.zero]);
 
 		// transform stack to a state in which we can jump to the zero branch

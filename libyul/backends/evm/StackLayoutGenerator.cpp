@@ -276,7 +276,7 @@ Stack createIdealLayout(Stack const& _operationOutput, Stack const& _post, Calla
 	// then we want the variable tmp in the slot at offset 2 in the layout before the operation.
 	std::vector<std::optional<StackSlot>> idealLayout(_post.size(), std::nullopt);
 	for (auto&& [slot, idealPosition]: ranges::zip_view(_post, layout))
-		if (PreviousSlot* previousSlot = std::get_if<PreviousSlot>(&idealPosition))
+		if (PreviousSlot const* previousSlot = std::get_if<PreviousSlot>(&idealPosition))
 			idealLayout.at(previousSlot->slot) = slot;
 
 	// The tail of layout must have contained the operation outputs and will not have been assigned slots in the last loop.
@@ -363,7 +363,7 @@ void StackLayoutGenerator::processEntryPoint(CFG::BasicBlock const& _entry, CFG:
 	std::set<CFG::BasicBlock const*> visited;
 
 	// TODO: check whether visiting only a subset of these in the outer iteration below is enough.
-	std::list<std::pair<CFG::BasicBlock const*, CFG::BasicBlock const*>> backwardsJumps = collectBackwardsJumps(_entry);
+	std::list<std::pair<CFG::BasicBlock const*, CFG::BasicBlock const*>> const backwardsJumps = collectBackwardsJumps(_entry);
 
 	while (!toVisit.empty())
 	{
@@ -462,8 +462,8 @@ std::optional<Stack> StackLayoutGenerator::getExitLayoutOrStageDependencies(
 		},
 		[&](CFG::BasicBlock::ConditionalJump const& _conditionalJump) -> std::optional<Stack>
 		{
-			bool zeroVisited = _visited.count(_conditionalJump.zero);
-			bool nonZeroVisited = _visited.count(_conditionalJump.nonZero);
+			bool const zeroVisited = _visited.count(_conditionalJump.zero);
+			bool const nonZeroVisited = _visited.count(_conditionalJump.nonZero);
 			if (zeroVisited && nonZeroVisited)
 			{
 				// If the current iteration has already visited both jump targets, start from its entry layout.
@@ -596,10 +596,10 @@ Stack StackLayoutGenerator::combineStack(Stack const& _stack1, Stack const& _sta
 		return commonPrefix + compressStack(stack1Tail, _reachableStackDepth);
 
 	Stack candidate;
-	for (auto slot: stack1Tail)
+	for (auto const& slot: stack1Tail)
 		if (!util::contains(candidate, slot))
 			candidate.emplace_back(slot);
-	for (auto slot: stack2Tail)
+	for (auto const& slot: stack2Tail)
 		if (!util::contains(candidate, slot))
 			candidate.emplace_back(slot);
 	std::erase_if(candidate, [](StackSlot const& slot) {
@@ -625,7 +625,7 @@ Stack StackLayoutGenerator::combineStack(Stack const& _stack1, Stack const& _sta
 	};
 
 	// See https://en.wikipedia.org/wiki/Heap's_algorithm
-	size_t n = candidate.size();
+	size_t const n = candidate.size();
 	Stack bestCandidate = candidate;
 	size_t bestCost = evaluate(candidate);
 	std::vector<size_t> c(n, 0);
@@ -638,7 +638,7 @@ Stack StackLayoutGenerator::combineStack(Stack const& _stack1, Stack const& _sta
 				std::swap(candidate.front(), candidate[i]);
 			else
 				std::swap(candidate[c[i]], candidate[i]);
-			size_t cost = evaluate(candidate);
+			size_t const cost = evaluate(candidate);
 			if (cost < bestCost)
 			{
 				bestCost = cost;
@@ -669,7 +669,7 @@ std::vector<StackLayoutGenerator::StackTooDeep> StackLayoutGenerator::reportStac
 
 		for (auto const& operation: _block->operations)
 		{
-			Stack& operationEntry = m_layout.operationEntryLayout.at(&operation);
+			Stack const& operationEntry = m_layout.operationEntryLayout.at(&operation);
 
 			stackTooDeepErrors += findStackTooDeep(currentStack, operationEntry, reachableStackDepth());
 			currentStack = operationEntry;
@@ -812,10 +812,10 @@ void StackLayoutGenerator::fillInJunk(CFG::BasicBlock const& _block, CFG::Functi
 	auto getBestNumJunk = [&](Stack const& _entryLayout, Stack const& _targetLayout) -> size_t {
 		size_t bestCost = evaluateTransform(_entryLayout, _targetLayout);
 		size_t bestNumJunk = 0;
-		size_t maxJunk = _entryLayout.size();
+		size_t const maxJunk = _entryLayout.size();
 		for (size_t numJunk = 1; numJunk <= maxJunk; ++numJunk)
 		{
-			size_t cost = evaluateTransform(_entryLayout, Stack{numJunk, JunkSlot{}} + _targetLayout);
+			size_t const cost = evaluateTransform(_entryLayout, Stack{numJunk, JunkSlot{}} + _targetLayout);
 			if (cost < bestCost)
 			{
 				bestCost = cost;
@@ -827,7 +827,7 @@ void StackLayoutGenerator::fillInJunk(CFG::BasicBlock const& _block, CFG::Functi
 
 	if (_functionInfo && !_functionInfo->canContinue && _block.allowsJunk())
 	{
-		size_t bestNumJunk = getBestNumJunk(
+		size_t const bestNumJunk = getBestNumJunk(
 			_functionInfo->parameters | ranges::views::reverse | ranges::to<Stack>,
 			m_layout.blockInfos.at(&_block).entryLayout
 		);
@@ -842,11 +842,11 @@ void StackLayoutGenerator::fillInJunk(CFG::BasicBlock const& _block, CFG::Functi
 		if (_block->allowsJunk())
 		{
 			auto& blockInfo = m_layout.blockInfos.at(_block);
-			Stack entryLayout = blockInfo.entryLayout;
+			Stack const entryLayout = blockInfo.entryLayout;
 			Stack const& nextLayout = _block->operations.empty() ? blockInfo.exitLayout : m_layout.operationEntryLayout.at(&_block->operations.front());
 			if (entryLayout != nextLayout)
 			{
-				size_t bestNumJunk = getBestNumJunk(
+				size_t const bestNumJunk = getBestNumJunk(
 					entryLayout,
 					nextLayout
 				);

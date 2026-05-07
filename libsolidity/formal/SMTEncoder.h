@@ -444,7 +444,7 @@ protected:
 	void createStateVariables(std::set<SourceUnit const*, ASTNode::CompareByID> const& _sources);
 
 	/// @returns a note to be added to warnings.
-	std::string extraComment();
+	std::string extraComment() const;
 
 	struct VerificationTarget
 	{

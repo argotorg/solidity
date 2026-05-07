@@ -68,7 +68,7 @@ public:
 		{
 			if (size_t const* cost = util::valueOrNullptr(m_expressionCodeCost, candidate))
 			{
-				size_t numRef = m_numReferences[candidate];
+				size_t const numRef = m_numReferences[candidate];
 				cand[functionName][*cost * numRef].emplace_back(candidate);
 			}
 		}
@@ -89,7 +89,7 @@ public:
 		DataFlowAnalyzer::operator()(_varDecl);
 		if (_varDecl.variables.size() == 1)
 		{
-			YulName varName = _varDecl.variables.front().name;
+			YulName const varName = _varDecl.variables.front().name;
 			if (AssignedValue const* value = variableValue(varName))
 			{
 				yulAssert(!m_expressionCodeCost.count(varName), "");
@@ -112,7 +112,7 @@ public:
 	{
 		if (std::holds_alternative<Identifier>(_e))
 		{
-			YulName name = std::get<Identifier>(_e).name;
+			YulName const name = std::get<Identifier>(_e).name;
 			if (m_expressionCodeCost.count(name))
 			{
 				if (!variableValue(name))
@@ -178,7 +178,7 @@ void eliminateVariables(
 
 	Rematerialiser::run(_dialect, _ast, std::move(varsToEliminate));
 	// Do not remove functions.
-	std::set<YulName> allFunctions = NameCollector{_ast, NameCollector::OnlyFunctions}.names();
+	std::set<YulName> const allFunctions = NameCollector{_ast, NameCollector::OnlyFunctions}.names();
 	UnusedPruner::runUntilStabilised(_dialect, _ast, _allowMSizeOptimization, nullptr, allFunctions);
 }
 
@@ -197,7 +197,7 @@ void eliminateVariablesOptimizedCodegen(
 
 	std::map<YulName, size_t> candidates;
 	for (auto const& [functionName, candidatesInFunction]: selector.candidates())
-		for (auto [cost, candidatesWithCost]: candidatesInFunction)
+		for (auto const& [cost, candidatesWithCost]: candidatesInFunction)
 			for (auto candidate: candidatesWithCost)
 				candidates[candidate] = cost;
 
@@ -213,11 +213,11 @@ void eliminateVariablesOptimizedCodegen(
 			{
 				if (varsToEliminate.count(varName))
 					--neededSlots;
-				else if (size_t* cost = util::valueOrNullptr(candidates, varName))
+				else if (size_t const* cost = util::valueOrNullptr(candidates, varName))
 					if (!util::contains(suitableCandidates[*cost], varName))
 						suitableCandidates[*cost].emplace_back(varName);
 			}
-			for (auto candidatesByCost: suitableCandidates)
+			for (auto const& candidatesByCost: suitableCandidates)
 			{
 				for (auto candidate: candidatesByCost.second)
 					if (neededSlots--)
@@ -230,7 +230,7 @@ void eliminateVariablesOptimizedCodegen(
 		}
 	Rematerialiser::run(_dialect, _ast, std::move(varsToEliminate), true);
 	// Do not remove functions.
-	std::set<YulName> allFunctions = NameCollector{_ast, NameCollector::OnlyFunctions}.names();
+	std::set<YulName> const allFunctions = NameCollector{_ast, NameCollector::OnlyFunctions}.names();
 	UnusedPruner::runUntilStabilised(_dialect, _ast, _allowMSizeOptimization, nullptr, allFunctions);
 }
 
@@ -257,16 +257,16 @@ std::tuple<bool, Block> StackCompressor::run(
 			evmDialect->evmVersion().canOverchargeGasForCall() &&
 			evmDialect->providesObjectAccess();
 	}
-	bool allowMSizeOptimization = !MSizeFinder::containsMSize(*_object.dialect(), _object.code()->root());
+	bool const allowMSizeOptimization = !MSizeFinder::containsMSize(*_object.dialect(), _object.code()->root());
 	Block astRoot = std::get<Block>(ASTCopier{}(_object.code()->root()));
 	if (usesOptimizedCodeGenerator)
 	{
-		yul::AsmAnalysisInfo analysisInfo = yul::AsmAnalyzer::analyzeStrictAssertCorrect(
+		yul::AsmAnalysisInfo const analysisInfo = yul::AsmAnalyzer::analyzeStrictAssertCorrect(
 			*_object.dialect(),
 			astRoot,
 			_object.summarizeStructure()
 		);
-		std::unique_ptr<CFG> cfg = ControlFlowGraphBuilder::build(analysisInfo, *_object.dialect(), astRoot);
+		std::unique_ptr<CFG> const cfg = ControlFlowGraphBuilder::build(analysisInfo, *_object.dialect(), astRoot);
 		yulAssert(evmDialect);
 		eliminateVariablesOptimizedCodegen(
 			*_object.dialect(),
@@ -281,7 +281,7 @@ std::tuple<bool, Block> StackCompressor::run(
 		{
 			Object object(_object);
 			object.setCode(std::make_shared<AST>(*_object.dialect(), std::get<Block>(ASTCopier{}(astRoot))));
-			std::map<YulName, int> stackSurplus = CompilabilityChecker(object, _optimizeStackAllocation).stackDeficit;
+			std::map<YulName, int> const stackSurplus = CompilabilityChecker(object, _optimizeStackAllocation).stackDeficit;
 			if (stackSurplus.empty())
 				return std::make_tuple(true, std::move(astRoot));
 			eliminateVariables(

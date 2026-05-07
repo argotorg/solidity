@@ -66,7 +66,7 @@ std::string takeOverAllocation(char const* _data)
 /// Resizes a std::string to the proper length based on the occurrence of a zero terminator.
 void truncateCString(std::string& _data)
 {
-	size_t pos = _data.find('\0');
+	size_t const pos = _data.find('\0');
 	if (pos != std::string::npos)
 		_data.resize(pos);
 }
@@ -117,7 +117,7 @@ extern "C"
 {
 extern char const* solidity_license() noexcept
 {
-	static std::string fullLicenseText = otherLicenses + licenseText;
+	static std::string const fullLicenseText = otherLicenses + licenseText;
 	return fullLicenseText.c_str();
 }
 

@@ -134,7 +134,7 @@ public:
 	/// error message.
 	void limitSize(std::string& _message)
 	{
-		size_t occurrences = infos.size();
+		size_t const occurrences = infos.size();
 		if (occurrences > 32)
 		{
 			infos.resize(32);
@@ -215,7 +215,7 @@ public:
 	/// helper functions
 	static Error const* containsErrorOfType(ErrorList const& _list, Error::Type _type)
 	{
-		for (auto e: _list)
+		for (auto&& e: _list)
 			if (e->type() == _type)
 				return e.get();
 		return nullptr;
@@ -250,7 +250,7 @@ public:
 
 	static bool containsErrors(ErrorList const& _list)
 	{
-		for (auto e: _list)
+		for (auto&& e: _list)
 			if (isError(e->type()))
 				return true;
 		return false;

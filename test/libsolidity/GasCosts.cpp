@@ -167,7 +167,7 @@ BOOST_AUTO_TEST_CASE(string_storage)
 
 BOOST_AUTO_TEST_CASE(single_callvaluecheck)
 {
-	std::string sourceCode = R"(
+	std::string const sourceCode = R"(
 		// All functions nonpayable, we can check callvalue at the beginning
 		contract Nonpayable {
 			address a;
@@ -202,8 +202,8 @@ BOOST_AUTO_TEST_CASE(single_callvaluecheck)
 		}
 	)";
 	compileAndRun(sourceCode);
-	size_t bytecodeSizeNonpayable = m_compiler.object("Nonpayable").bytecode.size();
-	size_t bytecodeSizePayable = m_compiler.object("Payable").bytecode.size();
+	size_t const bytecodeSizeNonpayable = m_compiler.object("Nonpayable").bytecode.size();
+	size_t const bytecodeSizePayable = m_compiler.object("Payable").bytecode.size();
 
 	auto evmVersion = solidity::test::CommonOptions::get().evmVersion();
 	if (evmVersion < EVMVersion::shanghai())

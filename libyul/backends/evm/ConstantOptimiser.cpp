@@ -142,11 +142,11 @@ Representation const& RepresentationFinder::findRepresentation(u256 const& _valu
 	// Decompose value into a * 2**k + b where abs(b) << 2**k
 	for (unsigned bits = 255; bits > 8 && m_maxSteps > 0; --bits)
 	{
-		unsigned gapDetector = unsigned((_value >> (bits - 8)) & 0x1ff);
+		unsigned const gapDetector = unsigned((_value >> (bits - 8)) & 0x1ff);
 		if (gapDetector != 0xff && gapDetector != 0x100)
 			continue;
 
-		u256 powerOfTwo = u256(1) << bits;
+		u256 const powerOfTwo = u256(1) << bits;
 		u256 upperPart = _value >> bits;
 		bigint lowerPart = _value & (powerOfTwo - 1);
 		if ((powerOfTwo - lowerPart) < lowerPart)

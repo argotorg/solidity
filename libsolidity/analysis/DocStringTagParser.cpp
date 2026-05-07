@@ -50,7 +50,7 @@ bool DocStringTagParser::parseDocStrings(SourceUnit const& _sourceUnit)
 
 bool DocStringTagParser::validateDocStringsUsingTypes(SourceUnit const& _sourceUnit)
 {
-	ErrorReporter::ErrorWatcher errorWatcher = m_errorReporter.errorWatcher();
+	ErrorReporter::ErrorWatcher const errorWatcher = m_errorReporter.errorWatcher();
 
 	SimpleASTVisitor visitReturns(
 		[](ASTNode const&) { return true; },
@@ -81,8 +81,8 @@ bool DocStringTagParser::validateDocStringsUsingTypes(SourceUnit const& _sourceU
 						else
 							continue;
 
-						std::string content = tagValue.content;
-						std::string firstWord = content.substr(0, content.find_first_of(" \t"));
+						std::string const content = tagValue.content;
+						std::string const firstWord = content.substr(0, content.find_first_of(" \t"));
 
 						if (returnTagsVisited > returnParameterNames.size())
 							m_errorReporter.docstringParsingError(
@@ -166,7 +166,7 @@ bool DocStringTagParser::visit(InlineAssembly const& _assembly)
 {
 	if (!_assembly.documentation())
 		return true;
-	StructuredDocumentation documentation{-1, _assembly.location(), _assembly.documentation()};
+	StructuredDocumentation const documentation{-1, _assembly.location(), _assembly.documentation()};
 	ErrorList errors;
 	ErrorReporter errorReporter{errors};
 	auto docTags = DocStringParser{documentation, errorReporter}.parse();

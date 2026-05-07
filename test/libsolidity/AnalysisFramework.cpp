@@ -105,17 +105,17 @@ void AnalysisFramework::executeCompilationPipeline()
 		m_targetStage == PipelineStage::Compilation
 	);
 
-	bool parsingSuccessful = m_compiler->parse();
+	bool const parsingSuccessful = m_compiler->parse();
 	soltestAssert(parsingSuccessful || !filteredErrors(false /* _includeWarningsAndInfos */).empty());
 	if (!parsingSuccessful || stageSuccessful(m_targetStage))
 		return;
 
-	bool analysisSuccessful = m_compiler->analyze();
+	bool const analysisSuccessful = m_compiler->analyze();
 	soltestAssert(analysisSuccessful || !filteredErrors(false /* _includeWarningsAndInfos */).empty());
 	if (!analysisSuccessful || stageSuccessful(m_targetStage))
 		return;
 
-	bool compilationSuccessful = m_compiler->compile();
+	bool const compilationSuccessful = m_compiler->compile();
 	soltestAssert(compilationSuccessful || !filteredErrors(false /* _includeWarningsAndInfos */).empty());
 	soltestAssert(stageSuccessful(m_targetStage) == compilationSuccessful);
 }
@@ -214,7 +214,7 @@ std::string AnalysisFramework::formatError(
 
 ContractDefinition const* AnalysisFramework::retrieveContractByName(SourceUnit const& _source, std::string const& _name)
 {
-	ContractDefinition* contract = nullptr;
+	ContractDefinition const* contract = nullptr;
 
 	for (std::shared_ptr<ASTNode> const& node: _source.nodes())
 		if ((contract = dynamic_cast<ContractDefinition*>(node.get())) && contract->name() == _name)

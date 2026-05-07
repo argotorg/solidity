@@ -214,10 +214,10 @@ std::tuple<Token, unsigned int, unsigned int> fromIdentifierOrKeyword(std::strin
 	auto positionM = find_if(_literal.begin(), _literal.end(), util::isDigit);
 	if (positionM != _literal.end())
 	{
-		std::string baseType(_literal.begin(), positionM);
+		std::string const baseType(_literal.begin(), positionM);
 		auto positionX = find_if_not(positionM, _literal.end(), util::isDigit);
-		int m = parseSize(positionM, positionX);
-		Token keyword = keywordByName(baseType);
+		int const m = parseSize(positionM, positionX);
+		Token const keyword = keywordByName(baseType);
 		if (keyword == Token::Bytes)
 		{
 			if (0 < m && m <= 32 && positionX == _literal.end())
@@ -241,7 +241,7 @@ std::tuple<Token, unsigned int, unsigned int> fromIdentifierOrKeyword(std::strin
 				*positionX == 'x' &&
 				all_of(positionX + 1, _literal.end(), util::isDigit)
 			) {
-				int n = parseSize(positionX + 1, _literal.end());
+				int const n = parseSize(positionX + 1, _literal.end());
 				if (
 					8 <= m && m <= 256 && m % 8 == 0 &&
 					0 <= n && n <= 80

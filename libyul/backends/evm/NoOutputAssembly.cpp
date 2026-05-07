@@ -41,7 +41,7 @@ void modifyBuiltinToNoOutput(BuiltinFunctionForEVM& _builtin)
 {
 	_builtin.generateCode = [_builtin](FunctionCall const& _call, AbstractAssembly& _assembly, BuiltinContext&)
 	{
-		for (size_t i: ranges::views::iota(0u, _call.arguments.size()))
+		for (size_t const i: ranges::views::iota(0u, _call.arguments.size()))
 			if (!_builtin.literalArgument(i))
 				_assembly.appendInstruction(evmasm::Instruction::POP);
 
@@ -129,7 +129,7 @@ std::pair<std::shared_ptr<AbstractAssembly>, AbstractAssembly::SubID> NoOutputAs
 AbstractAssembly::FunctionID NoOutputAssembly::registerFunction(uint8_t _args, uint8_t _rets, bool)
 {
 	yulAssert(m_context.numFunctions <= std::numeric_limits<AbstractAssembly::FunctionID>::max());
-	AbstractAssembly::FunctionID id = static_cast<AbstractAssembly::FunctionID>(m_context.numFunctions++);
+	AbstractAssembly::FunctionID const id = static_cast<AbstractAssembly::FunctionID>(m_context.numFunctions++);
 	m_context.functionSignatures[id] = {_args, _rets};
 	return id;
 }

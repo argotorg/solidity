@@ -66,7 +66,7 @@ public:
 
 	bool movable() const { return m_sideEffects.movable; }
 
-	bool movableRelativeTo(SideEffects const& _other, bool _codeContainsMSize)
+	bool movableRelativeTo(SideEffects const& _other, bool _codeContainsMSize) const
 	{
 		if (!m_sideEffects.cannotLoop)
 			return false;

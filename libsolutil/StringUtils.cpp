@@ -40,12 +40,12 @@ bool solidity::util::stringWithinDistance(std::string const& _str1, std::string 
 	if (_str1 == _str2)
 		return true;
 
-	size_t n1 = _str1.size();
-	size_t n2 = _str2.size();
+	size_t const n1 = _str1.size();
+	size_t const n2 = _str2.size();
 	if (_lenThreshold > 0 && n1 * n2 > _lenThreshold)
 		return false;
 
-	size_t distance = stringDistance(_str1, _str2);
+	size_t const distance = stringDistance(_str1, _str2);
 
 	// if distance is not greater than _maxDistance, and distance is strictly less than length of both names, they can be considered similar
 	// this is to avoid irrelevant suggestions
@@ -54,8 +54,8 @@ bool solidity::util::stringWithinDistance(std::string const& _str1, std::string 
 
 size_t solidity::util::stringDistance(std::string const& _str1, std::string const& _str2)
 {
-	size_t n1 = _str1.size();
-	size_t n2 = _str2.size();
+	size_t const n1 = _str1.size();
+	size_t const n2 = _str2.size();
 	// Optimize by storing only last 2 rows and current row. So first index is considered modulo 3
 	// This is a two-dimensional array of size 3 x (n2 + 1).
 	std::vector<size_t> dp(3 * (n2 + 1));
@@ -70,9 +70,9 @@ size_t solidity::util::stringDistance(std::string const& _str1, std::string cons
 				x = std::max(i1, i2);
 			else
 			{
-				size_t left = dp[(i1 - 1) % 3 + i2 * 3];
-				size_t up = dp[(i1 % 3) + (i2 - 1) * 3];
-				size_t upleft = dp[((i1 - 1) % 3) + (i2 - 1) * 3];
+				size_t const left = dp[(i1 - 1) % 3 + i2 * 3];
+				size_t const up = dp[(i1 % 3) + (i2 - 1) * 3];
+				size_t const upleft = dp[((i1 - 1) % 3) + (i2 - 1) * 3];
 				// deletion and insertion
 				x = std::min(left + 1, up + 1);
 				if (_str1[i1-1] == _str2[i2-1])
@@ -170,12 +170,12 @@ std::string solidity::util::formatNumberReadable(bigint const& _value, bool _use
 	else if (auto result = tryFormatPowerOfTwo(absValue + 1))
 		return {sign + *result + (isNegative ? " + 1" : " - 1")};
 
-	std::string str = toHex(toCompactBigEndian(absValue), HexPrefix::Add, HexCase::Mixed);
+	std::string const str = toHex(toCompactBigEndian(absValue), HexPrefix::Add, HexCase::Mixed);
 
 	if (_useTruncation)
 	{
 		// return as interior-truncated hex.
-		size_t len = str.size();
+		size_t const len = str.size();
 
 		if (len < 24)
 			return sign + str;

@@ -390,7 +390,7 @@ void CommandLineInterface::handleSignatureHashes(std::string const& _contract)
 	if (!m_options.compiler.outputs.signatureHashes)
 		return;
 
-	Json interfaceSymbols = m_compiler->interfaceSymbols(_contract);
+	Json const interfaceSymbols = m_compiler->interfaceSymbols(_contract);
 	std::string out = "Function signatures:\n";
 	for (auto const& [name, value]: interfaceSymbols["methods"].items())
 		out += value.get<std::string>() + ": " + name + "\n";
@@ -740,7 +740,7 @@ std::map<std::string, Json> CommandLineInterface::parseAstFromInput()
 	return sourceJsons;
 }
 
-void CommandLineInterface::createFile(std::string const& _fileName, std::string const& _data)
+void CommandLineInterface::createFile(std::string const& _fileName, std::string const& _data) const
 {
 	namespace fs = boost::filesystem;
 
@@ -751,7 +751,7 @@ void CommandLineInterface::createFile(std::string const& _fileName, std::string 
 	// The simplest workaround is to use an absolute path.
 	fs::create_directories(fs::absolute(m_options.output.dir));
 
-	std::string pathName = (m_options.output.dir / _fileName).string();
+	std::string const pathName = (m_options.output.dir / _fileName).string();
 	if (fs::exists(pathName) && !m_options.output.overwriteFiles)
 		solThrow(CommandLineOutputError, "Refusing to overwrite existing file \"" + pathName + "\" (use --overwrite to force).");
 
@@ -1012,7 +1012,7 @@ void CommandLineInterface::compile()
 		else
 			m_compiler->setSources(m_fileReader.sourceUnits());
 
-		bool successful = m_compiler->compile(m_options.output.stopAfter);
+		bool const successful = m_compiler->compile(m_options.output.stopAfter);
 
 		for (auto const& error: m_compiler->errors())
 		{
@@ -1121,7 +1121,7 @@ void CommandLineInterface::handleCombinedJSON()
 		}
 	}
 
-	bool needsSourceList =
+	bool const needsSourceList =
 		m_options.compiler.combinedJsonRequests->ast ||
 		m_options.compiler.combinedJsonRequests->srcMap ||
 		m_options.compiler.combinedJsonRequests->srcMapRuntime;
@@ -1175,7 +1175,7 @@ void CommandLineInterface::handleAst()
 			std::string postfix = "";
 			ASTJsonExporter(m_compiler->state(), m_compiler->sourceIndices()).print(data, m_compiler->ast(sourceCode.first), m_options.formatting.json);
 			postfix += "_json";
-			boost::filesystem::path path(sourceCode.first);
+			boost::filesystem::path const path(sourceCode.first);
 			createFile(path.filename().string() + postfix + ".ast", data.str());
 		}
 	}

@@ -123,7 +123,7 @@ experimental::Type TypeSystemHelpers::tupleType(std::vector<Type> _elements) con
 	if (_elements.size() == 1)
 		return _elements.front();
 	Type result = _elements.back();
-	for (Type type: _elements | ranges::views::reverse | ranges::views::drop_exactly(1))
+	for (Type const& type: _elements | ranges::views::reverse | ranges::views::drop_exactly(1))
 		result = typeSystem.type(PrimitiveType::Pair, {type, result});
 	return result;
 }
@@ -132,7 +132,7 @@ std::vector<experimental::Type> TypeSystemHelpers::destTupleType(Type _tupleType
 {
 	if (!isTypeConstant(_tupleType))
 		return {_tupleType};
-	TypeConstructor pairConstructor = typeSystem.constructor(PrimitiveType::Pair);
+	TypeConstructor const pairConstructor = typeSystem.constructor(PrimitiveType::Pair);
 	auto [constructor, arguments] = destTypeConstant(_tupleType);
 	if (constructor == typeSystem.constructor(PrimitiveType::Unit))
 		return {};
@@ -165,7 +165,7 @@ experimental::Type TypeSystemHelpers::sumType(std::vector<Type> _elements) const
 	if (_elements.size() == 1)
 		return _elements.front();
 	Type result = _elements.back();
-	for (Type type: _elements | ranges::views::reverse | ranges::views::drop_exactly(1))
+	for (Type const& type: _elements | ranges::views::reverse | ranges::views::drop_exactly(1))
 		result = typeSystem.type(PrimitiveType::Sum, {type, result});
 	return result;
 }
@@ -174,7 +174,7 @@ std::vector<experimental::Type> TypeSystemHelpers::destSumType(Type _tupleType) 
 {
 	if (!isTypeConstant(_tupleType))
 		return {_tupleType};
-	TypeConstructor sumConstructor = typeSystem.constructor(PrimitiveType::Sum);
+	TypeConstructor const sumConstructor = typeSystem.constructor(PrimitiveType::Sum);
 	auto [constructor, arguments] = destTypeConstant(_tupleType);
 	if (constructor == typeSystem.constructor(PrimitiveType::Void))
 		return {};
@@ -276,7 +276,7 @@ std::vector<experimental::Type> TypeEnvironmentHelpers::typeVars(Type _type) con
 	auto typeVarsImpl = [&](Type _type, auto _recurse) -> void {
 		std::visit(util::GenericVisitor{
 			[&](TypeConstant const& _type) {
-				for (auto arg: _type.arguments)
+				for (auto const& arg: _type.arguments)
 					_recurse(arg, _recurse);
 			},
 			[&](TypeVariable const& _var) {
@@ -341,7 +341,7 @@ std::string TypeSystemHelpers::sortToString(Sort _sort) const
 	{
 		std::stringstream stream;
 		stream << "(";
-		for (auto typeClass: _sort.classes | ranges::views::drop_last(1))
+		for (auto const& typeClass: _sort.classes | ranges::views::drop_last(1))
 			stream << typeSystem.typeClassName(typeClass) << ", ";
 		stream << typeSystem.typeClassName(*_sort.classes.rbegin()) << ")";
 		return stream.str();
@@ -358,7 +358,7 @@ std::string TypeEnvironmentHelpers::canonicalTypeName(Type _type) const
 			if (!_type.arguments.empty())
 			{
 				stream << "$";
-				for (auto type: _type.arguments | ranges::views::drop_last(1))
+				for (auto const& type: _type.arguments | ranges::views::drop_last(1))
 					stream << canonicalTypeName(type) << "$";
 				stream << canonicalTypeName(_type.arguments.back());
 				stream << "$";
@@ -389,7 +389,7 @@ std::string TypeEnvironmentHelpers::typeToString(Type const& _type) const
 			auto tupleTypes = TypeSystemHelpers{env.typeSystem()}.destTupleType(_arguments.back());
 			std::string result = "(";
 			result += typeToString(_arguments.front());
-			for (auto type: tupleTypes)
+			for (auto const& type: tupleTypes)
 				result += ", " + typeToString(type);
 			result += ")";
 			return result;
@@ -404,7 +404,7 @@ std::string TypeEnvironmentHelpers::typeToString(Type const& _type) const
 			if (!_type.arguments.empty())
 			{
 				stream << "(";
-				for (auto type: _type.arguments | ranges::views::drop_last(1))
+				for (auto const& type: _type.arguments | ranges::views::drop_last(1))
 					stream << typeToString(type) << ", ";
 				stream << typeToString(_type.arguments.back());
 				stream << ")";
@@ -429,7 +429,7 @@ std::string TypeEnvironmentHelpers::typeToString(Type const& _type) const
 				break;
 			default:
 				stream << ":(";
-				for (auto typeClass: _type.sort().classes | ranges::views::drop_last(1))
+				for (auto const& typeClass: _type.sort().classes | ranges::views::drop_last(1))
 					stream << env.typeSystem().typeClassName(typeClass) << ", ";
 				stream << env.typeSystem().typeClassName(*_type.sort().classes.rbegin());
 				stream << ")";

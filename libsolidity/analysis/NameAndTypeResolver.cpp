@@ -59,7 +59,7 @@ bool NameAndTypeResolver::registerDeclarations(SourceUnit& _sourceUnit, ASTNode 
 	// The helper registers all declarations in m_scopes as a side-effect of its construction.
 	try
 	{
-		DeclarationRegistrationHelper registrar(m_scopes, _sourceUnit, m_errorReporter, m_globalContext, _currentScope);
+		DeclarationRegistrationHelper const registrar(m_scopes, _sourceUnit, m_errorReporter, m_globalContext, _currentScope);
 	}
 	catch (FatalError const&)
 	{
@@ -250,7 +250,7 @@ void NameAndTypeResolver::warnHomonymDeclarations() const
 	DeclarationContainer::Homonyms homonyms;
 	m_scopes.at(nullptr)->populateHomonyms(back_inserter(homonyms));
 
-	for (auto [innerLocation, outerDeclarations]: homonyms)
+	for (auto const& [innerLocation, outerDeclarations]: homonyms)
 	{
 		solAssert(innerLocation && !outerDeclarations.empty(), "");
 
@@ -323,7 +323,7 @@ bool NameAndTypeResolver::resolveNamesAndTypesInternal(ASTNode& _node, bool _res
 		if (success)
 		{
 			linearizeBaseContracts(*contract);
-			std::vector<ContractDefinition const*> properBases(
+			std::vector<ContractDefinition const*> const properBases(
 				++contract->annotation().linearizedBaseContracts.begin(),
 				contract->annotation().linearizedBaseContracts.end()
 			);
@@ -439,7 +439,7 @@ void NameAndTypeResolver::linearizeBaseContracts(ContractDefinition& _contract)
 		input.push_front(std::list<ContractDefinition const*>(basesBases.begin(), basesBases.end()));
 	}
 	input.back().push_front(&_contract);
-	std::vector<ContractDefinition const*> result = cThreeMerge(input);
+	std::vector<ContractDefinition const*> const result = cThreeMerge(input);
 	if (result.empty())
 		m_errorReporter.fatalTypeError(5005_error, _contract.location(), "Linearization of inheritance graph impossible");
 	_contract.annotation().linearizedBaseContracts = result;
@@ -535,7 +535,7 @@ bool DeclarationRegistrationHelper::registerDeclaration(
 	// They cannot both be true at the same time.
 	solAssert(!(_inactive && !_declaration.isVisibleInContract()), "");
 
-	static std::set<std::string> illegalNames{"_", "super", "this"};
+	static std::set<std::string> const illegalNames{"_", "super", "this"};
 
 	auto isPublicFunctionOrEvent = [](Declaration const* _d) -> bool
 	{
@@ -710,7 +710,7 @@ void DeclarationRegistrationHelper::enterNewSubScope(ASTNode& _subScope)
 		solAssert(dynamic_cast<SourceUnit const*>(&_subScope), "Unexpected scope type.");
 	else
 	{
-		bool newlyAdded = m_scopes.emplace(
+		bool const newlyAdded = m_scopes.emplace(
 			&_subScope,
 			std::make_shared<DeclarationContainer>(m_currentScope, m_scopes[m_currentScope].get())
 		).second;
@@ -753,7 +753,7 @@ void DeclarationRegistrationHelper::registerDeclaration(Declaration& _declaratio
 	else
 	{
 		// Register declaration as inactive if we are in block scope.
-		bool inactive =
+		bool const inactive =
 			(dynamic_cast<Block const*>(m_currentScope) || dynamic_cast<ForStatement const*>(m_currentScope));
 
 		registerDeclaration(*m_scopes[m_currentScope], _declaration, nullptr, nullptr, inactive, m_errorReporter);

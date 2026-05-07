@@ -67,7 +67,7 @@ TemporaryDirectory::~TemporaryDirectory()
 	solAssert(!m_path.empty(), "");
 
 	boost::system::error_code errorCode;
-	uintmax_t numRemoved = fs::remove_all(m_path, errorCode);
+	uintmax_t const numRemoved = fs::remove_all(m_path, errorCode);
 	if (errorCode.value() != boost::system::errc::success)
 	{
 		std::cerr << "Failed to completely remove temporary directory '" << m_path << "'. ";

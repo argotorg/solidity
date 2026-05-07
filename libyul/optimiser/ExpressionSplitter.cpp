@@ -83,7 +83,7 @@ void ExpressionSplitter::operator()(Block& _block)
 	std::vector<Statement> saved;
 	swap(saved, m_statementsToPrefix);
 
-	std::function<std::optional<std::vector<Statement>>(Statement&)> f =
+	std::function<std::optional<std::vector<Statement>>(Statement&)> const f =
 			[&](Statement& _statement) -> std::optional<std::vector<Statement>> {
 		m_statementsToPrefix.clear();
 		visit(_statement);
@@ -104,8 +104,8 @@ void ExpressionSplitter::outlineExpression(Expression& _expr)
 
 	visit(_expr);
 
-	langutil::DebugData::ConstPtr debugData = debugDataOf(_expr);
-	YulName var = m_nameDispenser.newName({});
+	langutil::DebugData::ConstPtr const debugData = debugDataOf(_expr);
+	YulName const var = m_nameDispenser.newName({});
 	m_statementsToPrefix.emplace_back(VariableDeclaration{
 		debugData,
 		{{NameWithDebugData{debugData, var}}},

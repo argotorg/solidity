@@ -30,7 +30,7 @@ GasMeter::GasConsumption& GasMeter::GasConsumption::operator+=(GasConsumption co
 		*this = infinite();
 	if (isInfinite)
 		return *this;
-	bigint v = bigint(value) + _other.value;
+	bigint const v = bigint(value) + _other.value;
 	if (v > std::numeric_limits<u256>::max())
 		*this = infinite();
 	else
@@ -65,8 +65,8 @@ GasMeter::GasConsumption GasMeter::estimateMax(AssemblyItem const& _item, bool _
 		{
 		case Instruction::SSTORE:
 		{
-			ExpressionClasses::Id slot = m_state->relativeStackElement(0);
-			ExpressionClasses::Id value = m_state->relativeStackElement(-1);
+			ExpressionClasses::Id const slot = m_state->relativeStackElement(0);
+			ExpressionClasses::Id const value = m_state->relativeStackElement(-1);
 			if (classes.knownZero(value) || (
 				m_state->storageContent().count(slot) &&
 				classes.knownNonZero(m_state->storageContent().at(slot))
@@ -113,8 +113,8 @@ GasMeter::GasConsumption GasMeter::estimateMax(AssemblyItem const& _item, bool _
 			break;
 		case Instruction::MCOPY:
 		{
-			GasConsumption memoryGasFromRead = memoryGas(-1, -2);
-			GasConsumption memoryGasFromWrite = memoryGas(0, -2);
+			GasConsumption const memoryGasFromRead = memoryGas(-1, -2);
+			GasConsumption const memoryGasFromWrite = memoryGas(0, -2);
 
 			gas = runGas(_item.instruction(), m_evmVersion);
 			gas += (memoryGasFromRead < memoryGasFromWrite ? memoryGasFromWrite : memoryGasFromRead);
@@ -241,11 +241,11 @@ GasMeter::GasConsumption GasMeter::memoryGas(ExpressionClasses::Id _position)
 		return GasConsumption::infinite();
 	if (*value < m_largestMemoryAccess)
 		return GasConsumption(0);
-	u256 previous = m_largestMemoryAccess;
+	u256 const previous = m_largestMemoryAccess;
 	m_largestMemoryAccess = *value;
 	auto memGas = [=](u256 const& pos) -> u256
 	{
-		u256 size = (pos + 31) / 32;
+		u256 const size = (pos + 31) / 32;
 		return GasCosts::memoryGas * size + size * size / GasCosts::quadCoeffDiv;
 	};
 	return memGas(*value) - memGas(previous);
@@ -344,7 +344,7 @@ u256 GasMeter::dataGas(bytes const& _data, bool _inCreation, langutil::EVMVersio
 
 u256 GasMeter::dataGas(uint64_t _length, bool _inCreation, langutil::EVMVersion _evmVersion)
 {
-	bigint gas = bigint(_length) * (_inCreation ? GasCosts::txDataNonZeroGas(_evmVersion) : GasCosts::createDataGas);
+	bigint const gas = bigint(_length) * (_inCreation ? GasCosts::txDataNonZeroGas(_evmVersion) : GasCosts::createDataGas);
 	solAssert(gas < bigint(u256(-1)), "Gas cost exceeds 256 bits.");
 	return u256(gas);
 }

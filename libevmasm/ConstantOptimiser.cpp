@@ -45,7 +45,7 @@ unsigned ConstantOptimisationMethod::optimiseConstants(
 			if (item.type() == Push)
 				pushes[item]++;
 		std::map<u256, AssemblyItems> pendingReplacements;
-		for (auto it: pushes)
+		for (auto const& it: pushes)
 		{
 			AssemblyItem const& item = it.first;
 			if (item.data() < 0x100)
@@ -55,12 +55,12 @@ unsigned ConstantOptimisationMethod::optimiseConstants(
 			params.isCreation = _isCreation;
 			params.runs = _runs;
 			params.evmVersion = _evmVersion;
-			LiteralMethod lit(params, item.data());
-			bigint literalGas = lit.gasNeeded();
-			CodeCopyMethod copy(params, item.data());
-			bigint copyGas = copy.gasNeeded();
-			ComputeMethod compute(params, item.data());
-			bigint computeGas = compute.gasNeeded();
+			LiteralMethod const lit(params, item.data());
+			bigint const literalGas = lit.gasNeeded();
+			CodeCopyMethod const copy(params, item.data());
+			bigint const copyGas = copy.gasNeeded();
+			ComputeMethod const compute(params, item.data());
+			bigint const computeGas = compute.gasNeeded();
 			AssemblyItems replacement;
 			if (copyGas < literalGas && copyGas < computeGas)
 			{
@@ -159,7 +159,7 @@ bigint CodeCopyMethod::gasNeeded() const
 
 AssemblyItems CodeCopyMethod::execute(Assembly& _assembly) const
 {
-	bytes data = toBigEndian(m_value);
+	bytes const data = toBigEndian(m_value);
 	assertThrow(data.size() == 32, OptimizerException, "Invalid number encoding.");
 	AssemblyItem newPushData = _assembly.newData(data);
 	return copyRoutine(&newPushData);
@@ -170,7 +170,7 @@ AssemblyItems CodeCopyMethod::copyRoutine(AssemblyItem* _pushData) const
 	if (_pushData)
 		assertThrow(_pushData->type() == PushData, OptimizerException, "Invalid Assembly Item.");
 
-	AssemblyItem dataUsed = _pushData ? *_pushData : AssemblyItem(PushData, u256(1) << 16);
+	AssemblyItem const dataUsed = _pushData ? *_pushData : AssemblyItem(PushData, u256(1) << 16);
 
 	// PUSH0 is cheaper than PUSHn/DUP/SWAP.
 	if (m_params.evmVersion.hasPush0())
@@ -264,11 +264,11 @@ AssemblyItems ComputeMethod::findRepresentation(u256 const& _value)
 		bigint bestGas = gasNeeded(routine);
 		for (unsigned bits = 255; bits > 8 && m_maxSteps > 0; --bits)
 		{
-			unsigned gapDetector = unsigned((_value >> (bits - 8)) & 0x1ff);
+			unsigned const gapDetector = unsigned((_value >> (bits - 8)) & 0x1ff);
 			if (gapDetector != 0xff && gapDetector != 0x100)
 				continue;
 
-			u256 powerOfTwo = u256(1) << bits;
+			u256 const powerOfTwo = u256(1) << bits;
 			u256 upperPart = _value >> bits;
 			bigint lowerPart = _value & (powerOfTwo - 1);
 			if ((powerOfTwo - lowerPart) < lowerPart)

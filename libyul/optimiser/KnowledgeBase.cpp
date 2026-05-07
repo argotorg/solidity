@@ -41,15 +41,15 @@ KnowledgeBase::KnowledgeBase(std::map<YulName, AssignedValue> const& _ssaValues,
 
 bool KnowledgeBase::knownToBeDifferent(YulName _a, YulName _b)
 {
-	if (std::optional<u256> difference = differenceIfKnownConstant(_a, _b))
+	if (std::optional<u256> const difference = differenceIfKnownConstant(_a, _b))
 		return difference != 0;
 	return false;
 }
 
 std::optional<u256> KnowledgeBase::differenceIfKnownConstant(YulName _a, YulName _b)
 {
-	VariableOffset offA = explore(_a);
-	VariableOffset offB = explore(_b);
+	VariableOffset const offA = explore(_a);
+	VariableOffset const offB = explore(_b);
 	if (offA.reference == offB.reference)
 		return offA.offset - offB.offset;
 	else
@@ -59,7 +59,7 @@ std::optional<u256> KnowledgeBase::differenceIfKnownConstant(YulName _a, YulName
 
 bool KnowledgeBase::knownToBeDifferentByAtLeast32(YulName _a, YulName _b)
 {
-	if (std::optional<u256> difference = differenceIfKnownConstant(_a, _b))
+	if (std::optional<u256> const difference = differenceIfKnownConstant(_a, _b))
 		return difference >= 32 && difference <= u256(0) - 32;
 
 	return false;
@@ -128,7 +128,7 @@ std::optional<KnowledgeBase::VariableOffset> KnowledgeBase::explore(Expression c
 			if (std::optional<VariableOffset> a = explore(f->arguments[0]))
 				if (std::optional<VariableOffset> b = explore(f->arguments[1]))
 				{
-					u256 offset = a->offset + b->offset;
+					u256 const offset = a->offset + b->offset;
 					if (a->isAbsolute())
 						// a is constant
 						return VariableOffset{b->reference, offset};
@@ -141,7 +141,7 @@ std::optional<KnowledgeBase::VariableOffset> KnowledgeBase::explore(Expression c
 			if (std::optional<VariableOffset> a = explore(f->arguments[0]))
 				if (std::optional<VariableOffset> b = explore(f->arguments[1]))
 				{
-					u256 offset = a->offset - b->offset;
+					u256 const offset = a->offset - b->offset;
 					if (a->reference == b->reference)
 						return VariableOffset{YulName{}, offset};
 					else if (b->isAbsolute())
@@ -184,11 +184,11 @@ void KnowledgeBase::reset(YulName _var)
 		// _var was a representative, we might have to find a new one.
 		if (!group->empty())
 		{
-			YulName newRepresentative = *group->begin();
+			YulName const newRepresentative = *group->begin();
 			yulAssert(newRepresentative != _var);
-			u256 newOffset = m_offsets[newRepresentative].offset;
+			u256 const newOffset = m_offsets[newRepresentative].offset;
 			// newOffset = newRepresentative - _var
-			for (YulName groupMember: *group)
+			for (YulName const groupMember: *group)
 			{
 				yulAssert(m_offsets[groupMember].reference == _var);
 				m_offsets[groupMember].reference = newRepresentative;

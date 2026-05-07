@@ -89,7 +89,7 @@ void SMTSolverCommand::setZ3(std::optional<unsigned int> timeoutInMilliseconds, 
 	// Spacer optimization should be
 	// - enabled for better solving (default)
 	// - disable for counterexample generation
-	std::string preprocessingArg = _preprocessing ? "true" : "false";
+	std::string const preprocessingArg = _preprocessing ? "true" : "false";
 	m_arguments.emplace_back("fp.xform.slice=" + preprocessingArg);
 	m_arguments.emplace_back("fp.xform.inline_linear=" + preprocessingArg);
 	m_arguments.emplace_back("fp.xform.inline_eager=" + preprocessingArg);

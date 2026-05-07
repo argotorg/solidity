@@ -64,7 +64,7 @@ public:
 	template <unsigned M> explicit FixedHash(FixedHash<M> const& _h, ConstructFromHashType _t)
 	{
 		m_data.fill(0);
-		unsigned c = std::min(M, N);
+		unsigned const c = std::min(M, N);
 		for (unsigned i = 0; i < c; ++i)
 			m_data[_t == AlignRight ? N - 1 - i : i] = _h[_t == AlignRight ? M - 1 - i : i];
 	}
@@ -166,7 +166,7 @@ private:
 template <unsigned N>
 inline std::ostream& operator<<(std::ostream& _out, FixedHash<N> const& _h)
 {
-	boost::io::ios_all_saver guard(_out);
+	boost::io::ios_all_saver const guard(_out);
 	_out << std::noshowbase << std::hex << std::setfill('0');
 	for (unsigned i = 0; i < N; ++i)
 		_out << std::setw(2) << (int)_h[i];

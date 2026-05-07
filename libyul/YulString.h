@@ -62,7 +62,7 @@ public:
 			if (*m_strings[it->second] == _string)
 				return Handle{it->second, h};
 		m_strings.emplace_back(std::make_shared<std::string>(_string));
-		size_t id = m_strings.size() - 1;
+		size_t const id = m_strings.size() - 1;
 		m_hashToID.emplace_hint(range.second, std::make_pair(h, id));
 
 		return Handle{id, h};
@@ -73,7 +73,7 @@ public:
 	{
 		// FNV hash - can be replaced by a better one, e.g. xxhash64
 		std::uint64_t hash = emptyHash();
-		for (char c: v)
+		for (char const c: v)
 		{
 			hash *= 1099511628211u;
 			hash ^= static_cast<uint64_t>(c);

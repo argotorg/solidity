@@ -116,7 +116,7 @@ struct OpPop: SimplePeepholeOptimizerMethod<OpPop>
 	{
 		if (_pop == Instruction::POP && _op.type() == Operation)
 		{
-			Instruction instr = _op.instruction();
+			Instruction const instr = _op.instruction();
 			auto const& info = instructionInfo(instr, langutil::EVMVersion());
 			if (info.ret == 1 && !info.sideEffects)
 			{
@@ -141,7 +141,7 @@ struct OpStop: SimplePeepholeOptimizerMethod<OpStop>
 		{
 			if (_op.type() == Operation)
 			{
-				Instruction instr = _op.instruction();
+				Instruction const instr = _op.instruction();
 				if (!instructionInfo(instr, langutil::EVMVersion()).sideEffects)
 				{
 					*_out = {Instruction::STOP, _op.debugData()};
@@ -203,7 +203,7 @@ struct DoublePush
 {
 	static bool apply(OptimiserState& _state)
 	{
-		size_t windowSize = 2;
+		size_t const windowSize = 2;
 		if (_state.i + windowSize > _state.items.size())
 			return false;
 

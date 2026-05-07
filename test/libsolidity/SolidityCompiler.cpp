@@ -65,7 +65,7 @@ BOOST_AUTO_TEST_CASE(does_not_include_creation_time_only_internal_functions, *bo
 	BOOST_CHECK(creationBytecode.size() >= 90);
 	BOOST_CHECK(creationBytecode.size() <= 120);
 	auto evmVersion = solidity::test::CommonOptions::get().evmVersion();
-	unsigned threshold = evmVersion.hasPush0() ? 9 : 10;
+	unsigned const threshold = evmVersion.hasPush0() ? 9 : 10;
 	BOOST_CHECK(runtimeBytecode.size() >= threshold);
 	BOOST_CHECK(runtimeBytecode.size() <= 30);
 }

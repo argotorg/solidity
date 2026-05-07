@@ -46,7 +46,7 @@ using namespace solidity::yul;
 
 void UnusedStoreEliminator::run(OptimiserStepContext& _context, Block& _ast)
 {
-	std::map<FunctionHandle, SideEffects> functionSideEffects = SideEffectsPropagator::sideEffects(
+	std::map<FunctionHandle, SideEffects> const functionSideEffects = SideEffectsPropagator::sideEffects(
 		_context.dialect,
 		CallGraphGenerator::callGraph(_ast)
 	);
@@ -75,7 +75,7 @@ void UnusedStoreEliminator::run(OptimiserStepContext& _context, Block& _ast)
 	rse.markActiveAsUsed(Location::Storage);
 	rse.m_storesToRemove += rse.m_allStores - rse.m_usedStores;
 
-	std::set<Statement const*> toRemove{rse.m_storesToRemove.begin(), rse.m_storesToRemove.end()};
+	std::set<Statement const*> const toRemove{rse.m_storesToRemove.begin(), rse.m_storesToRemove.end()};
 	StatementRemover remover{toRemove};
 	remover(_ast);
 }
@@ -123,7 +123,7 @@ void UnusedStoreEliminator::operator()(FunctionCall const& _functionCall)
 
 void UnusedStoreEliminator::operator()(FunctionDefinition const& _functionDefinition)
 {
-	ScopedSaveAndRestore storeOperations(m_storeOperations, {});
+	ScopedSaveAndRestore const storeOperations(m_storeOperations, {});
 	UnusedStoreBase::operator()(_functionDefinition);
 }
 
@@ -158,8 +158,8 @@ void UnusedStoreEliminator::visit(Statement const& _statement)
 	// both by querying a combination of semantic information and by listing the instructions.
 	// This way the assert below should be triggered on any change.
 	using evmasm::SemanticInformation;
-	bool isStorageWrite = (*instruction == Instruction::SSTORE);
-	bool isMemoryWrite =
+	bool const isStorageWrite = (*instruction == Instruction::SSTORE);
+	bool const isMemoryWrite =
 		*instruction == Instruction::EXTCODECOPY ||
 		*instruction == Instruction::CODECOPY ||
 		*instruction == Instruction::CALLDATACOPY ||
@@ -168,7 +168,7 @@ void UnusedStoreEliminator::visit(Statement const& _statement)
 		//*instruction == Instruction::MCOPY ||
 		*instruction == Instruction::MSTORE ||
 		*instruction == Instruction::MSTORE8;
-	bool isCandidateForRemoval =
+	bool const isCandidateForRemoval =
 		*instruction != Instruction::MCOPY &&
 		SemanticInformation::otherState(*instruction) != SemanticInformation::Write && (
 			SemanticInformation::storage(*instruction) == SemanticInformation::Write ||

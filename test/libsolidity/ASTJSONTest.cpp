@@ -264,7 +264,7 @@ bool ASTJSONTest::runTest(
 
 	if (_variant.expectation != _variant.result)
 	{
-		std::string nextIndentLevel = _linePrefix + "  ";
+		std::string const nextIndentLevel = _linePrefix + "  ";
 		AnsiColorized(_stream, _formatted, {BOLD, CYAN}) <<
 			_linePrefix <<
 			"Expected result" <<

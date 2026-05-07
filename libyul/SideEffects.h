@@ -88,7 +88,7 @@ struct SideEffects
 	}
 
 	/// @returns the combined side effects of two pieces of code.
-	SideEffects operator+(SideEffects const& _other)
+	SideEffects operator+(SideEffects const& _other) const
 	{
 		return SideEffects{
 			movable && _other.movable,

@@ -168,7 +168,7 @@ std::string AsmPrinter::operator()(If const& _if)
 	std::string out = formatDebugData(_if);
 	out += "if " + std::visit(*this, *_if.condition);
 
-	std::string body = (*this)(_if.body);
+	std::string const body = (*this)(_if.body);
 	char delim = '\n';
 	if (body.find('\n') == std::string::npos)
 		delim = ' ';
@@ -294,7 +294,7 @@ std::string AsmPrinter::formatSourceLocation(
 		}
 	}
 
-	std::string sourceLocation =
+	std::string const sourceLocation =
 		"@src " +
 		sourceIndex +
 		":" +
@@ -330,7 +330,7 @@ std::string AsmPrinter::formatDebugData(langutil::DebugData::ConstPtr const& _de
 		));
 	}
 
-	std::string commentBody = joinHumanReadable(items, " ");
+	std::string const commentBody = joinHumanReadable(items, " ");
 	if (commentBody.empty())
 		return "";
 	else

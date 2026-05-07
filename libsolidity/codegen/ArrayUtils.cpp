@@ -51,8 +51,8 @@ void ArrayUtils::copyArrayToStorage(ArrayType const& _targetType, ArrayType cons
 
 	// TODO unroll loop for small sizes
 
-	bool fromCalldata = _sourceType.location() == DataLocation::CallData;
-	bool haveSourceLengthOnStack = fromCalldata && _sourceType.isDynamicallySized();
+	bool const fromCalldata = _sourceType.location() == DataLocation::CallData;
+	bool const haveSourceLengthOnStack = fromCalldata && _sourceType.isDynamicallySized();
 
 	for (unsigned i = _sourceType.sizeOnStack(); i > 0; --i)
 		m_context << swapInstruction(i);
@@ -76,7 +76,7 @@ void ArrayUtils::copyArrayToStorage(ArrayType const& _targetType, ArrayType cons
 		// TODO: This limitation can now be removed since we use Yul utility functions that handle non-value types correctly.
 		// The old inline assembly implementation couldn't handle copying arrays of non-value types from memory or calldata to storage,
 		// but the Yul functions support them. We keep this check temporarily for backward compatibility.
-		bool fromMemoryOrCalldata = _sourceType.location() == DataLocation::Memory || _sourceType.location() == DataLocation::CallData;
+		bool const fromMemoryOrCalldata = _sourceType.location() == DataLocation::Memory || _sourceType.location() == DataLocation::CallData;
 		solUnimplementedAssert(
 			_sourceType.baseType()->isValueType() || !fromMemoryOrCalldata,
 			"Copying of type " + _sourceType.toString(false) + " to storage is not supported in legacy (only supported by the IR pipeline). " +
@@ -186,7 +186,7 @@ void ArrayUtils::copyArrayToMemory(ArrayType const& _sourceType, bool _padToWord
 		m_context << Instruction::SWAP1 << Instruction::POP;
 		// stack: <target> <size>
 
-		bool paddingNeeded = _padToWordBoundaries && _sourceType.isByteArrayOrString();
+		bool const paddingNeeded = _padToWordBoundaries && _sourceType.isByteArrayOrString();
 
 		if (paddingNeeded)
 		{
@@ -195,7 +195,7 @@ void ArrayUtils::copyArrayToMemory(ArrayType const& _sourceType, bool _padToWord
 			// stack: <length> <target + size>
 			m_context << Instruction::SWAP1 << u256(31) << Instruction::AND;
 			// stack: <target + size> <remainder = size % 32>
-			evmasm::AssemblyItem skip = m_context.newTag();
+			evmasm::AssemblyItem const skip = m_context.newTag();
 			if (_sourceType.isDynamicallySized())
 			{
 				m_context << Instruction::DUP1 << Instruction::ISZERO;
@@ -232,21 +232,21 @@ void ArrayUtils::copyArrayToMemory(ArrayType const& _sourceType, bool _padToWord
 	else
 	{
 		solAssert(_sourceType.location() == DataLocation::Storage, "");
-		unsigned storageBytes = _sourceType.baseType()->storageBytes();
-		u256 storageSize = _sourceType.baseType()->storageSize();
+		unsigned const storageBytes = _sourceType.baseType()->storageBytes();
+		u256 const storageSize = _sourceType.baseType()->storageSize();
 		solAssert(storageSize > 1 || (storageSize == 1 && storageBytes > 0), "");
 
 		retrieveLength(_sourceType);
 		// stack here: memory_offset storage_offset length
 		// jump to end if length is zero
 		m_context << Instruction::DUP1 << Instruction::ISZERO;
-		evmasm::AssemblyItem loopEnd = m_context.appendConditionalJump();
+		evmasm::AssemblyItem const loopEnd = m_context.appendConditionalJump();
 		// Special case for tightly-stored byte arrays
 		if (_sourceType.isByteArrayOrString())
 		{
 			// stack here: memory_offset storage_offset length
 			m_context << Instruction::DUP1 << u256(31) << Instruction::LT;
-			evmasm::AssemblyItem longByteArray = m_context.appendConditionalJump();
+			evmasm::AssemblyItem const longByteArray = m_context.appendConditionalJump();
 			// store the short byte array (discard lower-order byte)
 			m_context << u256(0x100) << Instruction::DUP1;
 			m_context << Instruction::DUP4 << Instruction::SLOAD;
@@ -278,11 +278,11 @@ void ArrayUtils::copyArrayToMemory(ArrayType const& _sourceType, bool _padToWord
 		}
 
 		// stack here: memory_end_offset storage_data_offset memory_offset
-		bool haveByteOffset = !_sourceType.isByteArrayOrString() && storageBytes <= 16;
+		bool const haveByteOffset = !_sourceType.isByteArrayOrString() && storageBytes <= 16;
 		if (haveByteOffset)
 			m_context << u256(0) << Instruction::SWAP1;
 		// stack here: memory_end_offset storage_data_offset [storage_byte_offset] memory_offset
-		evmasm::AssemblyItem loopStart = m_context.newTag();
+		evmasm::AssemblyItem const loopStart = m_context.newTag();
 		m_context << loopStart;
 		// load and store
 		if (_sourceType.isByteArrayOrString())
@@ -353,7 +353,7 @@ void ArrayUtils::clearArray(ArrayType const& _typeIn) const
 		[type](CompilerContext& _context)
 		{
 			ArrayType const& _type = dynamic_cast<ArrayType const&>(*type);
-			unsigned stackHeightStart = _context.stackHeight();
+			unsigned const stackHeightStart = _context.stackHeight();
 			solAssert(_type.location() == DataLocation::Storage, "");
 			if (_type.baseType()->storageBytes() < 32)
 			{
@@ -418,12 +418,12 @@ void ArrayUtils::clearDynamicArray(ArrayType const& _type) const
 	// set length to zero
 	m_context << u256(0) << Instruction::DUP3 << Instruction::SSTORE;
 	// Special case: short byte arrays are stored togeher with their length
-	evmasm::AssemblyItem endTag = m_context.newTag();
+	evmasm::AssemblyItem const endTag = m_context.newTag();
 	if (_type.isByteArrayOrString())
 	{
 		// stack: ref old_length
 		m_context << Instruction::DUP1 << u256(31) << Instruction::LT;
-		evmasm::AssemblyItem longByteArray = m_context.appendConditionalJump();
+		evmasm::AssemblyItem const longByteArray = m_context.appendConditionalJump();
 		// Short byte array: no data slots to clear, just pop and exit
 		m_context << Instruction::POP << Instruction::POP;
 		m_context.appendJumpTo(endTag);
@@ -587,7 +587,7 @@ void ArrayUtils::clearStorageLoop(Type const* _type) const
 		0,
 		[_type](CompilerContext& _context)
 		{
-			unsigned stackHeightStart = _context.stackHeight();
+			unsigned const stackHeightStart = _context.stackHeight();
 			if (_type->category() == Type::Category::Mapping)
 			{
 				_context << Instruction::POP << Instruction::POP;
@@ -597,11 +597,11 @@ void ArrayUtils::clearStorageLoop(Type const* _type) const
 			// Initialize loop counter i = 0
 			_context << u256(0);
 			// stack: start_pos slot_count i
-			evmasm::AssemblyItem loopStart = _context.appendJumpToNew();
+			evmasm::AssemblyItem const loopStart = _context.appendJumpToNew();
 			_context << loopStart;
 			// check for loop condition: !(slot_count > i) = (i >= slot_count)
 			_context << Instruction::DUP1 << Instruction::DUP3 << Instruction::GT << Instruction::ISZERO;
-			evmasm::AssemblyItem zeroLoopEnd = _context.newTag();
+			evmasm::AssemblyItem const zeroLoopEnd = _context.newTag();
 			_context.appendConditionalJumpTo(zeroLoopEnd);
 			// stack: start_pos slot_count i
 			// compute storage position: start_pos + i
@@ -629,12 +629,12 @@ void ArrayUtils::convertLengthToSize(ArrayType const& _arrayType, bool _pad) con
 	{
 		if (_arrayType.baseType()->storageSize() <= 1)
 		{
-			unsigned baseBytes = _arrayType.baseType()->storageBytes();
+			unsigned const baseBytes = _arrayType.baseType()->storageBytes();
 			if (baseBytes == 0)
 				m_context << Instruction::POP << u256(1);
 			else if (baseBytes <= 16)
 			{
-				unsigned itemsPerSlot = 32 / baseBytes;
+				unsigned const itemsPerSlot = 32 / baseBytes;
 				m_context
 					<< u256(itemsPerSlot - 1) << Instruction::ADD
 					<< u256(itemsPerSlot) << Instruction::SWAP1 << Instruction::DIV;
@@ -690,7 +690,7 @@ void ArrayUtils::retrieveLength(ArrayType const& _arrayType, unsigned _stackDept
 void ArrayUtils::accessIndex(ArrayType const& _arrayType, bool _doBoundsCheck, bool _keepReference) const
 {
 	/// Stack: reference [length] index
-	DataLocation location = _arrayType.location();
+	DataLocation const location = _arrayType.location();
 
 	if (_doBoundsCheck)
 	{
@@ -738,7 +738,7 @@ void ArrayUtils::accessIndex(ArrayType const& _arrayType, bool _doBoundsCheck, b
 			m_context << Instruction::SWAP1;
 		// stack: [<base_ref>] <index> <base_ref>
 
-		evmasm::AssemblyItem endTag = m_context.newTag();
+		evmasm::AssemblyItem const endTag = m_context.newTag();
 		if (_arrayType.isByteArrayOrString())
 		{
 			// Special case of short byte arrays.
@@ -757,9 +757,9 @@ void ArrayUtils::accessIndex(ArrayType const& _arrayType, bool _doBoundsCheck, b
 			// stack: <data_ref> <index>
 			// goal:
 			// <ref> <byte_number> = <base_ref + index / itemsPerSlot> <(index % itemsPerSlot) * byteSize>
-			unsigned byteSize = _arrayType.baseType()->storageBytes();
+			unsigned const byteSize = _arrayType.baseType()->storageBytes();
 			solAssert(byteSize != 0, "");
-			unsigned itemsPerSlot = 32 / byteSize;
+			unsigned const itemsPerSlot = 32 / byteSize;
 			m_context << u256(itemsPerSlot) << Instruction::SWAP2;
 			// stack: itemsPerSlot index data_ref
 			m_context

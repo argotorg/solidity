@@ -57,7 +57,7 @@ bool YulStack::parse(std::string const& _sourceName, std::string const& _source)
 	try
 	{
 		m_charStream = std::make_unique<CharStream>(_source, _sourceName);
-		std::shared_ptr<Scanner> scanner = std::make_shared<Scanner>(*m_charStream);
+		std::shared_ptr<Scanner> const scanner = std::make_shared<Scanner>(*m_charStream);
 		m_parserResult = ObjectParser(m_errorReporter, EVMDialect::strictAssemblyForEVMObjects(m_evmVersion, m_eofVersion)).parse(scanner, false);
 	}
 	catch (UnimplementedFeatureError const& _error)
@@ -204,7 +204,7 @@ void YulStack::reparse()
 	// NOTE: it is important for the source printed here to exactly match what the compiler will
 	// eventually output to the user. In particular, debug info must be exactly the same.
 	// Otherwise source locations will be off.
-	std::string source = print();
+	std::string const source = print();
 
 	YulStack cleanStack(
 		m_evmVersion,
@@ -214,7 +214,7 @@ void YulStack::reparse()
 		m_soliditySourceProvider,
 		m_objectOptimizer
 	);
-	bool reanalysisSuccessful = cleanStack.parseAndAnalyze(m_charStream->name(), source);
+	bool const reanalysisSuccessful = cleanStack.parseAndAnalyze(m_charStream->name(), source);
 	yulAssert(
 		reanalysisSuccessful,
 		source + "\n\n"
@@ -318,7 +318,7 @@ YulStack::assembleEVMWithDeployed(std::optional<std::string_view> _deployName, b
 	// NOTE: We always need stack optimization when Yul optimizer is disabled (unless code contains
 	// msize). It being disabled just means that we don't use the full step sequence. We still run
 	// it with the minimal steps required to avoid "stack too deep".
-	bool optimize = m_optimiserSettings.optimizeStackAllocation || (
+	bool const optimize = m_optimiserSettings.optimizeStackAllocation || (
 		!m_optimiserSettings.runYulOptimiser &&
 		!yul::MSizeFinder::containsMSize(*m_parserResult)
 	);
@@ -348,7 +348,7 @@ YulStack::assembleEVMWithDeployed(std::optional<std::string_view> _deployName, b
 
 		if (subIndex.has_value())
 		{
-			evmasm::Assembly& runtimeAssembly = assembly.sub(*subIndex);
+			evmasm::Assembly const& runtimeAssembly = assembly.sub(*subIndex);
 			return {std::make_shared<evmasm::Assembly>(assembly), std::make_shared<evmasm::Assembly>(runtimeAssembly)};
 		}
 	}
@@ -396,13 +396,13 @@ Json YulStack::cfgJson() const
 		// operations to the control flow graphs
 		bool constexpr keepLiteralAssignments = true;
 		// NOTE: The block Ids are reset for each object
-		std::unique_ptr<ssa::ControlFlowGraphs> controlFlowGraphs = ssa::SSACFGBuilder::build(
+		std::unique_ptr<ssa::ControlFlowGraphs> const controlFlowGraphs = ssa::SSACFGBuilder::build(
 			*_object.analysisInfo,
 			EVMDialect::strictAssemblyForEVMObjects(m_evmVersion, m_eofVersion),
 			_object.code()->root(),
 			keepLiteralAssignments
 		);
-		std::unique_ptr<ssa::ControlFlowGraphsLiveness> liveness = std::make_unique<ssa::ControlFlowGraphsLiveness>(*controlFlowGraphs);
+		std::unique_ptr<ssa::ControlFlowGraphsLiveness> const liveness = std::make_unique<ssa::ControlFlowGraphsLiveness>(*controlFlowGraphs);
 		return ssa::io::json::exportControlFlow(*controlFlowGraphs, liveness.get());
 	};
 

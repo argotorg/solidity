@@ -67,7 +67,7 @@ EVMAssemblyTest::EVMAssemblyTest(std::string const& _filename):
 		BOOST_THROW_EXCEPTION(std::runtime_error("Not an assembly test: \"" + _filename + "\". Allowed extensions: .asm, .asmjson."));
 
 	m_selectedOutputs = m_reader.stringSetting("outputs", "Assembly,Bytecode,Opcodes,SourceMappings");
-	OptimisationPreset optimizationPreset = m_reader.enumSetting<OptimisationPreset>(
+	OptimisationPreset const optimizationPreset = m_reader.enumSetting<OptimisationPreset>(
 		"optimizationPreset",
 		{
 			{"none", OptimisationPreset::None},
@@ -78,7 +78,7 @@ EVMAssemblyTest::EVMAssemblyTest(std::string const& _filename):
 		"none"
 	);
 	m_optimizerSettings = Assembly::OptimiserSettings::translateSettings(OptimiserSettings::preset(optimizationPreset));
-	size_t defaultExpectedExecutionsPerDeployment = m_optimizerSettings.expectedExecutionsPerDeployment;
+	size_t const defaultExpectedExecutionsPerDeployment = m_optimizerSettings.expectedExecutionsPerDeployment;
 	m_optimizerSettings.expectedExecutionsPerDeployment = m_reader.sizetSetting(
 		"optimizer.expectedExecutionsPerDeployment",
 		m_optimizerSettings.expectedExecutionsPerDeployment
@@ -182,7 +182,7 @@ TestCase::TestResult EVMAssemblyTest::run(std::ostream& _stream, std::string con
 			// Don't trim on the left to avoid stripping indentation.
 			std::string content = produceOutput(output);
 			boost::trim_right(content);
-			std::string separator = (content.empty() ? "" : (output == "Assembly" ? "\n" : " "));
+			std::string const separator = (content.empty() ? "" : (output == "Assembly" ? "\n" : " "));
 			m_obtainedResult += output + ":" + separator + content;
 		}
 	if (!m_obtainedResult.empty() && m_obtainedResult.back() != '\n')

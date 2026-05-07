@@ -44,7 +44,7 @@ std::vector<AssemblyItem> CommonSubexpressionEliminator::getOptimizedItems()
 		nextInitialState.feedItem(*m_breakingItem);
 	KnownState nextState = nextInitialState;
 
-	ScopeGuard reset([&]()
+	ScopeGuard const reset([&]()
 	{
 		m_breakingItem = nullptr;
 		m_storeOperations.clear();
@@ -76,7 +76,7 @@ std::vector<AssemblyItem> CommonSubexpressionEliminator::getOptimizedItems()
 
 void CommonSubexpressionEliminator::feedItem(AssemblyItem const& _item, bool _copyItem)
 {
-	StoreOperation op = m_state.feedItem(_item, _copyItem);
+	StoreOperation const op = m_state.feedItem(_item, _copyItem);
 	if (op.isValid())
 		m_storeOperations.push_back(op);
 }
@@ -88,12 +88,12 @@ void CommonSubexpressionEliminator::optimizeBreakingItem()
 
 	ExpressionClasses& classes = m_state.expressionClasses();
 	SourceLocation const& itemLocation = m_breakingItem->location();
-	langutil::DebugData::ConstPtr debugData{langutil::DebugData::create(itemLocation)};
+	langutil::DebugData::ConstPtr const debugData{langutil::DebugData::create(itemLocation)};
 	if (*m_breakingItem == AssemblyItem(Instruction::JUMPI))
 	{
-		AssemblyItem::JumpType jumpType = m_breakingItem->getJumpType();
+		AssemblyItem::JumpType const jumpType = m_breakingItem->getJumpType();
 
-		Id condition = m_state.stackElement(m_state.stackHeight() - 1, debugData);
+		Id const condition = m_state.stackElement(m_state.stackHeight() - 1, debugData);
 		if (classes.knownNonZero(condition))
 		{
 			feedItem(AssemblyItem(Instruction::SWAP1, debugData), true);
@@ -105,7 +105,7 @@ void CommonSubexpressionEliminator::optimizeBreakingItem()
 		}
 		else if (classes.knownZero(condition))
 		{
-			AssemblyItem it(Instruction::POP, debugData);
+			AssemblyItem const it(Instruction::POP, debugData);
 			feedItem(it, true);
 			feedItem(it, true);
 			m_breakingItem = nullptr;
@@ -113,12 +113,12 @@ void CommonSubexpressionEliminator::optimizeBreakingItem()
 	}
 	else if (*m_breakingItem == AssemblyItem(Instruction::RETURN))
 	{
-		Id size = m_state.stackElement(m_state.stackHeight() - 1, debugData);
+		Id const size = m_state.stackElement(m_state.stackHeight() - 1, debugData);
 		if (classes.knownZero(size))
 		{
 			feedItem(AssemblyItem(Instruction::POP, debugData), true);
 			feedItem(AssemblyItem(Instruction::POP, debugData), true);
-			AssemblyItem item(Instruction::STOP, debugData);
+			AssemblyItem const item(Instruction::STOP, debugData);
 			m_breakingItem = classes.storeItem(item);
 		}
 	}
@@ -162,7 +162,7 @@ AssemblyItems CSECodeGenerator::generateCode(
 	std::set<std::pair<unsigned, Id>> sequencedExpressions;
 	for (auto const& p: m_neededBy)
 		for (auto id: {p.first, p.second})
-			if (unsigned seqNr = m_expressionClasses.representative(id).sequenceNumber)
+			if (unsigned const seqNr = m_expressionClasses.representative(id).sequenceNumber)
 			{
 				// Invalid sequenced operation.
 				// @todo quick fix for now. Proper fix needs to choose representative with higher
@@ -188,7 +188,7 @@ AssemblyItems CSECodeGenerator::generateCode(
 		langutil::DebugData::ConstPtr debugData;
 		if (m_expressionClasses.representative(targetItem.second).item)
 			debugData = m_expressionClasses.representative(targetItem.second).item->debugData();
-		int position = classElementPosition(targetItem.second);
+		int const position = classElementPosition(targetItem.second);
 		if (position < targetItem.first)
 			// it is already at its target, we need another copy
 			appendDup(position, debugData);
@@ -230,7 +230,7 @@ void CSECodeGenerator::addDependencies(Id _c)
 	// If this exception happens, we need to find a different way to generate the
 	// compound expression.
 	assertThrow(expr.item->type() != UndefinedItem, ItemNotAvailableException, "Undefined item requested but not available.");
-	for (Id argument: expr.arguments)
+	for (Id const argument: expr.arguments)
 	{
 		addDependencies(argument);
 		m_neededBy.insert(std::make_pair(argument, _c));
@@ -244,14 +244,14 @@ void CSECodeGenerator::addDependencies(Id _c)
 		// this loads an unknown value from storage or memory and thus, in addition to its
 		// arguments, depends on all store operations to addresses where we do not know that
 		// they are different that occur before this load
-		StoreOperation::Target target = expr.item->instruction() == Instruction::SLOAD ?
+		StoreOperation::Target const target = expr.item->instruction() == Instruction::SLOAD ?
 			StoreOperation::Storage : StoreOperation::Memory;
-		Id slotToLoadFrom = expr.arguments.at(0);
+		Id const slotToLoadFrom = expr.arguments.at(0);
 		for (auto const& p: m_storeOperations)
 		{
 			if (p.first.first != target)
 				continue;
-			Id slot = p.first.second;
+			Id const slot = p.first.second;
 			StoreOperations const& storeOps = p.second;
 			if (storeOps.front().sequenceNumber > expr.sequenceNumber)
 				continue;
@@ -266,9 +266,9 @@ void CSECodeGenerator::addDependencies(Id _c)
 				break;
 			case Instruction::KECCAK256:
 			{
-				Id length = expr.arguments.at(1);
-				AssemblyItem offsetInstr(Instruction::SUB, expr.item->debugData());
-				Id offsetToStart = m_expressionClasses.find(offsetInstr, {slot, slotToLoadFrom});
+				Id const length = expr.arguments.at(1);
+				AssemblyItem const offsetInstr(Instruction::SUB, expr.item->debugData());
+				Id const offsetToStart = m_expressionClasses.find(offsetInstr, {slot, slotToLoadFrom});
 				u256 const* o = m_expressionClasses.knownConstant(offsetToStart);
 				u256 const* l = m_expressionClasses.knownConstant(length);
 				if (l && *l == 0)
@@ -305,7 +305,7 @@ void CSECodeGenerator::addDependencies(Id _c)
 void CSECodeGenerator::generateClassElement(Id _c, bool _allowSequenced)
 {
 	for (auto const& it: m_classPositions)
-		for (int p: it.second)
+		for (int const p: it.second)
 			if (p > m_stackHeight)
 			{
 				assertThrow(false, OptimizerException, "");
@@ -335,10 +335,10 @@ void CSECodeGenerator::generateClassElement(Id _c, bool _allowSequenced)
 		"Undefined item requested but not available."
 	);
 	std::vector<Id> const& arguments = expr.arguments;
-	for (Id arg: arguments | ranges::views::reverse)
+	for (Id const arg: arguments | ranges::views::reverse)
 		generateClassElement(arg);
 
-	langutil::DebugData::ConstPtr itemDebugData = expr.item->debugData();
+	langutil::DebugData::ConstPtr const itemDebugData = expr.item->debugData();
 	// The arguments are somewhere on the stack now, so it remains to move them at the correct place.
 	// This is quite difficult as sometimes, the values also have to removed in this process
 	// (if canBeRemoved() returns true) and the two arguments can be equal. For now, this is
@@ -441,7 +441,7 @@ bool CSECodeGenerator::canBeRemoved(Id _element, Id _result, int _fromPosition)
 	if (_fromPosition == c_invalidPosition)
 		_fromPosition = classElementPosition(_element);
 
-	bool haveCopy = m_classPositions.at(_element).size() > 1;
+	bool const haveCopy = m_classPositions.at(_element).size() > 1;
 	if (m_finalClasses.count(_element))
 		// It is part of the target stack. It can be removed if it is a copy that is not in the target position.
 		return haveCopy && (!m_targetStack.count(_fromPosition) || m_targetStack[_fromPosition] != _element);
@@ -462,7 +462,7 @@ bool CSECodeGenerator::removeStackTopIfPossible()
 	if (m_stack.empty())
 		return false;
 	assertThrow(m_stack.count(m_stackHeight) > 0, OptimizerException, "");
-	Id top = m_stack[m_stackHeight];
+	Id const top = m_stack[m_stackHeight];
 	if (!canBeRemoved(top, Id(-1), m_stackHeight))
 		return false;
 	m_classPositions[m_stack[m_stackHeight]].erase(m_stackHeight);
@@ -474,8 +474,8 @@ bool CSECodeGenerator::removeStackTopIfPossible()
 void CSECodeGenerator::appendDup(int _fromPosition, langutil::DebugData::ConstPtr _debugData)
 {
 	assertThrow(_fromPosition != c_invalidPosition, OptimizerException, "");
-	int reachableStackDepth = static_cast<int>(m_evmVersion.reachableStackDepth());
-	int instructionNum = 1 + m_stackHeight - _fromPosition;
+	int const reachableStackDepth = static_cast<int>(m_evmVersion.reachableStackDepth());
+	int const instructionNum = 1 + m_stackHeight - _fromPosition;
 	assertThrow(instructionNum <= reachableStackDepth, StackTooDeepException, util::stackTooDeepString);
 	assertThrow(1 <= instructionNum, OptimizerException, "Invalid stack access.");
 	appendItem(AssemblyItem(dupInstruction(static_cast<unsigned>(instructionNum)), std::move(_debugData)));
@@ -488,8 +488,8 @@ void CSECodeGenerator::appendOrRemoveSwap(int _fromPosition, langutil::DebugData
 	assertThrow(_fromPosition != c_invalidPosition, OptimizerException, "");
 	if (_fromPosition == m_stackHeight)
 		return;
-	int reachableStackDepth = static_cast<int>(m_evmVersion.reachableStackDepth());
-	int instructionNum = m_stackHeight - _fromPosition;
+	int const reachableStackDepth = static_cast<int>(m_evmVersion.reachableStackDepth());
+	int const instructionNum = m_stackHeight - _fromPosition;
 	assertThrow(instructionNum <= reachableStackDepth, StackTooDeepException, util::stackTooDeepString);
 	assertThrow(1 <= instructionNum, OptimizerException, "Invalid stack access.");
 	appendItem(AssemblyItem(swapInstruction(static_cast<unsigned>(instructionNum)), std::move(_debugData)));

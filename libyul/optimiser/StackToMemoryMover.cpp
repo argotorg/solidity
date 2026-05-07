@@ -81,7 +81,7 @@ void StackToMemoryMover::run(
 	Block& _block
 )
 {
-	VariableMemoryOffsetTracker memoryOffsetTracker(_reservedMemory, _memorySlots, _numRequiredSlots);
+	VariableMemoryOffsetTracker const memoryOffsetTracker(_reservedMemory, _memorySlots, _numRequiredSlots);
 	StackToMemoryMover stackToMemoryMover(
 		_context,
 		memoryOffsetTracker,
@@ -149,7 +149,7 @@ void StackToMemoryMover::operator()(FunctionDefinition& _functionDefinition)
 			std::not_fn(m_memoryOffsetTracker)
 		) | ranges::to<NameWithDebugDataList>;
 		// Generate new function without return variable and with only the non-moved parameters.
-		YulName newFunctionName = m_context.dispenser.newName(_functionDefinition.name);
+		YulName const newFunctionName = m_context.dispenser.newName(_functionDefinition.name);
 		m_newFunctionDefinitions.emplace_back(FunctionDefinition{
 			_functionDefinition.debugData,
 			newFunctionName,
@@ -257,7 +257,7 @@ void StackToMemoryMover::operator()(Block& _block)
 				rhs = std::make_unique<Expression>(generateMemoryLoad(m_context.dialect, debugData, *rhsSlot));
 			else
 			{
-				YulName tempVarName = m_nameDispenser.newName(lhsVar.name);
+				YulName const tempVarName = m_nameDispenser.newName(lhsVar.name);
 				tempDecl.variables.emplace_back(NameWithDebugData{lhsVar.debugData, tempVarName});
 				rhs = std::make_unique<Expression>(Identifier{debugData, tempVarName});
 			}
@@ -306,7 +306,7 @@ void StackToMemoryMover::operator()(Block& _block)
 void StackToMemoryMover::visit(Expression& _expression)
 {
 	ASTModifier::visit(_expression);
-	if (Identifier* identifier = std::get_if<Identifier>(&_expression))
+	if (Identifier const* identifier = std::get_if<Identifier>(&_expression))
 		if (auto offset = m_memoryOffsetTracker(identifier->name))
 			_expression = generateMemoryLoad(m_context.dialect, identifier->debugData, *offset);
 }
@@ -315,7 +315,7 @@ std::optional<LiteralValue> StackToMemoryMover::VariableMemoryOffsetTracker::ope
 {
 	if (m_memorySlots.count(_variable))
 	{
-		uint64_t slot = m_memorySlots.at(_variable);
+		uint64_t const slot = m_memorySlots.at(_variable);
 		yulAssert(slot < m_numRequiredSlots, "");
 		auto const memoryOffset = m_reservedMemory + 32 * (m_numRequiredSlots - slot - 1);
 		return valueOfNumberLiteral(toCompactHexWithPrefix(memoryOffset));

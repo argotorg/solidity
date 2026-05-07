@@ -32,7 +32,7 @@ using namespace solidity::yul;
 NameSimplifier::NameSimplifier(OptimiserStepContext& _context, Block const& _ast):
 	m_context(_context)
 {
-	for (YulName name: _context.reservedIdentifiers)
+	for (YulName const name: _context.reservedIdentifiers)
 		m_translations[name] = name;
 
 	for (YulName const& name: NameCollector(_ast).names())
@@ -104,7 +104,7 @@ void NameSimplifier::findSimplification(YulName const& _name)
 
 	for (auto const& [pattern, substitute]: replacements)
 	{
-		std::string candidate = regex_replace(name, pattern, substitute);
+		std::string const candidate = regex_replace(name, pattern, substitute);
 		if (!candidate.empty() && !m_context.dispenser.illegalName(YulName(candidate)))
 			name = candidate;
 	}

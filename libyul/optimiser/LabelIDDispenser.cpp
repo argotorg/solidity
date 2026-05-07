@@ -155,7 +155,7 @@ ASTLabelRegistry LabelIDDispenser::generateNewLabels(std::set<LabelID> const& _u
 		std::string generatedLabel = parentLabel;
 		do
 		{
-			generatedLabel = format(FMT_COMPILE("{}_{}"), parentLabel, labelSuffixes[parentLabelID]++);
+			generatedLabel = fmt::format(FMT_COMPILE("{}_{}"), parentLabel, labelSuffixes[parentLabelID]++);
 		} while (isInvalidLabel(generatedLabel, alreadyDefinedLabels, _dialect));
 
 		labels.push_back(generatedLabel);

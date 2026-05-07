@@ -45,7 +45,7 @@ StackVariable::StackVariable(CompilerContext& _compilerContext, VariableDeclarat
 
 void StackVariable::retrieveValue(SourceLocation const& _location, bool) const
 {
-	unsigned stackPos = m_context.baseToCurrentStackOffset(m_baseStackOffset);
+	unsigned const stackPos = m_context.baseToCurrentStackOffset(m_baseStackOffset);
 	if (stackPos + 1 > m_context.reachableStackDepth()) //@todo correct this by fetching earlier or moving to memory
 		BOOST_THROW_EXCEPTION(
 			StackTooDeepError() <<
@@ -59,7 +59,7 @@ void StackVariable::retrieveValue(SourceLocation const& _location, bool) const
 
 void StackVariable::storeValue(Type const&, SourceLocation const& _location, bool _move) const
 {
-	unsigned stackDiff = m_context.baseToCurrentStackOffset(m_baseStackOffset) - m_size + 1;
+	unsigned const stackDiff = m_context.baseToCurrentStackOffset(m_baseStackOffset) - m_size + 1;
 	if (stackDiff > m_context.reachableStackDepth())
 		BOOST_THROW_EXCEPTION(
 			StackTooDeepError() <<
@@ -430,7 +430,7 @@ void GenericStorageItem<IsTransient>::storeValue(Type const& _sourceType, langut
 						MemoryItem(m_context, *sourceMemberType).retrieveValue(_location, true);
 						// stack layout: source_ref target_ref source_value...
 					}
-					unsigned stackSize = sourceMemberType->sizeOnStack();
+					unsigned const stackSize = sourceMemberType->sizeOnStack();
 					std::pair<u256, unsigned> const& offsets = structType.storageOffsetsOfMember(member.name);
 					m_context << dupInstruction(1 + stackSize) << offsets.first << Instruction::ADD;
 					m_context << u256(offsets.second);
@@ -598,7 +598,7 @@ void TupleObject::storeValue(Type const& _sourceType, SourceLocation const& _loc
 	{
 		std::unique_ptr<LValue> const& lvalue = m_lvalues[m_lvalues.size() - i - 1];
 		Type const* valType = valueTypes[valueTypes.size() - i - 1];
-		unsigned stackHeight = m_context.stackHeight();
+		unsigned const stackHeight = m_context.stackHeight();
 		solAssert(!valType == !lvalue, "");
 		if (!lvalue)
 			continue;

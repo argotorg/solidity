@@ -42,7 +42,7 @@ ASTPointer<ContractDefinition> parseText(std::string const& _source, ErrorList& 
 {
 	ErrorReporter errorReporter(_errors);
 	auto charStream = CharStream(_source, "");
-	ASTPointer<SourceUnit> sourceUnit = Parser(
+	ASTPointer<SourceUnit> const sourceUnit = Parser(
 		errorReporter,
 		solidity::test::CommonOptions::get().evmVersion(),
 		solidity::test::CommonOptions::get().eofVersion()
@@ -137,7 +137,7 @@ BOOST_AUTO_TEST_CASE(function_natspec_documentation)
 	)";
 	BOOST_CHECK(successParse(text));
 	ErrorList errors;
-	ASTPointer<ContractDefinition> contract = parseText(text, errors);
+	ASTPointer<ContractDefinition> const contract = parseText(text, errors);
 	FunctionDefinition const* function = nullptr;
 	auto functions = contract->definedFunctions();
 
@@ -157,7 +157,7 @@ BOOST_AUTO_TEST_CASE(function_normal_comments)
 	)";
 	BOOST_CHECK(successParse(text));
 	ErrorList errors;
-	ASTPointer<ContractDefinition> contract = parseText(text, errors);
+	ASTPointer<ContractDefinition> const contract = parseText(text, errors);
 	auto functions = contract->definedFunctions();
 	BOOST_REQUIRE_MESSAGE(function = functions.at(0), "Failed to retrieve function");
 	BOOST_CHECK_MESSAGE(function->documentation() == nullptr,
@@ -182,7 +182,7 @@ BOOST_AUTO_TEST_CASE(multiple_functions_natspec_documentation)
 	)";
 	BOOST_CHECK(successParse(text));
 	ErrorList errors;
-	ASTPointer<ContractDefinition> contract = parseText(text, errors);
+	ASTPointer<ContractDefinition> const contract = parseText(text, errors);
 	auto functions = contract->definedFunctions();
 
 	BOOST_REQUIRE_MESSAGE(function = functions.at(0), "Failed to retrieve function");
@@ -212,7 +212,7 @@ BOOST_AUTO_TEST_CASE(multiline_function_documentation)
 	)";
 	BOOST_CHECK(successParse(text));
 	ErrorList errors;
-	ASTPointer<ContractDefinition> contract = parseText(text, errors);
+	ASTPointer<ContractDefinition> const contract = parseText(text, errors);
 	auto functions = contract->definedFunctions();
 	BOOST_REQUIRE_MESSAGE(function = functions.at(0), "Failed to retrieve function");
 	checkFunctionNatspec(function, "This is a test function\n"
@@ -239,7 +239,7 @@ BOOST_AUTO_TEST_CASE(natspec_comment_in_function_body)
 	)";
 	BOOST_CHECK(successParse(text));
 	ErrorList errors;
-	ASTPointer<ContractDefinition> contract = parseText(text, errors);
+	ASTPointer<ContractDefinition> const contract = parseText(text, errors);
 	auto functions = contract->definedFunctions();
 
 	BOOST_REQUIRE_MESSAGE(function = functions.at(0), "Failed to retrieve function");
@@ -268,7 +268,7 @@ BOOST_AUTO_TEST_CASE(natspec_docstring_between_keyword_and_signature)
 	)";
 	BOOST_CHECK(successParse(text));
 	ErrorList errors;
-	ASTPointer<ContractDefinition> contract = parseText(text, errors);
+	ASTPointer<ContractDefinition> const contract = parseText(text, errors);
 	auto functions = contract->definedFunctions();
 
 	BOOST_REQUIRE_MESSAGE(function = functions.at(0), "Failed to retrieve function");
@@ -294,7 +294,7 @@ BOOST_AUTO_TEST_CASE(natspec_docstring_after_signature)
 	)";
 	BOOST_CHECK(successParse(text));
 	ErrorList errors;
-	ASTPointer<ContractDefinition> contract = parseText(text, errors);
+	ASTPointer<ContractDefinition> const contract = parseText(text, errors);
 	auto functions = contract->definedFunctions();
 
 	BOOST_REQUIRE_MESSAGE(function = functions.at(0), "Failed to retrieve function");

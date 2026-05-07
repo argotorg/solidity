@@ -129,11 +129,11 @@ void ASTPropertyTest::extractTestsFromAST(Json const& _astJson)
 					continue;
 				}
 
-				std::string nodeDocstring = value.is_object() ?
+				std::string const nodeDocstring = value.is_object() ?
 					value["text"].get<std::string>() : value.get<std::string>();
 				soltestAssert(!nodeDocstring.empty());
 
-				std::vector<StringPair> pairs = readKeyValuePairs(nodeDocstring);
+				std::vector<StringPair> const pairs = readKeyValuePairs(nodeDocstring);
 				if (pairs.empty())
 					continue;
 
@@ -199,7 +199,7 @@ TestCase::TestResult ASTPropertyTest::run(std::ostream& _stream, std::string con
 			SourceReferenceFormatter::formatErrorInformation(compiler.errors(), compiler, _formatted)
 		));
 
-	Json astJson = ASTJsonExporter(compiler.state()).toJson(compiler.ast("A"));
+	Json const astJson = ASTJsonExporter(compiler.state()).toJson(compiler.ast("A"));
 	soltestAssert(!astJson.empty());
 
 	extractTestsFromAST(astJson);

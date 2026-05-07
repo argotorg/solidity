@@ -27,7 +27,7 @@ using namespace solidity::frontend;
 
 std::vector<char const*> test::makeArgv(std::vector<std::string> const& _commandLine)
 {
-	size_t argc = _commandLine.size();
+	size_t const argc = _commandLine.size();
 	std::vector<char const*> argv(_commandLine.size() + 1);
 
 	// C++ standard mandates argv[argc] to be NULL
@@ -47,7 +47,7 @@ test::OptionsReaderAndMessages test::parseCommandLineAndReadInputFiles(
 	std::vector<char const*> argv = makeArgv(_commandLine);
 	std::stringstream sin(_standardInputContent), sout, serr;
 	CommandLineInterface cli(sin, sout, serr);
-	bool success = cli.parseArguments(static_cast<int>(_commandLine.size()), argv.data());
+	bool const success = cli.parseArguments(static_cast<int>(_commandLine.size()), argv.data());
 	cli.readInputFiles();
 
 	return {
@@ -68,7 +68,7 @@ test::OptionsReaderAndMessages test::runCLI(
 	std::vector<char const*> argv = makeArgv(_commandLine);
 	std::stringstream sin(_standardInputContent), sout, serr;
 	CommandLineInterface cli(sin, sout, serr);
-	bool success = cli.run(static_cast<int>(_commandLine.size()), argv.data());
+	bool const success = cli.run(static_cast<int>(_commandLine.size()), argv.data());
 
 	return {
 		success,

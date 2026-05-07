@@ -61,7 +61,7 @@ public:
 		std::optional<std::string> const& _sourceName = std::nullopt
 	) override
 	{
-		bytes bytecode = multiSourceCompileContract(_sourceCode, _sourceName, _contractName, _libraryAddresses);
+		bytes const bytecode = multiSourceCompileContract(_sourceCode, _sourceName, _contractName, _libraryAddresses);
 		sendMessage(bytecode, _arguments, true, _value);
 		return m_output;
 	}

@@ -41,7 +41,7 @@ using namespace solidity::frontend::test;
 bytes BytesUtils::alignLeft(bytes _bytes)
 {
 	soltestAssert(_bytes.size() <= 32, "");
-	size_t size = _bytes.size();
+	size_t const size = _bytes.size();
 	return std::move(_bytes) + bytes(32 - size, 0);
 }
 
@@ -96,9 +96,9 @@ bytes BytesUtils::convertNumber(std::string const& _literal)
 
 bytes BytesUtils::convertFixedPoint(std::string const& _literal, size_t& o_fractionalDigits)
 {
-	size_t dotPos = _literal.find('.');
+	size_t const dotPos = _literal.find('.');
 	o_fractionalDigits = dotPos < _literal.size() ? _literal.size() - dotPos : 0;
-	bool negative = !_literal.empty() && _literal.at(0) == '-';
+	bool const negative = !_literal.empty() && _literal.at(0) == '-';
 	// remove decimal point
 	std::string valueInteger = _literal.substr(0, dotPos) + _literal.substr(dotPos + 1);
 	// erase leading zeros to avoid parsing as octal.
@@ -145,7 +145,7 @@ bytes BytesUtils::convertString(std::string const& _literal)
 
 std::string BytesUtils::formatUnsigned(bytes const& _bytes)
 {
-	std::stringstream os;
+	std::stringstream const os;
 
 	soltestAssert(!_bytes.empty() && _bytes.size() <= 32, "");
 
@@ -169,7 +169,7 @@ std::string BytesUtils::formatSigned(bytes const& _bytes)
 std::string BytesUtils::formatBoolean(bytes const& _bytes)
 {
 	std::stringstream os;
-	u256 result = fromBigEndian<u256>(_bytes);
+	u256 const result = fromBigEndian<u256>(_bytes);
 
 	if (result == 0)
 		os << "false";
@@ -184,7 +184,7 @@ std::string BytesUtils::formatBoolean(bytes const& _bytes)
 std::string BytesUtils::formatHex(bytes const& _bytes, bool _shorten)
 {
 	soltestAssert(!_bytes.empty() && _bytes.size() <= 32, "");
-	u256 value = fromBigEndian<u256>(_bytes);
+	u256 const value = fromBigEndian<u256>(_bytes);
 	std::string output = toCompactHexWithPrefix(value);
 
 	if (_shorten)
@@ -235,7 +235,7 @@ std::string BytesUtils::formatFixedPoint(bytes const& _bytes, bool _signed, size
 	bool negative = false;
 	if (_signed)
 	{
-		s256 signedValue{u2s(fromBigEndian<u256>(_bytes))};
+		s256 const signedValue{u2s(fromBigEndian<u256>(_bytes))};
 		negative = (signedValue < 0);
 		decimal = signedValue.str();
 	}
@@ -243,7 +243,7 @@ std::string BytesUtils::formatFixedPoint(bytes const& _bytes, bool _signed, size
 		decimal = fromBigEndian<u256>(_bytes).str();
 	if (_fractionalDigits > 0)
 	{
-		size_t numDigits = decimal.length() - (negative ? 1 : 0);
+		size_t const numDigits = decimal.length() - (negative ? 1 : 0);
 		if (_fractionalDigits >= numDigits)
 			decimal.insert(negative ? 1 : 0, std::string(_fractionalDigits + 1 - numDigits, '0'));
 		decimal.insert(decimal.length() - _fractionalDigits, ".");
@@ -282,7 +282,7 @@ std::string BytesUtils::formatRawBytes(
 
 	for (auto const& parameter: parameters)
 	{
-		long actualSize = std::min(
+		long const actualSize = std::min(
 			distance(it, _bytes.end()),
 			static_cast<ParameterList::difference_type>(parameter.abiType.size)
 		);
@@ -317,9 +317,9 @@ std::string BytesUtils::formatBytes(
 			os << formatSigned(_bytes);
 		else
 		{
-			std::string decimal(formatUnsigned(_bytes));
-			std::string hexadecimal(formatHex(_bytes));
-			unsigned int value = u256(_bytes).convert_to<unsigned int>();
+			std::string const decimal(formatUnsigned(_bytes));
+			std::string const hexadecimal(formatHex(_bytes));
+			unsigned int const value = u256(_bytes).convert_to<unsigned int>();
 			if (value < 0x10)
 				os << decimal;
 			else if (value >= 0x10 && value <= 0xff) {
@@ -330,11 +330,11 @@ std::string BytesUtils::formatBytes(
 				auto entropy = [](std::string const& str) -> double {
 					double result = 0;
 					std::map<char, double> frequencies;
-					for (char c: str)
+					for (char const c: str)
 						frequencies[c]++;
 					for (auto p: frequencies)
 					{
-						double freq = p.second / double(str.length());
+						double const freq = p.second / double(str.length());
 						result -= freq * (log(freq) / log(2.0));
 					}
 					return result;
@@ -406,7 +406,7 @@ std::string BytesUtils::formatBytesRange(
 
 	for (auto const& parameter: parameters)
 	{
-		long actualSize = std::min(
+		long const actualSize = std::min(
 			distance(it, _bytes.end()),
 			static_cast<ParameterList::difference_type>(parameter.abiType.size)
 		);

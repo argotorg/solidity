@@ -74,8 +74,8 @@ public:
 		m_nonOptimizedBytecode = compileAndRunWithOptimizer("pragma solidity >=0.0;\n" + _sourceCode, _value, _contractName, false, _optimizeRuns);
 		m_nonOptimizedContract = m_contractAddress;
 		m_optimizedBytecode = compileAndRunWithOptimizer("pragma solidity >=0.0;\n" + _sourceCode, _value, _contractName, true, _optimizeRuns);
-		size_t nonOptimizedSize = numInstructions(m_nonOptimizedBytecode);
-		size_t optimizedSize = numInstructions(m_optimizedBytecode);
+		size_t const nonOptimizedSize = numInstructions(m_nonOptimizedBytecode);
+		size_t const optimizedSize = numInstructions(m_optimizedBytecode);
 		BOOST_CHECK_MESSAGE(
 			_optimizeRuns < 50 || optimizedSize < nonOptimizedSize,
 			std::string("Optimizer did not reduce bytecode size. Non-optimized size: ") +
@@ -89,10 +89,10 @@ public:
 	void compareVersions(std::string _sig, Args const&... _arguments)
 	{
 		m_contractAddress = m_nonOptimizedContract;
-		bytes nonOptimizedOutput = callContractFunction(_sig, _arguments...);
+		bytes const nonOptimizedOutput = callContractFunction(_sig, _arguments...);
 		m_gasUsedNonOptimized = m_gasUsed;
 		m_contractAddress = m_optimizedContract;
-		bytes optimizedOutput = callContractFunction(_sig, _arguments...);
+		bytes const optimizedOutput = callContractFunction(_sig, _arguments...);
 		m_gasUsedOptimized = m_gasUsed;
 		BOOST_CHECK_MESSAGE(!optimizedOutput.empty(), "No optimized output for " + _sig);
 		BOOST_CHECK_MESSAGE(!nonOptimizedOutput.empty(), "No un-optimized output for " + _sig);
@@ -105,7 +105,7 @@ public:
 	/// into account.
 	size_t numInstructions(bytes const& _bytecode, std::optional<Instruction> _which = std::optional<Instruction>{})
 	{
-		bytes realCode = bytecodeSansMetadata(_bytecode);
+		bytes const realCode = bytecodeSansMetadata(_bytecode);
 		BOOST_REQUIRE_MESSAGE(!realCode.empty(), "Invalid or missing metadata in bytecode.");
 		size_t instructions = 0;
 		evmasm::eachInstruction(realCode, m_evmVersion, [&](Instruction _instr, u256 const&) {
@@ -284,7 +284,7 @@ BOOST_AUTO_TEST_CASE(retain_information_in_branches)
 	compareVersions("f(uint256,bytes32)", 8, "def");
 	compareVersions("f(uint256,bytes32)", 10, "ghi");
 
-	bytes optimizedBytecode = compileAndRunWithOptimizer(sourceCode, 0, "c", true);
+	bytes const optimizedBytecode = compileAndRunWithOptimizer(sourceCode, 0, "c", true);
 	size_t numSHA3s = 0;
 	eachInstruction(optimizedBytecode, m_evmVersion, [&](Instruction _instr, u256 const&) {
 		if (_instr == Instruction::KECCAK256)
@@ -327,7 +327,7 @@ BOOST_AUTO_TEST_CASE(store_tags_as_unions)
 	compileBothVersions(sourceCode);
 	compareVersions("f(uint256,bytes32)", 7, "abc");
 
-	bytes optimizedBytecode = compileAndRunWithOptimizer(sourceCode, 0, "test", true);
+	bytes const optimizedBytecode = compileAndRunWithOptimizer(sourceCode, 0, "test", true);
 	size_t numSHA3s = 0;
 	eachInstruction(optimizedBytecode, m_evmVersion, [&](Instruction _instr, u256 const&) {
 		if (_instr == Instruction::KECCAK256)
@@ -410,8 +410,8 @@ BOOST_AUTO_TEST_CASE(computing_constants)
 	compareVersions("set()");
 	compareVersions("get()");
 
-	bytes optimizedBytecode = compileAndRunWithOptimizer(sourceCode, 0, "C", true, 1);
-	bytes complicatedConstant = toBigEndian(u256("0x817416927846239487123469187231298734162934871263941234127518276"));
+	bytes const optimizedBytecode = compileAndRunWithOptimizer(sourceCode, 0, "C", true, 1);
+	bytes const complicatedConstant = toBigEndian(u256("0x817416927846239487123469187231298734162934871263941234127518276"));
 	unsigned occurrences = 0;
 	for (auto iter = optimizedBytecode.cbegin(); iter < optimizedBytecode.cend(); ++occurrences)
 	{
@@ -421,7 +421,7 @@ BOOST_AUTO_TEST_CASE(computing_constants)
 	}
 	BOOST_CHECK_EQUAL(2, occurrences);
 
-	bytes constantWithZeros = toBigEndian(u256("0x77abc0000000000000000000000000000000000000000000000000000000001"));
+	bytes const constantWithZeros = toBigEndian(u256("0x77abc0000000000000000000000000000000000000000000000000000000001"));
 	BOOST_CHECK(search(
 		optimizedBytecode.cbegin(),
 		optimizedBytecode.cend(),
@@ -484,9 +484,9 @@ BOOST_AUTO_TEST_CASE(constant_optimization_early_exit)
 	)";
 	auto start = std::chrono::steady_clock::now();
 	compileBothVersions(sourceCode);
-	double duration = std::chrono::duration<double>(std::chrono::steady_clock::now() - start).count();
+	double const duration = std::chrono::duration<double>(std::chrono::steady_clock::now() - start).count();
 	// Since run time on an ASan build is not really realistic, we disable this test for those builds.
-	size_t maxDuration = 20;
+	size_t const maxDuration = 20;
 #if !defined(__SANITIZE_ADDRESS__) && defined(__has_feature)
 #if __has_feature(address_sanitizer)
 #define __SANITIZE_ADDRESS__ 1

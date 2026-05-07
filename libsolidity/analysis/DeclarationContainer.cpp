@@ -179,7 +179,7 @@ std::vector<ASTString> DeclarationContainer::similarNames(ASTString const& _name
 	static size_t const MAXIMUM_LENGTH_THRESHOLD = 80 * 80;
 
 	std::vector<ASTString> similar;
-	size_t maximumEditDistance = _name.size() > 3 ? 2 : _name.size() / 2;
+	size_t const maximumEditDistance = _name.size() > 3 ? 2 : _name.size() / 2;
 	for (auto const& declaration: m_declarations)
 	{
 		std::string const& declarationName = declaration.first;
@@ -204,7 +204,7 @@ void DeclarationContainer::populateHomonyms(std::back_insert_iterator<Homonyms> 
 	for (DeclarationContainer const* innerContainer: m_innerContainers)
 		innerContainer->populateHomonyms(_it);
 
-	for (auto [name, location]: m_homonymCandidates)
+	for (auto const& [name, location]: m_homonymCandidates)
 	{
 		ResolvingSettings settings;
 		settings.recursive = true;

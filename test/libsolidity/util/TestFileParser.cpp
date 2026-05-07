@@ -83,7 +83,7 @@ std::vector<solidity::frontend::test::FunctionCall> TestFileParser::parseFunctio
 						if (calls.empty())
 							BOOST_THROW_EXCEPTION(TestParserError("Expected function call before gas usage filter."));
 
-						std::string runType = m_scanner.currentLiteral();
+						std::string const runType = m_scanner.currentLiteral();
 						if (std::set<std::string>{"ir", "irOptimized", "legacy", "legacyOptimized", "ssaCFG", "ssaCFGOptimized"}.count(runType) == 0)
 							BOOST_THROW_EXCEPTION(TestParserError(
 								"Expected \"ir\", \"irOptimized\", \"legacy\", \"legacyOptimized\", \"ssaCFG\", or \"ssaCFGOptimized\"."
@@ -221,7 +221,7 @@ std::vector<std::string> TestFileParser::parseFunctionCallSideEffects()
 	std::vector<std::string> result;
 	while (accept(Token::Tilde, false))
 	{
-		std::string effect = m_scanner.currentLiteral();
+		std::string const effect = m_scanner.currentLiteral();
 		result.emplace_back(effect);
 		soltestAssert(m_scanner.currentToken() == Token::Tilde, "");
 		m_scanner.scanNextToken();
@@ -301,14 +301,14 @@ FunctionValue TestFileParser::parseFunctionCallValue()
 {
 	try
 	{
-		u256 value{ parseDecimalNumber() };
-		Token token = m_scanner.currentToken();
+		u256 const value{ parseDecimalNumber() };
+		Token const token = m_scanner.currentToken();
 		if (token != Token::Ether && token != Token::Wei)
 			BOOST_THROW_EXCEPTION(TestParserError("Invalid value unit provided. Coins can be wei or ether."));
 
 		m_scanner.scanNextToken();
 
-		FunctionValueUnit unit = token == Token::Wei ? FunctionValueUnit::Wei : FunctionValueUnit::Ether;
+		FunctionValueUnit const unit = token == Token::Wei ? FunctionValueUnit::Wei : FunctionValueUnit::Ether;
 		return { (unit == FunctionValueUnit::Wei ? u256(1) : exp256(u256(10), u256(18))) * value, unit };
 	}
 	catch (std::exception const&)
@@ -390,7 +390,7 @@ Parameter TestFileParser::parseParameter()
 			BOOST_THROW_EXCEPTION(TestParserError("Invalid boolean literal."));
 
 		parameter.abiType = ABIType{ABIType::Boolean, ABIType::AlignRight, 32};
-		std::string parsed = parseBoolean();
+		std::string const parsed = parseBoolean();
 		parameter.rawString += parsed;
 		parameter.rawBytes = BytesUtils::applyAlign(
 			parameter.alignment,
@@ -404,7 +404,7 @@ Parameter TestFileParser::parseParameter()
 			BOOST_THROW_EXCEPTION(TestParserError("Invalid hex number literal."));
 
 		parameter.abiType = ABIType{ABIType::Hex, ABIType::AlignRight, 32};
-		std::string parsed = parseHexNumber();
+		std::string const parsed = parseHexNumber();
 		parameter.rawString += parsed;
 		parameter.rawBytes = BytesUtils::applyAlign(
 			parameter.alignment,
@@ -419,7 +419,7 @@ Parameter TestFileParser::parseParameter()
 		if (parameter.alignment != Parameter::Alignment::None)
 			BOOST_THROW_EXCEPTION(TestParserError("Hex string literals cannot be aligned or padded."));
 
-		std::string parsed = parseString();
+		std::string const parsed = parseString();
 		parameter.rawString += "hex\"" + parsed + "\"";
 		parameter.rawBytes = BytesUtils::convertHexNumber(parsed);
 		parameter.abiType = ABIType{
@@ -433,7 +433,7 @@ Parameter TestFileParser::parseParameter()
 		if (parameter.alignment != Parameter::Alignment::None)
 			BOOST_THROW_EXCEPTION(TestParserError("String literals cannot be aligned or padded."));
 
-		std::string parsed = parseString();
+		std::string const parsed = parseString();
 		parameter.abiType = ABIType{ABIType::String, ABIType::AlignLeft, parsed.size()};
 		parameter.rawString += "\"" + parsed + "\"";
 		parameter.rawBytes = BytesUtils::applyAlign(

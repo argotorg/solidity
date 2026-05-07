@@ -201,7 +201,7 @@ TypePointers TypeChecker::typeCheckMetaTypeFunctionAndRetrieveReturnType(Functio
 	if (firstArgType->category() == Type::Category::TypeType)
 	{
 		TypeType const* typeTypePtr = dynamic_cast<TypeType const*>(firstArgType);
-		Type::Category typeCategory = typeTypePtr->actualType()->category();
+		Type::Category const typeCategory = typeTypePtr->actualType()->category();
 		if (auto const* contractType = dynamic_cast<ContractType const*>(typeTypePtr->actualType()))
 			wrongType = contractType->isSuper();
 		else if (
@@ -261,7 +261,7 @@ void TypeChecker::endVisit(InheritanceSpecifier const& _inheritance)
 		}
 		for (size_t i = 0; i < std::min(arguments->size(), parameterTypes.size()); ++i)
 		{
-			BoolResult result = type(*(*arguments)[i])->isImplicitlyConvertibleTo(*parameterTypes[i]);
+			BoolResult const result = type(*(*arguments)[i])->isImplicitlyConvertibleTo(*parameterTypes[i]);
 			if (!result)
 				m_errorReporter.typeErrorConcatenateDescriptions(
 					9827_error,
@@ -332,7 +332,7 @@ bool TypeChecker::visit(FunctionDefinition const& _function)
 			m_errorReporter.typeError(5587_error, _function.location(), "\"internal\" and \"private\" functions cannot be payable.");
 	}
 
-	std::vector<VariableDeclaration const*> internalParametersInConstructor;
+	std::vector<VariableDeclaration const*> const internalParametersInConstructor;
 
 	auto checkArgumentAndReturnParameter = [&](VariableDeclaration const& _var) {
 		if (type(_var)->containsNestedMapping())
@@ -342,7 +342,7 @@ bool TypeChecker::visit(FunctionDefinition const& _function)
 					"Mapping types for parameters or return variables "
 					"can only be used in internal or library functions."
 				);
-		bool functionIsExternallyVisible =
+		bool const functionIsExternallyVisible =
 			(!_function.isConstructor() && _function.isPublic()) ||
 			(_function.isConstructor() && !m_currentContract->abstract());
 		if (
@@ -529,7 +529,7 @@ bool TypeChecker::visit(VariableDeclaration const& _variable)
 	}
 	else if (_variable.visibility() >= Visibility::Public)
 	{
-		FunctionType getter(_variable);
+		FunctionType const getter(_variable);
 		if (!useABICoderV2())
 		{
 			std::vector<std::string> unsupportedTypes;
@@ -556,7 +556,7 @@ bool TypeChecker::visit(VariableDeclaration const& _variable)
 		}
 	}
 
-	bool isStructMemberDeclaration = dynamic_cast<StructDefinition const*>(_variable.scope()) != nullptr;
+	bool const isStructMemberDeclaration = dynamic_cast<StructDefinition const*>(_variable.scope()) != nullptr;
 	if (isStructMemberDeclaration)
 		return false;
 
@@ -565,10 +565,10 @@ bool TypeChecker::visit(VariableDeclaration const& _variable)
 		BoolResult result = referenceType->validForLocation(referenceType->location());
 		if (result)
 		{
-			bool isLibraryStorageParameter = (_variable.isLibraryFunctionParameter() && referenceType->location() == DataLocation::Storage);
+			bool const isLibraryStorageParameter = (_variable.isLibraryFunctionParameter() && referenceType->location() == DataLocation::Storage);
 			// We skip the calldata check for abstract contract constructors.
-			bool isAbstractConstructorParam = _variable.isConstructorParameter() && m_currentContract && m_currentContract->abstract();
-			bool callDataCheckRequired =
+			bool const isAbstractConstructorParam = _variable.isConstructorParameter() && m_currentContract && m_currentContract->abstract();
+			bool const callDataCheckRequired =
 				!isAbstractConstructorParam &&
 				(_variable.isConstructorParameter() || _variable.isPublicCallableParameter()) &&
 				!isLibraryStorageParameter;
@@ -614,7 +614,7 @@ void TypeChecker::visitManually(
 	_modifier.name().accept(*this);
 
 	auto const* declaration = &dereference(_modifier.name());
-	std::vector<ASTPointer<VariableDeclaration>> emptyParameterList;
+	std::vector<ASTPointer<VariableDeclaration>> const emptyParameterList;
 	std::vector<ASTPointer<VariableDeclaration>> const* parameters = nullptr;
 	if (auto modifierDecl = dynamic_cast<ModifierDefinition const*>(declaration))
 	{
@@ -670,7 +670,7 @@ void TypeChecker::visitManually(
 	}
 	for (size_t i = 0; i < arguments.size(); ++i)
 	{
-		BoolResult result = type(*arguments[i])->isImplicitlyConvertibleTo(*type(*(*parameters)[i]));
+		BoolResult const result = type(*arguments[i])->isImplicitlyConvertibleTo(*type(*(*parameters)[i]));
 		if (!result)
 			m_errorReporter.typeErrorConcatenateDescriptions(
 				4649_error,
@@ -729,7 +729,7 @@ bool TypeChecker::visit(InlineAssembly const& _inlineAssembly)
 	bool lvalueAccessToMemoryVariable = false;
 	// External references have already been resolved in a prior stage and stored in the annotation.
 	// We run the resolve step again regardless.
-	yul::ExternalIdentifierAccess::Resolver identifierAccess = [&](
+	yul::ExternalIdentifierAccess::Resolver const identifierAccess = [&](
 		yul::Identifier const& _identifier,
 		yul::IdentifierContext _context,
 		bool
@@ -1153,7 +1153,7 @@ void TypeChecker::endVisit(Return const& _return)
 			m_errorReporter.typeError(5132_error, _return.location(), "Different number of arguments in return statement than in returns declaration.");
 		else
 		{
-			BoolResult result = tupleType->isImplicitlyConvertibleTo(TupleType(returnTypes));
+			BoolResult const result = tupleType->isImplicitlyConvertibleTo(TupleType(returnTypes));
 			if (!result)
 				m_errorReporter.typeErrorConcatenateDescriptions(
 					5992_error,
@@ -1171,7 +1171,7 @@ void TypeChecker::endVisit(Return const& _return)
 	else
 	{
 		Type const* expected = type(*params->parameters().front());
-		BoolResult result = type(*_return.expression())->isImplicitlyConvertibleTo(*expected);
+		BoolResult const result = type(*_return.expression())->isImplicitlyConvertibleTo(*expected);
 		if (!result)
 			m_errorReporter.typeErrorConcatenateDescriptions(
 				6359_error,
@@ -1279,7 +1279,7 @@ bool TypeChecker::visit(VariableDeclarationStatement const& _statement)
 		solAssert(var.annotation().type, "");
 
 		var.accept(*this);
-		BoolResult result = valueComponentType->isImplicitlyConvertibleTo(*var.annotation().type);
+		BoolResult const result = valueComponentType->isImplicitlyConvertibleTo(*var.annotation().type);
 		if (!result)
 		{
 			auto errorMsg = "Type " +
@@ -1613,8 +1613,8 @@ bool TypeChecker::visit(UnaryOperation const& _operation)
 	Type const* operandType = type(_operation.subExpression());
 
 	// Check if the operator is built-in or user-defined.
-	TypeResult builtinResult = operandType->unaryOperatorResult(op);
-	std::set<FunctionDefinition const*, ASTNode::CompareByID> matchingDefinitions = operandType->operatorDefinitions(
+	TypeResult const builtinResult = operandType->unaryOperatorResult(op);
+	std::set<FunctionDefinition const*, ASTNode::CompareByID> const matchingDefinitions = operandType->operatorDefinitions(
 		op,
 		*currentDefinitionScope(),
 		true // _unary
@@ -1681,8 +1681,8 @@ void TypeChecker::endVisit(BinaryOperation const& _operation)
 	Type const* rightType = type(_operation.rightExpression());
 
 	// Check if the operator is built-in or user-defined.
-	TypeResult builtinResult = leftType->binaryOperatorResult(_operation.getOperator(), rightType);
-	std::set<FunctionDefinition const*, ASTNode::CompareByID> matchingDefinitions = leftType->operatorDefinitions(
+	TypeResult const builtinResult = leftType->binaryOperatorResult(_operation.getOperator(), rightType);
+	std::set<FunctionDefinition const*, ASTNode::CompareByID> const matchingDefinitions = leftType->operatorDefinitions(
 		_operation.getOperator(),
 		*currentDefinitionScope(),
 		false // _unary
@@ -1871,7 +1871,7 @@ Type const* TypeChecker::typeCheckTypeConversionAndRetrieveReturnType(
 			dataLoc = argRefType->location();
 		if (auto type = dynamic_cast<ReferenceType const*>(resultType))
 			resultType = TypeProvider::withLocation(type, dataLoc, type->isPointer());
-		BoolResult result = argType->isExplicitlyConvertibleTo(*resultType);
+		BoolResult const result = argType->isExplicitlyConvertibleTo(*resultType);
 		if (result)
 		{
 			if (auto argArrayType = dynamic_cast<ArrayType const*>(argType))
@@ -2319,7 +2319,7 @@ void TypeChecker::typeCheckABIEncodeCallFunction(FunctionCall const& _functionCa
 	for (size_t i = 0; i < numParameters; i++)
 	{
 		Type const& argType = *type(*callArguments[i]);
-		BoolResult result = argType.isImplicitlyConvertibleTo(*externalFunctionType->parameterTypes()[i]);
+		BoolResult const result = argType.isImplicitlyConvertibleTo(*externalFunctionType->parameterTypes()[i]);
 		if (!result)
 			m_errorReporter.typeError(
 				5407_error,
@@ -2351,7 +2351,7 @@ void TypeChecker::typeCheckStringConcatFunction(
 	for (std::shared_ptr<Expression const> const& argument: _functionCall.arguments())
 	{
 		Type const* argumentType = type(*argument);
-		bool notConvertibleToString = !argumentType->isImplicitlyConvertibleTo(*TypeProvider::stringMemory());
+		bool const notConvertibleToString = !argumentType->isImplicitlyConvertibleTo(*TypeProvider::stringMemory());
 
 		if (notConvertibleToString)
 			m_errorReporter.typeError(
@@ -2378,10 +2378,10 @@ void TypeChecker::typeCheckBytesConcatFunction(
 	for (std::shared_ptr<Expression const> const& argument: _functionCall.arguments())
 	{
 		Type const* argumentType = type(*argument);
-		bool notConvertibleToBytes =
+		bool const notConvertibleToBytes =
 			!argumentType->isImplicitlyConvertibleTo(*TypeProvider::fixedBytes(32)) &&
 			!argumentType->isImplicitlyConvertibleTo(*TypeProvider::bytesMemory());
-		bool numberLiteral = (dynamic_cast<RationalNumberType const*>(argumentType) != nullptr);
+		bool const numberLiteral = (dynamic_cast<RationalNumberType const*>(argumentType) != nullptr);
 
 		if (notConvertibleToBytes || numberLiteral)
 			m_errorReporter.typeError(
@@ -2456,7 +2456,7 @@ void TypeChecker::typeCheckFunctionGeneralChecks(
 			functionCallKind == FunctionCallKind::StructConstructorCall;
 
 		auto [errorId, description] = [&]() -> std::tuple<ErrorId, std::string> {
-			std::string msg = isVariadic ?
+			std::string const msg = isVariadic ?
 				"Need at least " +
 				toString(parameterTypes.size()) +
 				" arguments for " +
@@ -2641,8 +2641,8 @@ void TypeChecker::typeCheckFunctionGeneralChecks(
 	}
 
 	TypePointers const& returnParameterTypes = _functionType->returnParameterTypes();
-	bool isLibraryCall = (_functionType->kind() == FunctionType::Kind::DelegateCall);
-	bool callRequiresABIEncoding =
+	bool const isLibraryCall = (_functionType->kind() == FunctionType::Kind::DelegateCall);
+	bool const callRequiresABIEncoding =
 		// ABIEncode/ABIDecode calls not included because they should have been already validated
 		// at this point and they have variadic arguments so they need special handling.
 		_functionType->kind() == FunctionType::Kind::DelegateCall ||
@@ -2904,7 +2904,7 @@ bool TypeChecker::visit(FunctionCallOptions const& _functionCallOptions)
 	bool setValue = false;
 	bool setGas = false;
 
-	FunctionType::Kind kind = expressionFunctionType->kind();
+	FunctionType::Kind const kind = expressionFunctionType->kind();
 	if (
 		kind != FunctionType::Kind::Creation &&
 		kind != FunctionType::Kind::External &&
@@ -3687,7 +3687,7 @@ bool TypeChecker::visit(IndexRangeAccess const& _access)
 	_access.annotation().isConstant = false;
 	_access.baseExpression().accept(*this);
 
-	bool isLValue = false; // TODO: set this correctly when implementing slices for memory and storage arrays
+	bool const isLValue = false; // TODO: set this correctly when implementing slices for memory and storage arrays
 	bool isPure = *_access.baseExpression().annotation().isPure;
 
 	if (Expression const* start = _access.startExpression())
@@ -4098,7 +4098,7 @@ void TypeChecker::endVisit(UsingForDirective const& _usingFor)
 
 		FunctionType const* functionTypeWithBoundFirstArgument = functionType->withBoundFirstArgument();
 		solAssert(functionTypeWithBoundFirstArgument && functionTypeWithBoundFirstArgument->selfType(), "");
-		BoolResult result = normalizedType->isImplicitlyConvertibleTo(
+		BoolResult const result = normalizedType->isImplicitlyConvertibleTo(
 			*TypeProvider::withLocationIfReference(DataLocation::Storage, functionTypeWithBoundFirstArgument->selfType())
 		);
 		if (!result && !operator_)
@@ -4155,10 +4155,10 @@ void TypeChecker::endVisit(UsingForDirective const& _usingFor)
 			}
 			solAssert(usingForType->typeDefinition());
 
-			bool identicalFirstTwoParameters = (parameterCount < 2 || *parameterTypes.at(0) == *parameterTypes.at(1));
-			bool isUnaryOnlyOperator = (!TokenTraits::isBinaryOp(operator_.value()) && TokenTraits::isUnaryOp(operator_.value()));
-			bool isBinaryOnlyOperator = (TokenTraits::isBinaryOp(operator_.value()) && !TokenTraits::isUnaryOp(operator_.value()));
-			bool firstParameterMatchesUsingFor = parameterCount == 0 || *usingForType == *parameterTypes.front();
+			bool const identicalFirstTwoParameters = (parameterCount < 2 || *parameterTypes.at(0) == *parameterTypes.at(1));
+			bool const isUnaryOnlyOperator = (!TokenTraits::isBinaryOp(operator_.value()) && TokenTraits::isUnaryOp(operator_.value()));
+			bool const isBinaryOnlyOperator = (TokenTraits::isBinaryOp(operator_.value()) && !TokenTraits::isUnaryOp(operator_.value()));
+			bool const firstParameterMatchesUsingFor = parameterCount == 0 || *usingForType == *parameterTypes.front();
 
 			std::optional<std::string> wrongParametersMessage;
 			if (isBinaryOnlyOperator && (parameterCount != 2 || !identicalFirstTwoParameters))
@@ -4226,7 +4226,7 @@ void TypeChecker::endVisit(UsingForDirective const& _usingFor)
 			{
 				// TODO: This is pretty inefficient. For every operator binding we find, we're
 				// traversing all bindings in all `using for` directives in the current scope.
-				std::set<FunctionDefinition const*, ASTNode::CompareByID> matchingDefinitions = usingForType->operatorDefinitions(
+				std::set<FunctionDefinition const*, ASTNode::CompareByID> const matchingDefinitions = usingForType->operatorDefinitions(
 					operator_.value(),
 					*currentDefinitionScope(),
 					parameterCount == 1 // _unary
@@ -4259,7 +4259,7 @@ void TypeChecker::endVisit(UsingForDirective const& _usingFor)
 
 void TypeChecker::checkErrorAndEventParameters(CallableDeclaration const& _callable)
 {
-	std::string kind = dynamic_cast<EventDefinition const*>(&_callable) ? "event" : "error";
+	std::string const kind = dynamic_cast<EventDefinition const*>(&_callable) ? "event" : "error";
 	for (ASTPointer<VariableDeclaration> const& var: _callable.parameters())
 	{
 		if (type(*var)->containsNestedMapping())
@@ -4298,7 +4298,7 @@ Declaration const& TypeChecker::dereference(IdentifierPath const& _path) const
 bool TypeChecker::expectType(Expression const& _expression, Type const& _expectedType)
 {
 	_expression.accept(*this);
-	BoolResult result = type(_expression)->isImplicitlyConvertibleTo(_expectedType);
+	BoolResult const result = type(_expression)->isImplicitlyConvertibleTo(_expectedType);
 	if (!result)
 	{
 		auto errorMsg = "Type " +

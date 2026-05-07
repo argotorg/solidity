@@ -442,7 +442,7 @@ bool CompilerStack::parse()
 void CompilerStack::importASTs(std::map<std::string, Json> const& _sources)
 {
 	solAssert(m_stackState == Empty, "Must call importASTs only before the SourcesSet state.");
-	std::map<std::string, ASTPointer<SourceUnit>> reconstructedSources =
+	std::map<std::string, ASTPointer<SourceUnit>> const reconstructedSources =
 		ASTJsonImporter(m_evmVersion, m_eofVersion).jsonToSourceUnit(_sources);
 	for (auto& src: reconstructedSources)
 	{
@@ -491,7 +491,7 @@ bool CompilerStack::analyze()
 
 	try
 	{
-		bool experimentalSolidity = isExperimentalSolidity();
+		bool const experimentalSolidity = isExperimentalSolidity();
 
 		SyntaxChecker syntaxChecker(m_errorReporter, m_optimiserSettings.runYulOptimiser, m_experimental);
 		for (Source const* source: m_sourceOrder)
@@ -638,7 +638,7 @@ bool CompilerStack::analyzeLegacy(bool _noErrorsSoFar)
 		for (Source const* source: m_sourceOrder)
 			if (source->ast)
 				for (ASTPointer<ASTNode> const& node: source->ast->nodes())
-					if (ContractDefinition* contract = dynamic_cast<ContractDefinition*>(node.get()))
+					if (ContractDefinition const* contract = dynamic_cast<ContractDefinition*>(node.get()))
 						ImmutableValidator(m_errorReporter, *contract).analyze();
 
 	if (noErrors)
@@ -799,7 +799,7 @@ bool CompilerStack::compile(State _stopAfter)
 			if (auto contract = dynamic_cast<ContractDefinition const*>(node.get()))
 				if (isRequestedContract(*contract))
 				{
-					PipelineConfig pipelineConfig = requestedPipelineConfig(*contract);
+					PipelineConfig const pipelineConfig = requestedPipelineConfig(*contract);
 
 					try
 					{
@@ -862,7 +862,7 @@ YulStack CompilerStack::loadGeneratedIR(std::string const& _ir) const
 		this, // _soliditySourceProvider
 		m_objectOptimizer
 	);
-	bool yulAnalysisSuccessful = stack.parseAndAnalyze("", _ir);
+	bool const yulAnalysisSuccessful = stack.parseAndAnalyze("", _ir);
 	solAssert(
 		yulAnalysisSuccessful,
 		_ir + "\n\n"
@@ -942,13 +942,13 @@ Json CompilerStack::generatedSources(std::string const& _contractName, bool _run
 			*c.generatedYulUtilityCode;
 		if (!source.empty())
 		{
-			std::string sourceName = CompilerContext::yulUtilityFileName();
+			std::string const sourceName = CompilerContext::yulUtilityFileName();
 			unsigned sourceIndex = sourceIndices()[sourceName];
 			ErrorList errors;
 			ErrorReporter errorReporter(errors);
 			CharStream charStream(source, sourceName);
 			yul::EVMDialect const& dialect = yul::EVMDialect::strictAssemblyForEVM(m_evmVersion, m_eofVersion);
-			std::shared_ptr<yul::AST> parserResult = yul::Parser{errorReporter, dialect}.parse(charStream);
+			std::shared_ptr<yul::AST> const parserResult = yul::Parser{errorReporter, dialect}.parse(charStream);
 			solAssert(parserResult);
 			sources[0]["ast"] = yul::AsmJsonConverter{dialect, sourceIndex}(parserResult->root());
 			sources[0]["name"] = sourceName;
@@ -1214,7 +1214,7 @@ Json CompilerStack::interfaceSymbols(std::string const& _contractName) const
 		interfaceSymbols["methods"][it.second->externalSignature()] = it.first.hex();
 	for (ErrorDefinition const* error: contractDefinition(_contractName).interfaceErrors())
 	{
-		std::string signature = error->functionType(true)->externalSignature();
+		std::string const signature = error->functionType(true)->externalSignature();
 		interfaceSymbols["errors"][signature] = util::toHex(toCompactBigEndian(util::selectorFromSignatureU32(signature), 4));
 	}
 
@@ -1224,7 +1224,7 @@ Json CompilerStack::interfaceSymbols(std::string const& _contractName) const
 	))
 		if (!event->isAnonymous())
 		{
-			std::string signature = event->functionType(true)->externalSignature();
+			std::string const signature = event->functionType(true)->externalSignature();
 			interfaceSymbols["events"][signature] = toHex(u256(h256::Arith(util::keccak256(signature))));
 		}
 
@@ -1450,7 +1450,7 @@ void CompilerStack::storeContractDefinitions()
 				ASTNode::filteredNodes<ContractDefinition>(pair.second.ast->nodes())
 			)
 			{
-				std::string fullyQualifiedName = *pair.second.ast->annotation().path + ":" + contract->name();
+				std::string const fullyQualifiedName = *pair.second.ast->annotation().path + ":" + contract->name();
 				// Note that we now reference contracts by their fully qualified names, and
 				// thus contracts can only conflict if declared in the same source file. This
 				// should already cause a double-declaration error elsewhere.
@@ -1469,7 +1469,7 @@ void CompilerStack::annotateInternalFunctionIDs()
 		for (ContractDefinition const* contract: ASTNode::filteredNodes<ContractDefinition>(source->ast->nodes()))
 		{
 			uint64_t internalFunctionID = 1;
-			ContractDefinitionAnnotation& annotation = contract->annotation();
+			ContractDefinitionAnnotation const& annotation = contract->annotation();
 
 			if (auto const* deployTimeInternalDispatch = util::valueOrNullptr((*annotation.deployedCallGraph)->edges, CallGraph::SpecialNode::InternalDispatch))
 				for (auto const& node: *deployTimeInternalDispatch)
@@ -1581,7 +1581,7 @@ void CompilerStack::compileContract(
 
 	Contract& compiledContract = m_contracts.at(_contract.fullyQualifiedName());
 
-	std::shared_ptr<Compiler> compiler = std::make_shared<Compiler>(
+	std::shared_ptr<Compiler> const compiler = std::make_shared<Compiler>(
 		m_evmVersion,
 		m_eofVersion,
 		m_revertStrings,
@@ -1589,7 +1589,7 @@ void CompilerStack::compileContract(
 	);
 
 	solAssert(!m_viaIR, "");
-	bytes cborEncodedMetadata = createCBORMetadata(compiledContract, /* _forIR */ false);
+	bytes const cborEncodedMetadata = createCBORMetadata(compiledContract, /* _forIR */ false);
 
 	// Run optimiser and compile the contract.
 	compiler->compileContract(_contract, _otherCompilers, cborEncodedMetadata);
@@ -1619,7 +1619,7 @@ void CompilerStack::generateIR(ContractDefinition const& _contract, bool _unopti
 			"Using ABI coder v2 instead."
 		);
 
-	std::string dependenciesSource;
+	std::string const dependenciesSource;
 	for (auto const& [dependency, referencee]: _contract.annotation().contractDependencies)
 		generateIR(*dependency, _unoptimizedOnly);
 
@@ -1901,7 +1901,7 @@ public:
 
 	bytes serialise() const
 	{
-		size_t size = m_data.size() + 1;
+		size_t const size = m_data.size() + 1;
 		solAssert(size <= 0xffff, "Metadata too large.");
 		solAssert(m_entryCount <= 0x1f, "Too many map entries.");
 
@@ -1917,7 +1917,7 @@ public:
 private:
 	void pushTextString(std::string const& key)
 	{
-		size_t length = key.size();
+		size_t const length = key.size();
 		if (length < 24)
 		{
 			m_data += bytes{static_cast<unsigned char>(0x60 + length)};
@@ -1933,7 +1933,7 @@ private:
 	}
 	void pushByteString(bytes const& key)
 	{
-		size_t length = key.size();
+		size_t const length = key.size();
 		if (length < 24)
 		{
 			m_data += bytes{static_cast<unsigned char>(0x40 + length)};
@@ -1971,7 +1971,7 @@ bytes CompilerStack::createCBORMetadata(Contract const& _contract, bool _forIR) 
 	if (m_eofVersion.has_value() || (usesExperimentalSyntax && !onlySafeExperimentalFeatures))
 		solAssert(m_experimental, "Experimental mode not enabled");
 
-	std::string meta = (_forIR == m_viaIR ? metadata(_contract) : createMetadata(_contract, _forIR));
+	std::string const meta = (_forIR == m_viaIR ? metadata(_contract) : createMetadata(_contract, _forIR));
 
 	MetadataCBOREncoder encoder;
 
@@ -2019,13 +2019,13 @@ Json CompilerStack::gasEstimates(std::string const& _contractName) const
 		return Json();
 
 	using Gas = GasEstimator::GasConsumption;
-	GasEstimator gasEstimator(m_evmVersion);
+	GasEstimator const gasEstimator(m_evmVersion);
 	Json output = Json::object();
 
 	if (evmasm::AssemblyItems const* items = assemblyItems(_contractName))
 	{
 		Gas executionGas = gasEstimator.functionalEstimation(*items);
-		Gas codeDepositGas{evmasm::GasMeter::dataGas(runtimeObject(_contractName).bytecode, false, m_evmVersion)};
+		Gas const codeDepositGas{evmasm::GasMeter::dataGas(runtimeObject(_contractName).bytecode, false, m_evmVersion)};
 
 		Json creation = Json::object();
 		creation["codeDepositCost"] = gasToJson(codeDepositGas);
@@ -2043,7 +2043,7 @@ Json CompilerStack::gasEstimates(std::string const& _contractName) const
 		Json externalFunctions = Json::object();
 		for (auto it: contract.interfaceFunctions())
 		{
-			std::string sig = it.second->externalSignature();
+			std::string const sig = it.second->externalSignature();
 			externalFunctions[sig] = gasToJson(gasEstimator.functionalEstimation(*items, sig));
 		}
 
@@ -2064,13 +2064,13 @@ Json CompilerStack::gasEstimates(std::string const& _contractName) const
 			if (it->isPartOfExternalInterface() || !it->isOrdinary())
 				continue;
 
-			size_t entry = functionEntryPoint(_contractName, *it);
+			size_t const entry = functionEntryPoint(_contractName, *it);
 			GasEstimator::GasConsumption gas = GasEstimator::GasConsumption::infinite();
 			if (entry > 0)
 				gas = gasEstimator.functionalEstimation(*items, entry, *it);
 
 			/// TODO: This could move into a method shared with externalSignature()
-			FunctionType type(*it);
+			FunctionType const type(*it);
 			std::string sig = it->name() + "(";
 			auto paramTypes = type.parameterTypes();
 			for (auto it = paramTypes.begin(); it != paramTypes.end(); ++it)

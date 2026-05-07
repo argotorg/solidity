@@ -195,7 +195,7 @@ void CommandLineParser::checkExperimental(std::vector<std::string> const& _optio
 
 	if (!m_args.contains(g_strExperimental) && m_args.contains(g_strEVMVersion))
 	{
-		std::string versionOptionStr = m_args[g_strEVMVersion].as<std::string>();
+		std::string const versionOptionStr = m_args[g_strEVMVersion].as<std::string>();
 		std::optional<langutil::EVMVersion> versionOption = langutil::EVMVersion::fromString(versionOptionStr);
 
 		if (versionOption.has_value() && versionOption->isExperimental())
@@ -444,8 +444,8 @@ void CommandLineParser::parseLibraryOption(std::string const& _input)
 					"Invalid checksum on address for library \"" + libName + "\": " + addrString + "\n"
 					"The correct checksum is " + util::getChecksummedAddress(addrString)
 				);
-			bytes binAddr = util::fromHex(addrString);
-			util::h160 address(binAddr, util::h160::AlignRight);
+			bytes const binAddr = util::fromHex(addrString);
+			util::h160 const address(binAddr, util::h160::AlignRight);
 			if (binAddr.size() > 20 || address == util::h160())
 				solThrow(
 					CommandLineValidationError,
@@ -602,7 +602,7 @@ General Information)").c_str(),
 		return _version.name() + (_version.isExperimental() ? " (experimental)" : "");
 	};
 	static auto constexpr allEVMVersions = EVMVersion::allVersions();
-	std::string annotatedEVMVersions = util::joinHumanReadable(
+	std::string const annotatedEVMVersions = util::joinHumanReadable(
 		allEVMVersions | ranges::views::transform(annotateEVMVersion),
 		", ",
 		", or "
@@ -975,7 +975,7 @@ void CommandLineParser::parseArgs(int _argc, char const* const* _argv)
 		(g_strAssemble.c_str(), "")
 		(g_strYul.c_str(), "")
 	;
-	po::positional_options_description filesPositions = positionalOptionsDescription();
+	po::positional_options_description const filesPositions = positionalOptionsDescription();
 
 	m_options = {};
 	m_args = {};
@@ -1070,7 +1070,7 @@ void CommandLineParser::processArgs()
 			"please use --strict-assembly instead."
 		);
 
-	std::map<std::string, std::set<InputMode>> validOptionInputModeCombinations = {
+	std::map<std::string, std::set<InputMode>> const validOptionInputModeCombinations = {
 		// TODO: This should eventually contain all options.
 		{g_strExperimentalViaIR, {InputMode::Compiler, InputMode::CompilerWithASTImport}},
 		{g_strViaIR, {InputMode::Compiler, InputMode::CompilerWithASTImport}},
@@ -1182,7 +1182,7 @@ void CommandLineParser::processArgs()
 
 	if (m_args.count(g_strRevertStrings))
 	{
-		std::string revertStringsString = m_args[g_strRevertStrings].as<std::string>();
+		std::string const revertStringsString = m_args[g_strRevertStrings].as<std::string>();
 		std::optional<RevertStrings> revertStrings = revertStringsFromString(revertStringsString);
 		if (!revertStrings)
 			solThrow(
@@ -1199,7 +1199,7 @@ void CommandLineParser::processArgs()
 
 	if (!m_args[g_strDebugInfo].defaulted())
 	{
-		std::string optionValue = m_args[g_strDebugInfo].as<std::string>();
+		std::string const optionValue = m_args[g_strDebugInfo].as<std::string>();
 		m_options.output.debugInfoSelection = DebugInfoSelection::fromString(optionValue);
 		if (!m_options.output.debugInfoSelection.has_value())
 			solThrow(CommandLineValidationError, "Invalid value for --" + g_strDebugInfo + " option: " + optionValue);
@@ -1291,7 +1291,7 @@ void CommandLineParser::processArgs()
 
 	if (m_args.count(g_strEVMVersion))
 	{
-		std::string versionOptionStr = m_args[g_strEVMVersion].as<std::string>();
+		std::string const versionOptionStr = m_args[g_strEVMVersion].as<std::string>();
 		std::optional<langutil::EVMVersion> versionOption = langutil::EVMVersion::fromString(versionOptionStr);
 		if (!versionOption)
 			solThrow(CommandLineValidationError, "Invalid option for --" + g_strEVMVersion + ": " + versionOptionStr);
@@ -1301,7 +1301,7 @@ void CommandLineParser::processArgs()
 	if (m_args.count(g_strEOFVersion))
 	{
 		// Request as uint64_t, since uint8_t will be parsed as character by boost.
-		uint64_t versionOption = m_args[g_strEOFVersion].as<uint64_t>();
+		uint64_t const versionOption = m_args[g_strEOFVersion].as<uint64_t>();
 		if (versionOption != 1)
 			solThrow(CommandLineValidationError, "Invalid option for --" + g_strEOFVersion + ": " + std::to_string(versionOption));
 		m_options.output.eofVersion = 1;
@@ -1326,7 +1326,7 @@ void CommandLineParser::processArgs()
 
 	if (m_args.count(g_strYulOptimizations))
 	{
-		OptimiserSettings optimiserSettings = m_options.optimiserSettings();
+		OptimiserSettings const optimiserSettings = m_options.optimiserSettings();
 		if (
 			!optimiserSettings.runYulOptimiser &&
 			!OptimiserSuite::isEmptyOptimizerSequence(m_args[g_strYulOptimizations].as<std::string>())
@@ -1365,7 +1365,7 @@ void CommandLineParser::processArgs()
 			auto optionEnabled = [&](std::string const& name){ return m_args.count(name) > 0; };
 			auto enabledOptions = nonAssemblyModeOptions | ranges::views::filter(optionEnabled) | ranges::to_vector;
 
-			std::string message = "The following options are invalid in assembly mode: " + joinOptionNames(enabledOptions) + ".";
+			std::string const message = "The following options are invalid in assembly mode: " + joinOptionNames(enabledOptions) + ".";
 			solThrow(CommandLineValidationError, message);
 		}
 
@@ -1374,7 +1374,7 @@ void CommandLineParser::processArgs()
 
 		if (m_args.count(g_strMachine))
 		{
-			std::string machine = m_args[g_strMachine].as<std::string>();
+			std::string const machine = m_args[g_strMachine].as<std::string>();
 			if (machine == g_strEVM)
 				m_options.assembly.targetMachine = Machine::EVM;
 			else
@@ -1414,7 +1414,7 @@ void CommandLineParser::processArgs()
 
 	if (m_args.count(g_strMetadataHash))
 	{
-		std::string hashStr = m_args[g_strMetadataHash].as<std::string>();
+		std::string const hashStr = m_args[g_strMetadataHash].as<std::string>();
 		if (hashStr == g_strIPFS)
 			m_options.metadata.hash = CompilerStack::MetadataHash::IPFS;
 		else if (hashStr == g_strSwarm)
@@ -1442,7 +1442,7 @@ void CommandLineParser::processArgs()
 
 	if (m_args.count(g_strModelCheckerContracts))
 	{
-		std::string contractsStr = m_args[g_strModelCheckerContracts].as<std::string>();
+		std::string const contractsStr = m_args[g_strModelCheckerContracts].as<std::string>();
 		std::optional<ModelCheckerContracts> contracts = ModelCheckerContracts::fromString(contractsStr);
 		if (!contracts)
 			solThrow(CommandLineValidationError, "Invalid option for --" + g_strModelCheckerContracts + ": " + contractsStr);
@@ -1454,7 +1454,7 @@ void CommandLineParser::processArgs()
 
 	if (m_args.count(g_strModelCheckerEngine))
 	{
-		std::string engineStr = m_args[g_strModelCheckerEngine].as<std::string>();
+		std::string const engineStr = m_args[g_strModelCheckerEngine].as<std::string>();
 		std::optional<ModelCheckerEngine> engine = ModelCheckerEngine::fromString(engineStr);
 		if (!engine)
 			solThrow(CommandLineValidationError, "Invalid option for --" + g_strModelCheckerEngine + ": " + engineStr);
@@ -1463,7 +1463,7 @@ void CommandLineParser::processArgs()
 
 	if (m_args.count(g_strModelCheckerExtCalls))
 	{
-		std::string mode = m_args[g_strModelCheckerExtCalls].as<std::string>();
+		std::string const mode = m_args[g_strModelCheckerExtCalls].as<std::string>();
 		std::optional<ModelCheckerExtCalls> extCallsMode = ModelCheckerExtCalls::fromString(mode);
 		if (!extCallsMode)
 			solThrow(CommandLineValidationError, "Invalid option for --" + g_strModelCheckerExtCalls + ": " + mode);
@@ -1472,7 +1472,7 @@ void CommandLineParser::processArgs()
 
 	if (m_args.count(g_strModelCheckerInvariants))
 	{
-		std::string invsStr = m_args[g_strModelCheckerInvariants].as<std::string>();
+		std::string const invsStr = m_args[g_strModelCheckerInvariants].as<std::string>();
 		std::optional<ModelCheckerInvariants> invs = ModelCheckerInvariants::fromString(invsStr);
 		if (!invs)
 			solThrow(CommandLineValidationError, "Invalid option for --" + g_strModelCheckerInvariants + ": " + invsStr);
@@ -1490,7 +1490,7 @@ void CommandLineParser::processArgs()
 
 	if (m_args.count(g_strModelCheckerSolvers))
 	{
-		std::string solversStr = m_args[g_strModelCheckerSolvers].as<std::string>();
+		std::string const solversStr = m_args[g_strModelCheckerSolvers].as<std::string>();
 		std::optional<smtutil::SMTSolverChoice> solvers = smtutil::SMTSolverChoice::fromString(solversStr);
 		if (!solvers)
 			solThrow(CommandLineValidationError, "Invalid option for --" + g_strModelCheckerSolvers + ": " + solversStr);
@@ -1502,7 +1502,7 @@ void CommandLineParser::processArgs()
 
 	if (m_args.count(g_strModelCheckerTargets))
 	{
-		std::string targetsStr = m_args[g_strModelCheckerTargets].as<std::string>();
+		std::string const targetsStr = m_args[g_strModelCheckerTargets].as<std::string>();
 		std::optional<ModelCheckerTargets> targets = ModelCheckerTargets::fromString(targetsStr);
 		if (!targets)
 			solThrow(CommandLineValidationError, "Invalid option for --" + g_strModelCheckerTargets + ": " + targetsStr);
@@ -1543,7 +1543,7 @@ void CommandLineParser::processArgs()
 		m_options.input.mode == InputMode::EVMAssemblerJSON
 	);
 
-	bool ethdebugProgramRequested = m_options.compiler.outputs.ethdebugProgram || m_options.compiler.outputs.ethdebugProgramRuntime;
+	bool const ethdebugProgramRequested = m_options.compiler.outputs.ethdebugProgram || m_options.compiler.outputs.ethdebugProgramRuntime;
 
 	std::string const enableEthdebugProgramMessage = fmt::format(
 		"--{} / --{}",

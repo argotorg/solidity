@@ -66,7 +66,7 @@ BOOST_AUTO_TEST_SUITE(CommandLineParserTest)
 
 BOOST_AUTO_TEST_CASE(no_options)
 {
-	std::vector<std::string> commandLine = {"solc", "contract.sol"};
+	std::vector<std::string> const commandLine = {"solc", "contract.sol"};
 
 	CommandLineOptions expectedOptions;
 	expectedOptions.input.paths = {"contract.sol"};
@@ -80,7 +80,7 @@ BOOST_AUTO_TEST_CASE(no_options)
 
 BOOST_AUTO_TEST_CASE(help_license_version)
 {
-	std::map<std::string, InputMode> expectedModePerOption = {
+	std::map<std::string, InputMode> const expectedModePerOption = {
 		{"--help", InputMode::Help},
 		{"--license", InputMode::License},
 		{"--version", InputMode::Version},
@@ -99,7 +99,7 @@ BOOST_AUTO_TEST_CASE(help_license_version)
 
 BOOST_AUTO_TEST_CASE(cli_mode_options)
 {
-	for (InputMode inputMode: {InputMode::Compiler, InputMode::CompilerWithASTImport})
+	for (InputMode const inputMode: {InputMode::Compiler, InputMode::CompilerWithASTImport})
 	{
 		std::vector<std::string> commandLine = {
 			"solc",
@@ -241,8 +241,8 @@ BOOST_AUTO_TEST_CASE(cli_mode_options)
 
 BOOST_AUTO_TEST_CASE(no_cbor_metadata)
 {
-	std::vector<std::string> commandLine = {"solc", "--no-cbor-metadata", "contract.sol"};
-	CommandLineOptions parsedOptions = parseCommandLine(commandLine);
+	std::vector<std::string> const commandLine = {"solc", "--no-cbor-metadata", "contract.sol"};
+	CommandLineOptions const parsedOptions = parseCommandLine(commandLine);
 	bool assert = parsedOptions.metadata.format == CompilerStack::MetadataFormat::NoMetadata;
 
 	BOOST_TEST(assert);
@@ -250,7 +250,7 @@ BOOST_AUTO_TEST_CASE(no_cbor_metadata)
 
 BOOST_AUTO_TEST_CASE(no_import_callback)
 {
-	std::vector<std::vector<std::string>> commandLinePerInputMode = {
+	std::vector<std::vector<std::string>> const commandLinePerInputMode = {
 		{"solc", "--no-import-callback", "contract.sol"},
 		{"solc", "--standard-json", "--no-import-callback", "input.json"},
 		{"solc", "--strict-assembly", "--no-import-callback", "input.yul"},
@@ -268,7 +268,7 @@ BOOST_AUTO_TEST_CASE(no_import_callback)
 BOOST_AUTO_TEST_CASE(via_ir_options)
 {
 	BOOST_TEST(!parseCommandLine({"solc", "contract.sol"}).output.viaIR);
-	for (std::string viaIrOption: {"--via-ir", "--experimental-via-ir"})
+	for (std::string const viaIrOption: {"--via-ir", "--experimental-via-ir"})
 		BOOST_TEST(parseCommandLine({"solc", viaIrOption, "contract.sol"}).output.viaIR);
 }
 
@@ -368,7 +368,7 @@ BOOST_AUTO_TEST_CASE(assembly_mode_options)
 
 BOOST_AUTO_TEST_CASE(standard_json_mode_options)
 {
-	std::vector<std::string> commandLine = {
+	std::vector<std::string> const commandLine = {
 		"solc",
 		"input.json",
 		"--standard-json",
@@ -418,7 +418,7 @@ BOOST_AUTO_TEST_CASE(standard_json_mode_options)
 
 BOOST_AUTO_TEST_CASE(invalid_options_input_modes_combinations)
 {
-	std::map<std::string, std::vector<std::string>> invalidOptionInputModeCombinations = {
+	std::map<std::string, std::vector<std::string>> const invalidOptionInputModeCombinations = {
 		// TODO: This should eventually contain all options.
 		{"--experimental-via-ir", {"--strict-assembly", "--standard-json", "--link", "--import-asm-json"}},
 		{"--via-ir", {"--strict-assembly", "--standard-json", "--link", "--import-asm-json"}},
@@ -440,9 +440,9 @@ BOOST_AUTO_TEST_CASE(invalid_options_input_modes_combinations)
 	for (auto const& [optionName, inputModes]: invalidOptionInputModeCombinations)
 		for (std::string const& inputMode: inputModes)
 		{
-			std::stringstream serr;
-			size_t separatorPosition = optionName.find("=");
-			std::string optionNameWithoutValue = optionName.substr(0, separatorPosition);
+			std::stringstream const serr;
+			size_t const separatorPosition = optionName.find("=");
+			std::string const optionNameWithoutValue = optionName.substr(0, separatorPosition);
 			soltestAssert(!optionNameWithoutValue.empty());
 
 			std::vector<std::string> commandLine = {"solc", optionName, "file", inputMode};
@@ -480,7 +480,7 @@ BOOST_AUTO_TEST_CASE(optimizer_flags)
 	OptimiserSettings evmasmOnly = OptimiserSettings::standard();
 	evmasmOnly.runYulOptimiser = false;
 
-	std::map<std::vector<std::string>, OptimiserSettings> settingsMap = {
+	std::map<std::vector<std::string>, OptimiserSettings> const settingsMap = {
 		{{}, OptimiserSettings::minimal()},
 		{{"--optimize"}, OptimiserSettings::standard()},
 		{{"--no-optimize-yul"}, OptimiserSettings::minimal()},
@@ -489,7 +489,7 @@ BOOST_AUTO_TEST_CASE(optimizer_flags)
 		{{"--optimize", "--optimize-yul"}, OptimiserSettings::standard()},
 	};
 
-	std::map<InputMode, std::string> inputModeFlagMap = {
+	std::map<InputMode, std::string> const inputModeFlagMap = {
 		{InputMode::Compiler, ""},
 		{InputMode::CompilerWithASTImport, "--import-ast"},
 		{InputMode::Assembler, "--strict-assembly"},
@@ -642,7 +642,7 @@ BOOST_AUTO_TEST_CASE(invalid_optimizer_sequence_without_optimize)
 
 	for (auto const& invalidSequence: invalidSequenceInputs)
 	{
-		std::vector<std::string> commandLineOptions{"solc", "contract.sol", "--yul-optimizations=" + invalidSequence};
+		std::vector<std::string> const commandLineOptions{"solc", "contract.sol", "--yul-optimizations=" + invalidSequence};
 		BOOST_CHECK_EXCEPTION(parseCommandLine(commandLineOptions), CommandLineValidationError, hasCorrectMessage);
 	}
 }

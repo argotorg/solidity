@@ -377,8 +377,8 @@ BOOST_AUTO_TEST_CASE(calldata)
 			}
 		}
 	)";
-	std::string s("abcdef");
-	std::string t("abcdefgggggggggggggggggggggggggggggggggggggggghhheeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeggg");
+	std::string const s("abcdef");
+	std::string const t("abcdefgggggggggggggggggggggggggggggggggggggggghhheeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeggg");
 	BOTH_ENCODERS(
 		compileAndRun(sourceCode);
 		callContractFunction("f(bytes)", 0x20, s.size(), s);

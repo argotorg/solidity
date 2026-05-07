@@ -64,12 +64,12 @@ std::string SMTLib2Parser::parseToken() {
 	std::string result;
 
 	skipWhitespace();
-	bool isPipe = token() == '|';
+	bool const isPipe = token() == '|';
 	if (isPipe)
 		advance();
 	while (token() != 0)
 	{
-		char c = token();
+		char const c = token();
 		if (isPipe && c == '|')
 		{
 			advance();

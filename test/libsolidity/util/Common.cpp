@@ -31,8 +31,8 @@ std::string test::withPreamble(std::string const& _sourceCode, bool _addAbicoder
 
 	// NOTE: These checks are intentionally loose to match weird cases.
 	// We can manually adjust a test case where this causes problem.
-	bool licenseMissing = _sourceCode.find("SPDX-License-Identifier:") == std::string::npos;
-	bool abicoderMissing =
+	bool const licenseMissing = _sourceCode.find("SPDX-License-Identifier:") == std::string::npos;
+	bool const abicoderMissing =
 		_sourceCode.find("pragma experimental ABIEncoderV2;") == std::string::npos &&
 		_sourceCode.find("pragma abicoder") == std::string::npos;
 
@@ -61,6 +61,6 @@ std::string test::stripPreReleaseWarning(std::string const& _stderrContent)
 		R"(Compiler run successful, no output requested\.\n)"
 	};
 
-	std::string output = std::regex_replace(_stderrContent, preReleaseWarningRegex, "");
+	std::string const output = std::regex_replace(_stderrContent, preReleaseWarningRegex, "");
 	return std::regex_replace(std::move(output), noOutputRegex, "");
 }

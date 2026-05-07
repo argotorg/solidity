@@ -39,7 +39,7 @@ BOOST_AUTO_TEST_CASE(full_union)
 	BOOST_CHECK_EQUAL(ds.numSets(), 1);
 	auto const& subsets = ds.subsets();
 	BOOST_CHECK_EQUAL(subsets.size(), 1);
-	std::set<size_t> fullSet{0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+	std::set<size_t> const fullSet{0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
 	BOOST_CHECK_EQUAL_COLLECTIONS(subsets[0].begin(), subsets[0].end(), fullSet.begin(), fullSet.end());
 
 	for (std::uint32_t i = 1; i < 10; ++i) BOOST_CHECK_EQUAL(ds.find(0), ds.find(i));
@@ -57,7 +57,7 @@ BOOST_AUTO_TEST_CASE(pairs)
 		BOOST_CHECK_EQUAL(ds.subsets().size(), expectedNumSubsets);
 		BOOST_CHECK(ds.sameSubset(x, y));
 		auto const subset = ds.subset(x);
-		std::set<size_t> subsetRef{x, y};
+		std::set<size_t> const subsetRef{x, y};
 		BOOST_CHECK_EQUAL_COLLECTIONS(subset.begin(), subset.end(), subsetRef.begin(), subsetRef.end());
 	};
 
@@ -76,7 +76,7 @@ BOOST_AUTO_TEST_CASE(pairs)
 	ds.merge(1, 0);
 
 	// now we should have a subset with {0, 1, 2, 3, 5, 6}
-	std::set<size_t> subsetRef{0, 1, 2, 3, 5, 6};
+	std::set<size_t> const subsetRef{0, 1, 2, 3, 5, 6};
 	BOOST_CHECK_EQUAL(ds.sizeOfSubset(6), subsetRef.size());
 	auto const subset = ds.subset(2);
 	BOOST_CHECK_EQUAL_COLLECTIONS(subset.begin(), subset.end(), subsetRef.begin(), subsetRef.end());

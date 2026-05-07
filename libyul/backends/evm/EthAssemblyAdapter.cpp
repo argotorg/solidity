@@ -140,7 +140,7 @@ void EthAssemblyAdapter::appendAssemblySize()
 
 std::pair<std::shared_ptr<AbstractAssembly>, AbstractAssembly::SubID> EthAssemblyAdapter::createSubAssembly(bool _creation, std::string _name)
 {
-	std::shared_ptr<evmasm::Assembly> assembly{std::make_shared<evmasm::Assembly>(m_assembly.evmVersion(), _creation, m_assembly.eofVersion(), std::move(_name))};
+	std::shared_ptr<evmasm::Assembly> const assembly{std::make_shared<evmasm::Assembly>(m_assembly.evmVersion(), _creation, m_assembly.eofVersion(), std::move(_name))};
 	auto sub = m_assembly.newSub(assembly);
 	return {std::make_shared<EthAssemblyAdapter>(*assembly), SubID{sub.data()}};
 }
@@ -206,7 +206,7 @@ void EthAssemblyAdapter::appendDataSize(std::vector<AbstractAssembly::SubID> con
 
 AbstractAssembly::SubID EthAssemblyAdapter::appendData(bytes const& _data)
 {
-	evmasm::AssemblyItem pushData = m_assembly.newData(_data);
+	evmasm::AssemblyItem const pushData = m_assembly.newData(_data);
 	SubID const subID{m_nextDataCounter++};
 	m_dataHashBySubId[subID] = pushData.data();
 	return subID;
@@ -255,7 +255,7 @@ langutil::EVMVersion EthAssemblyAdapter::evmVersion() const
 
 EthAssemblyAdapter::LabelID EthAssemblyAdapter::assemblyTagToIdentifier(evmasm::AssemblyItem const& _tag)
 {
-	u256 id = _tag.data();
+	u256 const id = _tag.data();
 	yulAssert(id <= std::numeric_limits<LabelID>::max(), "Tag id too large.");
 	return LabelID(id);
 }

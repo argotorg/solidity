@@ -38,8 +38,8 @@ Json HandlerBase::toRange(SourceLocation const& _location) const
 
 	solAssert(_location.sourceName, "");
 	langutil::CharStream const& stream = charStreamProvider().charStream(*_location.sourceName);
-	LineColumn start = stream.translatePositionToLineColumn(_location.start);
-	LineColumn end = stream.translatePositionToLineColumn(_location.end);
+	LineColumn const start = stream.translatePositionToLineColumn(_location.start);
+	LineColumn const end = stream.translatePositionToLineColumn(_location.end);
 	return toJsonRange(start, end);
 }
 

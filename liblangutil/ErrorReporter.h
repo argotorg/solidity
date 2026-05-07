@@ -109,7 +109,7 @@ public:
 		solAssert(descs.size() > 0, "Need error descriptions!");
 
 		auto nonEmpty = [](std::string const& _s) { return !_s.empty(); };
-		std::string errorStr = util::joinHumanReadable(descs | ranges::views::filter(nonEmpty) | ranges::to_vector, " ");
+		std::string const errorStr = util::joinHumanReadable(descs | ranges::views::filter(nonEmpty) | ranges::to_vector, " ");
 
 		error(_error, Error::Type::TypeError, _location, errorStr);
 	}

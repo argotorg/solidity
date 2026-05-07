@@ -34,7 +34,7 @@ void CircularReferencesPruner::run(OptimiserStepContext& _context, Block& _ast)
 
 void CircularReferencesPruner::operator()(Block& _block)
 {
-	std::set<YulName> functionsToKeep =
+	std::set<YulName> const functionsToKeep =
 		functionsCalledFromOutermostContext(CallGraphGenerator::callGraph(_block));
 
 	for (auto&& statement: _block.statements)

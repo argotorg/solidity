@@ -91,7 +91,7 @@ void ExpressionCompiler::appendStateVariableInitialization(VariableDeclaration c
 		return;
 	Type const* type = _varDecl.value()->annotation().type;
 	solAssert(!!type, "Type information not available.");
-	CompilerContext::LocationSetter locationSetter(m_context, _varDecl);
+	CompilerContext::LocationSetter const locationSetter(m_context, _varDecl);
 	_varDecl.value()->accept(*this);
 
 	if (_varDecl.annotation().type->dataStoredIn(DataLocation::Storage))
@@ -129,8 +129,8 @@ void ExpressionCompiler::appendConstStateVariableAccessor(VariableDeclaration co
 void ExpressionCompiler::appendStateVariableAccessor(VariableDeclaration const& _varDecl)
 {
 	solAssert(!_varDecl.isConstant(), "");
-	CompilerContext::LocationSetter locationSetter(m_context, _varDecl);
-	FunctionType accessorType(_varDecl);
+	CompilerContext::LocationSetter const locationSetter(m_context, _varDecl);
+	FunctionType const accessorType(_varDecl);
 
 	TypePointers paramTypes = accessorType.parameterTypes();
 	if (_varDecl.immutable())
@@ -287,13 +287,13 @@ void ExpressionCompiler::appendStateVariableAccessor(VariableDeclaration const& 
 
 bool ExpressionCompiler::visit(Conditional const& _condition)
 {
-	CompilerContext::LocationSetter locationSetter(m_context, _condition);
+	CompilerContext::LocationSetter const locationSetter(m_context, _condition);
 	_condition.condition().accept(*this);
-	evmasm::AssemblyItem trueTag = m_context.appendConditionalJump();
+	evmasm::AssemblyItem const trueTag = m_context.appendConditionalJump();
 	acceptAndConvert(_condition.falseExpression(), *_condition.annotation().type);
-	evmasm::AssemblyItem endTag = m_context.appendJumpToNew();
+	evmasm::AssemblyItem const endTag = m_context.appendJumpToNew();
 	m_context << trueTag;
-	int offset = static_cast<int>(_condition.annotation().type->sizeOnStack());
+	int const offset = static_cast<int>(_condition.annotation().type->sizeOnStack());
 	m_context.adjustStackOffset(-offset);
 	acceptAndConvert(_condition.trueExpression(), *_condition.annotation().type);
 	m_context << endTag;
@@ -302,7 +302,7 @@ bool ExpressionCompiler::visit(Conditional const& _condition)
 
 bool ExpressionCompiler::visit(Assignment const& _assignment)
 {
-	CompilerContext::LocationSetter locationSetter(m_context, _assignment);
+	CompilerContext::LocationSetter const locationSetter(m_context, _assignment);
 	Token op = _assignment.assignmentOperator();
 	Token binOp = op == Token::Assign ? op : TokenTraits::AssignmentToBinaryOp(op);
 	Type const& leftType = *_assignment.leftHandSide().annotation().type;
@@ -337,8 +337,8 @@ bool ExpressionCompiler::visit(Assignment const& _assignment)
 	{
 		solAssert(binOp != Token::Exp, "Compound exp is not possible.");
 		solAssert(leftType.isValueType(), "Compound operators only available for value types.");
-		unsigned lvalueSize = m_currentLValue->sizeOnStack();
-		unsigned itemSize = _assignment.annotation().type->sizeOnStack();
+		unsigned const lvalueSize = m_currentLValue->sizeOnStack();
+		unsigned const itemSize = _assignment.annotation().type->sizeOnStack();
 		if (lvalueSize > 0)
 		{
 			utils().copyToStackTop(lvalueSize + itemSize, itemSize);
@@ -419,7 +419,7 @@ bool ExpressionCompiler::visit(TupleExpression const& _tuple)
 
 bool ExpressionCompiler::visit(UnaryOperation const& _unaryOperation)
 {
-	CompilerContext::LocationSetter locationSetter(m_context, _unaryOperation);
+	CompilerContext::LocationSetter const locationSetter(m_context, _unaryOperation);
 
 	FunctionDefinition const* function = *_unaryOperation.annotation().userDefinedFunction;
 	if (function)
@@ -432,7 +432,7 @@ bool ExpressionCompiler::visit(UnaryOperation const& _unaryOperation)
 		solAssert(functionType->returnParameterTypes().size() == 1);
 		solAssert(functionType->kind() == FunctionType::Kind::Internal);
 
-		evmasm::AssemblyItem returnLabel = m_context.pushNewTag();
+		evmasm::AssemblyItem const returnLabel = m_context.pushNewTag();
 		acceptAndConvert(
 			_unaryOperation.subExpression(),
 			*functionType->parameterTypes()[0],
@@ -443,8 +443,8 @@ bool ExpressionCompiler::visit(UnaryOperation const& _unaryOperation)
 		m_context.appendJump(evmasm::AssemblyItem::JumpType::IntoFunction);
 		m_context << returnLabel;
 
-		unsigned parameterSize = CompilerUtils::sizeOnStack(functionType->parameterTypes());
-		unsigned returnParametersSize = CompilerUtils::sizeOnStack(functionType->returnParameterTypes());
+		unsigned const parameterSize = CompilerUtils::sizeOnStack(functionType->parameterTypes());
+		unsigned const returnParametersSize = CompilerUtils::sizeOnStack(functionType->returnParameterTypes());
 
 		// callee adds return parameters, but removes arguments and return label
 		m_context.adjustStackOffset(static_cast<int>(returnParametersSize) - static_cast<int>(parameterSize) - 1);
@@ -541,7 +541,7 @@ bool ExpressionCompiler::visit(UnaryOperation const& _unaryOperation)
 
 bool ExpressionCompiler::visit(BinaryOperation const& _binaryOperation)
 {
-	CompilerContext::LocationSetter locationSetter(m_context, _binaryOperation);
+	CompilerContext::LocationSetter const locationSetter(m_context, _binaryOperation);
 	Expression const& leftExpression = _binaryOperation.leftExpression();
 	Expression const& rightExpression = _binaryOperation.rightExpression();
 	FunctionDefinition const* function = *_binaryOperation.annotation().userDefinedFunction;
@@ -555,7 +555,7 @@ bool ExpressionCompiler::visit(BinaryOperation const& _binaryOperation)
 		solAssert(functionType->returnParameterTypes().size() == 1);
 		solAssert(functionType->kind() == FunctionType::Kind::Internal);
 
-		evmasm::AssemblyItem returnLabel = m_context.pushNewTag();
+		evmasm::AssemblyItem const returnLabel = m_context.pushNewTag();
 		acceptAndConvert(
 			leftExpression,
 			*functionType->parameterTypes()[0],
@@ -571,8 +571,8 @@ bool ExpressionCompiler::visit(BinaryOperation const& _binaryOperation)
 		m_context.appendJump(evmasm::AssemblyItem::JumpType::IntoFunction);
 		m_context << returnLabel;
 
-		unsigned parameterSize = CompilerUtils::sizeOnStack(functionType->parameterTypes());
-		unsigned returnParametersSize = CompilerUtils::sizeOnStack(functionType->returnParameterTypes());
+		unsigned const parameterSize = CompilerUtils::sizeOnStack(functionType->parameterTypes());
+		unsigned const returnParametersSize = CompilerUtils::sizeOnStack(functionType->returnParameterTypes());
 
 		// callee adds return parameters, but removes arguments and return label
 		m_context.adjustStackOffset(static_cast<int>(returnParametersSize) - static_cast<int>(parameterSize) - 1);
@@ -589,7 +589,7 @@ bool ExpressionCompiler::visit(BinaryOperation const& _binaryOperation)
 		m_context << commonType->literalValue(nullptr);
 	else
 	{
-		bool cleanupNeeded = cleanupNeededForOp(commonType->category(), c_op, m_context.arithmetic());
+		bool const cleanupNeeded = cleanupNeededForOp(commonType->category(), c_op, m_context.arithmetic());
 
 		Type const* leftTargetType = commonType;
 		Type const* rightTargetType =
@@ -603,7 +603,7 @@ bool ExpressionCompiler::visit(BinaryOperation const& _binaryOperation)
 		{
 			return dynamic_cast<Literal const*>(&_e) || _e.annotation().type->category() == Type::Category::RationalNumber;
 		};
-		bool swap = m_optimiseOrderLiterals && TokenTraits::isCommutativeOp(c_op) && isLiteral(rightExpression) && !isLiteral(leftExpression);
+		bool const swap = m_optimiseOrderLiterals && TokenTraits::isCommutativeOp(c_op) && isLiteral(rightExpression) && !isLiteral(leftExpression);
 		if (swap)
 		{
 			acceptAndConvert(leftExpression, *leftTargetType, cleanupNeeded);
@@ -633,7 +633,7 @@ bool ExpressionCompiler::visit(FunctionCall const& _functionCall)
 {
 	auto functionCallKind = *_functionCall.annotation().kind;
 
-	CompilerContext::LocationSetter locationSetter(m_context, _functionCall);
+	CompilerContext::LocationSetter const locationSetter(m_context, _functionCall);
 	if (functionCallKind == FunctionCallKind::TypeConversion)
 	{
 		solAssert(_functionCall.arguments().size() == 1, "");
@@ -667,7 +667,7 @@ bool ExpressionCompiler::visit(FunctionCall const& _functionCall)
 	else
 		functionType = dynamic_cast<FunctionType const*>(_functionCall.expression().annotation().type);
 
-	TypePointers parameterTypes = functionType->parameterTypes();
+	TypePointers const parameterTypes = functionType->parameterTypes();
 
 	std::vector<ASTPointer<Expression const>> const& arguments = _functionCall.sortedArguments();
 
@@ -706,7 +706,7 @@ bool ExpressionCompiler::visit(FunctionCall const& _functionCall)
 			// Calling convention: Caller pushes return address and arguments
 			// Callee removes them and pushes return values
 
-			evmasm::AssemblyItem returnLabel = m_context.pushNewTag();
+			evmasm::AssemblyItem const returnLabel = m_context.pushNewTag();
 			for (unsigned i = 0; i < arguments.size(); ++i)
 				acceptAndConvert(*arguments[i], *function.parameterTypes()[i]);
 			_functionCall.expression().accept(*this);
@@ -715,7 +715,7 @@ bool ExpressionCompiler::visit(FunctionCall const& _functionCall)
 			if (function.hasBoundFirstArgument())
 			{
 				// stack: arg2, ..., argn, label, arg1
-				unsigned depth = parameterSize + 1;
+				unsigned const depth = parameterSize + 1;
 				utils().moveIntoStack(depth, function.selfType()->sizeOnStack());
 				parameterSize += function.selfType()->sizeOnStack();
 			}
@@ -730,7 +730,7 @@ bool ExpressionCompiler::visit(FunctionCall const& _functionCall)
 			m_context.appendJump(evmasm::AssemblyItem::JumpType::IntoFunction);
 			m_context << returnLabel;
 
-			unsigned returnParametersSize = CompilerUtils::sizeOnStack(function.returnParameterTypes());
+			unsigned const returnParametersSize = CompilerUtils::sizeOnStack(function.returnParameterTypes());
 			// callee adds return parameters, but removes arguments and return label
 			m_context.adjustStackOffset(static_cast<int>(returnParametersSize) - static_cast<int>(parameterSize) - 1);
 			break;
@@ -802,7 +802,7 @@ bool ExpressionCompiler::visit(FunctionCall const& _functionCall)
 			{
 				// If this is a try call, return "<address> 1" in the success case and
 				// "0" in the error case.
-				AssemblyItem errorCase = m_context.appendConditionalJump();
+				AssemblyItem const errorCase = m_context.appendConditionalJump();
 				m_context << u256(1);
 				m_context << errorCase;
 			}
@@ -818,7 +818,7 @@ bool ExpressionCompiler::visit(FunctionCall const& _functionCall)
 			acceptAndConvert(*arguments.front(), *TypeProvider::uint256(), true);
 			// Note that function is not the original function, but the ".gas" function.
 			// Its values of gasSet and valueSet is equal to the original function's though.
-			unsigned stackDepth = (function.gasSet() ? 1u : 0u) + (function.valueSet() ? 1u : 0u);
+			unsigned const stackDepth = (function.gasSet() ? 1u : 0u) + (function.valueSet() ? 1u : 0u);
 			if (stackDepth > 0)
 				m_context << swapInstruction(stackDepth);
 			if (function.gasSet())
@@ -1069,7 +1069,7 @@ bool ExpressionCompiler::visit(FunctionCall const& _functionCall)
 			Type const* functionCallType = _functionCall.annotation().type;
 			solAssert(argumentType, "");
 			solAssert(functionCallType, "");
-			FunctionType::Kind kind = functionType->kind();
+			FunctionType::Kind const kind = functionType->kind();
 			if (kind == FunctionType::Kind::Wrap)
 			{
 				solAssert(
@@ -1306,7 +1306,7 @@ bool ExpressionCompiler::visit(FunctionCall const& _functionCall)
 		{
 			acceptAndConvert(*arguments.front(), *function.parameterTypes().front(), false);
 			// stack: <condition>
-			bool haveReasonString = arguments.size() > 1 && m_context.revertStrings() != RevertStrings::Strip;
+			bool const haveReasonString = arguments.size() > 1 && m_context.revertStrings() != RevertStrings::Strip;
 			if (arguments.size() > 1)
 			{
 				// Users probably expect the second argument to be evaluated
@@ -1341,7 +1341,7 @@ bool ExpressionCompiler::visit(FunctionCall const& _functionCall)
 					}
 					// stack: <arg0> <arg1> ... <argN> <condition>
 					m_context << Instruction::ISZERO << Instruction::ISZERO;
-					AssemblyItem successBranchTag = m_context.appendConditionalJump();
+					AssemblyItem const successBranchTag = m_context.appendConditionalJump();
 
 					auto const* errorDefinition = dynamic_cast<ErrorDefinition const*>(ASTNode::referencedDeclaration(errorConstructorCall.expression()));
 					solAssert(errorDefinition && errorDefinition->functionType(true));
@@ -1518,7 +1518,7 @@ bool ExpressionCompiler::visit(FunctionCall const& _functionCall)
 				// stack: <memory pointer> <selector>
 
 				// load current memory, mask and combine the selector
-				std::string mask = formatNumber((u256(-1) >> 32));
+				std::string const mask = formatNumber((u256(-1) >> 32));
 				m_context.appendInlineAssembly(R"({
 					let data_start := add(mem_ptr, 0x20)
 					let data := mload(data_start)
@@ -1605,7 +1605,7 @@ bool ExpressionCompiler::visit(FunctionCallOptions const& _functionCallOptions)
 		acceptAndConvert(*_functionCallOptions.options()[i], *requiredType);
 
 		solAssert(!util::contains(presentOptions, newOption), "");
-		ptrdiff_t insertPos = presentOptions.end() - lower_bound(presentOptions.begin(), presentOptions.end(), newOption);
+		ptrdiff_t const insertPos = presentOptions.end() - lower_bound(presentOptions.begin(), presentOptions.end(), newOption);
 
 		utils().moveIntoStack(static_cast<unsigned>(insertPos), 1);
 		presentOptions.insert(presentOptions.end() - insertPos, newOption);
@@ -1622,7 +1622,7 @@ bool ExpressionCompiler::visit(NewExpression const&)
 
 bool ExpressionCompiler::visit(MemberAccess const& _memberAccess)
 {
-	CompilerContext::LocationSetter locationSetter(m_context, _memberAccess);
+	CompilerContext::LocationSetter const locationSetter(m_context, _memberAccess);
 	// Check whether the member is an attached function.
 	ASTString const& member = _memberAccess.memberName();
 	if (auto funType = dynamic_cast<FunctionType const*>(_memberAccess.annotation().type))
@@ -2173,7 +2173,7 @@ bool ExpressionCompiler::visit(MemberAccess const& _memberAccess)
 	}
 	case Type::Category::Module:
 	{
-		Type::Category category = _memberAccess.annotation().type->category();
+		Type::Category const category = _memberAccess.annotation().type->category();
 		solAssert(
 			dynamic_cast<VariableDeclaration const*>(_memberAccess.annotation().referencedDeclaration) ||
 			dynamic_cast<FunctionDefinition const*>(_memberAccess.annotation().referencedDeclaration) ||
@@ -2215,7 +2215,7 @@ bool ExpressionCompiler::visit(MemberAccess const& _memberAccess)
 
 bool ExpressionCompiler::visit(IndexAccess const& _indexAccess)
 {
-	CompilerContext::LocationSetter locationSetter(m_context, _indexAccess);
+	CompilerContext::LocationSetter const locationSetter(m_context, _indexAccess);
 	_indexAccess.baseExpression().accept(*this);
 
 	Type const& baseType = *_indexAccess.baseExpression().annotation().type;
@@ -2337,7 +2337,7 @@ bool ExpressionCompiler::visit(IndexAccess const& _indexAccess)
 
 bool ExpressionCompiler::visit(IndexRangeAccess const& _indexAccess)
 {
-	CompilerContext::LocationSetter locationSetter(m_context, _indexAccess);
+	CompilerContext::LocationSetter const locationSetter(m_context, _indexAccess);
 	_indexAccess.baseExpression().accept(*this);
 	// stack: offset length
 
@@ -2380,7 +2380,7 @@ bool ExpressionCompiler::visit(IndexRangeAccess const& _indexAccess)
 
 void ExpressionCompiler::endVisit(Identifier const& _identifier)
 {
-	CompilerContext::LocationSetter locationSetter(m_context, _identifier);
+	CompilerContext::LocationSetter const locationSetter(m_context, _identifier);
 	Declaration const* declaration = _identifier.annotation().referencedDeclaration;
 	if (MagicVariableDeclaration const* magicVar = dynamic_cast<MagicVariableDeclaration const*>(declaration))
 	{
@@ -2447,7 +2447,7 @@ void ExpressionCompiler::endVisit(Identifier const& _identifier)
 
 void ExpressionCompiler::endVisit(Literal const& _literal)
 {
-	CompilerContext::LocationSetter locationSetter(m_context, _literal);
+	CompilerContext::LocationSetter const locationSetter(m_context, _literal);
 	Type const* type = _literal.annotation().type;
 
 	switch (type->category())
@@ -2473,7 +2473,7 @@ void ExpressionCompiler::appendAndOrOperatorCode(BinaryOperation const& _binaryO
 	m_context << Instruction::DUP1;
 	if (c_op == Token::And)
 		m_context << Instruction::ISZERO;
-	evmasm::AssemblyItem endLabel = m_context.appendConditionalJump();
+	evmasm::AssemblyItem const endLabel = m_context.appendConditionalJump();
 	m_context << Instruction::POP;
 	_binaryOperation.rightExpression().accept(*this);
 	m_context << endLabel;
@@ -2748,11 +2748,11 @@ void ExpressionCompiler::appendExternalFunctionCall(
 	// function identifier [unless bare]
 	// contract address
 
-	unsigned selfSize = _functionType.hasBoundFirstArgument() ? _functionType.selfType()->sizeOnStack() : 0;
-	unsigned gasValueSize = (_functionType.gasSet() ? 1u : 0u) + (_functionType.valueSet() ? 1u : 0u);
-	unsigned contractStackPos = m_context.currentToBaseStackOffset(1 + gasValueSize + selfSize + (_functionType.isBareCall() ? 0 : 1));
-	unsigned gasStackPos = m_context.currentToBaseStackOffset(gasValueSize);
-	unsigned valueStackPos = m_context.currentToBaseStackOffset(1);
+	unsigned const selfSize = _functionType.hasBoundFirstArgument() ? _functionType.selfType()->sizeOnStack() : 0;
+	unsigned const gasValueSize = (_functionType.gasSet() ? 1u : 0u) + (_functionType.valueSet() ? 1u : 0u);
+	unsigned const contractStackPos = m_context.currentToBaseStackOffset(1 + gasValueSize + selfSize + (_functionType.isBareCall() ? 0 : 1));
+	unsigned const gasStackPos = m_context.currentToBaseStackOffset(gasValueSize);
+	unsigned const valueStackPos = m_context.currentToBaseStackOffset(1);
 
 	// move self object to top
 	if (_functionType.hasBoundFirstArgument())
@@ -2764,9 +2764,9 @@ void ExpressionCompiler::appendExternalFunctionCall(
 
 	solAssert(funKind != FunctionType::Kind::BareCallCode, "Callcode has been removed.");
 
-	bool returnSuccessConditionAndReturndata = funKind == FunctionType::Kind::BareCall || funKind == FunctionType::Kind::BareDelegateCall || funKind == FunctionType::Kind::BareStaticCall;
-	bool isDelegateCall = funKind == FunctionType::Kind::BareDelegateCall || funKind == FunctionType::Kind::DelegateCall;
-	bool useStaticCall = funKind == FunctionType::Kind::BareStaticCall || (_functionType.stateMutability() <= StateMutability::View && m_context.evmVersion().hasStaticCall());
+	bool const returnSuccessConditionAndReturndata = funKind == FunctionType::Kind::BareCall || funKind == FunctionType::Kind::BareDelegateCall || funKind == FunctionType::Kind::BareStaticCall;
+	bool const isDelegateCall = funKind == FunctionType::Kind::BareDelegateCall || funKind == FunctionType::Kind::DelegateCall;
+	bool const useStaticCall = funKind == FunctionType::Kind::BareStaticCall || (_functionType.stateMutability() <= StateMutability::View && m_context.evmVersion().hasStaticCall());
 
 	if (_tryCall)
 	{
@@ -2838,7 +2838,7 @@ void ExpressionCompiler::appendExternalFunctionCall(
 		// This would be the only combination of padding and in-place encoding,
 		// but all parameters of ecrecover are value types anyway.
 		encodeInPlace = false;
-	bool encodeForLibraryCall = funKind == FunctionType::Kind::DelegateCall;
+	bool const encodeForLibraryCall = funKind == FunctionType::Kind::DelegateCall;
 	utils().encodeToMemory(
 		argumentTypes,
 		parameterTypes,
@@ -2931,13 +2931,13 @@ void ExpressionCompiler::appendExternalFunctionCall(
 	else
 		m_context << Instruction::CALL;
 
-	unsigned remainsSize =
+	unsigned const remainsSize =
 		2u + // contract address, input_memory_end
 		(_functionType.valueSet() ? 1 : 0) +
 		(_functionType.gasSet() ? 1 : 0) +
 		(!_functionType.isBareCall() ? 1 : 0);
 
-	evmasm::AssemblyItem endTag = m_context.newTag();
+	evmasm::AssemblyItem const endTag = m_context.newTag();
 
 	if (!returnSuccessConditionAndReturndata && !_tryCall)
 	{

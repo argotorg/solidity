@@ -192,8 +192,8 @@ std::map<std::string, FileReader::FileSystemPathSet> FileReader::detectSourceUni
 	std::map<std::string, FileReader::FileSystemPathSet> nameToPaths;
 	for (boost::filesystem::path const& cliPath: _cliPaths)
 	{
-		std::string sourceUnitName = cliPathToSourceUnitName(cliPath);
-		boost::filesystem::path normalizedPath = normalizeCLIPathForVFS(cliPath);
+		std::string const sourceUnitName = cliPathToSourceUnitName(cliPath);
+		boost::filesystem::path const normalizedPath = normalizeCLIPathForVFS(cliPath);
 		nameToPaths[sourceUnitName].insert(normalizedPath);
 	}
 
@@ -231,11 +231,11 @@ boost::filesystem::path FileReader::normalizeCLIPathForVFS(
 	// - Preserves case. Even if the filesystem is case-insensitive but case-preserving and the
 	//   case differs, the actual case from disk is NOT detected.
 
-	boost::filesystem::path canonicalWorkDir = boost::filesystem::weakly_canonical(boost::filesystem::current_path());
+	boost::filesystem::path const canonicalWorkDir = boost::filesystem::weakly_canonical(boost::filesystem::current_path());
 
 	// NOTE: On UNIX systems the path returned from current_path() has symlinks resolved while on
 	// Windows it does not. To get consistent results we resolve them on all platforms.
-	boost::filesystem::path absolutePath = boost::filesystem::absolute(_path, canonicalWorkDir);
+	boost::filesystem::path const absolutePath = boost::filesystem::absolute(_path, canonicalWorkDir);
 
 	boost::filesystem::path normalizedPath;
 	if (_symlinkResolution == SymlinkResolution::Enabled)
@@ -264,10 +264,10 @@ boost::filesystem::path FileReader::normalizeCLIPathForVFS(
 	// include the root name. Do this only for non-UNC paths - my experiments show that on Windows
 	// when the working dir is an UNC path, / does not actually refer to the root of the UNC path.
 
-	boost::filesystem::path normalizedRootPath = normalizeCLIRootPathForVFS(normalizedPath, canonicalWorkDir);
+	boost::filesystem::path const normalizedRootPath = normalizeCLIRootPathForVFS(normalizedPath, canonicalWorkDir);
 
 	// lexically_normal() will not squash paths like "/../../" into "/". We have to do it manually.
-	boost::filesystem::path dotDotPrefix = absoluteDotDotPrefix(normalizedPath);
+	boost::filesystem::path const dotDotPrefix = absoluteDotDotPrefix(normalizedPath);
 
 	boost::filesystem::path normalizedPathNoDotDot = normalizedPath;
 	if (dotDotPrefix.empty())
@@ -296,9 +296,9 @@ boost::filesystem::path FileReader::normalizeCLIRootPathForVFS(
 {
 	solAssert(_workDir.is_absolute(), "");
 
-	boost::filesystem::path absolutePath = boost::filesystem::absolute(_path, _workDir);
+	boost::filesystem::path const absolutePath = boost::filesystem::absolute(_path, _workDir);
 	boost::filesystem::path rootPath = absolutePath.root_path();
-	boost::filesystem::path baseRootPath = _workDir.root_path();
+	boost::filesystem::path const baseRootPath = _workDir.root_path();
 
 	if (isUNCPath(absolutePath))
 		return rootPath;
@@ -322,7 +322,7 @@ bool FileReader::isPathPrefix(boost::filesystem::path const& _prefix, boost::fil
 	solAssert(_prefix == _prefix.lexically_normal().generic_string() && _path == _path.lexically_normal().generic_string(), "");
 	solAssert(!hasDotDotSegments(_prefix) && !hasDotDotSegments(_path), "");
 
-	boost::filesystem::path strippedPath = _path.lexically_relative(
+	boost::filesystem::path const strippedPath = _path.lexically_relative(
 		// Before 1.72.0 lexically_relative() was not handling paths with empty, dot and dot dot segments
 		// correctly (see https://github.com/boostorg/filesystem/issues/76). The only case where this
 		// is possible after our normalization is a directory name ending in a slash (filename is a dot).
@@ -347,7 +347,7 @@ boost::filesystem::path FileReader::absoluteDotDotPrefix(boost::filesystem::path
 {
 	solAssert(_path.is_absolute() || _path.root_path() == "/", "");
 
-	boost::filesystem::path _pathWithoutRoot = _path.relative_path();
+	boost::filesystem::path const _pathWithoutRoot = _path.relative_path();
 	boost::filesystem::path prefix;
 	for (boost::filesystem::path const& segment: _pathWithoutRoot)
 		if (segment.filename_is_dot_dot())

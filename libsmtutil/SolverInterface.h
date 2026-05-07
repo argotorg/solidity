@@ -211,7 +211,7 @@ public:
 	static Expression select(Expression _array, Expression _index)
 	{
 		smtAssert(_array.sort->kind == Kind::Array, "");
-		std::shared_ptr<ArraySort> arraySort = std::dynamic_pointer_cast<ArraySort>(_array.sort);
+		std::shared_ptr<ArraySort> const arraySort = std::dynamic_pointer_cast<ArraySort>(_array.sort);
 		smtAssert(arraySort, "");
 		smtAssert(_index.sort, "");
 		smtAssert(areCompatible(*arraySort->domain, *_index.sort));
@@ -257,7 +257,7 @@ public:
 	static Expression tuple_get(Expression _tuple, size_t _index)
 	{
 		smtAssert(_tuple.sort->kind == Kind::Tuple, "");
-		std::shared_ptr<TupleSort> tupleSort = std::dynamic_pointer_cast<TupleSort>(_tuple.sort);
+		std::shared_ptr<TupleSort> const tupleSort = std::dynamic_pointer_cast<TupleSort>(_tuple.sort);
 		smtAssert(tupleSort, "");
 		smtAssert(_index < tupleSort->components.size(), "");
 		return Expression(
@@ -284,7 +284,7 @@ public:
 	static Expression int2bv(Expression _n, size_t _size)
 	{
 		smtAssert(_n.sort->kind == Kind::Int, "");
-		std::shared_ptr<IntSort> intSort = std::dynamic_pointer_cast<IntSort>(_n.sort);
+		std::shared_ptr<IntSort> const intSort = std::dynamic_pointer_cast<IntSort>(_n.sort);
 		smtAssert(intSort, "");
 		smtAssert(_size <= 256, "");
 		return Expression(
@@ -297,7 +297,7 @@ public:
 	static Expression bv2int(Expression _bv, bool _signed = false)
 	{
 		smtAssert(_bv.sort->kind == Kind::BitVector, "");
-		std::shared_ptr<BitVectorSort> bvSort = std::dynamic_pointer_cast<BitVectorSort>(_bv.sort);
+		std::shared_ptr<BitVectorSort> const bvSort = std::dynamic_pointer_cast<BitVectorSort>(_bv.sort);
 		smtAssert(bvSort, "");
 		smtAssert(bvSort->size <= 256, "");
 		return Expression(

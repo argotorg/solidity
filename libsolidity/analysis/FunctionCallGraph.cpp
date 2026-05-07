@@ -95,7 +95,7 @@ CallGraph FunctionCallGraphBuilder::buildDeployedGraph(
 	// All functions present in internal dispatch at creation time could potentially be pointers
 	// assigned to state variables and as such may be reachable after deployment as well.
 	builder.m_currentNode = CallGraph::SpecialNode::InternalDispatch;
-	std::set<CallGraph::Node, CallGraph::CompareByID> defaultNode;
+	std::set<CallGraph::Node, CallGraph::CompareByID> const defaultNode;
 	for (CallGraph::Node const& dispatchTarget: util::valueOrDefault(_creationGraph.edges, CallGraph::SpecialNode::InternalDispatch, defaultNode))
 	{
 		solAssert(!std::holds_alternative<CallGraph::SpecialNode>(dispatchTarget), "");
@@ -318,7 +318,7 @@ std::ostream& solidity::frontend::operator<<(std::ostream& _out, CallGraph::Node
 		auto const* modifier = dynamic_cast<ModifierDefinition const *>(callableDeclaration);
 
 		auto typeToString = [](auto const& _var) -> std::string { return _var->type()->toString(true); };
-		std::vector<std::string> parameters = callableDeclaration->parameters() | ranges::views::transform(typeToString) | ranges::to<std::vector<std::string>>();
+		std::vector<std::string> const parameters = callableDeclaration->parameters() | ranges::views::transform(typeToString) | ranges::to<std::vector<std::string>>();
 
 		std::string scopeName;
 		if (!function || !function->isFree())

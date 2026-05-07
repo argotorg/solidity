@@ -67,8 +67,8 @@ void ExpressionInliner::visit(Expression& _expression)
 			if (!SideEffectsCollector(m_dialect, arg).movable())
 				return;
 
-			size_t refs = ReferencesCounter::countReferences(fun.body)[paraName];
-			size_t cost = CodeCost::codeCost(m_dialect, arg);
+			size_t const refs = ReferencesCounter::countReferences(fun.body)[paraName];
+			size_t const cost = CodeCost::codeCost(m_dialect, arg);
 
 			if (refs > 1 && cost > 1)
 				return;

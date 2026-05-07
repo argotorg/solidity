@@ -134,7 +134,7 @@ bool CHC::visit(ContractDefinition const& _contract)
 		return false;
 
 	// Raises UnimplementedFeatureError in the presence of transient storage variables
-	TransientDataLocationChecker checker(_contract);
+	TransientDataLocationChecker const checker(_contract);
 
 	resetContractAnalysis();
 	initContract(_contract);
@@ -171,7 +171,7 @@ void CHC::endVisit(ContractDefinition const& _contract)
 	for (auto var: stateVariablesIncludingInheritedAndPrivate(_contract))
 		zeroes = zeroes && currentValue(*var) == smt::zeroValue(var->type());
 
-	smtutil::Expression newAddress = encodeExternalCallsAsTrusted() ?
+	smtutil::Expression const newAddress = encodeExternalCallsAsTrusted() ?
 		!state().addressActive(state().thisAddress()) :
 		smtutil::Expression(true);
 
@@ -374,7 +374,7 @@ bool CHC::visit(IfStatement const& _if)
 {
 	solAssert(m_currentFunction, "");
 
-	bool unknownFunctionCallWasSeen = m_unknownFunctionCallSeen;
+	bool const unknownFunctionCallWasSeen = m_unknownFunctionCallSeen;
 	m_unknownFunctionCallSeen = false;
 
 	solAssert(m_currentFunction, "");
@@ -420,7 +420,7 @@ bool CHC::visit(IfStatement const& _if)
 
 bool CHC::visit(WhileStatement const& _while)
 {
-	bool unknownFunctionCallWasSeen = m_unknownFunctionCallSeen;
+	bool const unknownFunctionCallWasSeen = m_unknownFunctionCallSeen;
 	m_unknownFunctionCallSeen = false;
 
 	solAssert(m_currentFunction, "");
@@ -472,7 +472,7 @@ bool CHC::visit(ForStatement const& _for)
 {
 	m_scopes.push_back(&_for);
 
-	bool unknownFunctionCallWasSeen = m_unknownFunctionCallSeen;
+	bool const unknownFunctionCallWasSeen = m_unknownFunctionCallSeen;
 	m_unknownFunctionCallSeen = false;
 
 	solAssert(m_currentFunction, "");
@@ -623,7 +623,7 @@ void CHC::endVisit(FunctionCall const& _funCall)
 	{
 		auto value = _funCall.arguments().front();
 		solAssert(value, "");
-		smtutil::Expression thisBalance = state().balance();
+		smtutil::Expression const thisBalance = state().balance();
 
 		verificationTargetEncountered(
 			&_funCall,
@@ -928,7 +928,7 @@ void CHC::internalFunctionCall(FunctionCall const& _funCall)
 	for (auto& arg: _funCall.sortedArguments())
 		arguments.push_back(&(*arg));
 
-	std::optional<Expression const*> boundArgumentCall =
+	std::optional<Expression const*> const boundArgumentCall =
 		funType->hasBoundFirstArgument() ? std::make_optional(calledExpr) : std::nullopt;
 	internalFunctionCall(funDef, boundArgumentCall, funType, arguments, contractAddressValue(_funCall));
 }
@@ -965,7 +965,7 @@ void CHC::nondetCall(ContractDefinition const& _contract, VariableDeclaration co
 		m_currentContract
 	);
 	auto postCallState = std::vector<smtutil::Expression>{state().state()} + currentStateVariables(_contract);
-	std::vector<smtutil::Expression> stateExprs = commonStateExpressions(errorFlag().increaseIndex(), address);
+	std::vector<smtutil::Expression> const stateExprs = commonStateExpressions(errorFlag().increaseIndex(), address);
 
 	auto nondet = (*m_nondetInterfaces.at(&_contract))(stateExprs + preCallState + postCallState);
 	auto nondetCall = callPredicate(stateExprs + preCallState + postCallState);
@@ -1012,7 +1012,7 @@ void CHC::externalFunctionCall(FunctionCall const& _funCall)
 
 	auto function = functionCallToDefinition(_funCall, currentScopeContract(), m_currentContract);
 	if (function)
-		for (auto var: function->returnParameters())
+		for (auto const& var: function->returnParameters())
 			m_context.variable(*var)->increaseIndex();
 
 	// If we see a low level call in trusted mode,
@@ -1046,7 +1046,7 @@ void CHC::externalFunctionCall(FunctionCall const& _funCall)
 		&_funCall
 	);
 	auto postCallState = std::vector<smtutil::Expression>{state().state()} + currentStateVariables();
-	std::vector<smtutil::Expression> stateExprs = commonStateExpressions(errorFlag().increaseIndex(), state().thisAddress());
+	std::vector<smtutil::Expression> const stateExprs = commonStateExpressions(errorFlag().increaseIndex(), state().thisAddress());
 
 	auto nondet = (*m_nondetInterfaces.at(m_currentContract))(stateExprs + preCallState + postCallState);
 	auto nondetCall = callPredicate(stateExprs + preCallState + postCallState);
@@ -1115,7 +1115,7 @@ void CHC::externalFunctionCallToTrustedCode(FunctionCall const& _funCall)
 	std::vector<Expression const*> arguments;
 	for (auto& arg: _funCall.sortedArguments())
 		arguments.push_back(&(*arg));
-	smtutil::Expression pred = predicate(function, std::nullopt, &funType, arguments, calledAddress);
+	smtutil::Expression const pred = predicate(function, std::nullopt, &funType, arguments, calledAddress);
 
 	auto txConstraints = state().txTypeConstraints() && state().txFunctionConstraints(*function);
 	m_context.addAssertion(pred && txConstraints);
@@ -1374,7 +1374,7 @@ std::optional<CHC::CHCNatspecOption> CHC::natspecOptionFromString(std::string co
 std::set<CHC::CHCNatspecOption> CHC::smtNatspecTags(FunctionDefinition const& _function)
 {
 	std::set<CHC::CHCNatspecOption> options;
-	std::string smtStr = "custom:smtchecker";
+	std::string const smtStr = "custom:smtchecker";
 	bool errorSeen = false;
 	for (auto const& [tag, value]: _function.annotation().docTags)
 		if (tag == smtStr)
@@ -1427,7 +1427,7 @@ void CHC::defineInterfacesAndSummaries(SourceUnit const& _source)
 	for (auto const& node: _source.nodes())
 		if (auto const* contract = dynamic_cast<ContractDefinition const*>(node.get()))
 		{
-			std::string suffix = contract->name() + "_" + std::to_string(contract->id());
+			std::string const suffix = contract->name() + "_" + std::to_string(contract->id());
 			m_interfaces[contract] = createSymbolicBlock(interfaceSort(*contract, state()), "interface_" + uniquePrefix() + "_" + suffix, PredicateType::Interface, contract, contract);
 			m_nondetInterfaces[contract] = createSymbolicBlock(nondetInterfaceSort(*contract, state()), "nondet_interface_" + uniquePrefix() + "_" + suffix, PredicateType::NondetInterface, contract, contract);
 			m_constructorSummaries[contract] = createConstructorBlock(*contract, "summary_constructor");
@@ -1445,9 +1445,9 @@ void CHC::defineInterfacesAndSummaries(SourceUnit const& _source)
 			auto const& resolved = contractFunctions(*contract);
 			for (auto const* function: contractFunctionsWithoutVirtual(*contract) + allFreeFunctions())
 			{
-				for (auto var: function->parameters())
+				for (auto const& var: function->parameters())
 					createVariable(*var);
-				for (auto var: function->returnParameters())
+				for (auto const& var: function->returnParameters())
 					createVariable(*var);
 				for (auto const* var: localVariablesIncludingModifiers(*function, contract))
 					createVariable(*var);
@@ -1506,7 +1506,7 @@ void CHC::defineExternalFunctionInterface(FunctionDefinition const& _function, C
 	// block.coinbase, which do not trigger calls into the contract.
 	// So the only constraint we can add here is that the balance of
 	// the contract grows by at least `msg.value`.
-	SymbolicIntVariable k{TypeProvider::uint256(), TypeProvider::uint256(), "funds_" + std::to_string(m_context.newUniqueId()), m_context};
+	SymbolicIntVariable const k{TypeProvider::uint256(), TypeProvider::uint256(), "funds_" + std::to_string(m_context.newUniqueId()), m_context};
 	m_context.addAssertion(k.currentValue() >= state().txMember("msg.value"));
 	// Assume that address(this).balance cannot overflow.
 	m_context.addAssertion(smt::symbolicUnknownConstraints(state().balance(state().thisAddress()) + k.currentValue(), TypeProvider::uint256()));
@@ -1714,7 +1714,7 @@ void CHC::createErrorBlock()
 
 void CHC::connectBlocks(smtutil::Expression const& _from, smtutil::Expression const& _to, smtutil::Expression const& _constraints)
 {
-	smtutil::Expression edge = smtutil::Expression::implies(
+	smtutil::Expression const edge = smtutil::Expression::implies(
 		_from && m_context.assertions() && _constraints,
 		_to
 	);
@@ -1856,7 +1856,7 @@ smtutil::Expression CHC::predicate(
 	args += std::vector<smtutil::Expression>{state().state()};
 	args += currentStateVariables(*contract);
 
-	for (auto var: _funDef->parameters() + _funDef->returnParameters())
+	for (auto const& var: _funDef->parameters() + _funDef->returnParameters())
 	{
 		if (m_context.knownVariable(*var))
 			m_context.variable(*var)->increaseIndex();
@@ -1889,7 +1889,7 @@ CHCSolverInterface::QueryResult CHC::query(smtutil::Expression const& _query, la
 	{
 		auto smtLibInterface = dynamic_cast<CHCSmtLib2Interface*>(m_interface.get());
 		solAssert(smtLibInterface, "Requested to print queries but CHCSmtLib2Interface not available");
-		std::string smtLibCode = smtLibInterface->dumpQuery(_query);
+		std::string const smtLibCode = smtLibInterface->dumpQuery(_query);
 		m_errorReporter.info(
 			2339_error,
 			"CHC: Requested query:\n" + smtLibCode
@@ -1925,7 +1925,7 @@ void CHC::verificationTargetEncountered(
 	if (!(m_currentContract || m_currentFunction))
 		return;
 
-	bool scopeIsFunction = m_currentFunction && !m_currentFunction->isConstructor();
+	bool const scopeIsFunction = m_currentFunction && !m_currentFunction->isConstructor();
 	auto errorId = newErrorId();
 	solAssert(m_verificationTargets.count(errorId) == 0, "Error ID is not unique!");
 	m_verificationTargets.emplace(errorId, CHCVerificationTarget{{_type, _errorCondition, smtutil::Expression(true)}, errorId, _errorNode});
@@ -2008,7 +2008,7 @@ void CHC::checkVerificationTargets()
 	{
 		auto functionTargets = transactionVerificationTargetsIds(function);
 		for (auto const& placeholder: placeholders)
-			for (unsigned id: functionTargets)
+			for (unsigned const id: functionTargets)
 				targetEntryPoints[id].push_back(placeholder);
 	}
 
@@ -2104,7 +2104,7 @@ void CHC::checkVerificationTargets()
 				if (!seenErrors.count(target.errorId))
 				{
 					seenErrors.insert(target.errorId);
-					std::string loc = std::string(m_charStreamProvider.charStream(*target.errorNode->location().sourceName).text(target.errorNode->location()));
+					std::string const loc = std::string(m_charStreamProvider.charStream(*target.errorNode->location().sourceName).text(target.errorNode->location()));
 					msg += "<errorCode> = " + std::to_string(target.errorId) + " -> " + ModelCheckerTargets::targetTypeToString.at(target.type) + " at " + loc + "\n";
 
 				}
@@ -2118,7 +2118,7 @@ void CHC::checkVerificationTargets()
 	// must still be reported safe by the BMC engine.
 	std::set<unsigned> allErrorIds;
 	for (auto const& entry: m_functionTargetIds)
-		for (unsigned id: entry.second)
+		for (unsigned const id: entry.second)
 			allErrorIds.insert(id);
 
 	std::set<unsigned> unreachableErrorIds;
@@ -2339,7 +2339,7 @@ std::optional<std::string> CHC::generateCounterexample(CHCSolverInterface::CexGr
 					path.emplace_back("State: " + modelMsg);
 			}
 		}
-		std::string txCex = summaryPredicate->formatSummaryCall(summaryArgs, m_charStreamProvider);
+		std::string const txCex = summaryPredicate->formatSummaryCall(summaryArgs, m_charStreamProvider);
 
 		std::list<std::string> calls;
 		auto dfs = [&](unsigned parent, unsigned node, unsigned depth, auto&& _dfs) -> void {
@@ -2349,10 +2349,10 @@ std::optional<std::string> CHC::generateCounterexample(CHCSolverInterface::CexGr
 			solAssert(parentPred && parentPred->isSummary(), "");
 			auto callTraceSize = calls.size();
 			if (!pred->isConstructorSummary())
-				for (unsigned v: callGraph[node])
+				for (unsigned const v: callGraph[node])
 					_dfs(node, v, depth + 1, _dfs);
 
-			bool appendTxVars = pred->isConstructorSummary() || pred->isFunctionSummary() || pred->isExternalCallUntrusted();
+			bool const appendTxVars = pred->isConstructorSummary() || pred->isFunctionSummary() || pred->isExternalCallUntrusted();
 
 			calls.push_front(std::string(depth * 4, ' ') + pred->formatSummaryCall(nodeArgs(node), m_charStreamProvider, appendTxVars));
 			if (pred->isInternalCall())
@@ -2429,7 +2429,7 @@ std::map<unsigned, std::vector<unsigned>> CHC::summaryCalls(CHCSolverInterface::
 			root = node;
 		}
 		auto const& edges = _graph.edges.at(node);
-		for (unsigned v: std::set<unsigned, decltype(compare)>(begin(edges), end(edges), compare))
+		for (unsigned const v: std::set<unsigned, decltype(compare)>(begin(edges), end(edges), compare))
 			q.push({v, root});
 	}
 
@@ -2441,7 +2441,7 @@ std::string CHC::cex2dot(CHCSolverInterface::CexGraph const& _cex)
 	std::string dot = "digraph {\n";
 
 	auto pred = [&](CHCSolverInterface::CexNode const& _node) {
-		std::vector<std::string> args = applyMap(
+		std::vector<std::string> const args = applyMap(
 			_node.arguments,
 			[&](auto const& arg) { return arg.name; }
 		);

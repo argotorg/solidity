@@ -42,11 +42,11 @@ std::pair<bool, ArraySlicePredicate::SliceData const&> ArraySlicePredicate::crea
 	auto sort = tupleSort->components.at(0);
 	solAssert(sort->kind == Kind::Array, "");
 
-	smt::SymbolicArrayVariable aVar{sort, "a_" + tupleName, _context };
-	smt::SymbolicArrayVariable bVar{sort, "b_" + tupleName, _context};
-	smt::SymbolicIntVariable startVar{TypeProvider::uint256(), TypeProvider::uint256(), "start_" + tupleName, _context};
-	smt::SymbolicIntVariable endVar{TypeProvider::uint256(), TypeProvider::uint256(), "end_" + tupleName, _context };
-	smt::SymbolicIntVariable iVar{TypeProvider::uint256(), TypeProvider::uint256(), "i_" + tupleName, _context};
+	smt::SymbolicArrayVariable const aVar{sort, "a_" + tupleName, _context };
+	smt::SymbolicArrayVariable const bVar{sort, "b_" + tupleName, _context};
+	smt::SymbolicIntVariable const startVar{TypeProvider::uint256(), TypeProvider::uint256(), "start_" + tupleName, _context};
+	smt::SymbolicIntVariable const endVar{TypeProvider::uint256(), TypeProvider::uint256(), "end_" + tupleName, _context };
+	smt::SymbolicIntVariable const iVar{TypeProvider::uint256(), TypeProvider::uint256(), "i_" + tupleName, _context};
 
 	std::vector<SortPointer> domain{sort, sort, startVar.sort(), endVar.sort()};
 	auto sliceSort = std::make_shared<FunctionSort>(domain, SortProvider::boolSort);

@@ -41,7 +41,7 @@ public:
 	TestResult run(std::ostream& _stream, std::string const& _linePrefix = "", bool const _formatted = false) override;
 
 private:
-	std::string interpret(std::shared_ptr<Object const> const& _object);
+	std::string interpret(std::shared_ptr<Object const> const& _object) const;
 
 	bool m_simulateExternalCallsToSelf = false;
 };

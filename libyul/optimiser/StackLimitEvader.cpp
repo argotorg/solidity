@@ -77,7 +77,7 @@ struct MemoryOffsetAllocator
 		{
 			if (FunctionDefinition const* functionDefinition = util::valueOrDefault(functionDefinitions, std::get<YulName>(_function), nullptr, util::allow_copy))
 				if (
-					size_t totalArgCount = functionDefinition->returnVariables.size() + functionDefinition->parameters.size();
+					size_t const totalArgCount = functionDefinition->returnVariables.size() + functionDefinition->parameters.size();
 					totalArgCount > reachableStackDepth
 				)
 					for (NameWithDebugData const& var: ranges::concat_view(
@@ -88,7 +88,7 @@ struct MemoryOffsetAllocator
 
 			// Assign slots for all variables that become unreachable in the function body, if the above did not
 			// assign a slot for them already.
-			for (YulName variable: *unreachables)
+			for (YulName const variable: *unreachables)
 				// The empty case is a function with too many arguments or return values,
 				// which was already handled above.
 				if (!variable.empty() && !slotAllocations.count(variable))
@@ -141,12 +141,12 @@ Block StackLimitEvader::run(
 	auto astRoot = std::get<Block>(ASTCopier{}(_object.code()->root()));
 	if (evmDialect && evmDialect->evmVersion().canOverchargeGasForCall())
 	{
-		yul::AsmAnalysisInfo analysisInfo = yul::AsmAnalyzer::analyzeStrictAssertCorrect(
+		yul::AsmAnalysisInfo const analysisInfo = yul::AsmAnalyzer::analyzeStrictAssertCorrect(
 			*evmDialect,
 			astRoot,
 			_object.summarizeStructure()
 		);
-		std::unique_ptr<CFG> cfg = ControlFlowGraphBuilder::build(analysisInfo, *evmDialect, astRoot);
+		std::unique_ptr<CFG> const cfg = ControlFlowGraphBuilder::build(analysisInfo, *evmDialect, astRoot);
 		run(_context, astRoot, StackLayoutGenerator::reportStackTooDeep(*cfg, *evmDialect));
 	}
 	else
@@ -218,7 +218,7 @@ void StackLimitEvader::run(
 		if (reservedMemory != literalArgumentValue(*memoryGuardCall))
 			return;
 
-	CallGraph callGraph = CallGraphGenerator::callGraph(_astRoot);
+	CallGraph const callGraph = CallGraphGenerator::callGraph(_astRoot);
 
 	// We cannot move variables in recursive functions to fixed memory offsets.
 	for (FunctionHandle function: callGraph.recursiveFunctions())
@@ -228,7 +228,7 @@ void StackLimitEvader::run(
 			return;
 	}
 
-	std::map<YulName, FunctionDefinition const*> functionDefinitions = allFunctionDefinitions(_astRoot);
+	std::map<YulName, FunctionDefinition const*> const functionDefinitions = allFunctionDefinitions(_astRoot);
 
 	MemoryOffsetAllocator memoryOffsetAllocator{
 		_unreachableVariables,
@@ -236,7 +236,7 @@ void StackLimitEvader::run(
 		functionDefinitions,
 		evmDialect->reachableStackDepth()
 	};
-	uint64_t requiredSlots = memoryOffsetAllocator.run();
+	uint64_t const requiredSlots = memoryOffsetAllocator.run();
 	yulAssert(requiredSlots < (uint64_t(1) << 32) - 1, "");
 
 	StackToMemoryMover::run(_context, reservedMemory, memoryOffsetAllocator.slotAllocations, requiredSlots, _astRoot);

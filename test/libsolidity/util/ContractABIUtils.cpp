@@ -60,7 +60,7 @@ size_t arraySize(std::string const& _arrayType)
 		""
 	);
 
-	std::string size = _arrayType.substr(leftBrack + 1, rightBrack - leftBrack - 1);
+	std::string const size = _arrayType.substr(leftBrack + 1, rightBrack - leftBrack - 1);
 
 	return static_cast<size_t>(stoi(size));
 }
@@ -181,7 +181,7 @@ std::optional<solidity::frontend::test::ParameterList> ContractABIUtils::paramet
 
 			for (auto const& output: function["outputs"])
 			{
-				std::string type = output["type"].get<std::string>();
+				std::string const type = output["type"].get<std::string>();
 
 				ABITypes inplaceTypes;
 				ABITypes dynamicTypes;
@@ -219,7 +219,7 @@ bool ContractABIUtils::appendTypesFromName(
 	bool _isCompoundType
 )
 {
-	std::string type = _functionOutput["type"].get<std::string>();
+	std::string const type = _functionOutput["type"].get<std::string>();
 	if (isBool(type))
 		_inplaceTypes.push_back(ABIType{ABIType::Boolean});
 	else if (isUint(type))
@@ -340,7 +340,7 @@ solidity::frontend::test::ParameterList ContractABIUtils::failureParameters(byte
 		ParameterList parameters;
 		parameters.push_back(Parameter{bytes(), "", ABIType{ABIType::HexString, ABIType::AlignNone, 4}, FormatInfo{}});
 
-		uint64_t selector = fromBigEndian<uint64_t>(bytes{_bytes.begin(), _bytes.begin() + 4});
+		uint64_t const selector = fromBigEndian<uint64_t>(bytes{_bytes.begin(), _bytes.begin() + 4});
 		if (selector == selectorFromSignatureU32("Panic(uint256)"))
 			parameters.push_back(Parameter{bytes(), "", ABIType{ABIType::Hex}, FormatInfo{}});
 		else if (selector == selectorFromSignatureU32("Error(string)"))

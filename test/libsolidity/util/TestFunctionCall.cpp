@@ -49,15 +49,15 @@ std::string TestFunctionCall::format(
 
 	auto formatOutput = [&](bool const _singleLine)
 	{
-		std::string ws = " ";
-		std::string arrow = formatToken(Token::Arrow);
-		std::string colon = formatToken(Token::Colon);
-		std::string comma = formatToken(Token::Comma);
-		std::string comment = formatToken(Token::Comment);
-		std::string ether = formatToken(Token::Ether);
-		std::string wei = formatToken(Token::Wei);
-		std::string newline = formatToken(Token::Newline);
-		std::string failure = formatToken(Token::Failure);
+		std::string const ws = " ";
+		std::string const arrow = formatToken(Token::Arrow);
+		std::string const colon = formatToken(Token::Colon);
+		std::string const comma = formatToken(Token::Comma);
+		std::string const comment = formatToken(Token::Comment);
+		std::string const ether = formatToken(Token::Ether);
+		std::string const wei = formatToken(Token::Wei);
+		std::string const newline = formatToken(Token::Newline);
+		std::string const failure = formatToken(Token::Failure);
 
 		if (m_call.kind == FunctionCall::Kind::Library)
 		{
@@ -86,7 +86,7 @@ std::string TestFunctionCall::format(
 		}
 		if (!m_call.arguments.rawBytes().empty())
 		{
-			std::string output = formatRawParameters(m_call.arguments.parameters, _linePrefix);
+			std::string const output = formatRawParameters(m_call.arguments.parameters, _linePrefix);
 			stream << colon;
 			if (!m_call.arguments.parameters.at(0).format.newline)
 				stream << ws;
@@ -135,7 +135,7 @@ std::string TestFunctionCall::format(
 			if (m_calledNonExistingFunction)
 				_errorReporter.warning("The function \"" + m_call.signature + "\" is not known to the compiler.");
 
-			bytes output = m_rawBytes;
+			bytes const output = m_rawBytes;
 			bool const isFailure = m_failure;
 			result = isFailure ?
 				formatFailure(_errorReporter, m_call, output, _renderMode == RenderMode::ActualValuesExpectedGas, highlight) :
@@ -165,7 +165,7 @@ std::string TestFunctionCall::format(
 						m_call.signature
 					);
 
-				std::string bytesOutput = abiParams ?
+				std::string const bytesOutput = abiParams ?
 					BytesUtils::formatRawBytes(output, abiParams.value(), _linePrefix) :
 					BytesUtils::formatRawBytes(
 						output,
@@ -345,7 +345,7 @@ std::string formatGasDiff(std::optional<u256> const& _gasUsed, std::optional<u25
 
 	solUnimplementedAssert(*_gasUsed < u256(1) << 255);
 	solUnimplementedAssert(*_reference < u256(1) << 255);
-	s256 difference = static_cast<s256>(*_gasUsed) - static_cast<s256>(*_reference);
+	s256 const difference = static_cast<s256>(*_gasUsed) - static_cast<s256>(*_reference);
 
 	if (*_reference == 0)
 		return fmt::format("{}", difference.str());
@@ -385,10 +385,10 @@ std::string TestFunctionCall::formatGasExpectations(
 	{
 		soltestAssert(runType != "");
 
-		u256 gasUsedForCodeDeposit = (_useActualCost ? m_codeDepositGasCosts : m_call.expectations.gasUsedForCodeDeposit).at(runType);
+		u256 const gasUsedForCodeDeposit = (_useActualCost ? m_codeDepositGasCosts : m_call.expectations.gasUsedForCodeDeposit).at(runType);
 
 		os << std::endl << _linePrefix << "// gas " << runType << ": " << gasUsedExcludingCode.str();
-		std::string gasDiff = formatGasDiff(
+		std::string const gasDiff = formatGasDiff(
 			gasOrNullopt(m_gasCostsExcludingCode, runType),
 			gasOrNullopt(m_call.expectations.gasUsedExcludingCode, runType)
 		);
@@ -398,7 +398,7 @@ std::string TestFunctionCall::formatGasExpectations(
 		if (gasUsedForCodeDeposit != 0)
 		{
 			os << std::endl << _linePrefix << "// gas " << runType << " code: " << gasUsedForCodeDeposit.str();
-			std::string codeGasDiff = formatGasDiff(
+			std::string const codeGasDiff = formatGasDiff(
 				gasOrNullopt(m_codeDepositGasCosts, runType),
 				gasOrNullopt(m_call.expectations.gasUsedForCodeDeposit, runType)
 			);

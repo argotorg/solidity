@@ -124,15 +124,15 @@ void SourceReferenceFormatter::printSourceLocation(SourceReference const& _ref)
 		return; // No line available, nothing else to print
 	}
 
-	std::string line = std::to_string(_ref.position.line + 1); // one-based line number as string
-	std::string leftpad = std::string(line.size(), ' ');
+	std::string const line = std::to_string(_ref.position.line + 1); // one-based line number as string
+	std::string const leftpad = std::string(line.size(), ' ');
 
 	// line 0: source name
 	m_stream << leftpad;
 	frameColored() << "-->";
 	m_stream << ' ' << _ref.sourceName << ':' << line << ':' << (_ref.position.column + 1) << ":\n";
 
-	std::string_view text = _ref.text;
+	std::string_view const text = _ref.text;
 
 	if (m_charStreamProvider.charStream(_ref.sourceName).isImportedFromAST())
 		return;
@@ -236,7 +236,7 @@ void SourceReferenceFormatter::printErrorInformation(ErrorList const& _errors)
 
 void SourceReferenceFormatter::printErrorInformation(Error const& _error)
 {
-	SourceReferenceExtractor::Message message =
+	SourceReferenceExtractor::Message const message =
 		SourceReferenceExtractor::extract(
 			m_charStreamProvider,
 			_error,

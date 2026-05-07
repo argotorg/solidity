@@ -101,12 +101,12 @@ void OptimiserSuite::run(
 	yulAssert(_object.dialect());
 	auto const& dialect = *_object.dialect();
 	EVMDialect const* evmDialect = dynamic_cast<EVMDialect const*>(_object.dialect());
-	bool usesOptimizedCodeGenerator =
+	bool const usesOptimizedCodeGenerator =
 		_optimizeStackAllocation &&
 		evmDialect &&
 		evmDialect->evmVersion().canOverchargeGasForCall() &&
 		evmDialect->providesObjectAccess();
-	std::set<YulName> reservedIdentifiers = _externallyUsedIdentifiers;
+	std::set<YulName> const reservedIdentifiers = _externallyUsedIdentifiers;
 
 	Block astRoot;
 	{
@@ -131,7 +131,7 @@ void OptimiserSuite::run(
 	suite.runSequence(_optimisationSequence, astRoot);
 
 	// This is a tuning parameter, but actually just prevents infinite loops.
-	size_t stackCompressorMaxIterations = 16;
+	size_t const stackCompressorMaxIterations = 16;
 	suite.runSequence("g", astRoot);
 
 	// We ignore the return value because we will get a much better error
@@ -316,7 +316,7 @@ std::map<std::string, char> const& OptimiserSuite::stepNameToAbbreviationMap()
 
 std::map<char, std::string> const& OptimiserSuite::stepAbbreviationToNameMap()
 {
-	static std::map<char, std::string> lookupTable = util::invertMap(stepNameToAbbreviationMap());
+	static std::map<char, std::string> const lookupTable = util::invertMap(stepNameToAbbreviationMap());
 
 	return lookupTable;
 }
@@ -325,7 +325,7 @@ void OptimiserSuite::validateSequence(std::string_view _stepAbbreviations)
 {
 	int8_t nestingLevel = 0;
 	int8_t colonDelimiters = 0;
-	for (char abbreviation: _stepAbbreviations)
+	for (char const abbreviation: _stepAbbreviations)
 		switch (abbreviation)
 		{
 		case ' ':
@@ -396,7 +396,7 @@ void OptimiserSuite::runSequence(std::string_view _stepAbbreviations, Block& _as
 
 		size_t contentLength = 0;
 		int8_t nestingLevel = 1;
-		for (char abbreviation: _tail.substr(1))
+		for (char const abbreviation: _tail.substr(1))
 		{
 			if (abbreviation == '[')
 			{
@@ -420,7 +420,7 @@ void OptimiserSuite::runSequence(std::string_view _stepAbbreviations, Block& _as
 	auto abbreviationsToSteps = [](std::string_view _sequence) -> std::vector<std::string>
 	{
 		std::vector<std::string> steps;
-		for (char abbreviation: _sequence)
+		for (char const abbreviation: _sequence)
 			if (abbreviation != ' ' && abbreviation != '\n')
 				steps.emplace_back(stepAbbreviationToNameMap().at(abbreviation));
 		return steps;
@@ -459,7 +459,7 @@ void OptimiserSuite::runSequence(std::string_view _stepAbbreviations, Block& _as
 		if (!_repeatUntilStable)
 			break;
 
-		size_t newSize = CodeSize::codeSizeIncludingFunctions(_ast);
+		size_t const newSize = CodeSize::codeSizeIncludingFunctions(_ast);
 		if (newSize == codeSize)
 			break;
 		codeSize = newSize;

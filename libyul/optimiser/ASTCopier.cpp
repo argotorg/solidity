@@ -84,10 +84,10 @@ Statement ASTCopier::operator()(Switch const& _switch)
 
 Statement ASTCopier::operator()(FunctionDefinition const& _function)
 {
-	YulName translatedName = translateIdentifier(_function.name);
+	YulName const translatedName = translateIdentifier(_function.name);
 
 	enterFunction(_function);
-	ScopeGuard g([&]() { this->leaveFunction(_function); });
+	ScopeGuard const g([&]() { this->leaveFunction(_function); });
 
 	return FunctionDefinition{
 		_function.debugData,
@@ -101,7 +101,7 @@ Statement ASTCopier::operator()(FunctionDefinition const& _function)
 Statement ASTCopier::operator()(ForLoop const& _forLoop)
 {
 	enterScope(_forLoop.pre);
-	ScopeGuard g([&]() { this->leaveScope(_forLoop.pre); });
+	ScopeGuard const g([&]() { this->leaveScope(_forLoop.pre); });
 
 	return ForLoop{
 		_forLoop.debugData,
@@ -144,7 +144,7 @@ Statement ASTCopier::translate(Statement const& _statement)
 Block ASTCopier::translate(Block const& _block)
 {
 	enterScope(_block);
-	ScopeGuard g([&]() { this->leaveScope(_block); });
+	ScopeGuard const g([&]() { this->leaveScope(_block); });
 
 	return Block{_block.debugData, translateVector(_block.statements)};
 }

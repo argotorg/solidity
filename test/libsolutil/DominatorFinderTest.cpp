@@ -111,7 +111,7 @@ public:
 			| ranges::to<std::set<TestVertexLabel>>
 		);
 		validateVertices(_expectedDFSIndices | ranges::views::keys | ranges::to<std::set<TestVertexLabel>>);
-		bool allDFSIndexInRange = std::all_of(
+		bool const allDFSIndexInRange = std::all_of(
 			_expectedDFSIndices.begin(),
 			_expectedDFSIndices.end(),
 			[&](auto const& pair) {
@@ -236,7 +236,7 @@ BOOST_AUTO_TEST_CASE(immediate_dominator_1)
 		}
 	);
 
-	TestDominatorFinder dominatorFinder(*test.entry);
+	TestDominatorFinder const dominatorFinder(*test.entry);
 	BOOST_TEST(dominatorFinder.immediateDominators() == test.expectedImmediateDominators);
 	BOOST_TEST(dominatorFinder.dfsIndexById() == test.expectedDFSIndices);
 	BOOST_TEST(dominatorFinder.dominatorTree() == test.expectedDominatorTree);
@@ -290,7 +290,7 @@ BOOST_AUTO_TEST_CASE(immediate_dominator_2)
 		}
 	);
 
-	TestDominatorFinder dominatorFinder(*test.entry);
+	TestDominatorFinder const dominatorFinder(*test.entry);
 	BOOST_TEST(dominatorFinder.immediateDominators() == test.expectedImmediateDominators);
 	BOOST_TEST(dominatorFinder.dfsIndexById() == test.expectedDFSIndices);
 	BOOST_TEST(dominatorFinder.dominatorTree() == test.expectedDominatorTree);
@@ -369,7 +369,7 @@ BOOST_AUTO_TEST_CASE(immediate_dominator_3)
 		}
 	);
 
-	TestDominatorFinder dominatorFinder(*test.entry);
+	TestDominatorFinder const dominatorFinder(*test.entry);
 	BOOST_TEST(dominatorFinder.immediateDominators() == test.expectedImmediateDominators);
 	BOOST_TEST(dominatorFinder.dfsIndexById() == test.expectedDFSIndices);
 	BOOST_TEST(dominatorFinder.dominatorTree() == test.expectedDominatorTree);
@@ -442,7 +442,7 @@ BOOST_AUTO_TEST_CASE(langauer_tarjan_p122_fig1)
 		}
 	);
 
-	TestDominatorFinder dominatorFinder(*test.entry);
+	TestDominatorFinder const dominatorFinder(*test.entry);
 	BOOST_TEST(dominatorFinder.immediateDominators() == test.expectedImmediateDominators);
 	BOOST_TEST(dominatorFinder.dfsIndexById() == test.expectedDFSIndices);
 	BOOST_TEST(dominatorFinder.dominatorTree() == test.expectedDominatorTree);
@@ -502,7 +502,7 @@ BOOST_AUTO_TEST_CASE(loukas_georgiadis)
 		}
 	);
 
-	TestDominatorFinder dominatorFinder(*test.entry);
+	TestDominatorFinder const dominatorFinder(*test.entry);
 	BOOST_TEST(dominatorFinder.immediateDominators() == test.expectedImmediateDominators);
 	BOOST_TEST(dominatorFinder.dfsIndexById() == test.expectedDFSIndices);
 	BOOST_TEST(dominatorFinder.dominatorTree() == test.expectedDominatorTree);
@@ -581,7 +581,7 @@ BOOST_AUTO_TEST_CASE(itworst)
 		}
 	);
 
-	TestDominatorFinder dominatorFinder(*test.entry);
+	TestDominatorFinder const dominatorFinder(*test.entry);
 	BOOST_TEST(dominatorFinder.immediateDominators() == test.expectedImmediateDominators);
 	BOOST_TEST(dominatorFinder.dfsIndexById() == test.expectedDFSIndices);
 	BOOST_TEST(dominatorFinder.dominatorTree() == test.expectedDominatorTree);
@@ -642,7 +642,7 @@ BOOST_AUTO_TEST_CASE(idfsquad)
 		}
 	);
 
-	TestDominatorFinder dominatorFinder(*test.entry);
+	TestDominatorFinder const dominatorFinder(*test.entry);
 	BOOST_TEST(dominatorFinder.immediateDominators() == test.expectedImmediateDominators);
 	BOOST_TEST(dominatorFinder.dfsIndexById() == test.expectedDFSIndices);
 	BOOST_TEST(dominatorFinder.dominatorTree() == test.expectedDominatorTree);
@@ -690,7 +690,7 @@ BOOST_AUTO_TEST_CASE(ibsfquad)
 		}
 	);
 
-	TestDominatorFinder dominatorFinder(*test.entry);
+	TestDominatorFinder const dominatorFinder(*test.entry);
 	BOOST_TEST(dominatorFinder.immediateDominators() == test.expectedImmediateDominators);
 	BOOST_TEST(dominatorFinder.dfsIndexById() == test.expectedDFSIndices);
 	BOOST_TEST(dominatorFinder.dominatorTree() == test.expectedDominatorTree);
@@ -739,7 +739,7 @@ BOOST_AUTO_TEST_CASE(sncaworst)
 		}
 	);
 
-	TestDominatorFinder dominatorFinder(*test.entry);
+	TestDominatorFinder const dominatorFinder(*test.entry);
 	BOOST_TEST(dominatorFinder.immediateDominators() == test.expectedImmediateDominators);
 	BOOST_TEST(dominatorFinder.dfsIndexById() == test.expectedDFSIndices);
 	BOOST_TEST(dominatorFinder.dominatorTree() == test.expectedDominatorTree);
@@ -788,7 +788,7 @@ BOOST_AUTO_TEST_CASE(collect_all_dominators_of_a_vertex)
 		}) | ranges::to<std::vector<TestVertexLabel>>;
 	};
 
-	TestDominatorFinder dominatorFinder(*test.entry);
+	TestDominatorFinder const dominatorFinder(*test.entry);
 	BOOST_TEST(toVertexLabel(dominatorFinder.dominatorsOf(test.vertexIdMap["A"])) == std::vector<TestVertexLabel>());
 	BOOST_TEST(toVertexLabel(dominatorFinder.dominatorsOf(test.vertexIdMap["B"])) == std::vector<TestVertexLabel>({"A"}));
 	BOOST_TEST(toVertexLabel(dominatorFinder.dominatorsOf(test.vertexIdMap["C"])) == std::vector<TestVertexLabel>({"B", "A"}));
@@ -850,7 +850,7 @@ BOOST_AUTO_TEST_CASE(check_dominance)
 	// represents if the vertex dominates the other vertex at that index.
 	auto makeDominanceVertexRelation = [&](std::vector<TestDominatorFinder::DfsIndex> const& _indices = {}){
 		std::vector<bool> dominance(test.vertices.size(), false);
-		for (TestDominatorFinder::DfsIndex i: _indices)
+		for (TestDominatorFinder::DfsIndex const i: _indices)
 		{
 			soltestAssert(i < test.vertices.size());
 			dominance[i] = true;
@@ -872,7 +872,7 @@ BOOST_AUTO_TEST_CASE(check_dominance)
 	};
 	soltestAssert(expectedDominanceTable.size() == test.vertices.size());
 
-	TestDominatorFinder dominatorFinder(*test.entry);
+	TestDominatorFinder const dominatorFinder(*test.entry);
 	BOOST_TEST(dominatorFinder.dfsIndexById() == test.expectedDFSIndices);
 	// Check if the dominance table is as expected.
 	for (TestDominatorFinder::DfsIndex i = 0; i < expectedDominanceTable.size(); ++i)
@@ -909,7 +909,7 @@ BOOST_AUTO_TEST_CASE(no_edges)
 		{}
 	);
 
-	TestDominatorFinder dominatorFinder(*test.entry);
+	TestDominatorFinder const dominatorFinder(*test.entry);
 	BOOST_TEST(dominatorFinder.immediateDominators() == test.expectedImmediateDominators);
 	BOOST_TEST(dominatorFinder.dfsIndexById() == test.expectedDFSIndices);
 	BOOST_TEST(dominatorFinder.dominatorTree() == test.expectedDominatorTree);

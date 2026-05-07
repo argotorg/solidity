@@ -360,7 +360,7 @@ public:
 			return;
 
 		size_t maxStackDepth = 0;
-		for (const auto& [operation, stackAfter]: m_entries)
+		for (auto const& [operation, stackAfter]: m_entries)
 			maxStackDepth = std::max(maxStackDepth, stackAfter.size());
 
 		if (maxStackDepth == 0)
@@ -368,7 +368,7 @@ public:
 
 		std::size_t const numColumns = std::max(maxStackDepth, m_targetStackSize);
 		std::vector columnWidths(numColumns, slotColumnWidth);
-		for (const auto& [operation, stackAfter]: m_entries)
+		for (auto const& [operation, stackAfter]: m_entries)
 			for (std::size_t i = 0; i < stackAfter.size(); ++i)
 			{
 				std::string const slotStr = stackAfter[i].isJunk() ? std::string(1, junkSymbol) : m_table.render(stackAfter[i]);

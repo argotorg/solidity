@@ -78,7 +78,7 @@ Json ABI::generate(ContractDefinition const& _contractDef)
 	FunctionDefinition const* constructor = _contractDef.constructor();
 	if (constructor && !_contractDef.abstract())
 	{
-		FunctionType constrType(*constructor);
+		FunctionType const constrType(*constructor);
 		FunctionType const* externalFunctionType = constrType.interfaceFunctionType();
 		solAssert(!!externalFunctionType, "");
 		Json method;
@@ -172,7 +172,7 @@ Json ABI::formatType(
 	Json ret;
 	ret["name"] = _name;
 	ret["internalType"] = _solidityType.toString(true);
-	std::string suffix = (_forLibrary && _encodingType.dataStoredIn(DataLocation::Storage)) ? " storage" : "";
+	std::string const suffix = (_forLibrary && _encodingType.dataStoredIn(DataLocation::Storage)) ? " storage" : "";
 	if (_encodingType.isValueType() || (_forLibrary && _encodingType.dataStoredIn(DataLocation::Storage)))
 		ret["type"] = _encodingType.canonicalName() + suffix;
 	else if (ArrayType const* arrayType = dynamic_cast<ArrayType const*>(&_encodingType))

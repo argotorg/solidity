@@ -103,8 +103,8 @@ LineColumn CharStream::translatePositionToLineColumn(int _position) const
 {
 	using size_type = std::string::size_type;
 	using diff_type = std::string::difference_type;
-	size_type searchPosition = std::min<size_type>(m_source.size(), size_type(_position));
-	int lineNumber = static_cast<int>(count(m_source.begin(), m_source.begin() + diff_type(searchPosition), '\n'));
+	size_type const searchPosition = std::min<size_type>(m_source.size(), size_type(_position));
+	int const lineNumber = static_cast<int>(count(m_source.begin(), m_source.begin() + diff_type(searchPosition), '\n'));
 	size_type lineStart;
 	if (searchPosition == 0)
 		lineStart = 0;

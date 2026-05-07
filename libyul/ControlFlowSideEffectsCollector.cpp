@@ -83,10 +83,10 @@ void ControlFlowBuilder::operator()(Switch const& _switch)
 
 void ControlFlowBuilder::operator()(FunctionDefinition const& _function)
 {
-	ScopedSaveAndRestore currentNode(m_currentNode, nullptr);
-	ScopedSaveAndRestore leave(m_leave, nullptr);
-	ScopedSaveAndRestore _break(m_break, nullptr);
-	ScopedSaveAndRestore _continue(m_continue, nullptr);
+	ScopedSaveAndRestore const currentNode(m_currentNode, nullptr);
+	ScopedSaveAndRestore const leave(m_leave, nullptr);
+	ScopedSaveAndRestore const _break(m_break, nullptr);
+	ScopedSaveAndRestore const _continue(m_continue, nullptr);
 
 	FunctionFlow flow;
 	flow.exit = newNode();
@@ -105,8 +105,8 @@ void ControlFlowBuilder::operator()(FunctionDefinition const& _function)
 
 void ControlFlowBuilder::operator()(ForLoop const& _for)
 {
-	ScopedSaveAndRestore scopedBreakNode(m_break, nullptr);
-	ScopedSaveAndRestore scopedContinueNode(m_continue, nullptr);
+	ScopedSaveAndRestore const scopedBreakNode(m_break, nullptr);
+	ScopedSaveAndRestore const scopedContinueNode(m_continue, nullptr);
 
 	(*this)(_for.pre);
 

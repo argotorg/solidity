@@ -49,7 +49,7 @@ public:
 		m_nameDispenser(_dispenser),
 		m_namesToFree(_namesToFree)
 	{
-		for (YulName n: _namesToFree)
+		for (YulName const n: _namesToFree)
 			m_nameDispenser.markUsed(n);
 	}
 

@@ -36,7 +36,7 @@ BOOST_AUTO_TEST_CASE(TemporaryDirectory_should_create_and_delete_a_unique_and_em
 {
 	boost::filesystem::path dirPath;
 	{
-		TemporaryDirectory tempDir("temporary-directory-test");
+		TemporaryDirectory const tempDir("temporary-directory-test");
 		dirPath = tempDir.path();
 
 		BOOST_TEST(dirPath.stem().string().find("temporary-directory-test") == 0);
@@ -51,7 +51,7 @@ BOOST_AUTO_TEST_CASE(TemporaryDirectory_should_delete_its_directory_even_if_not_
 {
 	boost::filesystem::path dirPath;
 	{
-		TemporaryDirectory tempDir("temporary-directory-test");
+		TemporaryDirectory const tempDir("temporary-directory-test");
 		dirPath = tempDir.path();
 
 		BOOST_TEST(boost::filesystem::is_directory(dirPath));
@@ -69,7 +69,7 @@ BOOST_AUTO_TEST_CASE(TemporaryDirectory_should_create_subdirectories)
 {
 	boost::filesystem::path dirPath;
 	{
-		TemporaryDirectory tempDir({"a", "a/", "a/b/c", "x.y/z"}, "temporary-directory-test");
+		TemporaryDirectory const tempDir({"a", "a/", "a/b/c", "x.y/z"}, "temporary-directory-test");
 		dirPath = tempDir.path();
 
 		BOOST_TEST(boost::filesystem::is_directory(dirPath / "a"));
@@ -80,16 +80,16 @@ BOOST_AUTO_TEST_CASE(TemporaryDirectory_should_create_subdirectories)
 
 BOOST_AUTO_TEST_CASE(TemporaryWorkingDirectory_should_change_and_restore_working_directory)
 {
-	boost::filesystem::path originalWorkingDirectory = boost::filesystem::current_path();
+	boost::filesystem::path const originalWorkingDirectory = boost::filesystem::current_path();
 
 	try
 	{
 		{
-			TemporaryDirectory tempDir("temporary-directory-test");
+			TemporaryDirectory const tempDir("temporary-directory-test");
 			soltestAssert(boost::filesystem::equivalent(boost::filesystem::current_path(), originalWorkingDirectory), "");
 			soltestAssert(!boost::filesystem::equivalent(tempDir.path(), originalWorkingDirectory), "");
 
-			TemporaryWorkingDirectory tempWorkDir(tempDir.path());
+			TemporaryWorkingDirectory const tempWorkDir(tempDir.path());
 
 			BOOST_TEST(boost::filesystem::equivalent(boost::filesystem::current_path(), tempDir.path()));
 		}

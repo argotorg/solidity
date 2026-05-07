@@ -63,7 +63,7 @@ std::string escapeNewlinesAndTabsWithinStringLiterals(std::string const& _json)
 	bool inQuotes = false;
 	for (size_t i = 0; i < _json.size(); ++i)
 	{
-		char c = _json[i];
+		char const c = _json[i];
 
 		// Originally we had just this here:
 		// if (c == '"' && (i == 0 || _json[i - 1] != '\\'))
@@ -113,8 +113,8 @@ Json removeNullMembers(Json _json)
 std::string removeNlohmannInternalErrorIdentifier(std::string const& _input)
 {
 	std::string result = _input;
-	std::size_t startPos = result.find('[');
-	std::size_t endPos = result.find(']', startPos);
+	std::size_t const startPos = result.find('[');
+	std::size_t const endPos = result.find(']', startPos);
 
 	if (startPos != std::string::npos && endPos != std::string::npos)
 		result.erase(startPos, endPos - startPos + 1);
@@ -156,7 +156,7 @@ bool jsonParseStrict(std::string const& _input, Json& _json, std::string* _errs 
 		if (_errs)
 		{
 			std::stringstream escaped;
-			for (char c: removeNlohmannInternalErrorIdentifier(e.what()))
+			for (char const c: removeNlohmannInternalErrorIdentifier(e.what()))
 				if (std::isprint(c))
 					escaped << c;
 				else
@@ -172,7 +172,7 @@ std::optional<Json> jsonValueByPath(Json const& _node, std::string_view _jsonPat
 	if (!_node.is_object() || _jsonPath.empty())
 		return {};
 
-	std::string memberName = std::string(_jsonPath.substr(0, _jsonPath.find_first_of('.')));
+	std::string const memberName = std::string(_jsonPath.substr(0, _jsonPath.find_first_of('.')));
 	if (!_node.contains(memberName))
 		return {};
 

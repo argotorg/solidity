@@ -121,7 +121,7 @@ void DataFlowAnalyzer::operator()(VariableDeclaration& _varDecl)
 void DataFlowAnalyzer::operator()(If& _if)
 {
 	clearKnowledgeIfInvalidated(*_if.condition);
-	Environment preEnvironment = m_state.environment;
+	Environment const preEnvironment = m_state.environment;
 
 	ASTModifier::operator()(_if);
 	joinKnowledge(preEnvironment);
@@ -136,7 +136,7 @@ void DataFlowAnalyzer::operator()(Switch& _switch)
 	std::set<YulName> assignedVariables;
 	for (auto& _case: _switch.cases)
 	{
-		Environment preEnvironment = m_state.environment;
+		Environment const preEnvironment = m_state.environment;
 		(*this)(_case.body);
 		joinKnowledge(preEnvironment);
 
@@ -155,8 +155,8 @@ void DataFlowAnalyzer::operator()(FunctionDefinition& _fun)
 {
 	// Save all information. We might rather reinstantiate this class,
 	// but this could be difficult if it is subclassed.
-	ScopedSaveAndRestore stateResetter(m_state, {});
-	ScopedSaveAndRestore loopDepthResetter(m_loopDepth, 0u);
+	ScopedSaveAndRestore const stateResetter(m_state, {});
+	ScopedSaveAndRestore const loopDepthResetter(m_loopDepth, 0u);
 	pushScope(true);
 
 	for (auto const& parameter: _fun.parameters)
@@ -186,7 +186,7 @@ void DataFlowAnalyzer::operator()(ForLoop& _for)
 	AssignmentsSinceContinue assignmentsSinceCont;
 	assignmentsSinceCont(_for.body);
 
-	std::set<YulName> assignedVariables =
+	std::set<YulName> const assignedVariables =
 		assignedVariableNames(_for.body) + assignedVariableNames(_for.post);
 	clearValues(assignedVariables);
 
@@ -210,7 +210,7 @@ void DataFlowAnalyzer::operator()(ForLoop& _for)
 
 void DataFlowAnalyzer::operator()(Block& _block)
 {
-	size_t numScopes = m_variableScopes.size();
+	size_t const numScopes = m_variableScopes.size();
 	pushScope(false);
 	ASTModifier::operator()(_block);
 	popScope();
@@ -255,7 +255,7 @@ void DataFlowAnalyzer::handleAssignment(std::set<YulName> const& _variables, Exp
 
 	if (_value && _variables.size() == 1)
 	{
-		YulName name = *_variables.begin();
+		YulName const name = *_variables.begin();
 		// Expression has to be movable and cannot contain a reference
 		// to the variable that will be assigned to.
 		if (movableChecker.movable() && !movableChecker.referencedVariables().count(name))
@@ -285,7 +285,7 @@ void DataFlowAnalyzer::handleAssignment(std::set<YulName> const& _variables, Exp
 
 	if (_value && _variables.size() == 1)
 	{
-		YulName variable = *_variables.begin();
+		YulName const variable = *_variables.begin();
 		if (!movableChecker.referencedVariables().count(variable))
 		{
 			// This might erase additional knowledge about the slot.
@@ -372,7 +372,7 @@ void DataFlowAnalyzer::clearKnowledgeIfInvalidated(Block const& _block)
 {
 	if (!m_analyzeStores)
 		return;
-	SideEffectsCollector sideEffects(m_dialect, _block, &m_functionSideEffects);
+	SideEffectsCollector const sideEffects(m_dialect, _block, &m_functionSideEffects);
 	if (sideEffects.invalidatesStorage())
 		m_state.environment.storage.clear();
 	if (sideEffects.invalidatesMemory())
@@ -386,7 +386,7 @@ void DataFlowAnalyzer::clearKnowledgeIfInvalidated(Expression const& _expr)
 {
 	if (!m_analyzeStores)
 		return;
-	SideEffectsCollector sideEffects(m_dialect, _expr, &m_functionSideEffects);
+	SideEffectsCollector const sideEffects(m_dialect, _expr, &m_functionSideEffects);
 	if (sideEffects.invalidatesStorage())
 		m_state.environment.storage.clear();
 	if (sideEffects.invalidatesMemory())

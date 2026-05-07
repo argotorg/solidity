@@ -90,7 +90,7 @@ bool DeclarationTypeChecker::visit(StructDefinition const& _struct)
 		return false;
 	}
 
-	bool previousRecursiveStructSeen = m_recursiveStructSeen;
+	bool const previousRecursiveStructSeen = m_recursiveStructSeen;
 	bool hasRecursiveChild = false;
 
 	m_currentStructsSeen.insert(&_struct);
@@ -209,7 +209,7 @@ bool DeclarationTypeChecker::visit(FunctionTypeName const& _typeName)
 	if (_typeName.annotation().type)
 		return false;
 
-	bool previousInsideFunctionType = m_insideFunctionType;
+	bool const previousInsideFunctionType = m_insideFunctionType;
 	m_insideFunctionType = true;
 	_typeName.parameterTypeList()->accept(*this);
 	_typeName.returnParameterTypeList()->accept(*this);
@@ -266,10 +266,10 @@ void DeclarationTypeChecker::endVisit(Mapping const& _mapping)
 		solAssert(dynamic_cast<ElementaryTypeName const*>(&_mapping.keyType()), "");
 
 	Type const* keyType = _mapping.keyType().annotation().type;
-	ASTString keyName = _mapping.keyName();
+	ASTString const keyName = _mapping.keyName();
 
 	Type const* valueType = _mapping.valueType().annotation().type;
-	ASTString valueName = _mapping.valueName();
+	ASTString const valueName = _mapping.valueName();
 
 	// Convert key type to memory.
 	keyType = TypeProvider::withLocationIfReference(DataLocation::Memory, keyType);
@@ -291,7 +291,7 @@ void DeclarationTypeChecker::endVisit(Mapping const& _mapping)
 			if (childMappingType)
 			{
 				// Compare top mapping's key name with child mapping's key name.
-				ASTString childKeyName = childMappingType->keyName();
+				ASTString const childKeyName = childMappingType->keyName();
 				if (keyName == childKeyName)
 					isError = true;
 
@@ -521,7 +521,7 @@ void DeclarationTypeChecker::endVisit(VariableDeclaration const& _variable)
 	Type const* type = _variable.typeName().annotation().type;
 	if (auto ref = dynamic_cast<ReferenceType const*>(type))
 	{
-		bool isPointer = !_variable.isStateVariable();
+		bool const isPointer = !_variable.isStateVariable();
 		type = TypeProvider::withLocation(ref, typeLoc, isPointer);
 	}
 

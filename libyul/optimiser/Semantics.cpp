@@ -78,7 +78,7 @@ void SideEffectsCollector::operator()(FunctionCall const& _functionCall)
 {
 	ASTWalker::operator()(_functionCall);
 
-	FunctionHandle functionHandle = functionNameToHandle(_functionCall.functionName);
+	FunctionHandle const functionHandle = functionNameToHandle(_functionCall.functionName);
 	if (BuiltinFunction const* builtin = resolveBuiltinFunction(_functionCall.functionName, m_dialect))
 		m_sideEffects += builtin->sideEffects;
 	else if (m_functionSideEffects && m_functionSideEffects->count(functionHandle))
@@ -147,7 +147,7 @@ std::map<FunctionHandle, SideEffects> SideEffectsPropagator::sideEffects(
 
 	for (auto const& call: _directCallGraph.functionCalls)
 	{
-		FunctionHandle funName = call.first;
+		FunctionHandle const funName = call.first;
 		SideEffects sideEffects;
 		auto _visit = [&, visited = std::set<FunctionHandle>{}](FunctionHandle _function, auto&& _recurse) mutable {
 			if (!visited.insert(_function).second)
@@ -194,7 +194,7 @@ std::pair<TerminationFinder::ControlFlow, size_t> TerminationFinder::firstUncond
 {
 	for (size_t i = 0; i < _statements.size(); ++i)
 	{
-		ControlFlow controlFlow = controlFlowKind(_statements[i]);
+		ControlFlow const controlFlow = controlFlowKind(_statements[i]);
 		if (controlFlow != ControlFlow::FlowOut)
 			return {controlFlow, i};
 	}

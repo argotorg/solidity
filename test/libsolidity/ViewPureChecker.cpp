@@ -59,7 +59,7 @@ BOOST_AUTO_TEST_CASE(environment_access)
 
 	// ``block.blockhash`` and ``blockhash`` are tested separately below because their usage will
 	// produce warnings that can't be handled in a generic way.
-	std::vector<std::string> pure{
+	std::vector<std::string> const pure{
 		"msg.data",
 		"msg.data[0]",
 		"msg.sig",
@@ -96,7 +96,7 @@ BOOST_AUTO_TEST_CASE(environment_access)
 		"\"block.blockhash()\" has been deprecated in favor of \"blockhash()\""
 	);
 
-	std::string baseFeeContract = "contract C { function f() view public { block.basefee; } }";
+	std::string const baseFeeContract = "contract C { function f() view public { block.basefee; } }";
 	if (!solidity::test::CommonOptions::get().evmVersion().hasBaseFee())
 		CHECK_ERROR(
 			baseFeeContract,
@@ -106,7 +106,7 @@ BOOST_AUTO_TEST_CASE(environment_access)
 	else
 		CHECK_SUCCESS_NO_WARNINGS(baseFeeContract);
 
-	std::string blobBaseFeeContract = "contract C { function f() view public { block.blobbasefee; } }";
+	std::string const blobBaseFeeContract = "contract C { function f() view public { block.blobbasefee; } }";
 	if (!solidity::test::CommonOptions::get().evmVersion().hasBlobBaseFee())
 		CHECK_ERROR(
 			blobBaseFeeContract,
@@ -119,7 +119,7 @@ BOOST_AUTO_TEST_CASE(environment_access)
 
 BOOST_AUTO_TEST_CASE(address_staticcall)
 {
-	std::string text = R"(
+	std::string const text = R"(
 		contract C {
 			function i() view public returns (bool) {
 				(bool success,) = address(0x4242).staticcall("");
@@ -136,7 +136,7 @@ BOOST_AUTO_TEST_CASE(address_staticcall)
 
 BOOST_AUTO_TEST_CASE(assembly_staticcall, *boost::unit_test::precondition(nonEOF()))
 {
-	std::string text = R"(
+	std::string const text = R"(
 		contract C {
 			function i() view public {
 				assembly { pop(staticcall(gas(), 1, 2, 3, 4, 5)) }

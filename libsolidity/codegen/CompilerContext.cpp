@@ -89,7 +89,7 @@ size_t CompilerContext::immutableMemoryOffset(VariableDeclaration const& _variab
 
 std::vector<std::string> CompilerContext::immutableVariableSlotNames(VariableDeclaration const& _variable)
 {
-	std::string baseName = std::to_string(_variable.id());
+	std::string const baseName = std::to_string(_variable.id());
 	solAssert(_variable.annotation().type->sizeOnStack() > 0, "");
 	if (_variable.annotation().type->sizeOnStack() == 1)
 		return {baseName};
@@ -108,7 +108,7 @@ std::vector<std::string> CompilerContext::immutableVariableSlotNames(VariableDec
 size_t CompilerContext::reservedMemory()
 {
 	solAssert(m_reservedMemory.has_value(), "Reserved memory was used before ");
-	size_t reservedMemory = *m_reservedMemory;
+	size_t const reservedMemory = *m_reservedMemory;
 	m_reservedMemory = std::nullopt;
 	return reservedMemory;
 }
@@ -126,7 +126,7 @@ void CompilerContext::callLowLevelFunction(
 	std::function<void(CompilerContext&)> const& _generator
 )
 {
-	evmasm::AssemblyItem retTag = pushNewTag();
+	evmasm::AssemblyItem const retTag = pushNewTag();
 	CompilerUtils(*this).moveIntoStack(_inArgs);
 
 	*this << lowLevelFunctionTag(_name, _inArgs, _outArgs, _generator);
@@ -215,7 +215,7 @@ void CompilerContext::addVariable(
 )
 {
 	solAssert(m_asm->deposit() >= 0 && unsigned(m_asm->deposit()) >= _offsetToCurrent, "");
-	unsigned sizeOnStack = _declaration.annotation().type->sizeOnStack();
+	unsigned const sizeOnStack = _declaration.annotation().type->sizeOnStack();
 	// Variables should not have stack size other than [1, 2],
 	// but that might change when new types are introduced.
 	solAssert(sizeOnStack == 1 || sizeOnStack == 2, "");
@@ -342,7 +342,7 @@ CompilerContext& CompilerContext::appendPanic(util::PanicCode _code)
 CompilerContext& CompilerContext::appendConditionalPanic(util::PanicCode _code)
 {
 	*this << Instruction::ISZERO;
-	evmasm::AssemblyItem afterTag = appendConditionalJump();
+	evmasm::AssemblyItem const afterTag = appendConditionalJump();
 	appendPanic(_code);
 	*this << afterTag;
 	return *this;
@@ -440,7 +440,7 @@ void CompilerContext::appendInlineAssembly(
 	std::optional<langutil::SourceLocation> locationOverride;
 	if (!_system)
 		locationOverride = m_asm->currentSourceLocation();
-	std::shared_ptr<yul::AST> parserResult =
+	std::shared_ptr<yul::AST> const parserResult =
 		yul::Parser(errorReporter, dialect, std::move(locationOverride))
 		.parse(charStream);
 #ifdef SOL_OUTPUT_ASM
@@ -532,7 +532,7 @@ void CompilerContext::appendInlineAssembly(
 }
 
 
-void CompilerContext::optimizeYul(yul::Object& _object, OptimiserSettings const& _optimiserSettings, std::set<yul::YulName> const& _externalIdentifiers)
+void CompilerContext::optimizeYul(yul::Object& _object, OptimiserSettings const& _optimiserSettings, std::set<yul::YulName> const& _externalIdentifiers) const
 {
 	yulAssert(_object.dialect());
 	auto const* evmDialect = dynamic_cast<yul::EVMDialect const*>(_object.dialect());
@@ -542,7 +542,7 @@ void CompilerContext::optimizeYul(yul::Object& _object, OptimiserSettings const&
 #endif
 
 	bool const isCreation = runtimeContext() != nullptr;
-	yul::GasMeter meter(*evmDialect, isCreation, _optimiserSettings.expectedExecutionsPerDeployment);
+	yul::GasMeter const meter(*evmDialect, isCreation, _optimiserSettings.expectedExecutionsPerDeployment);
 	yul::OptimiserSuite::run(
 		&meter,
 		_object,
@@ -585,14 +585,14 @@ evmasm::AssemblyItem CompilerContext::FunctionCompilationQueue::entryLabel(
 		size_t returns = 0;
 		if (auto const* function = dynamic_cast<FunctionDefinition const*>(&_declaration))
 		{
-			FunctionType functionType(*function, FunctionType::Kind::Internal);
+			FunctionType const functionType(*function, FunctionType::Kind::Internal);
 			params = CompilerUtils::sizeOnStack(functionType.parameterTypes());
 			returns = CompilerUtils::sizeOnStack(functionType.returnParameterTypes());
 		}
 
 		// some name that cannot clash with yul function names.
-		std::string labelName = "@" + _declaration.name() + "_" + std::to_string(_declaration.id());
-		evmasm::AssemblyItem tag = _context.namedTag(
+		std::string const labelName = "@" + _declaration.name() + "_" + std::to_string(_declaration.id());
+		evmasm::AssemblyItem const tag = _context.namedTag(
 			labelName,
 			params,
 			returns,

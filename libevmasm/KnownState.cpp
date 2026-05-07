@@ -48,7 +48,7 @@ std::ostream& KnownState::stream(std::ostream& _out) const
 		if (expr.sequenceNumber)
 			_out << "@" << std::dec << expr.sequenceNumber;
 		_out << "(";
-		for (Id arg: expr.arguments)
+		for (Id const arg: expr.arguments)
 			_out << std::dec << arg << ",";
 		_out << ")" << std::endl;
 	};
@@ -129,10 +129,10 @@ KnownState::StoreOperation KnownState::feedItem(AssemblyItem const& _item, bool 
 	}
 	else
 	{
-		Instruction instruction = _item.instruction();
+		Instruction const instruction = _item.instruction();
 		// The latest EVMVersion is used here, since the InstructionInfo is assumed to be
 		// the same across all EVM versions except for the instruction name.
-		InstructionInfo info = instructionInfo(instruction, EVMVersion());
+		InstructionInfo const info = instructionInfo(instruction, EVMVersion());
 		if (SemanticInformation::isDupInstruction(_item))
 			setStackElement(
 				m_stackHeight + 1,
@@ -179,9 +179,9 @@ KnownState::StoreOperation KnownState::feedItem(AssemblyItem const& _item, bool 
 				);
 				break;
 			default:
-				bool invMem =
+				bool const invMem =
 					SemanticInformation::memory(_item.instruction()) == SemanticInformation::Write;
-				bool invStor =
+				bool const invStor =
 					SemanticInformation::storage(_item.instruction()) == SemanticInformation::Write;
 				// We could be a bit more fine-grained here (CALL only invalidates part of
 				// memory, etc), but we do not for now.
@@ -224,17 +224,17 @@ template <class Mapping> void intersect(Mapping& _this, Mapping const& _other)
 
 void KnownState::reduceToCommonKnowledge(KnownState const& _other, bool _combineSequenceNumbers)
 {
-	int stackDiff = m_stackHeight - _other.m_stackHeight;
+	int const stackDiff = m_stackHeight - _other.m_stackHeight;
 	for (auto it = m_stackElements.begin(); it != m_stackElements.end();)
 		if (_other.m_stackElements.count(it->first - stackDiff))
 		{
-			Id other = _other.m_stackElements.at(it->first - stackDiff);
+			Id const other = _other.m_stackElements.at(it->first - stackDiff);
 			if (it->second == other)
 				++it;
 			else
 			{
 				std::set<u256> theseTags = tagsInExpression(it->second);
-				std::set<u256> otherTags = tagsInExpression(other);
+				std::set<u256> const otherTags = tagsInExpression(other);
 				if (!theseTags.empty() && !otherTags.empty())
 				{
 					theseTags.insert(otherTags.begin(), otherTags.end());
@@ -268,7 +268,7 @@ bool KnownState::operator==(KnownState const& _other) const
 {
 	if (m_storageContent != _other.m_storageContent || m_memoryContent != _other.m_memoryContent)
 		return false;
-	int stackDiff = m_stackHeight - _other.m_stackHeight;
+	int const stackDiff = m_stackHeight - _other.m_stackHeight;
 	auto thisIt = m_stackElements.cbegin();
 	auto otherIt = _other.m_stackElements.cbegin();
 	for (; thisIt != m_stackElements.cend() && otherIt != _other.m_stackElements.cend(); ++thisIt, ++otherIt)
@@ -338,8 +338,8 @@ KnownState::StoreOperation KnownState::storeInStorage(
 			storageContents.insert(storageItem);
 	m_storageContent = std::move(storageContents);
 
-	AssemblyItem item(Instruction::SSTORE, std::move(_debugData));
-	Id id = m_expressionClasses->find(item, {_slot, _value}, true, m_sequenceNumber);
+	AssemblyItem const item(Instruction::SSTORE, std::move(_debugData));
+	Id const id = m_expressionClasses->find(item, {_slot, _value}, true, m_sequenceNumber);
 	StoreOperation operation{StoreOperation::Storage, _slot, m_sequenceNumber, id};
 	m_storageContent[_slot] = _value;
 	// increment a second time so that we get unique sequence numbers for writes
@@ -353,7 +353,7 @@ ExpressionClasses::Id KnownState::loadFromStorage(Id _slot, langutil::DebugData:
 	if (m_storageContent.count(_slot))
 		return m_storageContent.at(_slot);
 
-	AssemblyItem item(Instruction::SLOAD, std::move(_debugData));
+	AssemblyItem const item(Instruction::SLOAD, std::move(_debugData));
 	return m_storageContent[_slot] = m_expressionClasses->find(item, {_slot}, true, m_sequenceNumber);
 }
 
@@ -370,8 +370,8 @@ KnownState::StoreOperation KnownState::storeInMemory(Id _slot, Id _value, langut
 			memoryContents.insert(memoryItem);
 	m_memoryContent = std::move(memoryContents);
 
-	AssemblyItem item(Instruction::MSTORE, std::move(_debugData));
-	Id id = m_expressionClasses->find(item, {_slot, _value}, true, m_sequenceNumber);
+	AssemblyItem const item(Instruction::MSTORE, std::move(_debugData));
+	Id const id = m_expressionClasses->find(item, {_slot, _value}, true, m_sequenceNumber);
 	StoreOperation operation{StoreOperation::Memory, _slot, m_sequenceNumber, id};
 	m_memoryContent[_slot] = _value;
 	// increment a second time so that we get unique sequence numbers for writes
@@ -384,7 +384,7 @@ ExpressionClasses::Id KnownState::loadFromMemory(Id _slot, langutil::DebugData::
 	if (m_memoryContent.count(_slot))
 		return m_memoryContent.at(_slot);
 
-	AssemblyItem item(Instruction::MLOAD, std::move(_debugData));
+	AssemblyItem const item(Instruction::MLOAD, std::move(_debugData));
 	return m_memoryContent[_slot] = m_expressionClasses->find(item, {_slot}, true, m_sequenceNumber);
 }
 
@@ -394,17 +394,17 @@ KnownState::Id KnownState::applyKeccak256(
 	langutil::DebugData::ConstPtr _debugData
 )
 {
-	AssemblyItem keccak256Item(Instruction::KECCAK256, _debugData);
+	AssemblyItem const keccak256Item(Instruction::KECCAK256, _debugData);
 	// Special logic if length is a short constant, otherwise we cannot tell.
 	u256 const* l = m_expressionClasses->knownConstant(_length);
 	// unknown or too large length
 	if (!l || *l > 128)
 		return m_expressionClasses->find(keccak256Item, {_start, _length}, true, m_sequenceNumber);
-	unsigned length = unsigned(*l);
+	unsigned const length = unsigned(*l);
 	std::vector<Id> arguments;
 	for (unsigned i = 0; i < length; i += 32)
 	{
-		Id slot = m_expressionClasses->find(
+		Id const slot = m_expressionClasses->find(
 			AssemblyItem(Instruction::ADD, _debugData),
 			{_start, m_expressionClasses->find(u256(i))}
 		);
@@ -417,7 +417,7 @@ KnownState::Id KnownState::applyKeccak256(
 	if (all_of(arguments.begin(), arguments.end(), [this](Id _a) { return !!m_expressionClasses->knownConstant(_a); }))
 	{
 		bytes data;
-		for (Id a: arguments)
+		for (Id const a: arguments)
 			data += toBigEndian(*m_expressionClasses->knownConstant(a));
 		data.resize(length);
 		v = m_expressionClasses->find(AssemblyItem(u256(util::keccak256(data)), _debugData));
@@ -432,7 +432,7 @@ std::set<u256> KnownState::tagsInExpression(KnownState::Id _expressionId)
 	if (m_tagUnions.left.count(_expressionId))
 		return m_tagUnions.left.at(_expressionId);
 	// Might be a tag, then return the set of itself.
-	ExpressionClasses::Expression expr = m_expressionClasses->representative(_expressionId);
+	ExpressionClasses::Expression const expr = m_expressionClasses->representative(_expressionId);
 	if (expr.item && expr.item->type() == PushTag)
 		return std::set<u256>({expr.item->data()});
 	else
@@ -445,7 +445,7 @@ KnownState::Id KnownState::tagUnion(std::set<u256> _tags)
 		return m_tagUnions.right.at(_tags);
 	else
 	{
-		Id id = m_expressionClasses->newClass(langutil::DebugData::create());
+		Id const id = m_expressionClasses->newClass(langutil::DebugData::create());
 		m_tagUnions.right.insert(make_pair(_tags, id));
 		return id;
 	}

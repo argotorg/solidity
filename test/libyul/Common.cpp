@@ -64,7 +64,7 @@ YulStack yul::test::parseYul(
 			(CommonOptions::get().optimize ? OptimiserSettings::standard() : OptimiserSettings::minimal()),
 		DebugInfoSelection::AllExceptExperimental()
 	);
-	bool successful = yulStack.parseAndAnalyze(_sourceUnitName, _source);
+	bool const successful = yulStack.parseAndAnalyze(_sourceUnitName, _source);
 	if (!successful)
 		soltestAssert(yulStack.hasErrors());
 	else
@@ -79,7 +79,7 @@ YulStack yul::test::parseYul(
 
 yul::Block yul::test::disambiguate(std::string const& _source)
 {
-	YulStack yulStack = parseYul(_source);
+	YulStack const yulStack = parseYul(_source);
 	soltestAssert(!yulStack.hasErrorsWarningsOrInfos());
 	return std::get<Block>(Disambiguator(
 		yulStack.dialect(),
@@ -90,7 +90,7 @@ yul::Block yul::test::disambiguate(std::string const& _source)
 
 std::string yul::test::format(std::string const& _source)
 {
-	YulStack yulStack = parseYul(_source);
+	YulStack const yulStack = parseYul(_source);
 	solUnimplementedAssert(yulStack.parserResult()->subObjects.empty(), "Subobjects not supported.");
 	soltestAssert(!yulStack.hasErrorsWarningsOrInfos());
 	return AsmPrinter::format(*yulStack.parserResult()->code());

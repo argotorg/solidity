@@ -80,7 +80,7 @@ void CHCSmtLib2Interface::registerRelation(Expression const& _expr)
 	auto const& fSort = std::dynamic_pointer_cast<FunctionSort>(_expr.sort);
 	smtAssert(fSort->codomain);
 	auto domain = toSmtLibSort(fSort->domain);
-	std::string codomain = toSmtLibSort(fSort->codomain);
+	std::string const codomain = toSmtLibSort(fSort->codomain);
 	m_commands.declareFunction(_expr.name, domain, codomain);
 	m_context.declare(_expr.name, _expr.sort);
 }
@@ -92,10 +92,10 @@ void CHCSmtLib2Interface::addRule(Expression const& _expr, std::string const& /*
 
 CHCSolverInterface::QueryResult CHCSmtLib2Interface::query(Expression const& _block)
 {
-	std::string query = dumpQuery(_block);
+	std::string const query = dumpQuery(_block);
 	try
 	{
-		std::string response = querySolver(query);
+		std::string const response = querySolver(query);
 
 		CheckResult result;
 		// NOTE: Our internal semantics is UNSAT -> SAFE and SAT -> UNSAFE, which corresponds to usual SMT-based model checking
@@ -169,7 +169,7 @@ std::string CHCSmtLib2Interface::forall(Expression const& _expr)
 
 std::string CHCSmtLib2Interface::querySolver(std::string const& _input)
 {
-	util::h256 inputHash = util::keccak256(_input);
+	util::h256 const inputHash = util::keccak256(_input);
 	if (m_queryResponses.count(inputHash))
 		return m_queryResponses.at(inputHash);
 
@@ -369,7 +369,7 @@ smtutil::Expression CHCSmtLib2Interface::ScopedParser::toSMTUtilExpression(SMTLi
 					}
 					else
 					{
-						std::set<std::string> boolOperators{"and", "or", "not", "=", "<", ">", "<=", ">=", "=>"};
+						std::set<std::string> const boolOperators{"and", "or", "not", "=", "<", ">", "<=", ">=", "=>"};
 						sort = contains(boolOperators, op) ? SortProvider::boolSort : arguments.back().sort;
 						return smtutil::Expression(op, std::move(arguments), std::move(sort));
 					}
@@ -460,7 +460,7 @@ CHCSmtLib2Interface::Invariants CHCSmtLib2Interface::invariantsFromSolverRespons
 			auto const& nameSortPair = asSubExpressions(formalArgument);
 			smtSolverInteractionRequire(nameSortPair.size() == 2, "Invalid format of CHC model");
 			smtSolverInteractionRequire(isAtom(nameSortPair[0]), "Invalid format of CHC model");
-			SortPointer varSort = scopedParser.toSort(nameSortPair[1]);
+			SortPointer const varSort = scopedParser.toSort(nameSortPair[1]);
 			scopedParser.addVariableDeclaration(asAtom(nameSortPair[0]), varSort);
 			predicateArguments.push_back(asAtom(nameSortPair[0]));
 		}

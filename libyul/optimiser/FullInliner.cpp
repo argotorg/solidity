@@ -85,7 +85,7 @@ FullInliner::FullInliner(Block& _ast, NameDispenser& _dispenser, Dialect const& 
 	// Check for memory guard.
 	if (auto const memoryGuard = m_dialect.findBuiltin("memoryguard"))
 	{
-		std::vector<FunctionCall*> memoryGuardCalls = findFunctionCalls(_ast, *memoryGuard);
+		std::vector<FunctionCall*> const memoryGuardCalls = findFunctionCalls(_ast, *memoryGuard);
 		// We will perform less aggressive inlining, if no ``memoryguard`` call is found.
 		if (!memoryGuardCalls.empty())
 			m_hasMemoryGuard = true;
@@ -159,7 +159,7 @@ std::map<FunctionHandle, size_t> FullInliner::callDepths() const
 		}
 
 		for (auto& call: cg.functionCalls)
-			for (FunctionHandle toBeRemoved: removed)
+			for (FunctionHandle const toBeRemoved: removed)
 				ranges::actions::remove(call.second, toBeRemoved);
 
 		currentDepth++;
@@ -185,7 +185,7 @@ bool FullInliner::shallInline(FunctionCall const& _funCall, YulName _callSite)
 	if (functionName == _callSite)
 		return false;
 
-	FunctionDefinition* calledFunction = function(functionName);
+	FunctionDefinition const* calledFunction = function(functionName);
 	if (!calledFunction)
 		return false;
 
@@ -199,7 +199,7 @@ bool FullInliner::shallInline(FunctionCall const& _funCall, YulName _callSite)
 			return false;
 
 	// Inline really, really tiny functions
-	size_t size = m_functionSizes.at(calledFunction->name);
+	size_t const size = m_functionSizes.at(calledFunction->name);
 	if (size <= 1)
 		return true;
 
@@ -264,7 +264,7 @@ bool FullInliner::recursive(FunctionDefinition const& _fun) const
 
 void InlineModifier::operator()(Block& _block)
 {
-	std::function<std::optional<std::vector<Statement>>(Statement&)> f = [&](Statement& _statement) -> std::optional<std::vector<Statement>> {
+	std::function<std::optional<std::vector<Statement>>(Statement&)> const f = [&](Statement& _statement) -> std::optional<std::vector<Statement>> {
 		visit(_statement);
 		return tryInlineStatement(_statement);
 	};

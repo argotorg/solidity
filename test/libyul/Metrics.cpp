@@ -41,7 +41,7 @@ namespace
 
 size_t codeSize(std::string const& _source, CodeWeights const _weights = {})
 {
-	YulStack yulStack = parseYul(_source);
+	YulStack const yulStack = parseYul(_source);
 	solUnimplementedAssert(yulStack.parserResult()->subObjects.empty(), "Tests with subobjects not supported.");
 	soltestAssert(!yulStack.hasErrors());
 	return CodeSize::codeSize(yulStack.parserResult()->code()->root(), _weights);

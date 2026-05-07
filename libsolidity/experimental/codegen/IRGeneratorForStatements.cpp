@@ -97,7 +97,7 @@ private:
 		auto type = m_context.analysis.annotation<TypeInference>(*varDecl).type;
 		solAssert(type);
 		solAssert(m_context.env->typeEquals(*type, m_context.analysis.typeSystem().type(PrimitiveType::Word, {})));
-		std::string value = IRNames::localVariable(*varDecl);
+		std::string const value = IRNames::localVariable(*varDecl);
 		return yul::Identifier{_identifier.debugData, yul::YulName{value}};
 	}
 
@@ -189,10 +189,10 @@ experimental::Type IRGeneratorForStatements::type(ASTNode const& _node) const
 
 void IRGeneratorForStatements::endVisit(BinaryOperation const& _binaryOperation)
 {
-	TypeSystemHelpers helper{m_context.analysis.typeSystem()};
-	Type leftType = type(_binaryOperation.leftExpression());
-	Type rightType = type(_binaryOperation.rightExpression());
-	Type resultType = type(_binaryOperation);
+	TypeSystemHelpers const helper{m_context.analysis.typeSystem()};
+	Type const leftType = type(_binaryOperation.leftExpression());
+	Type const rightType = type(_binaryOperation.rightExpression());
+	Type const resultType = type(_binaryOperation);
 	Type functionType = helper.functionType(helper.tupleType({leftType, rightType}), resultType);
 	auto [typeClass, memberName] = m_context.analysis.annotation<TypeInference>().operators.at(_binaryOperation.getOperator());
 	auto const& functionDefinition = resolveTypeClassFunction(typeClass, memberName, functionType);
@@ -221,10 +221,10 @@ TypeRegistration::TypeClassInstantiations const& typeClassInstantiations(IRGener
 
 FunctionDefinition const& IRGeneratorForStatements::resolveTypeClassFunction(TypeClass _class, std::string _name, Type _type)
 {
-	TypeSystemHelpers helper{m_context.analysis.typeSystem()};
+	TypeSystemHelpers const helper{m_context.analysis.typeSystem()};
 
 	TypeEnvironment env = m_context.env->clone();
-	Type genericFunctionType = env.fresh(m_context.analysis.annotation<TypeInference>().typeClassFunctions.at(_class).at(_name));
+	Type const genericFunctionType = env.fresh(m_context.analysis.annotation<TypeInference>().typeClassFunctions.at(_class).at(_name));
 	auto typeVars = TypeEnvironmentHelpers{env}.typeVars(genericFunctionType);
 	solAssert(typeVars.size() == 1);
 	solAssert(env.unify(genericFunctionType, _type).empty());
@@ -249,7 +249,7 @@ FunctionDefinition const& IRGeneratorForStatements::resolveTypeClassFunction(Typ
 
 void IRGeneratorForStatements::endVisit(MemberAccess const& _memberAccess)
 {
-	TypeSystemHelpers helper{m_context.analysis.typeSystem()};
+	TypeSystemHelpers const helper{m_context.analysis.typeSystem()};
 	// TODO: avoid resolve?
 	auto expressionType = m_context.env->resolve(type(_memberAccess.expression()));
 	auto constructor = std::get<0>(helper.destTypeConstant(expressionType));
@@ -268,7 +268,7 @@ void IRGeneratorForStatements::endVisit(MemberAccess const& _memberAccess)
 	if (auto const* typeClassDefinition = dynamic_cast<TypeClassDefinition const*>(declaration))
 	{
 		solAssert(m_context.analysis.annotation<TypeClassRegistration>(*typeClassDefinition).typeClass.has_value());
-		TypeClass typeClass = m_context.analysis.annotation<TypeClassRegistration>(*typeClassDefinition).typeClass.value();
+		TypeClass const typeClass = m_context.analysis.annotation<TypeClassRegistration>(*typeClassDefinition).typeClass.value();
 		solAssert(m_expressionDeclaration.emplace(
 			&_memberAccess,
 			&resolveTypeClassFunction(typeClass, _memberAccess.memberName(), memberAccessType)
@@ -324,7 +324,7 @@ void IRGeneratorForStatements::endVisit(FunctionCall const& _functionCall)
 	m_code << IRNames::function(*m_context.env, *functionDefinition, functionType) << "(";
 	auto const& arguments = _functionCall.arguments();
 	if (arguments.size() > 1)
-		for (auto arg: arguments | ranges::views::drop_last(1))
+		for (auto const& arg: arguments | ranges::views::drop_last(1))
 			m_code << IRNames::localVariable(*arg) << ", ";
 	if (!arguments.empty())
 		m_code << IRNames::localVariable(*arguments.back());

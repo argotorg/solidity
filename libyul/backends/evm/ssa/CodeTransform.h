@@ -35,17 +35,17 @@ namespace solidity::yul::ssa
 
 struct AssemblyCallbacks
 {
-	void swap(StackDepth const _depth)
+	void swap(StackDepth const _depth) const
 	{
 		assembly->appendInstruction(evmasm::swapInstruction(static_cast<unsigned>(_depth.value)));
 	}
 
-	void pop()
+	void pop() const
 	{
 		assembly->appendInstruction(evmasm::Instruction::POP);
 	}
 
-	void push(StackSlot const& _slot)
+	void push(StackSlot const& _slot) const
 	{
 		switch (_slot.kind())
 		{
@@ -78,7 +78,7 @@ struct AssemblyCallbacks
 		}
 	}
 
-	void dup(StackDepth const _depth)
+	void dup(StackDepth const _depth) const
 	{
 		assembly->appendInstruction(evmasm::dupInstruction(static_cast<unsigned>(_depth.value)));
 	}

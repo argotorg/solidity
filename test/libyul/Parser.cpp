@@ -150,7 +150,7 @@ BOOST_AUTO_TEST_CASE(builtins_analysis)
 		BuiltinFunction f{"builtin", 2, 3, {}, {}, false, {}};
 	};
 
-	SimpleDialect dialect;
+	SimpleDialect const dialect;
 	BOOST_CHECK(successParse("{ let a, b, c := builtin(1, 2) }", dialect));
 	CHECK_ERROR_DIALECT("{ let a, b, c := builtin(1) }", TypeError, "Function \"builtin\" expects 2 arguments but got 1", dialect);
 	CHECK_ERROR_DIALECT("{ let a, b := builtin(1, 2) }", DeclarationError, "Variable count mismatch for declaration of \"a, b\": 2 variables and 3 values.", dialect);
@@ -172,7 +172,7 @@ BOOST_AUTO_TEST_CASE(customSourceLocations_empty_block)
 		"{}\n";
 	auto const& dialect = EVMDialect::strictAssemblyForEVM(solidity::test::CommonOptions::get().evmVersion(),
 		solidity::test::CommonOptions::get().eofVersion());
-	std::shared_ptr<AST> result = parse(sourceText, dialect, reporter);
+	std::shared_ptr<AST> const result = parse(sourceText, dialect, reporter);
 	BOOST_REQUIRE(!!result && errorList.size() == 0);
 	CHECK_LOCATION(result->root().debugData->originLocation, "source0", 234, 543);
 }
@@ -191,7 +191,7 @@ BOOST_AUTO_TEST_CASE(customSourceLocations_block_with_children)
 		"}\n";
 	auto const& dialect = EVMDialect::strictAssemblyForEVM(solidity::test::CommonOptions::get().evmVersion(),
 		solidity::test::CommonOptions::get().eofVersion());
-	std::shared_ptr<AST> result = parse(sourceText, dialect, reporter);
+	std::shared_ptr<AST> const result = parse(sourceText, dialect, reporter);
 	BOOST_REQUIRE(!!result);
 	CHECK_LOCATION(result->root().debugData->originLocation, "source0", 234, 543);
 	BOOST_REQUIRE_EQUAL(3, result->root().statements.size());
@@ -215,7 +215,7 @@ BOOST_AUTO_TEST_CASE(customSourceLocations_block_different_sources)
 		"}\n";
 	auto const& dialect = EVMDialect::strictAssemblyForEVM(solidity::test::CommonOptions::get().evmVersion(),
 		solidity::test::CommonOptions::get().eofVersion());
-	std::shared_ptr<AST> result = parse(sourceText, dialect, reporter);
+	std::shared_ptr<AST> const result = parse(sourceText, dialect, reporter);
 	BOOST_REQUIRE(!!result && errorList.size() == 0);
 	CHECK_LOCATION(result->root().debugData->originLocation, "source0", 234, 543);
 	BOOST_REQUIRE_EQUAL(3, result->root().statements.size());
@@ -238,7 +238,7 @@ BOOST_AUTO_TEST_CASE(customSourceLocations_block_nested)
 		"}\n";
 	auto const& dialect = EVMDialect::strictAssemblyForEVM(solidity::test::CommonOptions::get().evmVersion(),
 		solidity::test::CommonOptions::get().eofVersion());
-	std::shared_ptr<AST> result = parse(sourceText, dialect, reporter);
+	std::shared_ptr<AST> const result = parse(sourceText, dialect, reporter);
 	BOOST_REQUIRE(!!result && errorList.size() == 0);
 	CHECK_LOCATION(result->root().debugData->originLocation, "source0", 234, 543);
 	BOOST_REQUIRE_EQUAL(2, result->root().statements.size());
@@ -263,7 +263,7 @@ BOOST_AUTO_TEST_CASE(customSourceLocations_block_switch_case)
 		"}\n";
 	auto const& dialect = EVMDialect::strictAssemblyForEVM(solidity::test::CommonOptions::get().evmVersion(),
 		solidity::test::CommonOptions::get().eofVersion());
-	std::shared_ptr<AST> result = parse(sourceText, dialect, reporter);
+	std::shared_ptr<AST> const result = parse(sourceText, dialect, reporter);
 	BOOST_REQUIRE(!!result && errorList.size() == 0);
 	CHECK_LOCATION(result->root().debugData->originLocation, "source0", 234, 543);
 
@@ -296,7 +296,7 @@ BOOST_AUTO_TEST_CASE(customSourceLocations_inherit_into_outer_scope)
 		"}\n";
 	auto const& dialect = EVMDialect::strictAssemblyForEVM(solidity::test::CommonOptions::get().evmVersion(),
 		solidity::test::CommonOptions::get().eofVersion());
-	std::shared_ptr<AST> result = parse(sourceText, dialect, reporter);
+	std::shared_ptr<AST> const result = parse(sourceText, dialect, reporter);
 	BOOST_REQUIRE(!!result && errorList.size() == 0);
 
 	CHECK_LOCATION(result->root().debugData->originLocation, "source0", 1, 100);
@@ -328,7 +328,7 @@ BOOST_AUTO_TEST_CASE(customSourceLocations_assign_empty)
 		"}\n";
 	auto const& dialect = EVMDialect::strictAssemblyForEVM(solidity::test::CommonOptions::get().evmVersion(),
 		solidity::test::CommonOptions::get().eofVersion());
-	std::shared_ptr<AST> result = parse(sourceText, dialect, reporter);
+	std::shared_ptr<AST> const result = parse(sourceText, dialect, reporter);
 	BOOST_REQUIRE(!!result && errorList.size() == 0); // should still parse
 	BOOST_REQUIRE_EQUAL(2, result->root().statements.size());
 	CHECK_LOCATION(originLocationOf(result->root().statements.at(0)), "source0", 123, 432);
@@ -350,7 +350,7 @@ BOOST_AUTO_TEST_CASE(customSourceLocations_invalid_source_index)
 		"}\n";
 	auto const& dialect = EVMDialect::strictAssemblyForEVM(solidity::test::CommonOptions::get().evmVersion(),
 		solidity::test::CommonOptions::get().eofVersion());
-	std::shared_ptr<AST> result = parse(sourceText, dialect, reporter);
+	std::shared_ptr<AST> const result = parse(sourceText, dialect, reporter);
 	BOOST_REQUIRE(!!result); // should still parse
 	BOOST_REQUIRE(errorList.size() == 1);
 	BOOST_TEST(errorList[0]->type() == Error::Type::SyntaxError);
@@ -371,7 +371,7 @@ BOOST_AUTO_TEST_CASE(customSourceLocations_mixed_locations_1)
 		"}\n";
 	auto const& dialect = EVMDialect::strictAssemblyForEVM(solidity::test::CommonOptions::get().evmVersion(),
 		solidity::test::CommonOptions::get().eofVersion());
-	std::shared_ptr<AST> result = parse(sourceText, dialect, reporter);
+	std::shared_ptr<AST> const result = parse(sourceText, dialect, reporter);
 	BOOST_REQUIRE(!!result && errorList.size() == 0);
 
 	BOOST_REQUIRE_EQUAL(1, result->root().statements.size());
@@ -395,7 +395,7 @@ BOOST_AUTO_TEST_CASE(customSourceLocations_mixed_locations_2)
 	)";
 	auto const& dialect = EVMDialect::strictAssemblyForEVM(solidity::test::CommonOptions::get().evmVersion(),
 		solidity::test::CommonOptions::get().eofVersion());
-	std::shared_ptr<AST> result = parse(sourceText, dialect, reporter);
+	std::shared_ptr<AST> const result = parse(sourceText, dialect, reporter);
 	BOOST_REQUIRE(!!result && errorList.size() == 0);
 	BOOST_REQUIRE_EQUAL(1, result->root().statements.size());
 	CHECK_LOCATION(result->root().debugData->originLocation, "source0", 0, 5);
@@ -430,7 +430,7 @@ BOOST_AUTO_TEST_CASE(customSourceLocations_mixed_locations_3)
 	)";
 	auto const& dialect = EVMDialect::strictAssemblyForEVM(solidity::test::CommonOptions::get().evmVersion(),
 		solidity::test::CommonOptions::get().eofVersion());
-	std::shared_ptr<AST> result = parse(sourceText, dialect, reporter);
+	std::shared_ptr<AST> const result = parse(sourceText, dialect, reporter);
 	BOOST_REQUIRE(!!result && errorList.size() == 0);
 	BOOST_REQUIRE_EQUAL(2, result->root().statements.size());
 	CHECK_LOCATION(result->root().debugData->originLocation, "source1", 23, 45);
@@ -467,7 +467,7 @@ BOOST_AUTO_TEST_CASE(customSourceLocations_invalid_comments_after_valid)
 	)";
 	auto const& dialect = EVMDialect::strictAssemblyForEVM(solidity::test::CommonOptions::get().evmVersion(),
 		solidity::test::CommonOptions::get().eofVersion());
-	std::shared_ptr<AST> result = parse(sourceText, dialect, reporter);
+	std::shared_ptr<AST> const result = parse(sourceText, dialect, reporter);
 	BOOST_REQUIRE(!!result && errorList.size() == 0);
 	BOOST_REQUIRE_EQUAL(1, result->root().statements.size());
 	CHECK_LOCATION(result->root().debugData->originLocation, "source1", 23, 45);
@@ -487,7 +487,7 @@ BOOST_AUTO_TEST_CASE(customSourceLocations_invalid_suffix)
 	)";
 	auto const& dialect = EVMDialect::strictAssemblyForEVM(solidity::test::CommonOptions::get().evmVersion(),
 		solidity::test::CommonOptions::get().eofVersion());
-	std::shared_ptr<AST> result = parse(sourceText, dialect, reporter);
+	std::shared_ptr<AST> const result = parse(sourceText, dialect, reporter);
 	BOOST_REQUIRE(!!result);
 	BOOST_REQUIRE(errorList.size() == 1);
 	BOOST_TEST(errorList[0]->type() == Error::Type::SyntaxError);
@@ -505,7 +505,7 @@ BOOST_AUTO_TEST_CASE(customSourceLocations_invalid_prefix)
 	)";
 	auto const& dialect = EVMDialect::strictAssemblyForEVM(solidity::test::CommonOptions::get().evmVersion(),
 		solidity::test::CommonOptions::get().eofVersion());
-	std::shared_ptr<AST> result = parse(sourceText, dialect, reporter);
+	std::shared_ptr<AST> const result = parse(sourceText, dialect, reporter);
 	BOOST_REQUIRE(!!result && errorList.size() == 0);
 	CHECK_LOCATION(result->root().debugData->originLocation, "", -1, -1);
 }
@@ -520,7 +520,7 @@ BOOST_AUTO_TEST_CASE(customSourceLocations_unspecified)
 	)";
 	auto const& dialect = EVMDialect::strictAssemblyForEVM(solidity::test::CommonOptions::get().evmVersion(),
 		solidity::test::CommonOptions::get().eofVersion());
-	std::shared_ptr<AST> result = parse(sourceText, dialect, reporter);
+	std::shared_ptr<AST> const result = parse(sourceText, dialect, reporter);
 	BOOST_REQUIRE(!!result && errorList.size() == 0);
 	CHECK_LOCATION(result->root().debugData->originLocation, "", -1, -1);
 }
@@ -535,7 +535,7 @@ BOOST_AUTO_TEST_CASE(customSourceLocations_non_integer)
 	)";
 	auto const& dialect = EVMDialect::strictAssemblyForEVM(solidity::test::CommonOptions::get().evmVersion(),
 		solidity::test::CommonOptions::get().eofVersion());
-	std::shared_ptr<AST> result = parse(sourceText, dialect, reporter);
+	std::shared_ptr<AST> const result = parse(sourceText, dialect, reporter);
 	BOOST_REQUIRE(!!result);
 	BOOST_REQUIRE(errorList.size() == 1);
 	BOOST_TEST(errorList[0]->type() == Error::Type::SyntaxError);
@@ -553,7 +553,7 @@ BOOST_AUTO_TEST_CASE(customSourceLocations_bad_integer)
 	)";
 	auto const& dialect = EVMDialect::strictAssemblyForEVM(solidity::test::CommonOptions::get().evmVersion(),
 		solidity::test::CommonOptions::get().eofVersion());
-	std::shared_ptr<AST> result = parse(sourceText, dialect, reporter);
+	std::shared_ptr<AST> const result = parse(sourceText, dialect, reporter);
 	BOOST_REQUIRE(!!result);
 	BOOST_REQUIRE(errorList.size() == 1);
 	BOOST_TEST(errorList[0]->type() == Error::Type::SyntaxError);
@@ -575,7 +575,7 @@ BOOST_AUTO_TEST_CASE(customSourceLocations_ensure_last_match)
 	)";
 	auto const& dialect = EVMDialect::strictAssemblyForEVM(solidity::test::CommonOptions::get().evmVersion(),
 		solidity::test::CommonOptions::get().eofVersion());
-	std::shared_ptr<AST> result = parse(sourceText, dialect, reporter);
+	std::shared_ptr<AST> const result = parse(sourceText, dialect, reporter);
 	BOOST_REQUIRE(!!result && errorList.size() == 0);
 	BOOST_REQUIRE(std::holds_alternative<VariableDeclaration>(result->root().statements.at(0)));
 	VariableDeclaration const& varDecl = std::get<VariableDeclaration>(result->root().statements.at(0));
@@ -594,7 +594,7 @@ BOOST_AUTO_TEST_CASE(customSourceLocations_two_locations_no_whitespace)
 	)";
 	auto const& dialect = EVMDialect::strictAssemblyForEVM(solidity::test::CommonOptions::get().evmVersion(),
 		solidity::test::CommonOptions::get().eofVersion());
-	std::shared_ptr<AST> result = parse(sourceText, dialect, reporter);
+	std::shared_ptr<AST> const result = parse(sourceText, dialect, reporter);
 	BOOST_REQUIRE(!!result);
 	BOOST_REQUIRE(errorList.size() == 1);
 	BOOST_TEST(errorList[0]->type() == Error::Type::SyntaxError);
@@ -612,7 +612,7 @@ BOOST_AUTO_TEST_CASE(customSourceLocations_two_locations_separated_with_single_s
 	)";
 	auto const& dialect = EVMDialect::strictAssemblyForEVM(solidity::test::CommonOptions::get().evmVersion(),
 		solidity::test::CommonOptions::get().eofVersion());
-	std::shared_ptr<AST> result = parse(sourceText, dialect, reporter);
+	std::shared_ptr<AST> const result = parse(sourceText, dialect, reporter);
 	BOOST_REQUIRE(!!result && errorList.size() == 0);
 	CHECK_LOCATION(result->root().debugData->originLocation, "source1", 333, 444);
 }
@@ -624,7 +624,7 @@ BOOST_AUTO_TEST_CASE(customSourceLocations_leading_trailing_whitespace)
 	auto const sourceText = "///     @src 0:111:222    \n{}";
 	auto const& dialect = EVMDialect::strictAssemblyForEVM(solidity::test::CommonOptions::get().evmVersion(),
 		solidity::test::CommonOptions::get().eofVersion());
-	std::shared_ptr<AST> result = parse(sourceText, dialect, reporter);
+	std::shared_ptr<AST> const result = parse(sourceText, dialect, reporter);
 	BOOST_REQUIRE(!!result && errorList.size() == 0);
 	CHECK_LOCATION(result->root().debugData->originLocation, "source0", 111, 222);
 }
@@ -642,7 +642,7 @@ BOOST_AUTO_TEST_CASE(customSourceLocations_reference_original_sloc)
 	)";
 	auto const& dialect = EVMDialect::strictAssemblyForEVM(solidity::test::CommonOptions::get().evmVersion(),
 		solidity::test::CommonOptions::get().eofVersion());
-	std::shared_ptr<AST> result = parse(sourceText, dialect, reporter);
+	std::shared_ptr<AST> const result = parse(sourceText, dialect, reporter);
 	BOOST_REQUIRE(!!result && errorList.size() == 0);
 	BOOST_REQUIRE(std::holds_alternative<VariableDeclaration>(result->root().statements.at(0)));
 	VariableDeclaration const& varDecl = std::get<VariableDeclaration>(result->root().statements.at(0));
@@ -665,7 +665,7 @@ BOOST_AUTO_TEST_CASE(customSourceLocations_with_code_snippets)
 	)~~~";
 	auto const& dialect = EVMDialect::strictAssemblyForEVM(solidity::test::CommonOptions::get().evmVersion(),
 		solidity::test::CommonOptions::get().eofVersion());
-	std::shared_ptr<AST> result = parse(sourceText, dialect, reporter);
+	std::shared_ptr<AST> const result = parse(sourceText, dialect, reporter);
 	BOOST_REQUIRE(!!result && errorList.size() == 0);
 	BOOST_REQUIRE_EQUAL(result->root().statements.size(), 2);
 
@@ -691,7 +691,7 @@ BOOST_AUTO_TEST_CASE(customSourceLocations_with_code_snippets_empty_snippet)
 	)";
 	auto const& dialect = EVMDialect::strictAssemblyForEVM(solidity::test::CommonOptions::get().evmVersion(),
 		solidity::test::CommonOptions::get().eofVersion());
-	std::shared_ptr<AST> result = parse(sourceText, dialect, reporter);
+	std::shared_ptr<AST> const result = parse(sourceText, dialect, reporter);
 	BOOST_REQUIRE(!!result && errorList.size() == 0);
 	CHECK_LOCATION(result->root().debugData->originLocation, "source0", 111, 222);
 }
@@ -706,7 +706,7 @@ BOOST_AUTO_TEST_CASE(customSourceLocations_with_code_snippets_no_whitespace_befo
 	)";
 	auto const& dialect = EVMDialect::strictAssemblyForEVM(solidity::test::CommonOptions::get().evmVersion(),
 		solidity::test::CommonOptions::get().eofVersion());
-	std::shared_ptr<AST> result = parse(sourceText, dialect, reporter);
+	std::shared_ptr<AST> const result = parse(sourceText, dialect, reporter);
 	BOOST_REQUIRE(!!result);
 	BOOST_REQUIRE(errorList.size() == 1);
 	BOOST_TEST(errorList[0]->type() == Error::Type::SyntaxError);
@@ -724,7 +724,7 @@ BOOST_AUTO_TEST_CASE(customSourceLocations_with_code_snippets_no_whitespace_afte
 	)";
 	auto const& dialect = EVMDialect::strictAssemblyForEVM(solidity::test::CommonOptions::get().evmVersion(),
 		solidity::test::CommonOptions::get().eofVersion());
-	std::shared_ptr<AST> result = parse(sourceText, dialect, reporter);
+	std::shared_ptr<AST> const result = parse(sourceText, dialect, reporter);
 	BOOST_REQUIRE(!!result && errorList.size() == 0);
 	CHECK_LOCATION(result->root().debugData->originLocation, "source0", 111, 222);
 }
@@ -739,7 +739,7 @@ BOOST_AUTO_TEST_CASE(customSourceLocations_two_locations_with_snippets_no_whites
 	)";
 	auto const& dialect = EVMDialect::strictAssemblyForEVM(solidity::test::CommonOptions::get().evmVersion(),
 		solidity::test::CommonOptions::get().eofVersion());
-	std::shared_ptr<AST> result = parse(sourceText, dialect, reporter);
+	std::shared_ptr<AST> const result = parse(sourceText, dialect, reporter);
 	BOOST_REQUIRE(!!result && errorList.size() == 0);
 	CHECK_LOCATION(result->root().debugData->originLocation, "source1", 333, 444);
 }
@@ -754,7 +754,7 @@ BOOST_AUTO_TEST_CASE(customSourceLocations_two_locations_with_snippets_untermina
 	)";
 	auto const& dialect = EVMDialect::strictAssemblyForEVM(solidity::test::CommonOptions::get().evmVersion(),
 		solidity::test::CommonOptions::get().eofVersion());
-	std::shared_ptr<AST> result = parse(sourceText, dialect, reporter);
+	std::shared_ptr<AST> const result = parse(sourceText, dialect, reporter);
 	BOOST_REQUIRE(!!result);
 	BOOST_REQUIRE(errorList.size() == 1);
 	BOOST_TEST(errorList[0]->type() == Error::Type::SyntaxError);
@@ -773,7 +773,7 @@ BOOST_AUTO_TEST_CASE(customSourceLocations_single_quote)
 	)";
 	auto const& dialect = EVMDialect::strictAssemblyForEVM(solidity::test::CommonOptions::get().evmVersion(),
 		solidity::test::CommonOptions::get().eofVersion());
-	std::shared_ptr<AST> result = parse(sourceText, dialect, reporter);
+	std::shared_ptr<AST> const result = parse(sourceText, dialect, reporter);
 	BOOST_REQUIRE(!!result);
 	BOOST_REQUIRE(errorList.size() == 1);
 	BOOST_TEST(errorList[0]->type() == Error::Type::SyntaxError);
@@ -791,7 +791,7 @@ BOOST_AUTO_TEST_CASE(customSourceLocations_two_snippets_with_hex_comment)
 	)";
 	auto const& dialect = EVMDialect::strictAssemblyForEVM(solidity::test::CommonOptions::get().evmVersion(),
 		solidity::test::CommonOptions::get().eofVersion());
-	std::shared_ptr<AST> result = parse(sourceText, dialect, reporter);
+	std::shared_ptr<AST> const result = parse(sourceText, dialect, reporter);
 	BOOST_REQUIRE(!!result && errorList.size() == 0);
 	// the second source location is not parsed as such, as the hex string isn't interpreted as snippet but
 	// as the beginning of the tail in AsmParser
@@ -808,7 +808,7 @@ BOOST_AUTO_TEST_CASE(customSourceLocations_invalid_escapes)
 	)";
 	auto const& dialect = EVMDialect::strictAssemblyForEVM(solidity::test::CommonOptions::get().evmVersion(),
 		solidity::test::CommonOptions::get().eofVersion());
-	std::shared_ptr<AST> result = parse(sourceText, dialect, reporter);
+	std::shared_ptr<AST> const result = parse(sourceText, dialect, reporter);
 	BOOST_REQUIRE(!!result && errorList.size() == 0);
 	CHECK_LOCATION(result->root().debugData->originLocation, "source0", 111, 222);
 }
@@ -824,7 +824,7 @@ BOOST_AUTO_TEST_CASE(customSourceLocations_single_quote_snippet_with_whitespaces
 	)";
 	auto const& dialect = EVMDialect::strictAssemblyForEVM(solidity::test::CommonOptions::get().evmVersion(),
 		solidity::test::CommonOptions::get().eofVersion());
-	std::shared_ptr<AST> result = parse(sourceText, dialect, reporter);
+	std::shared_ptr<AST> const result = parse(sourceText, dialect, reporter);
 	BOOST_REQUIRE(!!result && errorList.size() == 0);
 	CHECK_LOCATION(result->root().debugData->originLocation, "source1", 222, 333);
 }
@@ -840,7 +840,7 @@ BOOST_DATA_TEST_CASE(customSourceLocations_scanner_errors_outside_string_lits_ar
 	)", invalid);
 	auto const& dialect = EVMDialect::strictAssemblyForEVM(solidity::test::CommonOptions::get().evmVersion(),
 		solidity::test::CommonOptions::get().eofVersion());
-	std::shared_ptr<AST> result = parse(sourceText, dialect, reporter);
+	std::shared_ptr<AST> const result = parse(sourceText, dialect, reporter);
 	BOOST_REQUIRE(!!result && errorList.empty());
 	CHECK_LOCATION(result->root().debugData->originLocation, "source1", 222, 333);
 }
@@ -859,7 +859,7 @@ BOOST_AUTO_TEST_CASE(customSourceLocations_multi_line_source_loc)
 	)";
 	auto const& dialect = EVMDialect::strictAssemblyForEVM(solidity::test::CommonOptions::get().evmVersion(),
 		solidity::test::CommonOptions::get().eofVersion());
-	std::shared_ptr<AST> result = parse(sourceText, dialect, reporter);
+	std::shared_ptr<AST> const result = parse(sourceText, dialect, reporter);
 	BOOST_REQUIRE(!!result && errorList.empty());
 	CHECK_LOCATION(result->root().debugData->originLocation, "source0", 333, 444);
 }
@@ -878,7 +878,7 @@ BOOST_AUTO_TEST_CASE(customSourceLocations_with_code_snippets_with_nested_locati
 	)~~~";
 	auto const& dialect = EVMDialect::strictAssemblyForEVM(solidity::test::CommonOptions::get().evmVersion(),
 		solidity::test::CommonOptions::get().eofVersion());
-	std::shared_ptr<AST> result = parse(sourceText, dialect, reporter);
+	std::shared_ptr<AST> const result = parse(sourceText, dialect, reporter);
 	BOOST_REQUIRE(!!result && errorList.size() == 0);
 	BOOST_REQUIRE_EQUAL(result->root().statements.size(), 2);
 
@@ -908,7 +908,7 @@ BOOST_AUTO_TEST_CASE(astid)
 	)";
 	auto const& dialect = EVMDialect::strictAssemblyForEVM(solidity::test::CommonOptions::get().evmVersion(),
 		solidity::test::CommonOptions::get().eofVersion());
-	std::shared_ptr<AST> result = parse(sourceText, dialect, reporter);
+	std::shared_ptr<AST> const result = parse(sourceText, dialect, reporter);
 	BOOST_REQUIRE(!!result);
 	BOOST_CHECK(result->root().debugData->astID == int64_t(7));
 	auto const& funDef = std::get<FunctionDefinition>(result->root().statements.at(0));
@@ -931,7 +931,7 @@ BOOST_AUTO_TEST_CASE(astid_reset)
 	)";
 	auto const& dialect = EVMDialect::strictAssemblyForEVM(solidity::test::CommonOptions::get().evmVersion(),
 		solidity::test::CommonOptions::get().eofVersion());
-	std::shared_ptr<AST> result = parse(sourceText, dialect, reporter);
+	std::shared_ptr<AST> const result = parse(sourceText, dialect, reporter);
 	BOOST_REQUIRE(!!result);
 	BOOST_CHECK(result->root().debugData->astID == int64_t(7));
 	auto const& funDef = std::get<FunctionDefinition>(result->root().statements.at(0));
@@ -950,7 +950,7 @@ BOOST_AUTO_TEST_CASE(astid_multi)
 	)";
 	auto const& dialect = EVMDialect::strictAssemblyForEVM(solidity::test::CommonOptions::get().evmVersion(),
 		solidity::test::CommonOptions::get().eofVersion());
-	std::shared_ptr<AST> result = parse(sourceText, dialect, reporter);
+	std::shared_ptr<AST> const result = parse(sourceText, dialect, reporter);
 	BOOST_REQUIRE(!!result);
 	BOOST_CHECK(result->root().debugData->astID == int64_t(8));
 }
@@ -965,7 +965,7 @@ BOOST_AUTO_TEST_CASE(astid_invalid)
 	)";
 	auto const& dialect = EVMDialect::strictAssemblyForEVM(solidity::test::CommonOptions::get().evmVersion(),
 		solidity::test::CommonOptions::get().eofVersion());
-	std::shared_ptr<AST> result = parse(sourceText, dialect, reporter);
+	std::shared_ptr<AST> const result = parse(sourceText, dialect, reporter);
 	BOOST_REQUIRE(!!result);
 	BOOST_REQUIRE(errorList.size() == 1);
 	BOOST_TEST(errorList[0]->type() == Error::Type::SyntaxError);
@@ -983,7 +983,7 @@ BOOST_AUTO_TEST_CASE(astid_too_large)
 	)";
 	auto const& dialect = EVMDialect::strictAssemblyForEVM(solidity::test::CommonOptions::get().evmVersion(),
 		solidity::test::CommonOptions::get().eofVersion());
-	std::shared_ptr<AST> result = parse(sourceText, dialect, reporter);
+	std::shared_ptr<AST> const result = parse(sourceText, dialect, reporter);
 	BOOST_REQUIRE(!!result);
 	BOOST_REQUIRE(errorList.size() == 1);
 	BOOST_TEST(errorList[0]->type() == Error::Type::SyntaxError);
@@ -1000,7 +1000,7 @@ BOOST_AUTO_TEST_CASE(astid_way_too_large)
 	)";
 	auto const& dialect = EVMDialect::strictAssemblyForEVM(solidity::test::CommonOptions::get().evmVersion(),
 		solidity::test::CommonOptions::get().eofVersion());
-	std::shared_ptr<AST> result = parse(sourceText, dialect, reporter);
+	std::shared_ptr<AST> const result = parse(sourceText, dialect, reporter);
 	BOOST_REQUIRE(!!result);
 	BOOST_REQUIRE(errorList.size() == 1);
 	BOOST_TEST(errorList[0]->type() == Error::Type::SyntaxError);
@@ -1017,7 +1017,7 @@ BOOST_AUTO_TEST_CASE(astid_not_fully_numeric)
 	)";
 	auto const& dialect = EVMDialect::strictAssemblyForEVM(solidity::test::CommonOptions::get().evmVersion(),
 		solidity::test::CommonOptions::get().eofVersion());
-	std::shared_ptr<AST> result = parse(sourceText, dialect, reporter);
+	std::shared_ptr<AST> const result = parse(sourceText, dialect, reporter);
 	BOOST_REQUIRE(!!result);
 	BOOST_REQUIRE(errorList.size() == 1);
 	BOOST_TEST(errorList[0]->type() == Error::Type::SyntaxError);
@@ -1040,7 +1040,7 @@ BOOST_AUTO_TEST_CASE(customSourceLocations_multiple_src_tags_on_one_line)
 		"}\n";
 	auto const& dialect = EVMDialect::strictAssemblyForEVM(solidity::test::CommonOptions::get().evmVersion(),
 		solidity::test::CommonOptions::get().eofVersion());
-	std::shared_ptr<AST> result = parse(sourceText, dialect, reporter);
+	std::shared_ptr<AST> const result = parse(sourceText, dialect, reporter);
 	BOOST_REQUIRE(!!result && errorList.size() == 0);
 	BOOST_REQUIRE_EQUAL(result->root().statements.size(), 1);
 

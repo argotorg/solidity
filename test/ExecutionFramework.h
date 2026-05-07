@@ -131,8 +131,8 @@ public:
 	template <class CppFunction, class... Args>
 	void testContractAgainstCpp(std::string _sig, CppFunction const& _cppFunction, Args const&... _arguments)
 	{
-		bytes contractResult = callContractFunction(_sig, _arguments...);
-		bytes cppResult = callCppAndEncodeResult(_cppFunction, _arguments...);
+		bytes const contractResult = callContractFunction(_sig, _arguments...);
+		bytes const cppResult = callCppAndEncodeResult(_cppFunction, _arguments...);
 		BOOST_CHECK_MESSAGE(
 			contractResult == cppResult,
 			"Computed values do not match.\nContract: " +
@@ -147,8 +147,8 @@ public:
 	{
 		for (u256 argument = _rangeStart; argument < _rangeEnd; ++argument)
 		{
-			bytes contractResult = callContractFunction(_sig, argument);
-			bytes cppResult = callCppAndEncodeResult(_cppFunction, argument);
+			bytes const contractResult = callContractFunction(_sig, argument);
+			bytes const cppResult = callCppAndEncodeResult(_cppFunction, argument);
 			BOOST_CHECK_MESSAGE(
 				contractResult == cppResult,
 				"Computed values do not match.\nContract: " +
@@ -174,14 +174,14 @@ public:
 	static bytes encode(std::pair<rational, int> const& _valueAndPrecision)
 	{
 		rational const& value = _valueAndPrecision.first;
-		int fractionalBits = _valueAndPrecision.second;
+		int const fractionalBits = _valueAndPrecision.second;
 		return encode(u256((value.numerator() << fractionalBits) / value.denominator()));
 	}
 	static bytes encode(util::h256 const& _value) { return _value.asBytes(); }
 	static bytes encode(util::h160 const& _value) { return encode(util::h256(_value, util::h256::AlignRight)); }
 	static bytes encode(bytes const& _value, bool _padLeft = true)
 	{
-		bytes padding = bytes((32 - _value.size() % 32) % 32, 0);
+		bytes const padding = bytes((32 - _value.size() % 32) % 32, 0);
 		return _padLeft ? padding + _value : _value + padding;
 	}
 	static bytes encode(std::string const& _value) { return encode(util::asBytes(_value), false); }

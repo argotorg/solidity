@@ -62,7 +62,7 @@ void EVMObjectCompiler::run(Object const& _object, bool _optimize, bool _viaSSAC
 	for (auto const& subNode: _object.subObjects)
 		if (auto* subObject = dynamic_cast<Object*>(subNode.get()))
 		{
-			bool isCreation = !boost::ends_with(subObject->name, "_deployed");
+			bool const isCreation = !boost::ends_with(subObject->name, "_deployed");
 			auto subAssemblyAndID = m_assembly.createSubAssembly(isCreation, subObject->name);
 			context.subIDs[subObject->name] = subAssemblyAndID.second;
 			subObject->subId = subAssemblyAndID.second;
@@ -89,7 +89,7 @@ void EVMObjectCompiler::run(Object const& _object, bool _optimize, bool _viaSSAC
 	{
 		if (_viaSSACFG)
 		{
-			std::unique_ptr<ssa::ControlFlowGraphs> controlFlowGraphs = ssa::SSACFGBuilder::build(
+			std::unique_ptr<ssa::ControlFlowGraphs> const controlFlowGraphs = ssa::SSACFGBuilder::build(
 				*_object.analysisInfo,
 				*evmDialect,
 				_object.code()->root(),
@@ -117,7 +117,7 @@ void EVMObjectCompiler::run(Object const& _object, bool _optimize, bool _viaSSAC
 				yulAssert(evmDialect->providesObjectAccess());
 				auto const memoryGuardHandle = evmDialect->findBuiltin("memoryguard");
 				yulAssert(memoryGuardHandle, "Compiling with object access, memoryguard should be available as builtin.");
-				std::vector<FunctionCall const*> memoryGuardCalls = findFunctionCalls(
+				std::vector<FunctionCall const*> const memoryGuardCalls = findFunctionCalls(
 					_object.code()->root(),
 					*memoryGuardHandle
 				);

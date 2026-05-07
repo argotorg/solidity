@@ -116,7 +116,7 @@ AsmAnalysisInfo AsmAnalyzer::analyzeStrictAssertCorrect(
 	ErrorList errorList;
 	langutil::ErrorReporter errors(errorList);
 	AsmAnalysisInfo analysisInfo;
-	bool success = AsmAnalyzer(
+	bool const success = AsmAnalyzer(
 		analysisInfo,
 		errors,
 		_dialect,
@@ -214,7 +214,7 @@ size_t AsmAnalyzer::operator()(Identifier const& _identifier)
 	}
 	else
 	{
-		bool found = m_resolver && m_resolver(
+		bool const found = m_resolver && m_resolver(
 			_identifier,
 			yul::IdentifierContext::RValue,
 			m_currentScope->insideFunction()
@@ -541,7 +541,7 @@ size_t AsmAnalyzer::operator()(FunctionCall const& _funCall)
 			}
 			else if (*literalArgumentKind == LiteralKind::Number)
 			{
-				std::string_view functionName = resolveFunctionName(_funCall.functionName, m_dialect);
+				std::string_view const functionName = resolveFunctionName(_funCall.functionName, m_dialect);
 				if (functionName == "auxdataloadn")
 				{
 					auto const& argumentAsLiteral = std::get<Literal>(arg);
@@ -699,7 +699,7 @@ void AsmAnalyzer::checkAssignment(Identifier const& _variable)
 	}
 	else if (m_resolver)
 	{
-		bool insideFunction = m_currentScope->insideFunction();
+		bool const insideFunction = m_currentScope->insideFunction();
 		if (m_resolver(_variable, yul::IdentifierContext::LValue, insideFunction))
 		{
 			found = true;

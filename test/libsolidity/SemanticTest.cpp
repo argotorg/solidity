@@ -92,7 +92,7 @@ SemanticTest::SemanticTest(
 		m_shouldRun = false;
 
 	auto const eofEnabled = solidity::test::CommonOptions::get().eofVersion().has_value();
-	std::string compileViaYul = m_reader.stringSetting("compileViaYul", eofEnabled ? "true" : "also");
+	std::string const compileViaYul = m_reader.stringSetting("compileViaYul", eofEnabled ? "true" : "also");
 
 	if (compileViaYul == "false" && eofEnabled)
 		m_shouldRun = false;
@@ -171,7 +171,7 @@ std::map<std::string, Builtin> SemanticTest::makeBuiltins()
 			[this](FunctionCall const& _call) -> std::optional<bytes>
 			{
 				soltestAssert(_call.arguments.parameters.size() == 1, "Account number expected.");
-				size_t accountNumber = static_cast<size_t>(stoi(_call.arguments.parameters.at(0).rawString));
+				size_t const accountNumber = static_cast<size_t>(stoi(_call.arguments.parameters.at(0).rawString));
 				// Need to pad it to 32-bytes to workaround limitations in BytesUtils::formatHex.
 				return toBigEndian(h256(ExecutionFramework::setAccount(accountNumber).asBytes(), h256::AlignRight));
 			}
@@ -234,7 +234,7 @@ std::string SemanticTest::formatEventParameter(std::optional<AnnotatedEventSigna
 std::vector<std::string> SemanticTest::eventSideEffectHook(FunctionCall const&) const
 {
 	std::vector<std::string> sideEffects;
-	std::vector<LogRecord> recordedLogs = ExecutionFramework::recordedLogs();
+	std::vector<LogRecord> const recordedLogs = ExecutionFramework::recordedLogs();
 	for (LogRecord const& log: recordedLogs)
 	{
 		std::optional<AnnotatedEventSignature> eventSignature;
@@ -278,7 +278,7 @@ std::vector<std::string> SemanticTest::eventSideEffectHook(FunctionCall const&) 
 std::optional<AnnotatedEventSignature> SemanticTest::matchEvent(util::h256 const& hash) const
 {
 	std::optional<AnnotatedEventSignature> result;
-	for (std::string& contractName: m_compiler.contractNames())
+	for (std::string const& contractName: m_compiler.contractNames())
 	{
 		ContractDefinition const& contract = m_compiler.contractDefinition(contractName);
 		for (EventDefinition const* event: contract.events() + contract.usedInterfaceEvents())
@@ -550,7 +550,7 @@ TestCase::TestResult SemanticTest::tryRunTestWithYulOptimizer(
 		RequiresYulOptimizer::Full,
 	})
 	{
-		ScopedSaveAndRestore optimizerSettings(
+		ScopedSaveAndRestore const optimizerSettings(
 			m_optimiserSettings,
 			optimizerSettingsFor(requiresYulOptimizer)
 		);
@@ -586,7 +586,7 @@ TestCase::TestResult SemanticTest::tryRunTestWithYulOptimizer(
 
 bool SemanticTest::checkGasCostExpectation(TestFunctionCall& io_test, bool _compileViaYul) const
 {
-	std::string setting = m_isSSACFGRun
+	std::string const setting = m_isSSACFGRun
 		? (m_optimiserSettings == OptimiserSettings::full() ? "ssaCFGOptimized"s : "ssaCFG"s)
 		: (_compileViaYul ? "ir"s : "legacy"s) +
 		  (m_optimiserSettings == OptimiserSettings::full() ? "Optimized" : "");
@@ -596,13 +596,13 @@ bool SemanticTest::checkGasCostExpectation(TestFunctionCall& io_test, bool _comp
 		io_test.call().expectations.gasUsedForCodeDeposit.count(setting)
 	);
 
-	bool uninteresting =
+	bool const uninteresting =
 		m_gasUsed < m_enforceGasCostMinValue || // gas used less than threshold for enforcing feature
 		m_gasUsed >= InitialGas || // test has used up all available gas (test will fail anyway)
 		setting == "ir" ||
 		setting == "ssaCFG" ||
 		io_test.call().kind == FunctionCall::Kind::Builtin; // isoltest builtin e.g. `smokeTest` or `storageEmpty`
-	bool gasValueMissing = !io_test.call().expectations.gasUsedExcludingCode.contains(setting);
+	bool const gasValueMissing = !io_test.call().expectations.gasUsedExcludingCode.contains(setting);
 	if (!m_enforceGasCost || (gasValueMissing && uninteresting))
 		return true;
 
@@ -625,7 +625,7 @@ void SemanticTest::printSource(std::ostream& _stream, std::string const& _linePr
 	if (m_sources.sources.empty())
 		return;
 
-	bool outputNames = (m_sources.sources.size() - m_sources.externalSources.size() != 1 || !m_sources.sources.begin()->first.empty());
+	bool const outputNames = (m_sources.sources.size() - m_sources.externalSources.size() != 1 || !m_sources.sources.begin()->first.empty());
 
 	std::set<std::string> externals;
 	for (auto const& [name, path]: m_sources.externalSources)

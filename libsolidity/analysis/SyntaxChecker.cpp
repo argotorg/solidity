@@ -55,7 +55,7 @@ void SyntaxChecker::endVisit(SourceUnit const& _sourceUnit)
 	if (!m_versionPragmaFound)
 	{
 		std::string errorString("Source file does not specify required compiler version!");
-		SemVerVersion recommendedVersion{std::string(VersionString)};
+		SemVerVersion const recommendedVersion{std::string(VersionString)};
 		if (!recommendedVersion.isPrerelease())
 			errorString +=
 				" Consider adding \"pragma solidity ^" +
@@ -173,10 +173,10 @@ bool SyntaxChecker::visit(PragmaDirective const& _pragma)
 	{
 		try
 		{
-			std::vector<Token> tokens(_pragma.tokens().begin() + 1, _pragma.tokens().end());
-			std::vector<std::string> literals(_pragma.literals().begin() + 1, _pragma.literals().end());
+			std::vector<Token> const tokens(_pragma.tokens().begin() + 1, _pragma.tokens().end());
+			std::vector<std::string> const literals(_pragma.literals().begin() + 1, _pragma.literals().end());
 			SemVerMatchExpressionParser parser(tokens, literals);
-			SemVerMatchExpression matchExpression = parser.parse();
+			SemVerMatchExpression const matchExpression = parser.parse();
 			static SemVerVersion const currentVersion{std::string(VersionString)};
 			solAssert(matchExpression.matches(currentVersion));
 			m_versionPragmaFound = true;
@@ -358,7 +358,7 @@ bool SyntaxChecker::visit(UnaryOperation const& _operation)
 bool SyntaxChecker::visit(InlineAssembly const& _inlineAssembly)
 {
 	if (_inlineAssembly.flags())
-		for (auto flag: *_inlineAssembly.flags())
+		for (auto const& flag: *_inlineAssembly.flags())
 		{
 			if (*flag == "memory-safe")
 			{
@@ -476,7 +476,7 @@ bool SyntaxChecker::visit(FunctionDefinition const& _function)
 
 	if (!_function.isFree() && !_function.isConstructor() && _function.noVisibilitySpecified())
 	{
-		std::string suggestedVisibility =
+		std::string const suggestedVisibility =
 			_function.isFallback() ||
 			_function.isReceive() ||
 			m_currentContractKind == ContractKind::Interface

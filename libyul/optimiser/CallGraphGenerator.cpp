@@ -82,7 +82,7 @@ CallGraph CallGraphGenerator::callGraph(Block const& _ast)
 void CallGraphGenerator::operator()(FunctionCall const& _functionCall)
 {
 	auto& functionCalls = m_callGraph.functionCalls[m_currentFunction];
-	FunctionHandle identifier = std::visit(GenericVisitor{
+	FunctionHandle const identifier = std::visit(GenericVisitor{
 		[](BuiltinName const& _builtin) -> FunctionHandle { return _builtin.handle; },
 		[](Identifier const& _identifier) -> FunctionHandle { return _identifier.name; },
 	}, _functionCall.functionName);
@@ -99,7 +99,7 @@ void CallGraphGenerator::operator()(ForLoop const& _forLoop)
 
 void CallGraphGenerator::operator()(FunctionDefinition const& _functionDefinition)
 {
-	YulName previousFunction = m_currentFunction;
+	YulName const previousFunction = m_currentFunction;
 	m_currentFunction = _functionDefinition.name;
 	yulAssert(m_callGraph.functionCalls.count(m_currentFunction) == 0, "");
 	m_callGraph.functionCalls[m_currentFunction] = {};

@@ -40,7 +40,7 @@ bool Sort::operator==(Sort const& _rhs) const
 
 bool Sort::operator<=(Sort const& _rhs) const
 {
-	for (auto c: classes)
+	for (auto const& c: classes)
 		if (!_rhs.classes.count(c))
 			return false;
 	return true;

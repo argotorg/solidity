@@ -176,7 +176,7 @@ bool StaticAnalyzer::visit(VariableDeclaration const& _variable)
 			for (Type const* type: varType->fullDecomposition())
 				if (type->storageSizeUpperBound() >= (bigint(1) << 64))
 				{
-					std::string message = "Type " + type->toString(true) +
+					std::string const message = "Type " + type->toString(true) +
 						" covers a large part of storage and thus makes collisions likely."
 						" Either use mappings or dynamic arrays and allow their size to be increased only"
 						" in small quantities per transaction.";

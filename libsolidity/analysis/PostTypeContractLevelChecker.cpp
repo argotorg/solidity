@@ -59,12 +59,12 @@ bool PostTypeContractLevelChecker::check(ContractDefinition const& _contract)
 	std::map<uint32_t, std::map<std::string, SourceLocation>> errorHashes;
 	for (ErrorDefinition const* error: _contract.interfaceErrors())
 	{
-		std::string signature = error->functionType(true)->externalSignature();
-		uint32_t hash = selectorFromSignatureU32(signature);
+		std::string const signature = error->functionType(true)->externalSignature();
+		uint32_t const hash = selectorFromSignatureU32(signature);
 		// Fail if there is a different signature for the same hash.
 		if (!errorHashes[hash].empty() && !errorHashes[hash].count(signature))
 		{
-			SourceLocation& otherLocation = errorHashes[hash].begin()->second;
+			SourceLocation const& otherLocation = errorHashes[hash].begin()->second;
 			m_errorReporter.typeError(
 				4883_error,
 				error->nameLocation(),
@@ -167,7 +167,7 @@ void PostTypeContractLevelChecker::checkStorageLayoutSpecifier(ContractDefinitio
 	}
 
 	solAssert(baseSlotRationalValue.denominator() == 1);
-	bigint baseSlot = baseSlotRationalValue.numerator();
+	bigint const baseSlot = baseSlotRationalValue.numerator();
 	if (!(0 <= baseSlot && baseSlot <= std::numeric_limits<u256>::max()))
 	{
 		m_errorReporter.typeError(
@@ -195,7 +195,7 @@ void PostTypeContractLevelChecker::checkStorageLayoutSpecifier(ContractDefinitio
 	}
 	storageLayoutSpecifier->annotation().baseSlot = u256(baseSlot);
 
-	bigint size = contractStorageSizeUpperBound(_contract, VariableDeclaration::Location::Unspecified);
+	bigint const size = contractStorageSizeUpperBound(_contract, VariableDeclaration::Location::Unspecified);
 	solAssert(size < bigint(1) << 256);
 	if (baseSlot + size >= bigint(1) << 256)
 		m_errorReporter.typeError(
@@ -227,12 +227,12 @@ void PostTypeContractLevelChecker::warnStorageLayoutBaseNearStorageEnd(ContractD
 	if (Error::containsErrors(m_errorReporter.errors()))
 		return;
 
-	bigint storageSize = contractStorageSizeUpperBound(_contract, VariableDeclaration::Location::Unspecified);
-	u256 baseSlot = layoutBaseForInheritanceHierarchy(_contract, DataLocation::Storage);
+	bigint const storageSize = contractStorageSizeUpperBound(_contract, VariableDeclaration::Location::Unspecified);
+	u256 const baseSlot = layoutBaseForInheritanceHierarchy(_contract, DataLocation::Storage);
 	solAssert(baseSlot + storageSize <= std::numeric_limits<u256>::max());
 
 	if (
-		u256 slotsLeft = std::numeric_limits<u256>::max() - baseSlot - u256(storageSize);
+		u256 const slotsLeft = std::numeric_limits<u256>::max() - baseSlot - u256(storageSize);
 		slotsLeft <= u256(1) << 64
 	)
 	{
@@ -243,7 +243,7 @@ void PostTypeContractLevelChecker::warnStorageLayoutBaseNearStorageEnd(ContractD
 		VariableDeclaration const* lastStorageVariable = findLastStorageVariable(_contract);
 
 		auto errorID = 3495_error;
-		std::string errorMsg = "This contract is very close to the end of storage. This limits its future upgradability.";
+		std::string const errorMsg = "This contract is very close to the end of storage. This limits its future upgradability.";
 		if (lastStorageVariable)
 			m_errorReporter.warning(
 				errorID,

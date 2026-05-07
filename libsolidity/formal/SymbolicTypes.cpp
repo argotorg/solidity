@@ -66,7 +66,7 @@ SortPointer smtSort(frontend::Type const& _type)
 	{
 		auto fType = dynamic_cast<frontend::FunctionType const*>(&_type);
 		solAssert(fType, "");
-		std::vector<SortPointer> parameterSorts = smtSort(fType->parameterTypes());
+		std::vector<SortPointer> const parameterSorts = smtSort(fType->parameterTypes());
 		auto returnTypes = fType->returnParameterTypes();
 		SortPointer returnSort;
 		// TODO change this when we support tuples.
@@ -179,7 +179,7 @@ SortPointer smtSort(frontend::Type const& _type)
 		{
 			solAssert(!structType->recursive(), "");
 			auto const& structMembers = structType->structDefinition().members();
-			for (auto member: structMembers)
+			for (auto const& member: structMembers)
 				members.emplace_back(tupleName + "_accessor_" + member->name());
 			sorts = smtSortAbstractFunction(applyMap(
 				structMembers,

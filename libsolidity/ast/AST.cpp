@@ -226,7 +226,7 @@ std::vector<EventDefinition const*> const& ContractDefinition::definedInterfaceE
 				///       and not to function encoding (jump vs. call)
 				FunctionType const* functionType = e->functionType(true);
 				solAssert(functionType, "");
-				std::string eventSignature = functionType->externalSignature();
+				std::string const eventSignature = functionType->externalSignature();
 				if (eventsSeen.count(eventSignature) == 0)
 				{
 					eventsSeen.insert(eventSignature);
@@ -299,7 +299,7 @@ std::vector<std::pair<util::FixedHash<4>, FunctionTypePointer>> const& ContractD
 				if (!fun->interfaceFunctionType())
 					// Fails hopefully because we already registered the error
 					continue;
-				std::string functionSignature = fun->externalSignature();
+				std::string const functionSignature = fun->externalSignature();
 				if (signaturesSeen.count(functionSignature) == 0)
 				{
 					signaturesSeen.insert(functionSignature);

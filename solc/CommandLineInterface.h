@@ -129,7 +129,7 @@ private:
 	/// Create a file in the given directory
 	/// @arg _fileName the name of the file
 	/// @arg _data to be written
-	void createFile(std::string const& _fileName, std::string const& _data);
+	void createFile(std::string const& _fileName, std::string const& _data) const;
 
 	/// Create a json file in the given directory
 	/// @arg _fileName the name of the file (the extension will be replaced with .json)

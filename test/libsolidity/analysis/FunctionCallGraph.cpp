@@ -64,7 +64,7 @@ namespace
 
 std::unique_ptr<CompilerStack> parseAndAnalyzeContracts(std::string _sourceCode)
 {
-	ReadCallback::Callback fileReader = [](std::string const&, std::string const&)
+	ReadCallback::Callback const fileReader = [](std::string const&, std::string const&)
 	{
 		soltestAssert(false, "For simplicity this test suite supports only files without imports.");
 		return ReadCallback::Result{true, ""};
@@ -75,7 +75,7 @@ std::unique_ptr<CompilerStack> parseAndAnalyzeContracts(std::string _sourceCode)
 
 	// NOTE: The code in test cases is expected to be correct so we can keep error handling simple
 	// here and just assert that there are no errors.
-	bool success = compilerStack->parseAndAnalyze();
+	bool const success = compilerStack->parseAndAnalyze();
 	soltestAssert(success, "");
 
 	soltestAssert(
@@ -252,7 +252,7 @@ BOOST_AUTO_TEST_SUITE(FunctionCallGraphTest)
 
 BOOST_AUTO_TEST_CASE(only_definitions)
 {
-	std::unique_ptr<CompilerStack> compilerStack = parseAndAnalyzeContracts(R"(
+	std::unique_ptr<CompilerStack> const compilerStack = parseAndAnalyzeContracts(R"(
 		function free() {}
 
 		library L {
@@ -271,12 +271,12 @@ BOOST_AUTO_TEST_CASE(only_definitions)
 	)"s);
 	std::tuple<CallGraphMap, CallGraphMap> graphs = collectGraphs(*compilerStack);
 
-	std::map<std::string, EdgeNames> expectedCreationEdges = {
+	std::map<std::string, EdgeNames> const expectedCreationEdges = {
 		{"C", {}},
 		{"L", {}},
 	};
 
-	std::map<std::string, EdgeNames> expectedDeployedEdges = {
+	std::map<std::string, EdgeNames> const expectedDeployedEdges = {
 		{"C", {
 			{"Entry", "function C.ext()"},
 			{"Entry", "function C.pub()"},
@@ -293,7 +293,7 @@ BOOST_AUTO_TEST_CASE(only_definitions)
 
 BOOST_AUTO_TEST_CASE(ordinary_calls)
 {
-	std::unique_ptr<CompilerStack> compilerStack = parseAndAnalyzeContracts(R"(
+	std::unique_ptr<CompilerStack> const compilerStack = parseAndAnalyzeContracts(R"(
 		function free() {}
 
 		library L {
@@ -312,12 +312,12 @@ BOOST_AUTO_TEST_CASE(ordinary_calls)
 	)"s);
 	std::tuple<CallGraphMap, CallGraphMap> graphs = collectGraphs(*compilerStack);
 
-	std::map<std::string, EdgeNames> expectedCreationEdges = {
+	std::map<std::string, EdgeNames> const expectedCreationEdges = {
 		{"C", {}},
 		{"L", {}},
 	};
 
-	std::map<std::string, EdgeNames> expectedDeployedEdges = {
+	std::map<std::string, EdgeNames> const expectedDeployedEdges = {
 		{"C", {
 			{"Entry", "function C.ext()"},
 			{"Entry", "function C.pub()"},
@@ -348,7 +348,7 @@ BOOST_AUTO_TEST_CASE(ordinary_calls)
 
 BOOST_AUTO_TEST_CASE(call_chains_through_externals)
 {
-	std::unique_ptr<CompilerStack> compilerStack = parseAndAnalyzeContracts(R"(
+	std::unique_ptr<CompilerStack> const compilerStack = parseAndAnalyzeContracts(R"(
 		library L {
 			function ext() external { C(address(0x0)).ext(); }
 			function pub() public {}
@@ -369,12 +369,12 @@ BOOST_AUTO_TEST_CASE(call_chains_through_externals)
 	)"s);
 	std::tuple<CallGraphMap, CallGraphMap> graphs = collectGraphs(*compilerStack);
 
-	std::map<std::string, EdgeNames> expectedCreationEdges = {
+	std::map<std::string, EdgeNames> const expectedCreationEdges = {
 		{"C", {}},
 		{"L", {}},
 	};
 
-	std::map<std::string, EdgeNames> expectedDeployedEdges = {
+	std::map<std::string, EdgeNames> const expectedDeployedEdges = {
 		{"C", {
 			{"Entry", "function C.ext()"},
 			{"Entry", "function C.ext2()"},
@@ -394,7 +394,7 @@ BOOST_AUTO_TEST_CASE(call_chains_through_externals)
 
 BOOST_AUTO_TEST_CASE(calls_from_constructors)
 {
-	std::unique_ptr<CompilerStack> compilerStack = parseAndAnalyzeContracts(R"(
+	std::unique_ptr<CompilerStack> const compilerStack = parseAndAnalyzeContracts(R"(
 		function free() returns (uint) {}
 
 		library L {
@@ -419,7 +419,7 @@ BOOST_AUTO_TEST_CASE(calls_from_constructors)
 	)"s);
 	std::tuple<CallGraphMap, CallGraphMap> graphs = collectGraphs(*compilerStack);
 
-	std::map<std::string, EdgeNames> expectedCreationEdges = {
+	std::map<std::string, EdgeNames> const expectedCreationEdges = {
 		{"C", {
 			{"Entry", "constructor of C"},
 			{"constructor of C", "function C.inr()"},
@@ -432,7 +432,7 @@ BOOST_AUTO_TEST_CASE(calls_from_constructors)
 		{"L", {}},
 	};
 
-	std::map<std::string, EdgeNames> expectedDeployedEdges = {
+	std::map<std::string, EdgeNames> const expectedDeployedEdges = {
 		{"C", {
 			{"Entry", "function C.ext()"},
 		}},
@@ -450,7 +450,7 @@ BOOST_AUTO_TEST_CASE(calls_from_constructors)
 
 BOOST_AUTO_TEST_CASE(calls_to_constructors)
 {
-	std::unique_ptr<CompilerStack> compilerStack = parseAndAnalyzeContracts(R"(
+	std::unique_ptr<CompilerStack> const compilerStack = parseAndAnalyzeContracts(R"(
 		function free() { new D(); }
 
 		library L {
@@ -469,7 +469,7 @@ BOOST_AUTO_TEST_CASE(calls_to_constructors)
 	)"s);
 	std::tuple<CallGraphMap, CallGraphMap> graphs = collectGraphs(*compilerStack);
 
-	std::map<std::string, EdgeNames> expectedCreationEdges = {
+	std::map<std::string, EdgeNames> const expectedCreationEdges = {
 		{"C", {
 			{"Entry", "constructor of C"},
 		}},
@@ -477,7 +477,7 @@ BOOST_AUTO_TEST_CASE(calls_to_constructors)
 		{"L", {}},
 	};
 
-	std::map<std::string, EdgeNames> expectedDeployedEdges = {
+	std::map<std::string, EdgeNames> const expectedDeployedEdges = {
 		{"C", {
 			{"Entry", "function C.ext()"},
 			{"function C.ext()", "function C.inr()"},
@@ -491,10 +491,10 @@ BOOST_AUTO_TEST_CASE(calls_to_constructors)
 		}},
 	};
 
-	std::map<std::string, std::set<std::string>> expectedCreatedContractsAtCreation = {
+	std::map<std::string, std::set<std::string>> const expectedCreatedContractsAtCreation = {
 		{"C", {"D"}},
 	};
-	std::map<std::string, std::set<std::string>> expectedCreatedContractsAfterDeployment = {
+	std::map<std::string, std::set<std::string>> const expectedCreatedContractsAfterDeployment = {
 		{"C", {"D"}},
 		{"L", {"C", "D"}},
 	};
@@ -505,7 +505,7 @@ BOOST_AUTO_TEST_CASE(calls_to_constructors)
 
 BOOST_AUTO_TEST_CASE(inherited_constructors)
 {
-	std::unique_ptr<CompilerStack> compilerStack = parseAndAnalyzeContracts(R"(
+	std::unique_ptr<CompilerStack> const compilerStack = parseAndAnalyzeContracts(R"(
 		function free() {}
 
 		library L {
@@ -548,7 +548,7 @@ BOOST_AUTO_TEST_CASE(inherited_constructors)
 	)"s);
 	std::tuple<CallGraphMap, CallGraphMap> graphs = collectGraphs(*compilerStack);
 
-	std::map<std::string, EdgeNames> expectedCreationEdges = {
+	std::map<std::string, EdgeNames> const expectedCreationEdges = {
 		{"C", {
 			{"Entry", "constructor of C"},
 			{"constructor of C", "function C.inrC()"},
@@ -589,7 +589,7 @@ BOOST_AUTO_TEST_CASE(inherited_constructors)
 		{"L", {}},
 	};
 
-	std::map<std::string, EdgeNames> expectedDeployedEdges = {
+	std::map<std::string, EdgeNames> const expectedDeployedEdges = {
 		{"C", {
 			{"Entry", "function C.extC()"},
 			{"function C.extC()", "function C.inrC()"},
@@ -631,8 +631,8 @@ BOOST_AUTO_TEST_CASE(inherited_constructors)
 		}},
 	};
 
-	std::map<std::string, std::set<std::string>> expectedCreatedContractsAtCreation = {};
-	std::map<std::string, std::set<std::string>> expectedCreatedContractsAfterDeployment = {
+	std::map<std::string, std::set<std::string>> const expectedCreatedContractsAtCreation = {};
+	std::map<std::string, std::set<std::string>> const expectedCreatedContractsAfterDeployment = {
 		{"G", {"F"}},
 	};
 
@@ -642,7 +642,7 @@ BOOST_AUTO_TEST_CASE(inherited_constructors)
 
 BOOST_AUTO_TEST_CASE(inheritance_specifiers)
 {
-	std::unique_ptr<CompilerStack> compilerStack = parseAndAnalyzeContracts(R"(
+	std::unique_ptr<CompilerStack> const compilerStack = parseAndAnalyzeContracts(R"(
 		function fD() returns (uint) {}
 		function fE() returns (uint) {}
 		function fFD() returns (uint) {}
@@ -682,7 +682,7 @@ BOOST_AUTO_TEST_CASE(inheritance_specifiers)
 	)"s);
 	std::tuple<CallGraphMap, CallGraphMap> graphs = collectGraphs(*compilerStack);
 
-	std::map<std::string, EdgeNames> expectedCreationEdges = {
+	std::map<std::string, EdgeNames> const expectedCreationEdges = {
 		{"C", {
 			{"Entry", "constructor of C"},
 			{"Entry", "function fVarC()"},
@@ -726,7 +726,7 @@ BOOST_AUTO_TEST_CASE(inheritance_specifiers)
 		}},
 	};
 
-	std::map<std::string, EdgeNames> expectedDeployedEdges = {
+	std::map<std::string, EdgeNames> const expectedDeployedEdges = {
 		{"C", {}},
 		{"D", {}},
 		{"E", {}},
@@ -740,7 +740,7 @@ BOOST_AUTO_TEST_CASE(inheritance_specifiers)
 
 BOOST_AUTO_TEST_CASE(inherited_functions_virtual_and_super)
 {
-	std::unique_ptr<CompilerStack> compilerStack = parseAndAnalyzeContracts(R"(
+	std::unique_ptr<CompilerStack> const compilerStack = parseAndAnalyzeContracts(R"(
 		contract C {
 			function f() internal {}
 			function g() internal virtual {}
@@ -778,13 +778,13 @@ BOOST_AUTO_TEST_CASE(inherited_functions_virtual_and_super)
 	)"s);
 	std::tuple<CallGraphMap, CallGraphMap> graphs = collectGraphs(*compilerStack);
 
-	std::map<std::string, EdgeNames> expectedCreationEdges = {
+	std::map<std::string, EdgeNames> const expectedCreationEdges = {
 		{"C", {}},
 		{"D", {}},
 		{"E", {}},
 	};
 
-	std::map<std::string, EdgeNames> expectedDeployedEdges = {
+	std::map<std::string, EdgeNames> const expectedDeployedEdges = {
 		{"C", {
 			{"Entry", "function C.ext()"},
 		}},
@@ -826,7 +826,7 @@ BOOST_AUTO_TEST_CASE(inherited_functions_virtual_and_super)
 
 BOOST_AUTO_TEST_CASE(overloaded_functions)
 {
-	std::unique_ptr<CompilerStack> compilerStack = parseAndAnalyzeContracts(R"(
+	std::unique_ptr<CompilerStack> const compilerStack = parseAndAnalyzeContracts(R"(
 		enum E {E1, E2, E3}
 
 		function free() {}
@@ -852,12 +852,12 @@ BOOST_AUTO_TEST_CASE(overloaded_functions)
 	)"s);
 	std::tuple<CallGraphMap, CallGraphMap> graphs = collectGraphs(*compilerStack);
 
-	std::map<std::string, EdgeNames> expectedCreationEdges = {
+	std::map<std::string, EdgeNames> const expectedCreationEdges = {
 		{"C", {}},
 		{"D", {}},
 	};
 
-	std::map<std::string, EdgeNames> expectedDeployedEdges = {
+	std::map<std::string, EdgeNames> const expectedDeployedEdges = {
 		{"C", {
 			{"Entry", "function C.f(bool)"},
 		}},
@@ -884,7 +884,7 @@ BOOST_AUTO_TEST_CASE(overloaded_functions)
 
 BOOST_AUTO_TEST_CASE(modifiers)
 {
-	std::unique_ptr<CompilerStack> compilerStack = parseAndAnalyzeContracts(R"(
+	std::unique_ptr<CompilerStack> const compilerStack = parseAndAnalyzeContracts(R"(
 		library L {
 			modifier m() { g(); _; }
 
@@ -918,7 +918,7 @@ BOOST_AUTO_TEST_CASE(modifiers)
 	)"s);
 	std::tuple<CallGraphMap, CallGraphMap> graphs = collectGraphs(*compilerStack);
 
-	std::map<std::string, EdgeNames> expectedCreationEdges = {
+	std::map<std::string, EdgeNames> const expectedCreationEdges = {
 		{"C", {}},
 		{"D", {}},
 		{"L", {}},
@@ -937,7 +937,7 @@ BOOST_AUTO_TEST_CASE(modifiers)
 		}},
 	};
 
-	std::map<std::string, EdgeNames> expectedDeployedEdges = {
+	std::map<std::string, EdgeNames> const expectedDeployedEdges = {
 		{"C", {}},
 		{"D", {}},
 		{"L", {}},
@@ -960,8 +960,8 @@ BOOST_AUTO_TEST_CASE(modifiers)
 		}},
 	};
 
-	std::map<std::string, std::set<std::string>> expectedCreatedContractsAtCreation = {{"E", {"C"}}};
-	std::map<std::string, std::set<std::string>> expectedCreatedContractsAfterDeployment = {{"E", {"C"}}};
+	std::map<std::string, std::set<std::string>> const expectedCreatedContractsAtCreation = {{"E", {"C"}}};
+	std::map<std::string, std::set<std::string>> const expectedCreatedContractsAfterDeployment = {{"E", {"C"}}};
 
 	checkCallGraphExpectations(std::get<0>(graphs), expectedCreationEdges, expectedCreatedContractsAtCreation);
 	checkCallGraphExpectations(std::get<1>(graphs), expectedDeployedEdges, expectedCreatedContractsAfterDeployment);
@@ -969,7 +969,7 @@ BOOST_AUTO_TEST_CASE(modifiers)
 
 BOOST_AUTO_TEST_CASE(events)
 {
-	std::unique_ptr<CompilerStack> compilerStack = parseAndAnalyzeContracts(R"(
+	std::unique_ptr<CompilerStack> const compilerStack = parseAndAnalyzeContracts(R"(
 		function free() { emit L.Ev(); }
 
 		library L {
@@ -998,13 +998,13 @@ BOOST_AUTO_TEST_CASE(events)
 	)"s);
 	std::tuple<CallGraphMap, CallGraphMap> graphs = collectGraphs(*compilerStack);
 
-	std::map<std::string, EdgeNames> expectedCreationEdges = {
+	std::map<std::string, EdgeNames> const expectedCreationEdges = {
 		{"C", {}},
 		{"D", {}},
 		{"L", {}},
 	};
 
-	std::map<std::string, EdgeNames> expectedDeployedEdges = {
+	std::map<std::string, EdgeNames> const expectedDeployedEdges = {
 		{"C", {}},
 		{"D", {
 			{"Entry", "function D.ext()"},
@@ -1021,8 +1021,8 @@ BOOST_AUTO_TEST_CASE(events)
 		}},
 	};
 
-	std::map<std::string, std::set<std::string>> expectedCreationEvents = {};
-	std::map<std::string, std::set<std::string>> expectedDeployedEvents = {
+	std::map<std::string, std::set<std::string>> const expectedCreationEvents = {};
+	std::map<std::string, std::set<std::string>> const expectedDeployedEvents = {
 		{"D", {
 			"event D.EvD1(uint256)",
 			"event C.EvC(uint256)",
@@ -1040,7 +1040,7 @@ BOOST_AUTO_TEST_CASE(events)
 
 BOOST_AUTO_TEST_CASE(cycles)
 {
-	std::unique_ptr<CompilerStack> compilerStack = parseAndAnalyzeContracts(R"(
+	std::unique_ptr<CompilerStack> const compilerStack = parseAndAnalyzeContracts(R"(
 		function free1() { free1(); }
 		function free2() { free3(); }
 		function free3() { free2(); }
@@ -1071,13 +1071,13 @@ BOOST_AUTO_TEST_CASE(cycles)
 	)"s);
 	std::tuple<CallGraphMap, CallGraphMap> graphs = collectGraphs(*compilerStack);
 
-	std::map<std::string, EdgeNames> expectedCreationEdges = {
+	std::map<std::string, EdgeNames> const expectedCreationEdges = {
 		{"L", {}},
 		{"C", {}},
 		{"D", {}},
 	};
 
-	std::map<std::string, EdgeNames> expectedDeployedEdges = {
+	std::map<std::string, EdgeNames> const expectedDeployedEdges = {
 		{"L", {}},
 		{"C", {}},
 		{"D", {
@@ -1112,7 +1112,7 @@ BOOST_AUTO_TEST_CASE(cycles)
 
 BOOST_AUTO_TEST_CASE(interfaces_and_abstract_contracts)
 {
-	std::unique_ptr<CompilerStack> compilerStack = parseAndAnalyzeContracts(R"(
+	std::unique_ptr<CompilerStack> const compilerStack = parseAndAnalyzeContracts(R"(
 		interface I {
 			event Ev(uint);
 
@@ -1145,14 +1145,14 @@ BOOST_AUTO_TEST_CASE(interfaces_and_abstract_contracts)
 	)"s);
 	std::tuple<CallGraphMap, CallGraphMap> graphs = collectGraphs(*compilerStack);
 
-	std::map<std::string, EdgeNames> expectedCreationEdges = {
+	std::map<std::string, EdgeNames> const expectedCreationEdges = {
 		{"I", {}},
 		{"J", {}},
 		{"C", {}},
 		{"D", {}},
 	};
 
-	std::map<std::string, EdgeNames> expectedDeployedEdges = {
+	std::map<std::string, EdgeNames> const expectedDeployedEdges = {
 		{"I", {
 			{"Entry", "function I.ext1()"},
 			{"Entry", "function I.ext2()"},
@@ -1184,8 +1184,8 @@ BOOST_AUTO_TEST_CASE(interfaces_and_abstract_contracts)
 		}},
 	};
 
-	std::map<std::string, std::set<std::string>> expectedCreationEvents = {};
-	std::map<std::string, std::set<std::string>> expectedDeployedEvents = {
+	std::map<std::string, std::set<std::string>> const expectedCreationEvents = {};
+	std::map<std::string, std::set<std::string>> const expectedDeployedEvents = {
 		{"D", {
 			"event I.Ev(uint256)",
 		}},
@@ -1198,7 +1198,7 @@ BOOST_AUTO_TEST_CASE(interfaces_and_abstract_contracts)
 
 BOOST_AUTO_TEST_CASE(indirect_calls)
 {
-	std::unique_ptr<CompilerStack> compilerStack = parseAndAnalyzeContracts(R"(
+	std::unique_ptr<CompilerStack> const compilerStack = parseAndAnalyzeContracts(R"(
 		function free1() {}
 		function free2() {}
 		function free3() {}
@@ -1255,7 +1255,7 @@ BOOST_AUTO_TEST_CASE(indirect_calls)
 	)"s);
 	std::tuple<CallGraphMap, CallGraphMap> graphs = collectGraphs(*compilerStack);
 
-	std::map<std::string, EdgeNames> expectedCreationEdges = {
+	std::map<std::string, EdgeNames> const expectedCreationEdges = {
 		{"L", {}},
 		{"C", {}},
 		{"D", {
@@ -1273,7 +1273,7 @@ BOOST_AUTO_TEST_CASE(indirect_calls)
 		}},
 	};
 
-	std::map<std::string, EdgeNames> expectedDeployedEdges = {
+	std::map<std::string, EdgeNames> const expectedDeployedEdges = {
 		{"L", {
 			{"InternalDispatch", "function L.inr1()"},
 			{"InternalDispatch", "function L.inr2()"},
@@ -1321,7 +1321,7 @@ BOOST_AUTO_TEST_CASE(indirect_calls)
 
 BOOST_AUTO_TEST_CASE(calls_via_pointers)
 {
-	std::unique_ptr<CompilerStack> compilerStack = parseAndAnalyzeContracts(R"(
+	std::unique_ptr<CompilerStack> const compilerStack = parseAndAnalyzeContracts(R"(
 		function free1() {}
 		function free2() {}
 		function free3() {}
@@ -1414,7 +1414,7 @@ BOOST_AUTO_TEST_CASE(calls_via_pointers)
 	)"s);
 	std::tuple<CallGraphMap, CallGraphMap> graphs = collectGraphs(*compilerStack);
 
-	std::map<std::string, EdgeNames> expectedCreationEdges = {
+	std::map<std::string, EdgeNames> const expectedCreationEdges = {
 		{"L", {}},
 		{"C", {}},
 		{"D", {
@@ -1437,7 +1437,7 @@ BOOST_AUTO_TEST_CASE(calls_via_pointers)
 		}},
 	};
 
-	std::map<std::string, EdgeNames> expectedDeployedEdges = {
+	std::map<std::string, EdgeNames> const expectedDeployedEdges = {
 		{"L", {}},
 		{"C", {
 			{"InternalDispatch", "function C.inr2()"},
@@ -1481,7 +1481,7 @@ BOOST_AUTO_TEST_CASE(calls_via_pointers)
 
 BOOST_AUTO_TEST_CASE(pointer_to_overridden_function)
 {
-	std::unique_ptr<CompilerStack> compilerStack = parseAndAnalyzeContracts(R"(
+	std::unique_ptr<CompilerStack> const compilerStack = parseAndAnalyzeContracts(R"(
 		contract C {
 			function f() internal virtual {}
 		}
@@ -1508,12 +1508,12 @@ BOOST_AUTO_TEST_CASE(pointer_to_overridden_function)
 	)"s);
 	std::tuple<CallGraphMap, CallGraphMap> graphs = collectGraphs(*compilerStack);
 
-	std::map<std::string, EdgeNames> expectedCreationEdges = {
+	std::map<std::string, EdgeNames> const expectedCreationEdges = {
 		{"C", {}},
 		{"D", {}},
 	};
 
-	std::map<std::string, EdgeNames> expectedDeployedEdges = {
+	std::map<std::string, EdgeNames> const expectedDeployedEdges = {
 		{"C", {}},
 		{"D", {
 			{"InternalDispatch", "function C.f()"},
@@ -1532,7 +1532,7 @@ BOOST_AUTO_TEST_CASE(pointer_to_overridden_function)
 
 BOOST_AUTO_TEST_CASE(pointer_to_nonexistent_function)
 {
-	std::unique_ptr<CompilerStack> compilerStack = parseAndAnalyzeContracts(R"(
+	std::unique_ptr<CompilerStack> const compilerStack = parseAndAnalyzeContracts(R"(
 		interface I {
 			function f() external;
 		}
@@ -1561,13 +1561,13 @@ BOOST_AUTO_TEST_CASE(pointer_to_nonexistent_function)
 	)"s);
 	std::tuple<CallGraphMap, CallGraphMap> graphs = collectGraphs(*compilerStack);
 
-	std::map<std::string, EdgeNames> expectedCreationEdges = {
+	std::map<std::string, EdgeNames> const expectedCreationEdges = {
 		{"I", {}},
 		{"C", {}},
 		{"D", {}},
 	};
 
-	std::map<std::string, EdgeNames> expectedDeployedEdges = {
+	std::map<std::string, EdgeNames> const expectedDeployedEdges = {
 		{"I", {
 			{"Entry", "function I.f()"},
 			  }},
@@ -1599,7 +1599,7 @@ BOOST_AUTO_TEST_CASE(pointer_to_nonexistent_function)
 
 BOOST_AUTO_TEST_CASE(function_self_reference)
 {
-	std::unique_ptr<CompilerStack> compilerStack = parseAndAnalyzeContracts(R"(
+	std::unique_ptr<CompilerStack> const compilerStack = parseAndAnalyzeContracts(R"(
 		contract C {
 			function f() public returns (bool ret) {
 				return f == f;
@@ -1608,11 +1608,11 @@ BOOST_AUTO_TEST_CASE(function_self_reference)
 	)"s);
 	std::tuple<CallGraphMap, CallGraphMap> graphs = collectGraphs(*compilerStack);
 
-	std::map<std::string, EdgeNames> expectedCreationEdges = {
+	std::map<std::string, EdgeNames> const expectedCreationEdges = {
 		{"C", {}},
 	};
 
-	std::map<std::string, EdgeNames> expectedDeployedEdges = {
+	std::map<std::string, EdgeNames> const expectedDeployedEdges = {
 		{"C", {
 			{"Entry", "function C.f()"},
 			{"InternalDispatch", "function C.f()"},
@@ -1625,7 +1625,7 @@ BOOST_AUTO_TEST_CASE(function_self_reference)
 
 BOOST_AUTO_TEST_CASE(pointer_cycle)
 {
-	std::unique_ptr<CompilerStack> compilerStack = parseAndAnalyzeContracts(R"(
+	std::unique_ptr<CompilerStack> const compilerStack = parseAndAnalyzeContracts(R"(
 		contract C {
 			function () ptr = f;
 
@@ -1637,14 +1637,14 @@ BOOST_AUTO_TEST_CASE(pointer_cycle)
 		}
 	)"s);
 
-	std::map<std::string, EdgeNames> expectedCreationEdges = {
+	std::map<std::string, EdgeNames> const expectedCreationEdges = {
 		{"C", {
 			{"InternalDispatch", "function C.f()"},
 			{"function C.f()", "InternalDispatch"},
 		}},
 	};
 
-	std::map<std::string, EdgeNames> expectedDeployedEdges = {
+	std::map<std::string, EdgeNames> const expectedDeployedEdges = {
 		{"C", {
 			{"InternalDispatch", "function C.f()"},
 			{"Entry", "function C.test()"},
@@ -1660,7 +1660,7 @@ BOOST_AUTO_TEST_CASE(pointer_cycle)
 
 BOOST_AUTO_TEST_CASE(using_for)
 {
-	std::unique_ptr<CompilerStack> compilerStack = parseAndAnalyzeContracts(R"(
+	std::unique_ptr<CompilerStack> const compilerStack = parseAndAnalyzeContracts(R"(
 		struct S {
 			uint x;
 		}
@@ -1683,12 +1683,12 @@ BOOST_AUTO_TEST_CASE(using_for)
 	)"s);
 	std::tuple<CallGraphMap, CallGraphMap> graphs = collectGraphs(*compilerStack);
 
-	std::map<std::string, EdgeNames> expectedCreationEdges = {
+	std::map<std::string, EdgeNames> const expectedCreationEdges = {
 		{"L", {}},
 		{"C", {}},
 	};
 
-	std::map<std::string, EdgeNames> expectedDeployedEdges = {
+	std::map<std::string, EdgeNames> const expectedDeployedEdges = {
 		{"L", {
 			{"Entry", "function L.ext(struct S)"},
 		}},
@@ -1704,7 +1704,7 @@ BOOST_AUTO_TEST_CASE(using_for)
 
 BOOST_AUTO_TEST_CASE(user_defined_binary_operator)
 {
-	std::unique_ptr<CompilerStack> compilerStack = parseAndAnalyzeContracts(R"(
+	std::unique_ptr<CompilerStack> const compilerStack = parseAndAnalyzeContracts(R"(
 		type Int is int128;
 		using {add as +} for Int global;
 
@@ -1720,11 +1720,11 @@ BOOST_AUTO_TEST_CASE(user_defined_binary_operator)
 	)"s);
 	std::tuple<CallGraphMap, CallGraphMap> graphs = collectGraphs(*compilerStack);
 
-	std::map<std::string, EdgeNames> expectedCreationEdges = {
+	std::map<std::string, EdgeNames> const expectedCreationEdges = {
 		{"C", {}},
 	};
 
-	std::map<std::string, EdgeNames> expectedDeployedEdges = {
+	std::map<std::string, EdgeNames> const expectedDeployedEdges = {
 		{"C", {
 			{"Entry", "function C.pub()"},
 			{"function C.pub()", "function add(Int,Int)"},
@@ -1737,7 +1737,7 @@ BOOST_AUTO_TEST_CASE(user_defined_binary_operator)
 
 BOOST_AUTO_TEST_CASE(user_defined_unary_operator)
 {
-	std::unique_ptr<CompilerStack> compilerStack = parseAndAnalyzeContracts(R"(
+	std::unique_ptr<CompilerStack> const compilerStack = parseAndAnalyzeContracts(R"(
 		type Int is int128;
 		using {sub as -} for Int global;
 
@@ -1753,11 +1753,11 @@ BOOST_AUTO_TEST_CASE(user_defined_unary_operator)
 	)"s);
 	std::tuple<CallGraphMap, CallGraphMap> graphs = collectGraphs(*compilerStack);
 
-	std::map<std::string, EdgeNames> expectedCreationEdges = {
+	std::map<std::string, EdgeNames> const expectedCreationEdges = {
 		{"C", {}},
 	};
 
-	std::map<std::string, EdgeNames> expectedDeployedEdges = {
+	std::map<std::string, EdgeNames> const expectedDeployedEdges = {
 		{"C", {
 			{"Entry", "function C.pub()"},
 			{"function C.pub()", "function sub(Int)"},
@@ -1770,7 +1770,7 @@ BOOST_AUTO_TEST_CASE(user_defined_unary_operator)
 
 BOOST_AUTO_TEST_CASE(getters)
 {
-	std::unique_ptr<CompilerStack> compilerStack = parseAndAnalyzeContracts(R"(
+	std::unique_ptr<CompilerStack> const compilerStack = parseAndAnalyzeContracts(R"(
 		contract C {
 			uint public variable;
 			uint[][] public array;
@@ -1785,11 +1785,11 @@ BOOST_AUTO_TEST_CASE(getters)
 	)"s);
 	std::tuple<CallGraphMap, CallGraphMap> graphs = collectGraphs(*compilerStack);
 
-	std::map<std::string, EdgeNames> expectedCreationEdges = {
+	std::map<std::string, EdgeNames> const expectedCreationEdges = {
 		{"C", {}},
 	};
 
-	std::map<std::string, EdgeNames> expectedDeployedEdges = {
+	std::map<std::string, EdgeNames> const expectedDeployedEdges = {
 		{"C", {{"Entry", "function C.test()"}}},
 	};
 
@@ -1799,7 +1799,7 @@ BOOST_AUTO_TEST_CASE(getters)
 
 BOOST_AUTO_TEST_CASE(fallback_and_receive)
 {
-	std::unique_ptr<CompilerStack> compilerStack = parseAndAnalyzeContracts(R"(
+	std::unique_ptr<CompilerStack> const compilerStack = parseAndAnalyzeContracts(R"(
 		contract C {
 			function ext() external {}
 			function inr() internal {}
@@ -1827,13 +1827,13 @@ BOOST_AUTO_TEST_CASE(fallback_and_receive)
 	)"s);
 	std::tuple<CallGraphMap, CallGraphMap> graphs = collectGraphs(*compilerStack);
 
-	std::map<std::string, EdgeNames> expectedCreationEdges = {
+	std::map<std::string, EdgeNames> const expectedCreationEdges = {
 		{"C", {}},
 		{"D", {}},
 		{"E", {}},
 	};
 
-	std::map<std::string, EdgeNames> expectedDeployedEdges = {
+	std::map<std::string, EdgeNames> const expectedDeployedEdges = {
 		{"C", {
 			{"Entry", "function C.ext()"},
 			{"Entry", "receive of C"},
@@ -1860,7 +1860,7 @@ BOOST_AUTO_TEST_CASE(fallback_and_receive)
 
 BOOST_AUTO_TEST_CASE(virtual_fallback_and_receive)
 {
-	std::unique_ptr<CompilerStack> compilerStack = parseAndAnalyzeContracts(R"(
+	std::unique_ptr<CompilerStack> const compilerStack = parseAndAnalyzeContracts(R"(
 		contract C {
 			fallback() external virtual {}
 			receive() external payable virtual {}
@@ -1880,14 +1880,14 @@ BOOST_AUTO_TEST_CASE(virtual_fallback_and_receive)
 	)"s);
 	std::tuple<CallGraphMap, CallGraphMap> graphs = collectGraphs(*compilerStack);
 
-	std::map<std::string, EdgeNames> expectedCreationEdges = {
+	std::map<std::string, EdgeNames> const expectedCreationEdges = {
 		{"C", {}},
 		{"D", {}},
 		{"E", {}},
 		{"F", {}},
 	};
 
-	std::map<std::string, EdgeNames> expectedDeployedEdges = {
+	std::map<std::string, EdgeNames> const expectedDeployedEdges = {
 		{"C", {
 			{"Entry", "receive of C"},
 			{"Entry", "fallback of C"},
@@ -1912,7 +1912,7 @@ BOOST_AUTO_TEST_CASE(virtual_fallback_and_receive)
 
 BOOST_AUTO_TEST_CASE(builtins)
 {
-	std::unique_ptr<CompilerStack> compilerStack = parseAndAnalyzeContracts(R"(
+	std::unique_ptr<CompilerStack> const compilerStack = parseAndAnalyzeContracts(R"(
 		interface I {}
 
 		contract C {
@@ -1991,12 +1991,12 @@ BOOST_AUTO_TEST_CASE(builtins)
 	)"s);
 	std::tuple<CallGraphMap, CallGraphMap> graphs = collectGraphs(*compilerStack);
 
-	std::map<std::string, EdgeNames> expectedCreationEdges = {
+	std::map<std::string, EdgeNames> const expectedCreationEdges = {
 		{"I", {}},
 		{"C", {}},
 	};
 
-	std::map<std::string, EdgeNames> expectedDeployedEdges = {
+	std::map<std::string, EdgeNames> const expectedDeployedEdges = {
 		{"I", {}},
 		{"C", {
 			{"Entry", "function C.accessBuiltin()"},
@@ -2010,7 +2010,7 @@ BOOST_AUTO_TEST_CASE(builtins)
 
 BOOST_AUTO_TEST_CASE(conversions_and_struct_array_constructors)
 {
-	std::unique_ptr<CompilerStack> compilerStack = parseAndAnalyzeContracts(R"(
+	std::unique_ptr<CompilerStack> const compilerStack = parseAndAnalyzeContracts(R"(
 		interface I {}
 
 		enum E {A, B, C}
@@ -2055,12 +2055,12 @@ BOOST_AUTO_TEST_CASE(conversions_and_struct_array_constructors)
 	)"s);
 	std::tuple<CallGraphMap, CallGraphMap> graphs = collectGraphs(*compilerStack);
 
-	std::map<std::string, EdgeNames> expectedCreationEdges = {
+	std::map<std::string, EdgeNames> const expectedCreationEdges = {
 		{"I", {}},
 		{"C", {}},
 	};
 
-	std::map<std::string, EdgeNames> expectedDeployedEdges = {
+	std::map<std::string, EdgeNames> const expectedDeployedEdges = {
 		{"I", {}},
 		{"C", {
 			{"Entry", "function C.convert()"},
@@ -2075,7 +2075,7 @@ BOOST_AUTO_TEST_CASE(conversions_and_struct_array_constructors)
 
 BOOST_AUTO_TEST_CASE(immutable_initialization)
 {
-	std::unique_ptr<CompilerStack> compilerStack = parseAndAnalyzeContracts(R"(
+	std::unique_ptr<CompilerStack> const compilerStack = parseAndAnalyzeContracts(R"(
 		function free() pure returns (uint) { return 42; }
 
 		contract Base {
@@ -2100,7 +2100,7 @@ BOOST_AUTO_TEST_CASE(immutable_initialization)
 	)"s);
 	std::tuple<CallGraphMap, CallGraphMap> graphs = collectGraphs(*compilerStack);
 
-	std::map<std::string, EdgeNames> expectedCreationEdges = {
+	std::map<std::string, EdgeNames> const expectedCreationEdges = {
 		{"Base", {}},
 		{"C", {
 			{"Entry", "function Base.inr()"},
@@ -2113,7 +2113,7 @@ BOOST_AUTO_TEST_CASE(immutable_initialization)
 		}},
 	};
 
-	std::map<std::string, EdgeNames> expectedDeployedEdges = {
+	std::map<std::string, EdgeNames> const expectedDeployedEdges = {
 		{"Base", {
 			{"Entry", "function Base.ext()"},
 			{"function Base.ext()", "function free()"},
@@ -2134,7 +2134,7 @@ BOOST_AUTO_TEST_CASE(immutable_initialization)
 
 BOOST_AUTO_TEST_CASE(function_selector_access)
 {
-	std::unique_ptr<CompilerStack> compilerStack = parseAndAnalyzeContracts(R"(
+	std::unique_ptr<CompilerStack> const compilerStack = parseAndAnalyzeContracts(R"(
 		function free() pure {}
 
 		bytes4 constant extFreeConst = Base.ext.selector;
@@ -2173,7 +2173,7 @@ BOOST_AUTO_TEST_CASE(function_selector_access)
 	)"s);
 	std::tuple<CallGraphMap, CallGraphMap> graphs = collectGraphs(*compilerStack);
 
-	std::map<std::string, EdgeNames> expectedCreationEdges = {
+	std::map<std::string, EdgeNames> const expectedCreationEdges = {
 		{"Base", {}},
 		{"C", {}},
 		{"D", {
@@ -2188,7 +2188,7 @@ BOOST_AUTO_TEST_CASE(function_selector_access)
 		{"L", {}},
 	};
 
-	std::map<std::string, EdgeNames> expectedDeployedEdges = {
+	std::map<std::string, EdgeNames> const expectedDeployedEdges = {
 		{"Base", {
 			{"Entry", "function Base.ext()"},
 			{"Entry", "function Base.pub()"},

@@ -60,7 +60,7 @@ template <class T>
 T AsmJsonImporter::createAsmNode(Json const& _node)
 {
 	T r;
-	SourceLocation nativeLocation = createSourceLocation(_node);
+	SourceLocation const nativeLocation = createSourceLocation(_node);
 	yulAssert(nativeLocation.hasText(), "Invalid source location in Asm AST");
 	// TODO: We should add originLocation to the AST.
 	// While it's not included, we'll use nativeLocation for it because we only support importing
@@ -85,7 +85,7 @@ NameWithDebugData AsmJsonImporter::createNameWithDebugData(Json const& _node)
 
 Statement AsmJsonImporter::createStatement(Json const& _node)
 {
-	Json jsonNodeType = member(_node, "nodeType");
+	Json const jsonNodeType = member(_node, "nodeType");
 	yulAssert(jsonNodeType.is_string(), "Expected \"nodeType\" to be of type string!");
 	std::string nodeType = jsonNodeType.get<std::string>();
 
@@ -123,7 +123,7 @@ Statement AsmJsonImporter::createStatement(Json const& _node)
 
 Expression AsmJsonImporter::createExpression(Json const& _node)
 {
-	Json jsonNodeType = member(_node, "nodeType");
+	Json const jsonNodeType = member(_node, "nodeType");
 	yulAssert(jsonNodeType.is_string(), "Expected \"nodeType\" to be of type string!");
 	std::string nodeType = jsonNodeType.get<std::string>();
 
@@ -169,7 +169,7 @@ Block AsmJsonImporter::createBlock(Json const& _node)
 Literal AsmJsonImporter::createLiteral(Json const& _node)
 {
 	auto lit = createAsmNode<Literal>(_node);
-	std::string kind = member(_node, "kind").get<std::string>();
+	std::string const kind = member(_node, "kind").get<std::string>();
 
 	solAssert(member(_node, "hexValue").is_string() || member(_node, "value").is_string(), "");
 	std::string value;
@@ -190,7 +190,7 @@ Literal AsmJsonImporter::createLiteral(Json const& _node)
 	if (kind == "number")
 	{
 		langutil::CharStream charStream(value, "");
-		langutil::Scanner scanner{charStream};
+		langutil::Scanner const scanner{charStream};
 		lit.kind = LiteralKind::Number;
 		yulAssert(
 			scanner.currentToken() == Token::Number,
@@ -200,7 +200,7 @@ Literal AsmJsonImporter::createLiteral(Json const& _node)
 	else if (kind == "bool")
 	{
 		langutil::CharStream charStream(value, "");
-		langutil::Scanner scanner{charStream};
+		langutil::Scanner const scanner{charStream};
 		lit.kind = LiteralKind::Boolean;
 		yulAssert(
 			scanner.currentToken() == Token::TrueLiteral ||

@@ -91,7 +91,7 @@ public:
 	/// Defines @a _var using the value of @a _value while performing type conversions, if required.
 	void define(IRVariable const& _var, IRVariable const& _value)
 	{
-		bool _declare = true;
+		bool const _declare = true;
 		declareAssign(_var, _value, _declare);
 	}
 
@@ -99,8 +99,8 @@ public:
 	/// It also cleans the value of the variable.
 	void defineAndCleanup(IRVariable const& _var, IRVariable const& _value)
 	{
-		bool _forceCleanup = true;
-		bool _declare = true;
+		bool const _forceCleanup = true;
+		bool const _declare = true;
 		declareAssign(_var, _value, _declare, _forceCleanup);
 	}
 

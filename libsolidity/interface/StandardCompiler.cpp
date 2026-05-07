@@ -126,7 +126,7 @@ Json formatErrorWithException(
 {
 	std::string message;
 	// TODO: consider enabling color
-	std::string formattedMessage = SourceReferenceFormatter::formatExceptionInformation(
+	std::string const formattedMessage = SourceReferenceFormatter::formatExceptionInformation(
 		_exception,
 		_type,
 		_charStreamProvider,
@@ -168,7 +168,7 @@ bool hashMatchesContent(std::string const& _hash, std::string const& _content)
 
 bool isArtifactRequested(Json const& _outputSelection, std::string const& _artifact, bool _wildcardMatchesExperimental)
 {
-	static std::set<std::string> experimental{"ir", "irAst", "irOptimized", "irOptimizedAst", "yulCFGJson", "ethdebug"};
+	static std::set<std::string> const experimental{"ir", "irAst", "irOptimized", "irOptimizedAst", "yulCFGJson", "ethdebug"};
 	for (auto const& selectedArtifactJson: _outputSelection)
 	{
 		std::string const& selectedArtifact = selectedArtifactJson.get<std::string>();
@@ -395,8 +395,8 @@ CompilerStack::ContractSelection pipelineConfig(
 					request == "irAst";
 				pipelineForContract.bytecode = isEvmBytecodeRequested(_jsonOutputSelection);
 			}
-			std::string key = (sourceUnitName == "*") ? "" : sourceUnitName;
-			std::string value = (contractName == "*") ? "" : contractName;
+			std::string const key = (sourceUnitName == "*") ? "" : sourceUnitName;
+			std::string const value = (contractName == "*") ? "" : contractName;
 			contractSelection[key][value] = pipelineForContract;
 		}
 	}
@@ -413,9 +413,9 @@ Json formatLinkReferences(std::map<size_t, std::string> const& linkReferences)
 
 		// If the link reference does not contain a colon, assume that the file name is missing and
 		// the whole string represents the library name.
-		size_t colon = fullname.rfind(':');
-		std::string file = (colon != std::string::npos ? fullname.substr(0, colon) : "");
-		std::string name = (colon != std::string::npos ? fullname.substr(colon + 1) : fullname);
+		size_t const colon = fullname.rfind(':');
+		std::string const file = (colon != std::string::npos ? fullname.substr(0, colon) : "");
+		std::string const name = (colon != std::string::npos ? fullname.substr(colon + 1) : fullname);
 
 		Json fileObject = ret.value(file, Json::object());
 		Json libraryArray = fileObject.value(name, Json::array());
@@ -440,7 +440,7 @@ Json formatImmutableReferences(std::map<u256, evmasm::LinkerObject::ImmutableRef
 	{
 		auto const& [identifier, byteOffsets] = immutableReference.second;
 		Json array = Json::array();
-		for (size_t byteOffset: byteOffsets)
+		for (size_t const byteOffset: byteOffsets)
 		{
 			Json byteRange;
 			byteRange["start"] = Json::number_unsigned_t(byteOffset);
@@ -467,43 +467,43 @@ std::optional<Json> checkKeys(Json const& _input, std::set<std::string> const& _
 
 std::optional<Json> checkRootKeys(Json const& _input)
 {
-	static std::set<std::string> keys{"auxiliaryInput", "language", "settings", "sources"};
+	static std::set<std::string> const keys{"auxiliaryInput", "language", "settings", "sources"};
 	return checkKeys(_input, keys, "root");
 }
 
 std::optional<Json> checkSourceKeys(Json const& _input, std::string const& _name)
 {
-	static std::set<std::string> keys{"content", "keccak256", "urls"};
+	static std::set<std::string> const keys{"content", "keccak256", "urls"};
 	return checkKeys(_input, keys, "sources." + _name);
 }
 
 std::optional<Json> checkAuxiliaryInputKeys(Json const& _input)
 {
-	static std::set<std::string> keys{"smtlib2responses"};
+	static std::set<std::string> const keys{"smtlib2responses"};
 	return checkKeys(_input, keys, "auxiliaryInput");
 }
 
 std::optional<Json> checkSettingsKeys(Json const& _input)
 {
-	static std::set<std::string> keys{"debug", "evmVersion", "experimental", "eofVersion", "libraries", "metadata", "modelChecker", "optimizer", "outputSelection", "remappings", "stopAfter", "viaIR", "viaSSACFG"};
+	static std::set<std::string> const keys{"debug", "evmVersion", "experimental", "eofVersion", "libraries", "metadata", "modelChecker", "optimizer", "outputSelection", "remappings", "stopAfter", "viaIR", "viaSSACFG"};
 	return checkKeys(_input, keys, "settings");
 }
 
 std::optional<Json> checkModelCheckerSettingsKeys(Json const& _input)
 {
-	static std::set<std::string> keys{"bmcLoopIterations", "contracts", "divModNoSlacks", "engine", "extCalls", "invariants", "printQuery", "showProvedSafe", "showUnproved", "showUnsupported", "solvers", "targets", "timeout"};
+	static std::set<std::string> const keys{"bmcLoopIterations", "contracts", "divModNoSlacks", "engine", "extCalls", "invariants", "printQuery", "showProvedSafe", "showUnproved", "showUnsupported", "solvers", "targets", "timeout"};
 	return checkKeys(_input, keys, "modelChecker");
 }
 
 std::optional<Json> checkOptimizerKeys(Json const& _input)
 {
-	static std::set<std::string> keys{"details", "enabled", "runs"};
+	static std::set<std::string> const keys{"details", "enabled", "runs"};
 	return checkKeys(_input, keys, "settings.optimizer");
 }
 
 std::optional<Json> checkOptimizerDetailsKeys(Json const& _input)
 {
-	static std::set<std::string> keys{"peephole", "inliner", "jumpdestRemover", "orderLiterals", "deduplicate", "cse", "constantOptimizer", "yul", "yulDetails", "simpleCounterForLoopUncheckedIncrement"};
+	static std::set<std::string> const keys{"peephole", "inliner", "jumpdestRemover", "orderLiterals", "deduplicate", "cse", "constantOptimizer", "yul", "yulDetails", "simpleCounterForLoopUncheckedIncrement"};
 	return checkKeys(_input, keys, "settings.optimizer.details");
 }
 
@@ -527,7 +527,7 @@ std::optional<Json> checkOptimizerDetailSteps(Json const& _details, std::string 
 			std::string const fullSequence = _details[_name].get<std::string>();
 			if (!_runYulOptimizer && !OptimiserSuite::isEmptyOptimizerSequence(fullSequence))
 			{
-				std::string errorMessage =
+				std::string const errorMessage =
 					"If Yul optimizer is disabled, only an empty optimizerSteps sequence is accepted."
 					" Note that the empty optimizer sequence is properly denoted by \":\".";
 				return formatFatalError(Error::Type::JSONError, errorMessage);
@@ -569,11 +569,11 @@ std::optional<Json> checkMetadataKeys(Json const& _input)
 		if (_input.contains("useLiteralContent") && !_input["useLiteralContent"].is_boolean())
 			return formatFatalError(Error::Type::JSONError, "\"settings.metadata.useLiteralContent\" must be Boolean");
 
-		static std::set<std::string> hashes{"ipfs", "bzzr1", "none"};
+		static std::set<std::string> const hashes{"ipfs", "bzzr1", "none"};
 		if (_input.contains("bytecodeHash") && !hashes.count(_input["bytecodeHash"].get<std::string>()))
 			return formatFatalError(Error::Type::JSONError, "\"settings.metadata.bytecodeHash\" must be \"ipfs\", \"bzzr1\" or \"none\"");
 	}
-	static std::set<std::string> keys{"appendCBOR", "useLiteralContent", "bytecodeHash"};
+	static std::set<std::string> const keys{"appendCBOR", "useLiteralContent", "bytecodeHash"};
 	return checkKeys(_input, keys, "settings.metadata");
 }
 
@@ -729,7 +729,7 @@ std::variant<StandardCompiler::InputsAndSettings, Json> StandardCompiler::parseI
 
 			if (sourceValue.contains("content") && sourceValue["content"].is_string())
 			{
-				std::string content = sourceValue["content"].get<std::string>();
+				std::string const content = sourceValue["content"].get<std::string>();
 				if (!hash.empty() && !hashMatchesContent(hash, content))
 					ret.errors.emplace_back(formatError(
 						Error::Type::IOError,
@@ -753,7 +753,7 @@ std::variant<StandardCompiler::InputsAndSettings, Json> StandardCompiler::parseI
 				{
 					if (!url.is_string())
 						return formatFatalError(Error::Type::JSONError, "URL must be a string.");
-					ReadCallback::Result result = m_readFile(ReadCallback::kindString(ReadCallback::Kind::ReadFile), url.get<std::string>());
+					ReadCallback::Result const result = m_readFile(ReadCallback::kindString(ReadCallback::Kind::ReadFile), url.get<std::string>());
 					if (result.success)
 					{
 						if (!hash.empty() && !hashMatchesContent(hash, result.responseOrErrorMessage))
@@ -1016,7 +1016,7 @@ std::variant<StandardCompiler::InputsAndSettings, Json> StandardCompiler::parseI
 		{
 			if (!libraryValue.is_string())
 				return formatFatalError(Error::Type::JSONError, "Library address must be a string.");
-			std::string address = libraryValue.get<std::string>();
+			std::string const address = libraryValue.get<std::string>();
 
 			if (!boost::starts_with(address, "0x"))
 				return formatFatalError(
@@ -1329,7 +1329,7 @@ std::map<std::string, Json> StandardCompiler::parseAstFromInput(StringMap const&
 	{
 		Json ast;
 		astAssert(util::jsonParseStrict(sourceCode, ast), "Input file could not be parsed to JSON");
-		std::string astKey = ast.contains("ast") ? "ast" : "AST";
+		std::string const astKey = ast.contains("ast") ? "ast" : "AST";
 
 		astAssert(ast.contains(astKey), "astkey is not member");
 		astAssert(ast[astKey]["nodeType"].get<std::string>() == "SourceUnit", "Top-level node should be a 'SourceUnit'");
@@ -1461,7 +1461,7 @@ Json StandardCompiler::compileSolidity(StandardCompiler::InputsAndSettings _inpu
 
 	CompilerStack compilerStack(m_readFile);
 
-	StringMap sourceList = std::move(_inputsAndSettings.sources);
+	StringMap const sourceList = std::move(_inputsAndSettings.sources);
 	if (_inputsAndSettings.language == "Solidity")
 		compilerStack.setSources(sourceList);
 	for (auto const& smtLib2Response: _inputsAndSettings.smtLib2Responses)
@@ -1581,14 +1581,14 @@ Json StandardCompiler::compileSolidity(StandardCompiler::InputsAndSettings _inpu
 		));
 	}
 
-	bool parsingSuccess = compilerStack.state() >= CompilerStack::State::Parsed;
-	bool analysisSuccess = compilerStack.state() >= CompilerStack::State::AnalysisSuccessful;
-	bool compilationSuccess = compilerStack.state() == CompilerStack::State::CompilationSuccessful;
+	bool const parsingSuccess = compilerStack.state() >= CompilerStack::State::Parsed;
+	bool const analysisSuccess = compilerStack.state() >= CompilerStack::State::AnalysisSuccessful;
+	bool const compilationSuccess = compilerStack.state() == CompilerStack::State::CompilationSuccessful;
 
 	// If analysis fails, the artifacts inside CompilerStack are potentially incomplete and must not be returned.
 	// Note that not completing analysis due to stopAfter does not count as a failure. It's neither failure nor success.
-	bool analysisFailed = !analysisSuccess && _inputsAndSettings.stopAfter >= CompilerStack::State::AnalysisSuccessful;
-	bool compilationFailed = !compilationSuccess && binariesRequested;
+	bool const analysisFailed = !analysisSuccess && _inputsAndSettings.stopAfter >= CompilerStack::State::AnalysisSuccessful;
+	bool const compilationFailed = !compilationSuccess && binariesRequested;
 	if (compilationFailed || analysisFailed || !parsingSuccess)
 		solAssert(!errors.empty(), "No error reported, but compilation failed.");
 
@@ -1620,7 +1620,7 @@ Json StandardCompiler::compileSolidity(StandardCompiler::InputsAndSettings _inpu
 	Json contractsOutput;
 	for (std::string const& contractName: analysisSuccess ? compilerStack.contractNames() : std::vector<std::string>())
 	{
-		size_t colon = contractName.rfind(':');
+		size_t const colon = contractName.rfind(':');
 		solAssert(colon != std::string::npos, "");
 		std::string file = contractName.substr(0, colon);
 		std::string name = contractName.substr(colon + 1);
@@ -1811,7 +1811,7 @@ Json StandardCompiler::compileYul(InputsAndSettings _inputsAndSettings)
 	MachineAssemblyObject object;
 	MachineAssemblyObject deployedObject;
 
-	bool successful = stack.parseAndAnalyze(sourceName, sourceContents);
+	bool const successful = stack.parseAndAnalyze(sourceName, sourceContents);
 	if (!successful)
 		// Inconsistent state - stop here to receive error reports from users
 		solAssert(stack.hasErrors(), "No error reported, but parsing/analysis failed.");
@@ -1971,7 +1971,7 @@ std::string StandardCompiler::compile(std::string const& _input) noexcept
 	}
 
 //	std::cout << "Input: " << solidity::util::jsonPrettyPrint(input) << std::endl;
-	Json output = compile(input);
+	Json const output = compile(input);
 //	std::cout << "Output: " << solidity::util::jsonPrettyPrint(output) << std::endl;
 
 	try

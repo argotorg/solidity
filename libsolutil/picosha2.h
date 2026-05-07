@@ -115,8 +115,8 @@ void hash256_block(RaIter1 message_digest, RaIter2 first, RaIter2 last) {
     word_t h = *(message_digest + 7);
 
     for (std::size_t i = 0; i < 64; ++i) {
-        word_t temp1 = h + bsig1(e) + ch(e, f, g) + add_constant[i] + w[i];
-        word_t temp2 = bsig0(a) + maj(a, b, c);
+        word_t const temp1 = h + bsig1(e) + ch(e, f, g) + add_constant[i] + w[i];
+        word_t const temp2 = bsig0(a) + maj(a, b, c);
         h = g;
         g = f;
         f = e;
@@ -205,7 +205,7 @@ class hash256_one_by_one {
     void finish() {
         byte_t temp[64];
         std::fill(temp, temp + 64, 0);
-        std::size_t remains = buffer_.size();
+        std::size_t const remains = buffer_.size();
         std::copy(buffer_.begin(), buffer_.end(), temp);
         temp[remains] = 0x80;
 
@@ -253,7 +253,7 @@ class hash256_one_by_one {
         // convert byte length to bit length (multiply 8 or shift 3 times left)
         word_t carry = 0;
         for (std::size_t i = 0; i < 4; ++i) {
-            word_t before_val = data_bit_length_digits[i];
+            word_t const before_val = data_bit_length_digits[i];
             data_bit_length_digits[i] <<= 3;
             data_bit_length_digits[i] |= carry;
             data_bit_length_digits[i] &= 65535u;

@@ -54,8 +54,8 @@ CommonSubexpressionEliminator::CommonSubexpressionEliminator(
 
 void CommonSubexpressionEliminator::operator()(FunctionDefinition& _fun)
 {
-	ScopedSaveAndRestore returnVariables(m_returnVariables, {});
-	ScopedSaveAndRestore replacementCandidates(m_replacementCandidates, {});
+	ScopedSaveAndRestore const returnVariables(m_returnVariables, {});
+	ScopedSaveAndRestore const replacementCandidates(m_replacementCandidates, {});
 
 	for (auto const& v: _fun.returnVariables)
 		m_returnVariables.insert(v.name);
@@ -95,7 +95,7 @@ void CommonSubexpressionEliminator::visit(Expression& _e)
 
 	if (Identifier const* identifier = std::get_if<Identifier>(&_e))
 	{
-		YulName identifierName = identifier->name;
+		YulName const identifierName = identifier->name;
 		if (AssignedValue const* assignedValue = variableValue(identifierName))
 		{
 			assertThrow(assignedValue->value, OptimizerException, "");

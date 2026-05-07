@@ -82,7 +82,7 @@ private:
 		auto it = nodes.find(_function);
 		if (it != nodes.end())
 			return it->second;
-		int currentNode = static_cast<int>(numNodes++);
+		int const currentNode = static_cast<int>(numNodes++);
 		nodes[_function] = currentNode;
 		nodeInv[currentNode] = _function;
 
@@ -770,8 +770,8 @@ void OverrideChecker::checkAmbiguousOverridesInternal(std::set<OverrideProxy> _b
 	if (_baseCallables.size() <= 1)
 		return;
 
-	OverrideGraph overrideGraph(_baseCallables);
-	CutVertexFinder cutVertexFinder{overrideGraph};
+	OverrideGraph const overrideGraph(_baseCallables);
+	CutVertexFinder const cutVertexFinder{overrideGraph};
 
 	// Remove all base functions overridden by cut vertices (they don't need to be overridden).
 	for (OverrideProxy const& function: cutVertexFinder.cutVertices())
@@ -779,7 +779,7 @@ void OverrideChecker::checkAmbiguousOverridesInternal(std::set<OverrideProxy> _b
 		std::set<OverrideProxy> toTraverse = function.baseFunctions();
 		while (!toTraverse.empty())
 		{
-			OverrideProxy base = *toTraverse.begin();
+			OverrideProxy const base = *toTraverse.begin();
 			toTraverse.erase(toTraverse.begin());
 			_baseCallables.erase(base);
 			for (OverrideProxy const& f: base.baseFunctions())
@@ -801,7 +801,7 @@ void OverrideChecker::checkAmbiguousOverridesInternal(std::set<OverrideProxy> _b
 	std::string callableName = _baseCallables.begin()->astNodeName();
 	if (_baseCallables.begin()->isVariable())
 		callableName = "function";
-	std::string distinguishingProperty = _baseCallables.begin()->distinguishingProperty();
+	std::string const distinguishingProperty = _baseCallables.begin()->distinguishingProperty();
 
 	bool foundVariable = false;
 	for (auto const& base: _baseCallables)
@@ -841,7 +841,7 @@ std::set<ContractDefinition const*, OverrideChecker::CompareByID> OverrideChecke
 
 void OverrideChecker::checkOverrideList(OverrideProxy _item, OverrideProxyBySignatureMultiSet const& _inherited)
 {
-	std::set<ContractDefinition const*, CompareByID> specifiedContracts =
+	std::set<ContractDefinition const*, CompareByID> const specifiedContracts =
 		_item.overrides() ?
 		resolveOverrideList(*_item.overrides()) :
 		decltype(specifiedContracts){};

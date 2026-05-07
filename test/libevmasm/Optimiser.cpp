@@ -69,7 +69,7 @@ namespace
 	{
 		AssemblyItems input = addDummyLocations(_input);
 
-		bool usesMsize = ranges::any_of(_input, [](AssemblyItem const& _i) {
+		bool const usesMsize = ranges::any_of(_input, [](AssemblyItem const& _i) {
 			return _i == AssemblyItem{Instruction::MSIZE} || _i.type() == VerbatimBytecode;
 		});
 		evmasm::CommonSubexpressionEliminator cse(_state, CommonOptions::get().evmVersion());
@@ -99,14 +99,14 @@ namespace
 	{
 		AssemblyItems optimisedItems;
 
-		bool usesMSize = ranges::any_of(_input, [](AssemblyItem const& _i) {
+		bool const usesMSize = ranges::any_of(_input, [](AssemblyItem const& _i) {
 			return _i == AssemblyItem{Instruction::MSIZE} || _i.type() == VerbatimBytecode;
 		});
 
 		auto iter = _input.begin();
 		while (iter != _input.end())
 		{
-			KnownState emptyState;
+			KnownState const emptyState;
 			CommonSubexpressionEliminator eliminator{emptyState, CommonOptions::get().evmVersion()};
 			auto orig = iter;
 			iter = eliminator.feedItems(iter, _input.end(), usesMSize);
@@ -159,24 +159,24 @@ BOOST_AUTO_TEST_SUITE(Optimiser)
 
 BOOST_AUTO_TEST_CASE(cse_push_immutable_same)
 {
-	AssemblyItem pushImmutable{PushImmutable, 0x1234};
+	AssemblyItem const pushImmutable{PushImmutable, 0x1234};
 	checkCSE({pushImmutable, pushImmutable}, {pushImmutable, Instruction::DUP1});
 }
 
 BOOST_AUTO_TEST_CASE(cse_push_immutable_different)
 {
-	AssemblyItems input{{PushImmutable, 0x1234},{PushImmutable, 0xABCD}};
+	AssemblyItems const input{{PushImmutable, 0x1234},{PushImmutable, 0xABCD}};
 	checkCSE(input, input);
 }
 
 BOOST_AUTO_TEST_CASE(cse_assign_immutable)
 {
 	{
-		AssemblyItems input{u256(0x42), {AssignImmutable, 0x1234}};
+		AssemblyItems const input{u256(0x42), {AssignImmutable, 0x1234}};
 		checkCSE(input, input);
 	}
 	{
-		AssemblyItems input{{AssignImmutable, 0x1234}};
+		AssemblyItems const input{{AssignImmutable, 0x1234}};
 		checkCSE(input, input);
 	}
 }
@@ -197,7 +197,7 @@ BOOST_AUTO_TEST_CASE(cse_assign_immutable_breaks)
 
 BOOST_AUTO_TEST_CASE(cse_intermediate_swap)
 {
-	evmasm::KnownState state;
+	evmasm::KnownState const state;
 	evmasm::CommonSubexpressionEliminator cse(state, CommonOptions::get().evmVersion());
 	AssemblyItems input{
 		Instruction::SWAP1, Instruction::POP, Instruction::ADD, u256(0), Instruction::SWAP1,
@@ -205,25 +205,25 @@ BOOST_AUTO_TEST_CASE(cse_intermediate_swap)
 		Instruction::DIV, u256(0xff), Instruction::AND
 	};
 	BOOST_REQUIRE(cse.feedItems(input.begin(), input.end(), false) == input.end());
-	AssemblyItems output = cse.getOptimizedItems();
+	AssemblyItems const output = cse.getOptimizedItems();
 	BOOST_CHECK(!output.empty());
 }
 
 BOOST_AUTO_TEST_CASE(cse_negative_stack_access)
 {
-	AssemblyItems input{Instruction::DUP2, u256(0)};
+	AssemblyItems const input{Instruction::DUP2, u256(0)};
 	checkCSE(input, input);
 }
 
 BOOST_AUTO_TEST_CASE(cse_negative_stack_end)
 {
-	AssemblyItems input{Instruction::ADD};
+	AssemblyItems const input{Instruction::ADD};
 	checkCSE(input, input);
 }
 
 BOOST_AUTO_TEST_CASE(cse_intermediate_negative_stack)
 {
-	AssemblyItems input{Instruction::ADD, u256(1), Instruction::DUP1};
+	AssemblyItems const input{Instruction::ADD, u256(1), Instruction::DUP1};
 	checkCSE(input, input);
 }
 
@@ -234,7 +234,7 @@ BOOST_AUTO_TEST_CASE(cse_pop)
 
 BOOST_AUTO_TEST_CASE(cse_unneeded_items)
 {
-	AssemblyItems input{
+	AssemblyItems const input{
 		Instruction::ADD,
 		Instruction::SWAP1,
 		Instruction::POP,
@@ -246,13 +246,13 @@ BOOST_AUTO_TEST_CASE(cse_unneeded_items)
 
 BOOST_AUTO_TEST_CASE(cse_constant_addition)
 {
-	AssemblyItems input{u256(7), u256(8), Instruction::ADD};
+	AssemblyItems const input{u256(7), u256(8), Instruction::ADD};
 	checkCSE(input, {u256(7 + 8)});
 }
 
 BOOST_AUTO_TEST_CASE(cse_invariants)
 {
-	AssemblyItems input{
+	AssemblyItems const input{
 		Instruction::DUP1,
 		Instruction::DUP1,
 		u256(0),
@@ -289,7 +289,7 @@ BOOST_AUTO_TEST_CASE(cse_double_iszero)
 
 BOOST_AUTO_TEST_CASE(cse_associativity)
 {
-	AssemblyItems input{
+	AssemblyItems const input{
 		Instruction::DUP1,
 		Instruction::DUP1,
 		u256(0),
@@ -301,7 +301,7 @@ BOOST_AUTO_TEST_CASE(cse_associativity)
 
 BOOST_AUTO_TEST_CASE(cse_associativity2)
 {
-	AssemblyItems input{
+	AssemblyItems const input{
 		u256(0),
 		Instruction::DUP2,
 		u256(2),
@@ -321,7 +321,7 @@ BOOST_AUTO_TEST_CASE(cse_double_shift_right_overflow)
 {
 	if (solidity::test::CommonOptions::get().evmVersion().hasBitwiseShifting())
 	{
-		AssemblyItems input{
+		AssemblyItems const input{
 			Instruction::CALLVALUE,
 			u256(2),
 			Instruction::SHR,
@@ -336,7 +336,7 @@ BOOST_AUTO_TEST_CASE(cse_double_shift_left_overflow)
 {
 	if (solidity::test::CommonOptions::get().evmVersion().hasBitwiseShifting())
 	{
-		AssemblyItems input{
+		AssemblyItems const input{
 			Instruction::DUP1,
 			u256(2),
 			Instruction::SHL,
@@ -349,7 +349,7 @@ BOOST_AUTO_TEST_CASE(cse_double_shift_left_overflow)
 
 BOOST_AUTO_TEST_CASE(cse_byte_ordering_bug)
 {
-	AssemblyItems input{
+	AssemblyItems const input{
 		u256(31),
 		Instruction::CALLVALUE,
 		Instruction::BYTE
@@ -359,7 +359,7 @@ BOOST_AUTO_TEST_CASE(cse_byte_ordering_bug)
 
 BOOST_AUTO_TEST_CASE(cse_byte_ordering_fix)
 {
-	AssemblyItems input{
+	AssemblyItems const input{
 		Instruction::CALLVALUE,
 		u256(31),
 		Instruction::BYTE
@@ -369,7 +369,7 @@ BOOST_AUTO_TEST_CASE(cse_byte_ordering_fix)
 
 BOOST_AUTO_TEST_CASE(cse_storage)
 {
-	AssemblyItems input{
+	AssemblyItems const input{
 		u256(0),
 		Instruction::SLOAD,
 		u256(0),
@@ -393,7 +393,7 @@ BOOST_AUTO_TEST_CASE(cse_noninterleaved_storage)
 {
 	// two stores to the same location should be replaced by only one store, even if we
 	// read in the meantime
-	AssemblyItems input{
+	AssemblyItems const input{
 		u256(7),
 		Instruction::DUP2,
 		Instruction::SSTORE,
@@ -414,7 +414,7 @@ BOOST_AUTO_TEST_CASE(cse_noninterleaved_storage)
 BOOST_AUTO_TEST_CASE(cse_interleaved_storage)
 {
 	// stores and reads to/from two unknown locations, should not optimize away the first store
-	AssemblyItems input{
+	AssemblyItems const input{
 		u256(7),
 		Instruction::DUP2,
 		Instruction::SSTORE, // store to "DUP1"
@@ -431,7 +431,7 @@ BOOST_AUTO_TEST_CASE(cse_interleaved_storage_same_value)
 {
 	// stores and reads to/from two unknown locations, should not optimize away the first store
 	// but it should optimize away the second, since we already know the value will be the same
-	AssemblyItems input{
+	AssemblyItems const input{
 		u256(7),
 		Instruction::DUP2,
 		Instruction::SSTORE, // store to "DUP1"
@@ -456,7 +456,7 @@ BOOST_AUTO_TEST_CASE(cse_interleaved_storage_at_known_location)
 {
 	// stores and reads to/from two known locations, should optimize away the first store,
 	// because we know that the location is different
-	AssemblyItems input{
+	AssemblyItems const input{
 		u256(0x70),
 		u256(1),
 		Instruction::SSTORE, // store to 1
@@ -479,7 +479,7 @@ BOOST_AUTO_TEST_CASE(cse_interleaved_storage_at_known_location_offset)
 {
 	// stores and reads to/from two locations which are known to be different,
 	// should optimize away the first store, because we know that the location is different
-	AssemblyItems input{
+	AssemblyItems const input{
 		u256(0x70),
 		Instruction::DUP2,
 		u256(1),
@@ -510,7 +510,7 @@ BOOST_AUTO_TEST_CASE(cse_interleaved_storage_at_known_location_offset)
 
 BOOST_AUTO_TEST_CASE(cse_deep_stack)
 {
-	AssemblyItems input{
+	AssemblyItems const input{
 		Instruction::ADD,
 		Instruction::SWAP1,
 		Instruction::POP,
@@ -549,7 +549,7 @@ BOOST_AUTO_TEST_CASE(cse_deep_stack)
 
 BOOST_AUTO_TEST_CASE(cse_jumpi_no_jump)
 {
-	AssemblyItems input{
+	AssemblyItems const input{
 		u256(0),
 		u256(1),
 		Instruction::DUP2,
@@ -564,7 +564,7 @@ BOOST_AUTO_TEST_CASE(cse_jumpi_no_jump)
 
 BOOST_AUTO_TEST_CASE(cse_jumpi_jump)
 {
-	AssemblyItems input{
+	AssemblyItems const input{
 		u256(1),
 		u256(1),
 		Instruction::DUP2,
@@ -581,7 +581,7 @@ BOOST_AUTO_TEST_CASE(cse_jumpi_jump)
 
 BOOST_AUTO_TEST_CASE(cse_empty_keccak256)
 {
-	AssemblyItems input{
+	AssemblyItems const input{
 		u256(0),
 		Instruction::DUP2,
 		Instruction::KECCAK256
@@ -593,7 +593,7 @@ BOOST_AUTO_TEST_CASE(cse_empty_keccak256)
 
 BOOST_AUTO_TEST_CASE(cse_partial_keccak256)
 {
-	AssemblyItems input{
+	AssemblyItems const input{
 		u256(0xabcd) << (256 - 16),
 		u256(0),
 		Instruction::MSTORE,
@@ -612,7 +612,7 @@ BOOST_AUTO_TEST_CASE(cse_partial_keccak256)
 BOOST_AUTO_TEST_CASE(cse_keccak256_twice_same_location)
 {
 	// Keccak-256 twice from same dynamic location
-	AssemblyItems input{
+	AssemblyItems const input{
 		Instruction::DUP2,
 		Instruction::DUP1,
 		Instruction::MSTORE,
@@ -637,7 +637,7 @@ BOOST_AUTO_TEST_CASE(cse_keccak256_twice_same_location)
 BOOST_AUTO_TEST_CASE(cse_keccak256_twice_same_content)
 {
 	// Keccak-256 twice from different dynamic location but with same content
-	AssemblyItems input{
+	AssemblyItems const input{
 		Instruction::DUP1,
 		u256(0x80),
 		Instruction::MSTORE, // m[128] = DUP1
@@ -671,7 +671,7 @@ BOOST_AUTO_TEST_CASE(cse_keccak256_twice_same_content_dynamic_store_in_between)
 {
 	// Keccak-256 twice from different dynamic location but with same content,
 	// dynamic mstore in between, which forces us to re-calculate the hash
-	AssemblyItems input{
+	AssemblyItems const input{
 		u256(0x80),
 		Instruction::DUP2,
 		Instruction::DUP2,
@@ -699,7 +699,7 @@ BOOST_AUTO_TEST_CASE(cse_keccak256_twice_same_content_noninterfering_store_in_be
 {
 	// Keccak-256 twice from different dynamic location but with same content,
 	// dynamic mstore in between, but does not force us to re-calculate the hash
-	AssemblyItems input{
+	AssemblyItems const input{
 		u256(0x80),
 		Instruction::DUP2,
 		Instruction::DUP2,
@@ -730,12 +730,12 @@ BOOST_AUTO_TEST_CASE(cse_keccak256_twice_same_content_noninterfering_store_in_be
 
 BOOST_AUTO_TEST_CASE(cse_with_initially_known_stack)
 {
-	evmasm::KnownState state = createInitialState(AssemblyItems{
+	evmasm::KnownState const state = createInitialState(AssemblyItems{
 		u256(0x12),
 		u256(0x20),
 		Instruction::ADD
 	});
-	AssemblyItems input{
+	AssemblyItems const input{
 		u256(0x12 + 0x20)
 	};
 	checkCSE(input, AssemblyItems{Instruction::DUP1}, state);
@@ -743,8 +743,8 @@ BOOST_AUTO_TEST_CASE(cse_with_initially_known_stack)
 
 BOOST_AUTO_TEST_CASE(cse_equality_on_initially_known_stack)
 {
-	evmasm::KnownState state = createInitialState(AssemblyItems{Instruction::DUP1});
-	AssemblyItems input{
+	evmasm::KnownState const state = createInitialState(AssemblyItems{Instruction::DUP1});
+	AssemblyItems const input{
 		Instruction::EQ
 	};
 	AssemblyItems output = CSE(input, state);
@@ -756,7 +756,7 @@ BOOST_AUTO_TEST_CASE(cse_access_previous_sequence)
 {
 	// Tests that the code generator detects whether it tries to access SLOAD instructions
 	// from a sequenced expression which is not in its scope.
-	evmasm::KnownState state = createInitialState(AssemblyItems{
+	evmasm::KnownState const state = createInitialState(AssemblyItems{
 		u256(0),
 		Instruction::SLOAD,
 		u256(1),
@@ -767,7 +767,7 @@ BOOST_AUTO_TEST_CASE(cse_access_previous_sequence)
 	// now stored: val_1 + 1 (value at sequence 1)
 	// if in the following instructions, the SLOAD cresolves to "val_1 + 1",
 	// this cannot be generated because we cannot load from sequence 1 anymore.
-	AssemblyItems input{
+	AssemblyItems const input{
 		u256(0),
 		Instruction::SLOAD,
 	};
@@ -788,7 +788,7 @@ BOOST_AUTO_TEST_CASE(cse_optimise_return)
 BOOST_AUTO_TEST_CASE(control_flow_graph_remove_unused)
 {
 	// remove parts of the code that are unused
-	AssemblyItems input{
+	AssemblyItems const input{
 		AssemblyItem(PushTag, 1),
 		Instruction::JUMP,
 		u256(7),
@@ -799,7 +799,7 @@ BOOST_AUTO_TEST_CASE(control_flow_graph_remove_unused)
 
 BOOST_AUTO_TEST_CASE(control_flow_graph_remove_unused_loop)
 {
-	AssemblyItems input{
+	AssemblyItems const input{
 		AssemblyItem(PushTag, 3),
 		Instruction::JUMP,
 		AssemblyItem(Tag, 1),
@@ -819,7 +819,7 @@ BOOST_AUTO_TEST_CASE(control_flow_graph_remove_unused_loop)
 BOOST_AUTO_TEST_CASE(control_flow_graph_reconnect_single_jump_source)
 {
 	// move code that has only one unconditional jump source
-	AssemblyItems input{
+	AssemblyItems const input{
 		u256(1),
 		AssemblyItem(PushTag, 1),
 		Instruction::JUMP,
@@ -840,7 +840,7 @@ BOOST_AUTO_TEST_CASE(control_flow_graph_reconnect_single_jump_source)
 BOOST_AUTO_TEST_CASE(control_flow_graph_do_not_remove_returned_to)
 {
 	// do not remove parts that are "returned to"
-	AssemblyItems input{
+	AssemblyItems const input{
 		AssemblyItem(PushTag, 1),
 		AssemblyItem(PushTag, 2),
 		Instruction::JUMP,
@@ -883,7 +883,7 @@ BOOST_AUTO_TEST_CASE(block_deduplicator)
 
 BOOST_AUTO_TEST_CASE(block_deduplicator_assign_immutable_same)
 {
-	AssemblyItems blocks{
+	AssemblyItems const blocks{
 		AssemblyItem(Tag, 1),
 		u256(42),
 		AssemblyItem{AssignImmutable, 0x1234},
@@ -1314,7 +1314,7 @@ BOOST_AUTO_TEST_CASE(peephole_pop_calldatasize)
 
 BOOST_AUTO_TEST_CASE(peephole_commutative_swap1)
 {
-	std::vector<Instruction> ops{
+	std::vector<Instruction> const ops{
 		Instruction::ADD,
 		Instruction::MUL,
 		Instruction::EQ,
@@ -1351,7 +1351,7 @@ BOOST_AUTO_TEST_CASE(peephole_commutative_swap1)
 BOOST_AUTO_TEST_CASE(peephole_noncommutative_swap1)
 {
 	// NOTE: not comprehensive
-	std::vector<Instruction> ops{
+	std::vector<Instruction> const ops{
 		Instruction::SUB,
 		Instruction::DIV,
 		Instruction::SDIV,
@@ -1388,7 +1388,7 @@ BOOST_AUTO_TEST_CASE(peephole_noncommutative_swap1)
 
 BOOST_AUTO_TEST_CASE(peephole_swap_comparison)
 {
-	std::map<Instruction, Instruction> swappableOps{
+	std::map<Instruction, Instruction> const swappableOps{
 		{ Instruction::LT, Instruction::GT },
 		{ Instruction::GT, Instruction::LT },
 		{ Instruction::SLT, Instruction::SGT },
@@ -1525,7 +1525,7 @@ BOOST_AUTO_TEST_CASE(jumpdest_removal_subassemblies, *boost::unit_test::precondi
 
 	auto const evmVersion = CommonOptions::get().evmVersion();
 	Assembly main{evmVersion, false, std::nullopt, {}};
-	AssemblyPointer sub = std::make_shared<Assembly>(evmVersion, true, std::nullopt, std::string{});
+	AssemblyPointer const sub = std::make_shared<Assembly>(evmVersion, true, std::nullopt, std::string{});
 
 	sub->append(u256(1));
 	auto t1 = sub->newTag();
@@ -1546,7 +1546,7 @@ BOOST_AUTO_TEST_CASE(jumpdest_removal_subassemblies, *boost::unit_test::precondi
 	sub->append(t4.pushTag());
 	sub->append(Instruction::JUMP);
 
-	SubAssemblyID subId{main.appendSubroutine(sub).data()};
+	SubAssemblyID const subId{main.appendSubroutine(sub).data()};
 	main.append(t1.toSubAssemblyTag(subId));
 	main.append(t1.toSubAssemblyTag(subId));
 	main.append(u256(8));
@@ -1600,20 +1600,20 @@ BOOST_AUTO_TEST_CASE(cse_sub_zero)
 BOOST_AUTO_TEST_CASE(cse_simple_verbatim)
 {
 	auto verbatim = AssemblyItem{bytes{1, 2, 3, 4, 5}, 0, 0};
-	AssemblyItems input{verbatim};
+	AssemblyItems const input{verbatim};
 	checkCSE(input, input);
 	checkFullCSE(input, input);
 }
 
 BOOST_AUTO_TEST_CASE(cse_mload_pop)
 {
-	AssemblyItems input{
+	AssemblyItems const input{
 		u256(1000),
 		Instruction::MLOAD,
 		Instruction::POP,
 	};
 
-	AssemblyItems output{
+	AssemblyItems const output{
 	};
 
 	checkCSE(input, output);
@@ -1623,7 +1623,7 @@ BOOST_AUTO_TEST_CASE(cse_mload_pop)
 BOOST_AUTO_TEST_CASE(cse_verbatim_mload)
 {
 	auto verbatim = AssemblyItem{bytes{1, 2, 3, 4, 5}, 0, 0};
-	AssemblyItems input{
+	AssemblyItems const input{
 		u256(1000),
 		Instruction::MLOAD, // Should not be removed
 		Instruction::POP,
@@ -1639,7 +1639,7 @@ BOOST_AUTO_TEST_CASE(cse_verbatim_mload)
 BOOST_AUTO_TEST_CASE(cse_sload_verbatim_dup)
 {
 	auto verbatim = AssemblyItem{bytes{1, 2, 3, 4, 5}, 0, 0};
-	AssemblyItems input{
+	AssemblyItems const input{
 		u256(0),
 		Instruction::SLOAD,
 		u256(0),
@@ -1647,7 +1647,7 @@ BOOST_AUTO_TEST_CASE(cse_sload_verbatim_dup)
 		verbatim
 	};
 
-	AssemblyItems output{
+	AssemblyItems const output{
 		u256(0),
 		Instruction::SLOAD,
 		Instruction::DUP1,
@@ -1661,7 +1661,7 @@ BOOST_AUTO_TEST_CASE(cse_sload_verbatim_dup)
 BOOST_AUTO_TEST_CASE(cse_verbatim_sload_sideeffect)
 {
 	auto verbatim = AssemblyItem{bytes{1, 2, 3, 4, 5}, 0, 0};
-	AssemblyItems input{
+	AssemblyItems const input{
 		u256(0),
 		Instruction::SLOAD,
 		verbatim,
@@ -1675,7 +1675,7 @@ BOOST_AUTO_TEST_CASE(cse_verbatim_sload_sideeffect)
 BOOST_AUTO_TEST_CASE(cse_verbatim_eq)
 {
 	auto verbatim = AssemblyItem{bytes{1, 2, 3, 4, 5}, 0, 0};
-	AssemblyItems input{
+	AssemblyItems const input{
 		u256(0),
 		Instruction::SLOAD,
 		verbatim,
@@ -1700,7 +1700,7 @@ BOOST_AUTO_TEST_CASE(verbatim_knownstate)
 	// One more than stack height because of the initial unknown element.
 	BOOST_CHECK(stackElements.size() == 5);
 	BOOST_CHECK(stackElements.count(0));
-	unsigned initialElement = stackElements.at(0);
+	unsigned const initialElement = stackElements.at(0);
 	// Check if all the DUPs were correctly matched to the same class.
 	for (auto const& height: {1, 2, 3, 4})
 		BOOST_CHECK(stackElements.at(height) == initialElement);
@@ -1806,7 +1806,7 @@ BOOST_AUTO_TEST_CASE(cse_remove_redundant_shift_masking)
 
 BOOST_AUTO_TEST_CASE(cse_remove_unwanted_masking_of_address)
 {
-	std::vector<Instruction> ops{
+	std::vector<Instruction> const ops{
 		Instruction::ADDRESS,
 		Instruction::CALLER,
 		Instruction::ORIGIN,
@@ -1918,12 +1918,12 @@ BOOST_AUTO_TEST_CASE(cse_replace_too_large_shift)
 
 BOOST_AUTO_TEST_CASE(cse_dup)
 {
-	AssemblyItems input{
+	AssemblyItems const input{
 		u256(0),
 		Instruction::DUP1,
 		Instruction::REVERT
 	};
-	AssemblyItems output = input;
+	AssemblyItems const output = input;
 
 	checkCSE(input, output);
 	checkFullCSE(input, output);
@@ -1931,7 +1931,7 @@ BOOST_AUTO_TEST_CASE(cse_dup)
 
 BOOST_AUTO_TEST_CASE(cse_push0)
 {
-	AssemblyItems input{
+	AssemblyItems const input{
 		u256(0),
 		u256(0),
 		Instruction::REVERT

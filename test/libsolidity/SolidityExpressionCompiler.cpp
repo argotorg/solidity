@@ -100,7 +100,7 @@ bytes compileFirstExpression(
 	std::vector<std::vector<std::string>> _localVariables = {}
 )
 {
-	std::string sourceCode = "pragma solidity >=0.0; // SPDX-License-Identifier: GPL-3\n" + _sourceCode;
+	std::string const sourceCode = "pragma solidity >=0.0; // SPDX-License-Identifier: GPL-3\n" + _sourceCode;
 	CharStream stream(sourceCode, "");
 
 	ASTPointer<SourceUnit> sourceUnit;
@@ -118,7 +118,7 @@ bytes compileFirstExpression(
 	}
 	catch (...)
 	{
-		std::string msg = "Parsing source code failed with:\n" + boost::current_exception_diagnostic_information();
+		std::string const msg = "Parsing source code failed with:\n" + boost::current_exception_diagnostic_information();
 		BOOST_FAIL(msg);
 	}
 
@@ -142,7 +142,7 @@ bytes compileFirstExpression(
 	for (ASTPointer<ASTNode> const& node: sourceUnit->nodes())
 		if (ContractDefinition* contract = dynamic_cast<ContractDefinition*>(node.get()))
 		{
-			FirstExpressionExtractor extractor(*contract);
+			FirstExpressionExtractor const extractor(*contract);
 			BOOST_REQUIRE(extractor.expression() != nullptr);
 
 			CompilerContext context(
@@ -351,12 +351,12 @@ BOOST_AUTO_TEST_CASE(arithmetic)
 		}
 	)";
 	bytes code = compileFirstExpression(sourceCode, {}, {{"test", "f", "y"}});
-	bool hasPush0 = solidity::test::CommonOptions::get().evmVersion().hasPush0();
-	bytes push0Bytes = hasPush0 ?
+	bool const hasPush0 = solidity::test::CommonOptions::get().evmVersion().hasPush0();
+	bytes const push0Bytes = hasPush0 ?
 		bytes{uint8_t(Instruction::PUSH0)} :
 		bytes{uint8_t(Instruction::PUSH1), 0x0};
-	uint8_t size = hasPush0 ? 0x65: 0x67;
-	bytes panic =
+	uint8_t const size = hasPush0 ? 0x65: 0x67;
+	bytes const panic =
 		bytes{
 			uint8_t(Instruction::JUMPDEST),
 			uint8_t(Instruction::PUSH32)
@@ -476,7 +476,7 @@ BOOST_AUTO_TEST_CASE(unary_operators)
 	)";
 	bytes code = compileFirstExpression(sourceCode, {}, {{"test", "f", "y"}});
 
-	bytes push0Bytes = solidity::test::CommonOptions::get().evmVersion().hasPush0() ?
+	bytes const push0Bytes = solidity::test::CommonOptions::get().evmVersion().hasPush0() ?
 		bytes{uint8_t(Instruction::PUSH0)} :
 		bytes{uint8_t(Instruction::PUSH1), 0x0};
 

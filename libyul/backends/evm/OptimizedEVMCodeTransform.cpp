@@ -86,7 +86,7 @@ std::vector<StackTooDeepError> OptimizedEVMCodeTransform::run(
 
 void OptimizedEVMCodeTransform::operator()(CFG::FunctionCall const& _call)
 {
-	bool useReturnLabel = m_simulateFunctionsWithJumps && _call.canContinue;
+	bool const useReturnLabel = m_simulateFunctionsWithJumps && _call.canContinue;
 	// Validate stack.
 	{
 		yulAssert(m_assembly.stackHeight() == static_cast<int>(m_stack.size()), "");
@@ -128,7 +128,7 @@ void OptimizedEVMCodeTransform::operator()(CFG::FunctionCall const& _call)
 		for (size_t i = 0; i < _call.function.get().numArguments + (useReturnLabel ? 1 : 0); ++i)
 			m_stack.pop_back();
 		// Push return values to m_stack.
-		for (size_t index: ranges::views::iota(0u, _call.function.get().numReturns))
+		for (size_t const index: ranges::views::iota(0u, _call.function.get().numReturns))
 			m_stack.emplace_back(TemporarySlot{_call.functionCall, index});
 		yulAssert(m_assembly.stackHeight() == static_cast<int>(m_stack.size()), "");
 	}
@@ -170,7 +170,7 @@ void OptimizedEVMCodeTransform::operator()(CFG::BuiltinCall const& _call)
 		for (size_t i = 0; i < _call.arguments; ++i)
 			m_stack.pop_back();
 		// Push return values to m_stack.
-		for (size_t index: ranges::views::iota(0u, _call.builtin.get().numReturns))
+		for (size_t const index: ranges::views::iota(0u, _call.builtin.get().numReturns))
 			m_stack.emplace_back(TemporarySlot{_call.functionCall, index});
 		yulAssert(m_assembly.stackHeight() == static_cast<int>(m_stack.size()), "");
 	}
@@ -215,10 +215,10 @@ OptimizedEVMCodeTransform::OptimizedEVMCodeTransform(
 		for (Scope::Function const* function: m_dfg.functions)
 		{
 			CFG::FunctionInfo const& functionInfo = m_dfg.functionInfo.at(function);
-			bool nameAlreadySeen = !assignedFunctionNames.insert(function->name).second;
+			bool const nameAlreadySeen = !assignedFunctionNames.insert(function->name).second;
 			if (_useNamedLabelsForFunctions == UseNamedLabels::YesAndForceUnique)
 				yulAssert(!nameAlreadySeen);
-			bool useNamedLabel = _useNamedLabelsForFunctions != UseNamedLabels::Never && !nameAlreadySeen;
+			bool const useNamedLabel = _useNamedLabelsForFunctions != UseNamedLabels::Never && !nameAlreadySeen;
 			functionLabels[&functionInfo] = useNamedLabel ?
 				m_assembly.namedLabel(
 					function->name.str(),
@@ -291,11 +291,11 @@ void OptimizedEVMCodeTransform::createStackLayout(langutil::DebugData::ConstPtr 
 				appendSwap(_i);
 			else
 			{
-				int deficit = static_cast<int>(_i) - static_cast<int>(m_reachableStackDepth);
+				int const deficit = static_cast<int>(_i) - static_cast<int>(m_reachableStackDepth);
 				StackSlot const& deepSlot = m_stack.at(m_stack.size() - _i - 1);
-				YulName varNameDeep = slotVariableName(deepSlot);
-				YulName varNameTop = slotVariableName(m_stack.back());
-				std::string msg =
+				YulName const varNameDeep = slotVariableName(deepSlot);
+				YulName const varNameTop = slotVariableName(m_stack.back());
+				std::string const msg =
 					"Cannot swap " + (varNameDeep.empty() ? "Slot " + stackSlotToString(deepSlot, m_dialect) : "Variable " + varNameDeep.str()) +
 					" with " + (varNameTop.empty() ? "Slot " + stackSlotToString(m_stack.back(), m_dialect) : "Variable " + varNameTop.str()) +
 					": too deep in the stack by " + std::to_string(deficit) + " slots in " + stackToString(m_stack, m_dialect);
@@ -322,9 +322,9 @@ void OptimizedEVMCodeTransform::createStackLayout(langutil::DebugData::ConstPtr 
 				}
 				else if (!canBeFreelyGenerated(_slot))
 				{
-					int deficit = static_cast<int>(*depth - (m_reachableStackDepth - 1));
-					YulName varName = slotVariableName(_slot);
-					std::string msg =
+					int const deficit = static_cast<int>(*depth - (m_reachableStackDepth - 1));
+					YulName const varName = slotVariableName(_slot);
+					std::string const msg =
 						(varName.empty() ? "Slot " + stackSlotToString(_slot, m_dialect) : "Variable " + varName.str())
 						+ " is " + std::to_string(*depth - (m_reachableStackDepth - 1)) + " too deep in the stack " + stackToString(m_stack, m_dialect);
 					m_stackErrors.emplace_back(StackTooDeepError(
@@ -442,7 +442,7 @@ void OptimizedEVMCodeTransform::operator()(CFG::BasicBlock const& _block)
 		// Assert that we have the inputs of the operation on stack top.
 		yulAssert(static_cast<int>(m_stack.size()) == m_assembly.stackHeight(), "");
 		yulAssert(m_stack.size() >= operation.input.size(), "");
-		size_t baseHeight = m_stack.size() - operation.input.size();
+		size_t const baseHeight = m_stack.size() - operation.input.size();
 		assertLayoutCompatibility(
 			m_stack | ranges::views::take_last(operation.input.size()) | ranges::to<Stack>,
 			operation.input
@@ -517,7 +517,7 @@ void OptimizedEVMCodeTransform::operator()(CFG::BasicBlock const& _block)
 
 			{
 				// Restore the stack afterwards for the non-zero case below.
-				ScopeGuard stackRestore([storedStack = m_stack, this]() {
+				ScopeGuard const stackRestore([storedStack = m_stack, this]() {
 					m_stack = std::move(storedStack);
 					m_assembly.setStackHeight(static_cast<int>(m_stack.size()));
 				});
@@ -573,9 +573,9 @@ void OptimizedEVMCodeTransform::operator()(CFG::BasicBlock const& _block)
 
 void OptimizedEVMCodeTransform::operator()(CFG::FunctionInfo const& _functionInfo)
 {
-	bool useReturnLabel = m_simulateFunctionsWithJumps && _functionInfo.canContinue;
+	bool const useReturnLabel = m_simulateFunctionsWithJumps && _functionInfo.canContinue;
 	yulAssert(!m_currentFunctionInfo, "");
-	ScopedSaveAndRestore currentFunctionInfoRestore(m_currentFunctionInfo, &_functionInfo);
+	ScopedSaveAndRestore const currentFunctionInfoRestore(m_currentFunctionInfo, &_functionInfo);
 
 	yulAssert(m_stack.empty() && m_assembly.stackHeight() == 0, "");
 

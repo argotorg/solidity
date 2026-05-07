@@ -152,7 +152,7 @@ std::optional<u256> erc7201CompileTimeValue(FunctionCall const& _erc7201Call)
 	solAssert(std::holds_alternative<rational>(evaluatedResult.value));
 	auto rationalValue = std::get<rational>(evaluatedResult.value);
 	solAssert(rationalValue.denominator() == 1);
-	bigint baseSlot = rationalValue.numerator();
+	bigint const baseSlot = rationalValue.numerator();
 	solAssert(baseSlot <= std::numeric_limits<u256>::max());
 	return u256(baseSlot);
 }

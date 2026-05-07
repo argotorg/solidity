@@ -164,7 +164,7 @@ bool SyntacticallyEqual::statementEqual(Block const& _lhs, Block const& _rhs)
 
 bool SyntacticallyEqual::visitDeclaration(NameWithDebugData const& _lhs, NameWithDebugData const& _rhs)
 {
-	std::size_t id = m_idsUsed++;
+	std::size_t const id = m_idsUsed++;
 	m_identifiersLHS[_lhs.name] = id;
 	m_identifiersRHS[_rhs.name] = id;
 	return true;

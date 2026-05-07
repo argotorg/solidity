@@ -56,7 +56,7 @@ namespace
 
 std::optional<Error> parseAndReturnFirstError(std::string const& _source, bool _allowWarningsAndInfos = true)
 {
-	YulStack yulStack = parseYul(_source, "source", OptimiserSettings::none());
+	YulStack const yulStack = parseYul(_source, "source", OptimiserSettings::none());
 	if (!yulStack.hasErrorsWarningsOrInfos() || (!yulStack.hasErrors() && _allowWarningsAndInfos))
 		return {};
 
@@ -124,7 +124,7 @@ BOOST_AUTO_TEST_CASE(recursion_depth)
 
 BOOST_AUTO_TEST_CASE(to_string)
 {
-	std::string code = R"(
+	std::string const code = R"(
 		object "O" {
 			code { let x := mload(0) if x { sstore(0, 1) } }
 			object "i" { code {} data "j" "def" }

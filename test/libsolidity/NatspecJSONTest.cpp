@@ -59,7 +59,7 @@ void NatspecJSONTest::parseCustomExpectations(std::istream& _stream)
 	std::string line;
 	while (getline(_stream, line))
 	{
-		std::string_view strippedLine = expectLinePrefix(line);
+		std::string_view const strippedLine = expectLinePrefix(line);
 		if (strippedLine.empty())
 			continue;
 
@@ -68,7 +68,7 @@ void NatspecJSONTest::parseCustomExpectations(std::istream& _stream)
 		std::string rawJSON = extractExpectationJSON(_stream);
 		std::string jsonErrors;
 		Json parsedJSON;
-		bool jsonParsingSuccessful = jsonParseStrict(rawJSON, parsedJSON, &jsonErrors);
+		bool const jsonParsingSuccessful = jsonParseStrict(rawJSON, parsedJSON, &jsonErrors);
 		if (!jsonParsingSuccessful)
 			BOOST_THROW_EXCEPTION(std::runtime_error(fmt::format(
 				"Malformed JSON in {} expectation for contract {}.\n"
@@ -109,7 +109,7 @@ void NatspecJSONTest::printObtainedResult(std::ostream& _stream, std::string con
 {
 	SyntaxTest::printObtainedResult(_stream, _linePrefix, _formatted);
 
-	NatspecMap natspecJSON = obtainedNatspec();
+	NatspecMap const natspecJSON = obtainedNatspec();
 	if (!natspecJSON.empty())
 	{
 		_stream << _linePrefix << "----" << std::endl;
@@ -121,9 +121,9 @@ void NatspecJSONTest::printObtainedResult(std::ostream& _stream, std::string con
 
 std::tuple<std::string_view, NatspecJSONKind> NatspecJSONTest::parseExpectationHeader(std::string_view _line)
 {
-	for (NatspecJSONKind kind: {NatspecJSONKind::Devdoc, NatspecJSONKind::Userdoc})
+	for (NatspecJSONKind const kind: {NatspecJSONKind::Devdoc, NatspecJSONKind::Userdoc})
 	{
-		std::string kindSuffix = " " + toString(kind);
+		std::string const kindSuffix = " " + toString(kind);
 		if (boost::algorithm::ends_with(_line, kindSuffix))
 			return {_line.substr(0, _line.size() - kindSuffix.size()), kind};
 	}
@@ -139,7 +139,7 @@ std::string NatspecJSONTest::extractExpectationJSON(std::istream& _stream)
 	std::string line;
 	while (getline(_stream, line))
 	{
-		std::string_view strippedLine = expectLinePrefix(line);
+		std::string_view const strippedLine = expectLinePrefix(line);
 		rawJSON += strippedLine;
 		rawJSON += "\n";
 
@@ -191,7 +191,7 @@ NatspecMap NatspecJSONTest::obtainedNatspec() const
 		return {};
 
 	NatspecMap result;
-	for (std::string contractName: compiler().contractNames())
+	for (std::string const& contractName: compiler().contractNames())
 	{
 		result[contractName][NatspecJSONKind::Devdoc]  = compiler().natspecDev(contractName);
 		result[contractName][NatspecJSONKind::Userdoc] = compiler().natspecUser(contractName);

@@ -35,7 +35,7 @@ bool JumpdestRemover::optimise(std::set<size_t> const& _tagsReferencedFromOutsid
 	std::set<size_t> references{referencedTags(m_items, SubAssemblyID{})};
 	references.insert(_tagsReferencedFromOutside.begin(), _tagsReferencedFromOutside.end());
 
-	size_t initialSize = m_items.size();
+	size_t const initialSize = m_items.size();
 	/// Remove tags which are never referenced.
 	auto pend = remove_if(
 		m_items.begin(),
@@ -46,7 +46,7 @@ bool JumpdestRemover::optimise(std::set<size_t> const& _tagsReferencedFromOutsid
 				return false;
 			auto asmIdAndTag = _item.splitForeignPushTag();
 			solAssert(asmIdAndTag.first.empty(), "Sub-assembly tag used as label.");
-			size_t tag = asmIdAndTag.second;
+			size_t const tag = asmIdAndTag.second;
 			return !references.count(tag);
 		}
 	);

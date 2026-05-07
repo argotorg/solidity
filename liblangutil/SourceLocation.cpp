@@ -43,8 +43,8 @@ SourceLocation solidity::langutil::parseSourceLocation(std::string const& _input
 		"'src'-field ill-formatted or src-index too high"
 	);
 
-	int start = stoi(pos[Start]);
-	int end = start + stoi(pos[Length]);
+	int const start = stoi(pos[Start]);
+	int const end = start + stoi(pos[Length]);
 
 	SourceLocation result{start, end, {}};
 	if (sourceIndex != -1)

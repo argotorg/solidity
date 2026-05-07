@@ -111,8 +111,8 @@ std::vector<SimplificationRule<Pattern>> simplificationRuleListPart1(
 		{Builtins::SIGNEXTEND(A, B), [=]() -> Word {
 			if (A.d() >= Pattern::WordSize / 8 - 1)
 				return B.d();
-			unsigned testBit = unsigned(A.d()) * 8 + 7;
-			Word mask = (Word(1) << testBit) - 1;
+			unsigned const testBit = unsigned(A.d()) * 8 + 7;
+			Word const mask = (Word(1) << testBit) - 1;
 			return boost::multiprecision::bit_test(B.d(), testBit) ? B.d() | ~mask : B.d() & mask;
 		}},
 		{Builtins::SHL(A, B), [=]{
@@ -313,7 +313,7 @@ std::vector<SimplificationRule<Pattern>> simplificationRuleListPart5(
 	// Replace MOD X, <power-of-two> with AND X, <power-of-two> - 1
 	for (size_t i = 0; i < Pattern::WordSize; ++i)
 	{
-		Word value = Word(1) << i;
+		Word const value = Word(1) << i;
 		rules.push_back({
 			Builtins::MOD(X, value),
 			[=]() -> Pattern { return Builtins::AND(X, value - 1); }
@@ -409,7 +409,7 @@ std::vector<SimplificationRule<Pattern>> simplificationRuleListPart6(
 		Instruction::SGT
 	})
 	{
-		typename Builtins::PatternGeneratorInstance op{instr};
+		typename Builtins::PatternGeneratorInstance const op{instr};
 		rules.push_back({
 			Builtins::ISZERO(Builtins::ISZERO(op(X, Y))),
 			[=]() -> Pattern { return op(X, Y); }
@@ -457,8 +457,8 @@ std::vector<SimplificationRule<Pattern>> simplificationRuleListPart7(
 		{Instruction::XOR, std::bit_xor<Word>()}
 	})
 	{
-		typename Builtins::PatternGeneratorInstance op{instrAndFunc.first};
-		std::function<Word(Word, Word)> fun = instrAndFunc.second;
+		typename Builtins::PatternGeneratorInstance const op{instrAndFunc.first};
+		std::function<Word(Word, Word)> const fun = instrAndFunc.second;
 		// Moving constants to the outside, order matters here - we first add rules
 		// for constants and then for non-constants.
 		// xa can be (X, A) or (A, X)
@@ -489,7 +489,7 @@ std::vector<SimplificationRule<Pattern>> simplificationRuleListPart7(
 		// SHL(B, SHL(A, X)) -> SHL(min(A+B, 256), X)
 		Builtins::SHL(B, Builtins::SHL(A, X)),
 		[=]() -> Pattern {
-			bigint sum = bigint(A.d()) + B.d();
+			bigint const sum = bigint(A.d()) + B.d();
 			if (sum >= Pattern::WordSize)
 				return Builtins::AND(X, Word(0));
 			else
@@ -502,7 +502,7 @@ std::vector<SimplificationRule<Pattern>> simplificationRuleListPart7(
 		// SHR(B, SHR(A, X)) -> SHR(min(A+B, 256), X)
 		Builtins::SHR(B, Builtins::SHR(A, X)),
 		[=]() -> Pattern {
-			bigint sum = bigint(A.d()) + B.d();
+			bigint const sum = bigint(A.d()) + B.d();
 			if (sum >= Pattern::WordSize)
 				return Builtins::AND(X, Word(0));
 			else
@@ -515,7 +515,7 @@ std::vector<SimplificationRule<Pattern>> simplificationRuleListPart7(
 		// SHR(B, SHL(A, X)) -> AND(SH[L/R]([B - A / A - B], X), Mask)
 		Builtins::SHR(B, Builtins::SHL(A, X)),
 		[=]() -> Pattern {
-			Word mask = shlWorkaround(~Word(0), unsigned(A.d())) >> unsigned(B.d());
+			Word const mask = shlWorkaround(~Word(0), unsigned(A.d())) >> unsigned(B.d());
 
 			if (A.d() > B.d())
 				return Builtins::AND(Builtins::SHL(A.d() - B.d(), X), mask);
@@ -532,7 +532,7 @@ std::vector<SimplificationRule<Pattern>> simplificationRuleListPart7(
 		// SHL(B, SHR(A, X)) -> AND(SH[L/R]([B - A / A - B], X), Mask)
 		Builtins::SHL(B, Builtins::SHR(A, X)),
 		[=]() -> Pattern {
-			Word mask = shlWorkaround((~Word(0)) >> unsigned(A.d()), unsigned(B.d()));
+			Word const mask = shlWorkaround((~Word(0)) >> unsigned(A.d()), unsigned(B.d()));
 
 			if (A.d() > B.d())
 				return Builtins::AND(Builtins::SHR(A.d() - B.d(), X), mask);
@@ -547,9 +547,9 @@ std::vector<SimplificationRule<Pattern>> simplificationRuleListPart7(
 	// Move AND with constant across SHL and SHR by constant
 	for (auto instr: {Instruction::SHL, Instruction::SHR})
 	{
-		typename Builtins::PatternGeneratorInstance shiftOp{instr};
+		typename Builtins::PatternGeneratorInstance const shiftOp{instr};
 		auto replacement = [=]() -> Pattern {
-			Word mask =
+			Word const mask =
 				instr == Instruction::SHL ?
 				shlWorkaround(A.d(), unsigned(B.d())) :
 				A.d() >> unsigned(B.d());
@@ -609,10 +609,10 @@ std::vector<SimplificationRule<Pattern>> simplificationRuleListPart7(
 		}
 	});
 
-	std::function<bool()> feasibilityFunction = [=]() {
+	std::function<bool()> const feasibilityFunction = [=]() {
 		if (B.d() > Pattern::WordSize)
 			return false;
-		unsigned bAsUint = static_cast<unsigned>(B.d());
+		unsigned const bAsUint = static_cast<unsigned>(B.d());
 		return (A.d() & ((~Word(0)) >> bAsUint)) == ((~Word(0)) >> bAsUint);
 	};
 

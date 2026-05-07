@@ -190,9 +190,9 @@ private:
 	}
 	size_t getBlockId(CFG::BasicBlock const& _block)
 	{
-		if (size_t* id = util::valueOrNullptr(m_blockIds, &_block))
+		if (size_t const* id = util::valueOrNullptr(m_blockIds, &_block))
 			return *id;
-		size_t id = m_blockIds[&_block] = m_blockCount++;
+		size_t const id = m_blockIds[&_block] = m_blockCount++;
 		m_blocksToPrint.emplace_back(&_block);
 		return id;
 	}
@@ -205,7 +205,7 @@ private:
 
 TestCase::TestResult ControlFlowGraphTest::run(std::ostream& _stream, std::string const& _linePrefix, bool const _formatted)
 {
-	YulStack yulStack = parseYul(m_source);
+	YulStack const yulStack = parseYul(m_source);
 	solUnimplementedAssert(yulStack.parserResult()->subObjects.empty(), "Tests with subobjects not supported.");
 	if (yulStack.hasErrors())
 	{

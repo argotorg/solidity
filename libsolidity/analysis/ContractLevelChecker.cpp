@@ -77,7 +77,7 @@ bool ContractLevelChecker::check(SourceUnit const& _sourceUnit)
 	if (Error::containsErrors(m_errorReporter.errors()))
 		noErrors = false;
 	for (ASTPointer<ASTNode> const& node: _sourceUnit.nodes())
-		if (ContractDefinition* contract = dynamic_cast<ContractDefinition*>(node.get()))
+		if (ContractDefinition const* contract = dynamic_cast<ContractDefinition*>(node.get()))
 			if (!check(*contract))
 				noErrors = false;
 	return noErrors;
@@ -592,9 +592,9 @@ void ContractLevelChecker::checkPayableFallbackWithoutReceive(ContractDefinition
 void ContractLevelChecker::checkStorageSize(ContractDefinition const& _contract)
 {
 	using enum VariableDeclaration::Location;
-	for (VariableDeclaration::Location location: {Unspecified, Transient})
+	for (VariableDeclaration::Location const location: {Unspecified, Transient})
 	{
-		bigint size = contractStorageSizeUpperBound(_contract, location);
+		bigint const size = contractStorageSizeUpperBound(_contract, location);
 		if (size >= bigint(1) << 256)
 		{
 			if (location == Unspecified)

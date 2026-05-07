@@ -65,7 +65,7 @@ SyntaxTest::SyntaxTest(
 		{"analysis", PipelineStage::Analysis},
 		{"compilation", PipelineStage::Compilation}
 	};
-	std::string stopAfter = m_reader.stringSetting("stopAfter", "compilation");
+	std::string const stopAfter = m_reader.stringSetting("stopAfter", "compilation");
 	if (!pipelineStages.count(stopAfter))
 		BOOST_THROW_EXCEPTION(std::runtime_error("Invalid stopAfter value: " + stopAfter + "."));
 	m_stopAfter = pipelineStages.at(stopAfter);
@@ -134,7 +134,7 @@ void SyntaxTest::filterObtainedErrors()
 			sourceName = *location->sourceName;
 			if(m_sources.sources.count(sourceName) == 1)
 			{
-				int preambleSize =
+				int const preambleSize =
 						static_cast<int>(compiler().charStream(sourceName).size()) -
 						static_cast<int>(m_sources.sources[sourceName].size());
 				solAssert(preambleSize >= 0, "");

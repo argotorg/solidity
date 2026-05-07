@@ -62,7 +62,7 @@ smtutil::Expression BlockchainVariable::member(std::string const& _member) const
 
 smtutil::Expression BlockchainVariable::assignMember(std::string const& _member, smtutil::Expression const& _value)
 {
-	smtutil::Expression newTuple = smt::assignMember(m_tuple->currentValue(), {{_member, _value}});
+	smtutil::Expression const newTuple = smt::assignMember(m_tuple->currentValue(), {{_member, _value}});
 	m_context.addAssertion(m_tuple->increaseIndex() == newTuple);
 	return m_tuple->currentValue();
 }
@@ -110,16 +110,16 @@ void SymbolicState::newBalances()
 {
 	auto tupleSort = std::dynamic_pointer_cast<TupleSort>(stateSort());
 	auto balanceSort = tupleSort->components.at(tupleSort->memberToIndex.at("balances"));
-	SymbolicVariable newBalances(balanceSort, "fresh_balances_" + std::to_string(m_context.newUniqueId()), m_context);
+	SymbolicVariable const newBalances(balanceSort, "fresh_balances_" + std::to_string(m_context.newUniqueId()), m_context);
 	m_state->assignMember("balances", newBalances.currentValue());
 }
 
 void SymbolicState::transfer(smtutil::Expression _from, smtutil::Expression _to, smtutil::Expression _value)
 {
-	unsigned indexBefore = m_state->index();
+	unsigned const indexBefore = m_state->index();
 	addBalance(_from, 0 - _value);
 	addBalance(_to, std::move(_value));
-	unsigned indexAfter = m_state->index();
+	unsigned const indexAfter = m_state->index();
 	solAssert(indexAfter > indexBefore, "");
 	m_state->newVar();
 	/// Do not apply the transfer operation if _from == _to.
@@ -178,12 +178,12 @@ void SymbolicState::writeStateVars(ContractDefinition const& _contract, smtutil:
 	for (auto var: stateVars)
 		values.emplace(stateVarStorageKey(*var, _contract), m_context.variable(*var)->currentValue());
 
-	smtutil::Expression thisStorage = storage(_contract, _address);
-	smtutil::Expression newStorage = smt::assignMember(thisStorage, values);
+	smtutil::Expression const thisStorage = storage(_contract, _address);
+	smtutil::Expression const newStorage = smt::assignMember(thisStorage, values);
 	auto newContractStorage = smtutil::Expression::store(
 		storage(_contract), std::move(_address), newStorage
 	);
-	smtutil::Expression newAllStorage = smt::assignMember(m_state->member("storage"), {{contractStorageKey(_contract), newContractStorage}});
+	smtutil::Expression const newAllStorage = smt::assignMember(m_state->member("storage"), {{contractStorageKey(_contract), newContractStorage}});
 	m_state->assignMember("storage", newAllStorage);
 }
 
@@ -280,7 +280,7 @@ void SymbolicState::prepareForSourceUnit(SourceUnit const& _source, bool _storag
 	{
 		abiCalls += SMTEncoder::collectABICalls(source);
 		bytesConcatCalls += SMTEncoder::collectBytesConcatCalls(source);
-		for (auto node: source->nodes())
+		for (auto const& node: source->nodes())
 			if (auto contract = dynamic_cast<ContractDefinition const*>(node.get()))
 				contracts.insert(contract);
 	}
@@ -331,7 +331,7 @@ void SymbolicState::buildState(std::set<ContractDefinition const*, ASTCompareByI
 			});
 			auto sorts = applyMap(stateVars, [](auto var) { return smtSortAbstractFunction(*var->type()); });
 
-			std::string name = "storage" + suffix;
+			std::string const name = "storage" + suffix;
 			auto storageTuple = std::make_shared<smtutil::TupleSort>(
 				name + "_type", names, sorts
 			);

@@ -55,7 +55,7 @@ YulInterpreterTest::YulInterpreterTest(std::string const& _filename):
 
 TestCase::TestResult YulInterpreterTest::run(std::ostream& _stream, std::string const& _linePrefix, bool const _formatted)
 {
-	YulStack yulStack = parseYul(m_source, "", solidity::frontend::OptimiserSettings::none());
+	YulStack const yulStack = parseYul(m_source, "", solidity::frontend::OptimiserSettings::none());
 
 	if (yulStack.hasErrors())
 	{
@@ -68,7 +68,7 @@ TestCase::TestResult YulInterpreterTest::run(std::ostream& _stream, std::string 
 	return checkResult(_stream, _linePrefix, _formatted);
 }
 
-std::string YulInterpreterTest::interpret(std::shared_ptr<Object const> const& _object)
+std::string YulInterpreterTest::interpret(std::shared_ptr<Object const> const& _object) const
 {
 	solAssert(_object && _object->hasCode());
 

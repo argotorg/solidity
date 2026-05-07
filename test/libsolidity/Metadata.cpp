@@ -38,7 +38,7 @@ namespace
 
 std::map<std::string, std::string> requireParsedCBORMetadata(bytes const& _bytecode, CompilerStack::MetadataFormat _metadataFormat)
 {
-	bytes cborMetadata = solidity::test::onlyMetadata(_bytecode);
+	bytes const cborMetadata = solidity::test::onlyMetadata(_bytecode);
 	if (_metadataFormat != CompilerStack::MetadataFormat::NoMetadata)
 	{
 		BOOST_REQUIRE(!cborMetadata.empty());
@@ -361,7 +361,7 @@ BOOST_AUTO_TEST_CASE(metadata_useLiteralContent)
 		compilerStack.setOptimiserSettings(solidity::test::CommonOptions::get().optimize);
 		compilerStack.useMetadataLiteralSources(_literal);
 		BOOST_REQUIRE_MESSAGE(compilerStack.compile(), "Compiling contract failed");
-		std::string metadata_str = compilerStack.metadata("test");
+		std::string const metadata_str = compilerStack.metadata("test");
 		Json metadata;
 		BOOST_REQUIRE(util::jsonParseStrict(metadata_str, metadata));
 		BOOST_CHECK(solidity::test::isValidMetadata(metadata));
@@ -496,7 +496,7 @@ BOOST_AUTO_TEST_CASE(metadata_optimiser_sequence)
 		}
 	)";
 
-	std::vector<std::tuple<std::string, std::string>> sequences =
+	std::vector<std::tuple<std::string, std::string>> const sequences =
 	{
 		// {"<optimizer sequence>", "<optimizer cleanup sequence>"}
 		{"", ""},
@@ -560,7 +560,7 @@ BOOST_AUTO_TEST_CASE(metadata_optimiser_sequence)
 	for (auto const& preset: {OptimiserSettings::minimal(), OptimiserSettings::standard(), OptimiserSettings::full()})
 	{
 		auto const metadataJson = generateMetadataJson(sourceCode, preset);
-		Json expectedOptimizerMetadata = {
+		Json const expectedOptimizerMetadata = {
 			{"enabled", preset != OptimiserSettings::minimal()},
 			{"runs", preset.expectedExecutionsPerDeployment}
 		};

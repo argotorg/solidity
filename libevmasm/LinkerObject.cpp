@@ -51,7 +51,7 @@ std::string LinkerObject::toHex() const
 	std::string hex = solidity::util::toHex(bytecode);
 	for (auto const& ref: linkReferences)
 	{
-		size_t pos = ref.first * 2;
+		size_t const pos = ref.first * 2;
 		std::string hash = libraryPlaceholder(ref.second);
 		hex[pos] = hex[pos + 1] = hex[pos + 38] = hex[pos + 39] = '_';
 		for (size_t i = 0; i < 36; ++i)

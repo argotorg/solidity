@@ -52,13 +52,13 @@ bool fitsPrecisionExp(bigint const& _base, bigint const& _exp)
 
 	std::size_t const bitsMax = 4096;
 
-	std::size_t mostSignificantBaseBit = static_cast<std::size_t>(boost::multiprecision::msb(_base));
+	std::size_t const mostSignificantBaseBit = static_cast<std::size_t>(boost::multiprecision::msb(_base));
 	if (mostSignificantBaseBit == 0) // _base == 1
 		return true;
 	if (mostSignificantBaseBit > bitsMax) // _base >= 2 ^ 4096
 		return false;
 
-	bigint bitsNeeded = _exp * (mostSignificantBaseBit + 1);
+	bigint const bitsNeeded = _exp * (mostSignificantBaseBit + 1);
 
 	return bitsNeeded <= bitsMax;
 }
@@ -73,7 +73,7 @@ bool fitsPrecisionBase2(bigint const& _mantissa, uint32_t _expBase2)
 
 std::optional<rational> ConstantEvaluator::evaluateBinaryOperator(Token _operator, rational const& _left, rational const& _right)
 {
-	bool fractional = _left.denominator() != 1 || _right.denominator() != 1;
+	bool const fractional = _left.denominator() != 1 || _right.denominator() != 1;
 	switch (_operator)
 	{
 	//bit operations will only be enabled for integers and fixed types that resemble integers
@@ -105,7 +105,7 @@ std::optional<rational> ConstantEvaluator::evaluateBinaryOperator(Token _operato
 			return std::nullopt;
 		else if (fractional)
 		{
-			rational tempValue = _left / _right;
+			rational const tempValue = _left / _right;
 			return _left - (tempValue.numerator() / tempValue.denominator()) * _right;
 		}
 		else
@@ -125,7 +125,7 @@ std::optional<rational> ConstantEvaluator::evaluateBinaryOperator(Token _operato
 			return _left;
 		else if (_left == -1)
 		{
-			bigint isOdd = abs(exp) & bigint(1);
+			bigint const isOdd = abs(exp) & bigint(1);
 			return 1 - 2 * isOdd.convert_to<int>();
 		}
 		else
@@ -133,7 +133,7 @@ std::optional<rational> ConstantEvaluator::evaluateBinaryOperator(Token _operato
 			if (abs(exp) > std::numeric_limits<uint32_t>::max())
 				return std::nullopt; // This will need too much memory to represent.
 
-			uint32_t absExp = bigint(abs(exp)).convert_to<uint32_t>();
+			uint32_t const absExp = bigint(abs(exp)).convert_to<uint32_t>();
 
 			if (!fitsPrecisionExp(abs(_left.numerator()), absExp) || !fitsPrecisionExp(abs(_left.denominator()), absExp))
 				return std::nullopt;
@@ -147,8 +147,8 @@ std::optional<rational> ConstantEvaluator::evaluateBinaryOperator(Token _operato
 					return boost::multiprecision::pow(_base, _exponent);
 			};
 
-			bigint numerator = optimizedPow(_left.numerator(), absExp);
-			bigint denominator = optimizedPow(_left.denominator(), absExp);
+			bigint const numerator = optimizedPow(_left.numerator(), absExp);
+			bigint const denominator = optimizedPow(_left.denominator(), absExp);
 
 			if (exp >= 0)
 				return makeRational(numerator, denominator);
@@ -170,7 +170,7 @@ std::optional<rational> ConstantEvaluator::evaluateBinaryOperator(Token _operato
 			return 0;
 		else
 		{
-			uint32_t exponent = _right.numerator().convert_to<uint32_t>();
+			uint32_t const exponent = _right.numerator().convert_to<uint32_t>();
 			if (!fitsPrecisionBase2(abs(_left.numerator()), exponent))
 				return std::nullopt;
 			return _left.numerator() * boost::multiprecision::pow(bigint(2), exponent);
@@ -191,7 +191,7 @@ std::optional<rational> ConstantEvaluator::evaluateBinaryOperator(Token _operato
 			return 0;
 		else
 		{
-			uint32_t exponent = _right.numerator().convert_to<uint32_t>();
+			uint32_t const exponent = _right.numerator().convert_to<uint32_t>();
 			if (exponent > boost::multiprecision::msb(boost::multiprecision::abs(_left.numerator())))
 				return _left.numerator() < 0 ? -1 : 0;
 			else
@@ -358,7 +358,7 @@ void ConstantEvaluator::endVisit(UnaryOperation const& _operation)
 
 	if (std::optional<rational> result = evaluateUnaryOperator(_operation.getOperator(), std::get<rational>(value.value)))
 	{
-		TypedValue convertedValue = convertType(*result, *resultType);
+		TypedValue const convertedValue = convertType(*result, *resultType);
 		if (!convertedValue.type)
 			m_errorReporter.fatalTypeError(
 				3667_error,
@@ -411,7 +411,7 @@ void ConstantEvaluator::endVisit(BinaryOperation const& _operation)
 		std::get<rational>(right.value)
 	))
 	{
-		TypedValue convertedValue = convertType(*value, *resultType);
+		TypedValue const convertedValue = convertType(*value, *resultType);
 		if (!convertedValue.type)
 			m_errorReporter.fatalTypeError(
 				2643_error,
@@ -458,10 +458,10 @@ void ConstantEvaluator::endVisit(FunctionCall const& _functionCall)
 			if (!std::holds_alternative<std::string>(stringArg.value))
 				return;
 
-			h256 innerKeccak = keccak256(std::get<std::string>(stringArg.value));
+			h256 const innerKeccak = keccak256(std::get<std::string>(stringArg.value));
 			h256 outerKeccak = keccak256(h256(u256(innerKeccak) - 1));
 			outerKeccak.data()[31] = 0;
-			u256 slot = outerKeccak;
+			u256 const slot = outerKeccak;
 			solAssert(functionType->returnParameterTypes().size() == 1);
 			m_values[&_functionCall] = TypedValue{functionType->returnParameterTypes()[0], rational{slot}};
 			break;

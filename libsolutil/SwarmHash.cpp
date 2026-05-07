@@ -54,7 +54,7 @@ h256 swarmHashIntermediate(std::string const& _input, size_t _offset, size_t _le
 			maxRepresentedSize *= (0x1000 / 32);
 		for (size_t i = 0; i < _length; i += maxRepresentedSize)
 		{
-			size_t size = std::min(maxRepresentedSize, _length - i);
+			size_t const size = std::min(maxRepresentedSize, _length - i);
 			innerNodes += swarmHashIntermediate(_input, _offset + i, size).asBytes();
 		}
 		ref = bytesConstRef(&innerNodes);
@@ -67,7 +67,7 @@ h256 bmtHash(bytesConstRef _data)
 	if (_data.size() <= 64)
 		return keccak256(_data);
 
-	size_t midPoint = _data.size() / 2;
+	size_t const midPoint = _data.size() / 2;
 	return keccak256(
 		bmtHash(_data.cropped(0, midPoint)).asBytes() +
 		bmtHash(_data.cropped(midPoint)).asBytes()
@@ -88,10 +88,10 @@ h256 chunkHash(bytesConstRef const _data, bool _forceHigherLevel = false)
 			maxRepresentedSize *= (0x1000 / 32);
 		// If remaining size is 0x1000, but maxRepresentedSize is not,
 		// we have to still do one level of the chunk hashes.
-		bool forceHigher = maxRepresentedSize > 0x1000;
+		bool const forceHigher = maxRepresentedSize > 0x1000;
 		for (size_t i = 0; i < _data.size(); i += maxRepresentedSize)
 		{
-			size_t size = std::min(maxRepresentedSize, _data.size() - i);
+			size_t const size = std::min(maxRepresentedSize, _data.size() - i);
 			dataToHash += chunkHash(_data.cropped(i, size), forceHigher).asBytes();
 		}
 	}

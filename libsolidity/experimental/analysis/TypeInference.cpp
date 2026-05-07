@@ -79,7 +79,7 @@ TypeInference::TypeInference(Analysis& _analysis):
 	};
 
 	auto defineBinaryMonoidalOperator = [&](BuiltinClass _builtinClass, Token _token, std::string _functionName) {
-		Type typeVar = m_typeSystem.typeClassInfo(registeredTypeClass(_builtinClass)).typeVariable;
+		Type const typeVar = m_typeSystem.typeClassInfo(registeredTypeClass(_builtinClass)).typeVariable;
 		annotation().operators.emplace(_token, std::make_tuple(registeredTypeClass(_builtinClass), _functionName));
 		annotation().typeClassFunctions[registeredTypeClass(_builtinClass)] = {{
 			std::move(_functionName),
@@ -91,7 +91,7 @@ TypeInference::TypeInference(Analysis& _analysis):
 	};
 
 	auto defineBinaryCompareOperator = [&](BuiltinClass _builtinClass, Token _token, std::string _functionName) {
-		Type typeVar = m_typeSystem.typeClassInfo(registeredTypeClass(_builtinClass)).typeVariable;
+		Type const typeVar = m_typeSystem.typeClassInfo(registeredTypeClass(_builtinClass)).typeVariable;
 		annotation().operators.emplace(_token, std::make_tuple(registeredTypeClass(_builtinClass), _functionName));
 		annotation().typeClassFunctions[registeredTypeClass(_builtinClass)] = {{
 			std::move(_functionName),
@@ -134,7 +134,7 @@ bool TypeInference::visit(ForAllQuantifier const& _quantifier)
 	solAssert(m_expressionContext == ExpressionContext::Term);
 
 	{
-		ScopedSaveAndRestore expressionContext{m_expressionContext, ExpressionContext::Type};
+		ScopedSaveAndRestore const expressionContext{m_expressionContext, ExpressionContext::Type};
 		_quantifier.typeVariableDeclarations().accept(*this);
 	}
 
@@ -149,11 +149,11 @@ bool TypeInference::visit(FunctionDefinition const& _functionDefinition)
 	if (functionAnnotation.type)
 		return false;
 
-	ScopedSaveAndRestore signatureRestore(m_currentFunctionType, std::nullopt);
+	ScopedSaveAndRestore const signatureRestore(m_currentFunctionType, std::nullopt);
 
-	Type argumentsType = m_typeSystem.freshTypeVariable({});
-	Type returnType = m_typeSystem.freshTypeVariable({});
-	Type functionType = TypeSystemHelpers{m_typeSystem}.functionType(argumentsType, returnType);
+	Type const argumentsType = m_typeSystem.freshTypeVariable({});
+	Type const returnType = m_typeSystem.freshTypeVariable({});
+	Type const functionType = TypeSystemHelpers{m_typeSystem}.functionType(argumentsType, returnType);
 
 	m_currentFunctionType = functionType;
 	functionAnnotation.type = functionType;
@@ -163,7 +163,7 @@ bool TypeInference::visit(FunctionDefinition const& _functionDefinition)
 	unify(argumentsType, type(_functionDefinition.parameterList()), _functionDefinition.parameterList().location());
 	if (_functionDefinition.experimentalReturnExpression())
 	{
-		ScopedSaveAndRestore expressionContext{m_expressionContext, ExpressionContext::Type};
+		ScopedSaveAndRestore const expressionContext{m_expressionContext, ExpressionContext::Type};
 		_functionDefinition.experimentalReturnExpression()->accept(*this);
 		unify(
 			returnType,
@@ -190,7 +190,7 @@ void TypeInference::endVisit(FunctionDefinition const& _functionDefinition)
 void TypeInference::endVisit(Return const& _return)
 {
 	solAssert(m_currentFunctionType);
-	Type functionReturnType = std::get<1>(TypeSystemHelpers{m_typeSystem}.destFunctionType(*m_currentFunctionType));
+	Type const functionReturnType = std::get<1>(TypeSystemHelpers{m_typeSystem}.destFunctionType(*m_currentFunctionType));
 	if (_return.expression())
 		unify(functionReturnType, type(*_return.expression()), _return.location());
 	else
@@ -216,20 +216,20 @@ bool TypeInference::visit(TypeClassDefinition const& _typeClassDefinition)
 	typeClassDefinitionAnnotation.type = type(&_typeClassDefinition, {});
 
 	{
-		ScopedSaveAndRestore expressionContext{m_expressionContext, ExpressionContext::Type};
+		ScopedSaveAndRestore const expressionContext{m_expressionContext, ExpressionContext::Type};
 		_typeClassDefinition.typeVariable().accept(*this);
 	}
 
 	std::map<std::string, Type> functionTypes;
 
 	solAssert(m_analysis.annotation<TypeClassRegistration>(_typeClassDefinition).typeClass.has_value());
-	TypeClass typeClass = m_analysis.annotation<TypeClassRegistration>(_typeClassDefinition).typeClass.value();
-	Type typeVar = m_typeSystem.typeClassVariable(typeClass);
+	TypeClass const typeClass = m_analysis.annotation<TypeClassRegistration>(_typeClassDefinition).typeClass.value();
+	Type const typeVar = m_typeSystem.typeClassVariable(typeClass);
 	unify(type(_typeClassDefinition.typeVariable()), typeVar, _typeClassDefinition.location());
 
 	auto& typeMembersAnnotation = annotation().members[typeConstructor(&_typeClassDefinition)];
 
-	for (auto subNode: _typeClassDefinition.subNodes())
+	for (auto const& subNode: _typeClassDefinition.subNodes())
 	{
 		subNode->accept(*this);
 		auto const* functionDefinition = dynamic_cast<FunctionDefinition const*>(subNode.get());
@@ -246,9 +246,9 @@ bool TypeInference::visit(TypeClassDefinition const& _typeClassDefinition)
 
 	annotation().typeClassFunctions[typeClass] = std::move(functionTypes);
 
-	for (auto [functionName, functionType]: functionTypes)
+	for (auto const& [functionName, functionType]: functionTypes)
 	{
-		TypeEnvironmentHelpers helper{*m_env};
+		TypeEnvironmentHelpers const helper{*m_env};
 		auto typeVars = helper.typeVars(functionType);
 		if (typeVars.empty())
 			m_errorReporter.typeError(1723_error, _typeClassDefinition.location(), "Function " + functionName + " does not depend on class variable.");
@@ -269,7 +269,7 @@ bool TypeInference::visit(InlineAssembly const& _inlineAssembly)
 {
 	// External references have already been resolved in a prior stage and stored in the annotation.
 	// We run the resolve step again regardless.
-	yul::ExternalIdentifierAccess::Resolver identifierAccess = [&](
+	yul::ExternalIdentifierAccess::Resolver const identifierAccess = [&](
 		yul::Identifier const& _identifier,
 		yul::IdentifierContext _context,
 		bool
@@ -311,7 +311,7 @@ bool TypeInference::visit(BinaryOperation const& _binaryOperation)
 {
 	auto& operationAnnotation = annotation(_binaryOperation);
 	solAssert(!operationAnnotation.type);
-	TypeSystemHelpers helper{m_typeSystem};
+	TypeSystemHelpers const helper{m_typeSystem};
 	switch (m_expressionContext)
 	{
 	case ExpressionContext::Term:
@@ -319,14 +319,14 @@ bool TypeInference::visit(BinaryOperation const& _binaryOperation)
 		{
 			auto [typeClass, functionName] = *operatorInfo;
 			// TODO: error robustness?
-			Type functionType = m_env->fresh(annotation().typeClassFunctions.at(typeClass).at(functionName));
+			Type const functionType = m_env->fresh(annotation().typeClassFunctions.at(typeClass).at(functionName));
 
 			_binaryOperation.leftExpression().accept(*this);
 			_binaryOperation.rightExpression().accept(*this);
 
-			Type argTuple = helper.tupleType({type(_binaryOperation.leftExpression()), type(_binaryOperation.rightExpression())});
-			Type resultType = m_typeSystem.freshTypeVariable({});
-			Type genericFunctionType = helper.functionType(argTuple, resultType);
+			Type const argTuple = helper.tupleType({type(_binaryOperation.leftExpression()), type(_binaryOperation.rightExpression())});
+			Type const resultType = m_typeSystem.freshTypeVariable({});
+			Type const genericFunctionType = helper.functionType(argTuple, resultType);
 			unify(functionType, genericFunctionType, _binaryOperation.location());
 
 			operationAnnotation.type = resultType;
@@ -335,10 +335,10 @@ bool TypeInference::visit(BinaryOperation const& _binaryOperation)
 		{
 			_binaryOperation.leftExpression().accept(*this);
 			{
-				ScopedSaveAndRestore expressionContext{m_expressionContext, ExpressionContext::Type};
+				ScopedSaveAndRestore const expressionContext{m_expressionContext, ExpressionContext::Type};
 				_binaryOperation.rightExpression().accept(*this);
 			}
-			Type leftType = type(_binaryOperation.leftExpression());
+			Type const leftType = type(_binaryOperation.leftExpression());
 			unify(leftType, type(_binaryOperation.rightExpression()), _binaryOperation.location());
 			operationAnnotation.type = leftType;
 		}
@@ -353,10 +353,10 @@ bool TypeInference::visit(BinaryOperation const& _binaryOperation)
 		{
 			_binaryOperation.leftExpression().accept(*this);
 			{
-				ScopedSaveAndRestore expressionContext{m_expressionContext, ExpressionContext::Sort};
+				ScopedSaveAndRestore const expressionContext{m_expressionContext, ExpressionContext::Sort};
 				_binaryOperation.rightExpression().accept(*this);
 			}
-			Type leftType = type(_binaryOperation.leftExpression());
+			Type const leftType = type(_binaryOperation.leftExpression());
 			unify(leftType, type(_binaryOperation.rightExpression()), _binaryOperation.location());
 			operationAnnotation.type = leftType;
 		}
@@ -394,7 +394,7 @@ void TypeInference::endVisit(VariableDeclarationStatement const& _variableDeclar
 		m_errorReporter.typeError(2655_error, _variableDeclarationStatement.location(), "Multi variable declaration not supported.");
 		return;
 	}
-	Type variableType = type(*_variableDeclarationStatement.declarations().front());
+	Type const variableType = type(*_variableDeclarationStatement.declarations().front());
 	if (_variableDeclarationStatement.initialValue())
 		unify(variableType, type(*_variableDeclarationStatement.initialValue()), _variableDeclarationStatement.location());
 }
@@ -410,7 +410,7 @@ bool TypeInference::visit(VariableDeclaration const& _variableDeclaration)
 	case ExpressionContext::Term:
 		if (_variableDeclaration.typeExpression())
 		{
-			ScopedSaveAndRestore expressionContext{m_expressionContext, ExpressionContext::Type};
+			ScopedSaveAndRestore const expressionContext{m_expressionContext, ExpressionContext::Type};
 			_variableDeclaration.typeExpression()->accept(*this);
 			variableAnnotation.type = type(*_variableDeclaration.typeExpression());
 			return false;
@@ -421,7 +421,7 @@ bool TypeInference::visit(VariableDeclaration const& _variableDeclaration)
 		variableAnnotation.type = m_typeSystem.freshTypeVariable({});
 		if (_variableDeclaration.typeExpression())
 		{
-			ScopedSaveAndRestore expressionContext{m_expressionContext, ExpressionContext::Sort};
+			ScopedSaveAndRestore const expressionContext{m_expressionContext, ExpressionContext::Sort};
 			_variableDeclaration.typeExpression()->accept(*this);
 			unify(*variableAnnotation.type, type(*_variableDeclaration.typeExpression()), _variableDeclaration.typeExpression()->location());
 		}
@@ -463,7 +463,7 @@ void TypeInference::endVisit(Assignment const& _assignment)
 		return;
 	}
 
-	Type leftType = type(_assignment.leftHandSide());
+	Type const leftType = type(_assignment.leftHandSide());
 	unify(leftType, type(_assignment.rightHandSide()), _assignment.location());
 	assignmentAnnotation.type = leftType;
 }
@@ -544,7 +544,7 @@ experimental::Type TypeInference::handleIdentifierByReferencedDeclaration(langut
 	{
 		if (auto const* typeClassDefinition = dynamic_cast<TypeClassDefinition const*>(&_declaration))
 		{
-			ScopedSaveAndRestore expressionContext{m_expressionContext, ExpressionContext::Term};
+			ScopedSaveAndRestore const expressionContext{m_expressionContext, ExpressionContext::Term};
 			typeClassDefinition->accept(*this);
 
 			solAssert(m_analysis.annotation<TypeClassRegistration>(*typeClassDefinition).typeClass.has_value());
@@ -599,7 +599,7 @@ void TypeInference::endVisit(TupleExpression const& _tupleExpression)
 	auto& expressionAnnotation = annotation(_tupleExpression);
 	solAssert(!expressionAnnotation.type);
 
-	TypeSystemHelpers helper{m_typeSystem};
+	TypeSystemHelpers const helper{m_typeSystem};
 	auto componentTypes = _tupleExpression.components() | ranges::views::transform([&](auto _expr) -> Type {
 		auto& componentAnnotation = annotation(*_expr);
 		solAssert(componentAnnotation.type);
@@ -613,8 +613,8 @@ void TypeInference::endVisit(TupleExpression const& _tupleExpression)
 		break;
 	case ExpressionContext::Sort:
 	{
-		Type type = m_typeSystem.freshTypeVariable({});
-		for (auto componentType: componentTypes)
+		Type const type = m_typeSystem.freshTypeVariable({});
+		for (auto const& componentType: componentTypes)
 			unify(type, componentType, _tupleExpression.location());
 		expressionAnnotation.type = type;
 		break;
@@ -639,13 +639,13 @@ bool TypeInference::visit(IdentifierPath const& _identifierPath)
 
 bool TypeInference::visit(TypeClassInstantiation const& _typeClassInstantiation)
 {
-	ScopedSaveAndRestore activeInstantiations{m_activeInstantiations, m_activeInstantiations + std::set<TypeClassInstantiation const*>{&_typeClassInstantiation}};
+	ScopedSaveAndRestore const activeInstantiations{m_activeInstantiations, m_activeInstantiations + std::set<TypeClassInstantiation const*>{&_typeClassInstantiation}};
 	// Note: recursion is resolved due to special handling during unification.
 	auto& instantiationAnnotation = annotation(_typeClassInstantiation);
 	if (instantiationAnnotation.type)
 		return false;
 	instantiationAnnotation.type = m_voidType;
-	TypeClass typeClass = std::visit(util::GenericVisitor{
+	TypeClass const typeClass = std::visit(util::GenericVisitor{
 		[&](ASTPointer<IdentifierPath> _typeClassName) -> TypeClass {
 			auto const* typeClassDefinition = dynamic_cast<TypeClassDefinition const*>(_typeClassName->annotation().referencedDeclaration);
 			solAssert(typeClassDefinition);
@@ -675,7 +675,7 @@ bool TypeInference::visit(TypeClassInstantiation const& _typeClassInstantiation)
 	};
 
 	{
-		ScopedSaveAndRestore expressionContext{m_expressionContext, ExpressionContext::Type};
+		ScopedSaveAndRestore const expressionContext{m_expressionContext, ExpressionContext::Type};
 		if (_typeClassInstantiation.argumentSorts())
 		{
 			_typeClassInstantiation.argumentSorts()->accept(*this);
@@ -689,11 +689,11 @@ bool TypeInference::visit(TypeClassInstantiation const& _typeClassInstantiation)
 	}
 	m_env->fixTypeVars(arguments);
 
-	Type instanceType{TypeConstant{*typeConstructor, arguments}};
+	Type const instanceType{TypeConstant{*typeConstructor, arguments}};
 
 	std::map<std::string, Type> functionTypes;
 
-	for (auto subNode: _typeClassInstantiation.subNodes())
+	for (auto const& subNode: _typeClassInstantiation.subNodes())
 	{
 		auto const* functionDefinition = dynamic_cast<FunctionDefinition const*>(subNode.get());
 		solAssert(functionDefinition);
@@ -710,16 +710,16 @@ bool TypeInference::visit(TypeClassInstantiation const& _typeClassInstantiation)
 	solAssert(std::holds_alternative<TypeVariable>(m_typeSystem.typeClassVariable(typeClass)));
 	TypeVariable classVar = std::get<TypeVariable>(m_typeSystem.typeClassVariable(typeClass));
 
-	for (auto [name, classFunctionType]: classFunctions)
+	for (auto const& [name, classFunctionType]: classFunctions)
 	{
 		if (!functionTypes.count(name))
 		{
 			m_errorReporter.typeError(6948_error, _typeClassInstantiation.location(), "Missing function: " + name);
 			continue;
 		}
-		Type instantiatedClassFunctionType = TypeEnvironmentHelpers{*m_env}.substitute(classFunctionType, classVar, instanceType);
+		Type const instantiatedClassFunctionType = TypeEnvironmentHelpers{*m_env}.substitute(classFunctionType, classVar, instanceType);
 
-		Type instanceFunctionType = functionTypes.at(name);
+		Type const instanceFunctionType = functionTypes.at(name);
 		functionTypes.erase(name);
 
 		if (!m_env->typeEquals(instanceFunctionType, instantiatedClassFunctionType))
@@ -754,8 +754,8 @@ bool TypeInference::visit(MemberAccess const& _memberAccess)
 
 experimental::Type TypeInference::memberType(Type _type, std::string _memberName, langutil::SourceLocation _location)
 {
-	Type resolvedType = m_env->resolve(_type);
-	TypeSystemHelpers helper{m_typeSystem};
+	Type const resolvedType = m_env->resolve(_type);
+	TypeSystemHelpers const helper{m_typeSystem};
 	if (helper.isTypeConstant(resolvedType))
 	{
 		auto constructor = std::get<0>(helper.destTypeConstant(resolvedType));
@@ -778,37 +778,37 @@ void TypeInference::endVisit(MemberAccess const& _memberAccess)
 {
 	auto& memberAccessAnnotation = annotation(_memberAccess);
 	solAssert(!memberAccessAnnotation.type);
-	Type expressionType = type(_memberAccess.expression());
+	Type const expressionType = type(_memberAccess.expression());
 	memberAccessAnnotation.type = memberType(expressionType, _memberAccess.memberName(), _memberAccess.location());
 }
 
 bool TypeInference::visit(TypeDefinition const& _typeDefinition)
 {
-	bool isBuiltIn = dynamic_cast<Builtin const*>(_typeDefinition.typeExpression());
+	bool const isBuiltIn = dynamic_cast<Builtin const*>(_typeDefinition.typeExpression());
 
-	TypeSystemHelpers helper{m_typeSystem};
+	TypeSystemHelpers const helper{m_typeSystem};
 	auto& typeDefinitionAnnotation = annotation(_typeDefinition);
 	if (typeDefinitionAnnotation.type)
 		return false;
 
 	if (_typeDefinition.arguments())
 	{
-		ScopedSaveAndRestore expressionContext{m_expressionContext, ExpressionContext::Type};
+		ScopedSaveAndRestore const expressionContext{m_expressionContext, ExpressionContext::Type};
 		_typeDefinition.arguments()->accept(*this);
 	}
 
 	std::vector<Type> arguments;
 	if (_typeDefinition.arguments())
-		for (ASTPointer<VariableDeclaration> argumentDeclaration: _typeDefinition.arguments()->parameters())
+		for (ASTPointer<VariableDeclaration> const& argumentDeclaration: _typeDefinition.arguments()->parameters())
 		{
 			solAssert(argumentDeclaration);
-			Type typeVar = type(*argumentDeclaration);
+			Type const typeVar = type(*argumentDeclaration);
 			solAssert(std::holds_alternative<TypeVariable>(typeVar));
 			arguments.emplace_back(typeVar);
 		}
 	m_env->fixTypeVars(arguments);
 
-	Type definedType = type(&_typeDefinition, arguments);
+	Type const definedType = type(&_typeDefinition, arguments);
 	if (arguments.empty())
 		typeDefinitionAnnotation.type = definedType;
 	else
@@ -821,7 +821,7 @@ bool TypeInference::visit(TypeDefinition const& _typeDefinition)
 		underlyingType = m_wordType;
 	else if (_typeDefinition.typeExpression())
 	{
-		ScopedSaveAndRestore expressionContext{m_expressionContext, ExpressionContext::Type};
+		ScopedSaveAndRestore const expressionContext{m_expressionContext, ExpressionContext::Type};
 		_typeDefinition.typeExpression()->accept(*this);
 
 		underlyingType = annotation(*_typeDefinition.typeExpression()).type;
@@ -856,11 +856,11 @@ void TypeInference::endVisit(FunctionCall const& _functionCall)
 	auto& functionCallAnnotation = annotation(_functionCall);
 	solAssert(!functionCallAnnotation.type);
 
-	Type functionType = type(_functionCall.expression());
+	Type const functionType = type(_functionCall.expression());
 
-	TypeSystemHelpers helper{m_typeSystem};
+	TypeSystemHelpers const helper{m_typeSystem};
 	std::vector<Type> argTypes;
-	for (auto arg: _functionCall.arguments())
+	for (auto const& arg: _functionCall.arguments())
 	{
 		switch (m_expressionContext)
 		{
@@ -879,18 +879,18 @@ void TypeInference::endVisit(FunctionCall const& _functionCall)
 	{
 	case ExpressionContext::Term:
 	{
-		Type argTuple = helper.tupleType(argTypes);
-		Type resultType = m_typeSystem.freshTypeVariable({});
-		Type genericFunctionType = helper.functionType(argTuple, resultType);
+		Type const argTuple = helper.tupleType(argTypes);
+		Type const resultType = m_typeSystem.freshTypeVariable({});
+		Type const genericFunctionType = helper.functionType(argTuple, resultType);
 		unify(functionType, genericFunctionType, _functionCall.location());
 		functionCallAnnotation.type = resultType;
 		break;
 	}
 	case ExpressionContext::Type:
 	{
-		Type argTuple = helper.tupleType(argTypes);
-		Type resultType = m_typeSystem.freshTypeVariable({});
-		Type genericFunctionType = helper.typeFunctionType(argTuple, resultType);
+		Type const argTuple = helper.tupleType(argTypes);
+		Type const resultType = m_typeSystem.freshTypeVariable({});
+		Type const genericFunctionType = helper.typeFunctionType(argTuple, resultType);
 		unify(functionType, genericFunctionType, _functionCall.location());
 		functionCallAnnotation.type = resultType;
 		break;
@@ -983,12 +983,12 @@ std::optional<rational> rationalValue(Literal const& _literal)
 			if (value == 0)
 				return std::nullopt;
 
-			bigint exp = bigint(std::string(expPoint + 1, valueString.end()));
+			bigint const exp = bigint(std::string(expPoint + 1, valueString.end()));
 
 			if (exp > std::numeric_limits<int32_t>::max() || exp < std::numeric_limits<int32_t>::min())
 				return std::nullopt;
 
-			uint32_t expAbs = bigint(abs(exp)).convert_to<uint32_t>();
+			uint32_t const expAbs = bigint(abs(exp)).convert_to<uint32_t>();
 
 			if (exp < 0)
 			{
@@ -1118,14 +1118,14 @@ void TypeInference::unify(Type _a, Type _b, langutil::SourceLocation _location)
 		// Original comment: Attempt to resolve interdependencies between type class instantiations.
 		std::vector<TypeClassInstantiation const*> missingInstantiations;
 		bool recursion = false;
-		bool onlyMissingInstantiations = [&]() {
+		bool const onlyMissingInstantiations = [&]() {
 			for (auto failure: unificationFailures)
 			{
 				if (auto* sortMismatch = std::get_if<TypeEnvironment::SortMismatch>(&failure))
 					if (helper.isTypeConstant(sortMismatch->type))
 					{
-						TypeConstructor constructor = std::get<0>(helper.destTypeConstant(sortMismatch->type));
-						for (auto typeClass: sortMismatch->sort.classes)
+						TypeConstructor const constructor = std::get<0>(helper.destTypeConstant(sortMismatch->type));
+						for (auto const& typeClass: sortMismatch->sort.classes)
 						{
 							if (auto const* instantiation = util::valueOrDefault(typeClassInstantiations(m_analysis, typeClass), constructor, nullptr))
 							{

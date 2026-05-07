@@ -189,7 +189,7 @@ void LanguageServer::changeConfiguration(Json const& _settings)
 	}
 
 	m_settingsObject = _settings;
-	Json jsonIncludePaths = _settings.contains("include-paths") ? _settings["include-paths"] : Json::object();
+	Json const jsonIncludePaths = _settings.contains("include-paths") ? _settings["include-paths"] : Json::object();
 
 	if (!jsonIncludePaths.empty())
 	{
@@ -446,7 +446,7 @@ void LanguageServer::semanticTokensFull(MessageID _id, Json const& _args)
 		auto const sourceName = m_fileRepository.uriToSourceUnitName(uri.get<std::string>());
 		SourceUnit const& ast = m_compilerStack.ast(sourceName);
 		m_compilerStack.charStream(sourceName);
-		Json data = SemanticTokensBuilder().build(ast, m_compilerStack.charStream(sourceName));
+		Json const data = SemanticTokensBuilder().build(ast, m_compilerStack.charStream(sourceName));
 
 		Json reply;
 		reply["data"] = data;
@@ -493,7 +493,7 @@ void LanguageServer::handleTextDocumentDidOpen(Json const& _args)
 	if (_args["textDocument"].contains("text") && _args["textDocument"].contains("uri"))
 	{
 		std::string text = _args["textDocument"]["text"].get<std::string>();
-		std::string uri = _args["textDocument"]["uri"].get<std::string>();
+		std::string const uri = _args["textDocument"]["uri"].get<std::string>();
 		m_openFiles.insert(uri);
 		m_fileRepository.setSourceByUri(uri, std::move(text));
 		compileAndUpdateDiagnostics();
@@ -559,7 +559,7 @@ void LanguageServer::handleTextDocumentDidClose(Json const& _args)
 
 	if (_args["textDocument"].contains("uri"))
 	{
-		std::string uri = _args["textDocument"]["uri"].get<std::string>();
+		std::string const uri = _args["textDocument"]["uri"].get<std::string>();
 		m_openFiles.erase(uri);
 
 		compileAndUpdateDiagnostics();

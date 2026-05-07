@@ -148,7 +148,7 @@ BOOST_AUTO_TEST_CASE(version)
 
 BOOST_AUTO_TEST_CASE(multiple_input_modes)
 {
-	std::array inputModeOptions {
+	std::array const inputModeOptions {
 		"--help",
 		"--license",
 		"--version",
@@ -194,27 +194,27 @@ BOOST_AUTO_TEST_CASE(no_import_callback_allowed_paths)
 
 BOOST_AUTO_TEST_CASE(cli_input)
 {
-	TemporaryDirectory tempDir1(TEST_CASE_NAME);
-	TemporaryDirectory tempDir2(TEST_CASE_NAME);
+	TemporaryDirectory const tempDir1(TEST_CASE_NAME);
+	TemporaryDirectory const tempDir2(TEST_CASE_NAME);
 	createFilesWithParentDirs({tempDir1.path() / "input1.sol"});
 	createFilesWithParentDirs({tempDir2.path() / "input2.sol"});
 
-	boost::filesystem::path expectedRootPath = FileReader::normalizeCLIRootPathForVFS(tempDir1);
-	boost::filesystem::path expectedDir1 = expectedRootPath / tempDir1.path().relative_path();
-	boost::filesystem::path expectedDir2 = expectedRootPath / tempDir2.path().relative_path();
+	boost::filesystem::path const expectedRootPath = FileReader::normalizeCLIRootPathForVFS(tempDir1);
+	boost::filesystem::path const expectedDir1 = expectedRootPath / tempDir1.path().relative_path();
+	boost::filesystem::path const expectedDir2 = expectedRootPath / tempDir2.path().relative_path();
 	soltestAssert(expectedDir1.is_absolute() || expectedDir1.root_path() == "/", "");
 	soltestAssert(expectedDir2.is_absolute() || expectedDir2.root_path() == "/", "");
 
-	std::vector<ImportRemapper::Remapping> expectedRemappings = {
+	std::vector<ImportRemapper::Remapping> const expectedRemappings = {
 		{"", "a", "b/c/d"},
 		{"a", "b", "c/d/e/"},
 	};
-	std::map<std::string, std::string> expectedSources = {
+	std::map<std::string, std::string> const expectedSources = {
 		{"<stdin>", ""},
 		{(expectedDir1 / "input1.sol").generic_string(), ""},
 		{(expectedDir2 / "input2.sol").generic_string(), ""},
 	};
-	PathSet expectedAllowedPaths = {
+	PathSet const expectedAllowedPaths = {
 		boost::filesystem::canonical(tempDir1),
 		boost::filesystem::canonical(tempDir2),
 		"b/c",
@@ -241,7 +241,7 @@ BOOST_AUTO_TEST_CASE(cli_input)
 
 BOOST_AUTO_TEST_CASE(cli_optimizer_disabled_yul_optimization_input_whitespaces_or_empty)
 {
-	TemporaryDirectory tempDir(TEST_CASE_NAME);
+	TemporaryDirectory const tempDir(TEST_CASE_NAME);
 	createFilesWithParentDirs({tempDir.path() / "input.sol"});
 	createFilesWithParentDirs({tempDir.path() / "input.yul"});
 
@@ -264,17 +264,17 @@ BOOST_AUTO_TEST_CASE(cli_optimizer_disabled_yul_optimization_input_whitespaces_o
 
 BOOST_AUTO_TEST_CASE(cli_ignore_missing_some_files_exist)
 {
-	TemporaryDirectory tempDir1(TEST_CASE_NAME);
-	TemporaryDirectory tempDir2(TEST_CASE_NAME);
+	TemporaryDirectory const tempDir1(TEST_CASE_NAME);
+	TemporaryDirectory const tempDir2(TEST_CASE_NAME);
 	createFilesWithParentDirs({tempDir1.path() / "input1.sol"});
 
-	boost::filesystem::path expectedRootPath = FileReader::normalizeCLIRootPathForVFS(tempDir1);
-	boost::filesystem::path expectedDir1 = expectedRootPath / tempDir1.path().relative_path();
+	boost::filesystem::path const expectedRootPath = FileReader::normalizeCLIRootPathForVFS(tempDir1);
+	boost::filesystem::path const expectedDir1 = expectedRootPath / tempDir1.path().relative_path();
 	soltestAssert(expectedDir1.is_absolute() || expectedDir1.root_path() == "/", "");
 
 	// NOTE: Allowed paths should not be added for skipped files.
-	std::map<std::string, std::string> expectedSources = {{(expectedDir1 / "input1.sol").generic_string(), ""}};
-	PathSet expectedAllowedPaths = {boost::filesystem::canonical(tempDir1)};
+	std::map<std::string, std::string> const expectedSources = {{(expectedDir1 / "input1.sol").generic_string(), ""}};
+	PathSet const expectedAllowedPaths = {boost::filesystem::canonical(tempDir1)};
 
 	OptionsReaderAndMessages result = parseCommandLineAndReadInputFiles({
 		"solc",
@@ -293,7 +293,7 @@ BOOST_AUTO_TEST_CASE(cli_ignore_missing_some_files_exist)
 
 BOOST_AUTO_TEST_CASE(cli_ignore_missing_no_files_exist)
 {
-	TemporaryDirectory tempDir(TEST_CASE_NAME);
+	TemporaryDirectory const tempDir(TEST_CASE_NAME);
 
 	std::string expectedMessage =
 		"Info: \"" + (tempDir.path() / "input1.sol").string() + "\" is not found. Skipping.\n"
@@ -313,7 +313,7 @@ BOOST_AUTO_TEST_CASE(cli_ignore_missing_no_files_exist)
 
 BOOST_AUTO_TEST_CASE(cli_not_a_file)
 {
-	TemporaryDirectory tempDir(TEST_CASE_NAME);
+	TemporaryDirectory const tempDir(TEST_CASE_NAME);
 
 	std::string expectedMessage = "\"" + tempDir.path().string() + "\" is not a valid file.";
 
@@ -326,8 +326,8 @@ BOOST_AUTO_TEST_CASE(cli_not_a_file)
 
 BOOST_AUTO_TEST_CASE(standard_json_base_path)
 {
-	TemporaryDirectory tempDir(TEST_CASE_NAME);
-	TemporaryWorkingDirectory tempWorkDir(tempDir.path().root_path());
+	TemporaryDirectory const tempDir(TEST_CASE_NAME);
+	TemporaryWorkingDirectory const tempWorkDir(tempDir.path().root_path());
 
 	OptionsReaderAndMessages result = parseCommandLineAndReadInputFiles({
 		"solc",
@@ -369,10 +369,10 @@ BOOST_AUTO_TEST_CASE(standard_json_dash)
 
 BOOST_AUTO_TEST_CASE(standard_json_one_input_file)
 {
-	TemporaryDirectory tempDir(TEST_CASE_NAME);
+	TemporaryDirectory const tempDir(TEST_CASE_NAME);
 	createFilesWithParentDirs({tempDir.path() / "input.json"});
 
-	std::vector<std::string> commandLine = {"solc", "--standard-json", (tempDir.path() / "input.json").string()};
+	std::vector<std::string> const commandLine = {"solc", "--standard-json", (tempDir.path() / "input.json").string()};
 	OptionsReaderAndMessages result = parseCommandLineAndReadInputFiles(commandLine);
 	BOOST_TEST(result.success);
 	BOOST_TEST(result.stderrContent == "");
@@ -410,7 +410,7 @@ BOOST_AUTO_TEST_CASE(standard_json_one_input_file_and_stdin)
 
 BOOST_AUTO_TEST_CASE(standard_json_ignore_missing)
 {
-	TemporaryDirectory tempDir(TEST_CASE_NAME);
+	TemporaryDirectory const tempDir(TEST_CASE_NAME);
 
 	// This option is pretty much useless Standard JSON mode.
 	std::string expectedMessage =
@@ -443,21 +443,21 @@ BOOST_AUTO_TEST_CASE(standard_json_remapping)
 
 BOOST_AUTO_TEST_CASE(cli_paths_to_source_unit_names_no_base_path)
 {
-	TemporaryDirectory tempDirCurrent(TEST_CASE_NAME);
-	TemporaryDirectory tempDirOther(TEST_CASE_NAME);
-	TemporaryWorkingDirectory tempWorkDir(tempDirCurrent);
+	TemporaryDirectory const tempDirCurrent(TEST_CASE_NAME);
+	TemporaryDirectory const tempDirOther(TEST_CASE_NAME);
+	TemporaryWorkingDirectory const tempWorkDir(tempDirCurrent);
 	soltestAssert(tempDirCurrent.path().is_absolute(), "");
 	soltestAssert(tempDirOther.path().is_absolute(), "");
 
 	// NOTE: On macOS the path usually contains symlinks which prevents base path from being stripped.
 	// Use canonical() to resolve symnlinks and get consistent results on all platforms.
-	boost::filesystem::path currentDirNoSymlinks = boost::filesystem::canonical(tempDirCurrent);
-	boost::filesystem::path otherDirNoSymlinks = boost::filesystem::canonical(tempDirOther);
+	boost::filesystem::path const currentDirNoSymlinks = boost::filesystem::canonical(tempDirCurrent);
+	boost::filesystem::path const otherDirNoSymlinks = boost::filesystem::canonical(tempDirOther);
 
-	boost::filesystem::path expectedOtherDir = "/" / otherDirNoSymlinks.relative_path();
+	boost::filesystem::path const expectedOtherDir = "/" / otherDirNoSymlinks.relative_path();
 	soltestAssert(expectedOtherDir.is_absolute() || expectedOtherDir.root_path() == "/", "");
 
-	std::vector<std::string> commandLine = {
+	std::vector<std::string> const commandLine = {
 		"solc",
 		"contract1.sol",                                   // Relative path
 		"c/d/contract2.sol",                               // Relative path with subdirectories
@@ -501,23 +501,23 @@ BOOST_AUTO_TEST_CASE(cli_paths_to_source_unit_names_no_base_path)
 
 BOOST_AUTO_TEST_CASE(cli_paths_to_source_unit_names_base_path_same_as_work_dir)
 {
-	TemporaryDirectory tempDirCurrent(TEST_CASE_NAME);
-	TemporaryDirectory tempDirOther(TEST_CASE_NAME);
-	TemporaryWorkingDirectory tempWorkDir(tempDirCurrent);
+	TemporaryDirectory const tempDirCurrent(TEST_CASE_NAME);
+	TemporaryDirectory const tempDirOther(TEST_CASE_NAME);
+	TemporaryWorkingDirectory const tempWorkDir(tempDirCurrent);
 	soltestAssert(tempDirCurrent.path().is_absolute(), "");
 	soltestAssert(tempDirOther.path().is_absolute(), "");
 
 	// NOTE: On macOS the path usually contains symlinks which prevents base path from being stripped.
 	// Use canonical() to resolve symnlinks and get consistent results on all platforms.
-	boost::filesystem::path currentDirNoSymlinks = boost::filesystem::canonical(tempDirCurrent);
-	boost::filesystem::path otherDirNoSymlinks = boost::filesystem::canonical(tempDirOther);
+	boost::filesystem::path const currentDirNoSymlinks = boost::filesystem::canonical(tempDirCurrent);
+	boost::filesystem::path const otherDirNoSymlinks = boost::filesystem::canonical(tempDirOther);
 
 	boost::filesystem::path expectedWorkDir = "/" / boost::filesystem::current_path().relative_path();
-	boost::filesystem::path expectedOtherDir = "/" / otherDirNoSymlinks.relative_path();
+	boost::filesystem::path const expectedOtherDir = "/" / otherDirNoSymlinks.relative_path();
 	soltestAssert(expectedWorkDir.is_absolute() || expectedWorkDir.root_path() == "/", "");
 	soltestAssert(expectedOtherDir.is_absolute() || expectedOtherDir.root_path() == "/", "");
 
-	std::vector<std::string> commandLine = {
+	std::vector<std::string> const commandLine = {
 		"solc",
 		"--base-path=" + currentDirNoSymlinks.string(),
 		"contract1.sol",                                   // Relative path
@@ -563,30 +563,30 @@ BOOST_AUTO_TEST_CASE(cli_paths_to_source_unit_names_base_path_same_as_work_dir)
 
 BOOST_AUTO_TEST_CASE(cli_paths_to_source_unit_names_base_path_different_from_work_dir)
 {
-	TemporaryDirectory tempDirCurrent(TEST_CASE_NAME);
-	TemporaryDirectory tempDirOther(TEST_CASE_NAME);
-	TemporaryDirectory tempDirBase(TEST_CASE_NAME);
-	TemporaryWorkingDirectory tempWorkDir(tempDirCurrent);
+	TemporaryDirectory const tempDirCurrent(TEST_CASE_NAME);
+	TemporaryDirectory const tempDirOther(TEST_CASE_NAME);
+	TemporaryDirectory const tempDirBase(TEST_CASE_NAME);
+	TemporaryWorkingDirectory const tempWorkDir(tempDirCurrent);
 	soltestAssert(tempDirCurrent.path().is_absolute(), "");
 	soltestAssert(tempDirOther.path().is_absolute(), "");
 	soltestAssert(tempDirBase.path().is_absolute(), "");
 
 	// NOTE: On macOS the path usually contains symlinks which prevents base path from being stripped.
 	// Use canonical() to resolve symnlinks and get consistent results on all platforms.
-	boost::filesystem::path currentDirNoSymlinks = boost::filesystem::canonical(tempDirCurrent);
-	boost::filesystem::path otherDirNoSymlinks = boost::filesystem::canonical(tempDirOther);
-	boost::filesystem::path baseDirNoSymlinks = boost::filesystem::canonical(tempDirBase);
+	boost::filesystem::path const currentDirNoSymlinks = boost::filesystem::canonical(tempDirCurrent);
+	boost::filesystem::path const otherDirNoSymlinks = boost::filesystem::canonical(tempDirOther);
+	boost::filesystem::path const baseDirNoSymlinks = boost::filesystem::canonical(tempDirBase);
 
-	boost::filesystem::path expectedWorkDir = "/" / boost::filesystem::current_path().relative_path();
-	boost::filesystem::path expectedCurrentDir = "/" / currentDirNoSymlinks.relative_path();
-	boost::filesystem::path expectedOtherDir = "/" / otherDirNoSymlinks.relative_path();
+	boost::filesystem::path const expectedWorkDir = "/" / boost::filesystem::current_path().relative_path();
+	boost::filesystem::path const expectedCurrentDir = "/" / currentDirNoSymlinks.relative_path();
+	boost::filesystem::path const expectedOtherDir = "/" / otherDirNoSymlinks.relative_path();
 	boost::filesystem::path expectedBaseDir = "/" / baseDirNoSymlinks.relative_path();
 	soltestAssert(expectedWorkDir.is_absolute() || expectedWorkDir.root_path() == "/", "");
 	soltestAssert(expectedCurrentDir.is_absolute() || expectedCurrentDir.root_path() == "/", "");
 	soltestAssert(expectedOtherDir.is_absolute() || expectedOtherDir.root_path() == "/", "");
 	soltestAssert(expectedBaseDir.is_absolute() || expectedBaseDir.root_path() == "/", "");
 
-	std::vector<std::string> commandLine = {
+	std::vector<std::string> const commandLine = {
 		"solc",
 		"--base-path=" + baseDirNoSymlinks.string(),
 		"contract1.sol",                                   // Relative path
@@ -636,23 +636,23 @@ BOOST_AUTO_TEST_CASE(cli_paths_to_source_unit_names_base_path_different_from_wor
 
 BOOST_AUTO_TEST_CASE(cli_paths_to_source_unit_names_relative_base_path)
 {
-	TemporaryDirectory tempDirCurrent(TEST_CASE_NAME);
-	TemporaryDirectory tempDirOther(TEST_CASE_NAME);
-	TemporaryWorkingDirectory tempWorkDir(tempDirCurrent);
+	TemporaryDirectory const tempDirCurrent(TEST_CASE_NAME);
+	TemporaryDirectory const tempDirOther(TEST_CASE_NAME);
+	TemporaryWorkingDirectory const tempWorkDir(tempDirCurrent);
 	soltestAssert(tempDirCurrent.path().is_absolute(), "");
 	soltestAssert(tempDirOther.path().is_absolute(), "");
 
 	// NOTE: On macOS the path usually contains symlinks which prevents base path from being stripped.
 	// Use canonical() to resolve symnlinks and get consistent results on all platforms.
-	boost::filesystem::path currentDirNoSymlinks = boost::filesystem::canonical(tempDirCurrent);
-	boost::filesystem::path otherDirNoSymlinks = boost::filesystem::canonical(tempDirOther);
+	boost::filesystem::path const currentDirNoSymlinks = boost::filesystem::canonical(tempDirCurrent);
+	boost::filesystem::path const otherDirNoSymlinks = boost::filesystem::canonical(tempDirOther);
 
-	boost::filesystem::path expectedWorkDir = "/" / boost::filesystem::current_path().relative_path();
-	boost::filesystem::path expectedOtherDir = "/" / otherDirNoSymlinks.relative_path();
+	boost::filesystem::path const expectedWorkDir = "/" / boost::filesystem::current_path().relative_path();
+	boost::filesystem::path const expectedOtherDir = "/" / otherDirNoSymlinks.relative_path();
 	soltestAssert(expectedWorkDir.is_absolute() || expectedWorkDir.root_path() == "/", "");
 	soltestAssert(expectedOtherDir.is_absolute() || expectedOtherDir.root_path() == "/", "");
 
-	std::vector<std::string> commandLine = {
+	std::vector<std::string> const commandLine = {
 		"solc",
 		"--base-path=base",
 		"contract1.sol",                                       // Relative path outside of base path
@@ -705,19 +705,19 @@ BOOST_AUTO_TEST_CASE(cli_paths_to_source_unit_names_relative_base_path)
 
 BOOST_AUTO_TEST_CASE(cli_paths_to_source_unit_names_normalization_and_weird_names)
 {
-	TemporaryDirectory tempDir({"x/y/z"}, TEST_CASE_NAME);
-	TemporaryWorkingDirectory tempWorkDir(tempDir.path() / "x/y/z");
+	TemporaryDirectory const tempDir({"x/y/z"}, TEST_CASE_NAME);
+	TemporaryWorkingDirectory const tempWorkDir(tempDir.path() / "x/y/z");
 	soltestAssert(tempDir.path().is_absolute(), "");
 
-	std::string uncPath = "//" + tempDir.path().relative_path().generic_string();
+	std::string const uncPath = "//" + tempDir.path().relative_path().generic_string();
 	soltestAssert(FileReader::isUNCPath(uncPath), "");
 
-	boost::filesystem::path tempDirNoSymlinks = boost::filesystem::canonical(tempDir);
+	boost::filesystem::path const tempDirNoSymlinks = boost::filesystem::canonical(tempDir);
 
-	boost::filesystem::path expectedWorkDir = "/" / boost::filesystem::current_path().relative_path();
+	boost::filesystem::path const expectedWorkDir = "/" / boost::filesystem::current_path().relative_path();
 	soltestAssert(expectedWorkDir.is_absolute() || expectedWorkDir.root_path() == "/", "");
 
-	std::vector<std::string> commandLine = {
+	std::vector<std::string> const commandLine = {
 		"solc",
 
 #if !defined(_WIN32)
@@ -872,9 +872,9 @@ BOOST_AUTO_TEST_CASE(cli_paths_to_source_unit_names_normalization_and_weird_name
 
 BOOST_AUTO_TEST_CASE(cli_paths_to_source_unit_names_symlinks)
 {
-	TemporaryDirectory tempDir({"r/"}, TEST_CASE_NAME);
+	TemporaryDirectory const tempDir({"r/"}, TEST_CASE_NAME);
 	createFilesWithParentDirs({tempDir.path() / "x/y/z/contract.sol"});
-	TemporaryWorkingDirectory tempWorkDir(tempDir.path() / "r");
+	TemporaryWorkingDirectory const tempWorkDir(tempDir.path() / "r");
 
 	if (
 		!createSymlinkIfSupportedByFilesystem("../x/y", tempDir.path() / "r/sym", true) ||
@@ -882,10 +882,10 @@ BOOST_AUTO_TEST_CASE(cli_paths_to_source_unit_names_symlinks)
 	)
 		return;
 
-	boost::filesystem::path expectedWorkDir = "/" / boost::filesystem::current_path().relative_path();
+	boost::filesystem::path const expectedWorkDir = "/" / boost::filesystem::current_path().relative_path();
 	soltestAssert(expectedWorkDir.is_absolute() || expectedWorkDir.root_path() == "/", "");
 
-	std::vector<std::string> commandLine = {
+	std::vector<std::string> const commandLine = {
 		"solc",
 
 		"--base-path=../r/sym/z/",
@@ -929,13 +929,13 @@ BOOST_AUTO_TEST_CASE(cli_paths_to_source_unit_names_symlinks)
 
 BOOST_AUTO_TEST_CASE(cli_paths_to_source_unit_names_base_path_and_stdin)
 {
-	TemporaryDirectory tempDir(TEST_CASE_NAME);
-	TemporaryWorkingDirectory tempWorkDir(tempDir);
+	TemporaryDirectory const tempDir(TEST_CASE_NAME);
+	TemporaryWorkingDirectory const tempWorkDir(tempDir);
 	boost::filesystem::create_directories(tempDir.path() / "base");
 
-	boost::filesystem::path expectedWorkDir = "/" / boost::filesystem::current_path().relative_path();
+	boost::filesystem::path const expectedWorkDir = "/" / boost::filesystem::current_path().relative_path();
 
-	std::vector<std::string> commandLine = {"solc", "--base-path=base", "-"};
+	std::vector<std::string> const commandLine = {"solc", "--base-path=base", "-"};
 
 	CommandLineOptions expectedOptions;
 	expectedOptions.input.addStdin = true;
@@ -961,8 +961,8 @@ BOOST_AUTO_TEST_CASE(cli_paths_to_source_unit_names_base_path_and_stdin)
 
 BOOST_AUTO_TEST_CASE(cli_include_paths)
 {
-	TemporaryDirectory tempDir({"base/", "include/", "lib/nested/"}, TEST_CASE_NAME);
-	TemporaryWorkingDirectory tempWorkDir(tempDir);
+	TemporaryDirectory const tempDir({"base/", "include/", "lib/nested/"}, TEST_CASE_NAME);
+	TemporaryWorkingDirectory const tempWorkDir(tempDir);
 
 	std::string const mainContractSource = withPreamble(
 		"import \"contract.sol\";\n"
@@ -991,10 +991,10 @@ BOOST_AUTO_TEST_CASE(cli_include_paths)
 	);
 	createFilesWithParentDirs({tempDir.path() / "base/main.sol"}, mainContractSource);
 
-	boost::filesystem::path canonicalWorkDir = boost::filesystem::canonical(tempDir);
-	boost::filesystem::path expectedWorkDir = "/" / canonicalWorkDir.relative_path();
+	boost::filesystem::path const canonicalWorkDir = boost::filesystem::canonical(tempDir);
+	boost::filesystem::path const expectedWorkDir = "/" / canonicalWorkDir.relative_path();
 
-	std::vector<std::string> commandLine = {
+	std::vector<std::string> const commandLine = {
 		"solc",
 		"--no-color",
 		"--base-path=base/",
@@ -1105,8 +1105,8 @@ BOOST_AUTO_TEST_CASE(cli_no_output)
 
 BOOST_AUTO_TEST_CASE(standard_json_include_paths)
 {
-	TemporaryDirectory tempDir({"base/", "include/", "lib/nested/"}, TEST_CASE_NAME);
-	TemporaryWorkingDirectory tempWorkDir(tempDir);
+	TemporaryDirectory const tempDir({"base/", "include/", "lib/nested/"}, TEST_CASE_NAME);
+	TemporaryWorkingDirectory const tempWorkDir(tempDir);
 
 	std::string const mainContractSource = withPreamble(
 		"import 'contract_via_callback.sol';\n"
@@ -1135,9 +1135,9 @@ BOOST_AUTO_TEST_CASE(standard_json_include_paths)
 		onlyPreamble
 	);
 
-	boost::filesystem::path expectedWorkDir = "/" / boost::filesystem::canonical(tempDir).relative_path();
+	boost::filesystem::path const expectedWorkDir = "/" / boost::filesystem::canonical(tempDir).relative_path();
 
-	std::vector<std::string> commandLine = {
+	std::vector<std::string> const commandLine = {
 		"solc",
 		"--base-path=base/",
 		"--include-path=include/",
@@ -1205,8 +1205,8 @@ BOOST_AUTO_TEST_CASE(standard_json_include_paths)
 
 BOOST_AUTO_TEST_CASE(cli_include_paths_empty_path)
 {
-	TemporaryDirectory tempDir({"base/", "include/"}, TEST_CASE_NAME);
-	TemporaryWorkingDirectory tempWorkDir(tempDir);
+	TemporaryDirectory const tempDir({"base/", "include/"}, TEST_CASE_NAME);
+	TemporaryWorkingDirectory const tempWorkDir(tempDir);
 	createFilesWithParentDirs({tempDir.path() / "base/main.sol"});
 
 	std::string expectedMessage = "Empty values are not allowed in --include-path.";
@@ -1226,8 +1226,8 @@ BOOST_AUTO_TEST_CASE(cli_include_paths_empty_path)
 
 BOOST_AUTO_TEST_CASE(cli_include_paths_without_base_path)
 {
-	TemporaryDirectory tempDir(TEST_CASE_NAME);
-	TemporaryWorkingDirectory tempWorkDir(tempDir);
+	TemporaryDirectory const tempDir(TEST_CASE_NAME);
+	TemporaryWorkingDirectory const tempWorkDir(tempDir);
 	createFilesWithParentDirs({tempDir.path() / "contract.sol"});
 
 	std::string expectedMessage = "--include-path option requires a non-empty base path.";
@@ -1241,8 +1241,8 @@ BOOST_AUTO_TEST_CASE(cli_include_paths_without_base_path)
 
 BOOST_AUTO_TEST_CASE(cli_include_paths_should_detect_source_unit_name_collisions)
 {
-	TemporaryDirectory tempDir({"dir1/", "dir2/", "dir3/"}, TEST_CASE_NAME);
-	TemporaryWorkingDirectory tempWorkDir(tempDir);
+	TemporaryDirectory const tempDir({"dir1/", "dir2/", "dir3/"}, TEST_CASE_NAME);
+	TemporaryWorkingDirectory const tempWorkDir(tempDir);
 	createFilesWithParentDirs({
 		"dir1/contract1.sol",
 		"dir1/contract2.sol",
@@ -1250,7 +1250,7 @@ BOOST_AUTO_TEST_CASE(cli_include_paths_should_detect_source_unit_name_collisions
 		"dir2/contract2.sol",
 	});
 
-	boost::filesystem::path expectedWorkDir = "/" / boost::filesystem::canonical(tempDir).relative_path();
+	boost::filesystem::path const expectedWorkDir = "/" / boost::filesystem::canonical(tempDir).relative_path();
 
 	std::string expectedMessage =
 		"Source unit name collision detected. "
@@ -1300,7 +1300,7 @@ BOOST_AUTO_TEST_CASE(cli_include_paths_should_detect_source_unit_name_collisions
 
 	{
 		// No conflict if files with the same name exist but only one is given to the compiler.
-		std::vector<std::string> commandLine = {
+		std::vector<std::string> const commandLine = {
 			"solc",
 			"--base-path=dir3/",
 			"--include-path=dir1/",
@@ -1315,7 +1315,7 @@ BOOST_AUTO_TEST_CASE(cli_include_paths_should_detect_source_unit_name_collisions
 
 	{
 		// The same file specified multiple times is not a conflict.
-		std::vector<std::string> commandLine = {
+		std::vector<std::string> const commandLine = {
 			"solc",
 			"--base-path=dir3/",
 			"--include-path=dir1/",
@@ -1332,14 +1332,14 @@ BOOST_AUTO_TEST_CASE(cli_include_paths_should_detect_source_unit_name_collisions
 
 BOOST_AUTO_TEST_CASE(cli_include_paths_should_allow_duplicate_paths)
 {
-	TemporaryDirectory tempDir({"dir1/", "dir2/"}, TEST_CASE_NAME);
-	TemporaryWorkingDirectory tempWorkDir(tempDir);
+	TemporaryDirectory const tempDir({"dir1/", "dir2/"}, TEST_CASE_NAME);
+	TemporaryWorkingDirectory const tempWorkDir(tempDir);
 	createFilesWithParentDirs({"dir1/contract.sol"});
 
-	boost::filesystem::path expectedWorkDir = "/" / boost::filesystem::canonical(tempDir).relative_path();
-	boost::filesystem::path expectedTempDir = "/" / tempDir.path().relative_path();
+	boost::filesystem::path const expectedWorkDir = "/" / boost::filesystem::canonical(tempDir).relative_path();
+	boost::filesystem::path const expectedTempDir = "/" / tempDir.path().relative_path();
 
-	std::vector<std::string> commandLine = {
+	std::vector<std::string> const commandLine = {
 		"solc",
 		"--base-path=dir1/",
 		"--include-path", "dir1",
@@ -1378,17 +1378,17 @@ BOOST_AUTO_TEST_CASE(cli_include_paths_should_allow_duplicate_paths)
 
 BOOST_AUTO_TEST_CASE(cli_include_paths_ambiguous_import)
 {
-	TemporaryDirectory tempDir({"base/", "include/"}, TEST_CASE_NAME);
-	TemporaryWorkingDirectory tempWorkDir(tempDir);
+	TemporaryDirectory const tempDir({"base/", "include/"}, TEST_CASE_NAME);
+	TemporaryWorkingDirectory const tempWorkDir(tempDir);
 
 	// Ambiguous: both base/contract.sol and include/contract.sol match the import.
 	std::string const mainContractSource = withPreamble("import \"contract.sol\";");
 
 	createFilesWithParentDirs({"base/contract.sol", "include/contract.sol"}, withPreamble(""));
 
-	boost::filesystem::path expectedWorkDir = "/" / boost::filesystem::canonical(tempDir).relative_path();
+	boost::filesystem::path const expectedWorkDir = "/" / boost::filesystem::canonical(tempDir).relative_path();
 
-	std::vector<std::string> commandLine = {
+	std::vector<std::string> const commandLine = {
 		"solc",
 		"--no-color",
 		"--base-path=base/",
@@ -1413,11 +1413,11 @@ BOOST_AUTO_TEST_CASE(cli_include_paths_ambiguous_import)
 
 BOOST_AUTO_TEST_CASE(cli_ethdebug_incompatible_outputs)
 {
-	TemporaryDirectory tempDir(TEST_CASE_NAME);
+	TemporaryDirectory const tempDir(TEST_CASE_NAME);
 	createFilesWithParentDirs({tempDir.path() / "input.sol"}, "pragma solidity >=0.0; contract C { function f() public pure {} }");
 	// The old incompatibility between ethdebug and --asm-json / --ir-ast-json / --ir-optimized-ast-json
 	// has been removed. These combinations are now valid as long as other requirements are met.
-	static std::vector<std::vector<std::string>> supportedCLIFlagCombinations{
+	static std::vector<std::vector<std::string>> const supportedCLIFlagCombinations{
 		{
 			{"solc", "--experimental", "--via-ir", "--ethdebug-program", "--asm-json", tempDir.path().string() + "/input.sol"},
 		},
@@ -1442,16 +1442,16 @@ BOOST_AUTO_TEST_CASE(cli_ethdebug_incompatible_outputs)
 	};
 	for (auto const& test: supportedCLIFlagCombinations)
 	{
-		OptionsReaderAndMessages result = runCLI(test, "");
+		OptionsReaderAndMessages const result = runCLI(test, "");
 		BOOST_REQUIRE(result.success);
 	}
 }
 
 BOOST_AUTO_TEST_CASE(cli_ethdebug_incompatible_input_modes)
 {
-	TemporaryDirectory tempDir(TEST_CASE_NAME);
+	TemporaryDirectory const tempDir(TEST_CASE_NAME);
 	createFilesWithParentDirs({tempDir.path() / "input.json"});
-	static std::vector<std::vector<std::string>> tests{
+	static std::vector<std::vector<std::string>> const tests{
 		{
 			{"solc", "--ethdebug-program", "--import-asm-json", tempDir.path().string() + "/input.json"},
 		},
@@ -1476,17 +1476,17 @@ BOOST_AUTO_TEST_CASE(cli_ethdebug_incompatible_input_modes)
 	};
 	for (auto const& test: tests)
 	{
-		OptionsReaderAndMessages result = runCLI(test, "");
+		OptionsReaderAndMessages const result = runCLI(test, "");
 		BOOST_REQUIRE(!result.success);
 	}
 }
 
 BOOST_AUTO_TEST_CASE(cli_ethdebug_debug_info_ethdebug)
 {
-	TemporaryDirectory tempDir(TEST_CASE_NAME);
+	TemporaryDirectory const tempDir(TEST_CASE_NAME);
 	createFilesWithParentDirs({tempDir.path() / "input.sol"},  "pragma solidity >=0.0; contract C { function f() public pure {} }");
 	createFilesWithParentDirs({tempDir.path() / "input.yul"}, "{}");
-	static std::vector<std::vector<std::string>> erroneousCLIFlagCombinations{
+	static std::vector<std::vector<std::string>> const erroneousCLIFlagCombinations{
 		// --debug-info ethdebug with --optimize is not supported
 		{
 			{"solc", "--experimental", "--debug-info", "ethdebug", "--optimize", "--ir", tempDir.path().string() + "/input.sol"},
@@ -1501,7 +1501,7 @@ BOOST_AUTO_TEST_CASE(cli_ethdebug_debug_info_ethdebug)
 			{"solc", "--experimental", "--debug-info", "location", "--ethdebug-program", "--ethdebug-program-runtime", "--via-ir", tempDir.path().string() + "/input.sol"},
 		},
 	};
-	static std::vector<std::vector<std::string>> supportedCLIFlagCombinations{
+	static std::vector<std::vector<std::string>> const supportedCLIFlagCombinations{
 		{
 			{"solc", "--experimental", "--debug-info", "ethdebug", "--ir", tempDir.path().string() + "/input.sol"},
 		},
@@ -1524,21 +1524,21 @@ BOOST_AUTO_TEST_CASE(cli_ethdebug_debug_info_ethdebug)
 
 	for (auto const& test: erroneousCLIFlagCombinations)
 	{
-		OptionsReaderAndMessages result{runCLI(test, "")};
+		OptionsReaderAndMessages const result{runCLI(test, "")};
 		BOOST_REQUIRE(!result.success);
 	}
 	for (auto const& test: supportedCLIFlagCombinations)
 	{
-		OptionsReaderAndMessages result{runCLI(test, "")};
+		OptionsReaderAndMessages const result{runCLI(test, "")};
 		BOOST_REQUIRE(result.success);
 	}
 }
 
 BOOST_AUTO_TEST_CASE(cli_ethdebug_ethdebug_output)
 {
-	TemporaryDirectory tempDir(TEST_CASE_NAME);
+	TemporaryDirectory const tempDir(TEST_CASE_NAME);
 	createFilesWithParentDirs({tempDir.path() / "input.sol"}, "pragma solidity >=0.0; contract C { function f() public pure {} }");
-	static std::vector<std::vector<std::string>> erroneousCLIFlagCombinations{
+	static std::vector<std::vector<std::string>> const erroneousCLIFlagCombinations{
 		{
 			{"solc", "--experimental", "--ethdebug-program", "--ethdebug-program-runtime", "--via-ir", "--optimize", tempDir.path().string() + "/input.sol"},
 		},
@@ -1558,7 +1558,7 @@ BOOST_AUTO_TEST_CASE(cli_ethdebug_ethdebug_output)
 			{"solc", "--experimental", "--ethdebug-program-runtime", tempDir.path().string() + "/input.sol"},
 		},
 	};
-	static std::vector<std::vector<std::string>> supportedCLIFlagCombinations{
+	static std::vector<std::vector<std::string>> const supportedCLIFlagCombinations{
 		{
 			{"solc", "--experimental", "--ethdebug-program", "--via-ir", tempDir.path().string() + "/input.sol"},
 		},
@@ -1596,12 +1596,12 @@ BOOST_AUTO_TEST_CASE(cli_ethdebug_ethdebug_output)
 
 	for (auto const& test: erroneousCLIFlagCombinations)
 	{
-		OptionsReaderAndMessages result{runCLI(test, "")};
+		OptionsReaderAndMessages const result{runCLI(test, "")};
 		BOOST_REQUIRE(!result.success);
 	}
 	for (auto const& test: supportedCLIFlagCombinations)
 	{
-		OptionsReaderAndMessages result{runCLI(test, "")};
+		OptionsReaderAndMessages const result{runCLI(test, "")};
 		BOOST_REQUIRE(result.success);
 	}
 }

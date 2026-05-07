@@ -64,10 +64,10 @@ AssemblyItem AssemblyItem::toSubAssemblyTag(SubAssemblyID _subId) const
 std::pair<SubAssemblyID, size_t> AssemblyItem::splitForeignPushTag() const
 {
 	solAssert(m_type == PushTag || m_type == Tag || m_type == RelativeJump || m_type == ConditionalRelativeJump);
-	u256 combined = u256(data());
+	u256 const combined = u256(data());
 	// the combined u256 is 'dirty', so we can't use the conversion constructor of SubAssemblyID here
 	SubAssemblyID const subID{static_cast<SubAssemblyID::ValueType>((combined >> 64) - 1)};
-	size_t tag = static_cast<size_t>(combined & 0xffffffffffffffffULL);
+	size_t const tag = static_cast<size_t>(combined & 0xffffffffffffffffULL);
 	return std::make_pair(subID, tag);
 }
 
@@ -371,7 +371,7 @@ std::string AssemblyItem::toAssemblyText(Assembly const& _assembly) const
 	case PushSubSize:
 	{
 		std::vector<std::string> subPathComponents;
-		for (SubAssemblyID subPathComponentId: _assembly.decodeSubPath(SubAssemblyID{data()}))
+		for (SubAssemblyID const subPathComponentId: _assembly.decodeSubPath(SubAssemblyID{data()}))
 			subPathComponents.emplace_back("sub_" + std::to_string(subPathComponentId.value));
 		text =
 			(type() == PushSub ? "dataOffset"s : "dataSize"s) +
@@ -468,7 +468,7 @@ std::ostream& solidity::evmasm::operator<<(std::ostream& _out, AssemblyItem cons
 		break;
 	case PushTag:
 	{
-		SubAssemblyID subId = _item.splitForeignPushTag().first;
+		SubAssemblyID const subId = _item.splitForeignPushTag().first;
 		if (subId.empty())
 			_out << " PushTag " << _item.splitForeignPushTag().second;
 		else
@@ -492,7 +492,7 @@ std::ostream& solidity::evmasm::operator<<(std::ostream& _out, AssemblyItem cons
 		break;
 	case PushLibraryAddress:
 	{
-		std::string hash(util::h256((_item.data())).hex());
+		std::string const hash(util::h256((_item.data())).hex());
 		_out << " PushLibraryAddress " << hash.substr(0, 8) + "..." + hash.substr(hash.length() - 8);
 		break;
 	}
@@ -557,8 +557,8 @@ std::string AssemblyItem::computeSourceMapping(
 			ret += ";";
 
 		SourceLocation const& location = item.location();
-		int length = location.start != -1 && location.end != -1 ? location.end - location.start : -1;
-		int sourceIndex =
+		int const length = location.start != -1 && location.end != -1 ? location.end - location.start : -1;
+		int const sourceIndex =
 			(location.sourceName && _sourceIndicesMap.count(*location.sourceName)) ?
 			static_cast<int>(_sourceIndicesMap.at(*location.sourceName)) :
 			-1;
@@ -567,7 +567,7 @@ std::string AssemblyItem::computeSourceMapping(
 			jump = 'i';
 		else if (item.getJumpType() == evmasm::AssemblyItem::JumpType::OutOfFunction || item.type() == RetF)
 			jump = 'o';
-		int modifierDepth = static_cast<int>(item.m_modifierDepth);
+		int const modifierDepth = static_cast<int>(item.m_modifierDepth);
 
 		unsigned components = 5;
 		if (modifierDepth == prevModifierDepth)

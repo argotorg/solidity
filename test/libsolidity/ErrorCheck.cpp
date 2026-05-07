@@ -60,7 +60,7 @@ std::string solidity::frontend::test::searchErrors(ErrorList const& _errors, std
 	auto expectations = _expectations;
 	for (auto const& error: _errors)
 	{
-		std::string msg = errorMessage(*error);
+		std::string const msg = errorMessage(*error);
 		bool found = false;
 		for (auto it = expectations.begin(); it != expectations.end(); ++it)
 			if (msg.find(it->second) != std::string::npos && error->type() == it->first)

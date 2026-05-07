@@ -147,9 +147,9 @@ void UnusedPruner::runUntilStabilisedOnFullAST(
 	std::set<YulName> const& _externallyUsedFunctions
 )
 {
-	std::map<FunctionHandle, SideEffects> functionSideEffects =
+	std::map<FunctionHandle, SideEffects> const functionSideEffects =
 		SideEffectsPropagator::sideEffects(_dialect, CallGraphGenerator::callGraph(_ast));
-	bool allowMSizeOptimization = !MSizeFinder::containsMSize(_dialect, _ast);
+	bool const allowMSizeOptimization = !MSizeFinder::containsMSize(_dialect, _ast);
 	runUntilStabilised(_dialect, _ast, allowMSizeOptimization, &functionSideEffects, _externallyUsedFunctions);
 }
 

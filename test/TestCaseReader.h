@@ -89,7 +89,7 @@ E TestCaseReader::enumSetting(std::string const& _name, std::map<std::string, E>
 {
 	soltestAssert(_choices.count(_defaultChoice) > 0, "");
 
-	std::string value = stringSetting(_name, _defaultChoice);
+	std::string const value = stringSetting(_name, _defaultChoice);
 
 	if (_choices.count(value) == 0)
 		BOOST_THROW_EXCEPTION(std::runtime_error(

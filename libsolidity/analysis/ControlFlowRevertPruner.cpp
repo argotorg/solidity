@@ -84,7 +84,7 @@ void ControlFlowRevertPruner::findRevertStates()
 				auto const* resolvedFunction = _node->functionDefinition;
 				if (resolvedFunction && resolvedFunction->isImplemented())
 				{
-					CFG::FunctionContractTuple calledFunctionTuple{
+					CFG::FunctionContractTuple const calledFunctionTuple{
 						findScopeContract(*resolvedFunction, item.contract),
 						resolvedFunction
 					};

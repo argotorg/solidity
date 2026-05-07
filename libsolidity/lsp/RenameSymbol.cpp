@@ -246,7 +246,7 @@ void RenameSymbol::Visitor::endVisit(Identifier const& _node)
 void RenameSymbol::extractNameAndDeclaration(IdentifierPath const& _identifierPath, int _cursorBytePosition)
 {
 	// iterate through the elements of the path to find the one the cursor is on
-	size_t numIdentifiers = _identifierPath.pathLocations().size();
+	size_t const numIdentifiers = _identifierPath.pathLocations().size();
 	for (size_t i = 0; i < numIdentifiers; i++)
 	{
 		auto& location = _identifierPath.pathLocations()[i];

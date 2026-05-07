@@ -163,7 +163,7 @@ bool BMC::shouldInlineFunctionCall(
 bool BMC::visit(ContractDefinition const& _contract)
 {
 	// Raises UnimplementedFeatureError in the presence of transient storage variables
-	TransientDataLocationChecker checker(_contract);
+	TransientDataLocationChecker const checker(_contract);
 
 	initContract(_contract);
 
@@ -288,7 +288,7 @@ bool BMC::visit(Conditional const& _op)
 // Unrolls while or do-while loop
 bool BMC::visit(WhileStatement const& _node)
 {
-	unsigned int bmcLoopIterations = m_settings.bmcLoopIterations.value_or(1);
+	unsigned int const bmcLoopIterations = m_settings.bmcLoopIterations.value_or(1);
 	smtutil::Expression broke(false);
 	smtutil::Expression loopCondition(true);
 	if (_node.isDoWhile())
@@ -388,7 +388,7 @@ bool BMC::visit(ForStatement const& _node)
 	smtutil::Expression broke(false);
 	smtutil::Expression forCondition(true);
 	smtutil::Expression forConditionOnPreviousIterations(true);
-	unsigned int bmcLoopIterations = m_settings.bmcLoopIterations.value_or(1);
+	unsigned int const bmcLoopIterations = m_settings.bmcLoopIterations.value_or(1);
 	for (unsigned int i = 0; i < bmcLoopIterations; ++i)
 	{
 		auto indicesBefore = copyVariableIndices();
@@ -495,7 +495,7 @@ bool BMC::visit(TryStatement const& _tryStatement)
 	if (_tryStatement.successClause()->parameters())
 		expressionToTupleAssignment(_tryStatement.successClause()->parameters()->parameters(), *externalCall);
 
-	smtutil::Expression clauseId = m_context.newVariable("clause_choice_" + std::to_string(m_context.newUniqueId()), smtutil::SortProvider::uintSort);
+	smtutil::Expression const clauseId = m_context.newVariable("clause_choice_" + std::to_string(m_context.newUniqueId()), smtutil::SortProvider::uintSort);
 	auto const& clauses = _tryStatement.clauses();
 	m_context.addAssertion(clauseId >= 0 && clauseId < clauses.size());
 	solAssert(clauses[0].get() == _tryStatement.successClause(), "First clause of TryStatement should be the success clause");
@@ -519,7 +519,7 @@ bool BMC::visit(TryStatement const& _tryStatement)
 
 bool BMC::visit(Break const&)
 {
-	LoopControl control = {
+	LoopControl const control = {
 		LoopControlKind::Break,
 		currentPathConditions(),
 		copyVariableIndices()
@@ -530,7 +530,7 @@ bool BMC::visit(Break const&)
 
 bool BMC::visit(Continue const&)
 {
-	LoopControl control = {
+	LoopControl const control = {
 		LoopControlKind::Continue,
 		currentPathConditions(),
 		copyVariableIndices()
@@ -628,7 +628,7 @@ void BMC::endVisit(FunctionCall const& _funCall)
 	{
 		auto value = _funCall.arguments().front();
 		solAssert(value, "");
-		smtutil::Expression thisBalance = state().balance();
+		smtutil::Expression const thisBalance = state().balance();
 
 		addVerificationTarget(
 			VerificationTargetType::Balance,
@@ -708,7 +708,7 @@ void BMC::inlineFunctionCall(
 	if (visitedFunction(_funDef))
 	{
 		auto const& returnParams = _funDef->returnParameters();
-		for (auto param: returnParams)
+		for (auto const& param: returnParams)
 		{
 			m_context.newValue(*param);
 			m_context.setUnknownValue(*param);
@@ -738,7 +738,7 @@ void BMC::inlineFunctionCall(FunctionCall const& _funCall)
 	auto funDef = functionCallToDefinition(_funCall, currentScopeContract(), m_currentContract);
 	Expression const* expr = &_funCall.expression();
 	auto funType = dynamic_cast<FunctionType const*>(expr->annotation().type);
-	std::optional<Expression const*> boundArgumentCall =
+	std::optional<Expression const*> const boundArgumentCall =
 		funType->hasBoundFirstArgument() ? std::make_optional(expr) : std::nullopt;
 
 	std::vector<Expression const*> arguments;
@@ -1248,7 +1248,7 @@ BMC::checkSatisfiableAndGenerateModel(std::vector<smtutil::Expression> const& _e
 		if (m_settings.printQuery)
 		{
 			auto portfolio = dynamic_cast<smtutil::SMTPortfolio*>(m_interface.get());
-			std::string smtlibCode = portfolio->dumpQuery(_expressionsToEvaluate);
+			std::string const smtlibCode = portfolio->dumpQuery(_expressionsToEvaluate);
 			m_errorReporter.info(
 				6240_error,
 				"BMC: Requested query:\n" + smtlibCode

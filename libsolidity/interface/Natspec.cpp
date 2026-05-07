@@ -54,7 +54,7 @@ Json Natspec::userDocumentation(ContractDefinition const& _contractDef)
 		}
 	}
 
-	std::string notice = extractDoc(_contractDef.annotation().docTags, "notice");
+	std::string const notice = extractDoc(_contractDef.annotation().docTags, "notice");
 	if (!notice.empty())
 		doc["notice"] = Json(notice);
 
@@ -78,14 +78,14 @@ Json Natspec::userDocumentation(ContractDefinition const& _contractDef)
 
 	for (auto const& event: uniqueInterfaceEvents(_contractDef))
 	{
-		std::string value = extractDoc(event->annotation().docTags, "notice");
+		std::string const value = extractDoc(event->annotation().docTags, "notice");
 		if (!value.empty())
 			doc["events"][event->functionType(true)->externalSignature()]["notice"] = value;
 	}
 
 	for (auto const& error: _contractDef.interfaceErrors())
 	{
-		std::string value = extractDoc(error->annotation().docTags, "notice");
+		std::string const value = extractDoc(error->annotation().docTags, "notice");
 		if (!value.empty())
 		{
 			Json errorDoc;
@@ -118,7 +118,7 @@ Json Natspec::devDocumentation(ContractDefinition const& _contractDef)
 	auto constructorDefinition(_contractDef.constructor());
 	if (constructorDefinition)
 	{
-		Json constructor(devDocumentation(constructorDefinition->annotation().docTags));
+		Json const constructor(devDocumentation(constructorDefinition->annotation().docTags));
 		if (!constructor.empty())
 			// add the constructor, only if we have any documentation to add
 			doc["methods"]["constructor"] = constructor;

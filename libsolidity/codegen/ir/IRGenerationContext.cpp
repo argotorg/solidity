@@ -146,7 +146,7 @@ size_t IRGenerationContext::libraryAddressImmutableOffsetRelative() const
 size_t IRGenerationContext::reservedMemory()
 {
 	solAssert(m_reservedMemory.has_value(), "Reserved memory was used before.");
-	size_t reservedMemory = *m_reservedMemory;
+	size_t const reservedMemory = *m_reservedMemory;
 
 	// We assume reserved memory contains only immutable variables.
 	// This memory is used i.e. by RETURNCONTRACT to create new EOF container with aux data.
@@ -207,7 +207,7 @@ void IRGenerationContext::addToInternalDispatch(FunctionDefinition const& _funct
 	FunctionType const* functionType = TypeProvider::function(_function, FunctionType::Kind::Internal);
 	solAssert(functionType);
 
-	YulArity arity = YulArity::fromType(*functionType);
+	YulArity const arity = YulArity::fromType(*functionType);
 	DispatchQueue& dispatchQueue = m_internalDispatchMap[arity];
 	if (ranges::find(dispatchQueue, &_function) == ranges::end(dispatchQueue))
 	{

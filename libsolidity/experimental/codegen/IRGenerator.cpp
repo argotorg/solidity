@@ -122,12 +122,12 @@ std::string IRGenerator::generate(ContractDefinition const& _contract)
 std::string IRGenerator::generate(FunctionDefinition const& _function, Type _type)
 {
 	TypeEnvironment newEnv = m_context.env->clone();
-	ScopedSaveAndRestore envRestore{m_context.env, &newEnv};
+	ScopedSaveAndRestore const envRestore{m_context.env, &newEnv};
 	auto type = m_context.analysis.annotation<TypeInference>(_function).type;
 	solAssert(type);
 	for (auto err: newEnv.unify(*type, _type))
 	{
-		TypeEnvironmentHelpers helper{newEnv};
+		TypeEnvironmentHelpers const helper{newEnv};
 		solAssert(false, helper.typeToString(*type) + " <-> " + helper.typeToString(_type));
 	}
 	std::stringstream code;
@@ -149,7 +149,7 @@ std::string IRGenerator::generate(FunctionDefinition const& _function, Type _typ
 		}
 	}
 	code << "{\n";
-	for (auto _statement: _function.body().statements())
+	for (auto const& _statement: _function.body().statements())
 	{
 		IRGeneratorForStatements statementGenerator{m_context};
 		code << statementGenerator.generate(*_statement);

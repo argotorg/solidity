@@ -408,7 +408,7 @@ std::set<FunctionDefinition const*, ASTNode::CompareByID> Type::operatorDefiniti
 			);
 			solAssert(functionType && !functionType->parameterTypes().empty());
 
-			size_t parameterCount = functionDefinition.parameterList().parameters().size();
+			size_t const parameterCount = functionDefinition.parameterList().parameters().size();
 			if (*this == *functionType->parameterTypes().front() && (_unary ? parameterCount == 1 : parameterCount == 2))
 				matchingDefinitions.insert(&functionDefinition);
 		}
@@ -673,7 +673,7 @@ bool IntegerType::operator==(IntegerType const& _other) const
 
 std::string IntegerType::toString(bool) const
 {
-	std::string prefix = isSigned() ? "int" : "uint";
+	std::string const prefix = isSigned() ? "int" : "uint";
 	return prefix + util::toString(m_bits);
 }
 
@@ -822,13 +822,13 @@ bool FixedPointType::operator==(Type const& _other) const
 
 std::string FixedPointType::toString(bool) const
 {
-	std::string prefix = isSigned() ? "fixed" : "ufixed";
+	std::string const prefix = isSigned() ? "fixed" : "ufixed";
 	return prefix + util::toString(m_totalBits) + "x" + util::toString(m_fractionalDigits);
 }
 
 bigint FixedPointType::maxIntegerValue() const
 {
-	bigint maxValue = (bigint(1) << (m_totalBits - (isSigned() ? 1 : 0))) - 1;
+	bigint const maxValue = (bigint(1) << (m_totalBits - (isSigned() ? 1 : 0))) - 1;
 	return maxValue / boost::multiprecision::pow(bigint(10), m_fractionalDigits);
 }
 
@@ -836,7 +836,7 @@ bigint FixedPointType::minIntegerValue() const
 {
 	if (isSigned())
 	{
-		bigint minValue = -(bigint(1) << (m_totalBits - (isSigned() ? 1 : 0)));
+		bigint const minValue = -(bigint(1) << (m_totalBits - (isSigned() ? 1 : 0)));
 		return minValue / boost::multiprecision::pow(bigint(10), m_fractionalDigits);
 	}
 	else
@@ -935,12 +935,12 @@ std::tuple<bool, rational> RationalNumberType::isValidLiteral(Literal const& _li
 			if (value == 0)
 				return std::make_tuple(true, rational(0));
 
-			bigint exp = bigint(std::string(expPoint + 1, valueString.end()));
+			bigint const exp = bigint(std::string(expPoint + 1, valueString.end()));
 
 			if (exp > std::numeric_limits<int32_t>::max() || exp < std::numeric_limits<int32_t>::min())
 				return std::make_tuple(false, rational(0));
 
-			uint32_t expAbs = bigint(abs(exp)).convert_to<uint32_t>();
+			uint32_t const expAbs = bigint(abs(exp)).convert_to<uint32_t>();
 
 			if (exp < 0)
 			{
@@ -1026,7 +1026,7 @@ BoolResult RationalNumberType::isImplicitlyConvertibleTo(Type const& _convertTo)
 			return false;
 		if (!isFractional())
 			return (targetType.minIntegerValue() <= m_value) && (m_value <= targetType.maxIntegerValue());
-		rational value = m_value * pow(bigint(10), targetType.fractionalDigits());
+		rational const value = m_value * pow(bigint(10), targetType.fractionalDigits());
 		// Need explicit conversion since truncation will occur.
 		if (value.denominator() != 1)
 			return false;
@@ -1141,8 +1141,8 @@ std::string RationalNumberType::richIdentifier() const
 {
 	// rational seemingly will put the sign always on the numerator,
 	// but let just make it deterministic here.
-	bigint numerator = abs(m_value.numerator());
-	bigint denominator = abs(m_value.denominator());
+	bigint const numerator = abs(m_value.numerator());
+	bigint const denominator = abs(m_value.denominator());
 	if (m_value < 0)
 		return "t_rational_minus_" + numerator.str() + "_by_" + denominator.str();
 	else
@@ -1162,7 +1162,7 @@ std::string RationalNumberType::bigintToReadableString(bigint const& _num)
 	std::string str = _num.str();
 	if (str.size() > 32)
 	{
-		size_t omitted = str.size() - 8;
+		size_t const omitted = str.size() - 8;
 		str = str.substr(0, 4) + "...(" + std::to_string(omitted) + " digits omitted)..." + str.substr(str.size() - 4, 4);
 	}
 	return str;
@@ -1173,8 +1173,8 @@ std::string RationalNumberType::toString(bool) const
 	if (!isFractional())
 		return "int_const " + bigintToReadableString(m_value.numerator());
 
-	std::string numerator = bigintToReadableString(m_value.numerator());
-	std::string denominator = bigintToReadableString(m_value.denominator());
+	std::string const numerator = bigintToReadableString(m_value.numerator());
+	std::string const denominator = bigintToReadableString(m_value.denominator());
 	return "rational_const " + numerator + " / " + denominator;
 }
 
@@ -1192,7 +1192,7 @@ u256 RationalNumberType::literalValue(Literal const*) const
 	{
 		auto fixed = fixedPointType();
 		solAssert(fixed, "Rational number cannot be represented as fixed point type.");
-		unsigned fractionalDigits = fixed->fractionalDigits();
+		unsigned const fractionalDigits = fixed->fractionalDigits();
 		shiftedValue = m_value.numerator() * boost::multiprecision::pow(bigint(10), fractionalDigits) / m_value.denominator();
 	}
 
@@ -1219,7 +1219,7 @@ IntegerType const* RationalNumberType::integerType() const
 {
 	solAssert(!isFractional(), "integerType() called for fractional number.");
 	bigint value = m_value.numerator();
-	bool negative = (value < 0);
+	bool const negative = (value < 0);
 	if (negative) // convert to positive number of same bit requirements
 		value = ((0 - value) - 1) << 1;
 	if (value > u256(-1))
@@ -1233,10 +1233,10 @@ IntegerType const* RationalNumberType::integerType() const
 
 FixedPointType const* RationalNumberType::fixedPointType() const
 {
-	bool negative = (m_value < 0);
+	bool const negative = (m_value < 0);
 	unsigned fractionalDigits = 0;
 	rational value = abs(m_value); // We care about the sign later.
-	rational maxValue = negative ?
+	rational const maxValue = negative ?
 		rational(bigint(1) << 255, 1):
 		rational((bigint(1) << 256) - 1, 1);
 
@@ -1260,7 +1260,7 @@ FixedPointType const* RationalNumberType::fixedPointType() const
 	if (v > u256(-1))
 		return nullptr;
 
-	unsigned totalBits = std::max(numberEncodingSize(v), 1u) * 8;
+	unsigned const totalBits = std::max(numberEncodingSize(v), 1u) * 8;
 	solAssert(totalBits <= 256, "");
 
 	return TypeProvider::fixedPoint(
@@ -1785,7 +1785,7 @@ bigint ArrayType::unlimitedStaticCalldataSize(bool _padded) const
 unsigned ArrayType::calldataEncodedSize(bool _padded) const
 {
 	solAssert(!isDynamicallyEncoded(), "");
-	bigint size = unlimitedStaticCalldataSize(_padded);
+	bigint const size = unlimitedStaticCalldataSize(_padded);
 	solAssert(size <= std::numeric_limits<unsigned>::max(), "Array size does not fit unsigned.");
 	return unsigned(size);
 }
@@ -1797,7 +1797,7 @@ unsigned ArrayType::calldataEncodedTailSize() const
 		// We do not know the dynamic length itself, but at least the uint256 containing the
 		// length must still be present.
 		return 32;
-	bigint size = unlimitedStaticCalldataSize(false);
+	bigint const size = unlimitedStaticCalldataSize(false);
 	solAssert(size <= std::numeric_limits<unsigned>::max(), "Array size does not fit unsigned.");
 	return unsigned(size);
 }
@@ -1821,12 +1821,12 @@ u256 ArrayType::storageSize() const
 		return 1;
 
 	bigint size;
-	unsigned baseBytes = baseType()->storageBytes();
+	unsigned const baseBytes = baseType()->storageBytes();
 	if (baseBytes == 0)
 		size = 1;
 	else if (baseBytes < 32)
 	{
-		unsigned itemsPerSlot = 32 / baseBytes;
+		unsigned const itemsPerSlot = 32 / baseBytes;
 		size = (bigint(length()) + (itemsPerSlot - 1)) / itemsPerSlot;
 	}
 	else
@@ -1985,7 +1985,7 @@ TypeResult ArrayType::interfaceType(bool _inLibrary) const
 		return *m_interfaceType;
 
 	TypeResult result{nullptr};
-	TypeResult baseInterfaceType = m_baseType->interfaceType(_inLibrary);
+	TypeResult const baseInterfaceType = m_baseType->interfaceType(_inLibrary);
 
 	if (!baseInterfaceType.get())
 	{
@@ -2028,7 +2028,7 @@ u256 ArrayType::memoryDataSize() const
 	solAssert(!isDynamicallySized(), "");
 	solAssert(m_location == DataLocation::Memory, "");
 	solAssert(!isByteArrayOrString(), "");
-	bigint size = bigint(m_length) * m_baseType->memoryHeadSize();
+	bigint const size = bigint(m_length) * m_baseType->memoryHeadSize();
 	solAssert(size <= std::numeric_limits<u256>::max(), "Array size does not fit u256.");
 	return u256(size);
 }
@@ -3371,13 +3371,13 @@ FunctionTypePointer FunctionType::interfaceFunctionType() const
 		if (auto const* contract = dynamic_cast<ContractDefinition const*>(m_declaration->scope()))
 			isLibraryFunction = contract->isLibrary();
 
-	util::Result<TypePointers> paramTypes =
+	util::Result<TypePointers> const paramTypes =
 		transformParametersToExternal(m_parameterTypes, isLibraryFunction);
 
 	if (!paramTypes.message().empty())
 		return FunctionTypePointer();
 
-	util::Result<TypePointers> retParamTypes =
+	util::Result<TypePointers> const retParamTypes =
 		transformParametersToExternal(m_returnParameterTypes, isLibraryFunction);
 
 	if (!retParamTypes.message().empty())
@@ -3969,7 +3969,7 @@ MemberList::MemberMap TypeType::nativeMembers(ASTNode const* _currentScope) cons
 		else
 		{
 			auto const* contractScope = dynamic_cast<ContractDefinition const*>(_currentScope);
-			bool inDerivingScope = contractScope && contractScope->derivesFrom(contract);
+			bool const inDerivingScope = contractScope && contractScope->derivesFrom(contract);
 
 			for (auto const* declaration: contract.declarations())
 			{

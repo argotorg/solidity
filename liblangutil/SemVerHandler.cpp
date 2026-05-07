@@ -222,7 +222,7 @@ void SemVerMatchExpressionParser::parseMatchExpression()
 SemVerMatchExpression::MatchComponent SemVerMatchExpressionParser::parseMatchComponent()
 {
 	SemVerMatchExpression::MatchComponent component;
-	Token token = currentToken();
+	Token const token = currentToken();
 
 	switch (token)
 	{

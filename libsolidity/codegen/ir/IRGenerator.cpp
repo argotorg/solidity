@@ -197,7 +197,7 @@ std::string IRGenerator::generate(
 	t("subObjects", subObjectSources(m_context.subObjectsCreated()));
 
 	// This has to be called only after all other code generation for the creation object is complete.
-	bool creationInvolvesMemoryUnsafeAssembly = m_context.memoryUnsafeInlineAssemblySeen();
+	bool const creationInvolvesMemoryUnsafeAssembly = m_context.memoryUnsafeInlineAssemblySeen();
 	t("memoryInitCreation", memoryInit(!creationInvolvesMemoryUnsafeAssembly));
 	t("useSrcMapCreation", formatUseSrcMap(m_context));
 
@@ -244,7 +244,7 @@ std::string IRGenerator::generate(
 	t("useSrcMapDeployed", formatUseSrcMap(m_context));
 
 	// This has to be called only after all other code generation for the deployed object is complete.
-	bool deployedInvolvesMemoryUnsafeAssembly = m_context.memoryUnsafeInlineAssemblySeen();
+	bool const deployedInvolvesMemoryUnsafeAssembly = m_context.memoryUnsafeInlineAssemblySeen();
 	t("memoryInitDeployed", memoryInit(!deployedInvolvesMemoryUnsafeAssembly));
 
 	solAssert(_contract.annotation().creationCallGraph->get() != nullptr, "");
@@ -394,7 +394,7 @@ std::string IRGenerator::generateFunction(FunctionDefinition const& _function)
 			for (size_t i = 0; i < _function.modifiers().size(); ++i)
 			{
 				ModifierInvocation const& modifier = *_function.modifiers().at(i);
-				std::string next =
+				std::string const next =
 					i + 1 < _function.modifiers().size() ?
 					IRNames::modifierInvocation(*_function.modifiers().at(i + 1)) :
 					IRNames::functionWithModifierInner(_function);
@@ -487,7 +487,7 @@ std::string IRGenerator::generateModifier(
 		if (_modifierInvocation.arguments())
 			for (size_t i = 0; i < _modifierInvocation.arguments()->size(); i++)
 			{
-				IRVariable argument = expressionEvaluator.evaluateExpression(
+				IRVariable const argument = expressionEvaluator.evaluateExpression(
 					*_modifierInvocation.arguments()->at(i),
 					*modifier->parameters()[i]->annotation().type
 				);
@@ -499,7 +499,7 @@ std::string IRGenerator::generateModifier(
 
 		t("evalArgs", expressionEvaluator.code());
 		IRGeneratorForStatements generator(m_context, m_utils, m_optimiserSettings, [&]() {
-			std::string ret = joinHumanReadable(retParams);
+			std::string const ret = joinHumanReadable(retParams);
 			return
 				(ret.empty() ? "" : ret + " := ") +
 				_nextFunction + "(" + joinHumanReadable(params) + ")\n";
@@ -558,8 +558,8 @@ std::string IRGenerator::generateGetter(VariableDeclaration const& _varDecl)
 
 		solAssert(_varDecl.isStateVariable(), "");
 
-		FunctionType accessorType(_varDecl);
-		TypePointers paramTypes = accessorType.parameterTypes();
+		FunctionType const accessorType(_varDecl);
+		TypePointers const paramTypes = accessorType.parameterTypes();
 		if (_varDecl.immutable())
 		{
 			solAssert(paramTypes.empty(), "");
@@ -757,7 +757,7 @@ std::string IRGenerator::generateGetter(VariableDeclaration const& _varDecl)
 
 std::string IRGenerator::generateExternalFunction(ContractDefinition const& _contract, FunctionType const& _functionType)
 {
-	std::string functionName = IRNames::externalFunctionABIWrapper(_functionType.declaration());
+	std::string const functionName = IRNames::externalFunctionABIWrapper(_functionType.declaration());
 	return m_context.functionCollector().createFunction(functionName, [&](std::vector<std::string>&, std::vector<std::string>&) -> std::string {
 		Whiskers t(R"X(
 			<callValueCheck>
@@ -769,8 +769,8 @@ std::string IRGenerator::generateExternalFunction(ContractDefinition const& _con
 		)X");
 		t("callValueCheck", (_functionType.isPayable() || _contract.isLibrary()) ? "" : callValueCheck());
 
-		unsigned paramVars = std::make_shared<TupleType>(_functionType.parameterTypes())->sizeOnStack();
-		unsigned retVars = std::make_shared<TupleType>(_functionType.returnParameterTypes())->sizeOnStack();
+		unsigned const paramVars = std::make_shared<TupleType>(_functionType.parameterTypes())->sizeOnStack();
+		unsigned const retVars = std::make_shared<TupleType>(_functionType.returnParameterTypes())->sizeOnStack();
 
 		ABIFunctions abiFunctions(m_evmVersion, m_eofVersion, m_context.revertStrings(), m_context.functionCollector());
 		t("abiDecode", abiFunctions.tupleDecoder(_functionType.parameterTypes()));
@@ -927,7 +927,7 @@ void IRGenerator::generateConstructors(ContractDefinition const& _contract)
 			);
 
 			t("params", joinHumanReadable(params));
-			std::vector<std::string> baseParams = listAllParams(baseConstructorParams);
+			std::vector<std::string> const baseParams = listAllParams(baseConstructorParams);
 			t("baseParams", joinHumanReadable(baseParams));
 			t("comma", !params.empty() && !baseParams.empty() ? ", " : "");
 			t("functionName", IRNames::constructor(*contract));
@@ -959,7 +959,7 @@ void IRGenerator::generateConstructors(ContractDefinition const& _contract)
 					for (size_t i = 0; i < realModifiers.size(); ++i)
 					{
 						ModifierInvocation const& modifier = *realModifiers.at(i);
-						std::string next =
+						std::string const next =
 							i + 1 < realModifiers.size() ?
 							IRNames::modifierInvocation(*realModifiers.at(i + 1)) :
 							IRNames::functionWithModifierInner(*constructor);

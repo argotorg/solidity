@@ -35,7 +35,7 @@ BOOST_AUTO_TEST_SUITE(ScannerTest)
 BOOST_AUTO_TEST_CASE(test_empty)
 {
 	CharStream stream{};
-	Scanner scanner(stream);
+	Scanner const scanner(stream);
 	BOOST_CHECK_EQUAL(scanner.currentToken(), Token::EOS);
 }
 
@@ -115,7 +115,7 @@ BOOST_AUTO_TEST_CASE(string_nonprintable)
 		// Skip the valid ones
 		if (v >= 0x20 && v <= 0x7e)
 			continue;
-		std::string lit{static_cast<char>(v)};
+		std::string const lit{static_cast<char>(v)};
 		CharStream stream("  { \"" + lit + "\"", "");
 		Scanner scanner(stream);
 		BOOST_CHECK_EQUAL(scanner.currentToken(), Token::LBrace);
@@ -158,12 +158,12 @@ struct TestScanner
 		scanner = std::make_unique<Scanner>(*stream);
 	}
 
-	decltype(auto) currentToken() { return scanner->currentToken(); }
-	decltype(auto) next() { return scanner->next(); }
-	decltype(auto) currentError() { return scanner->currentError(); }
-	decltype(auto) currentLiteral() { return scanner->currentLiteral(); }
-	decltype(auto) currentCommentLiteral() { return scanner->currentCommentLiteral(); }
-	decltype(auto) currentLocation() { return scanner->currentLocation(); }
+	decltype(auto) currentToken() const { return scanner->currentToken(); }
+	decltype(auto) next() const { return scanner->next(); }
+	decltype(auto) currentError() const { return scanner->currentError(); }
+	decltype(auto) currentLiteral() const { return scanner->currentLiteral(); }
+	decltype(auto) currentCommentLiteral() const { return scanner->currentCommentLiteral(); }
+	decltype(auto) currentLocation() const { return scanner->currentLocation(); }
 };
 
 BOOST_AUTO_TEST_CASE(string_escapes_legal_before_080)
@@ -898,7 +898,7 @@ BOOST_AUTO_TEST_CASE(irregular_line_breaks_in_strings)
 BOOST_AUTO_TEST_CASE(solidity_keywords)
 {
 	// These are tokens which have a different meaning in Yul.
-	std::string keywords = "return byte bool address var in true false leave switch case default";
+	std::string const keywords = "return byte bool address var in true false leave switch case default";
 	TestScanner scanner(keywords);
 	BOOST_CHECK_EQUAL(scanner.currentToken(), Token::Return);
 	BOOST_CHECK_EQUAL(scanner.next(), Token::Byte);
@@ -962,7 +962,7 @@ BOOST_AUTO_TEST_CASE(yul_identifier_with_dots)
 
 BOOST_AUTO_TEST_CASE(yul_function)
 {
-	std::string sig = "function f(a, b) -> x, y";
+	std::string const sig = "function f(a, b) -> x, y";
 	TestScanner scanner(sig);
 	BOOST_CHECK_EQUAL(scanner.currentToken(), Token::Function);
 	BOOST_CHECK_EQUAL(scanner.next(), Token::Identifier);
@@ -994,7 +994,7 @@ BOOST_AUTO_TEST_CASE(yul_function)
 
 BOOST_AUTO_TEST_CASE(yul_function_with_whitespace)
 {
-	std::string sig = "function f (a, b) - > x, y";
+	std::string const sig = "function f (a, b) - > x, y";
 	TestScanner scanner(sig);
 	BOOST_CHECK_EQUAL(scanner.currentToken(), Token::Function);
 	BOOST_CHECK_EQUAL(scanner.next(), Token::Identifier);
@@ -1028,20 +1028,20 @@ BOOST_AUTO_TEST_CASE(yul_function_with_whitespace)
 
 BOOST_AUTO_TEST_CASE(special_comment_with_invalid_escapes)
 {
-	std::string input(R"("test\x\f\g\u\g\a\u\g\a12\uö\xyoof")");
-	std::string expectedOutput(R"(test12öyoof)");
+	std::string const input(R"("test\x\f\g\u\g\a\u\g\a12\uö\xyoof")");
+	std::string const expectedOutput(R"(test12öyoof)");
 	CharStream stream(input, "");
-	Scanner scanner(stream, ScannerKind::SpecialComment);
+	Scanner const scanner(stream, ScannerKind::SpecialComment);
 	BOOST_REQUIRE(scanner.currentToken() == Token::StringLiteral);
 	BOOST_REQUIRE(scanner.currentLiteral() == expectedOutput);
 }
 
 BOOST_AUTO_TEST_CASE(special_comment_with_valid_and_invalid_escapes)
 {
-	std::string input(R"("test\n\x61\t\u01A9test\f")");
-	std::string expectedOutput(R"(test6101A9test)");
+	std::string const input(R"("test\n\x61\t\u01A9test\f")");
+	std::string const expectedOutput(R"(test6101A9test)");
 	CharStream stream(input, "");
-	Scanner scanner(stream, ScannerKind::SpecialComment);
+	Scanner const scanner(stream, ScannerKind::SpecialComment);
 	BOOST_REQUIRE(scanner.currentToken() == Token::StringLiteral);
 	BOOST_REQUIRE(scanner.currentLiteral() == expectedOutput);
 }
@@ -1049,8 +1049,8 @@ BOOST_AUTO_TEST_CASE(special_comment_with_valid_and_invalid_escapes)
 BOOST_AUTO_TEST_CASE(special_comment_with_unterminated_escape_sequence_at_eos)
 {
 	CharStream stream(R"("test\)", "");
-	std::string expectedOutput(R"(test6101A9test)");
-	Scanner scanner(stream, ScannerKind::SpecialComment);
+	std::string const expectedOutput(R"(test6101A9test)");
+	Scanner const scanner(stream, ScannerKind::SpecialComment);
 	BOOST_REQUIRE(scanner.currentToken() == Token::Illegal);
 	BOOST_REQUIRE(scanner.currentError() == ScannerError::IllegalEscapeSequence);
 }
@@ -1058,8 +1058,8 @@ BOOST_AUTO_TEST_CASE(special_comment_with_unterminated_escape_sequence_at_eos)
 BOOST_AUTO_TEST_CASE(special_comment_with_escaped_quotes)
 {
 	CharStream stream(R"("test\\\"")", "");
-	std::string expectedOutput(R"(test)");
-	Scanner scanner(stream, ScannerKind::SpecialComment);
+	std::string const expectedOutput(R"(test)");
+	Scanner const scanner(stream, ScannerKind::SpecialComment);
 	BOOST_REQUIRE(scanner.currentToken() == Token::StringLiteral);
 	BOOST_REQUIRE(scanner.currentLiteral() == expectedOutput);
 }
@@ -1067,7 +1067,7 @@ BOOST_AUTO_TEST_CASE(special_comment_with_escaped_quotes)
 BOOST_AUTO_TEST_CASE(special_comment_with_unterminated_string)
 {
 	CharStream stream(R"("test)", "");
-	Scanner scanner(stream, ScannerKind::SpecialComment);
+	Scanner const scanner(stream, ScannerKind::SpecialComment);
 	BOOST_REQUIRE(scanner.currentToken() == Token::Illegal);
 	BOOST_REQUIRE(scanner.currentError() == ScannerError::IllegalStringEndQuote);
 }

@@ -201,7 +201,7 @@ frontend::test::TestCase::TestResult StackLayoutGeneratorTest::run(std::ostream&
 			std::cout << std::endl << m_source << std::endl;
 		for (auto const dotRange: ranges::views::split(m_obtainedResult, SUBOBJECT_GRAPH_SEPARATOR))
 		{
-			std::string_view dot(&*dotRange.begin(), static_cast<std::size_t>(ranges::distance(dotRange)));
+			std::string_view const dot(&*dotRange.begin(), static_cast<std::size_t>(ranges::distance(dotRange)));
 			boost::process::opstream pipe;
 			boost::process::child child(graphDisplayer, boost::process::std_in < pipe);
 

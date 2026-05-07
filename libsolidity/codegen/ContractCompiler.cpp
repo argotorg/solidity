@@ -94,7 +94,7 @@ void ContractCompiler::compileContract(
 	std::map<ContractDefinition const*, std::shared_ptr<Compiler const>> const& _otherCompilers
 )
 {
-	CompilerContext::LocationSetter locationSetter(m_context, _contract);
+	CompilerContext::LocationSetter const locationSetter(m_context, _contract);
 
 	if (_contract.isLibrary())
 		// Check whether this is a call (true) or a delegatecall (false).
@@ -113,7 +113,7 @@ SubAssemblyID ContractCompiler::compileConstructor(
 	std::map<ContractDefinition const*, std::shared_ptr<Compiler const>> const& _otherCompilers
 )
 {
-	CompilerContext::LocationSetter locationSetter(m_context, _contract);
+	CompilerContext::LocationSetter const locationSetter(m_context, _contract);
 	if (_contract.isLibrary())
 		return deployLibrary(_contract);
 	else
@@ -148,7 +148,7 @@ void ContractCompiler::appendCallValueCheck()
 void ContractCompiler::appendInitAndConstructorCode(ContractDefinition const& _contract)
 {
 	solAssert(!_contract.isLibrary(), "Tried to initialize library.");
-	CompilerContext::LocationSetter locationSetter(m_context, _contract);
+	CompilerContext::LocationSetter const locationSetter(m_context, _contract);
 
 	m_baseArguments = &_contract.annotation().baseConstructorArguments;
 
@@ -176,19 +176,19 @@ SubAssemblyID ContractCompiler::packIntoContractCreator(ContractDefinition const
 
 	// We jump to the deploy routine because we first have to append all missing functions,
 	// which can cause further functions to be added to the runtime context.
-	evmasm::AssemblyItem deployRoutine = m_context.appendJumpToNew();
+	evmasm::AssemblyItem const deployRoutine = m_context.appendJumpToNew();
 
 	// We have to include copies of functions in the construction time and runtime context
 	// because of absolute jumps.
 	appendMissingFunctions();
 	m_runtimeCompiler->appendMissingFunctions();
 
-	CompilerContext::LocationSetter locationSetter(m_context, _contract);
+	CompilerContext::LocationSetter const locationSetter(m_context, _contract);
 	m_context << deployRoutine;
 
 	solAssert(!m_context.runtimeSub().empty(), "Runtime sub not registered");
 
-	ContractType contractType(_contract);
+	ContractType const contractType(_contract);
 	auto const& immutables = contractType.immutableVariables();
 	// Push all immutable values on the stack.
 	for (auto const& immutable: immutables)
@@ -228,7 +228,7 @@ SubAssemblyID ContractCompiler::deployLibrary(ContractDefinition const& _contrac
 	appendMissingFunctions();
 	m_runtimeCompiler->appendMissingFunctions();
 
-	CompilerContext::LocationSetter locationSetter(m_context, _contract);
+	CompilerContext::LocationSetter const locationSetter(m_context, _contract);
 
 	solAssert(!m_context.runtimeSub().empty(), "Runtime sub not registered");
 	m_context.pushSubroutineSize(m_context.runtimeSub());
@@ -263,8 +263,8 @@ SubAssemblyID ContractCompiler::deployLibrary(ContractDefinition const& _contrac
 
 void ContractCompiler::appendBaseConstructor(FunctionDefinition const& _constructor)
 {
-	CompilerContext::LocationSetter locationSetter(m_context, _constructor);
-	FunctionType constructorType(_constructor);
+	CompilerContext::LocationSetter const locationSetter(m_context, _constructor);
+	FunctionType const constructorType(_constructor);
 	if (!constructorType.parameterTypes().empty())
 	{
 		solAssert(m_baseArguments, "");
@@ -285,7 +285,7 @@ void ContractCompiler::appendBaseConstructor(FunctionDefinition const& _construc
 
 void ContractCompiler::appendConstructor(FunctionDefinition const& _constructor)
 {
-	CompilerContext::LocationSetter locationSetter(m_context, _constructor);
+	CompilerContext::LocationSetter const locationSetter(m_context, _constructor);
 	if (!_constructor.isPayable())
 		appendCallValueCheck();
 
@@ -363,16 +363,16 @@ void ContractCompiler::appendInternalSelector(
 
 	if (split)
 	{
-		size_t pivotIndex = _ids.size() / 2;
-		FixedHash<4> pivot{_ids.at(pivotIndex)};
+		size_t const pivotIndex = _ids.size() / 2;
+		FixedHash<4> const pivot{_ids.at(pivotIndex)};
 		m_context << dupInstruction(1) << u256(FixedHash<4>::Arith(pivot)) << Instruction::GT;
-		evmasm::AssemblyItem lessTag{m_context.appendConditionalJump()};
+		evmasm::AssemblyItem const lessTag{m_context.appendConditionalJump()};
 		// Here, we have funid >= pivot
-		std::vector<FixedHash<4>> larger{_ids.begin() + static_cast<ptrdiff_t>(pivotIndex), _ids.end()};
+		std::vector<FixedHash<4>> const larger{_ids.begin() + static_cast<ptrdiff_t>(pivotIndex), _ids.end()};
 		appendInternalSelector(_entryPoints, larger, _notFoundTag, _runs);
 		m_context << lessTag;
 		// Here, we have funid < pivot
-		std::vector<FixedHash<4>> smaller{_ids.begin(), _ids.begin() + static_cast<ptrdiff_t>(pivotIndex)};
+		std::vector<FixedHash<4>> const smaller{_ids.begin(), _ids.begin() + static_cast<ptrdiff_t>(pivotIndex)};
 		appendInternalSelector(_entryPoints, smaller, _notFoundTag, _runs);
 	}
 	else
@@ -410,7 +410,7 @@ bool hasPayableFunctions(ContractDefinition const& _contract)
 
 void ContractCompiler::appendFunctionSelector(ContractDefinition const& _contract)
 {
-	std::map<FixedHash<4>, FunctionTypePointer> interfaceFunctions = _contract.interfaceFunctions();
+	std::map<FixedHash<4>, FunctionTypePointer> const interfaceFunctions = _contract.interfaceFunctions();
 	std::map<FixedHash<4>, evmasm::AssemblyItem const> callDataUnpackerEntryPoints;
 
 	if (_contract.isLibrary())
@@ -431,10 +431,10 @@ void ContractCompiler::appendFunctionSelector(ContractDefinition const& _contrac
 		needToAddCallvalueCheck = false;
 	}
 
-	evmasm::AssemblyItem notFoundOrReceiveEther = m_context.newTag();
+	evmasm::AssemblyItem const notFoundOrReceiveEther = m_context.newTag();
 	// If there is neither a fallback nor a receive ether function, we only need one label to jump to, which
 	// always reverts.
-	evmasm::AssemblyItem notFound = (!fallback && !etherReceiver) ? notFoundOrReceiveEther : m_context.newTag();
+	evmasm::AssemblyItem const notFound = (!fallback && !etherReceiver) ? notFoundOrReceiveEther : m_context.newTag();
 
 	// directly jump to fallback or ether receiver if the data is too short to contain a function selector
 	// also guards against short data
@@ -511,7 +511,7 @@ void ContractCompiler::appendFunctionSelector(ContractDefinition const& _contrac
 		m_context.setStackOffset(1);
 		FunctionTypePointer const& functionType = it.second;
 		solAssert(functionType->hasDeclaration(), "");
-		CompilerContext::LocationSetter locationSetter(m_context, functionType->declaration());
+		CompilerContext::LocationSetter const locationSetter(m_context, functionType->declaration());
 
 		m_context << callDataUnpackerEntryPoints.at(it.first);
 		if (_contract.isLibrary() && functionType->stateMutability() > StateMutability::View)
@@ -528,7 +528,7 @@ void ContractCompiler::appendFunctionSelector(ContractDefinition const& _contrac
 			appendCallValueCheck();
 
 		// Return tag is used to jump out of the function.
-		evmasm::AssemblyItem returnTag = m_context.pushNewTag();
+		evmasm::AssemblyItem const returnTag = m_context.pushNewTag();
 		if (!functionType->parameterTypes().empty())
 		{
 			// Parameter for calldataUnpacker
@@ -596,7 +596,7 @@ void ContractCompiler::initializeStateVariables(ContractDefinition const& _contr
 bool ContractCompiler::visit(VariableDeclaration const& _variableDeclaration)
 {
 	solAssert(_variableDeclaration.isStateVariable(), "Compiler visit to non-state variable declaration.");
-	CompilerContext::LocationSetter locationSetter(m_context, _variableDeclaration);
+	CompilerContext::LocationSetter const locationSetter(m_context, _variableDeclaration);
 
 	m_context.startFunction(_variableDeclaration);
 	m_breakTags.clear();
@@ -616,7 +616,7 @@ bool ContractCompiler::visit(FunctionDefinition const& _function)
 {
 	solAssert(_function.isImplemented(), "");
 
-	CompilerContext::LocationSetter locationSetter(m_context, _function);
+	CompilerContext::LocationSetter const locationSetter(m_context, _function);
 
 	m_context.startFunction(_function);
 
@@ -711,8 +711,8 @@ bool ContractCompiler::visit(FunctionDefinition const& _function)
 
 bool ContractCompiler::visit(InlineAssembly const& _inlineAssembly)
 {
-	unsigned startStackHeight = m_context.stackHeight();
-	yul::ExternalIdentifierAccess::CodeGenerator identifierAccessCodeGen = [&](
+	unsigned const startStackHeight = m_context.stackHeight();
+	yul::ExternalIdentifierAccess::CodeGenerator const identifierAccessCodeGen = [&](
 		yul::Identifier const& _identifier,
 		yul::IdentifierContext _context,
 		yul::AbstractAssembly& _assembly
@@ -797,7 +797,7 @@ bool ContractCompiler::visit(InlineAssembly const& _inlineAssembly)
 						if (variable->type()->dataStoredIn(DataLocation::Storage))
 						{
 							solAssert(suffix == "offset" || suffix == "slot", "");
-							unsigned size = variable->type()->sizeOnStack();
+							unsigned const size = variable->type()->sizeOnStack();
 							if (size == 2)
 							{
 								// slot plus offset
@@ -970,20 +970,20 @@ bool ContractCompiler::visit(InlineAssembly const& _inlineAssembly)
 bool ContractCompiler::visit(TryStatement const& _tryStatement)
 {
 	StackHeightChecker checker(m_context);
-	CompilerContext::LocationSetter locationSetter(m_context, _tryStatement);
+	CompilerContext::LocationSetter const locationSetter(m_context, _tryStatement);
 
 	compileExpression(_tryStatement.externalCall());
 	int const returnSize = static_cast<int>(_tryStatement.externalCall().annotation().type->sizeOnStack());
 
 	// Stack: [ return values] <success flag>
-	evmasm::AssemblyItem successTag = m_context.appendConditionalJump();
+	evmasm::AssemblyItem const successTag = m_context.appendConditionalJump();
 
 	// Catch case.
 	m_context.adjustStackOffset(-returnSize);
 
 	handleCatch(_tryStatement.clauses());
 
-	evmasm::AssemblyItem endTag = m_context.appendJumpToNew();
+	evmasm::AssemblyItem const endTag = m_context.appendJumpToNew();
 
 	m_context << successTag;
 	m_context.adjustStackOffset(returnSize);
@@ -1030,9 +1030,9 @@ void ContractCompiler::handleCatch(std::vector<ASTPointer<TryCatchClause>> const
 
 	solAssert(_catchClauses.size() == 1ul + (error ? 1 : 0) + (panic ? 1 : 0) + (fallback ? 1 : 0), "");
 
-	evmasm::AssemblyItem endTag = m_context.newTag();
-	evmasm::AssemblyItem fallbackTag = m_context.newTag();
-	evmasm::AssemblyItem panicTag = m_context.newTag();
+	evmasm::AssemblyItem const endTag = m_context.newTag();
+	evmasm::AssemblyItem const fallbackTag = m_context.newTag();
+	evmasm::AssemblyItem const panicTag = m_context.newTag();
 	if (error || panic)
 		// Note that this function returns zero on failure, which is not a problem yet,
 		// but will be a problem once we allow user-defined errors.
@@ -1059,7 +1059,7 @@ void ContractCompiler::handleCatch(std::vector<ASTPointer<TryCatchClause>> const
 		// If this fails, leaves 0 on the stack, otherwise the pointer to the data string.
 		m_context.callYulFunction(m_context.utilFunctions().tryDecodeErrorMessageFunction(), 0, 1);
 		m_context << Instruction::DUP1;
-		AssemblyItem decodeSuccessTag = m_context.appendConditionalJump();
+		AssemblyItem const decodeSuccessTag = m_context.appendConditionalJump();
 		m_context << Instruction::POP;
 		m_context.appendJumpTo(fallbackTag);
 		m_context.adjustStackOffset(1);
@@ -1089,7 +1089,7 @@ void ContractCompiler::handleCatch(std::vector<ASTPointer<TryCatchClause>> const
 		m_context.callYulFunction(m_context.utilFunctions().tryDecodePanicDataFunction(), 0, 2);
 		m_context << Instruction::SWAP1;
 		// stack: <code> <success>
-		AssemblyItem decodeSuccessTag = m_context.appendConditionalJump();
+		AssemblyItem const decodeSuccessTag = m_context.appendConditionalJump();
 		m_context << Instruction::POP;
 		m_context.appendJumpTo(fallbackTag);
 		m_context.adjustStackOffset(1);
@@ -1135,7 +1135,7 @@ void ContractCompiler::handleCatch(std::vector<ASTPointer<TryCatchClause>> const
 
 bool ContractCompiler::visit(TryCatchClause const& _clause)
 {
-	CompilerContext::LocationSetter locationSetter(m_context, _clause);
+	CompilerContext::LocationSetter const locationSetter(m_context, _clause);
 
 	unsigned varSize = 0;
 
@@ -1158,10 +1158,10 @@ bool ContractCompiler::visit(TryCatchClause const& _clause)
 bool ContractCompiler::visit(IfStatement const& _ifStatement)
 {
 	StackHeightChecker checker(m_context);
-	CompilerContext::LocationSetter locationSetter(m_context, _ifStatement);
+	CompilerContext::LocationSetter const locationSetter(m_context, _ifStatement);
 	compileExpression(_ifStatement.condition());
 	m_context << Instruction::ISZERO;
-	evmasm::AssemblyItem falseTag = m_context.appendConditionalJump();
+	evmasm::AssemblyItem const falseTag = m_context.appendConditionalJump();
 	evmasm::AssemblyItem endTag = falseTag;
 	_ifStatement.trueStatement().accept(*this);
 	if (_ifStatement.falseStatement())
@@ -1179,17 +1179,17 @@ bool ContractCompiler::visit(IfStatement const& _ifStatement)
 bool ContractCompiler::visit(WhileStatement const& _whileStatement)
 {
 	StackHeightChecker checker(m_context);
-	CompilerContext::LocationSetter locationSetter(m_context, _whileStatement);
+	CompilerContext::LocationSetter const locationSetter(m_context, _whileStatement);
 
-	evmasm::AssemblyItem loopStart = m_context.newTag();
-	evmasm::AssemblyItem loopEnd = m_context.newTag();
+	evmasm::AssemblyItem const loopStart = m_context.newTag();
+	evmasm::AssemblyItem const loopEnd = m_context.newTag();
 	m_breakTags.emplace_back(loopEnd, m_context.stackHeight());
 
 	m_context << loopStart;
 
 	if (_whileStatement.isDoWhile())
 	{
-		evmasm::AssemblyItem condition = m_context.newTag();
+		evmasm::AssemblyItem const condition = m_context.newTag();
 		m_continueTags.emplace_back(condition, m_context.stackHeight());
 
 		_whileStatement.body().accept(*this);
@@ -1222,10 +1222,10 @@ bool ContractCompiler::visit(WhileStatement const& _whileStatement)
 bool ContractCompiler::visit(ForStatement const& _forStatement)
 {
 	StackHeightChecker checker(m_context);
-	CompilerContext::LocationSetter locationSetter(m_context, _forStatement);
-	evmasm::AssemblyItem loopStart = m_context.newTag();
-	evmasm::AssemblyItem loopEnd = m_context.newTag();
-	evmasm::AssemblyItem loopNext = m_context.newTag();
+	CompilerContext::LocationSetter const locationSetter(m_context, _forStatement);
+	evmasm::AssemblyItem const loopStart = m_context.newTag();
+	evmasm::AssemblyItem const loopEnd = m_context.newTag();
+	evmasm::AssemblyItem const loopNext = m_context.newTag();
 
 	storeStackHeight(&_forStatement);
 
@@ -1251,7 +1251,7 @@ bool ContractCompiler::visit(ForStatement const& _forStatement)
 	// for's loop expression if existing
 	if (_forStatement.loopExpression())
 	{
-		Arithmetic previousArithmetic = m_context.arithmetic();
+		Arithmetic const previousArithmetic = m_context.arithmetic();
 		if (
 			*_forStatement.annotation().isSimpleCounterLoop &&
 			m_optimiserSettings.simpleCounterForLoopUncheckedIncrement
@@ -1278,7 +1278,7 @@ bool ContractCompiler::visit(ForStatement const& _forStatement)
 
 bool ContractCompiler::visit(Continue const& _continueStatement)
 {
-	CompilerContext::LocationSetter locationSetter(m_context, _continueStatement);
+	CompilerContext::LocationSetter const locationSetter(m_context, _continueStatement);
 	solAssert(!m_continueTags.empty(), "");
 	CompilerUtils(m_context).popAndJump(m_continueTags.back().second, m_continueTags.back().first);
 	return false;
@@ -1286,7 +1286,7 @@ bool ContractCompiler::visit(Continue const& _continueStatement)
 
 bool ContractCompiler::visit(Break const& _breakStatement)
 {
-	CompilerContext::LocationSetter locationSetter(m_context, _breakStatement);
+	CompilerContext::LocationSetter const locationSetter(m_context, _breakStatement);
 	solAssert(!m_breakTags.empty(), "");
 	CompilerUtils(m_context).popAndJump(m_breakTags.back().second, m_breakTags.back().first);
 	return false;
@@ -1294,7 +1294,7 @@ bool ContractCompiler::visit(Break const& _breakStatement)
 
 bool ContractCompiler::visit(Return const& _return)
 {
-	CompilerContext::LocationSetter locationSetter(m_context, _return);
+	CompilerContext::LocationSetter const locationSetter(m_context, _return);
 	if (Expression const* expression = _return.expression())
 	{
 		solAssert(_return.annotation().functionReturnParameters, "Invalid return parameters pointer.");
@@ -1327,7 +1327,7 @@ bool ContractCompiler::visit(Throw const&)
 
 bool ContractCompiler::visit(EmitStatement const& _emit)
 {
-	CompilerContext::LocationSetter locationSetter(m_context, _emit);
+	CompilerContext::LocationSetter const locationSetter(m_context, _emit);
 	StackHeightChecker checker(m_context);
 	compileExpression(_emit.eventCall());
 	checker.check();
@@ -1336,7 +1336,7 @@ bool ContractCompiler::visit(EmitStatement const& _emit)
 
 bool ContractCompiler::visit(RevertStatement const& _revert)
 {
-	CompilerContext::LocationSetter locationSetter(m_context, _revert);
+	CompilerContext::LocationSetter const locationSetter(m_context, _revert);
 	StackHeightChecker checker(m_context);
 	compileExpression(_revert.errorCall());
 	checker.check();
@@ -1345,11 +1345,11 @@ bool ContractCompiler::visit(RevertStatement const& _revert)
 
 bool ContractCompiler::visit(VariableDeclarationStatement const& _variableDeclarationStatement)
 {
-	CompilerContext::LocationSetter locationSetter(m_context, _variableDeclarationStatement);
+	CompilerContext::LocationSetter const locationSetter(m_context, _variableDeclarationStatement);
 
 	// Local variable slots are reserved when their declaration is visited,
 	// and freed in the end of their scope.
-	for (auto decl: _variableDeclarationStatement.declarations())
+	for (auto const& decl: _variableDeclarationStatement.declarations())
 		if (decl)
 			appendStackVariableInitialisation(*decl, !_variableDeclarationStatement.initialValue());
 
@@ -1367,7 +1367,7 @@ bool ContractCompiler::visit(VariableDeclarationStatement const& _variableDeclar
 		solAssert(declarations.size() == valueTypes.size(), "");
 		for (size_t i = 0; i < declarations.size(); ++i)
 		{
-			size_t j = declarations.size() - i - 1;
+			size_t const j = declarations.size() - i - 1;
 			solAssert(!!valueTypes[j], "");
 			if (VariableDeclaration const* varDecl = declarations[j].get())
 			{
@@ -1385,7 +1385,7 @@ bool ContractCompiler::visit(VariableDeclarationStatement const& _variableDeclar
 bool ContractCompiler::visit(ExpressionStatement const& _expressionStatement)
 {
 	StackHeightChecker checker(m_context);
-	CompilerContext::LocationSetter locationSetter(m_context, _expressionStatement);
+	CompilerContext::LocationSetter const locationSetter(m_context, _expressionStatement);
 	Expression const& expression = _expressionStatement.expression();
 	compileExpression(expression);
 	CompilerUtils(m_context).popStackElement(*expression.annotation().type);
@@ -1396,7 +1396,7 @@ bool ContractCompiler::visit(ExpressionStatement const& _expressionStatement)
 bool ContractCompiler::visit(PlaceholderStatement const& _placeholderStatement)
 {
 	StackHeightChecker checker(m_context);
-	CompilerContext::LocationSetter locationSetter(m_context, _placeholderStatement);
+	CompilerContext::LocationSetter const locationSetter(m_context, _placeholderStatement);
 	solAssert(m_context.arithmetic() == Arithmetic::Checked, "Placeholder cannot be used inside unchecked block.");
 	appendModifierOrFunctionCode();
 	solAssert(m_context.arithmetic() == Arithmetic::Checked, "Arithmetic not reset to 'checked'.");
@@ -1467,14 +1467,14 @@ void ContractCompiler::appendModifierOrFunctionCode()
 			ModifierDefinition const& referencedModifier = dynamic_cast<ModifierDefinition const&>(
 				*modifierInvocation->name().annotation().referencedDeclaration
 			);
-			VirtualLookup lookup = *modifierInvocation->name().annotation().requiredLookup;
+			VirtualLookup const lookup = *modifierInvocation->name().annotation().requiredLookup;
 			solAssert(lookup == VirtualLookup::Virtual || lookup == VirtualLookup::Static, "");
 			ModifierDefinition const& modifier =
 				lookup == VirtualLookup::Virtual ?
 				referencedModifier.resolveVirtual(m_context.mostDerivedContract()) :
 				referencedModifier;
 
-			CompilerContext::LocationSetter locationSetter(m_context, modifier);
+			CompilerContext::LocationSetter const locationSetter(m_context, modifier);
 			std::vector<ASTPointer<Expression>> const& modifierArguments =
 				modifierInvocation->arguments() ? *modifierInvocation->arguments() : std::vector<ASTPointer<Expression>>();
 
@@ -1498,7 +1498,7 @@ void ContractCompiler::appendModifierOrFunctionCode()
 	{
 		m_context.setArithmetic(Arithmetic::Checked);
 
-		bool coderV2Outside = m_context.useABICoderV2();
+		bool const coderV2Outside = m_context.useABICoderV2();
 		m_context.setUseABICoderV2(*codeBlock->sourceUnit().annotation().useABICoderV2);
 
 		m_returnTags.emplace_back(m_context.newTag(), m_context.stackHeight());
@@ -1523,7 +1523,7 @@ void ContractCompiler::appendStackVariableInitialisation(
 	bool _provideDefaultValue
 )
 {
-	CompilerContext::LocationSetter location(m_context, _variable);
+	CompilerContext::LocationSetter const location(m_context, _variable);
 	m_context.addVariable(_variable);
 	if (!_provideDefaultValue && _variable.type()->dataStoredIn(DataLocation::Memory))
 	{
@@ -1544,10 +1544,10 @@ void ContractCompiler::compileExpression(Expression const& _expression, Type con
 
 void ContractCompiler::popScopedVariables(ASTNode const* _node)
 {
-	unsigned blockHeight = m_scopeStackHeight.at(m_modifierDepth).at(_node);
+	unsigned const blockHeight = m_scopeStackHeight.at(m_modifierDepth).at(_node);
 	m_context.removeVariablesAboveStackHeight(blockHeight);
 	solAssert(m_context.stackHeight() >= blockHeight, "");
-	unsigned stackDiff = m_context.stackHeight() - blockHeight;
+	unsigned const stackDiff = m_context.stackHeight() - blockHeight;
 	CompilerUtils(m_context).popStackSlots(stackDiff);
 	m_scopeStackHeight[m_modifierDepth].erase(_node);
 	if (m_scopeStackHeight[m_modifierDepth].empty())

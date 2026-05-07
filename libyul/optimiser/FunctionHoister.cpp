@@ -35,7 +35,7 @@ FunctionHoister::~FunctionHoister() = default;
 
 void FunctionHoister::operator()(Block& _block)
 {
-	bool topLevel = m_isTopLevel;
+	bool const topLevel = m_isTopLevel;
 	m_isTopLevel = false;
 	for (auto&& statement: _block.statements)
 	{

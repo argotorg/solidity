@@ -63,7 +63,7 @@ std::vector<TypeEnvironment::UnificationFailure> TypeEnvironment::unify(Type _a,
 				failures += instantiate(_right, _left);
 			else
 			{
-				Type newVar = m_typeSystem.freshVariable(_left.sort() + _right.sort());
+				Type const newVar = m_typeSystem.freshVariable(_left.sort() + _right.sort());
 				failures += instantiate(_left, newVar);
 				failures += instantiate(_right, newVar);
 			}
@@ -177,7 +177,7 @@ TypeSystem::TypeSystem()
 
 experimental::Type TypeSystem::freshVariable(Sort _sort)
 {
-	size_t index = m_numTypeVariables++;
+	size_t const index = m_numTypeVariables++;
 	return TypeVariable(index, std::move(_sort));
 }
 
@@ -193,7 +193,7 @@ std::vector<TypeEnvironment::UnificationFailure> TypeEnvironment::instantiate(Ty
 		if (auto const* typeVar = std::get_if<TypeVariable>(&maybeTypeVar))
 			if (typeVar->index() == _variable.index())
 				return {UnificationFailure{RecursiveUnification{_variable, _type}}};
-	Sort typeSort = sort(_type);
+	Sort const typeSort = sort(_type);
 	if (!(_variable.sort() <= typeSort))
 	{
 		return {UnificationFailure{SortMismatch{_type, _variable.sort() - typeSort}}};
@@ -269,15 +269,15 @@ Sort TypeEnvironment::sort(Type _type) const
 TypeConstructor TypeSystem::declareTypeConstructor(std::string _name, std::string _canonicalName, size_t _arguments, Declaration const* _declaration)
 {
 	solAssert(m_canonicalTypeNames.insert(_canonicalName).second, "Duplicate canonical type name.");
-	Sort baseSort{{primitiveClass(PrimitiveClass::Type)}};
-	size_t index = m_typeConstructors.size();
+	Sort const baseSort{{primitiveClass(PrimitiveClass::Type)}};
+	size_t const index = m_typeConstructors.size();
 	m_typeConstructors.emplace_back(TypeConstructorInfo{
 		_name,
 		_canonicalName,
 		{Arity{std::vector<Sort>{_arguments, baseSort}, primitiveClass(PrimitiveClass::Type)}},
 		_declaration
 	});
-	TypeConstructor constructor{index};
+	TypeConstructor const constructor{index};
 	if (_arguments)
 	{
 		std::vector<Sort> argumentSorts;
@@ -300,7 +300,7 @@ std::variant<TypeClass, std::string> TypeSystem::declareTypeClass(std::string _n
 {
 	TypeClass typeClass{m_typeClasses.size()};
 
-	Type typeVariable = (_primitive ? freshVariable({{typeClass}}) : freshTypeVariable({{typeClass}}));
+	Type const typeVariable = (_primitive ? freshVariable({{typeClass}}) : freshTypeVariable({{typeClass}}));
 	solAssert(std::holds_alternative<TypeVariable>(typeVariable));
 
 	m_globalTypeEnvironment.fixTypeVars({typeVariable});

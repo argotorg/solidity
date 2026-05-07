@@ -306,7 +306,7 @@ std::string Predicate::formatSummaryCall(
 			functionArgs.emplace_back(params[i]->name());
 		}
 
-	std::string fName = fun->isConstructor() ? "constructor" :
+	std::string const fName = fun->isConstructor() ? "constructor" :
 		fun->isFallback() ? "fallback" :
 		fun->isReceive() ? "receive" :
 		fun->name();
@@ -354,7 +354,7 @@ std::vector<std::optional<std::string>> Predicate::summaryStateValues(std::vecto
 	solAssert(stateFirst >= _args.begin() && stateFirst <= _args.end(), "");
 	solAssert(stateLast >= _args.begin() && stateLast <= _args.end(), "");
 
-	std::vector<smtutil::Expression> stateArgs(stateFirst, stateLast);
+	std::vector<smtutil::Expression> const stateArgs(stateFirst, stateLast);
 	solAssert(stateArgs.size() == stateVars->size(), "");
 	auto stateTypes = util::applyMap(*stateVars, [&](auto const& _var) { return _var->type(); });
 	return formatExpressions(stateArgs, stateTypes);
@@ -378,7 +378,7 @@ std::vector<std::optional<std::string>> Predicate::summaryPostInputValues(std::v
 	solAssert(first >= _args.begin() && first <= _args.end(), "");
 	solAssert(last >= _args.begin() && last <= _args.end(), "");
 
-	std::vector<smtutil::Expression> inValues(first, last);
+	std::vector<smtutil::Expression> const inValues(first, last);
 	solAssert(inValues.size() == inParams.size(), "");
 	auto inTypes = SMTEncoder::replaceUserTypes(FunctionType(*function).parameterTypes());
 	return formatExpressions(inValues, inTypes);
@@ -400,7 +400,7 @@ std::vector<std::optional<std::string>> Predicate::summaryPostOutputValues(std::
 
 	solAssert(first >= _args.begin() && first <= _args.end(), "");
 
-	std::vector<smtutil::Expression> outValues(first, _args.end());
+	std::vector<smtutil::Expression> const outValues(first, _args.end());
 	solAssert(outValues.size() == function->returnParameters().size(), "");
 	auto outTypes = SMTEncoder::replaceUserTypes(FunctionType(*function).returnParameterTypes());
 	return formatExpressions(outValues, outTypes);
@@ -416,7 +416,7 @@ std::pair<std::vector<std::optional<std::string>>, std::vector<VariableDeclarati
 
 	auto const& localVars = SMTEncoder::localVariablesIncludingModifiers(*function, m_contractContext);
 	auto first = _args.end() - static_cast<int>(localVars.size());
-	std::vector<smtutil::Expression> outValues(first, _args.end());
+	std::vector<smtutil::Expression> const outValues(first, _args.end());
 
 	auto mask = util::applyMap(
 		localVars,
@@ -435,7 +435,7 @@ std::pair<std::vector<std::optional<std::string>>, std::vector<VariableDeclarati
 std::map<std::string, std::string> Predicate::expressionSubstitution(std::vector<std::string> const& _predArgs) const
 {
 	std::map<std::string, std::string> subst;
-	std::string predName = functor().name;
+	std::string const predName = functor().name;
 
 	smtAssert(contextContract());
 	auto const& stateVars = SMTEncoder::stateVariablesIncludingInheritedAndPrivate(*contextContract());
@@ -449,7 +449,7 @@ std::map<std::string, std::string> Predicate::expressionSubstitution(std::vector
 	if (isInterface())
 	{
 		smtAssert(nArgs > 0);
-		size_t shift = txValuesIndex();
+		size_t const shift = txValuesIndex();
 		smtAssert(predName.starts_with("interface"));
 		subst[_predArgs.at(0)] = "address(this)";
 		smtAssert(nArgs == stateVars.size() + shift);
