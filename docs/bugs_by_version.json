@@ -2038,6 +2038,7 @@
     },
     "0.8.13": {
         "bugs": [
+            "UnusedStoreEliminatorNonSSA",
             "OverlappingRecursiveStorageStructCopyCorruption",
             "OverlappingRecursiveStorageStructCopyCorruptionViaIR",
             "MemoryByteArrayElementDeleteClearsWholeWord",
@@ -2058,6 +2059,7 @@
     },
     "0.8.14": {
         "bugs": [
+            "UnusedStoreEliminatorNonSSA",
             "OverlappingRecursiveStorageStructCopyCorruption",
             "OverlappingRecursiveStorageStructCopyCorruptionViaIR",
             "MemoryByteArrayElementDeleteClearsWholeWord",
@@ -2076,6 +2078,7 @@
     },
     "0.8.15": {
         "bugs": [
+            "UnusedStoreEliminatorNonSSA",
             "OverlappingRecursiveStorageStructCopyCorruption",
             "OverlappingRecursiveStorageStructCopyCorruptionViaIR",
             "MemoryByteArrayElementDeleteClearsWholeWord",
@@ -2092,6 +2095,7 @@
     },
     "0.8.16": {
         "bugs": [
+            "UnusedStoreEliminatorNonSSA",
             "OverlappingRecursiveStorageStructCopyCorruption",
             "OverlappingRecursiveStorageStructCopyCorruptionViaIR",
             "MemoryByteArrayElementDeleteClearsWholeWord",
@@ -2107,6 +2111,7 @@
     },
     "0.8.17": {
         "bugs": [
+            "UnusedStoreEliminatorNonSSA",
             "OverlappingRecursiveStorageStructCopyCorruption",
             "OverlappingRecursiveStorageStructCopyCorruptionViaIR",
             "MemoryByteArrayElementDeleteClearsWholeWord",
@@ -2121,6 +2126,7 @@
     },
     "0.8.18": {
         "bugs": [
+            "UnusedStoreEliminatorNonSSA",
             "OverlappingRecursiveStorageStructCopyCorruption",
             "OverlappingRecursiveStorageStructCopyCorruptionViaIR",
             "MemoryByteArrayElementDeleteClearsWholeWord",
@@ -2135,6 +2141,7 @@
     },
     "0.8.19": {
         "bugs": [
+            "UnusedStoreEliminatorNonSSA",
             "OverlappingRecursiveStorageStructCopyCorruption",
             "OverlappingRecursiveStorageStructCopyCorruptionViaIR",
             "YulOptimizerKnowledgeBaseStaleBookkeeping",
@@ -2169,6 +2176,7 @@
     },
     "0.8.20": {
         "bugs": [
+            "UnusedStoreEliminatorNonSSA",
             "OverlappingRecursiveStorageStructCopyCorruption",
             "OverlappingRecursiveStorageStructCopyCorruptionViaIR",
             "YulOptimizerKnowledgeBaseStaleBookkeeping",
@@ -2184,6 +2192,7 @@
     },
     "0.8.21": {
         "bugs": [
+            "UnusedStoreEliminatorNonSSA",
             "OverlappingRecursiveStorageStructCopyCorruption",
             "OverlappingRecursiveStorageStructCopyCorruptionViaIR",
             "YulOptimizerKnowledgeBaseStaleBookkeeping",
@@ -2197,6 +2206,7 @@
     },
     "0.8.22": {
         "bugs": [
+            "UnusedStoreEliminatorNonSSA",
             "OverlappingRecursiveStorageStructCopyCorruption",
             "OverlappingRecursiveStorageStructCopyCorruptionViaIR",
             "YulOptimizerKnowledgeBaseStaleBookkeeping",
@@ -2210,6 +2220,7 @@
     },
     "0.8.23": {
         "bugs": [
+            "UnusedStoreEliminatorNonSSA",
             "OverlappingRecursiveStorageStructCopyCorruption",
             "OverlappingRecursiveStorageStructCopyCorruptionViaIR",
             "YulOptimizerKnowledgeBaseStaleBookkeeping",
@@ -2222,6 +2233,7 @@
     },
     "0.8.24": {
         "bugs": [
+            "UnusedStoreEliminatorNonSSA",
             "OverlappingRecursiveStorageStructCopyCorruption",
             "OverlappingRecursiveStorageStructCopyCorruptionViaIR",
             "YulOptimizerKnowledgeBaseStaleBookkeeping",
@@ -2234,6 +2246,7 @@
     },
     "0.8.25": {
         "bugs": [
+            "UnusedStoreEliminatorNonSSA",
             "OverlappingRecursiveStorageStructCopyCorruption",
             "OverlappingRecursiveStorageStructCopyCorruptionViaIR",
             "YulOptimizerKnowledgeBaseStaleBookkeeping",
@@ -2246,6 +2259,7 @@
     },
     "0.8.26": {
         "bugs": [
+            "UnusedStoreEliminatorNonSSA",
             "OverlappingRecursiveStorageStructCopyCorruption",
             "OverlappingRecursiveStorageStructCopyCorruptionViaIR",
             "YulOptimizerKnowledgeBaseStaleBookkeeping",
@@ -2259,6 +2273,7 @@
     },
     "0.8.27": {
         "bugs": [
+            "UnusedStoreEliminatorNonSSA",
             "OverlappingRecursiveStorageStructCopyCorruption",
             "OverlappingRecursiveStorageStructCopyCorruptionViaIR",
             "YulOptimizerKnowledgeBaseStaleBookkeeping",
@@ -2272,6 +2287,7 @@
     },
     "0.8.28": {
         "bugs": [
+            "UnusedStoreEliminatorNonSSA",
             "OverlappingRecursiveStorageStructCopyCorruption",
             "OverlappingRecursiveStorageStructCopyCorruptionViaIR",
             "YulOptimizerKnowledgeBaseStaleBookkeeping",
@@ -2286,6 +2302,7 @@
     },
     "0.8.29": {
         "bugs": [
+            "UnusedStoreEliminatorNonSSA",
             "OverlappingRecursiveStorageStructCopyCorruption",
             "OverlappingRecursiveStorageStructCopyCorruptionViaIR",
             "YulOptimizerKnowledgeBaseStaleBookkeeping",
@@ -2319,6 +2336,7 @@
     },
     "0.8.30": {
         "bugs": [
+            "UnusedStoreEliminatorNonSSA",
             "OverlappingRecursiveStorageStructCopyCorruption",
             "OverlappingRecursiveStorageStructCopyCorruptionViaIR",
             "YulOptimizerKnowledgeBaseStaleBookkeeping",
@@ -2334,6 +2352,7 @@
     },
     "0.8.31": {
         "bugs": [
+            "UnusedStoreEliminatorNonSSA",
             "OverlappingRecursiveStorageStructCopyCorruption",
             "OverlappingRecursiveStorageStructCopyCorruptionViaIR",
             "YulOptimizerKnowledgeBaseStaleBookkeeping",
@@ -2349,6 +2368,7 @@
     },
     "0.8.32": {
         "bugs": [
+            "UnusedStoreEliminatorNonSSA",
             "OverlappingRecursiveStorageStructCopyCorruption",
             "OverlappingRecursiveStorageStructCopyCorruptionViaIR",
             "YulOptimizerKnowledgeBaseStaleBookkeeping",
@@ -2363,6 +2383,7 @@
     },
     "0.8.33": {
         "bugs": [
+            "UnusedStoreEliminatorNonSSA",
             "OverlappingRecursiveStorageStructCopyCorruption",
             "OverlappingRecursiveStorageStructCopyCorruptionViaIR",
             "YulOptimizerKnowledgeBaseStaleBookkeeping",
@@ -2377,6 +2398,7 @@
     },
     "0.8.34": {
         "bugs": [
+            "UnusedStoreEliminatorNonSSA",
             "OverlappingRecursiveStorageStructCopyCorruption",
             "OverlappingRecursiveStorageStructCopyCorruptionViaIR",
             "YulOptimizerKnowledgeBaseStaleBookkeeping",
@@ -2390,6 +2412,7 @@
     },
     "0.8.35": {
         "bugs": [
+            "UnusedStoreEliminatorNonSSA",
             "OverlappingRecursiveStorageStructCopyCorruption",
             "OverlappingRecursiveStorageStructCopyCorruptionViaIR",
             "YulOptimizerKnowledgeBaseStaleBookkeeping",
@@ -2403,6 +2426,7 @@
     },
     "0.8.36": {
         "bugs": [
+            "UnusedStoreEliminatorNonSSA",
             "OverlappingRecursiveStorageStructCopyCorruption",
             "OverlappingRecursiveStorageStructCopyCorruptionViaIR",
             "YulOptimizerKnowledgeBaseStaleBookkeeping",
@@ -2414,6 +2438,7 @@
     },
     "0.8.37": {
         "bugs": [
+            "UnusedStoreEliminatorNonSSA",
             "OverlappingRecursiveStorageStructCopyCorruption",
             "OverlappingRecursiveStorageStructCopyCorruptionViaIR",
             "YulOptimizerKnowledgeBaseStaleBookkeeping"
@@ -2422,13 +2447,16 @@
     },
     "0.8.38": {
         "bugs": [
+            "UnusedStoreEliminatorNonSSA",
             "OverlappingRecursiveStorageStructCopyCorruption",
             "OverlappingRecursiveStorageStructCopyCorruptionViaIR"
         ],
         "released": "2026-10-22"
     },
     "0.8.39": {
-        "bugs": [],
+        "bugs": [
+            "UnusedStoreEliminatorNonSSA"
+        ],
         "released": "2026-11-19"
     },
     "0.8.4": {
