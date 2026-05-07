@@ -19,5 +19,6 @@
 //     x := add(x_5, 32)
 //     let b := x
 //     let outLen := 32
+//     mstore(a, 0xAA)
 //     return(b, outLen)
 // }

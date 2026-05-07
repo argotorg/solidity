@@ -46,6 +46,7 @@
 //     function indirect(arg_1, value_2)
 //     {
 //         let loc := arg_1
+//         sstore(loc, value_2)
 //         arg_1 := add(arg_1, 1)
 //         let value1_3 := add(value_2, 1)
 //         sstore(loc, value1_3)

@@ -40,7 +40,7 @@
 //             r := add(r_15, mload(ptr_17))
 //             let r_13 := r
 //             let a := add(ptr_17, 0x20)
-//             let _6 := add(i_16, 1)
+//             mstore(a, add(i_16, 1))
 //             ptr := add(ptr_17, 0x20)
 //             let ptr_14 := ptr
 //         }
