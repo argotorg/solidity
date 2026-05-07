@@ -65,7 +65,12 @@ bool SSAValueTracker::isSSAWithDependencies(Expression const* _expression) const
 	if (_expression == nullptr)
 		return true;
 
-	return std::visit(
+	// Check cache first
+	auto cacheIt = m_isSSACache.find(_expression);
+	if (cacheIt != m_isSSACache.end())
+		return cacheIt->second;
+
+	bool const result = std::visit(
 		util::GenericVisitor{
 			[&](FunctionCall const& _call) {
 				return std::all_of(_call.arguments.begin(), _call.arguments.end(), [&](Expression const& _argument) {
@@ -80,6 +85,9 @@ bool SSAValueTracker::isSSAWithDependencies(Expression const* _expression) const
 		},
 		*_expression
 	);
+
+	m_isSSACache[_expression] = result;
+	return result;
 }
 
 std::set<YulName> SSAValueTracker::ssaVariables(Block const& _ast)
