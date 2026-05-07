@@ -1,5 +1,15 @@
 [
     {
+        "uid": "SOL-2026-4",
+        "name": "UnusedStoreEliminatorWithoutSSATransformation",
+        "summary": "When the UnusedStoreEliminator optimizer step is run on non-SSA AST form, it may result in incorrect removal of storage or memory writes.",
+        "description": "Solidity allows defining custom user-defined optimizer sequences. In version 0.8.13, the unused store eliminator was introduced to remove redundant writes to storage or memory. The bug was in this optimizer step's implementation. It used SSAValueTracker to identify variables that are never assigned. Based on this set of unassigned variables, a knowledge base is created to track current variable values. This knowledge is necessary for deciding whether memory or storage writes can be safely removed. Unfortunately, SSAValueTracker correctly removed assigned variables from the SSA variable set, but failed to remove variables that depend on those assigned variables. This oversight made it possible to construct inline assembly code that was incorrectly optimized by removing necessary writes. As a result, contracts compiled with different optimization sequences could exhibit different runtime behavior. The bug was introduced in version 0.8.13 alongside the unused store eliminator implementation. It was fixed in version 0.8.37 by implementing additional filtering of the variable set returned by SSAValueTracker and extending this set by functions parameters values.",
+        "link": "https://blog.soliditylang.org/2026/X/Y/Z/",
+        "introduced": "0.8.13",
+        "fixed": "0.8.37",
+        "severity": "low"
+    },
+    {
         "uid": "SOL-2026-3",
         "name": "InheritanceOrderReversalOnStorageEndWarning",
         "summary": "Emitting a warning about storage base location being too close to the storage end unintentionally reversed the ``linearizedBaseContracts`` annotation, possibly leading to miscompilation due to reversing the order in which inheritance is resolved.",
