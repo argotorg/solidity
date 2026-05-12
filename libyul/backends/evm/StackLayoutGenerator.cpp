@@ -42,6 +42,9 @@
 #include <range/v3/view/take_last.hpp>
 #include <range/v3/view/transform.hpp>
 
+#include <cstdlib>
+#include <iostream>
+
 using namespace solidity;
 using namespace solidity::yul;
 
@@ -115,9 +118,13 @@ StackLayoutGenerator::StackLayoutGenerator(
 namespace
 {
 /// @returns all stack too deep errors that would occur when shuffling @a _source to @a _target.
+/// If the underlying shuffler aborts (e.g. "Could not create stack layout after 1000 iterations"),
+/// the source and target stacks are printed to stderr when the environment variable
+/// YUL_DEBUG_DUMP_SHUFFLE_FAILURE is set, then the exception is rethrown unchanged.
 std::vector<StackLayoutGenerator::StackTooDeep> findStackTooDeep(
 	Stack const& _source,
 	Stack const& _target,
+	Dialect const& _dialect,
 	size_t _reachableStackDepth
 )
 {
@@ -131,33 +138,52 @@ std::vector<StackLayoutGenerator::StackTooDeep> findStackTooDeep(
 					result.push_back(variableSlot->variable.get().name);
 		return result;
 	};
-	::createStackLayout(
-		currentStack,
-		_target,
-		[&](unsigned _i)
-		{
-			if (_i > _reachableStackDepth)
-				stackTooDeepErrors.emplace_back(StackLayoutGenerator::StackTooDeep{
-					_i - _reachableStackDepth,
-					getVariableChoices(currentStack | ranges::views::take_last(_i + 1))
-				});
-		},
-		[&](StackSlot const& _slot)
-		{
-			if (canBeFreelyGenerated(_slot))
-				return;
-			if (
-				auto depth = util::findOffset(currentStack | ranges::views::reverse, _slot);
-				depth && *depth >= _reachableStackDepth
-			)
-				stackTooDeepErrors.emplace_back(StackLayoutGenerator::StackTooDeep{
-					*depth - (_reachableStackDepth - 1),
-					getVariableChoices(currentStack | ranges::views::take_last(*depth + 1))
-				});
-		},
-		[&]() {},
-		_reachableStackDepth
-	);
+	try
+	{
+		::createStackLayout(
+			currentStack,
+			_target,
+			[&](unsigned _i)
+			{
+				if (_i > _reachableStackDepth)
+					stackTooDeepErrors.emplace_back(StackLayoutGenerator::StackTooDeep{
+						_i - _reachableStackDepth,
+						getVariableChoices(currentStack | ranges::views::take_last(_i + 1))
+					});
+			},
+			[&](StackSlot const& _slot)
+			{
+				if (canBeFreelyGenerated(_slot))
+					return;
+				if (
+					auto depth = util::findOffset(currentStack | ranges::views::reverse, _slot);
+					depth && *depth >= _reachableStackDepth
+				)
+					stackTooDeepErrors.emplace_back(StackLayoutGenerator::StackTooDeep{
+						*depth - (_reachableStackDepth - 1),
+						getVariableChoices(currentStack | ranges::views::take_last(*depth + 1))
+					});
+			},
+			[&]() {},
+			_reachableStackDepth
+		);
+	}
+	catch (YulAssertion const&)
+	{
+		// Emit a self-contained snippet in the StackShufflingTest `.stack` format
+		// (see test/libyul/yulStackShuffling/*.stack) so the failing input can be
+		// dropped into the test suite verbatim.
+		if (std::getenv("YUL_DEBUG_DUMP_SHUFFLE_FAILURE"))
+			std::cerr
+				<< "// findStackTooDeep aborted"
+				<< " (source.size=" << _source.size()
+				<< ", target.size=" << _target.size() << ")\n"
+				<< stackToString(_source, _dialect) << "\n"
+				<< stackToString(_target, _dialect) << "\n"
+				<< "// ====\n"
+				<< "// maximumStackDepth: " << _reachableStackDepth << std::endl;
+		throw;
+	}
 	return stackTooDeepErrors;
 }
 
@@ -348,7 +374,7 @@ Stack StackLayoutGenerator::propagateStackThroughBlock(Stack _exitStack, CFG::Ba
 	for (auto&& [idx, operation]: _block.operations | ranges::views::enumerate | ranges::views::reverse)
 	{
 		Stack newStack = propagateStackThroughOperation(stack, operation, _aggressiveStackCompression);
-		if (!_aggressiveStackCompression && !findStackTooDeep(newStack, stack, reachableStackDepth()).empty())
+		if (!_aggressiveStackCompression && !findStackTooDeep(newStack, stack, m_evmDialect, reachableStackDepth()).empty())
 			// If we had stack errors, run again with aggressive stack compression.
 			return propagateStackThroughBlock(std::move(_exitStack), _block, true);
 		stack = std::move(newStack);
@@ -671,7 +697,7 @@ std::vector<StackLayoutGenerator::StackTooDeep> StackLayoutGenerator::reportStac
 		{
 			Stack& operationEntry = m_layout.operationEntryLayout.at(&operation);
 
-			stackTooDeepErrors += findStackTooDeep(currentStack, operationEntry, reachableStackDepth());
+			stackTooDeepErrors += findStackTooDeep(currentStack, operationEntry, m_evmDialect, reachableStackDepth());
 			currentStack = operationEntry;
 			for (size_t i = 0; i < operation.input.size(); i++)
 				currentStack.pop_back();
@@ -685,7 +711,7 @@ std::vector<StackLayoutGenerator::StackTooDeep> StackLayoutGenerator::reportStac
 			[&](CFG::BasicBlock::Jump const& _jump)
 			{
 				Stack const& targetLayout = m_layout.blockInfos.at(_jump.target).entryLayout;
-				stackTooDeepErrors += findStackTooDeep(currentStack, targetLayout, reachableStackDepth());
+				stackTooDeepErrors += findStackTooDeep(currentStack, targetLayout, m_evmDialect, reachableStackDepth());
 
 				if (!_jump.backwards)
 					_addChild(_jump.target);
@@ -696,7 +722,7 @@ std::vector<StackLayoutGenerator::StackTooDeep> StackLayoutGenerator::reportStac
 					m_layout.blockInfos.at(_conditionalJump.zero).entryLayout,
 					m_layout.blockInfos.at(_conditionalJump.nonZero).entryLayout
 				})
-					stackTooDeepErrors += findStackTooDeep(currentStack, targetLayout, reachableStackDepth());
+					stackTooDeepErrors += findStackTooDeep(currentStack, targetLayout, m_evmDialect, reachableStackDepth());
 
 				_addChild(_conditionalJump.zero);
 				_addChild(_conditionalJump.nonZero);
