@@ -1317,6 +1317,7 @@ BOOST_AUTO_TEST_CASE(optimizer_settings_details_different)
 				"jumpdestRemover" : true,
 				"orderLiterals" : false,
 				"peephole" : true,
+				"memoryMasks": false,
 				"yul": true,
 				"inliner": true
 			} }
@@ -1345,6 +1346,7 @@ BOOST_AUTO_TEST_CASE(optimizer_settings_details_different)
 	BOOST_CHECK(optimizer["details"]["jumpdestRemover"].get<bool>() == true);
 	BOOST_CHECK(optimizer["details"]["orderLiterals"].get<bool>() == false);
 	BOOST_CHECK(optimizer["details"]["peephole"].get<bool>() == true);
+	BOOST_CHECK(optimizer["details"]["memoryMasks"].get<bool>() == false);
 	BOOST_CHECK(optimizer["details"]["yul"].get<bool>() == true);
 	BOOST_CHECK(optimizer["details"]["yulDetails"].is_object());
 //	BOOST_CHECK(
@@ -1356,7 +1358,7 @@ BOOST_AUTO_TEST_CASE(optimizer_settings_details_different)
 		optimizer["details"]["yulDetails"]["optimizerSteps"].get<std::string>() ==
 		OptimiserSettings::DefaultYulOptimiserSteps + ":"s + OptimiserSettings::DefaultYulOptimiserCleanupSteps
  	);
-	BOOST_CHECK_EQUAL(optimizer["details"].size(), 10);
+	BOOST_CHECK_EQUAL(optimizer["details"].size(), 11);
 	BOOST_CHECK(optimizer["runs"].get<unsigned>() == 600);
 }
 

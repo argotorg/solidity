@@ -204,6 +204,17 @@ simplifies to this:
     data[7] = 9;
     return 1;
 
+Constant Optimizer
+------------------
+
+The opcode-based constant optimizer can replace large literal constants by shorter code that
+computes the same value. For byte-aligned, right-aligned masks of ``0xff`` bytes that would
+otherwise be emitted literally or computed, the compiler may reserve a memory area containing a
+zero word followed by an all-ones word and materialize the mask with ``MLOAD``. This behavior is
+controlled by the Standard JSON ``memoryMasks`` optimizer detail and defaults to enabled when
+either the constant optimizer or the Yul optimizer is enabled and the optimizer ``runs`` value is at
+most ``200``.
+
 Simple Inlining
 ---------------
 

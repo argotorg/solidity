@@ -1033,7 +1033,7 @@ std::string IRGenerator::deployCode(ContractDefinition const& _contract)
 	if (eof)
 	{
 		t("library", _contract.isLibrary());
-		t("auxDataStart", std::to_string(CompilerUtils::generalPurposeMemoryStart));
+		t("auxDataStart", std::to_string(m_context.generalPurposeMemoryStart()));
 		solAssert(m_context.reservedMemorySize() <= 0xFFFF, "Reserved memory size exceeded maximum allowed EOF data section size.");
 		t("auxDataSize", std::to_string(m_context.reservedMemorySize()));
 	}
@@ -1134,7 +1134,7 @@ std::string IRGenerator::memoryInit(bool _useMemoryGuard)
 	// This function should be called at the beginning of the EVM call frame
 	// and thus can assume all memory to be zero, including the contents of
 	// the "zero memory area" (the position CompilerUtils::zeroPointer points to).
-	return
+	std::string memoryInit =
 		Whiskers{
 			_useMemoryGuard ?
 			"mstore(<memPtr>, memoryguard(<freeMemoryStart>))" :
@@ -1143,8 +1143,15 @@ std::string IRGenerator::memoryInit(bool _useMemoryGuard)
 		("memPtr", std::to_string(CompilerUtils::freeMemoryPointer))
 		(
 			"freeMemoryStart",
-			std::to_string(CompilerUtils::generalPurposeMemoryStart + m_context.reservedMemory())
+			std::to_string(m_context.generalPurposeMemoryStart() + m_context.reservedMemory())
 		).render();
+
+	if (!m_context.useMemoryMasks())
+		return memoryInit;
+
+	return Whiskers{"mstore(<maskPtr>, not(0))\n" + memoryInit}
+		("maskPtr", std::to_string(CompilerUtils::maskMemoryPointer))
+		.render();
 }
 
 void IRGenerator::resetContext(ContractDefinition const& _contract, ExecutionContext _context)
@@ -1168,7 +1175,8 @@ void IRGenerator::resetContext(ContractDefinition const& _contract, ExecutionCon
 		m_context.revertStrings(),
 		m_context.sourceIndices(),
 		m_context.debugInfoSelection(),
-		m_context.soliditySourceProvider()
+		m_context.soliditySourceProvider(),
+		_context != ExecutionContext::Creation && m_optimiserSettings.useMemoryMasks()
 	);
 
 	m_context = std::move(newContext);

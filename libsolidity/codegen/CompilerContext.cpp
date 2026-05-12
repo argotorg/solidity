@@ -75,9 +75,14 @@ void CompilerContext::addImmutable(VariableDeclaration const& _variable)
 	solAssert(_variable.immutable(), "Attempted to register a non-immutable variable as immutable.");
 	solUnimplementedAssert(_variable.annotation().type->isValueType(), "Only immutable variables of value type are supported.");
 	solAssert(m_runtimeContext, "Attempted to register an immutable variable for runtime code generation.");
-	m_immutableVariables[&_variable] = CompilerUtils::generalPurposeMemoryStart + *m_reservedMemory;
+	m_immutableVariables[&_variable] = generalPurposeMemoryStart() + *m_reservedMemory;
 	solAssert(_variable.annotation().type->memoryHeadSize() == 32, "Memory writes might overlap.");
 	*m_reservedMemory += _variable.annotation().type->memoryHeadSize();
+}
+
+size_t CompilerContext::generalPurposeMemoryStart() const
+{
+	return CompilerUtils::generalPurposeMemoryStartFor(m_useMemoryMasks);
 }
 
 size_t CompilerContext::immutableMemoryOffset(VariableDeclaration const& _variable) const
@@ -550,6 +555,7 @@ void CompilerContext::optimizeYul(yul::Object& _object, OptimiserSettings const&
 		_optimiserSettings.yulOptimiserSteps,
 		_optimiserSettings.yulOptimiserCleanupSteps,
 		isCreation? std::nullopt : std::make_optional(_optimiserSettings.expectedExecutionsPerDeployment),
+		_optimiserSettings.useMemoryMasks(),
 		_externalIdentifiers
 	);
 

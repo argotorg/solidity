@@ -287,6 +287,9 @@ OptimiserSettings CommandLineOptions::optimiserSettings() const
 			solAssert(settings.yulOptimiserCleanupSteps == OptimiserSettings::DefaultYulOptimiserCleanupSteps);
 	}
 
+	if (input.mode == InputMode::EVMAssemblerJSON)
+		settings.enableMemoryMasks = false;
+
 	return settings;
 }
 

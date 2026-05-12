@@ -26,6 +26,7 @@
 #include <liblangutil/Exceptions.h>
 
 #include <cstddef>
+#include <optional>
 #include <string>
 
 namespace solidity::frontend
@@ -114,6 +115,16 @@ struct OptimiserSettings
 	bool operator==(OptimiserSettings const& _other) const = default;
 	bool operator!=(OptimiserSettings const& _other) const = default;
 
+	bool useMemoryMasks() const
+	{
+		return enableMemoryMasks.value_or(defaultUseMemoryMasks());
+	}
+
+	bool defaultUseMemoryMasks() const
+	{
+		return (runConstantOptimiser || runYulOptimiser) && expectedExecutionsPerDeployment <= 200;
+	}
+
 	/// Move literals to the right of commutative binary operators during code generation.
 	/// This helps exploiting associativity.
 	bool runOrderLiterals = false;
@@ -130,6 +141,9 @@ struct OptimiserSettings
 	/// Constant optimizer, which tries to find better representations that satisfy the given
 	/// size/cost-trade-off.
 	bool runConstantOptimiser = false;
+	/// Use the reserved memory mask region to materialize common mask constants.
+	/// The default is selected from the effective optimiser settings and optimize-runs value.
+	std::optional<bool> enableMemoryMasks = std::nullopt;
 	/// Allow unchecked arithmetic when incrementing the counter of certain kinds of 'for' loop
 	bool simpleCounterForLoopUncheckedIncrement = false;
 	/// Perform more efficient stack allocation for variables during code generation from Yul to bytecode.

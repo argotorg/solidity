@@ -29,6 +29,7 @@
 #include <libsolidity/codegen/ArrayUtils.h>
 #include <libsolidity/codegen/LValue.h>
 #include <libsolutil/FunctionSelector.h>
+#include <libevmasm/MemoryMasking.h>
 #include <libevmasm/Instruction.h>
 #include <libsolutil/Whiskers.h>
 #include <libsolutil/StackTooDeepString.h>
@@ -45,17 +46,29 @@ using solidity::toCompactHexWithPrefix;
 unsigned const CompilerUtils::dataStartOffset = 4;
 size_t const CompilerUtils::freeMemoryPointer = 64;
 size_t const CompilerUtils::zeroPointer = CompilerUtils::freeMemoryPointer + 32;
+size_t const CompilerUtils::maskMemoryPointer = evmasm::MemoryMasking::maskPointer;
 size_t const CompilerUtils::generalPurposeMemoryStart = CompilerUtils::zeroPointer + 32;
+size_t const CompilerUtils::generalPurposeMemoryStartWithMemoryMasks = evmasm::MemoryMasking::memoryStart;
 
 static_assert(CompilerUtils::freeMemoryPointer >= 64, "Free memory pointer must not overlap with scratch area.");
 static_assert(CompilerUtils::zeroPointer >= CompilerUtils::freeMemoryPointer + 32, "Zero pointer must not overlap with free memory pointer.");
 static_assert(CompilerUtils::generalPurposeMemoryStart >= CompilerUtils::zeroPointer + 32, "General purpose memory must not overlap with zero area.");
+static_assert(CompilerUtils::maskMemoryPointer >= CompilerUtils::generalPurposeMemoryStart, "Mask pointer must not overlap with zero area.");
+static_assert(CompilerUtils::generalPurposeMemoryStartWithMemoryMasks >= CompilerUtils::maskMemoryPointer + 32, "General purpose memory must not overlap with mask area.");
+
+size_t CompilerUtils::generalPurposeMemoryStartFor(bool _useMemoryMasks)
+{
+	return _useMemoryMasks ? generalPurposeMemoryStartWithMemoryMasks : generalPurposeMemoryStart;
+}
 
 void CompilerUtils::initialiseFreeMemoryPointer()
 {
 	size_t reservedMemory = m_context.reservedMemory();
-	solAssert(bigint(generalPurposeMemoryStart) + bigint(reservedMemory) < bigint(1) << 63);
-	m_context << (u256(generalPurposeMemoryStart) + reservedMemory);
+	size_t const memoryStart = m_context.generalPurposeMemoryStart();
+	solAssert(bigint(memoryStart) + bigint(reservedMemory) < bigint(1) << 63);
+	if (m_context.useMemoryMasks())
+		m_context << u256(0) << Instruction::NOT << u256(maskMemoryPointer) << Instruction::MSTORE;
+	m_context << (u256(memoryStart) + reservedMemory);
 	storeFreeMemoryPointer();
 }
 

@@ -78,6 +78,7 @@ EVMAssemblyTest::EVMAssemblyTest(std::string const& _filename):
 		"none"
 	);
 	m_optimizerSettings = Assembly::OptimiserSettings::translateSettings(OptimiserSettings::preset(optimizationPreset));
+	m_optimizerSettings.useMemoryMasks = false;
 	size_t defaultExpectedExecutionsPerDeployment = m_optimizerSettings.expectedExecutionsPerDeployment;
 	m_optimizerSettings.expectedExecutionsPerDeployment = m_reader.sizetSetting(
 		"optimizer.expectedExecutionsPerDeployment",

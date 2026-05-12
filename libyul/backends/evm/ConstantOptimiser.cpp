@@ -26,6 +26,8 @@
 #include <libyul/AST.h>
 #include <libyul/Utilities.h>
 
+#include <libevmasm/MemoryMasking.h>
+
 #include <libsolutil/CommonData.h>
 
 #include <variant>
@@ -66,6 +68,11 @@ struct MiniEVMInterpreter
 			return args.at(0) > 255 ? 0 : (args.at(1) << unsigned(args.at(0)));
 		case evmasm::Instruction::NOT:
 			return ~args.at(0);
+		case evmasm::Instruction::MLOAD:
+		{
+			std::optional<u256> value = evmasm::MemoryMasking::constantForOffset(args.at(0).convert_to<size_t>());
+			return *value;
+		}
 		default:
 			yulAssert(false, "Invalid operation generated in constant optimizer.");
 		}
@@ -99,7 +106,7 @@ void ConstantOptimiser::visit(Expression& _e)
 
 		if (
 			Expression const* repr =
-				RepresentationFinder(m_dialect, m_meter, debugDataOf(_e), m_cache)
+				RepresentationFinder(m_dialect, m_meter, debugDataOf(_e), m_cache, m_useMemoryMasks)
 				.tryFindRepresentation(literal.value.value())
 		)
 			_e = ASTCopier{}.translate(*repr);
@@ -116,8 +123,15 @@ Expression const* RepresentationFinder::tryFindRepresentation(u256 const& _value
 	Representation const& repr = findRepresentation(_value);
 	if (std::holds_alternative<Literal>(*repr.expression))
 		return nullptr;
-	else
-		return repr.expression.get();
+	if (m_useMemoryMasks)
+	{
+		if (std::optional<Representation> memoryRepr = memoryMaskRepresentation(_value))
+		{
+			if (memoryRepr->cost <= repr.cost)
+				return (m_cache[_value] = std::move(*memoryRepr)).expression.get();
+		}
+	}
+	return repr.expression.get();
 }
 
 Representation const& RepresentationFinder::findRepresentation(u256 const& _value)
@@ -221,6 +235,16 @@ Representation RepresentationFinder::represent(
 	});
 	repr.cost = m_meter.instructionCosts(*m_dialect.builtin(_instruction).instruction) + _arg1.cost + _arg2.cost;
 	return repr;
+}
+
+std::optional<Representation> RepresentationFinder::memoryMaskRepresentation(u256 const& _value) const
+{
+	std::optional<size_t> offset = evmasm::MemoryMasking::offsetForRightAlignedOnes(_value);
+	if (!offset)
+		return std::nullopt;
+	std::optional<BuiltinHandle> mload = m_dialect.memoryLoadFunctionHandle();
+	yulAssert(mload, "");
+	return represent(*mload, represent(u256(*offset)));
 }
 
 Representation RepresentationFinder::min(Representation _a, Representation _b)

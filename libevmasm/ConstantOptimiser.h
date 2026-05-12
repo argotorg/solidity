@@ -51,6 +51,7 @@ public:
 		bool _isCreation,
 		size_t _runs,
 		langutil::EVMVersion _evmVersion,
+		bool _useMemoryMasks,
 		Assembly& _assembly
 	);
 
@@ -60,6 +61,7 @@ protected:
 	struct Params
 	{
 		bool isCreation; ///< Whether this is called during contract creation or runtime.
+		bool useMemoryMasks; ///< Whether the reserved memory mask region may be used.
 		size_t runs; ///< Estimated number of calls per opcode oven the lifetime of the contract.
 		size_t multiplicity; ///< Number of times the constant appears in the code.
 		langutil::EVMVersion evmVersion; ///< Version of the EVM
@@ -147,6 +149,22 @@ protected:
 
 	/// Counter for the complexity of optimization, will stop when it reaches zero.
 	size_t m_maxSteps = 10000;
+	AssemblyItems m_routine;
+};
+
+/**
+ * Method that loads byte-aligned right-aligned masks from the reserved memory mask region.
+ */
+class MemoryLoadMethod: public ConstantOptimisationMethod
+{
+public:
+	MemoryLoadMethod(Params const& _params, u256 const& _value);
+
+	bool valid() const { return !m_routine.empty(); }
+	bigint gasNeeded() const override;
+	AssemblyItems execute(Assembly&) const override { return m_routine; }
+
+private:
 	AssemblyItems m_routine;
 };
 

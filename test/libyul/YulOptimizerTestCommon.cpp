@@ -108,6 +108,13 @@ YulOptimizerTestCommon::YulOptimizerTestCommon(std::shared_ptr<Object const> _ob
 			ConstantOptimiser{dynamic_cast<EVMDialect const&>(*m_object->dialect()), meter}(block);
 			return block;
 		}},
+		{"constantOptimiserWithMemoryMasks", [&]() {
+			auto block = std::get<Block>(ASTCopier{}(m_object->code()->root()));
+			updateContext(block);
+			GasMeter meter(dynamic_cast<EVMDialect const&>(*m_object->dialect()), false, 200);
+			ConstantOptimiser{dynamic_cast<EVMDialect const&>(*m_object->dialect()), meter, true}(block);
+			return block;
+		}},
 		{"varDeclInitializer", [&]() {
 			auto block = std::get<Block>(ASTCopier{}(m_object->code()->root()));
 			updateContext(block);
@@ -420,7 +427,8 @@ YulOptimizerTestCommon::YulOptimizerTestCommon(std::shared_ptr<Object const> _ob
 				true,
 				frontend::OptimiserSettings::DefaultYulOptimiserSteps,
 				frontend::OptimiserSettings::DefaultYulOptimiserCleanupSteps,
-				frontend::OptimiserSettings::standard().expectedExecutionsPerDeployment
+				frontend::OptimiserSettings::standard().expectedExecutionsPerDeployment,
+				false
 			);
 			return std::get<Block>(ASTCopier{}(m_optimizedObject->code()->root()));
 		}},

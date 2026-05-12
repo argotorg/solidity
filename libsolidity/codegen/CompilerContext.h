@@ -80,6 +80,10 @@ public:
 
 	langutil::EVMVersion const& evmVersion() const { return m_evmVersion; }
 
+	void setUseMemoryMasks(bool _value) { m_useMemoryMasks = _value; }
+	bool useMemoryMasks() const { return m_useMemoryMasks; }
+	size_t generalPurposeMemoryStart() const;
+
 	void setUseABICoderV2(bool _value) { m_useABICoderV2 = _value; }
 	bool useABICoderV2() const { return m_useABICoderV2; }
 
@@ -352,6 +356,7 @@ private:
 	/// Version of the EVM to compile against.
 	langutil::EVMVersion m_evmVersion;
 	RevertStrings const m_revertStrings;
+	bool m_useMemoryMasks = false;
 	bool m_useABICoderV2 = false;
 	/// Other already compiled contracts to be used in contract creation calls.
 	std::map<ContractDefinition const*, std::shared_ptr<Compiler const>> m_otherCompilers;

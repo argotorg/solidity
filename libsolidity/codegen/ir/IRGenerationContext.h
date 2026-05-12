@@ -63,12 +63,14 @@ public:
 		RevertStrings _revertStrings,
 		std::map<std::string, unsigned> _sourceIndices,
 		langutil::DebugInfoSelection const& _debugInfoSelection,
-		langutil::CharStreamProvider const* _soliditySourceProvider
+		langutil::CharStreamProvider const* _soliditySourceProvider,
+		bool _useMemoryMasks
 	):
 		m_evmVersion(_evmVersion),
 		m_eofVersion(_eofVersion),
 		m_executionContext(_executionContext),
 		m_revertStrings(_revertStrings),
+		m_useMemoryMasks(_useMemoryMasks),
 		m_sourceIndices(std::move(_sourceIndices)),
 		m_debugInfoSelection(_debugInfoSelection),
 		m_soliditySourceProvider(_soliditySourceProvider)
@@ -113,6 +115,8 @@ public:
 	/// to after the area used for immutables.
 	size_t reservedMemory();
 	size_t reservedMemorySize() const;
+	size_t generalPurposeMemoryStart() const;
+	bool useMemoryMasks() const { return m_useMemoryMasks; }
 
 	void addStateVariable(VariableDeclaration const& _varDecl, u256 _storageOffset, unsigned _byteOffset);
 	bool isStateVariable(VariableDeclaration const& _varDecl) const { return m_stateVariables.count(&_varDecl); }
@@ -184,6 +188,7 @@ private:
 	std::optional<uint8_t> m_eofVersion;
 	ExecutionContext m_executionContext;
 	RevertStrings m_revertStrings;
+	bool m_useMemoryMasks = false;
 	std::map<std::string, unsigned> m_sourceIndices;
 	std::set<std::string> m_usedSourceNames;
 	ContractDefinition const* m_mostDerivedContract = nullptr;

@@ -34,6 +34,7 @@
 #include <tuple>
 #include <map>
 #include <memory>
+#include <optional>
 
 namespace solidity::yul
 {
@@ -48,9 +49,10 @@ class GasMeter;
 class ConstantOptimiser: public ASTModifier
 {
 public:
-	ConstantOptimiser(EVMDialect const& _dialect, GasMeter const& _meter):
+	ConstantOptimiser(EVMDialect const& _dialect, GasMeter const& _meter, bool _useMemoryMasks = false):
 		m_dialect(_dialect),
-		m_meter(_meter)
+		m_meter(_meter),
+		m_useMemoryMasks(_useMemoryMasks)
 	{}
 
 	void visit(Expression& _e) override;
@@ -64,6 +66,7 @@ public:
 private:
 	EVMDialect const& m_dialect;
 	GasMeter const& m_meter;
+	bool m_useMemoryMasks = false;
 	std::map<u256, Representation> m_cache;
 };
 
@@ -75,12 +78,14 @@ public:
 		EVMDialect const& _dialect,
 		GasMeter const& _meter,
 		langutil::DebugData::ConstPtr _debugData,
-		std::map<u256, Representation>& _cache
+		std::map<u256, Representation>& _cache,
+		bool _useMemoryMasks
 	):
 		m_dialect(_dialect),
 		m_meter(_meter),
 		m_debugData(std::move(_debugData)),
-		m_cache(_cache)
+		m_cache(_cache),
+		m_useMemoryMasks(_useMemoryMasks)
 	{}
 
 	/// @returns a cheaper representation for the number than its representation
@@ -95,6 +100,7 @@ private:
 	Representation represent(u256 const& _value) const;
 	Representation represent(BuiltinHandle const& _instruction, Representation const& _arg) const;
 	Representation represent(BuiltinHandle const& _instruction, Representation const& _arg1, Representation const& _arg2) const;
+	std::optional<Representation> memoryMaskRepresentation(u256 const& _value) const;
 
 	Representation min(Representation _a, Representation _b);
 
@@ -104,6 +110,7 @@ private:
 	/// Counter for the complexity of optimization, will stop when it reaches zero.
 	size_t m_maxSteps = 10000;
 	std::map<u256, Representation>& m_cache;
+	bool m_useMemoryMasks = false;
 };
 
 }

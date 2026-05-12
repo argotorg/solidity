@@ -311,8 +311,13 @@ public:
 	static size_t const freeMemoryPointer;
 	/// Position of the memory slot that is always zero.
 	static size_t const zeroPointer;
+	/// Position of the memory slot containing all ones when memory masks are enabled.
+	static size_t const maskMemoryPointer;
 	/// Starting offset for memory available to the user (aka the contract).
 	static size_t const generalPurposeMemoryStart;
+	/// Starting offset for memory available to the user when memory masks are enabled.
+	static size_t const generalPurposeMemoryStartWithMemoryMasks;
+	static size_t generalPurposeMemoryStartFor(bool _useMemoryMasks);
 
 private:
 	/// Appends code that cleans higher-order bits for integer types.

@@ -136,7 +136,8 @@ void YulStack::optimize()
 				optimizeStackAllocation,
 				yulOptimiserSteps,
 				yulOptimiserCleanupSteps,
-				m_optimiserSettings.expectedExecutionsPerDeployment
+				m_optimiserSettings.expectedExecutionsPerDeployment,
+				m_hasMemoryMaskPrologue && m_optimiserSettings.useMemoryMasks()
 			}
 		);
 

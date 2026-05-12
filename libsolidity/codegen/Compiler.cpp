@@ -56,6 +56,7 @@ void Compiler::compileContract(
 	// This might modify m_runtimeContext because it can access runtime functions at
 	// creation time.
 	OptimiserSettings creationSettings{m_optimiserSettings};
+	creationSettings.enableMemoryMasks = false;
 	// The creation code will be executed at most once, so we modify the optimizer
 	// settings accordingly.
 	creationSettings.expectedExecutionsPerDeployment = 1;

@@ -23,6 +23,7 @@
 #include <libevmasm/ConstantOptimiser.h>
 #include <libevmasm/Assembly.h>
 #include <libevmasm/GasMeter.h>
+#include <libevmasm/MemoryMasking.h>
 
 using namespace solidity;
 using namespace solidity::evmasm;
@@ -31,6 +32,7 @@ unsigned ConstantOptimisationMethod::optimiseConstants(
 	bool _isCreation,
 	size_t _runs,
 	langutil::EVMVersion _evmVersion,
+	bool _useMemoryMasks,
 	Assembly& _assembly
 )
 {
@@ -53,27 +55,38 @@ unsigned ConstantOptimisationMethod::optimiseConstants(
 			Params params;
 			params.multiplicity = it.second;
 			params.isCreation = _isCreation;
+			params.useMemoryMasks = _useMemoryMasks;
 			params.runs = _runs;
 			params.evmVersion = _evmVersion;
 			LiteralMethod lit(params, item.data());
 			bigint literalGas = lit.gasNeeded();
-			CodeCopyMethod copy(params, item.data());
-			bigint copyGas = copy.gasNeeded();
-			ComputeMethod compute(params, item.data());
-			bigint computeGas = compute.gasNeeded();
 			AssemblyItems replacement;
-			if (copyGas < literalGas && copyGas < computeGas)
+			if (params.useMemoryMasks)
 			{
-				replacement = copy.execute(_assembly);
-				optimisations++;
+				MemoryLoadMethod memoryLoad(params, item.data());
+				if (memoryLoad.valid() && memoryLoad.gasNeeded() < literalGas)
+					replacement = memoryLoad.execute(_assembly);
 			}
-			else if (computeGas < literalGas && computeGas <= copyGas)
+			if (replacement.empty())
 			{
-				replacement = compute.execute(_assembly);
-				optimisations++;
+				CodeCopyMethod copy(params, item.data());
+				bigint copyGas = copy.gasNeeded();
+				ComputeMethod compute(params, item.data());
+				bigint computeGas = compute.gasNeeded();
+				if (copyGas < literalGas && copyGas < computeGas)
+				{
+					replacement = copy.execute(_assembly);
+				}
+				else if (computeGas < literalGas && computeGas <= copyGas)
+				{
+					replacement = compute.execute(_assembly);
+				}
 			}
 			if (!replacement.empty())
+			{
+				optimisations++;
 				pendingReplacements[item.data()] = replacement;
+			}
 		}
 		if (!pendingReplacements.empty())
 			replaceConstants(_items, pendingReplacements);
@@ -386,6 +399,23 @@ bigint ComputeMethod::gasNeeded(AssemblyItems const& _routine) const
 		simpleRunGas(_routine, m_params.evmVersion) + numExps * (GasCosts::expGas + GasCosts::expByteGas(m_params.evmVersion)),
 		// Data gas for routine: Some bytes are zero, but we ignore them.
 		bytesRequired(_routine, m_params.evmVersion) * (m_params.isCreation ? GasCosts::txDataNonZeroGas(m_params.evmVersion) : GasCosts::createDataGas),
+		0
+	);
+}
+
+MemoryLoadMethod::MemoryLoadMethod(Params const& _params, u256 const& _value):
+	ConstantOptimisationMethod(_params, _value)
+{
+	if (std::optional<size_t> offset = MemoryMasking::offsetForRightAlignedOnes(_value))
+		m_routine = AssemblyItems{u256(*offset), Instruction::MLOAD};
+}
+
+bigint MemoryLoadMethod::gasNeeded() const
+{
+	solAssert(valid(), "");
+	return combineGas(
+		simpleRunGas(m_routine, m_params.evmVersion),
+		bytesRequired(m_routine, m_params.evmVersion) * (m_params.isCreation ? GasCosts::txDataNonZeroGas(m_params.evmVersion) : GasCosts::createDataGas),
 		0
 	);
 }

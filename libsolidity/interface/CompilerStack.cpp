@@ -860,7 +860,8 @@ YulStack CompilerStack::loadGeneratedIR(std::string const& _ir) const
 		m_optimiserSettings,
 		m_debugInfoSelection,
 		this, // _soliditySourceProvider
-		m_objectOptimizer
+		m_objectOptimizer,
+		true
 	);
 	bool yulAnalysisSuccessful = stack.parseAndAnalyze("", _ir);
 	solAssert(
@@ -1809,6 +1810,8 @@ std::string CompilerStack::createMetadata(Contract const& _contract, bool _forIR
 		details["deduplicate"] = m_optimiserSettings.runDeduplicate;
 		details["cse"] = m_optimiserSettings.runCSE;
 		details["constantOptimizer"] = m_optimiserSettings.runConstantOptimiser;
+		if (m_optimiserSettings.enableMemoryMasks.has_value())
+			details["memoryMasks"] = m_optimiserSettings.useMemoryMasks();
 		details["simpleCounterForLoopUncheckedIncrement"] = m_optimiserSettings.simpleCounterForLoopUncheckedIncrement;
 		details["yul"] = m_optimiserSettings.runYulOptimiser;
 		if (m_optimiserSettings.runYulOptimiser)

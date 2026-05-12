@@ -330,6 +330,10 @@ Input Description
             // Tries to find better representations of literal numbers and strings, that satisfy the
             // size/cost trade-off determined by the 'runs' setting.
             "constantOptimizer": false,
+            // Memory mask constants. Optional. Default: true when either constant or Yul optimizer is enabled and 'runs' <= 200.
+            // Uses a reserved memory region to materialize selected mask constants that the constant
+            // optimizer would otherwise compute.
+            "memoryMasks": false,
             // Unchecked loop increment (codegen-based). Optional. Default: true.
             // Use unchecked arithmetic when incrementing the counter of 'for' loops under certain circumstances.
             // NOTE: Always runs (even with optimization disabled) unless explicitly turned off here.

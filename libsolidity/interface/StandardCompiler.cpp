@@ -503,11 +503,22 @@ std::optional<Json> checkOptimizerKeys(Json const& _input)
 
 std::optional<Json> checkOptimizerDetailsKeys(Json const& _input)
 {
-	static std::set<std::string> keys{"peephole", "inliner", "jumpdestRemover", "orderLiterals", "deduplicate", "cse", "constantOptimizer", "yul", "yulDetails", "simpleCounterForLoopUncheckedIncrement"};
+	static std::set<std::string> keys{"peephole", "inliner", "jumpdestRemover", "orderLiterals", "deduplicate", "cse", "constantOptimizer", "memoryMasks", "yul", "yulDetails", "simpleCounterForLoopUncheckedIncrement"};
 	return checkKeys(_input, keys, "settings.optimizer.details");
 }
 
 std::optional<Json> checkOptimizerDetail(Json const& _details, std::string const& _name, bool& _setting)
+{
+	if (_details.contains(_name))
+	{
+		if (!_details[_name].is_boolean())
+			return formatFatalError(Error::Type::JSONError, "\"settings.optimizer.details." + _name + "\" must be Boolean");
+		_setting = _details[_name].get<bool>();
+	}
+	return {};
+}
+
+std::optional<Json> checkOptimizerDetail(Json const& _details, std::string const& _name, std::optional<bool>& _setting)
 {
 	if (_details.contains(_name))
 	{
@@ -626,6 +637,11 @@ std::variant<OptimiserSettings, Json> parseOptimizerSettings(std::string_view co
 		return *result;
 
 	OptimiserSettings settings = _language == "EVMAssembly" ? OptimiserSettings::none() : OptimiserSettings::minimal();
+	auto finalizeSettings = [&]() {
+		if (_language == "EVMAssembly")
+			settings.enableMemoryMasks = false;
+		return std::move(settings);
+	};
 
 	if (_jsonInput.contains("enabled"))
 	{
@@ -663,6 +679,8 @@ std::variant<OptimiserSettings, Json> parseOptimizerSettings(std::string_view co
 			return *error;
 		if (auto error = checkOptimizerDetail(details, "constantOptimizer", settings.runConstantOptimiser))
 			return *error;
+		if (auto error = checkOptimizerDetail(details, "memoryMasks", settings.enableMemoryMasks))
+			return *error;
 		if (auto error = checkOptimizerDetail(details, "yul", settings.runYulOptimiser))
 			return *error;
 		if (auto error = checkOptimizerDetail(details, "simpleCounterForLoopUncheckedIncrement", settings.simpleCounterForLoopUncheckedIncrement))
@@ -676,7 +694,7 @@ std::variant<OptimiserSettings, Json> parseOptimizerSettings(std::string_view co
 					return formatFatalError(Error::Type::JSONError, "Only optimizerSteps can be set in yulDetails when Yul optimizer is disabled.");
 				if (auto error = checkOptimizerDetailSteps(details["yulDetails"], "optimizerSteps", settings.yulOptimiserSteps, settings.yulOptimiserCleanupSteps, settings.runYulOptimiser))
 					return *error;
-				return {std::move(settings)};
+				return {finalizeSettings()};
 			}
 
 			if (auto result = checkKeys(details["yulDetails"], {"stackAllocation", "optimizerSteps"}, "settings.optimizer.details.yulDetails"))
@@ -687,7 +705,7 @@ std::variant<OptimiserSettings, Json> parseOptimizerSettings(std::string_view co
 				return *error;
 		}
 	}
-	return {std::move(settings)};
+	return {finalizeSettings()};
 }
 
 }

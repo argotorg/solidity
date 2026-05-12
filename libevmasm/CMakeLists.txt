@@ -35,6 +35,8 @@ set(sources
 	KnownState.h
 	LinkerObject.cpp
 	LinkerObject.h
+	MemoryMasking.cpp
+	MemoryMasking.h
 	PathGasMeter.cpp
 	PathGasMeter.h
 	PeepholeOptimiser.cpp

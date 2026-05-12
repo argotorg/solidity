@@ -29,6 +29,7 @@
 #include <libevmasm/JumpdestRemover.h>
 #include <libevmasm/ControlFlowGraph.h>
 #include <libevmasm/BlockDeduplicator.h>
+#include <libevmasm/ConstantOptimiser.h>
 #include <libevmasm/Assembly.h>
 
 #include <boost/test/unit_test.hpp>
@@ -1504,6 +1505,41 @@ BOOST_AUTO_TEST_CASE(jumpdest_removal)
 		items.begin(), items.end(),
 		expectation.begin(), expectation.end()
 	);
+}
+
+BOOST_AUTO_TEST_CASE(constant_optimiser_memory_masks_do_not_load_full_mask)
+{
+	u256 const fullMask = ~u256(0);
+	u256 const thirtyOneByteMask = (u256(1) << 248) - 1;
+
+	Assembly assembly{CommonOptions::get().evmVersion(), false, std::nullopt, {}};
+	assembly.append(fullMask);
+	assembly.append(fullMask);
+	assembly.append(thirtyOneByteMask);
+
+	BOOST_REQUIRE(ConstantOptimisationMethod::optimiseConstants(
+		false,
+		OptimiserSettings{}.expectedExecutionsPerDeployment,
+		CommonOptions::get().evmVersion(),
+		true,
+		assembly
+	) > 0);
+
+	AssemblyItems const& items = assembly.codeSections().at(0).items;
+	BOOST_CHECK(ranges::any_of(items, [](AssemblyItem const& _item) {
+		return _item == AssemblyItem{Instruction::MLOAD};
+	}));
+	for (auto item = items.begin(); item != items.end(); ++item)
+		if (*item == AssemblyItem{Instruction::MLOAD})
+		{
+			BOOST_REQUIRE(item != items.begin());
+			auto const& offset = *std::prev(item);
+			BOOST_CHECK(!(offset.type() == Push && offset.data() == 0x80));
+		}
+	BOOST_CHECK_EQUAL(count(items.begin(), items.end(), AssemblyItem{Instruction::NOT}), 2);
+	BOOST_CHECK(!ranges::any_of(items, [fullMask](AssemblyItem const& _item) {
+		return _item.type() == Push && _item.data() == fullMask;
+	}));
 }
 
 BOOST_AUTO_TEST_CASE(jumpdest_removal_subassemblies, *boost::unit_test::precondition(nonEOF()))

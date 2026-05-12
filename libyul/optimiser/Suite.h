@@ -69,6 +69,7 @@ public:
 		std::string_view _optimisationSequence,
 		std::string_view _optimisationCleanupSequence,
 		std::optional<size_t> _expectedExecutionsPerDeployment,
+		bool _useMemoryMasks,
 		std::set<YulName> const& _externallyUsedIdentifiers = {}
 	);
 
