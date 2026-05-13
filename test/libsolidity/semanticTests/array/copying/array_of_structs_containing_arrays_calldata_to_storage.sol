@@ -1,4 +1,4 @@
-pragma abicoder               v2;
+pragma abicoder v2;
 
 contract C {
     struct S {
@@ -19,8 +19,8 @@ contract C {
         return (s[1].a.length, s[1].a[0]);
     }
 }
-// ====
-// compileViaYul: true
 // ----
 // f((uint256[])[]): 0x20, 3, 0x60, 0x60, 0x60, 0x20, 3, 1, 2, 3 -> 3, 1
 // gas irOptimized: 327461
+// gas legacy: 332254
+// gas legacyOptimized: 327667

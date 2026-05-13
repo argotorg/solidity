@@ -3,6 +3,7 @@
 Language Features:
 
 Compiler Features:
+* Code Generator: Support copying arrays of structs from memory and calldata to storage in the legacy pipeline.
 
 Bugfixes:
 * NatSpec: Disallow `@return` tag in event documentation.

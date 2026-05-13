@@ -15,8 +15,8 @@ contract C {
         return (s[2].a, s[1].b, s[0].c);
     }
 }
-// ====
-// compileViaYul: true
 // ----
 // f() -> 10, 11, 12
 // gas irOptimized: 118796
+// gas legacy: 124947
+// gas legacyOptimized: 119164

@@ -71,18 +71,6 @@ void ArrayUtils::copyArrayToStorage(ArrayType const& _targetType, ArrayType cons
 			"Copying nested calldata dynamic arrays to storage is not implemented in the old code generator."
 		);
 	}
-	else
-	{
-		// TODO: This limitation can now be removed since we use Yul utility functions that handle non-value types correctly.
-		// The old inline assembly implementation couldn't handle copying arrays of non-value types from memory or calldata to storage,
-		// but the Yul functions support them. We keep this check temporarily for backward compatibility.
-		bool fromMemoryOrCalldata = _sourceType.location() == DataLocation::Memory || _sourceType.location() == DataLocation::CallData;
-		solUnimplementedAssert(
-			_sourceType.baseType()->isValueType() || !fromMemoryOrCalldata,
-			"Copying of type " + _sourceType.toString(false) + " to storage is not supported in legacy (only supported by the IR pipeline). " +
-			"Hint: try compiling with `--via-ir` (CLI) or the equivalent `viaIR: true` (Standard JSON)."
-		);
-	}
 
 	if (haveSourceLengthOnStack)
 	{

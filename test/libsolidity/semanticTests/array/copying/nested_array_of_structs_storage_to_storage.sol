@@ -59,11 +59,14 @@ contract C {
         require(dst3[1][0].y == src3[1][0].y);
     }
 }
-// ====
-// compileViaYul: true
 // ----
 // test1()
 // gas irOptimized: 123195
+// gas legacy: 127001
+// gas legacyOptimized: 123387
 // test2()
 // gas irOptimized: 123018
+// gas legacy: 128953
+// gas legacyOptimized: 123394
 // test3()
+// gas legacy: 101976
