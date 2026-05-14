@@ -4052,6 +4052,20 @@ void TypeChecker::endVisit(UsingForDirective const& _usingFor)
 		FunctionDefinition const& functionDefinition =
 			dynamic_cast<FunctionDefinition const&>(*path->annotation().referencedDeclaration);
 
+		// Free functions with an explicit visibility were already flagged by the
+		// SyntaxChecker (error 4126). That error is not fatal, so resolution
+		// continues into this directive and calls `functionDefinition.type()`,
+		// which asserts non-external. Skip the entry to avoid the ICE; the user
+		// will still see the visibility error from the function definition.
+		if (
+			!functionDefinition.libraryFunction() &&
+			functionDefinition.visibility() == Visibility::External
+		)
+		{
+			solAssert(m_errorReporter.hasErrors());
+			continue;
+		}
+
 		FunctionType const* functionType = dynamic_cast<FunctionType const*>(
 			functionDefinition.libraryFunction() ?
 				functionDefinition.typeViaContractName() :
