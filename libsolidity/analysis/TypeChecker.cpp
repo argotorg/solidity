@@ -3329,6 +3329,19 @@ bool TypeChecker::visit(MemberAccess const& _memberAccess)
 
 	_memberAccess.annotation().requiredLookup = requiredLookup;
 
+	// Sanity check. Only module, struct and contract instances as well as contract types can have accessible variables.
+	if (dynamic_cast<VariableDeclaration const*>(_memberAccess.annotation().referencedDeclaration))
+	{
+		if (owningObjectType->category() == Type::Category::TypeType)
+			solAssert(static_cast<TypeType const*>(owningObjectType)->actualType()->category() == Type::Category::Contract);
+		else
+			solAssert(
+				owningObjectType->category() == Type::Category::Module ||
+				owningObjectType->category() == Type::Category::Struct ||
+				owningObjectType->category() == Type::Category::Contract
+			);
+	}
+
 	switch (owningObjectType->category())
 	{
 	case Type::Category::Struct:
@@ -3430,13 +3443,75 @@ bool TypeChecker::visit(MemberAccess const& _memberAccess)
 		}
 		case Type::Category::Contract:
 		{
+			// Member of a contract accessed by the contract name (not contract instance).
+
+			// ContractType has only user-defined members, so accessedMemberAnnotation.referencedDeclaration is not `NULL`.
+			// See `ContractType::nativeMembers` for details.
+			solAssert(_memberAccess.annotation().referencedDeclaration);
 			_memberAccess.annotation().isLValue = _memberAccess.annotation().referencedDeclaration->isLValue();
-			if (
-				auto const* accessedMemberFunctionType = dynamic_cast<FunctionType const*>(type(_memberAccess));
-				accessedMemberFunctionType &&
-				accessedMemberFunctionType->kind() == FunctionType::Kind::Declaration
-			)
-				_memberAccess.annotation().isPure = *_memberAccess.expression().annotation().isPure;
+			// Expressions like `C.foo;`, `C.Ev;` are pure and they must generate `Statement has no effect.` warning.
+			// TODO: However, in case a function this does not allow to assign the expression to a constant variable,
+			// TODO: because of different kind. Left-hand side of the variable declaration never has `Declaration` kind.
+			if (auto const* functionTypeMember = dynamic_cast<FunctionType const*>(_memberAccess.annotation().type))
+			{
+				// By default, all pure function invocation kinds are pure. Additionally, `C.Ev` is pure too.
+				// Note: This means also that a member function of a foreign contract accessed via the contract type
+				// name is pure, but a member function of a library accessed via the library name is not pure, because
+				// `C.foo` cannot be called (it needs a contract instance instead), but `Lib.foo` can be called.
+				if (
+					functionTypeMember->isPure() ||
+					functionTypeMember->kind() == FunctionType::Kind::Event
+				)
+					_memberAccess.annotation().isPure = true;
+				else if (functionTypeMember->kind() == FunctionType::Kind::Internal)
+				{
+					// A variable declaration of constant function pointer.
+					if (
+						auto const* variableDeclarationMember =
+							dynamic_cast<VariableDeclaration const*>(_memberAccess.annotation().referencedDeclaration)
+					)
+						_memberAccess.annotation().isPure = variableDeclarationMember->isConstant();
+					else if (dynamic_cast<FunctionDefinition const*>(_memberAccess.annotation().referencedDeclaration))
+						_memberAccess.annotation().isPure = true;
+					else
+						solAssert(false, "Impossible declaration type for internal function call kind");
+				}
+				else if (functionTypeMember->kind() == FunctionType::Kind::External)
+				{
+					// A variable declaration of constant function pointer.
+					if (
+						auto const* variableDeclarationMember =
+							dynamic_cast<VariableDeclaration const*>(_memberAccess.annotation().referencedDeclaration)
+					)
+						_memberAccess.annotation().isPure = variableDeclarationMember->isConstant();
+					else
+						solAssert(
+							dynamic_cast<FunctionDefinition const*>(_memberAccess.annotation().referencedDeclaration),
+							"Impossible declaration type for external function call kind"
+						);
+				}
+				else
+					// Library function declaration is not pure. It requires the library address.
+					solAssert(functionTypeMember->kind() == FunctionType::Kind::DelegateCall);
+			}
+			else if (auto const* typeTypeMember = dynamic_cast<TypeType const*>(_memberAccess.annotation().type))
+			{
+				solAssert(
+					typeTypeMember->actualType()->category() == Type::Category::Struct ||
+					typeTypeMember->actualType()->category() == Type::Category::Enum ||
+					// Note: We add Contract intentionally, to cover a possible contract nesting case.
+					typeTypeMember->actualType()->category() == Type::Category::Contract ||
+					typeTypeMember->actualType()->category() == Type::Category::UserDefinedValueType,
+					"Impossible `TypeType` category as contract member."
+				);
+				_memberAccess.annotation().isPure = true;
+			}
+			// In case `Base.value` or `Lib.value` and when `value` is constant, the expression is pure.
+			else if (auto const* varDecl = dynamic_cast<VariableDeclaration const*>(_memberAccess.annotation().referencedDeclaration))
+				_memberAccess.annotation().isPure = varDecl->isConstant();
+			else
+				solAssert(false, "Unexpected annotation type");
+
 			break;
 		}
 		case Type::Category::Enum:
@@ -3547,9 +3622,57 @@ bool TypeChecker::visit(MemberAccess const& _memberAccess)
 		break;
 	}
 	case Type::Category::Module:
-		_memberAccess.annotation().isPure = *_memberAccess.expression().annotation().isPure;
+	{
+		// Module has only exported symbols members, so accessedMemberAnnotation.referencedDeclaration is not `NULL`.
+		// See `ModuleType::nativeMembers` for details.
+		solAssert(_memberAccess.annotation().referencedDeclaration);
+		// All currently accessible members via a module type are pure.
+		_memberAccess.annotation().isPure = true;
 		_memberAccess.annotation().isLValue = false;
+
+		// Below only the sanity checks.
+		solAssert(
+			_memberAccess.annotation().type->category() == Type::Category::Function ||
+			_memberAccess.annotation().type->category() == Type::Category::TypeType ||
+			_memberAccess.annotation().type->category() == Type::Category::Module ||
+			dynamic_cast<VariableDeclaration const*>(_memberAccess.annotation().referencedDeclaration),
+			"Impossible member type for module type member access"
+		);
+
+		if (_memberAccess.annotation().type->category() == Type::Category::Function)
+		{
+			auto const* functionTypeMember = static_cast<FunctionType const*>(_memberAccess.annotation().type);
+			solAssert (
+				functionTypeMember->isPure() ||
+				functionTypeMember->kind() == FunctionType::Kind::Event ||
+				functionTypeMember->kind() == FunctionType::Kind::Internal,
+				"Impossible declaration type for function call kind"
+			);
+
+			if (functionTypeMember->kind() == FunctionType::Kind::Internal)
+				solAssert(dynamic_cast<FunctionDefinition const*>(_memberAccess.annotation().referencedDeclaration), "Impossible declaration type for internal function call kind");
+		}
+
+		if (_memberAccess.annotation().type->category() == Type::Category::TypeType)
+		{
+			auto const* typeTypeMember = static_cast<TypeType const*>(_memberAccess.annotation().type);
+			solAssert(
+				typeTypeMember->actualType()->category() == Type::Category::Struct ||
+				typeTypeMember->actualType()->category() == Type::Category::Enum ||
+				typeTypeMember->actualType()->category() == Type::Category::Contract ||
+				typeTypeMember->actualType()->category() == Type::Category::UserDefinedValueType,
+				"Impossible `TypeType` category as module member."
+			);
+		}
+
+		if (
+			auto const* accessedMemberVariableDeclaration =
+				dynamic_cast<VariableDeclaration const*>(_memberAccess.annotation().referencedDeclaration)
+		)
+			solAssert(accessedMemberVariableDeclaration->isConstant(), "Only constant variables are allowed at file level.");
+
 		break;
+	}
 	case Type::Category::Address:
 		if (memberName == "codehash" && !m_evmVersion.hasExtCodeHash())
 			m_errorReporter.typeError(
@@ -3559,6 +3682,47 @@ bool TypeChecker::visit(MemberAccess const& _memberAccess)
 			);
 		_memberAccess.annotation().isLValue = false;
 		break;
+	// Contract instance case
+	case Type::Category::Contract:
+	{
+		solAssert(
+			_memberAccess.annotation().type->category() == Type::Category::Function,
+			"Via contract instance only a function or a variable getter can be accessed."
+		);
+		// When contract is constant its members are also constant.
+		_memberAccess.annotation().isPure = *_memberAccess.expression().annotation().isPure;
+		_memberAccess.annotation().isLValue = false;
+
+		// Below only the sanity checks.
+		if (dynamic_cast<FunctionDefinition const*>(_memberAccess.annotation().referencedDeclaration))
+		{
+			auto const* accessedMemberFunctionType = static_cast<FunctionType const*>(_memberAccess.annotation().type);
+			// In case when an internal library function is attached to a contract, the function invoke kind can be
+			// `Internal` or `DelegateCall`. It depends on the function declaration in the library.
+			solAssert(
+				accessedMemberFunctionType->kind() == FunctionType::Kind::Internal ||
+				accessedMemberFunctionType->kind() == FunctionType::Kind::External ||
+				accessedMemberFunctionType->kind() == FunctionType::Kind::DelegateCall,
+				"Impossible function call kind for contract type member."
+			);
+		}
+		else if (dynamic_cast<VariableDeclaration const*>(_memberAccess.annotation().referencedDeclaration))
+		{
+			// If a constant variable of contract type (owning expression) is pure, then the accessed member is pure.
+			// Note: It does not matter that the being accessed declaration is constant, because when accessing via
+			// a contract instance we always have a getter function but not the variable itself. Moreover, the getter of
+			// a constant variable contained by non-constant contract should not be constant.
+			auto const* accessedMemberFunctionType = static_cast<FunctionType const*>(_memberAccess.annotation().type);
+			solAssert(
+				accessedMemberFunctionType->kind() == FunctionType::Kind::External,
+				"Impossible function call kind for contract type member."
+			);
+		}
+		else
+			solAssert(false, "Invalid declaration type for contract instance member.");
+
+		break;
+	}
 	case Type::Category::Integer:
 	case Type::Category::RationalNumber:
 	case Type::Category::StringLiteral:
@@ -3567,7 +3731,6 @@ bool TypeChecker::visit(MemberAccess const& _memberAccess)
 	case Type::Category::FixedBytes:
 	case Type::Category::Array:
 	case Type::Category::ArraySlice:
-	case Type::Category::Contract:
 	case Type::Category::Enum:
 	case Type::Category::UserDefinedValueType:
 	case Type::Category::Tuple:
@@ -3580,18 +3743,10 @@ bool TypeChecker::visit(MemberAccess const& _memberAccess)
 
 	solAssert(_memberAccess.annotation().isLValue.set());
 
-	// TODO: Leave it for now, but it should be moved to TypeType -> Contract case.
-	// We do not want to change the logic in refactor PR.
-	if (
-		auto const* varDecl = dynamic_cast<VariableDeclaration const*>(_memberAccess.annotation().referencedDeclaration);
-		!_memberAccess.annotation().isPure.set() &&
-		varDecl &&
-		varDecl->isConstant()
-	)
-	{
-		solAssert(owningObjectType->category() != Type::Category::Magic);
-		_memberAccess.annotation().isPure = true;
-	}
+	// // TODO: Leave it for now, but it should be moved to TypeType -> Contract case.
+	// // We do not want to change the logic in refactor PR.
+	// if (dynamic_cast<VariableDeclaration const*>(accessedMemberAnnotation.referencedDeclaration))
+	// 	solAssert(accessedMemberAnnotation.isPure.set());
 
 
 	if (!_memberAccess.annotation().isPure.set())

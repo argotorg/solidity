@@ -144,7 +144,7 @@
                     "id": 10,
                     "isConstant": false,
                     "isLValue": false,
-                    "isPure": false,
+                    "isPure": true,
                     "lValueRequested": false,
                     "memberLocation": "80:1:1",
                     "memberName": "E",

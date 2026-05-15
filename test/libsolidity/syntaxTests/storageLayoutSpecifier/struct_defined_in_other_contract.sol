@@ -8,4 +8,4 @@ contract A {
 
 contract C is A layout at A.SA { }
 // ----
-// TypeError 1139: (115-119): The base slot of the storage layout must be a compile-time constant expression.
+// TypeError 1763: (115-119): The base slot of the storage layout must evaluate to an integer.

@@ -16,3 +16,4 @@ contract C is B {
     }
 }
 // ----
+// Warning 6133: (167-174): Statement has no effect.

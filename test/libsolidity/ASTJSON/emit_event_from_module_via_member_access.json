@@ -970,7 +970,7 @@
                     "id": 60,
                     "isConstant": false,
                     "isLValue": false,
-                    "isPure": false,
+                    "isPure": true,
                     "lValueRequested": false,
                     "memberLocation": "275:17:2",
                     "memberName": "TransferAContract",

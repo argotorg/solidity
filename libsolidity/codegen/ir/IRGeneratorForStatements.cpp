@@ -346,7 +346,7 @@ std::string IRGeneratorForStatements::constantValueFunction(VariableDeclaration 
 				<sourceLocationComment>
 				function <functionName>() -> <ret> {
 					<code>
-					<ret> := <value>
+					<ret> := <identity>(<value>)
 				}
 			)");
 			templ("sourceLocationComment", dispenseLocationComment(_constant, m_context));
@@ -354,6 +354,8 @@ std::string IRGeneratorForStatements::constantValueFunction(VariableDeclaration 
 			IRGeneratorForStatements generator(m_context, m_utils, m_optimiserSettings);
 			solAssert(_constant.value());
 			Type const& constantType = *_constant.type();
+			// Need to use the convert function which is an identity function to handle a case with more than one value.
+			templ("identity", m_utils.conversionFunction(constantType, constantType));
 			templ("value", generator.evaluateExpression(*_constant.value(), constantType).commaSeparatedList());
 			templ("code", generator.code());
 			templ("ret", IRVariable("ret", constantType).commaSeparatedList());

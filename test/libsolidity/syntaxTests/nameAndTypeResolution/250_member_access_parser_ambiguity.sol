@@ -14,3 +14,4 @@ contract C {
     }
 }
 // ----
+// Warning 6133: (228-235): Statement has no effect.
