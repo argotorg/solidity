@@ -3,7 +3,7 @@
 Language Features:
 
 Compiler Features:
-* Constant Optimizer: Compute masks using shifts when optimizing for size; use an ``--optimizer-runs`` value less than 200 for maximum size reduction.
+* Constant Optimizer: More effiecent computed constants. Approximately a 2.9% reduction in optimized bytecode size, along with small improvement in average gas costs.
 
 Bugfixes:
 * NatSpec: Disallow `@return` tag in event documentation.
