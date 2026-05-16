@@ -266,7 +266,7 @@ For a quick reference of all members of address, see :ref:`address_related`.
     .. warning::
         ``transfer`` is deprecated and scheduled for removal.
         Simple ether transfers can still be performed using the :ref:`call function <address_call_functions>`
-        with with an optionally provided maximum amount of gas and empty payload, i.e., ``call{value: <amount>}("")``.
+        with an optionally provided maximum amount of gas and empty payload, i.e., ``call{value: <amount>}("")``.
         By default this forwards all the remaining gas, subject to additional limits imposed by some EVM versions
         (such as the `63/64th rule <https://eips.ethereum.org/EIPS/eip-150>`_ introduced by ``tangerineWhistle``).
         As with any external call, the ``gas`` call option can be used to set a lower limit.
@@ -290,7 +290,7 @@ For a quick reference of all members of address, see :ref:`address_related`.
     .. warning::
         ``send`` is deprecated and scheduled for removal.
         Simple ether transfers can still be performed using the :ref:`call function <address_call_functions>`
-        with with an optionally provided maximum amount of gas and empty payload, i.e., ``call{value: <amount>}("")``.
+        with an optionally provided maximum amount of gas and empty payload, i.e., ``call{value: <amount>}("")``.
         By default this forwards all the remaining gas, subject to additional limits imposed by some EVM versions
         (such as the `63/64th rule <https://eips.ethereum.org/EIPS/eip-150>`_ introduced by ``tangerineWhistle``).
         As with any external call, the ``gas`` call option can be used to set a lower limit.
