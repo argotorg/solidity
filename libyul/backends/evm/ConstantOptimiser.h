@@ -101,8 +101,6 @@ private:
 	EVMDialect const& m_dialect;
 	GasMeter const& m_meter;
 	langutil::DebugData::ConstPtr m_debugData;
-	/// Counter for the complexity of optimization, will stop when it reaches zero.
-	size_t m_maxSteps = 10000;
 	std::map<u256, Representation>& m_cache;
 };
 

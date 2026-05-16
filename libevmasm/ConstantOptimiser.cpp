@@ -87,10 +87,8 @@ bigint ConstantOptimisationMethod::simpleRunGas(AssemblyItems const& _items, lan
 			gas += GasMeter::pushGas(item.data(), _evmVersion);
 		else if (item.type() == Operation)
 		{
-			if (item.instruction() == Instruction::EXP)
-				gas += GasCosts::expGas;
-			else
-				gas += GasMeter::runGas(item.instruction(), _evmVersion);
+			assertThrow(item.instruction() != Instruction::EXP, OptimizerException, "EXP used in constant optimizer.");
+			gas += GasMeter::runGas(item.instruction(), _evmVersion);
 		}
 	return gas;
 }
@@ -246,69 +244,194 @@ AssemblyItems ComputeMethod::execute(Assembly&) const
 	return m_routine;
 }
 
-AssemblyItems ComputeMethod::findRepresentation(u256 const& _value)
+AssemblyItems ComputeMethod::tryNegation(u256 const& _value, AssemblyItems const& _bestSoFar)
 {
-	if (_value < 0x10000)
-		// Very small value, not worth computing
-		return AssemblyItems{_value};
-	else if (numberEncodingSize(~_value) < numberEncodingSize(_value))
-		// Negated is shorter to represent
-		return findRepresentation(~_value) + AssemblyItems{Instruction::NOT};
-	else
+	if (numberEncodingSize(~_value) < numberEncodingSize(_value))
 	{
-		// Decompose value into a * 2**k + b where abs(b) << 2**k
-		// Is not always better, try literal and decomposition method.
-		AssemblyItems routine{u256(_value)};
-		bigint bestGas = gasNeeded(routine);
-		for (unsigned bits = 255; bits > 8 && m_maxSteps > 0; --bits)
+		AssemblyItems newRoutine = findRepresentationRecursive(~_value, 256) + AssemblyItems{Instruction::NOT};
+		if (gasNeeded(newRoutine) < gasNeeded(_bestSoFar))
+			return newRoutine;
+	}
+	return _bestSoFar;
+}
+
+// finds patterns like 000....001111 (a bunch of 1's in the least significant part)
+AssemblyItems ComputeMethod::tryNotZeroShiftRight(u256 const& _value, AssemblyItems const& _bestSoFar)
+{
+	unsigned onesAtEnd = 0;
+	while (((_value >> onesAtEnd) & 1) == 1 && onesAtEnd < 256)
+		++onesAtEnd;
+
+	if ((_value >> onesAtEnd) == 0) // implicitly checks that onesAtEnd > 0
+	{
+		AssemblyItems newRoutine = AssemblyItems{u256(0), Instruction::NOT};
+		newRoutine += AssemblyItems{u256(256 - onesAtEnd), Instruction::SHR};
+		if (gasNeeded(newRoutine) < gasNeeded(_bestSoFar))
+			return newRoutine;
+	}
+	return _bestSoFar;
+}
+
+// finds patterns like 1111.....00000 (a bunch of 1's in the most significant part)
+AssemblyItems ComputeMethod::tryNotZeroShiftLeft(u256 const& _value, AssemblyItems const& _bestSoFar)
+{
+	unsigned onesAtStart = 0;
+	while (onesAtStart < 256 && ((_value >> (255 - onesAtStart)) & 1) == 1)
+		++onesAtStart;
+
+	if ((_value << onesAtStart) == 0) // implicitly checks that onesAtStart > 0
+	{
+		AssemblyItems newRoutine = AssemblyItems{u256(0), Instruction::NOT};
+		newRoutine += AssemblyItems{u256(256 - onesAtStart), Instruction::SHL};
+		if (gasNeeded(newRoutine) < gasNeeded(_bestSoFar))
+			return newRoutine;
+	}
+	return _bestSoFar;
+}
+
+// finds patterns like xxxx00000 (a bunch of 0's in the least significant part)
+AssemblyItems ComputeMethod::tryLeftShift(u256 const& _value, AssemblyItems const& _bestSoFar, unsigned targetBits)
+{
+	unsigned zerosAtEnd = 0;
+	while (((_value >> zerosAtEnd) & 1) == 0 && zerosAtEnd < 256)
+		++zerosAtEnd;
+
+	if (zerosAtEnd >= 16)
+	{
+		AssemblyItems newRoutine = findRepresentationRecursive(_value >> zerosAtEnd, targetBits - zerosAtEnd);
+		newRoutine += AssemblyItems{u256(zerosAtEnd), Instruction::SHL};
+		if (gasNeeded(newRoutine) < gasNeeded(_bestSoFar))
+			return newRoutine;
+	}
+	return _bestSoFar;
+}
+
+// decomposes the constant into a | b at byte boundaries, works well when either side can be represented easily
+// example: 0x2300000000000017
+// note: addition doesn't work better than OR and is conceptually more difficult (overflow, carry, etc)
+// large example with OR:
+// value = fffffffffffffffffffffffdffffffff0000000000000000ffffffffffffffff
+// repr =  PUSH 1 PUSH 61 SHL PUSH 0 NOT PUSH c0 SHR OR PUSH 40 SHL NOT
+AssemblyItems ComputeMethod::tryAorB(u256 const& _value, AssemblyItems const& _bestSoFar, unsigned targetBits)
+{
+	// don't recurse too much
+	if (m_recursionDepth >= 2)
+		return _bestSoFar;
+	m_recursionDepth++;
+	AssemblyItems routine = _bestSoFar;
+	bigint bestGas = gasNeeded(routine);
+	bigint upperBareMinGas = gasNeeded(AssemblyItems{u256(1)} + AssemblyItems{u256(2)} + AssemblyItems{Instruction::SHL});
+	for (unsigned bits = 8; bits < targetBits; bits += 8)
+	{
+		u256 powerOfTwo = u256(1) << bits;
+		u256 upperPart = (_value >> bits) << bits;
+		if (upperPart == 0)
+			break;
+		u256 lowerPart = _value & (powerOfTwo - 1);
+		if (lowerPart != 0)
 		{
-			unsigned gapDetector = unsigned((_value >> (bits - 8)) & 0x1ff);
-			if (gapDetector != 0xff && gapDetector != 0x100)
-				continue;
-
-			u256 powerOfTwo = u256(1) << bits;
-			u256 upperPart = _value >> bits;
-			bigint lowerPart = _value & (powerOfTwo - 1);
-			if ((powerOfTwo - lowerPart) < lowerPart)
-			{
-				lowerPart = lowerPart - powerOfTwo; // make it negative
-				upperPart++;
-			}
-			if (upperPart == 0)
-				continue;
-			if (abs(lowerPart) >= (powerOfTwo >> 8))
-				continue;
-
-			AssemblyItems newRoutine;
-			if (lowerPart != 0)
-				newRoutine += findRepresentation(u256(abs(lowerPart)));
-			if (m_params.evmVersion.hasBitwiseShifting())
-			{
-				newRoutine += findRepresentation(upperPart);
-				newRoutine += AssemblyItems{u256(bits), Instruction::SHL};
-			}
-			else
-			{
-				newRoutine += AssemblyItems{u256(bits), u256(2), Instruction::EXP};
-				if (upperPart != 1)
-					newRoutine += findRepresentation(upperPart) + AssemblyItems{Instruction::MUL};
-			}
-			if (lowerPart > 0)
-				newRoutine += AssemblyItems{Instruction::ADD};
-			else if (lowerPart < 0)
-				newRoutine.push_back(Instruction::SUB);
-
-			if (m_maxSteps > 0)
-				m_maxSteps--;
+			AssemblyItems lowerRep = findRepresentationRecursive(lowerPart, bits);
+			// try an early exit with a mock upper part -- makes a huge speed difference
+			if (gasNeeded(lowerRep) + upperBareMinGas >= gasNeeded(routine)) // it'll never get better, because lower gets more and more complex
+				break;
+			AssemblyItems newRoutine = findRepresentationRecursive(upperPart, targetBits) + lowerRep + AssemblyItems{Instruction::OR};
 			bigint newGas = gasNeeded(newRoutine);
 			if (newGas < bestGas)
 			{
-				bestGas = std::move(newGas);
-				routine = std::move(newRoutine);
+				routine = newRoutine;
+				bestGas = newGas;
 			}
 		}
-		return routine;
 	}
+	m_recursionDepth--;
+	return routine;
+}
+
+// subtraction can cause a lot of bit flips
+// bits that are set cost more to represent, so setting them cheaply is the goal here
+// looks for byte wise subtractions that cause a bit flip in the next byte.
+// 0x12FFFF76 => what do we need to add to 0x76 to flip the next highest bit? 0x100 - 0x76 = 0x8A
+// 0x12FFFF76 = 0x13000000 - 0x8A
+// note: addition doesn't work much better than OR, which is tried above
+// very few real-world bit patterns are optimal with SUB
+// large example:
+// value = 3fffffffffffffffc0 repr =  PUSH 40 PUSH 1 PUSH 46 SHL SUB
+// just beats out PUSH0 NOT PUSH R SHR PUSH L SHL -- same number of bytes, more gas with ~0
+AssemblyItems ComputeMethod::trySub(u256 const& _value, AssemblyItems const& _bestSoFar, unsigned targetBits)
+{
+	// don't recurse too much
+	if (m_recursionDepth >= 2)
+		return _bestSoFar;
+	m_recursionDepth++;
+	AssemblyItems routine = _bestSoFar;
+	u256 lastRhs = 0;
+	for (unsigned bits = 8; bits < 32; bits += 8) //higher bits don't seem to help
+	{
+		u256 powerOfTwo = u256(1) << bits;
+		u256 lowerPart = _value & (powerOfTwo - 1);
+		if (lowerPart != 0)
+		{
+			u256 rhs = powerOfTwo - lowerPart;
+			if (rhs > _value)
+				break;
+			if (lastRhs != rhs) { // don't try the same routine again
+				u256 lhs = _value + rhs; // we want _value = lhs - rhs
+				lastRhs = rhs;
+				AssemblyItems newRoutine = findRepresentationRecursive(rhs, bits) + findRepresentationRecursive(lhs, targetBits + 1) + AssemblyItems{Instruction::SUB};
+				if (gasNeeded(newRoutine) < gasNeeded(routine))
+					routine = newRoutine;
+			}
+		}
+	}
+	m_recursionDepth--;
+	return routine;
+}
+
+AssemblyItems ComputeMethod::findRepresentation(u256 const& _value)
+{
+	AssemblyItems routine = AssemblyItems{_value};
+	if (_value < 0x100000000)
+		// Very small value, always optimal as is; empirically, even at optimize-runs 1, no computation is better
+		// 0x100000000 is the first small number that has a "better" representation than PUSH5: PUSH1 0x1 PUSH1 0x20 SHL
+		// "better" only for low runs
+		return routine;
+
+	return findRepresentationRecursive(_value, 256);
+}
+
+AssemblyItems ComputeMethod::findRepresentationRecursive(u256 const& _value, unsigned targetBits)
+{
+	AssemblyItems routine = AssemblyItems{_value};
+	if (_value < 0x100000000)
+		// Very small value, always optimal as is; empirically, even at optimize-runs 1, no computation is better
+		// 0x100000000 is the first small number that has a "better" representation than PUSH5: PUSH1 0x1 PUSH1 0x20 SHL
+		// "better" only for low runs
+		return routine;
+
+	// filter out numbers with random bit patterns. we want at least 32 contiguous zeros or ones
+	u256 mask32bit = (u256(1) << 32) - 1;
+	bool found = _value < (u256(1) << (targetBits - 32)); // if upper bits are zero, it'll pass the loop test
+	for(unsigned i = 0; i < (targetBits - 32) && !found; i++)
+	{
+		u256 chunk = (_value >> i) & mask32bit;
+		found = chunk == 0 || chunk == mask32bit;
+	}
+	if (!found)
+		return routine;
+
+	if (targetBits >= 256)
+		routine = tryNegation(_value, std::move(routine));
+
+	if (m_params.evmVersion.hasBitwiseShifting())
+	{
+		routine = tryLeftShift(_value, routine, targetBits);
+		routine = tryNotZeroShiftRight(_value, routine);
+		if (targetBits >= 256)
+			routine = tryNotZeroShiftLeft(_value, std::move(routine));
+	}
+	routine = tryAorB(_value, routine, targetBits);
+	routine = trySub(_value, routine, targetBits);
+	return routine;
 }
 
 bool ComputeMethod::checkRepresentation(u256 const& _value, AssemblyItems const& _routine) const
@@ -339,6 +462,9 @@ bool ComputeMethod::checkRepresentation(u256 const& _value, AssemblyItems const&
 				break;
 			case Instruction::SUB:
 				sp[-1] = sp[0] - sp[-1];
+				break;
+			case Instruction::OR:
+				sp[-1] = sp[0] | sp[-1];
 				break;
 			case Instruction::NOT:
 				sp[0] = ~sp[0];
@@ -379,9 +505,8 @@ bool ComputeMethod::checkRepresentation(u256 const& _value, AssemblyItems const&
 
 bigint ComputeMethod::gasNeeded(AssemblyItems const& _routine) const
 {
-	auto numExps = static_cast<size_t>(count(_routine.begin(), _routine.end(), Instruction::EXP));
 	return combineGas(
-		simpleRunGas(_routine, m_params.evmVersion) + numExps * (GasCosts::expGas + GasCosts::expByteGas(m_params.evmVersion)),
+		simpleRunGas(_routine, m_params.evmVersion),
 		// Data gas for routine: Some bytes are zero, but we ignore them.
 		bytesRequired(_routine, m_params.evmVersion) * (m_params.isCreation ? GasCosts::txDataNonZeroGas(m_params.evmVersion) : GasCosts::createDataGas),
 		0
