@@ -108,24 +108,24 @@ contract ERC20 {
 // gas legacyOptimized: 23367
 // transfer(address,uint256): 2, 5 -> true
 // ~ emit Transfer(address,address,uint256): #0x1212121212121212121212121212120000000012, #0x02, 0x05
-// gas irOptimized: 51054
+// gas irOptimized: 51042
 // gas legacy: 52073
-// gas legacyOptimized: 51298
+// gas legacyOptimized: 51278
 // decreaseAllowance(address,uint256): 2, 0 -> true
 // ~ emit Approval(address,address,uint256): #0x1212121212121212121212121212120000000012, #0x02, 0x00
-// gas irOptimized: 26087
+// gas irOptimized: 26071
 // gas legacy: 26977
-// gas legacyOptimized: 26279
+// gas legacyOptimized: 26259
 // decreaseAllowance(address,uint256): 2, 1 -> FAILURE, hex"4e487b71", 0x11
-// gas irOptimized: 23981
+// gas irOptimized: 23973
 // gas legacy: 24462
-// gas legacyOptimized: 24056
+// gas legacyOptimized: 24048
 // transfer(address,uint256): 2, 14 -> true
 // ~ emit Transfer(address,address,uint256): #0x1212121212121212121212121212120000000012, #0x02, 0x0e
-// gas irOptimized: 33954
+// gas irOptimized: 33942
 // gas legacy: 34973
-// gas legacyOptimized: 34198
+// gas legacyOptimized: 34178
 // transfer(address,uint256): 2, 2 -> FAILURE, hex"4e487b71", 0x11
-// gas irOptimized: 24020
+// gas irOptimized: 24008
 // gas legacy: 24445
-// gas legacyOptimized: 24052
+// gas legacyOptimized: 24040
