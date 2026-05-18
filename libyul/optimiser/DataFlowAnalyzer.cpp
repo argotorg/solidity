@@ -107,7 +107,7 @@ void DataFlowAnalyzer::operator()(VariableDeclaration& _varDecl)
 	std::set<YulName> names;
 	for (auto const& var: _varDecl.variables)
 		names.emplace(var.name);
-	m_variableScopes.back().variables += names;
+	m_variableScopes.back().variables.insert(names.begin(), names.end());
 
 	if (_varDecl.value)
 	{
@@ -347,16 +347,21 @@ void DataFlowAnalyzer::clearValues(std::set<YulName> const& _variablesToClear)
 	});
 
 	// Also clear variables that reference variables to be cleared.
-	std::set<YulName> referencingVariablesToClear;
+	std::vector<YulName> referencingVariablesToClear;
 	std::vector const sortedVariablesToClear(_variablesToClear.begin(), _variablesToClear.end());
 	for (auto const& [referencingVariable, referencedVariables]: m_state.sortedReferences)
 		// instead of checking each variable in `referencedVariables`, we check if there is any intersection making use of the
 		// sortedness of the vectors, which can increase performance by up to 50% in pathological cases
 		if (hasNonemptyIntersectionSorted(referencedVariables, sortedVariablesToClear))
-			referencingVariablesToClear.emplace(referencingVariable);
+			referencingVariablesToClear.emplace_back(referencingVariable);
 
 	// Clear the value and update the reference relation.
-	for (auto const& name: _variablesToClear + referencingVariablesToClear)
+	for (auto const& name: _variablesToClear)
+	{
+		m_state.value.erase(name);
+		m_state.sortedReferences.erase(name);
+	}
+	for (auto const& name: referencingVariablesToClear)
 	{
 		m_state.value.erase(name);
 		m_state.sortedReferences.erase(name);
