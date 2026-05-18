@@ -92,7 +92,7 @@ contract C {
 // boundaryArray() -> 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 // destArray() -> 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 // fillBoundaryArray()
-// gas irOptimized: 688719
+// gas irOptimized: 688799
 // gas legacy: 700075
 // gas legacyOptimized: 691605
 // canaryValue() -> 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
@@ -106,7 +106,7 @@ contract C {
 // boundaryArray() -> 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30
 // destArray() -> 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30
 // fillDestArray()
-// gas irOptimized: 175623
+// gas irOptimized: 175703
 // gas legacy: 187093
 // gas legacyOptimized: 178625
 // canaryValue() -> 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff

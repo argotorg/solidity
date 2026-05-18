@@ -88,7 +88,7 @@ contract C {
 // arrayLength() ->0
 // canaryValue() -> 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
 // fillArray()
-// gas irOptimized: 197352
+// gas irOptimized: 196488
 // gas legacy: 220574
 // gas legacyOptimized: 206839
 // arrayLength() ->96

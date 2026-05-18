@@ -3,6 +3,7 @@
 Language Features:
 
 Compiler Features:
+* Constant Optimizer: More effiecent computed constants. Approximately a 2.9% reduction in optimized bytecode size, along with small improvement in average gas costs.
 
 Bugfixes:
 * NatSpec: Disallow `@return` tag in event documentation.
@@ -95,7 +96,6 @@ Build System:
 Compiler Features:
 * EVM: Set default EVM Version to `prague`.
 * NatSpec: Capture Natspec documentation of `enum` values in the AST.
-
 
 Bugfixes:
 * SMTChecker: Do not consider loop conditions as constant-condition verification target as this could cause incorrect reports and internal compiler errors.

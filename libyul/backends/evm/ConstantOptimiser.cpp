@@ -64,6 +64,8 @@ struct MiniEVMInterpreter
 			return exp256(args.at(0), args.at(1));
 		case evmasm::Instruction::SHL:
 			return args.at(0) > 255 ? 0 : (args.at(1) << unsigned(args.at(0)));
+		case evmasm::Instruction::SHR:
+			return args.at(1) >> unsigned(args.at(0));
 		case evmasm::Instruction::NOT:
 			return ~args.at(0);
 		default:
@@ -134,6 +136,59 @@ Representation const& RepresentationFinder::findRepresentation(u256 const& _valu
 	auto const& auxHandles = m_dialect.auxiliaryBuiltinHandles();
 
 	Representation routine = represent(_value);
+
+	// A constant having a single contiguous run of ones, common in masking,
+	// can be efficiently created by first filling with 1's, then shifting
+	// left and/or right as needed to make the sides full of zeros.
+	//
+	//                                  onesEnd     onesStart
+	//                                      v           v
+	// 0x000000000000000000000000000000000000ffffffffffff0000000000000000
+	//
+	// If the value is all zeros, both onesEnd and onesStart will be 256.
+
+	// Find the index of the lowest one 1 bit
+	unsigned onesStart;
+	for (onesStart = 0; onesStart < 256; ++onesStart)
+		if (((_value >> onesStart) & 1) != 0)
+			break;
+
+	// Find the index after the highest one 1 bit in the run of 1's.
+	unsigned onesEnd;
+	for (onesEnd = onesStart; onesEnd < 256; ++onesEnd)
+		if (((_value >> onesEnd) & 1) == 0)
+			break;
+
+	// Check that there are no ones after onesEnd
+	bool const isOnlyContiguousOnes = (onesEnd == 256 || (_value >> onesEnd) == 0);
+
+	bool const worthTrying =
+		_value != 0 && // defensive check
+		m_dialect.evmVersion().hasBitwiseShifting() &&
+		onesEnd - onesStart > 32 && // push would be more efficient otherwise
+		(onesEnd < 256 || onesStart > 16); // negation more effective for 0xFF..FFFF00
+
+	if (isOnlyContiguousOnes && worthTrying)
+	{
+		// Build up the code, starting with a negated 0 to produce all ones.
+		// 0x00 ! ==
+		// 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+		Representation newRoutine = represent(*auxHandles.not_, represent(0));
+
+		// Shift right as needed to create the correct number of 1 bits.
+		// 0x0000000000000000000000000000000000000000000000000000ffffffffffff
+		// If left aligned, we only need a left shift, and skip the right shift.
+		if (onesEnd != 256)
+			newRoutine = represent(*auxHandles.shr, represent(256 - (onesEnd - onesStart)), newRoutine);
+
+		// If needed, shift left to position the bits in the correct place
+		// or to setup a left aligned mask
+		// 0x000000000000000000000000000000000000ffffffffffff0000000000000000
+		if (onesStart > 0)
+			newRoutine = represent(*auxHandles.shl, represent(onesStart), newRoutine);
+		routine = min(std::move(routine), std::move(newRoutine));
+	}
+
 
 	if (numberEncodingSize(~_value) < numberEncodingSize(_value))
 		// Negated is shorter to represent

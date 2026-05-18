@@ -49,6 +49,6 @@ contract C layout at 2**256 - 5 {
 // x() -> 14, 15, 16, 17, 18, 19, 20, 0, 0, 0
 // clearArray()
 // x() -> 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-// gas irOptimized: 44183
+// gas irOptimized: 44199
 // gas legacy: 46007
 // gas legacyOptimized: 43907

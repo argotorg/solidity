@@ -25,7 +25,7 @@
 //         sstore(15, x)
 //         sstore(16, and(_1, not(4095)))
 //         sstore(17, and(_2, sub(shl(248, 1), 16)))
-//         sstore(18, and(_2, sub(shl(244, 1), 1)))
+//         sstore(18, and(_2, shr(12, not(0))))
 //         sstore(19, and(_1, sub(shl(252, 1), 256)))
 //         sstore(20, 0)
 //     }
