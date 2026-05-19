@@ -74,6 +74,8 @@ add_library(yul
 	backends/evm/VariableReferenceCounter.h
 	backends/evm/VariableReferenceCounter.cpp
 	backends/evm/ssa/BridgeFinder.h
+	backends/evm/ssa/CallGraph.cpp
+	backends/evm/ssa/CallGraph.h
 	backends/evm/ssa/CodeTransform.cpp
 	backends/evm/ssa/CodeTransform.h
 	backends/evm/ssa/ControlFlowGraphs.cpp
@@ -105,16 +107,21 @@ add_library(yul
 	backends/evm/ssa/StackToMemorySpilling.h
 	backends/evm/ssa/util/UseCountSet.h
 	backends/evm/ssa/util/TLSFFreeList.h
+	backends/evm/ssa/util/TarjanSCC.h
 	backends/evm/ssa/StackUtils.cpp
 	backends/evm/ssa/StackUtils.h
 	backends/evm/ssa/io/DotExporterBase.cpp
 	backends/evm/ssa/io/DotExporterBase.h
 	backends/evm/ssa/io/JSONExporter.cpp
 	backends/evm/ssa/io/JSONExporter.h
+	backends/evm/ssa/io/Printer.cpp
+	backends/evm/ssa/io/Printer.h
 	backends/evm/ssa/transform/IdentityAndNopRemover.cpp
 	backends/evm/ssa/transform/IdentityAndNopRemover.h
 	backends/evm/ssa/transform/OptimizationPipeline.cpp
 	backends/evm/ssa/transform/OptimizationPipeline.h
+	backends/evm/ssa/transform/Outliner.cpp
+	backends/evm/ssa/transform/Outliner.h
 	backends/evm/ssa/transform/TrivialPhiEliminator.cpp
 	backends/evm/ssa/transform/TrivialPhiEliminator.h
 	backends/evm/ssa/transform/UnreachableBlockCleaner.cpp

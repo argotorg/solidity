@@ -80,7 +80,7 @@ StackData solidity::yul::ssa::stackPreImage(SSACFG const& _cfg, StackData _stack
 	return _stack;
 }
 
-std::size_t solidity::yul::ssa::findOptimalTargetSize
+StackData solidity::yul::ssa::findOptimalTarget
 (
 	StackData const& _stackData,
 	StackData const& _targetArgs,
@@ -141,7 +141,7 @@ std::size_t solidity::yul::ssa::findOptimalTargetSize
 	};
 
 	std::size_t bestCost = evaluateCost(startSize);
-	auto result = startSize;
+	StackData bestData = data;
 
 	// On non-reverting paths, only search downward from pivot to avoid growing the stack.
 	// On reverting paths, search in both directions since stack cleanup doesn't matter.
@@ -157,7 +157,7 @@ std::size_t solidity::yul::ssa::findOptimalTargetSize
 			if (cost <= bestCost)
 			{
 				bestCost = cost;
-				result = size;
+				bestData = data;
 				consecutiveIncreases = 0;
 			}
 			else if (++consecutiveIncreases >= stopAfter)
@@ -174,14 +174,15 @@ std::size_t solidity::yul::ssa::findOptimalTargetSize
 			if (cost < bestCost)
 			{
 				bestCost = cost;
-				result = size;
+				bestData = data;
 				consecutiveIncreases = 0;
 			}
 			else if (++consecutiveIncreases >= stopAfter)
 				break;
 		}
 	}
-	return result;
+
+	return bestData;
 }
 
 CallSites solidity::yul::ssa::gatherCallSites(SSACFG const& _cfg)

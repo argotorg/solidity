@@ -59,7 +59,12 @@ SSACFGBuilder::SSACFGBuilder(
 	m_sideEffects(_sideEffects),
 	m_dialect(_dialect),
 	m_generateDebugInfo(_generateDebugInfo),
-	m_functionRegistry(_functionRegistry)
+	m_functionRegistry(_functionRegistry),
+	m_memoryGuardHandle([&] {
+		auto const memoryGuardHandle = m_dialect.findBuiltin("memoryguard");
+		yulAssert(memoryGuardHandle.has_value(), "We only support EVM dialects that contain memoryguard");
+		return *memoryGuardHandle;
+	}())
 {
 }
 
@@ -444,6 +449,25 @@ InstId SSACFGBuilder::visitFunctionCall(FunctionCall const& _call)
 	InstId const id = std::visit(solidity::util::GenericVisitor{
 		[&](BuiltinName const& _builtinName) -> InstId
 		{
+			// memoryguard(N) is represented as a dedicated MemoryGuard Inst; the boundary value lives in the
+			// corresponding ControlFlowGraphs instance
+			if (_builtinName.handle == m_memoryGuardHandle)
+			{
+				yulAssert(_call.arguments.size() == 1);
+				Literal const* literal = std::get_if<Literal>(&_call.arguments.front());
+				yulAssert(literal && literal->kind == LiteralKind::Number);
+				u256 const value = literal->value.value();
+				if (m_controlFlow.memoryGuard)
+					yulAssert(
+						*m_controlFlow.memoryGuard == value,
+						"memoryguard: inconsistent literal across subobject"
+					);
+				else
+					m_controlFlow.memoryGuard = value;
+				canContinue = m_dialect.builtin(m_memoryGuardHandle).controlFlowSideEffects.canContinue;
+				return m_graph.makeMemoryGuard(m_currentBlock, debugDataOf(_call));
+			}
+
 			auto const& builtin = m_dialect.builtin(_builtinName.handle);
 			yulAssert(_call.arguments.size() == builtin.numParameters);
 			std::vector<Literal> literalArguments;

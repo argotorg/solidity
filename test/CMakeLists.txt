@@ -171,12 +171,17 @@ set(libyul_sources
     libyul/YulOptimizerTest.h
     libyul/YulOptimizerTestCommon.cpp
     libyul/YulOptimizerTestCommon.h
+    libyul/ssa/CallGraphTest.cpp
+    libyul/ssa/CallGraphTest.h
     libyul/ssa/ControlFlowGraphTest.cpp
     libyul/ssa/ControlFlowGraphTest.h
+    libyul/ssa/PrinterTest.cpp
+    libyul/ssa/PrinterTest.h
     libyul/ssa/StackLayoutGeneratorTest.cpp
     libyul/ssa/StackLayoutGeneratorTest.h
     libyul/ssa/StackShufflerTest.cpp
     libyul/ssa/StackShufflerTest.h
+    libyul/ssa/TarjanSCC.cpp
 )
 detect_stray_source_files("${libyul_sources}" "libyul/")
 

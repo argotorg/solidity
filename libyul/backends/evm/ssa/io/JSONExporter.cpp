@@ -48,15 +48,17 @@ Json toJson(Json& _ret, SSACFG const& _cfg, InstId const _instId, ControlFlowGra
 {
 	auto const& inst = _cfg.inst(_instId);
 	Json opJson = Json::object();
-	if (inst.opcode == InstOpcode::Call)
+	switch (inst.opcode)
+	{
+	case InstOpcode::Call:
 	{
 		auto const& callPayload = _cfg.callPayload(_instId);
 		_ret["type"] = "FunctionCall";
 		opJson["op"] = _controlFlow.functionGraph(callPayload.graphID)->name;
+		break;
 	}
-	else
+	case InstOpcode::BuiltinCall:
 	{
-		yulAssert(inst.opcode == InstOpcode::BuiltinCall);
 		auto const& builtinPayload = _cfg.builtinPayload(_instId);
 		_ret["type"] = "BuiltinCall";
 		Json builtinArgsJson = Json::array();
@@ -67,6 +69,14 @@ Json toJson(Json& _ret, SSACFG const& _cfg, InstId const _instId, ControlFlowGra
 			opJson["literalArgs"] = builtinArgsJson;
 
 		opJson["op"] = _cfg.evmDialect.builtin(builtinPayload.builtin).name;
+		break;
+	}
+	case InstOpcode::MemoryGuard:
+		_ret["type"] = "MemoryGuard";
+		opJson["op"] = "memoryguard";
+		break;
+	default:
+		yulAssert(false);
 	}
 
 	opJson["in"] = toJson(_cfg, inst.inputs);
@@ -190,6 +200,8 @@ Json io::json::exportControlFlow(ControlFlowGraphs const& _controlFlow, ControlF
 		yulAssert(&_liveness->controlFlowGraphs.get() == &_controlFlow);
 
 	Json yulObjectJson = Json::object();
+	if (_controlFlow.memoryGuard)
+		yulObjectJson["memoryGuard"] = toCompactHexWithPrefix(*_controlFlow.memoryGuard);
 	yulObjectJson["blocks"] = exportBlock(
 		*_controlFlow.mainGraph(),
 		SSACFG::BlockId{0},

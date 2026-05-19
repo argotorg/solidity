@@ -107,11 +107,11 @@
 // Block0_3 [label="\
 // IN: [phi2, phi8, JUNK]\l\
 // \l\
-// [JUNK, phi8, lit10, phi2]\l\
+// [phi2, phi8, lit10, phi2]\l\
 // add\l\
-// [JUNK, phi8, v19]\l\
+// [phi2, phi8, v19]\l\
 // \l\
-// OUT: [JUNK, phi8, v19]\l\
+// OUT: [phi2, phi8, v19]\l\
 // "];
 // Block0_3 -> Block0_3Exit [arrowhead=none];
 // Block0_3Exit [label="Jump" shape=oval];

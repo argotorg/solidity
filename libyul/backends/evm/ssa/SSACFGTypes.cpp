@@ -35,6 +35,7 @@ std::string InstId::str(SSACFG const& _cfg) const
 	case InstOpcode::FunctionArg:
 	case InstOpcode::Projection:
 	case InstOpcode::Identity:
+	case InstOpcode::MemoryGuard:
 		return fmt::format("v{}", value);
 	case InstOpcode::Phi:
 		return fmt::format("phi{}", value);

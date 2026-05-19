@@ -54,8 +54,9 @@ void transform::removeIdentitiesAndNops(SSACFG& _cfg)
 		case InstOpcode::Phi:
 		case InstOpcode::FunctionArg:
 		case InstOpcode::Unreachable:
+		case InstOpcode::MemoryGuard:
 			// Identity / Nop / Tombstone: rewriting their inputs is pointless as they will be tombstoned
-			// Const / Phi / FunctionArg / Unreachable: can't have identity inputs by construction
+			// Const / Phi / FunctionArg / Unreachable / MemoryGuard: can't have identity inputs by construction
 			break;
 		case InstOpcode::Upsilon:
 		{
@@ -76,7 +77,7 @@ void transform::removeIdentitiesAndNops(SSACFG& _cfg)
 	}
 
 	// Rewrite block-exit references that name InstIds outside `inst.inputs`.
-	for (BlockId blockId{0}; blockId.value < _cfg.numBlocks(); ++blockId.value)
+	for (BlockId const blockId: _cfg.liveBlocks())
 		std::visit(solidity::util::GenericVisitor{
 			[&](SSACFG::BasicBlock::ConditionalJump& c) { c.condition = _cfg.resolveIdentity(c.condition); },
 			[&](SSACFG::BasicBlock::FunctionReturn& r) { rewriteInputs(_cfg, r.returnValues); },
@@ -87,7 +88,7 @@ void transform::removeIdentitiesAndNops(SSACFG& _cfg)
 
 	// Drop Identity / Nop entries from each block and tombstone their slots. No live reference reads through any of
 	// these slots, so reusing them is safe.
-	for (BlockId blockId{0}; blockId.value < _cfg.numBlocks(); ++blockId.value)
+	for (BlockId const blockId: _cfg.liveBlocks())
 	{
 		auto& block = _cfg.block(blockId);
 		std::vector<InstId> toTombstone;

@@ -65,6 +65,7 @@ enum class InstOpcode : std::uint8_t
 	Projection, // projection: single InstId input (multi-output producer) plus immediate index
 	Identity,  // forwards its single input, resolved away by transform::removeIdentities,
 	Nop,  // used to turn a void-typed Inst (eg an upsilon whose phi was eliminated) into a deletable placeholder
+	MemoryGuard,  // emits the subobject's memoryguard boundary; value is held on the enclosing ControlFlowGraphs
 	Tombstone,  // marks a free slot in InstructionStore::m_insts, must never appear in block instructions
 };
 

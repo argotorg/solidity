@@ -153,21 +153,21 @@ void LivenessAnalysis::runLoopTreeDfs(SSACFG::BlockId::ValueType const _loopHead
 		// must be live out of header if live in of children
 		m_liveOuts[_loopHeader].maxUnion(liveLoop);
 		// for each blockId \in children(loopHeader)
-		for (SSACFG::BlockId::ValueType blockIdValue = 0u; blockIdValue < m_cfg.numBlocks(); ++blockIdValue)
-			if (m_loopNestingForest.loopParents()[blockIdValue] == _loopHeader)
+		for (SSACFG::BlockId const blockId: m_cfg.liveBlocks())
+			if (m_loopNestingForest.loopParents()[blockId.value] == _loopHeader)
 			{
 				// propagate loop liveness information down to the loop header's children
-				m_liveIns[blockIdValue].maxUnion(liveLoop);
-				m_liveOuts[blockIdValue].maxUnion(liveLoop);
+				m_liveIns[blockId.value].maxUnion(liveLoop);
+				m_liveOuts[blockId.value].maxUnion(liveLoop);
 
-				runLoopTreeDfs(blockIdValue);
+				runLoopTreeDfs(blockId.value);
 			}
 	}
 }
 
 void LivenessAnalysis::fillOperationsLiveOut()
 {
-	for (SSACFG::BlockId blockId{0}; blockId.value < m_cfg.numBlocks(); ++blockId.value)
+	for (SSACFG::BlockId const blockId: m_cfg.liveBlocks())
 	{
 		auto const& block = m_cfg.block(blockId);
 		auto const opCount = static_cast<std::size_t>(ranges::count_if(

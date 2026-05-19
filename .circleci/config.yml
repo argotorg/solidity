@@ -863,7 +863,7 @@ defaults:
       name: t_native_test_ext_ens
       project: ens
       binary_type: native
-      image: cimg/node:lts
+      image: cimg/node:22.13
 
   - job_native_compile_ext_trident: &job_native_compile_ext_trident
       <<: *requires_b_ubu_static
@@ -914,7 +914,7 @@ defaults:
       name: t_native_test_ext_uniswap
       project: uniswap
       binary_type: native
-      image: cimg/node:lts
+      image: cimg/node:22.13
       resource_class: large # Tests run out of memory on a smaller machine
 
   - job_native_test_ext_prb_math: &job_native_test_ext_prb_math
@@ -922,7 +922,7 @@ defaults:
       name: t_native_test_ext_prb_math
       project: prb-math
       binary_type: native
-      image: cimg/rust:1.74.0-node
+      image: cimg/node:22.13
       resource_class: large # Tests run out of memory on a smaller machine
 
   - job_native_test_ext_elementfi: &job_native_test_ext_elementfi
@@ -938,7 +938,7 @@ defaults:
       name: t_native_test_ext_brink
       project: brink
       binary_type: native
-      image: cimg/node:lts
+      image: cimg/node:22.13
 
   - job_native_compile_ext_chainlink: &job_native_compile_ext_chainlink
       <<: *requires_b_ubu_static
@@ -1585,7 +1585,8 @@ jobs:
           at: /tmp/workspace
       - run:
           name: Ensure pnpm is installed if npm is present
-          command: sudo npm install -g pnpm
+          # Pin to pnpm v9 as v10 introduces additional safe guards and causes failures
+          command: sudo npm install -g pnpm@9
       - run:
           name: Retrieve EDR latest release tag
           command: |
@@ -1659,7 +1660,8 @@ jobs:
           name: Ensure pnpm is installed if npm is present
           command: |
             if command -v npm &> /dev/null; then
-              sudo npm install -g pnpm
+              # Pin to pnpm v9 as v10 introduces additional safe guards and causes failures
+              sudo npm install -g pnpm@9
             fi
       - when:
           condition: << parameters.python2 >>

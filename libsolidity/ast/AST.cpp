@@ -491,17 +491,59 @@ Type const* FunctionDefinition::type() const
 	return TypeProvider::function(*this, FunctionType::Kind::Internal);
 }
 
-Type const* FunctionDefinition::typeViaContractName() const
+Type const* FunctionDefinition::typeViaContractName(ContractNameAccessKind const _accessKind) const
 {
-	if (libraryFunction())
+	// TODO: Fails because private library functions are attachable but not visible (issue #16721)
+	//solAssert(isVisibleViaContractName(_accessKind));
+	switch (_accessKind)
 	{
-		if (isPublic())
-			return FunctionType(*this).asExternallyCallableFunction(true);
-		else
-			return TypeProvider::function(*this, FunctionType::Kind::Internal);
+		case ContractNameAccessKind::Local:
+		{
+			solAssert(!libraryFunction(), "Library members can only be accessed via library name.");
+			solAssert(visibility() > Visibility::Private, "Private non-library member is not visible via contract type name");
+
+			if (!Declaration::isVisibleInContract() || !isImplemented())
+				// If is external or has no implementation, it cannot be called using contract type name. In case of accessing
+				// via contract type name, only declaration is available, to be used in non calling context. I.e. to access
+				// function selector `C.foo.selector` where foo has external visibility.
+				return TypeProvider::function(*this, FunctionType::Kind::Declaration);
+			else
+				// If call is in local (or deriving) scope, function is visible in contract (non-external) and it has an
+				// implementation, internal call is used.
+				return type();
+		}
+		case ContractNameAccessKind::Foreign:
+		{
+			solAssert(!libraryFunction(), "Library members can only be accessed via library name.");
+			solAssert(isVisibleViaContractTypeAccess(), "Invisible member accessed via contract name.");
+			// Foreign contract member function being accessed via contract type name, cannot be called.
+			return TypeProvider::function(*this, FunctionType::Kind::Declaration);
+		}
+		case ContractNameAccessKind::Library:
+		{
+			// We could theoretically distinguish local and foreign scope for libraries but it does not affect the type,
+			// so we don't. Access to private members from foreign scopes is not allowed by the type checker, so if we
+			// get such a function here, we assume the scope is local. Note that access to private library members via
+			// library name is not allowed, but you can (sometimes, see issue [#16721](#16721)) attach them via `using`
+			// statement.
+			solAssert(libraryFunction(), "Non-library members cannot be accessed via library name.");
+			// In case of library contract, member call kind depends on its visibility.
+			if (isPublic())
+				// When Lib.foo is public or external, an external call (delegate call) is used.
+				return FunctionType(*this).asExternallyCallableFunction(true /* _inLibrary */);
+			else
+				// For private or internal visibility, internal call is used.
+				// Private library members can be accessed in context of `using` statement.
+				return type();
+		}
 	}
-	else
-		return TypeProvider::function(*this, FunctionType::Kind::Declaration);
+	util::unreachable();
+}
+
+Type const* FunctionDefinition::typeWhenAttached() const
+{
+	solAssert(isFree() || libraryFunction());
+	return libraryFunction() ? typeViaContractName(ContractNameAccessKind::Library) : type();
 }
 
 std::string FunctionDefinition::externalSignature() const
@@ -950,11 +992,7 @@ FunctionType const* UnaryOperation::userDefinedFunctionType() const
 		return nullptr;
 
 	FunctionDefinition const* userDefinedFunction = *annotation().userDefinedFunction;
-	return dynamic_cast<FunctionType const*>(
-		userDefinedFunction->libraryFunction() ?
-		userDefinedFunction->typeViaContractName() :
-		userDefinedFunction->type()
-	);
+	return dynamic_cast<FunctionType const*>(userDefinedFunction->typeWhenAttached());
 }
 
 FunctionType const* BinaryOperation::userDefinedFunctionType() const
@@ -963,11 +1001,7 @@ FunctionType const* BinaryOperation::userDefinedFunctionType() const
 		return nullptr;
 
 	FunctionDefinition const* userDefinedFunction = *annotation().userDefinedFunction;
-	return dynamic_cast<FunctionType const*>(
-		userDefinedFunction->libraryFunction() ?
-		userDefinedFunction->typeViaContractName() :
-		userDefinedFunction->type()
-	);
+	return dynamic_cast<FunctionType const*>(userDefinedFunction->typeWhenAttached());
 }
 
 BinaryOperationAnnotation& BinaryOperation::annotation() const

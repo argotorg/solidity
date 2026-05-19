@@ -18,10 +18,14 @@
 
 #pragma once
 
+#include <libyul/backends/evm/ssa/io/Printer.h>
+
 #include <libyul/backends/evm/ssa/LivenessAnalysis.h>
 #include <libyul/backends/evm/ssa/SSACFG.h>
 
-#include <libyul/AST.h>
+#include <libsolutil/Numeric.h>
+
+#include <optional>
 
 namespace solidity::yul::ssa
 {
@@ -68,6 +72,18 @@ struct ControlFlowGraphs
 		output << "}\n";
 		return output.str();
 	}
+
+	std::string print() const
+	{
+		std::ostringstream output;
+		io::print(output, *this);
+		return output.str();
+	}
+
+	/// Memoryguard boundary for this subobject.
+	/// - empty: no `memoryguard(N)` call appears in the source
+	/// - set: every MemoryGuard Inst lowers to a `pushN <value>` of this constant
+	std::optional<u256> memoryGuard{};
 
 	std::vector<std::unique_ptr<SSACFG>> functionGraphs{};
 };

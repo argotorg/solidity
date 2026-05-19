@@ -302,6 +302,12 @@ void CodeTransform::operator()(InstId _instId, StackData const& _operationInputL
 		builtin.generateCode(transient, m_assembly, m_builtinContext);
 		break;
 	}
+	case InstOpcode::MemoryGuard:
+	{
+		yulAssert(m_controlFlow.memoryGuard.has_value());
+		m_assembly.appendConstant(*m_controlFlow.memoryGuard);
+		break;
+	}
 	default:
 		yulAssert(false);
 	}
@@ -414,16 +420,19 @@ void CodeTransform::operator()(SSACFG::BlockId const& _blockId, SSACFG::BasicBlo
 			break;
 		}
 	yulAssert(lastOpInstId.hasValue(), "Terminated block must have at least one operation.");
-	if (m_cfg.inst(lastOpInstId).opcode == InstOpcode::BuiltinCall)
+	auto const lastOpcode = m_cfg.inst(lastOpInstId).opcode;
+	if (lastOpcode == InstOpcode::BuiltinCall)
 		yulAssert(
 			m_cfg.evmDialect.builtin(m_cfg.builtinPayload(lastOpInstId).builtin).controlFlowSideEffects.terminatesOrReverts(),
 			"Last operation of Terminated block must terminate or revert."
 		);
-	else
+	else if (lastOpcode == InstOpcode::Call)
 		yulAssert(
 			!m_cfg.callPayload(lastOpInstId).canContinue,
 			"Last operation of Terminated block must be a non-continuable call."
 		);
+	else
+		yulAssert(false, "Last operation of Terminated block must be a non-continuable Call or terminating BuiltinCall.");
 	// To be sure just emit another INVALID - should be removed by optimizer.
 	m_assembly.appendInstruction(evmasm::Instruction::INVALID);
 }

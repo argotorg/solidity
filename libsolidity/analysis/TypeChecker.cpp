@@ -4052,12 +4052,7 @@ void TypeChecker::endVisit(UsingForDirective const& _usingFor)
 		FunctionDefinition const& functionDefinition =
 			dynamic_cast<FunctionDefinition const&>(*path->annotation().referencedDeclaration);
 
-		FunctionType const* functionType = dynamic_cast<FunctionType const*>(
-			functionDefinition.libraryFunction() ?
-				functionDefinition.typeViaContractName() :
-				functionDefinition.type()
-			);
-
+		FunctionType const* functionType = dynamic_cast<FunctionType const*>(functionDefinition.typeWhenAttached());
 		solAssert(functionType);
 
 		if (functionDefinition.parameters().empty())

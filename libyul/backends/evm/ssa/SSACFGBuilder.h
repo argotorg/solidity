@@ -127,6 +127,7 @@ private:
 	/// Shared function lookup, populated as `registerFunctionDefinition` is called.
 	/// Owned by the topmost `build()` invocation; nested builders just reference it.
 	FunctionRegistry& m_functionRegistry;
+	BuiltinHandle const m_memoryGuardHandle;
 	/// Return variable scopes of the function currently being built
 	std::vector<std::reference_wrapper<Scope::Variable const>> m_currentReturnVars;
 	SSACFG::BlockId m_currentBlock;

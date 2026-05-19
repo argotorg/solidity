@@ -17,9 +17,6 @@ Yul Control Flow Graph:
                 "instructions": [
                     {
                         "in": [],
-                        "literalArgs": [
-                            "0x80"
-                        ],
                         "op": "memoryguard",
                         "out": [
                             "v0"
@@ -124,6 +121,7 @@ Yul Control Flow Graph:
             }
         ],
         "functions": {},
+        "memoryGuard": "0x80",
         "subObjects": {
             "C_19_deployed": {
                 "blocks": [
@@ -140,9 +138,6 @@ Yul Control Flow Graph:
                         "instructions": [
                             {
                                 "in": [],
-                                "literalArgs": [
-                                    "0x80"
-                                ],
                                 "op": "memoryguard",
                                 "out": [
                                     "v0"
@@ -198,11 +193,8 @@ Yul Control Flow Graph:
                         "id": "Block2",
                         "instructions": [
                             {
-                                "in": [
-                                    "0x00",
-                                    "0x00"
-                                ],
-                                "op": "revert",
+                                "in": [],
+                                "op": "__revert_0_2",
                                 "out": []
                             }
                         ],
@@ -210,7 +202,7 @@ Yul Control Flow Graph:
                             "in": [],
                             "out": []
                         },
-                        "type": "BuiltinCall"
+                        "type": "FunctionCall"
                     },
                     {
                         "exit": {
@@ -371,11 +363,8 @@ Yul Control Flow Graph:
                         "id": "Block5",
                         "instructions": [
                             {
-                                "in": [
-                                    "0x00",
-                                    "0x00"
-                                ],
-                                "op": "revert",
+                                "in": [],
+                                "op": "__revert_0_2",
                                 "out": []
                             }
                         ],
@@ -383,7 +372,7 @@ Yul Control Flow Graph:
                             "in": [],
                             "out": []
                         },
-                        "type": "BuiltinCall"
+                        "type": "FunctionCall"
                     },
                     {
                         "exit": {
@@ -423,11 +412,8 @@ Yul Control Flow Graph:
                         "id": "Block8",
                         "instructions": [
                             {
-                                "in": [
-                                    "0x00",
-                                    "0x00"
-                                ],
-                                "op": "revert",
+                                "in": [],
+                                "op": "__revert_0_2",
                                 "out": []
                             }
                         ],
@@ -435,10 +421,41 @@ Yul Control Flow Graph:
                             "in": [],
                             "out": []
                         },
-                        "type": "BuiltinCall"
+                        "type": "FunctionCall"
                     }
                 ],
-                "functions": {},
+                "functions": {
+                    "__revert_0_2": {
+                        "arguments": [],
+                        "blocks": [
+                            {
+                                "exit": {
+                                    "type": "Terminated"
+                                },
+                                "id": "Block0",
+                                "instructions": [
+                                    {
+                                        "in": [
+                                            "0x00",
+                                            "0x00"
+                                        ],
+                                        "op": "revert",
+                                        "out": []
+                                    }
+                                ],
+                                "liveness": {
+                                    "in": [],
+                                    "out": []
+                                },
+                                "type": "BuiltinCall"
+                            }
+                        ],
+                        "entry": "Block0",
+                        "numReturns": 0,
+                        "type": "Function"
+                    }
+                },
+                "memoryGuard": "0x80",
                 "subObjects": {}
             },
             "type": "subObject"
@@ -465,9 +482,6 @@ Yul Control Flow Graph:
                 "instructions": [
                     {
                         "in": [],
-                        "literalArgs": [
-                            "0x80"
-                        ],
                         "op": "memoryguard",
                         "out": [
                             "v0"
@@ -572,6 +586,7 @@ Yul Control Flow Graph:
             }
         ],
         "functions": {},
+        "memoryGuard": "0x80",
         "subObjects": {
             "D_38_deployed": {
                 "blocks": [
@@ -588,9 +603,6 @@ Yul Control Flow Graph:
                         "instructions": [
                             {
                                 "in": [],
-                                "literalArgs": [
-                                    "0x80"
-                                ],
                                 "op": "memoryguard",
                                 "out": [
                                     "v0"
@@ -646,11 +658,8 @@ Yul Control Flow Graph:
                         "id": "Block2",
                         "instructions": [
                             {
-                                "in": [
-                                    "0x00",
-                                    "0x00"
-                                ],
-                                "op": "revert",
+                                "in": [],
+                                "op": "__revert_0_2",
                                 "out": []
                             }
                         ],
@@ -658,7 +667,7 @@ Yul Control Flow Graph:
                             "in": [],
                             "out": []
                         },
-                        "type": "BuiltinCall"
+                        "type": "FunctionCall"
                     },
                     {
                         "exit": {
@@ -819,11 +828,8 @@ Yul Control Flow Graph:
                         "id": "Block5",
                         "instructions": [
                             {
-                                "in": [
-                                    "0x00",
-                                    "0x00"
-                                ],
-                                "op": "revert",
+                                "in": [],
+                                "op": "__revert_0_2",
                                 "out": []
                             }
                         ],
@@ -831,7 +837,7 @@ Yul Control Flow Graph:
                             "in": [],
                             "out": []
                         },
-                        "type": "BuiltinCall"
+                        "type": "FunctionCall"
                     },
                     {
                         "exit": {
@@ -914,11 +920,8 @@ Yul Control Flow Graph:
                         "id": "Block8",
                         "instructions": [
                             {
-                                "in": [
-                                    "0x00",
-                                    "0x00"
-                                ],
-                                "op": "revert",
+                                "in": [],
+                                "op": "__revert_0_2",
                                 "out": []
                             }
                         ],
@@ -926,7 +929,7 @@ Yul Control Flow Graph:
                             "in": [],
                             "out": []
                         },
-                        "type": "BuiltinCall"
+                        "type": "FunctionCall"
                     },
                     {
                         "exit": {
@@ -1008,37 +1011,8 @@ Yul Control Flow Graph:
                         "id": "Block11",
                         "instructions": [
                             {
-                                "in": [
-                                    "0x4e487b71",
-                                    "0xe0"
-                                ],
-                                "op": "shl",
-                                "out": [
-                                    "v38"
-                                ]
-                            },
-                            {
-                                "in": [
-                                    "v38",
-                                    "0x00"
-                                ],
-                                "op": "mstore",
-                                "out": []
-                            },
-                            {
-                                "in": [
-                                    "0x41",
-                                    "0x04"
-                                ],
-                                "op": "mstore",
-                                "out": []
-                            },
-                            {
-                                "in": [
-                                    "0x24",
-                                    "0x00"
-                                ],
-                                "op": "revert",
+                                "in": [],
+                                "op": "__revert_0_11",
                                 "out": []
                             }
                         ],
@@ -1046,7 +1020,7 @@ Yul Control Flow Graph:
                             "in": [],
                             "out": []
                         },
-                        "type": "BuiltinCall"
+                        "type": "FunctionCall"
                     },
                     {
                         "exit": {
@@ -1165,43 +1139,8 @@ Yul Control Flow Graph:
                         "id": "Block14",
                         "instructions": [
                             {
-                                "in": [
-                                    "0x40"
-                                ],
-                                "op": "mload",
-                                "out": [
-                                    "v62"
-                                ]
-                            },
-                            {
                                 "in": [],
-                                "op": "returndatasize",
-                                "out": [
-                                    "v63"
-                                ]
-                            },
-                            {
-                                "in": [
-                                    "v63",
-                                    "0x00",
-                                    "v62"
-                                ],
-                                "op": "returndatacopy",
-                                "out": []
-                            },
-                            {
-                                "in": [],
-                                "op": "returndatasize",
-                                "out": [
-                                    "v65"
-                                ]
-                            },
-                            {
-                                "in": [
-                                    "v65",
-                                    "v62"
-                                ],
-                                "op": "revert",
+                                "op": "__revert_0_14",
                                 "out": []
                             }
                         ],
@@ -1209,7 +1148,7 @@ Yul Control Flow Graph:
                             "in": [],
                             "out": []
                         },
-                        "type": "BuiltinCall"
+                        "type": "FunctionCall"
                     },
                     {
                         "exit": {
@@ -1239,43 +1178,8 @@ Yul Control Flow Graph:
                         "id": "Block17",
                         "instructions": [
                             {
-                                "in": [
-                                    "0x40"
-                                ],
-                                "op": "mload",
-                                "out": [
-                                    "v86"
-                                ]
-                            },
-                            {
                                 "in": [],
-                                "op": "returndatasize",
-                                "out": [
-                                    "v87"
-                                ]
-                            },
-                            {
-                                "in": [
-                                    "v87",
-                                    "0x00",
-                                    "v86"
-                                ],
-                                "op": "returndatacopy",
-                                "out": []
-                            },
-                            {
-                                "in": [],
-                                "op": "returndatasize",
-                                "out": [
-                                    "v89"
-                                ]
-                            },
-                            {
-                                "in": [
-                                    "v89",
-                                    "v86"
-                                ],
-                                "op": "revert",
+                                "op": "__revert_0_14",
                                 "out": []
                             }
                         ],
@@ -1283,7 +1187,7 @@ Yul Control Flow Graph:
                             "in": [],
                             "out": []
                         },
-                        "type": "BuiltinCall"
+                        "type": "FunctionCall"
                     },
                     {
                         "entries": [
@@ -1583,37 +1487,8 @@ Yul Control Flow Graph:
                         "id": "Block24",
                         "instructions": [
                             {
-                                "in": [
-                                    "0x4e487b71",
-                                    "0xe0"
-                                ],
-                                "op": "shl",
-                                "out": [
-                                    "v117"
-                                ]
-                            },
-                            {
-                                "in": [
-                                    "v117",
-                                    "0x00"
-                                ],
-                                "op": "mstore",
-                                "out": []
-                            },
-                            {
-                                "in": [
-                                    "0x41",
-                                    "0x04"
-                                ],
-                                "op": "mstore",
-                                "out": []
-                            },
-                            {
-                                "in": [
-                                    "0x24",
-                                    "0x00"
-                                ],
-                                "op": "revert",
+                                "in": [],
+                                "op": "__revert_0_11",
                                 "out": []
                             }
                         ],
@@ -1621,7 +1496,7 @@ Yul Control Flow Graph:
                             "in": [],
                             "out": []
                         },
-                        "type": "BuiltinCall"
+                        "type": "FunctionCall"
                     },
                     {
                         "exit": {
@@ -1659,11 +1534,8 @@ Yul Control Flow Graph:
                         "id": "Block27",
                         "instructions": [
                             {
-                                "in": [
-                                    "0x00",
-                                    "0x00"
-                                ],
-                                "op": "revert",
+                                "in": [],
+                                "op": "__revert_0_2",
                                 "out": []
                             }
                         ],
@@ -1671,10 +1543,157 @@ Yul Control Flow Graph:
                             "in": [],
                             "out": []
                         },
-                        "type": "BuiltinCall"
+                        "type": "FunctionCall"
                     }
                 ],
-                "functions": {},
+                "functions": {
+                    "__revert_0_11": {
+                        "arguments": [],
+                        "blocks": [
+                            {
+                                "exit": {
+                                    "type": "Terminated"
+                                },
+                                "id": "Block0",
+                                "instructions": [
+                                    {
+                                        "in": [
+                                            "0x4e487b71",
+                                            "0xe0"
+                                        ],
+                                        "op": "shl",
+                                        "out": [
+                                            "v2"
+                                        ]
+                                    },
+                                    {
+                                        "in": [
+                                            "v2",
+                                            "0x00"
+                                        ],
+                                        "op": "mstore",
+                                        "out": []
+                                    },
+                                    {
+                                        "in": [
+                                            "0x41",
+                                            "0x04"
+                                        ],
+                                        "op": "mstore",
+                                        "out": []
+                                    },
+                                    {
+                                        "in": [
+                                            "0x24",
+                                            "0x00"
+                                        ],
+                                        "op": "revert",
+                                        "out": []
+                                    }
+                                ],
+                                "liveness": {
+                                    "in": [],
+                                    "out": []
+                                },
+                                "type": "BuiltinCall"
+                            }
+                        ],
+                        "entry": "Block0",
+                        "numReturns": 0,
+                        "type": "Function"
+                    },
+                    "__revert_0_14": {
+                        "arguments": [],
+                        "blocks": [
+                            {
+                                "exit": {
+                                    "type": "Terminated"
+                                },
+                                "id": "Block0",
+                                "instructions": [
+                                    {
+                                        "in": [
+                                            "0x40"
+                                        ],
+                                        "op": "mload",
+                                        "out": [
+                                            "v1"
+                                        ]
+                                    },
+                                    {
+                                        "in": [],
+                                        "op": "returndatasize",
+                                        "out": [
+                                            "v2"
+                                        ]
+                                    },
+                                    {
+                                        "in": [
+                                            "v2",
+                                            "0x00",
+                                            "v1"
+                                        ],
+                                        "op": "returndatacopy",
+                                        "out": []
+                                    },
+                                    {
+                                        "in": [],
+                                        "op": "returndatasize",
+                                        "out": [
+                                            "v5"
+                                        ]
+                                    },
+                                    {
+                                        "in": [
+                                            "v5",
+                                            "v1"
+                                        ],
+                                        "op": "revert",
+                                        "out": []
+                                    }
+                                ],
+                                "liveness": {
+                                    "in": [],
+                                    "out": []
+                                },
+                                "type": "BuiltinCall"
+                            }
+                        ],
+                        "entry": "Block0",
+                        "numReturns": 0,
+                        "type": "Function"
+                    },
+                    "__revert_0_2": {
+                        "arguments": [],
+                        "blocks": [
+                            {
+                                "exit": {
+                                    "type": "Terminated"
+                                },
+                                "id": "Block0",
+                                "instructions": [
+                                    {
+                                        "in": [
+                                            "0x00",
+                                            "0x00"
+                                        ],
+                                        "op": "revert",
+                                        "out": []
+                                    }
+                                ],
+                                "liveness": {
+                                    "in": [],
+                                    "out": []
+                                },
+                                "type": "BuiltinCall"
+                            }
+                        ],
+                        "entry": "Block0",
+                        "numReturns": 0,
+                        "type": "Function"
+                    }
+                },
+                "memoryGuard": "0x80",
                 "subObjects": {
                     "C_19": {
                         "blocks": [
@@ -1691,9 +1710,6 @@ Yul Control Flow Graph:
                                 "instructions": [
                                     {
                                         "in": [],
-                                        "literalArgs": [
-                                            "0x80"
-                                        ],
                                         "op": "memoryguard",
                                         "out": [
                                             "v0"
@@ -1798,6 +1814,7 @@ Yul Control Flow Graph:
                             }
                         ],
                         "functions": {},
+                        "memoryGuard": "0x80",
                         "subObjects": {
                             "C_19_deployed": {
                                 "blocks": [
@@ -1814,9 +1831,6 @@ Yul Control Flow Graph:
                                         "instructions": [
                                             {
                                                 "in": [],
-                                                "literalArgs": [
-                                                    "0x80"
-                                                ],
                                                 "op": "memoryguard",
                                                 "out": [
                                                     "v0"
@@ -1872,11 +1886,8 @@ Yul Control Flow Graph:
                                         "id": "Block2",
                                         "instructions": [
                                             {
-                                                "in": [
-                                                    "0x00",
-                                                    "0x00"
-                                                ],
-                                                "op": "revert",
+                                                "in": [],
+                                                "op": "__revert_0_2",
                                                 "out": []
                                             }
                                         ],
@@ -1884,7 +1895,7 @@ Yul Control Flow Graph:
                                             "in": [],
                                             "out": []
                                         },
-                                        "type": "BuiltinCall"
+                                        "type": "FunctionCall"
                                     },
                                     {
                                         "exit": {
@@ -2045,11 +2056,8 @@ Yul Control Flow Graph:
                                         "id": "Block5",
                                         "instructions": [
                                             {
-                                                "in": [
-                                                    "0x00",
-                                                    "0x00"
-                                                ],
-                                                "op": "revert",
+                                                "in": [],
+                                                "op": "__revert_0_2",
                                                 "out": []
                                             }
                                         ],
@@ -2057,7 +2065,7 @@ Yul Control Flow Graph:
                                             "in": [],
                                             "out": []
                                         },
-                                        "type": "BuiltinCall"
+                                        "type": "FunctionCall"
                                     },
                                     {
                                         "exit": {
@@ -2097,11 +2105,8 @@ Yul Control Flow Graph:
                                         "id": "Block8",
                                         "instructions": [
                                             {
-                                                "in": [
-                                                    "0x00",
-                                                    "0x00"
-                                                ],
-                                                "op": "revert",
+                                                "in": [],
+                                                "op": "__revert_0_2",
                                                 "out": []
                                             }
                                         ],
@@ -2109,10 +2114,41 @@ Yul Control Flow Graph:
                                             "in": [],
                                             "out": []
                                         },
-                                        "type": "BuiltinCall"
+                                        "type": "FunctionCall"
                                     }
                                 ],
-                                "functions": {},
+                                "functions": {
+                                    "__revert_0_2": {
+                                        "arguments": [],
+                                        "blocks": [
+                                            {
+                                                "exit": {
+                                                    "type": "Terminated"
+                                                },
+                                                "id": "Block0",
+                                                "instructions": [
+                                                    {
+                                                        "in": [
+                                                            "0x00",
+                                                            "0x00"
+                                                        ],
+                                                        "op": "revert",
+                                                        "out": []
+                                                    }
+                                                ],
+                                                "liveness": {
+                                                    "in": [],
+                                                    "out": []
+                                                },
+                                                "type": "BuiltinCall"
+                                            }
+                                        ],
+                                        "entry": "Block0",
+                                        "numReturns": 0,
+                                        "type": "Function"
+                                    }
+                                },
+                                "memoryGuard": "0x80",
                                 "subObjects": {}
                             },
                             "type": "subObject"

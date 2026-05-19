@@ -32,14 +32,17 @@
 
 #include <libsolutil/Numeric.h>
 
+#include <range/v3/algorithm/all_of.hpp>
 #include <range/v3/range/concepts.hpp>
 #include <range/v3/range/conversion.hpp>
 #include <range/v3/range/traits.hpp>
+#include <range/v3/view/filter.hpp>
 #include <range/v3/view/iota.hpp>
 #include <range/v3/view/transform.hpp>
 
 #include <concepts>
 #include <functional>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -118,17 +121,60 @@ public:
 
 	BlockId makeBlock(langutil::DebugData::ConstPtr _debugData)
 	{
-		// max itself is reserved for the 'empty' block
-		yulAssert(m_blocks.size() < std::numeric_limits<BlockId::ValueType>::max());
-		BlockId const blockId{static_cast<BlockId::ValueType>(m_blocks.size())};
-		m_blocks.emplace_back(BasicBlock{{}, {}, BasicBlock::Terminated{}});
+		BlockId blockId;
+		if (!m_freeBlocks.empty())
+		{
+			blockId = m_freeBlocks.back();
+			yulAssert(blockId.value < m_freeBlocks.size());
+			std::optional<BasicBlock>& block = m_blocks[blockId.value];
+			yulAssert(!block.has_value());
+			m_freeBlocks.pop_back();
+			block.emplace(BasicBlock{{}, {}, BasicBlock::Terminated{}});
+		}
+		else
+		{
+			yulAssert(m_blocks.size() < std::numeric_limits<BlockId::ValueType>::max());
+			blockId = BlockId{static_cast<BlockId::ValueType>(m_blocks.size())};
+			m_blocks.emplace_back(BasicBlock{{}, {}, BasicBlock::Terminated{}});
+		}
 		if (debugInfo)
 			debugInfo->setBlockDebugData(blockId, std::move(_debugData));
 		return blockId;
 	}
-	BasicBlock& block(BlockId _id) { return m_blocks.at(_id.value); }
-	BasicBlock const& block(BlockId _id) const { return m_blocks.at(_id.value); }
+	BasicBlock& block(BlockId _id)
+	{
+		auto& slot = m_blocks.at(_id.value);
+		yulAssert(slot.has_value(), fmt::format("Access of dead block #{}", _id.value));
+		return *slot;
+	}
+	BasicBlock const& block(BlockId _id) const
+	{
+		auto const& slot = m_blocks.at(_id.value);
+		yulAssert(slot.has_value(), fmt::format("Access of dead block #{}", _id.value));
+		return *slot;
+	}
 	size_t numBlocks() const { return m_blocks.size(); }
+	bool hasBlock(BlockId const _id) const { return _id.value < m_blocks.size() && m_blocks[_id.value].has_value(); }
+	void resetBlock(BlockId const _id)
+	{
+		yulAssert(_id.value < m_blocks.size());
+		auto& block = m_blocks[_id.value];
+		yulAssert(block.has_value(), "double reset");
+		yulAssert(
+			ranges::all_of(block->instructions, [this](InstId const _instId) { return isTombstone(_instId); }),
+			"can only reset blocks that have no live instructions left"
+		);
+		block.reset();
+		m_freeBlocks.push_back(_id);
+	}
+
+	InputRangeOf<BlockId> auto liveBlocks() const
+	{
+		return
+			ranges::views::iota(BlockId::ValueType{0}, static_cast<BlockId::ValueType>(m_blocks.size())) |
+			ranges::views::filter([this](BlockId::ValueType const _v) { return m_blocks[_v].has_value(); }) |
+			ranges::views::transform([](BlockId::ValueType const _v) { return BlockId{_v}; });
+	}
 
 	InstructionStore& instructionStore() { return m_instructions; }
 	InstructionStore const& instructionStore() const { return m_instructions; }
@@ -136,6 +182,12 @@ public:
 	Inst& inst(InstId _id) { return m_instructions.inst(_id); }
 	Inst const& inst(InstId _id) const { return m_instructions.inst(_id); }
 	size_t numInsts() const { return m_instructions.numInsts(); }
+	InputRangeOf<InstId> auto instructionIds() const
+	{
+		return
+			ranges::views::iota(static_cast<InstId::ValueType>(0), static_cast<InstId::ValueType>(numInsts())) |
+			ranges::views::transform([](auto const _value) { return InstId{_value}; });
+	}
 	std::vector<Inst> const& instructions() const { return m_instructions.instructions(); }
 
 	/// Returns the opcode category for a given InstId.
@@ -149,6 +201,7 @@ public:
 	bool isProjection(InstId const _id) const { return inst(_id).isProjection(); }
 	bool isIdentity(InstId const _id) const { return inst(_id).isIdentity(); }
 	bool isNop(InstId const _id) const { return inst(_id).isNop(); }
+	bool isMemoryGuard(InstId const _id) const { return inst(_id).isMemoryGuard(); }
 	bool isTombstone(InstId const _id) const { return inst(_id).isTombstone(); }
 	bool isOperation(InstId const _id) const { return inst(_id).isOperation(); }
 
@@ -192,6 +245,15 @@ public:
 		InstId const id = scheduleInBlock(m_instructions.appendFunctionArg(entry), entry);
 		if (debugInfo)
 			debugInfo->setValueDebugData(id, debugInfo->blockDebugData(entry));
+		return id;
+	}
+
+	/// Allocates a MemoryGuard Inst at `_block`. The boundary value lives in `ControlFlowGraphs::memoryGuard`.
+	InstId makeMemoryGuard(BlockId const _block, langutil::DebugData::ConstPtr _debugData = {})
+	{
+		InstId const id = scheduleInBlock(m_instructions.appendMemoryGuard(_block), _block);
+		if (debugInfo && _debugData)
+			debugInfo->setValueDebugData(id, std::move(_debugData));
 		return id;
 	}
 
@@ -318,11 +380,13 @@ public:
 private:
 	InstId scheduleInBlock(InstId const _id, BlockId const _block)
 	{
-		m_blocks.at(_block.value).instructions.push_back(_id);
+		block(_block).instructions.push_back(_id);
 		return _id;
 	}
 
-	std::vector<BasicBlock> m_blocks;
+	std::vector<std::optional<BasicBlock>> m_blocks;
+	// free list of blocks
+	std::vector<BlockId> m_freeBlocks;
 	InstructionStore m_instructions;
 public:
 	EVMDialect const& evmDialect;
@@ -382,6 +446,8 @@ public:
 			return callPayload(_op).numReturns;
 		case InstOpcode::BuiltinCall:
 			return evmDialect.builtin(builtinPayload(_op).builtin).numReturns;
+		case InstOpcode::MemoryGuard:
+			return 1;
 		default:
 			yulAssert(false, fmt::format("numReturnsOf called on non-operation inst {}", _op));
 		}

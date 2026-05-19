@@ -90,11 +90,15 @@ public:
 		constexpr bool isProjection() const noexcept { return opcode == InstOpcode::Projection; }
 		constexpr bool isIdentity() const noexcept { return opcode == InstOpcode::Identity; }
 		constexpr bool isNop() const noexcept { return opcode == InstOpcode::Nop; }
+		constexpr bool isMemoryGuard() const noexcept { return opcode == InstOpcode::MemoryGuard; }
 		constexpr bool isTombstone() const noexcept { return opcode == InstOpcode::Tombstone; }
-		/// Operation = a Call or BuiltinCall.
+		/// Operation = a Call, BuiltinCall, or MemoryGuard
 		constexpr bool isOperation() const noexcept
 		{
-			return opcode == InstOpcode::Call || opcode == InstOpcode::BuiltinCall;
+			return
+				opcode == InstOpcode::Call ||
+				opcode == InstOpcode::BuiltinCall ||
+				opcode == InstOpcode::MemoryGuard;
 		}
 	};
 
@@ -171,6 +175,13 @@ public:
 	InstId appendFunctionArg(BlockId const _entryBlock)
 	{
 		return appendInst(Inst{InstOpcode::FunctionArg, _entryBlock, {}, nullptr});
+	}
+
+	/// Allocates a new MemoryGuard Inst defined in `_block`. The boundary value lives in `ControlFlowGraphs::memoryGuard`.
+	InstId appendMemoryGuard(BlockId const _block)
+	{
+		yulAssert(_block.hasValue());
+		return appendInst(Inst{InstOpcode::MemoryGuard, _block, {}, nullptr});
 	}
 
 	/// Allocates a new Unreachable Inst. Not pinned to any block (see class comment).
@@ -308,6 +319,7 @@ public:
 		// every Const InstId is the unique handle for its value, so flipping it to Identity would silently rebind
 		// every other user of that literal to _forward; almost certainly not what was intended
 		yulAssert(!instruction.isLiteral(), "replaceWithIdentity must not morph a deduped Const slot");
+		yulAssert(!instruction.isMemoryGuard(), "replaceWithIdentity must not morph a MemoryGuard slot");
 		yulAssert(
 			numTrailingProjections(_target) == 0,
 			"replaceWithIdentity must not morph a multi-return producer slot"
@@ -323,6 +335,7 @@ public:
 	{
 		yulAssert(_target.hasValue());
 		auto& instruction = inst(_target);
+		yulAssert(!instruction.isMemoryGuard(), "replaceWithConst must not morph a MemoryGuard slot");
 		yulAssert(
 			numTrailingProjections(_target) == 0,
 			"replaceWithConst must not morph a multi-return producer slot"
@@ -349,6 +362,7 @@ public:
 	{
 		yulAssert(_target.hasValue());
 		auto& instruction = inst(_target);
+		yulAssert(!instruction.isMemoryGuard(), "replaceWithNop must not morph a MemoryGuard slot");
 		yulAssert(
 			numTrailingProjections(_target) == 0,
 			"replaceWithNop must not morph a multi-return producer slot"

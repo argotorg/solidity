@@ -45,11 +45,11 @@ std::string formatPhi(SSACFG const& _cfg, InstId _phiId)
 {
 	// Collect all upsilons targeting _phiId from the whole CFG.
 	std::vector<std::string> formattedUpsilons;
-	for (BlockId::ValueType bv = 0; bv < _cfg.numBlocks(); ++bv)
-		_cfg.forEachUpsilon(_cfg.block(BlockId{bv}), [&](InstId const instId, SSACFG::Inst const& inst) {
+	for (BlockId const blockId: _cfg.liveBlocks())
+		_cfg.forEachUpsilon(_cfg.block(blockId), [&](InstId const instId, SSACFG::Inst const& inst) {
 			if (_cfg.upsilonPhi(instId) == _phiId)
 				formattedUpsilons.push_back(
-					fmt::format("Block {} => {}", bv, inst.inputs.at(0).str(_cfg))
+					fmt::format("Block {} => {}", blockId.value, inst.inputs.at(0).str(_cfg))
 				);
 		});
 	if (!formattedUpsilons.empty())
@@ -108,13 +108,26 @@ protected:
 		});
 		m_cfg.forEachOperation(block, [&](InstId const instId, SSACFG::Inst const& inst) {
 			std::string label;
-			if (inst.opcode == InstOpcode::Call)
+			switch (inst.opcode)
+			{
+			case InstOpcode::Call:
 			{
 				auto const graphID = m_cfg.callPayload(instId).graphID;
 				label = m_controlFlow ? m_controlFlow->functionGraph(graphID)->name : fmt::format("func{}", graphID);
+				break;
 			}
-			else
+			case InstOpcode::BuiltinCall:
 				label = m_cfg.evmDialect.builtin(m_cfg.builtinPayload(instId).builtin).name;
+				break;
+			case InstOpcode::MemoryGuard:
+				if (m_controlFlow && m_controlFlow->memoryGuard)
+					label = fmt::format("memoryguard<{}>", toCompactHexWithPrefix(*m_controlFlow->memoryGuard));
+				else
+					label = "memoryguard";
+				break;
+			default:
+				yulAssert(false);
+			}
 			if (m_cfg.numReturnsOf(instId) >= 1)
 				_out << fmt::format("{} := ", valueToString(instId));
 			_out << fmt::format(
