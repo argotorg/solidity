@@ -346,7 +346,8 @@ void DataFlowAnalyzer::clearValues(std::set<YulName> const& _variablesToClear)
 			_variablesToClear.count(_item.second);
 	});
 
-	// Also clear variables that reference variables to be cleared.
+	// Also collect variables that directly reference variables to be cleared.
+	// Keep the original variables separate from the referencing ones; duplicate erases are harmless.
 	std::vector<YulName> referencingVariablesToClear;
 	std::vector const sortedVariablesToClear(_variablesToClear.begin(), _variablesToClear.end());
 	for (auto const& [referencingVariable, referencedVariables]: m_state.sortedReferences)
@@ -355,7 +356,8 @@ void DataFlowAnalyzer::clearValues(std::set<YulName> const& _variablesToClear)
 		if (hasNonemptyIntersectionSorted(referencedVariables, sortedVariablesToClear))
 			referencingVariablesToClear.emplace_back(referencingVariable);
 
-	// Clear the value and update the reference relation.
+	// Clear values and reference information for the requested variables and their direct dependents.
+	// Duplicate erases are safe and are faster than a separate deduplication pass
 	for (auto const& name: _variablesToClear)
 	{
 		m_state.value.erase(name);
