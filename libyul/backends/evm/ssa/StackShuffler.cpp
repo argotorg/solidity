@@ -28,7 +28,7 @@ Target::Target(
 	StackData const& _args,
 	StackSlotLiveness const& _liveOut,
 	std::size_t const _targetSize,
-	SpilledVariables const* _spilledVariables
+	spill::SpillSet const* _spilledVariables
 ):
 	args(_args),
 	liveOut(_liveOut),
@@ -45,7 +45,7 @@ Target::Target(
 			++minCount[liveSlot];
 }
 
-State::State(StackData const& _stackData, Target const& _target, SpilledVariables const* const _spilledVariables, std::size_t const _reachableStackDepth):
+State::State(StackData const& _stackData, Target const& _target, spill::SpillSet const* const _spilledVariables, std::size_t const _reachableStackDepth):
 	m_stackData(_stackData),
 	m_target(_target),
 	m_spilledVariables(_spilledVariables),

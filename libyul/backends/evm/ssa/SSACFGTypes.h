@@ -23,12 +23,18 @@
 
 #include <fmt/format.h>
 
+#include <range/v3/range/concepts.hpp>
+#include <range/v3/range/traits.hpp>
+
 #include <cstdint>
 #include <limits>
 #include <string>
 
 namespace solidity::yul::ssa
 {
+
+template<typename R, typename T>
+concept InputRangeOf = ranges::input_range<R> && std::same_as<ranges::range_value_t<R>, T>;
 
 class SSACFG;
 

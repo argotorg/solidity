@@ -13,7 +13,8 @@
 // graph[fontname="DejaVu Sans", rankdir=LR]
 // node[shape=box,fontname="DejaVu Sans"];
 //
-// Entry [label="Entry"];
+// Entry [label="Entry
+// spilled: {}"];
 // Entry -> Block0_0;
 // Block0_0 [label="\
 // IN: []\l\
@@ -39,7 +40,8 @@
 // Block0_0Exit [label="MainExit"];
 // Block0_0 -> Block0_0Exit;
 // FunctionEntry_pair_0 [label="function pair:
-//  [2 returns] := pair(v0)"];
+//  [2 returns] := pair(v0)
+// spilled: {}"];
 // FunctionEntry_pair_0 -> Block1_0;
 // Block1_0 [label="\
 // IN: [ReturnLabel[1], v0]\l\

@@ -195,7 +195,7 @@ struct ShuffleTestInput
 	TestStack::Data targetStackTailSetSlots{};
 	std::optional<size_t> targetStackSize;
 	bool allowSpilling = false;
-	SpilledVariables initialSpilledSet{};
+	spill::SpillSet initialSpilledSet{};
 	TestStack::Data initialSpilledSetSlots{};
 
 	bool valid() const
@@ -272,7 +272,7 @@ struct ShuffleTestInput
 			{
 				auto [liveness, slots] = parseLiveness(_table, value);
 				for (auto const& [slot, _]: liveness)
-					result.initialSpilledSet.spill(slot.value());
+					result.initialSpilledSet.add(slot.value());
 				result.initialSpilledSetSlots = std::move(slots);
 			}
 
@@ -304,7 +304,7 @@ public:
 		TestStack::Data const& _targetArgs,
 		TestStack::Data const& _targetTailSlots,
 		size_t _targetStackSize,
-		SpilledVariables const& _spillSet
+		spill::SpillSet const& _spillSet
 	):
 		m_out(_out),
 		m_table(_table),
@@ -404,7 +404,7 @@ private:
 	bool m_truncated = false;
 	TestStack::Data const& m_targetArgs;
 	TestStack::Data const& m_targetTail;
-	SpilledVariables const& m_spillSet;
+	spill::SpillSet const& m_spillSet;
 	size_t const m_targetStackSize;
 	size_t const m_targetTailSize;
 	std::string const m_tailSetStr;
@@ -555,7 +555,7 @@ explicitly provided.)";
 	auto stackData = *testConfig.initial;
 	std::ostringstream oss;
 	StackShufflerResult shuffleResult;
-	SpilledVariables spillSet = testConfig.initialSpilledSet;
+	spill::SpillSet spillSet = testConfig.initialSpilledSet;
 	// Tracks the kind of each spilled value
 	std::vector<StackSlot> spilledSlotList = testConfig.initialSpilledSetSlots;
 
@@ -578,7 +578,7 @@ explicitly provided.)";
 				result.status != StackShufflerResult::Status::StackTooDeep
 			)
 				break;
-			spillSet.spill(result.culprit.value());
+			spillSet.add(result.culprit.value());
 			spilledSlotList.push_back(result.culprit);
 		}
 

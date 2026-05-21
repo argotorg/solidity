@@ -33,9 +33,7 @@
 #include <libsolutil/Numeric.h>
 
 #include <range/v3/algorithm/all_of.hpp>
-#include <range/v3/range/concepts.hpp>
 #include <range/v3/range/conversion.hpp>
-#include <range/v3/range/traits.hpp>
 #include <range/v3/view/filter.hpp>
 #include <range/v3/view/iota.hpp>
 #include <range/v3/view/transform.hpp>
@@ -50,9 +48,6 @@ namespace solidity::yul::ssa
 {
 class LivenessAnalysis;
 struct ControlFlowGraphs;
-
-template<typename R, typename T>
-concept InputRangeOf = ranges::input_range<R> && std::same_as<ranges::range_value_t<R>, T>;
 
 class SSACFG
 {

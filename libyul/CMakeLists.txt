@@ -104,7 +104,6 @@ add_library(yul
 	backends/evm/ssa/StackShuffler.cpp
 	backends/evm/ssa/StackShuffler.h
 	backends/evm/ssa/StackSlotLiveness.h
-	backends/evm/ssa/StackToMemorySpilling.h
 	backends/evm/ssa/util/UseCountSet.h
 	backends/evm/ssa/util/TLSFFreeList.h
 	backends/evm/ssa/util/TarjanSCC.h
@@ -116,6 +115,7 @@ add_library(yul
 	backends/evm/ssa/io/JSONExporter.h
 	backends/evm/ssa/io/Printer.cpp
 	backends/evm/ssa/io/Printer.h
+	backends/evm/ssa/spill/SpillSet.h
 	backends/evm/ssa/transform/IdentityAndNopRemover.cpp
 	backends/evm/ssa/transform/IdentityAndNopRemover.h
 	backends/evm/ssa/transform/OptimizationPipeline.cpp

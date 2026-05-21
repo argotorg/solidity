@@ -12,7 +12,8 @@
 // graph[fontname="DejaVu Sans", rankdir=LR]
 // node[shape=box,fontname="DejaVu Sans"];
 //
-// Entry [label="Entry"];
+// Entry [label="Entry
+// spilled: {}"];
 // Entry -> Block0_0;
 // Block0_0 [label="\
 // IN: []\l\
@@ -30,7 +31,8 @@
 // Block0_0Exit [label="MainExit"];
 // Block0_0 -> Block0_0Exit;
 // FunctionEntry_sum_0 [label="function sum:
-//  [1 returns] := sum(v0)"];
+//  [1 returns] := sum(v0)
+// spilled: {}"];
 // FunctionEntry_sum_0 -> Block1_0;
 // Block1_0 [label="\
 // IN: [ReturnLabel[1], v0]\l\

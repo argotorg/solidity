@@ -26,7 +26,8 @@
 // graph[fontname="DejaVu Sans", rankdir=LR]
 // node[shape=box,fontname="DejaVu Sans"];
 //
-// Entry [label="Entry"];
+// Entry [label="Entry
+// spilled: {}"];
 // Entry -> Block0_0;
 // Block0_0 [label="\
 // IN: []\l\
@@ -44,7 +45,8 @@
 // Block0_0Exit [label="Terminated"];
 // Block0_0 -> Block0_0Exit;
 // FunctionEntry_f_0 [label="function f:
-//  [1 returns] := f(v0, v1)"];
+//  [1 returns] := f(v0, v1)
+// spilled: {}"];
 // FunctionEntry_f_0 -> Block1_0;
 // Block1_0 [label="\
 // IN: [ReturnLabel[1], v1, v0]\l\
@@ -62,7 +64,8 @@
 // Block1_0Exit [label="FunctionReturn[v4]"];
 // Block1_0 -> Block1_0Exit;
 // FunctionEntry_g_0 [label="function g:
-//  g()"];
+//  g()
+// spilled: {}"];
 // FunctionEntry_g_0 -> Block2_0;
 // Block2_0 [label="\
 // IN: [ReturnLabel[2]]\l\
@@ -76,7 +79,8 @@
 // Block2_0Exit [label="FunctionReturn[]"];
 // Block2_0 -> Block2_0Exit;
 // FunctionEntry_h_0 [label="function h:
-//  h(v0)"];
+//  h(v0)
+// spilled: {}"];
 // FunctionEntry_h_0 -> Block3_0;
 // Block3_0 [label="\
 // IN: [v0]\l\
@@ -94,7 +98,8 @@
 // Block3_0Exit [label="Terminated"];
 // Block3_0 -> Block3_0Exit;
 // FunctionEntry_i_0 [label="function i:
-//  [2 returns] := i()"];
+//  [2 returns] := i()
+// spilled: {}"];
 // FunctionEntry_i_0 -> Block4_0;
 // Block4_0 [label="\
 // IN: [ReturnLabel[4]]\l\

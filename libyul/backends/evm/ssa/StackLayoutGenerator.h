@@ -18,6 +18,8 @@
 
 #pragma once
 
+#include <libyul/backends/evm/ssa/spill/SpillSet.h>
+
 #include <libyul/backends/evm/ssa/Stack.h>
 #include <libyul/backends/evm/ssa/StackLayout.h>
 
@@ -32,17 +34,27 @@ class StackLayoutGenerator
 {
 public:
 	using Slot = StackSlot;
-	static SSACFGStackLayout generate(
+
+	/// the per-block stack layout plus the set of values the layout generator decided to spill to memory
+	struct Result
+	{
+		SSACFGStackLayout layout;
+		spill::SpillSet spillSet;
+	};
+
+	static Result generate(
 		LivenessAnalysis const& _liveness,
 		CallSites const& _callSites,
-		ControlFlowGraphs::FunctionGraphID _graphID
+		ControlFlowGraphs::FunctionGraphID _graphID,
+		bool _spillingAllowed
 	);
 
 private:
 	explicit StackLayoutGenerator(
 		LivenessAnalysis const& _liveness,
 		CallSites const& _callSites,
-		ControlFlowGraphs::FunctionGraphID _graphID
+		ControlFlowGraphs::FunctionGraphID _graphID,
+		bool _spillingAllowed
 	);
 
 	void defineStackIn(SSACFG::BlockId const& _blockId);
@@ -53,6 +65,7 @@ private:
 	CallSites const& m_callSites;
 	ControlFlowGraphs::FunctionGraphID m_graphID;
 	bool m_hasFunctionReturnLabel;
+	bool m_spillingAllowed;
 
 	std::unique_ptr<JunkAdmittingBlocksFinder> m_junkAdmittingBlocksFinder;
 	// Per-edge stack proposals for defineStackIn.
@@ -60,6 +73,7 @@ private:
 	// representing the stack state flowing from each predecessor into the block.
 	std::vector<std::vector<std::pair<SSACFG::BlockId, StackData>>> m_inputStackProposalsPerBlock;
 	SSACFGStackLayout m_resultLayout;
+	spill::SpillSet m_spillSet;
 };
 
 }

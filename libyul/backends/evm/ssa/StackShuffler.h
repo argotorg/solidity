@@ -18,9 +18,10 @@
 
 #pragma once
 
-#include <libyul/backends/evm/ssa/StackSlotLiveness.h>
-#include <libyul/backends/evm/ssa/StackToMemorySpilling.h>
+#include <libyul/backends/evm/ssa/spill/SpillSet.h>
+
 #include <libyul/backends/evm/ssa/Stack.h>
+#include <libyul/backends/evm/ssa/StackSlotLiveness.h>
 
 #include <boost/container/flat_map.hpp>
 
@@ -38,12 +39,12 @@ namespace solidity::yul::ssa
 namespace detail
 {
 
-inline bool slotIsSpilled(StackSlot const& _slot, SpilledVariables const* const _spilledVariables)
+inline bool slotIsSpilled(StackSlot const& _slot, spill::SpillSet const* const _spilledVariables)
 {
 	return _spilledVariables && _slot.isValue() && _spilledVariables->isSpilled(_slot.value());
 }
 
-inline bool slotCanBeLoadedOrPushed(StackSlot const& _slot, SpilledVariables const* const _spilledVariables)
+inline bool slotCanBeLoadedOrPushed(StackSlot const& _slot, spill::SpillSet const* const _spilledVariables)
 {
 	return Stack<>::canBeFreelyGenerated(_slot) || slotIsSpilled(_slot, _spilledVariables);
 }
@@ -56,12 +57,12 @@ struct Target
 		StackData const& _args,
 		StackSlotLiveness const& _liveOut,
 		std::size_t _targetSize,
-		SpilledVariables const* _spilledVariables = nullptr
+		spill::SpillSet const* _spilledVariables = nullptr
 	);
 
 	StackData const& args;
 	StackSlotLiveness const& liveOut;
-	SpilledVariables const* const spilledVariables;
+	spill::SpillSet const* const spilledVariables;
 	std::size_t const size;
 	std::size_t const tailSize;
 	boost::container::flat_map<StackSlot, size_t> minCount;
@@ -70,7 +71,7 @@ struct Target
 class State
 {
 public:
-	State(StackData const& _stackData, Target const& _target, SpilledVariables const* const _spilledVariables, std::size_t _reachableStackDepth);
+	State(StackData const& _stackData, Target const& _target, spill::SpillSet const* _spilledVariables, std::size_t _reachableStackDepth);
 
 	std::size_t size() const;
 	/// How many of `_slot` do we have on stack
@@ -159,7 +160,7 @@ public:
 private:
 	StackData const& m_stackData;
 	Target const& m_target;
-	SpilledVariables const* const m_spilledVariables;
+	spill::SpillSet const* const m_spilledVariables;
 	std::size_t const m_reachableStackDepth;
 	boost::container::flat_map<StackSlot, size_t> m_histogramTail;
 	boost::container::flat_map<StackSlot, size_t> m_histogramArgs;
@@ -186,7 +187,7 @@ public:
 		StackData const& _args,
 		StackSlotLiveness const& _liveOut,
 		std::size_t _targetStackSize,
-		SpilledVariables const* const _spilledVariables = nullptr
+		spill::SpillSet const* const _spilledVariables = nullptr
 	)
 	{
 		detail::Target const target(_args, _liveOut, _targetStackSize, _spilledVariables);
@@ -949,5 +950,50 @@ private:
 		return std::nullopt;
 	}
 };
+
+[[nodiscard]] inline StackShufflerResult shuffleWithSpillDiscovery(
+	StackData& _data,
+	StackData const& _args,
+	StackSlotLiveness const& _liveOut,
+	std::size_t const _targetStackSize,
+	spill::SpillSet& _spilledVariables
+)
+{
+	StackData const initialData = _data;
+	StackShufflerResult result;
+	do
+	{
+		_data = initialData;
+		Stack<> stack(_data, {});
+		result = StackShuffler<NoOpStackManipulationCallbacks>::shuffle(stack, _args, _liveOut, _targetStackSize, &_spilledVariables);
+		switch (result.status)
+		{
+		case StackShufflerResult::Status::Continue:
+			yulAssert(false);
+		case StackShufflerResult::Status::Admissible:
+			break;
+		case StackShufflerResult::Status::StackTooDeep:
+		{
+			yulAssert(result.culprit.isValue() && !result.culprit.isLiteralValue());
+			yulAssert(!_spilledVariables.isSpilled(result.culprit.value()));
+			_spilledVariables.add(result.culprit.value());
+			break;
+		}
+		case StackShufflerResult::Status::MaxIterationsReached:
+			break;
+		}
+	}
+	while (result.status == StackShufflerResult::Status::StackTooDeep);
+	return result;
+}
+
+[[nodiscard]] inline StackShufflerResult shuffleWithSpillDiscovery(
+	StackData& _data,
+	StackData const& _target,
+	spill::SpillSet& _spilledVariables)
+{
+	return shuffleWithSpillDiscovery(_data, _target, {}, _target.size(), _spilledVariables);
+}
+
 
 }

@@ -15,7 +15,8 @@
 // graph[fontname="DejaVu Sans", rankdir=LR]
 // node[shape=box,fontname="DejaVu Sans"];
 //
-// Entry [label="Entry"];
+// Entry [label="Entry
+// spilled: {}"];
 // Entry -> Block0_0;
 // Block0_0 [label="\
 // IN: []\l\
@@ -77,7 +78,8 @@
 // Block0_5Exit [label="MainExit"];
 // Block0_5 -> Block0_5Exit;
 // FunctionEntry___revert_0_1_0 [label="function __revert_0_1:
-//  __revert_0_1()"];
+//  __revert_0_1()
+// spilled: {}"];
 // FunctionEntry___revert_0_1_0 -> Block1_0;
 // Block1_0 [label="\
 // IN: []\l\

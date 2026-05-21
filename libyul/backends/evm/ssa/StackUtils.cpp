@@ -54,12 +54,18 @@ void GasAccumulatingCallbacks::push(StackSlot const& _slot)
 		auto const op = cfg.evmDialect.evmVersion().hasPush0() ? evmasm::Instruction::PUSH0 : evmasm::Instruction::CODESIZE;
 		opGas += evmasm::GasMeter::runGas(op, cfg.evmDialect.evmVersion());
 	}
-	else
+	else if (_slot.isFunctionCallReturnLabel())
 	{
-		yulAssert(_slot.isFunctionCallReturnLabel(), "we can only push literals, junk, and function call return labels");
 		// this is a jump dest, we don't really know yet how big it is going to be, just assume that it fits into
 		// a 2-byte number
 		opGas += evmasm::GasMeter::runGas(evmasm::Instruction::PUSH2, cfg.evmDialect.evmVersion());
+	}
+	else
+	{
+		// Spilled SSA value
+		yulAssert(_slot.isValue(), "unexpected slot kind in GasAccumulatingCallbacks::push");
+		opGas += evmasm::GasMeter::runGas(evmasm::Instruction::PUSH32, cfg.evmDialect.evmVersion());
+		opGas += evmasm::GasMeter::runGas(evmasm::Instruction::MLOAD, cfg.evmDialect.evmVersion());
 	}
 }
 
@@ -80,13 +86,15 @@ StackData solidity::yul::ssa::stackPreImage(SSACFG const& _cfg, StackData _stack
 	return _stack;
 }
 
-StackData solidity::yul::ssa::findOptimalTarget
+OptimalTarget solidity::yul::ssa::findOptimalTarget
 (
 	StackData const& _stackData,
 	StackData const& _targetArgs,
 	StackSlotLiveness const& _targetLiveOut,
 	bool const _canIntroduceJunk,
-	bool const _hasFunctionReturnLabel
+	bool const _hasFunctionReturnLabel,
+	spill::SpillSet const& _spillSet,
+	bool const _spillingAllowed
 )
 {
 	std::size_t const minSize = _targetLiveOut.size() + _targetArgs.size() + (_hasFunctionReturnLabel ? 1 : 0);
@@ -105,10 +113,11 @@ StackData solidity::yul::ssa::findOptimalTarget
 
 	StackData data;
 	data.reserve(startSize + maxUpwardExpansion);
+	spill::SpillSet spillSet;
 	auto const evaluateCost = [&](std::size_t const _targetSize) -> std::size_t
 	{
 		StackShufflerResult result;
-		SpilledVariables spillSet;
+		spillSet = _spillSet;
 		OpsCountingCallbacks callbacks;
 		do
 		{
@@ -126,7 +135,7 @@ StackData solidity::yul::ssa::findOptimalTarget
 			{
 				yulAssert(result.culprit.isValue() && !result.culprit.isLiteralValue());
 				yulAssert(!spillSet.isSpilled(result.culprit.value()));
-				spillSet.spill(result.culprit.value());
+				spillSet.add(result.culprit.value());
 				break;
 			}
 			case StackShufflerResult::Status::MaxIterationsReached:
@@ -142,6 +151,7 @@ StackData solidity::yul::ssa::findOptimalTarget
 
 	std::size_t bestCost = evaluateCost(startSize);
 	StackData bestData = data;
+	spill::SpillSet bestSpillSet = spillSet;
 
 	// On non-reverting paths, only search downward from pivot to avoid growing the stack.
 	// On reverting paths, search in both directions since stack cleanup doesn't matter.
@@ -158,6 +168,7 @@ StackData solidity::yul::ssa::findOptimalTarget
 			{
 				bestCost = cost;
 				bestData = data;
+				bestSpillSet = spillSet;
 				consecutiveIncreases = 0;
 			}
 			else if (++consecutiveIncreases >= stopAfter)
@@ -175,6 +186,7 @@ StackData solidity::yul::ssa::findOptimalTarget
 			{
 				bestCost = cost;
 				bestData = data;
+				bestSpillSet = spillSet;
 				consecutiveIncreases = 0;
 			}
 			else if (++consecutiveIncreases >= stopAfter)
@@ -182,7 +194,8 @@ StackData solidity::yul::ssa::findOptimalTarget
 		}
 	}
 
-	return bestData;
+	yulAssert(_spillingAllowed || bestSpillSet.numSpilled() == _spillSet.numSpilled(), "Spilling not allowed, stack too deep.");
+	return OptimalTarget{std::move(bestData), std::move(bestSpillSet)};
 }
 
 CallSites solidity::yul::ssa::gatherCallSites(SSACFG const& _cfg)

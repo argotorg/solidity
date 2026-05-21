@@ -21,7 +21,8 @@
 // graph[fontname="DejaVu Sans", rankdir=LR]
 // node[shape=box,fontname="DejaVu Sans"];
 //
-// Entry [label="Entry"];
+// Entry [label="Entry
+// spilled: {}"];
 // Entry -> Block0_0;
 // Block0_0 [label="\
 // IN: []\l\

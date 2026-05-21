@@ -18,6 +18,7 @@
 
 #include <libyul/backends/evm/ssa/CodeTransform.h>
 
+#include <libyul/backends/evm/ssa/CallGraph.h>
 #include <libyul/backends/evm/ssa/StackLayoutGenerator.h>
 #include <libyul/backends/evm/ssa/StackShuffler.h>
 #include <libyul/backends/evm/ssa/StackUtils.h>
@@ -52,6 +53,7 @@ void CodeTransform::run
 	ControlFlowGraphs const& controlFlowGraphs = _controlFlowLiveness.controlFlowGraphs.get();
 	yulAssert(controlFlowGraphs.functionGraphs.size() == _controlFlowLiveness.cfgLiveness.size());
 	FunctionLabels const functionLabels = registerFunctionLabels(_assembly, controlFlowGraphs);
+	CallGraph const callGraph(controlFlowGraphs);
 
 	for (std::size_t functionIndex = 0; functionIndex < controlFlowGraphs.functionGraphs.size(); ++functionIndex)
 	{
@@ -62,7 +64,8 @@ void CodeTransform::run
 		auto const& liveness = _controlFlowLiveness.cfgLiveness[functionIndex];
 		yulAssert(liveness);
 		auto const graphID = static_cast<ControlFlowGraphs::FunctionGraphID>(functionIndex);
-		auto const& stackLayout = StackLayoutGenerator::generate(*liveness, callSites, graphID);
+		bool const spillingAllowed = !callGraph.isRecursive(graphID);
+		auto const stackLayoutGeneratorResult = StackLayoutGenerator::generate(*liveness, callSites, graphID, spillingAllowed);
 		CodeTransform transform(
 			_assembly,
 			_builtinContext,
@@ -70,7 +73,7 @@ void CodeTransform::run
 			functionLabels,
 			callSites,
 			cfg,
-			stackLayout,
+			stackLayoutGeneratorResult.layout,
 			graphID
 		);
 		transform(cfg.entry);

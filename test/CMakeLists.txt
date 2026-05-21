@@ -79,6 +79,8 @@ set(libsolidity_sources
     libsolidity/ASTJSONTest.h
     libsolidity/ErrorCheck.cpp
     libsolidity/ErrorCheck.h
+    libsolidity/EthdebugTest.cpp
+    libsolidity/EthdebugTest.h
     libsolidity/FunctionDependencyGraphTest.cpp
     libsolidity/FunctionDependencyGraphTest.h
     libsolidity/GasCosts.cpp
@@ -87,6 +89,8 @@ set(libsolidity_sources
     libsolidity/GasTest.h
     libsolidity/Imports.cpp
     libsolidity/InlineAssembly.cpp
+    libsolidity/JSONExpectationTest.cpp
+    libsolidity/JSONExpectationTest.h
     libsolidity/LibSolc.cpp
     libsolidity/Metadata.cpp
     libsolidity/MemoryGuardTest.cpp

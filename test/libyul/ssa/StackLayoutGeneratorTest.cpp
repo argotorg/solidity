@@ -31,7 +31,7 @@
 #include <libyul/Common.h>
 #include <libyul/YulStack.h>
 
-#include <libsolutil/Visitor.h>
+#include <fmt/ranges.h>
 
 #include <range/v3/view/split.hpp>
 
@@ -62,15 +62,22 @@ public:
 		SSACFG const& _cfg,
 		std::size_t _functionIndex,
 		SSACFGStackLayout const& _layout,
+		spill::SpillSet const& _spillSet,
 		ControlFlowGraphs const& _controlFlow
 	):
 		DotExporterBase(_cfg, _functionIndex),
 		m_layout(_layout),
+		m_spillSet(_spillSet),
 		m_controlFlow(_controlFlow)
 	{
 	}
 
 protected:
+	std::string extraEntryLabel() override
+	{
+		return fmt::format("spilled: {{{}}}", fmt::join(m_spillSet.spilledValues(), ", "));
+	}
+
 	void writeBlockLabel(std::ostream& _out, SSACFG::BlockId _blockId) override
 	{
 		auto const& block = m_cfg.block(_blockId);
@@ -110,6 +117,7 @@ protected:
 
 private:
 	SSACFGStackLayout const& m_layout;
+	spill::SpillSet const& m_spillSet;
 	ControlFlowGraphs const& m_controlFlow;
 };
 
@@ -166,12 +174,13 @@ frontend::test::TestCase::TestResult StackLayoutGeneratorTest::run(std::ostream&
 		for (std::size_t index = 0; index < controlFlowGraphs->functionGraphs.size(); ++index)
 		{
 			auto const& cfg = *controlFlowGraphs->functionGraphs[index];
-			SSACFGStackLayout const layout = StackLayoutGenerator::generate(
+			auto result = StackLayoutGenerator::generate(
 				LivenessAnalysis(cfg),
 				gatherCallSites(cfg),
-				static_cast<ControlFlowGraphs::FunctionGraphID>(index)
+				static_cast<ControlFlowGraphs::FunctionGraphID>(index),
+				true
 			);
-			StackLayoutDotExporter exporter(cfg, index, layout, *controlFlowGraphs);
+			StackLayoutDotExporter exporter(cfg, index, result.layout, result.spillSet, *controlFlowGraphs);
 			if (!cfg.isMainGraph())
 				m_obtainedResult += exporter.exportFunction(cfg, false);
 			else

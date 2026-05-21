@@ -56,6 +56,10 @@ protected:
 	/// Override to customize edge style (e.g., dashed for back edges).
 	virtual EdgeStyle edgeStyle(SSACFG::BlockId, SSACFG::BlockId) { return EdgeStyle::Solid; }
 
+	/// Override to append extra text to the FunctionEntry/Entry label. Returned text is appended
+	/// verbatim (already-escaped) inside the existing label, separated by a newline if non-empty.
+	virtual std::string extraEntryLabel() { return {}; }
+
 	std::string formatBlockHandle(SSACFG::BlockId _id) const;
 	/// Escapes a string for use in dot node IDs (replaces non-alphanumeric characters with underscores).
 	static std::string escapeId(std::string_view _str);

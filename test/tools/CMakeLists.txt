@@ -25,6 +25,7 @@ add_executable(isoltest
 	../libsolidity/util/ContractABIUtils.cpp
 	../libsolidity/util/TestFileParser.cpp
 	../libsolidity/util/TestFunctionCall.cpp
+	../libsolidity/EthdebugTest.cpp
 	../libsolidity/GasTest.cpp
 	../libsolidity/MemoryGuardTest.cpp
 	../libsolidity/NatspecJSONTest.cpp
@@ -39,6 +40,7 @@ add_executable(isoltest
 	../libsolidity/ASTJSONTest.cpp
 	../libsolidity/ASTPropertyTest.cpp
 	../libsolidity/FunctionDependencyGraphTest.cpp
+	../libsolidity/JSONExpectationTest.cpp
 	../libsolidity/SMTCheckerTest.cpp
 	../libyul/Common.cpp
 	../libyul/ControlFlowGraphTest.cpp
