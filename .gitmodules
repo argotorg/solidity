@@ -7,3 +7,6 @@
 [submodule "deps/fmtlib"]
 	path = deps/fmtlib
 	url = https://github.com/fmtlib/fmt.git
+[submodule "deps/mimalloc"]
+	path = deps/mimalloc
+	url = https://github.com/microsoft/mimalloc.git

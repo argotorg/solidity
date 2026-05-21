@@ -231,6 +231,9 @@ add_executable(soltest ${sources}
 )
 target_link_libraries(soltest PRIVATE solcli libsolc yul solidity smtutil solutil phaser Boost::boost yulInterpreter evmasm Boost::filesystem Boost::program_options Boost::unit_test_framework evmc)
 
+if (MIMALLOC_ENABLED)
+    target_link_libraries(soltest PRIVATE mimalloc-static)
+endif()
 
 # Special compilation flag for Visual Studio (version 2019 at least affected)
 # in order to compile SolidityEndToEndTest.cpp, which is quite huge.
