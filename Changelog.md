@@ -7,6 +7,7 @@ Compiler Features:
 * Standard JSON Interface: Selecting an ethdebug output no longer implicitly enables the `ethdebug` and `ast-id` components of `settings.debug.debugInfo`; without `ethdebug` in the selection the `evm.bytecode.ethdebug` and `evm.deployedBytecode.ethdebug` outputs carry no semantic debug info.
 
 Bugfixes:
+* Code Generator: Fix ICE when assigning a calldata struct containing a member of external function type to a storage struct.
 * Parser: Fix inverted version pragma range comparison for components in the range [2**31, 2**32).
 
 
