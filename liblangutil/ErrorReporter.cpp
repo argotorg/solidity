@@ -66,6 +66,7 @@ void ErrorReporter::warning(
 
 void ErrorReporter::error(ErrorId _errorId, Error::Type _type, SourceLocation const& _location, std::string const& _description)
 {
+	solAssert(!_description.empty(), "Errors must include a message for the user.");
 	if (checkForExcessiveErrors(_type))
 		return;
 
@@ -74,6 +75,7 @@ void ErrorReporter::error(ErrorId _errorId, Error::Type _type, SourceLocation co
 
 void ErrorReporter::error(ErrorId _errorId, Error::Type _type, SourceLocation const& _location, SecondarySourceLocation const& _secondaryLocation, std::string const& _description)
 {
+	solAssert(!_description.empty(), "Errors must include a message for the user.");
 	if (checkForExcessiveErrors(_type))
 		return;
 

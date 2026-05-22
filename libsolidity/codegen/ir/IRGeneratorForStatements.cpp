@@ -107,7 +107,7 @@ private:
 	{
 		auto const& reference = m_references.at(&_identifier);
 		auto const varDecl = dynamic_cast<VariableDeclaration const*>(reference.declaration);
-		solUnimplementedAssert(varDecl);
+		solUnimplementedAssert(varDecl, "translateReference() is only implemented for variable declarations.");
 		std::string const& suffix = reference.suffix;
 
 		std::string value;
@@ -884,7 +884,7 @@ bool IRGeneratorForStatements::visit(BinaryOperation const& _binOp)
 
 		if (functionType && functionType->kind() ==  FunctionType::Kind::External)
 		{
-			solUnimplementedAssert(functionType->sizeOnStack() == 2, "");
+			solUnimplementedAssert(functionType->sizeOnStack() == 2, "Comparisons are implemented only for external function types.");
 			expr = m_utils.externalFunctionPointersEqualFunction() +
 				"(" +
 				IRVariable{_binOp.leftExpression()}.part("address").name() + "," +
@@ -1767,7 +1767,7 @@ void IRGeneratorForStatements::endVisit(FunctionCallOptions const& _options)
 	setLocation(_options);
 	FunctionType const& previousType = dynamic_cast<FunctionType const&>(*_options.expression().annotation().type);
 
-	solUnimplementedAssert(!previousType.hasBoundFirstArgument());
+	solUnimplementedAssert(!previousType.hasBoundFirstArgument(), "Call options not implemented for bound library functions.");
 
 	// Copy over existing values.
 	for (auto const& item: previousType.stackItems())
@@ -1952,7 +1952,7 @@ void IRGeneratorForStatements::endVisit(MemberAccess const& _memberAccess)
 		}
 		else if (member == "address")
 		{
-			solUnimplementedAssert(
+			solAssert(
 				dynamic_cast<FunctionType const&>(*_memberAccess.expression().annotation().type).kind() ==
 				FunctionType::Kind::External
 			);
@@ -3243,8 +3243,8 @@ void IRGeneratorForStatements::writeToLValue(IRLValue const& _lvalue, IRVariable
 			[&](IRLValue::Stack const& _stack) { assign(_stack.variable, _value); },
 			[&](IRLValue::Immutable const& _immutable)
 			{
-				solUnimplementedAssert(_lvalue.type.isValueType());
-				solUnimplementedAssert(_lvalue.type.sizeOnStack() == 1);
+				solUnimplementedAssert(_lvalue.type.isValueType(), "Immutables of non-value types not supported yet.");
+				solUnimplementedAssert(_lvalue.type.sizeOnStack() == 1, "Multi-slot immutables not supported yet.");
 				solAssert(_lvalue.type == *_immutable.variable->type());
 				size_t memOffset = m_context.immutableMemoryOffset(*_immutable.variable);
 
@@ -3321,8 +3321,8 @@ IRVariable IRGeneratorForStatements::readFromLValue(IRLValue const& _lvalue)
 			define(result, _stack.variable);
 		},
 		[&](IRLValue::Immutable const& _immutable) {
-			solUnimplementedAssert(_lvalue.type.isValueType());
-			solUnimplementedAssert(_lvalue.type.sizeOnStack() == 1);
+			solUnimplementedAssert(_lvalue.type.isValueType(), "Immutables of non-value types not supported yet.");
+			solUnimplementedAssert(_lvalue.type.sizeOnStack() == 1, "Multi-slot immutables not supported yet.");
 			solAssert(_lvalue.type == *_immutable.variable->type());
 			if (m_context.executionContext() == IRGenerationContext::ExecutionContext::Creation)
 			{

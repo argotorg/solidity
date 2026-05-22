@@ -155,7 +155,7 @@ ImmutableItem::ImmutableItem(CompilerContext& _compilerContext, VariableDeclarat
 
 void ImmutableItem::retrieveValue(SourceLocation const&, bool) const
 {
-	solUnimplementedAssert(m_dataType->isValueType());
+	solUnimplementedAssert(m_dataType->isValueType(), "Immutables of non-value types not supported yet.");
 
 	if (m_context.runtimeContext())
 		CompilerUtils(m_context).loadFromMemory(
@@ -172,8 +172,8 @@ void ImmutableItem::retrieveValue(SourceLocation const&, bool) const
 void ImmutableItem::storeValue(Type const& _sourceType, SourceLocation const&, bool _move) const
 {
 	CompilerUtils utils(m_context);
-	solUnimplementedAssert(m_dataType->isValueType());
-	solAssert(_sourceType.isValueType(), "");
+	solUnimplementedAssert(m_dataType->isValueType(), "Immutables of non-value types not supported yet.");
+	solAssert(_sourceType.isValueType());
 
 	utils.convertType(_sourceType, *m_dataType, true);
 	m_context << m_context.immutableMemoryOffset(m_variable);
@@ -188,7 +188,7 @@ void ImmutableItem::storeValue(Type const& _sourceType, SourceLocation const&, b
 void ImmutableItem::setToZero(SourceLocation const&, bool _removeReference) const
 {
 	CompilerUtils utils(m_context);
-	solUnimplementedAssert(m_dataType->isValueType());
+	solUnimplementedAssert(m_dataType->isValueType(), "Immutables of non-value types not supported yet.");
 	solAssert(_removeReference);
 
 	m_context << m_context.immutableMemoryOffset(m_variable);

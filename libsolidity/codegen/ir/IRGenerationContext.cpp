@@ -153,8 +153,8 @@ size_t IRGenerationContext::reservedMemory()
 	size_t immutableVariablesSize = 0;
 	for (auto const* var: keys(m_immutableVariables))
 	{
-		solUnimplementedAssert(var->type()->isValueType());
-		solUnimplementedAssert(var->type()->sizeOnStack() == 1);
+		solUnimplementedAssert(var->type()->isValueType(), "Immutables of non-value types not supported yet.");
+		solUnimplementedAssert(var->type()->sizeOnStack() == 1, "Multi-slot immutables not supported yet.");
 		immutableVariablesSize += var->type()->sizeOnStack() * 32;
 	}
 

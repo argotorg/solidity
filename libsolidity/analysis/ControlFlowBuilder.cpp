@@ -604,7 +604,7 @@ void ControlFlowBuilder::operator()(yul::FunctionDefinition const&)
 void ControlFlowBuilder::operator()(yul::Leave const&)
 {
 	// This has to be implemented, if we ever decide to visit functions.
-	solUnimplemented("");
+	solAssert(false);
 }
 
 bool ControlFlowBuilder::visit(VariableDeclaration const& _variableDeclaration)

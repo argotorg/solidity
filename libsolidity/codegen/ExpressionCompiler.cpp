@@ -2348,11 +2348,12 @@ bool ExpressionCompiler::visit(IndexRangeAccess const& _indexAccess)
 		if (ArraySliceType const* sliceType = dynamic_cast<ArraySliceType const*>(&baseType))
 			arrayType = &sliceType->arrayType();
 
-	solAssert(arrayType, "");
+	solAssert(arrayType);
 	solUnimplementedAssert(
 		arrayType->location() == DataLocation::CallData &&
 		arrayType->isDynamicallySized() &&
-		!arrayType->baseType()->isDynamicallyEncoded()
+		!arrayType->baseType()->isDynamicallyEncoded(),
+		"Slicing is supported only for dynamically-sized calldata arrays of statically-encoded types."
 	);
 
 	if (_indexAccess.startExpression())
@@ -2486,7 +2487,10 @@ void ExpressionCompiler::appendCompareOperatorCode(Token _operator, Type const& 
 		FunctionType const* functionType = dynamic_cast<decltype(functionType)>(&_type);
 		if (functionType && functionType->kind() == FunctionType::Kind::External)
 		{
-			solUnimplementedAssert(functionType->sizeOnStack() == 2, "");
+			solUnimplementedAssert(
+				functionType->sizeOnStack() == 2,
+				"Comparisons are implemented only for external function types."
+			);
 			m_context << Instruction::SWAP3;
 
 			m_context << ((u256(1) << 160) - 1) << Instruction::AND;

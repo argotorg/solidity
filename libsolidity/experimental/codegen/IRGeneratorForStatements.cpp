@@ -112,7 +112,7 @@ bool IRGeneratorForStatements::visit(TupleExpression const& _tupleExpression)
 	std::vector<std::string> components;
 	for (auto const& component: _tupleExpression.components())
 	{
-		solUnimplementedAssert(component);
+		solUnimplementedAssert(component, "Tuple expressions with empty components not supported.");
 		component->accept(*this);
 		components.emplace_back(IRNames::localVariable(*component));
 	}

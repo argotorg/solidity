@@ -1381,8 +1381,8 @@ std::string YulUtilFunctions::extractByteArrayLengthFunction()
 
 std::string YulUtilFunctions::resizeArrayFunction(ArrayType const& _type)
 {
-	solAssert(_type.location() == DataLocation::Storage, "");
-	solUnimplementedAssert(_type.baseType()->storageBytes() <= 32);
+	solAssert(_type.location() == DataLocation::Storage);
+	solUnimplementedAssert(_type.baseType()->storageBytes() <= 32, "Resizing not implemented for packed arrays.");
 
 	if (_type.isByteArrayOrString())
 		return resizeDynamicByteArrayFunction(_type);
@@ -1421,10 +1421,10 @@ std::string YulUtilFunctions::resizeArrayFunction(ArrayType const& _type)
 
 std::string YulUtilFunctions::cleanUpStorageArrayEndFunction(ArrayType const& _type)
 {
-	solAssert(_type.location() == DataLocation::Storage, "");
-	solAssert(_type.baseType()->category() != Type::Category::Mapping, "");
-	solAssert(!_type.isByteArrayOrString(), "");
-	solUnimplementedAssert(_type.baseType()->storageBytes() <= 32);
+	solAssert(_type.location() == DataLocation::Storage);
+	solAssert(_type.baseType()->category() != Type::Category::Mapping);
+	solAssert(!_type.isByteArrayOrString());
+	solUnimplementedAssert(_type.baseType()->storageBytes() <= 32, "Resizing not implemented for packed arrays.");
 
 	std::string functionName = "cleanup_storage_array_end_" + _type.identifier();
 	return m_functionCollector.createFunction(functionName, [&](std::vector<std::string>& _args, std::vector<std::string>&) {
@@ -1728,12 +1728,15 @@ std::string YulUtilFunctions::storageByteArrayPopFunction(ArrayType const& _type
 
 std::string YulUtilFunctions::storageArrayPushFunction(ArrayType const& _type, Type const* _fromType)
 {
-	solAssert(_type.location() == DataLocation::Storage, "");
-	solAssert(_type.isDynamicallySized(), "");
+	solAssert(_type.location() == DataLocation::Storage);
+	solAssert(_type.isDynamicallySized());
 	if (!_fromType)
 		_fromType = _type.baseType();
 	else if (_fromType->isValueType())
-		solUnimplementedAssert(*_fromType == *_type.baseType());
+		solUnimplementedAssert(
+			*_fromType == *_type.baseType(),
+			".push() to a storage array with a different base type not implemented."
+		);
 
 	std::string functionName =
 		std::string{"array_push_from_"} +
@@ -3557,10 +3560,10 @@ std::string YulUtilFunctions::conversionFunction(Type const& _from, Type const& 
 				if (auto const* toFixedBytes = dynamic_cast<FixedBytesType const*>(&_to))
 					convert = shiftLeftFunction(256 - toFixedBytes->numBytes() * 8);
 				else if (dynamic_cast<FixedPointType const*>(&_to))
-					solUnimplemented("");
+					solUnimplemented("Conversions from integers to fixed-point types not implemented");
 				else if (dynamic_cast<IntegerType const*>(&_to))
 				{
-					solUnimplementedAssert(fromCategory != Type::Category::FixedPoint);
+					solUnimplementedAssert(fromCategory != Type::Category::FixedPoint, "Fixed point types not implemented.");
 					convert = identityFunction();
 				}
 				else if (toCategory == Type::Category::Enum)
@@ -3599,8 +3602,14 @@ std::string YulUtilFunctions::conversionFunction(Type const& _from, Type const& 
 				body = "converted := value";
 			else
 			{
-				solUnimplementedAssert(toStructType.location() == DataLocation::Memory);
-				solUnimplementedAssert(fromStructType.location() != DataLocation::Memory);
+				solUnimplementedAssert(
+					toStructType.location() == DataLocation::Memory,
+					"Conversions changing the location of a struct to non-memory not implemented."
+				);
+				solUnimplementedAssert(
+					fromStructType.location() != DataLocation::Memory,
+					"Conversions changing the location of a memory struct not implemented."
+				);
 
 				if (fromStructType.location() == DataLocation::CallData)
 					body = Whiskers(R"(
@@ -4365,7 +4374,7 @@ std::string YulUtilFunctions::zeroValueFunction(Type const& _type, bool _splitFu
 			else if (auto const* structType = dynamic_cast<StructType const*>(&_type))
 				templ("zeroValue", allocateAndInitializeMemoryStructFunction(*structType) + "()");
 			else
-				solUnimplemented("");
+				solUnimplemented("zeroValue for type " + _type.identifier() + " not yet implemented!");
 		}
 
 		return templ.render();

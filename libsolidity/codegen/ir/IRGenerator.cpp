@@ -563,7 +563,7 @@ std::string IRGenerator::generateGetter(VariableDeclaration const& _varDecl)
 		if (_varDecl.immutable())
 		{
 			solAssert(paramTypes.empty(), "");
-			solUnimplementedAssert(type->sizeOnStack() == 1);
+			solUnimplementedAssert(type->sizeOnStack() == 1, "Multi-slot immutables not supported yet.");
 
 			auto t = Whiskers(R"(
 				<astIDComment><sourceLocationComment>
@@ -1020,8 +1020,8 @@ std::string IRGenerator::deployCode(ContractDefinition const& _contract)
 	{
 		for (VariableDeclaration const* immutable: ContractType(_contract).immutableVariables())
 		{
-			solUnimplementedAssert(immutable->type()->isValueType());
-			solUnimplementedAssert(immutable->type()->sizeOnStack() == 1);
+			solUnimplementedAssert(immutable->type()->isValueType(), "Immutables of non-value types not supported yet.");
+			solUnimplementedAssert(immutable->type()->sizeOnStack() == 1, "Multi-slot immutables not supported yet.");
 			if (!eof)
 				immutables.emplace_back(std::map<std::string, std::string>{
 					{"immutableName"s, std::to_string(immutable->id())},

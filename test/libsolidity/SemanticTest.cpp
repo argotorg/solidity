@@ -610,7 +610,7 @@ bool SemanticTest::checkGasCostExpectation(TestFunctionCall& io_test, bool _comp
 
 	// NOTE: Cost excluding code is unlikely to be negative but it may still be possible due to refunds.
 	// We'll deal with it when we actually have a test case like that.
-	solUnimplementedAssert(m_gasUsed >= m_gasUsedForCodeDeposit);
+	solUnimplementedAssert(m_gasUsed >= m_gasUsedForCodeDeposit, "Negative gas expectations not supported.");
 	io_test.setGasCostExcludingCode(setting, m_gasUsed - m_gasUsedForCodeDeposit);
 	io_test.setCodeDepositGasCost(setting, m_gasUsedForCodeDeposit);
 

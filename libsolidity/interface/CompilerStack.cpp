@@ -291,7 +291,7 @@ void CompilerStack::setOptimiserSettings(OptimiserSettings _settings)
 void CompilerStack::setRevertStringBehaviour(RevertStrings _revertStrings)
 {
 	solAssert(m_stackState < ParsedAndImported, "Must set revert string settings before parsing.");
-	solUnimplementedAssert(_revertStrings != RevertStrings::VerboseDebug);
+	solUnimplementedAssert(_revertStrings != RevertStrings::VerboseDebug, "VerboseDebug revert strings not implemented yet.");
 	m_revertStrings = _revertStrings;
 }
 
@@ -446,7 +446,7 @@ void CompilerStack::importASTs(std::map<std::string, Json> const& _sources)
 		ASTJsonImporter(m_evmVersion, m_eofVersion).jsonToSourceUnit(_sources);
 	for (auto& src: reconstructedSources)
 	{
-		solUnimplementedAssert(!src.second->experimentalSolidity());
+		solUnimplementedAssert(!src.second->experimentalSolidity(), "AST import not implemented for experimental Solidity yet.");
 		std::string const& path = src.first;
 		Source source;
 		source.ast = src.second;
@@ -1028,7 +1028,7 @@ std::optional<std::string> const& CompilerStack::yulIR(std::string const& _contr
 std::optional<Json> CompilerStack::yulIRAst(std::string const& _contractName) const
 {
 	solAssert(m_stackState == CompilationSuccessful, "Compilation was not successful.");
-	solUnimplementedAssert(!isExperimentalSolidity());
+	solUnimplementedAssert(!isExperimentalSolidity(), "IR AST export not implemented for experimental Solidity yet.");
 
 	// NOTE: Intentionally not using LazyInit. The artifact can get very large and we don't want to
 	// keep it around when compiling a large project containing many contracts.
@@ -1043,7 +1043,7 @@ std::optional<Json> CompilerStack::yulIRAst(std::string const& _contractName) co
 std::optional<Json> CompilerStack::yulCFGJson(std::string const& _contractName) const
 {
 	solAssert(m_stackState == CompilationSuccessful, "Compilation was not successful.");
-	solUnimplementedAssert(!isExperimentalSolidity());
+	solUnimplementedAssert(!isExperimentalSolidity(), "Yul CFG export not implemented for experimental Solidity yet.");
 
 	// NOTE: Intentionally not using LazyInit. The artifact can get very large and we don't want to
 	// keep it around when compiling a large project containing many contracts.
@@ -1064,7 +1064,7 @@ std::optional<std::string> const& CompilerStack::yulIROptimized(std::string cons
 std::optional<Json> CompilerStack::yulIROptimizedAst(std::string const& _contractName) const
 {
 	solAssert(m_stackState == CompilationSuccessful, "Compilation was not successful.");
-	solUnimplementedAssert(!isExperimentalSolidity());
+	solUnimplementedAssert(!isExperimentalSolidity(), "Optimized IR AST export not implemented for experimental Solidity yet.");
 
 	// NOTE: Intentionally not using LazyInit. The artifact can get very large and we don't want to
 	// keep it around when compiling a large project containing many contracts.
@@ -1104,7 +1104,7 @@ std::string CompilerStack::assemblyString(std::string const& _contractName, Stri
 Json CompilerStack::assemblyJSON(std::string const& _contractName) const
 {
 	solAssert(m_stackState == CompilationSuccessful, "Compilation was not successful.");
-	solUnimplementedAssert(!isExperimentalSolidity());
+	solUnimplementedAssert(!isExperimentalSolidity(), "Assembly JSON export not implemented for experimental Solidity yet.");
 
 	Contract const& currentContract = contract(_contractName);
 	if (currentContract.evmAssembly)
@@ -1139,7 +1139,7 @@ Json const& CompilerStack::contractABI(Contract const& _contract) const
 {
 	solAssert(m_stackState >= AnalysisSuccessful, "Analysis was not successful.");
 	solAssert(_contract.contract);
-	solUnimplementedAssert(!isExperimentalSolidity());
+	solUnimplementedAssert(!isExperimentalSolidity(), "ABI generation not implemented for experimental Solidity yet.");
 	return _contract.abi.init([&]{ return ABI::generate(*_contract.contract); });
 }
 
@@ -1153,7 +1153,7 @@ Json const& CompilerStack::storageLayout(Contract const& _contract) const
 {
 	solAssert(m_stackState >= AnalysisSuccessful, "Analysis was not successful.");
 	solAssert(_contract.contract);
-	solUnimplementedAssert(!isExperimentalSolidity());
+	solUnimplementedAssert(!isExperimentalSolidity(), "Storage layout generation not implemented for experimental Solidity yet.");
 
 	return _contract.storageLayout.init([&]{ return StorageLayout().generate(*_contract.contract, DataLocation::Storage); });
 }
@@ -1168,7 +1168,7 @@ Json const& CompilerStack::transientStorageLayout(Contract const& _contract) con
 {
 	solAssert(m_stackState >= AnalysisSuccessful, "Analysis was not successful.");
 	solAssert(_contract.contract);
-	solUnimplementedAssert(!isExperimentalSolidity());
+	solUnimplementedAssert(!isExperimentalSolidity(), "Transient storage layout generation not implemented for experimental Solidity yet.");
 
 	return _contract.transientStorageLayout.init([&]{ return StorageLayout().generate(*_contract.contract, DataLocation::Transient); });
 }
@@ -1183,7 +1183,7 @@ Json const& CompilerStack::natspecUser(Contract const& _contract) const
 {
 	solAssert(m_stackState >= AnalysisSuccessful, "Analysis was not successful.");
 	solAssert(_contract.contract);
-	solUnimplementedAssert(!isExperimentalSolidity());
+	solUnimplementedAssert(!isExperimentalSolidity(), "User Natspec generation not implemented for experimental Solidity yet.");
 	return _contract.userDocumentation.init([&]{ return Natspec::userDocumentation(*_contract.contract); });
 }
 
@@ -1197,14 +1197,14 @@ Json const& CompilerStack::natspecDev(Contract const& _contract) const
 {
 	solAssert(m_stackState >= AnalysisSuccessful, "Analysis was not successful.");
 	solAssert(_contract.contract);
-	solUnimplementedAssert(!isExperimentalSolidity());
+	solUnimplementedAssert(!isExperimentalSolidity(), "Dev Natspec generation not implemented for experimental Solidity yet.");
 	return _contract.devDocumentation.init([&]{ return Natspec::devDocumentation(*_contract.contract); });
 }
 
 Json CompilerStack::interfaceSymbols(std::string const& _contractName) const
 {
 	solAssert(m_stackState >= AnalysisSuccessful, "Analysis was not successful.");
-	solUnimplementedAssert(!isExperimentalSolidity());
+	solUnimplementedAssert(!isExperimentalSolidity(), "Interface symbol export not implemented for experimental Solidity yet.");
 
 	Json interfaceSymbols;
 	// Always have a methods object
@@ -1276,7 +1276,7 @@ std::string const& CompilerStack::metadata(Contract const& _contract) const
 {
 	solAssert(m_stackState >= AnalysisSuccessful, "Analysis was not successful.");
 	solAssert(_contract.contract);
-	solUnimplementedAssert(!isExperimentalSolidity());
+	solUnimplementedAssert(!isExperimentalSolidity(), "Metadata generation not implemented for experimental Solidity yet.");
 	return _contract.metadata.init([&]{ return createMetadata(_contract, m_viaIR); });
 }
 
@@ -1291,7 +1291,7 @@ SourceUnit const& CompilerStack::ast(std::string const& _sourceName) const
 {
 	solAssert(m_stackState >= Parsed, "Parsing not yet performed.");
 	solAssert(source(_sourceName).ast, "Parsing was not successful.");
-	solUnimplementedAssert(!isExperimentalSolidity());
+	solUnimplementedAssert(!isExperimentalSolidity(), "AST export not implemented for experimental Solidity yet.");
 	return *source(_sourceName).ast;
 }
 
@@ -2013,7 +2013,7 @@ Json gasToJson(GasEstimator::GasConsumption const& _gas)
 Json CompilerStack::gasEstimates(std::string const& _contractName) const
 {
 	solAssert(m_stackState == CompilationSuccessful, "Compilation was not successful.");
-	solUnimplementedAssert(!isExperimentalSolidity());
+	solUnimplementedAssert(!isExperimentalSolidity(), "Gas estimation not implemented for experimental Solidity yet.");
 
 	if (!assemblyItems(_contractName) && !runtimeAssemblyItems(_contractName))
 		return Json();
