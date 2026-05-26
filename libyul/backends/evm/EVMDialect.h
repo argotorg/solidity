@@ -111,12 +111,12 @@ protected:
 	static EVMBuiltins const& allBuiltins();
 
 public:
-	struct StringHashTransparent
+	struct TransparentStringHash
 	{
 		using is_transparent = void;
 		size_t operator()(std::string_view _s) const { return std::hash<std::string_view>{}(_s); }
 	};
-	using ReservedIdentifiers = std::unordered_set<std::string, StringHashTransparent, std::equal_to<>>;
+	using ReservedIdentifiers = std::unordered_set<std::string, TransparentStringHash, std::equal_to<>>;
 
 protected:
 	bool const m_objectAccess;
