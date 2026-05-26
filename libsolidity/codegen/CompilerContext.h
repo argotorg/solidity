@@ -45,7 +45,7 @@
 #include <ostream>
 #include <stack>
 #include <queue>
-#include <unordered_set>
+#include <set>
 #include <utility>
 #include <limits>
 
@@ -384,7 +384,7 @@ private:
 	/// Collector for yul functions.
 	MultiUseYulFunctionCollector m_yulFunctionCollector;
 	/// Set of externally used yul functions.
-	std::unordered_set<std::string> m_externallyUsedYulFunctions;
+	std::set<std::string> m_externallyUsedYulFunctions;
 	/// Generated Yul code used as utility. Source references from the bytecode can point here.
 	/// Produced from @a m_yulFunctionCollector.
 	std::string m_generatedYulUtilityCode;

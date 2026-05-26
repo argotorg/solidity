@@ -200,7 +200,7 @@ void CompilerContext::appendYulUtilityFunctions(OptimiserSettings const& _optimi
 		appendInlineAssembly(
 			yul::reindent("{\n" + std::move(code) + "\n}"),
 			{},
-			std::set<std::string>(m_externallyUsedYulFunctions.begin(), m_externallyUsedYulFunctions.end()),
+			m_externallyUsedYulFunctions,
 			true,
 			_optimiserSettings,
 			yulUtilityFileName()
