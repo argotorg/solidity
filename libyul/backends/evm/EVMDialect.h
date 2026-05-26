@@ -110,7 +110,6 @@ protected:
 
 	static EVMBuiltins const& allBuiltins();
 
-public:
 	struct TransparentStringHash
 	{
 		using is_transparent = void;
@@ -118,7 +117,8 @@ public:
 	};
 	using ReservedIdentifiers = std::unordered_set<std::string, TransparentStringHash, std::equal_to<>>;
 
-protected:
+	static ReservedIdentifiers createReservedIdentifiers(langutil::EVMVersion _evmVersion, std::optional<uint8_t> _eofVersion);
+
 	bool const m_objectAccess;
 	langutil::EVMVersion const m_evmVersion;
 	std::optional<uint8_t> m_eofVersion;

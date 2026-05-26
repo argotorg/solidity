@@ -87,7 +87,9 @@ bool isLowLevelControlFlowInstruction(evmasm::Instruction const& _instruction)
 	}
 }
 
-EVMDialect::ReservedIdentifiers createReservedIdentifiers(langutil::EVMVersion _evmVersion, std::optional<uint8_t> _eofVersion)
+}
+
+EVMDialect::ReservedIdentifiers EVMDialect::createReservedIdentifiers(langutil::EVMVersion _evmVersion, std::optional<uint8_t> _eofVersion)
 {
 	// TODO remove this in 0.9.0. We allow creating functions or identifiers in Yul with the name
 	// basefee for VMs before london.
@@ -179,6 +181,9 @@ EVMDialect::ReservedIdentifiers createReservedIdentifiers(langutil::EVMVersion _
 
 	return reserved;
 }
+
+namespace
+{
 
 std::vector<BuiltinFunctionForEVM const*> createDialectBuiltins(
 	std::vector<std::tuple<EVMBuiltins::Scopes, BuiltinFunctionForEVM>> const& _allBuiltins,
