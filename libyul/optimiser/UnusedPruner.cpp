@@ -155,7 +155,7 @@ void UnusedPruner::runUntilStabilisedOnFullAST(
 
 bool UnusedPruner::used(YulName _name) const
 {
-	auto it = m_references.find(_name);
+	auto const it = m_references.find(_name);
 	return it != m_references.end() && it->second > 0;
 }
 
@@ -163,7 +163,7 @@ void UnusedPruner::subtractReferences(std::unordered_map<FunctionHandle, size_t>
 {
 	for (auto const& ref: _subtrahend)
 	{
-		auto it = m_references.find(ref.first);
+		auto const it = m_references.find(ref.first);
 		assertThrow(it != m_references.end(), OptimizerException, "");
 		assertThrow(it->second >= ref.second, OptimizerException, "");
 		it->second -= ref.second;

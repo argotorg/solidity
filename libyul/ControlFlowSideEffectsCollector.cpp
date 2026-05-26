@@ -222,7 +222,10 @@ ControlFlowSideEffectsCollector::ControlFlowSideEffectsCollector(
 				if (calledSideEffects.canRevert)
 					functionSideEffects.canRevert = true;
 
-				if (auto it = m_functionReferences.find(call); it != m_functionReferences.end())
+				if (
+					auto const it = m_functionReferences.find(call);
+					it != m_functionReferences.end()
+				)
 					_recurse(*it->second, _recurse);
 			}
 		};

@@ -490,7 +490,7 @@ void ControlFlowGraphBuilder::operator()(Leave const& leave_)
 void ControlFlowGraphBuilder::operator()(FunctionDefinition const& _function)
 {
 	yulAssert(m_scope, "");
-	auto it = m_scope->identifiers.find(_function.name);
+	auto const it = m_scope->identifiers.find(_function.name);
 	yulAssert(it != m_scope->identifiers.end(), "");
 	Scope::Function& function = std::get<Scope::Function>(it->second);
 	m_graph.functions.emplace_back(&function);
@@ -508,7 +508,7 @@ void ControlFlowGraphBuilder::operator()(FunctionDefinition const& _function)
 void ControlFlowGraphBuilder::registerFunction(FunctionDefinition const& _functionDefinition)
 {
 	yulAssert(m_scope, "");
-	auto it = m_scope->identifiers.find(_functionDefinition.name);
+	auto const it = m_scope->identifiers.find(_functionDefinition.name);
 	yulAssert(it != m_scope->identifiers.end(), "");
 	Scope::Function& function = std::get<Scope::Function>(it->second);
 

@@ -270,7 +270,7 @@ struct SwapComparison: SimplePeepholeOptimizerMethod<SwapComparison>
 			_op.type() == Operation
 		)
 		{
-			auto it = swappableOps.find(_op.instruction());
+			auto const it = swappableOps.find(_op.instruction());
 			if (it == swappableOps.end())
 				return false;
 			*_out = it->second;

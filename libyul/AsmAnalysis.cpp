@@ -715,9 +715,9 @@ void AsmAnalyzer::checkAssignment(Identifier const& _variable)
 
 Scope& AsmAnalyzer::scope(Block const* _block)
 {
-	auto it = m_info.scopes.find(_block);
+	auto const it = m_info.scopes.find(_block);
 	yulAssert(it != m_info.scopes.end(), "Scope requested but not present.");
-	auto scopePtr = it->second;
+	auto const scopePtr = it->second;
 	yulAssert(scopePtr, "Scope requested but not present.");
 	return *scopePtr;
 }

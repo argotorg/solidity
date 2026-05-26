@@ -172,7 +172,7 @@ std::string Whiskers::replace(
 		std::string conditionName(_match[4]);
 		if (!tagName.empty())
 		{
-			auto it = _parameters.find(tagName);
+			auto const it = _parameters.find(tagName);
 			assertThrow(
 				it != _parameters.end(),
 				WhiskersError,
@@ -185,7 +185,7 @@ std::string Whiskers::replace(
 		else if (!listName.empty())
 		{
 			std::string templ(_match[3]);
-			auto it = _listParameters.find(listName);
+			auto const it = _listParameters.find(listName);
 			assertThrow(
 				it != _listParameters.end(),
 				WhiskersError, "List parameter " + listName + " not set."
@@ -203,16 +203,22 @@ std::string Whiskers::replace(
 			{
 				std::string tag = conditionName.substr(1);
 
-				if (auto it = _parameters.find(tag); it != _parameters.end())
+				if (
+					auto const it = _parameters.find(tag);
+					it != _parameters.end()
+				)
 					conditionValue = !it->second.empty();
-				else if (auto it2 = _listParameters.find(tag); it2 != _listParameters.end())
+				else if (
+					auto const it2 = _listParameters.find(tag);
+					it2 != _listParameters.end()
+				)
 					conditionValue = !it2->second.empty();
 				else
 					assertThrow(false, WhiskersError, "Tag " + tag + " used as condition but was not set.");
 			}
 			else
 			{
-				auto it = _conditions.find(conditionName);
+				auto const it = _conditions.find(conditionName);
 				assertThrow(
 					it != _conditions.end(),
 					WhiskersError, "Condition parameter " + conditionName + " not set."

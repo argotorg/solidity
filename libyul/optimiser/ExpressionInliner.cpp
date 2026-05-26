@@ -54,7 +54,7 @@ void ExpressionInliner::visit(Expression& _expression)
 	{
 		FunctionCall& funCall = std::get<FunctionCall>(_expression);
 		YulString const functionName{resolveFunctionName(funCall.functionName, m_dialect)};
-		auto it = m_inlinableFunctions.find(functionName);
+		auto const it = m_inlinableFunctions.find(functionName);
 		if (it == m_inlinableFunctions.end())
 			return;
 		FunctionDefinition const& fun = *it->second;

@@ -126,7 +126,7 @@ void CodeTransform::freeUnusedVariables(bool _popUnusedSlotsAtStackTop)
 void CodeTransform::deleteVariable(Scope::Variable const& _var)
 {
 	yulAssert(m_allowStackOpt, "");
-	auto it = m_context->variableStackHeights.find(&_var);
+	auto const it = m_context->variableStackHeights.find(&_var);
 	yulAssert(it != m_context->variableStackHeights.end(), "");
 	m_unusedStackSlots.insert(static_cast<int>(it->second));
 	m_context->variableStackHeights.erase(&_var);
@@ -362,7 +362,7 @@ void CodeTransform::operator()(Switch const& _switch)
 void CodeTransform::operator()(FunctionDefinition const& _function)
 {
 	yulAssert(m_scope, "");
-	auto it = m_scope->identifiers.find(_function.name);
+	auto const it = m_scope->identifiers.find(_function.name);
 	yulAssert(it != m_scope->identifiers.end(), "");
 	Scope::Function& function = std::get<Scope::Function>(it->second);
 
@@ -617,7 +617,7 @@ void CodeTransform::createFunctionEntryID(FunctionDefinition const& _function)
 
 AbstractAssembly::LabelID CodeTransform::functionEntryID(Scope::Function const& _scopeFunction) const
 {
-	auto it = m_context->functionEntryIDs.find(&_scopeFunction);
+	auto const it = m_context->functionEntryIDs.find(&_scopeFunction);
 	yulAssert(it != m_context->functionEntryIDs.end(), "");
 	return it->second;
 }
@@ -779,7 +779,7 @@ void CodeTransform::generateAssignment(Identifier const& _variableName)
 
 size_t CodeTransform::variableHeightDiff(Scope::Variable const& _var, YulName _varName, bool _forSwap)
 {
-	auto it = m_context->variableStackHeights.find(&_var);
+	auto const it = m_context->variableStackHeights.find(&_var);
 	yulAssert(it != m_context->variableStackHeights.end(), "");
 	size_t heightDiff = static_cast<size_t>(m_assembly.stackHeight()) - it->second;
 	yulAssert(heightDiff > (_forSwap ? 1 : 0), "Negative stack difference for variable.");

@@ -313,7 +313,10 @@ void StackToMemoryMover::visit(Expression& _expression)
 
 std::optional<LiteralValue> StackToMemoryMover::VariableMemoryOffsetTracker::operator()(YulName const& _variable) const
 {
-	if (auto it = m_memorySlots.find(_variable); it != m_memorySlots.end())
+	if (
+		auto const it = m_memorySlots.find(_variable);
+		it != m_memorySlots.end()
+	)
 	{
 		uint64_t slot = it->second;
 		yulAssert(slot < m_numRequiredSlots, "");

@@ -63,7 +63,7 @@ void SSAValueTracker::setValue(YulName _name, Expression const* _value)
 {
 	if (!_value)
 		_value = &m_zero;
-	auto [it, inserted] = m_values.emplace(_name, _value);
+	auto const [it, inserted] = m_values.emplace(_name, _value);
 	assertThrow(
 		inserted,
 		OptimizerException,

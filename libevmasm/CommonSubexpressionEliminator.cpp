@@ -179,7 +179,10 @@ AssemblyItems CSECodeGenerator::generateCode(
 	// generate the target stack elements
 	for (auto const& targetItem: m_targetStack)
 	{
-		if (auto it = m_stack.find(targetItem.first); it != m_stack.end() && it->second == targetItem.second)
+		if (
+			auto const it = m_stack.find(targetItem.first);
+			it != m_stack.end() && it->second == targetItem.second
+		)
 			continue; // already there
 		generateClassElement(targetItem.second);
 		assertThrow(!m_classPositions[targetItem.second].empty(), OptimizerException, "");
@@ -427,7 +430,7 @@ void CSECodeGenerator::generateClassElement(Id _c, bool _allowSequenced)
 
 int CSECodeGenerator::classElementPosition(Id _id) const
 {
-	auto it = m_classPositions.find(_id);
+	auto const it = m_classPositions.find(_id);
 	assertThrow(
 		it != m_classPositions.end() && !it->second.empty(),
 		OptimizerException,
@@ -446,7 +449,7 @@ bool CSECodeGenerator::canBeRemoved(Id _element, Id _result, int _fromPosition)
 	if (m_finalClasses.count(_element))
 	{
 		// It is part of the target stack. It can be removed if it is a copy that is not in the target position.
-		auto tsIt = m_targetStack.find(_fromPosition);
+		auto const tsIt = m_targetStack.find(_fromPosition);
 		return haveCopy && (tsIt == m_targetStack.end() || tsIt->second != _element);
 	}
 	else if (!haveCopy)

@@ -25,6 +25,7 @@
 #include <libyul/Exceptions.h>
 #include <libyul/AST.h>
 #include <libyul/Dialect.h>
+#include <libyul/Object.h>
 #include <libyul/Utilities.h>
 
 #include <libevmasm/SemanticInformation.h>
@@ -84,7 +85,10 @@ void SideEffectsCollector::operator()(FunctionCall const& _functionCall)
 		m_sideEffects += builtin->sideEffects;
 	else if (m_functionSideEffects)
 	{
-		if (auto it = m_functionSideEffects->find(functionHandle); it != m_functionSideEffects->end())
+		if (
+			auto const it = m_functionSideEffects->find(functionHandle);
+			it != m_functionSideEffects->end()
+		)
 			m_sideEffects += it->second;
 		else
 			m_sideEffects += SideEffects::worst();
@@ -164,7 +168,10 @@ std::unordered_map<FunctionHandle, SideEffects> SideEffectsPropagator::sideEffec
 				sideEffects += _dialect.builtin(*builtinHandle).sideEffects;
 			else
 			{
-				if (auto it = ret.find(_function); it != ret.end())
+				if (
+					auto const it = ret.find(_function);
+					it != ret.end()
+				)
 					sideEffects += it->second;
 				for (FunctionHandle const& callee: _directCallGraph.functionCalls.at(_function))
 					_recurse(callee, _recurse);
@@ -249,7 +256,10 @@ bool TerminationFinder::containsNonContinuingFunctionCall(Expression const& _exp
 		yulAssert(std::holds_alternative<Identifier>(functionCall->functionName));
 		auto const& name = std::get<Identifier>(functionCall->functionName).name;
 		if (m_functionSideEffects)
-			if (auto it = m_functionSideEffects->find(name); it != m_functionSideEffects->end())
+			if (
+				auto const it = m_functionSideEffects->find(name);
+				it != m_functionSideEffects->end()
+			)
 				return !it->second.canContinue;
 	}
 	return false;

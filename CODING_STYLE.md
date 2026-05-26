@@ -236,7 +236,10 @@ See [this issue](https://stackoverflow.com/questions/614302/c-header-order/61433
 
 Yes:
 ```cpp
-if (auto it = m_map.find(key); it != m_map.end())
+if (
+	auto const it = m_map.find(key);
+	it != m_map.end()
+)
 	use(it->second);
 ```
 
@@ -250,10 +253,13 @@ if (m_map.count(key))
 
 Yes:
 ```cpp
-if (auto [it, inserted] = m_set.insert(value); inserted)
+if (
+	auto const [it, inserted] = m_set.insert(value);
+	inserted
+)
 	onNewElement();
 
-auto [it, inserted] = m_map.try_emplace(key);
+auto const [it, inserted] = m_map.try_emplace(key);
 if (inserted)
 	it->second = computeValue();
 ```

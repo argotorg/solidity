@@ -122,7 +122,10 @@ Expression const* RepresentationFinder::tryFindRepresentation(u256 const& _value
 
 Representation const& RepresentationFinder::findRepresentation(u256 const& _value)
 {
-	if (auto it = m_cache.find(_value); it != m_cache.end())
+	if (
+		auto const it = m_cache.find(_value);
+		it != m_cache.end()
+	)
 		return it->second;
 
 	yulAssert(m_dialect.auxiliaryBuiltinHandles().not_);

@@ -23,7 +23,6 @@
 
 #include <libyul/AST.h>
 #include <libyul/Builtins.h>
-#include <libyul/Object.h>
 #include <libyul/SideEffects.h>
 #include <libyul/optimiser/ASTWalker.h>
 #include <libyul/optimiser/CallGraphGenerator.h>
@@ -34,6 +33,7 @@
 namespace solidity::yul
 {
 class Dialect;
+class Object;
 
 /**
  * Specific AST walker that determines side-effect free-ness and movability of code.

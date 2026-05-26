@@ -93,7 +93,7 @@ public:
 			if (AssignedValue const* value = variableValue(varName))
 			{
 				m_candidates.emplace_back(m_currentFunctionName, varName);
-				auto [it, inserted] = m_expressionCodeCost.try_emplace(varName, CodeCost::codeCost(m_dialect, *value->value));
+				auto const [it, inserted] = m_expressionCodeCost.try_emplace(varName, CodeCost::codeCost(m_dialect, *value->value));
 				yulAssert(inserted, "");
 			}
 		}

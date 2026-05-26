@@ -27,9 +27,7 @@
 
 #include <memory>
 #include <optional>
-#include <set>
 #include <vector>
-#include <map>
 #include <unordered_map>
 
 namespace solidity::yul

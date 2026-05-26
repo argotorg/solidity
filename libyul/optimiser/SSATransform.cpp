@@ -290,7 +290,10 @@ private:
 
 void PropagateValues::operator()(Identifier& _identifier)
 {
-	if (auto it = m_currentVariableValues.find(_identifier.name); it != m_currentVariableValues.end())
+	if (
+		auto const it = m_currentVariableValues.find(_identifier.name);
+		it != m_currentVariableValues.end()
+	)
 		_identifier.name = it->second;
 }
 

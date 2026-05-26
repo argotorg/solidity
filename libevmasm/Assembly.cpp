@@ -741,14 +741,17 @@ std::shared_ptr<std::string const> Assembly::sharedSourceName(std::string const&
 AssemblyItem Assembly::namedTag(std::string const& _name, size_t _params, size_t _returns, std::optional<uint64_t> _sourceID)
 {
 	assertThrow(!_name.empty(), AssemblyException, "Empty named tag.");
-	if (auto it = m_namedTags.find(_name); it != m_namedTags.end())
+	if (
+		auto const it = m_namedTags.find(_name);
+		it != m_namedTags.end()
+	)
 	{
 		assertThrow(it->second.params == _params, AssemblyException, "");
 		assertThrow(it->second.returns == _returns, AssemblyException, "");
 		assertThrow(it->second.sourceID == _sourceID, AssemblyException, "");
 		return AssemblyItem{Tag, it->second.id};
 	}
-	auto [it, _] = m_namedTags.emplace(
+	auto const [it, _] = m_namedTags.emplace(
 		_name,
 		NamedTagInfo{static_cast<size_t>(newTag().data()), _sourceID, _params, _returns}
 	);

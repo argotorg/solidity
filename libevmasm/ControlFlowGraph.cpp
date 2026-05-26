@@ -123,7 +123,7 @@ void ControlFlowGraph::resolveNextLinks()
 		case BasicBlock::EndType::JUMPI:
 		case BasicBlock::EndType::HANDOVER:
 		{
-			auto it = blockByBeginPos.find(block.end);
+			auto const it = blockByBeginPos.find(block.end);
 			assertThrow(
 				it != blockByBeginPos.end(),
 				OptimizerException,
@@ -196,13 +196,13 @@ void ControlFlowGraph::setPrevLinks()
 		if (push.type() != PushTag)
 			continue;
 		BlockId nextId(push.data());
-		auto nextIt = m_blocks.find(nextId);
+		auto const nextIt = m_blocks.find(nextId);
 		if (nextIt != m_blocks.end() && nextIt->second.prev)
 			continue;
 		bool hasLoop = false;
 		for (BlockId id = nextId; id && !hasLoop;)
 		{
-			auto loopIt = m_blocks.find(id);
+			auto const loopIt = m_blocks.find(id);
 			if (loopIt == m_blocks.end())
 				break;
 			hasLoop = (id == blockId);
@@ -254,7 +254,7 @@ void ControlFlowGraph::gatherKnowledge()
 		workQueue.pop_back();
 		//@todo we might have to do something like incrementing the sequence number for each JUMPDEST
 		assertThrow(!!item.blockId, OptimizerException, "");
-		auto blockIt = m_blocks.find(item.blockId);
+		auto const blockIt = m_blocks.find(item.blockId);
 		if (blockIt == m_blocks.end())
 			continue; // too bad, we do not know the tag, probably an invalid jump
 		BasicBlock& block = blockIt->second;

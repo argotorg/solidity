@@ -73,7 +73,10 @@ struct CopyTranslate: public yul::ASTCopier
 	{
 		// The operator() function is only called in lvalue context. In rvalue context,
 		// only translate(yul::Identifier) is called.
-		if (auto it = m_references.find(&_identifier); it != m_references.end())
+		if (
+			auto const it = m_references.find(&_identifier);
+			it != m_references.end()
+		)
 			return translateReference(_identifier, it->second);
 		else
 			return ASTCopier::operator()(_identifier);
@@ -90,7 +93,7 @@ struct CopyTranslate: public yul::ASTCopier
 
 	yul::Identifier translate(yul::Identifier const& _identifier) override
 	{
-		auto it = m_references.find(&_identifier);
+		auto const it = m_references.find(&_identifier);
 		if (it == m_references.end())
 			return ASTCopier::translate(_identifier);
 

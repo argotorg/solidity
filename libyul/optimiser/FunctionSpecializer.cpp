@@ -140,7 +140,10 @@ void FunctionSpecializer::run(OptimiserStepContext& _context, Block& _ast)
 		{
 			auto& functionDefinition = std::get<FunctionDefinition>(_s);
 
-			if (auto it = f.m_oldToNewMap.find(functionDefinition.name); it != f.m_oldToNewMap.end())
+			if (
+				auto const it = f.m_oldToNewMap.find(functionDefinition.name);
+				it != f.m_oldToNewMap.end()
+			)
 			{
 				std::vector<Statement> out = applyMap(
 					it->second,

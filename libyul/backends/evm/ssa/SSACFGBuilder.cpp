@@ -380,7 +380,7 @@ void SSACFGBuilder::operator()(Leave const& _leaveStatement)
 void SSACFGBuilder::registerFunctionDefinition(FunctionDefinition const& _functionDefinition)
 {
 	yulAssert(m_scope, "");
-	auto it = m_scope->identifiers.find(_functionDefinition.name);
+	auto const it = m_scope->identifiers.find(_functionDefinition.name);
 	yulAssert(it != m_scope->identifiers.end(), "");
 	auto& function = std::get<Scope::Function>(it->second);
 	m_graph.functions.emplace_back(function);

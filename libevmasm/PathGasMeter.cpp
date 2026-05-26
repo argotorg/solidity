@@ -53,7 +53,7 @@ GasMeter::GasConsumption PathGasMeter::estimateMax(
 
 void PathGasMeter::queue(std::unique_ptr<GasPath>&& _newPath)
 {
-	auto [it, inserted] = m_highestGasUsagePerJumpdest.emplace(_newPath->index, _newPath->gas);
+	auto const [it, inserted] = m_highestGasUsagePerJumpdest.emplace(_newPath->index, _newPath->gas);
 	if (!inserted)
 	{
 		if (_newPath->gas < it->second)
@@ -123,7 +123,10 @@ GasMeter::GasConsumption PathGasMeter::handleQueueItem()
 		{
 			auto newPath = std::make_unique<GasPath>();
 			newPath->index = m_items.size();
-			if (auto it = m_tagPositions.find(tag); it != m_tagPositions.end())
+			if (
+				auto const it = m_tagPositions.find(tag);
+				it != m_tagPositions.end()
+			)
 				newPath->index = it->second;
 			newPath->gas = gas;
 			newPath->largestMemoryAccess = meter.largestMemoryAccess();

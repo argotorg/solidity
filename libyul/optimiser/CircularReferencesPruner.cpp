@@ -55,7 +55,10 @@ std::set<YulName> CircularReferencesPruner::functionsCalledFromOutermostContext(
 
 	return util::BreadthFirstSearch<YulName>{{verticesToTraverse.begin(), verticesToTraverse.end()}}.run(
 		[&_callGraph](YulName _function, auto&& _addChild) {
-		if (auto it = _callGraph.functionCalls.find(_function); it != _callGraph.functionCalls.end())
+		if (
+			auto const it = _callGraph.functionCalls.find(_function);
+			it != _callGraph.functionCalls.end()
+		)
 			for (auto const& callee: it->second)
 					if (std::holds_alternative<YulName>(callee) && _callGraph.functionCalls.count(std::get<YulName>(callee)))
 						_addChild(std::get<YulName>(callee));

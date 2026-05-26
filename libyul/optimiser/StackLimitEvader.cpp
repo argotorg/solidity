@@ -92,7 +92,10 @@ struct MemoryOffsetAllocator
 				// The empty case is a function with too many arguments or return values,
 				// which was already handled above.
 				if (!variable.empty())
-					if (auto [it, inserted] = slotAllocations.try_emplace(variable); inserted)
+					if (
+						auto const [it, inserted] = slotAllocations.try_emplace(variable);
+						inserted
+					)
 						it->second = requiredSlots++;
 		}
 

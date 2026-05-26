@@ -95,7 +95,10 @@ void UnusedFunctionParameterPruner::run(OptimiserStepContext& _context, Block& _
 		{
 			// The original function except that it has a new name (e.g., `f_1`)
 			FunctionDefinition& originalFunction = std::get<FunctionDefinition>(_s);
-			if (auto it = newToOriginalNames.find(originalFunction.name); it != newToOriginalNames.end())
+			if (
+				auto const it = newToOriginalNames.find(originalFunction.name);
+				it != newToOriginalNames.end()
+			)
 			{
 
 				YulName linkingFunctionName = originalFunction.name;
