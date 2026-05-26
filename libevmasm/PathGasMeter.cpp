@@ -43,6 +43,7 @@ GasMeter::GasConsumption PathGasMeter::estimateMax(
 	auto path = std::make_unique<GasPath>();
 	path->index = _startIndex;
 	path->state = _state->copy();
+	path->visitedJumpdests.assign(m_items.size(), 0);
 	queue(std::move(path));
 
 	GasMeter::GasConsumption gas;
@@ -92,9 +93,9 @@ GasMeter::GasConsumption PathGasMeter::handleQueueItem()
 		{
 			// Do not allow any backwards jump. This is quite restrictive but should work for
 			// the simplest things.
-			if (path->visitedJumpdests.count(index))
+			if (path->visitedJumpdests[index])
 				return GasMeter::GasConsumption::infinite();
-			path->visitedJumpdests.insert(index);
+			path->visitedJumpdests[index] = 1;
 		}
 		else if (item == AssemblyItem(Instruction::JUMP))
 		{

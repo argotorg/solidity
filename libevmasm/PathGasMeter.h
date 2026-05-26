@@ -27,9 +27,9 @@
 #include <liblangutil/EVMVersion.h>
 
 #include <unordered_map>
-#include <unordered_set>
 #include <vector>
 #include <memory>
+#include <cstdint>
 
 namespace solidity::evmasm
 {
@@ -42,7 +42,8 @@ struct GasPath
 	std::shared_ptr<KnownState> state;
 	u256 largestMemoryAccess;
 	GasMeter::GasConsumption gas;
-	std::unordered_set<size_t> visitedJumpdests;
+	/// Bitmap indexed by AssemblyItem index, sized to m_items.size().
+	std::vector<std::uint8_t> visitedJumpdests;
 };
 
 /**
