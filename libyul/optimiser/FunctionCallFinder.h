@@ -21,6 +21,7 @@
 #pragma once
 
 #include <libyul/AST.h>
+#include <libyul/FunctionHandle.h>
 
 #include <vector>
 

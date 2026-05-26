@@ -18,30 +18,34 @@
 
 #pragma once
 
-#include <cstddef>
-#include <functional>
+#include <libyul/Builtins.h>
+#include <libyul/YulName.h>
+
+#include <boost/container_hash/hash.hpp>
+
+#include <variant>
 
 namespace solidity::yul
 {
 
-/// Handle to reference a builtin function in the AST
-struct BuiltinHandle
-{
-	size_t id;
-
-	bool operator==(BuiltinHandle const& _other) const { return id == _other.id; }
-	bool operator<(BuiltinHandle const& _other) const { return id < _other.id; }
-};
+/// Type that can refer to both user-defined functions and built-ins.
+/// Technically the AST allows these names to overlap, but this is not possible to represent in the source.
+using FunctionHandle = std::variant<YulName, BuiltinHandle>;
 
 }
 
 namespace std
 {
-template<> struct hash<solidity::yul::BuiltinHandle>
+template<> struct hash<solidity::yul::FunctionHandle>
 {
-	size_t operator()(solidity::yul::BuiltinHandle const& _handle) const
+	size_t operator()(solidity::yul::FunctionHandle const& _handle) const noexcept
 	{
-		return std::hash<size_t>{}(_handle.id);
+		size_t seed = _handle.index();
+		boost::hash_combine(seed, std::visit(
+			[](auto const& _v) { return std::hash<std::decay_t<decltype(_v)>>{}(_v); },
+			_handle
+		));
+		return seed;
 	}
 };
 }

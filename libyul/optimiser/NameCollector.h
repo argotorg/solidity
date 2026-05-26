@@ -22,7 +22,7 @@
 #pragma once
 
 #include <libyul/optimiser/ASTWalker.h>
-#include <libyul/Builtins.h>
+#include <libyul/FunctionHandle.h>
 #include <libyul/YulName.h>
 
 #include <map>

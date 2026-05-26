@@ -26,6 +26,7 @@
 #include <libyul/optimiser/OptimiserStep.h>
 #include <libyul/optimiser/SyntacticalEquality.h>
 #include <libyul/optimiser/BlockHasher.h>
+#include <libyul/FunctionHandle.h>
 
 #include <set>
 

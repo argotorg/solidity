@@ -24,6 +24,7 @@
 #include <libsolutil/Common.h>
 #include <libsolutil/Numeric.h>
 #include <libyul/ASTForward.h>
+#include <libyul/FunctionHandle.h>
 
 #include <string_view>
 

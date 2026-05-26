@@ -23,8 +23,6 @@
 
 #pragma once
 
-#include <libyul/Builtins.h>
-
 #include <variant>
 
 namespace solidity::yul
@@ -55,9 +53,6 @@ struct NameWithDebugData;
 
 using Expression = std::variant<FunctionCall, Identifier, Literal>;
 using FunctionName = std::variant<Identifier, BuiltinName>;
-/// Type that can refer to both user-defined functions and built-ins.
-/// Technically the AST allows these names to overlap, but this is not possible to represent in the source.
-using FunctionHandle = std::variant<YulName, BuiltinHandle>;
 using Statement = std::variant<ExpressionStatement, Assignment, VariableDeclaration, FunctionDefinition, If, Switch, ForLoop, Break, Continue, Leave, Block>;
 
 }

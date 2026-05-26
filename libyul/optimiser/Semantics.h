@@ -22,7 +22,7 @@
 #pragma once
 
 #include <libyul/AST.h>
-#include <libyul/Builtins.h>
+#include <libyul/FunctionHandle.h>
 #include <libyul/SideEffects.h>
 #include <libyul/optimiser/ASTWalker.h>
 #include <libyul/optimiser/CallGraphGenerator.h>
