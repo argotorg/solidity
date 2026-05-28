@@ -180,12 +180,12 @@ AbstractAssembly::SubID NoOutputAssembly::appendData(bytes const&)
 }
 
 
-void NoOutputAssembly::appendImmutable(std::string const&)
+void NoOutputAssembly::appendImmutable(std::string const&, uint8_t)
 {
 	yulAssert(false, "loadimmutable not implemented.");
 }
 
-void NoOutputAssembly::appendImmutableAssignment(std::string const&)
+void NoOutputAssembly::appendImmutableAssignment(std::string const&, uint8_t)
 {
 	yulAssert(false, "setimmutable not implemented.");
 }

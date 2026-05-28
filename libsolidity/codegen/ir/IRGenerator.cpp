@@ -228,7 +228,7 @@ std::string IRGenerator::generate(
 	if (_contract.isLibrary())
 	{
 		if (!eof)
-			t("library_address", IRNames::libraryAddressImmutable());
+			t("library_address", IRNames::libraryAddressImmutable() + "@20");
 		else
 			t("library_address_immutable_offset", std::to_string(m_context.libraryAddressImmutableOffsetRelative()));
 	}
@@ -592,7 +592,13 @@ std::string IRGenerator::generateGetter(VariableDeclaration const& _varDecl)
 			auto const eof = m_context.eofVersion().has_value();
 			t("eof", eof);
 			if (!eof)
-				t("id", std::to_string(_varDecl.id()));
+			{
+				std::string id = std::to_string(_varDecl.id());
+				uint8_t byteWidth = immutableByteWidth(*_varDecl.type());
+				if (byteWidth < 32)
+					id += "@" + std::to_string(byteWidth);
+				t("id", std::move(id));
+			}
 			else
 				t("immutableOffset", std::to_string(m_context.immutableMemoryOffsetRelative(_varDecl)));
 
@@ -1010,7 +1016,7 @@ std::string IRGenerator::deployCode(ContractDefinition const& _contract)
 		solAssert(ContractType(_contract).immutableVariables().empty(), "");
 		if (!eof)
 			immutables.emplace_back(std::map<std::string, std::string>{
-				{"immutableName"s, IRNames::libraryAddressImmutable()},
+				{"immutableName"s, IRNames::libraryAddressImmutable() + "@20"},
 				{"value"s, "address()"}
 			});
 		else
@@ -1023,10 +1029,16 @@ std::string IRGenerator::deployCode(ContractDefinition const& _contract)
 			solUnimplementedAssert(immutable->type()->isValueType());
 			solUnimplementedAssert(immutable->type()->sizeOnStack() == 1);
 			if (!eof)
+			{
+				std::string name = std::to_string(immutable->id());
+				uint8_t byteWidth = immutableByteWidth(*immutable->type());
+				if (byteWidth < 32)
+					name += "@" + std::to_string(byteWidth);
 				immutables.emplace_back(std::map<std::string, std::string>{
-					{"immutableName"s, std::to_string(immutable->id())},
+					{"immutableName"s, std::move(name)},
 					{"value"s, "mload(" + std::to_string(m_context.immutableMemoryOffset(*immutable)) + ")"}
 				});
+			}
 		}
 	}
 

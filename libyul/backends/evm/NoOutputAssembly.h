@@ -84,8 +84,8 @@ public:
 
 	void appendToAuxiliaryData(bytes const&) override {}
 
-	void appendImmutable(std::string const& _identifier) override;
-	void appendImmutableAssignment(std::string const& _identifier) override;
+	void appendImmutable(std::string const& _identifier, uint8_t _byteWidth = 32) override;
+	void appendImmutableAssignment(std::string const& _identifier, uint8_t _byteWidth = 32) override;
 
 	void appendAuxDataLoadN(uint16_t) override;
 	void appendEOFCreate(ContainerID) override;

@@ -21,8 +21,10 @@ Compared to regular state variables, the gas costs of constant and immutable var
 are much lower. For a constant variable, the expression assigned to it is copied to
 all the places where it is accessed and also re-evaluated each time. This allows for local
 optimizations. Immutable variables are evaluated once at construction time and their value
-is copied to all the places in the code where they are accessed. For these values,
-32 bytes are reserved, even if they would fit in fewer bytes. Due to this, constant values
+is copied to all the places in the code where they are accessed. For unsigned integer types
+smaller than 256 bits, address types, contract types, and enums, the compiler reserves only
+as many bytes as the type requires (e.g. 1 byte for ``uint8``, 20 bytes for ``address``).
+For all other types, 32 bytes are reserved. Due to this, constant values
 can sometimes be cheaper than immutable values.
 
 Not all types for constants and immutables are implemented at this time. The only supported types are

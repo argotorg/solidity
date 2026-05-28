@@ -1,0 +1,18 @@
+{
+ "language": "Solidity",
+ "sources": {
+  "a.sol": {
+   "content": "// SPDX-License-Identifier: GPL-3.0\npragma solidity >=0.0;\ncontract A {\n    uint8 immutable x = 42;\n    address immutable y = address(1);\n    function f() public view returns (uint8, address) { return (x, y); }\n}"
+  }
+ },
+ "settings": {
+  "evmVersion": "petersburg",
+  "outputSelection": {
+   "*": {
+    "A": [
+     "evm.deployedBytecode.immutableReferences"
+    ]
+   }
+  }
+ }
+}

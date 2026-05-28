@@ -166,7 +166,7 @@ void ImmutableItem::retrieveValue(SourceLocation const&, bool) const
 		);
 	else
 		for (auto&& slotName: m_context.immutableVariableSlotNames(m_variable))
-			m_context.appendImmutable(slotName);
+			m_context.appendImmutable(slotName, immutableByteWidth(*m_dataType));
 }
 
 void ImmutableItem::storeValue(Type const& _sourceType, SourceLocation const&, bool _move) const

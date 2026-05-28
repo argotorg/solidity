@@ -217,14 +217,14 @@ void EthAssemblyAdapter::appendToAuxiliaryData(bytes const& _data)
 	m_assembly.appendToAuxiliaryData(_data);
 }
 
-void EthAssemblyAdapter::appendImmutable(std::string const& _identifier)
+void EthAssemblyAdapter::appendImmutable(std::string const& _identifier, uint8_t _byteWidth)
 {
-	m_assembly.appendImmutable(_identifier);
+	m_assembly.appendImmutable(_identifier, _byteWidth);
 }
 
-void EthAssemblyAdapter::appendImmutableAssignment(std::string const& _identifier)
+void EthAssemblyAdapter::appendImmutableAssignment(std::string const& _identifier, uint8_t _byteWidth)
 {
-	m_assembly.appendImmutableAssignment(_identifier);
+	m_assembly.appendImmutableAssignment(_identifier, _byteWidth);
 }
 
 void EthAssemblyAdapter::appendAuxDataLoadN(uint16_t _offset)

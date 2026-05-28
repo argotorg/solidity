@@ -164,7 +164,7 @@ size_t AssemblyItem::bytesRequired(size_t _addressLength, langutil::EVMVersion _
 	case PushDeployTimeAddress:
 		return 1 + 20;
 	case PushImmutable:
-		return 1 + 32;
+		return 1 + m_immutableByteWidth;
 	case AssignImmutable:
 	{
 		unsigned long immutableOccurrences = 0;
@@ -179,8 +179,17 @@ size_t AssemblyItem::bytesRequired(size_t _addressLength, langutil::EVMVersion _
 		}
 
 		if (immutableOccurrences != 0)
-			// (DUP DUP PUSH <n> ADD MSTORE)* (PUSH <n> ADD MSTORE)
-			return (immutableOccurrences - 1) * (5 + 32) + (3 + 32);
+		{
+			if (m_immutableByteWidth >= 2 && m_immutableByteWidth < 32)
+				// Left-shift RMW: PUSH ADD SWAP1 PUSH DUP1 SWAP2 MUL SWAP1 PUSH1 SWAP1 SUB
+				//                 DUP3 MLOAD AND OR SWAP1 MSTORE
+				// = 17 opcodes, 14 single-byte + PUSH<off>(1+32) + PUSH<mul>(1+32) + PUSH1(2)
+				// Non-last occurrence adds DUP2 DUP2: +2
+				return (immutableOccurrences - 1) * (16 + 32 * 2) + (14 + 32 * 2 + 2);
+			else
+				// (DUP DUP PUSH<n> ADD MSTORE[8])* (PUSH<n> ADD MSTORE[8])
+				return (immutableOccurrences - 1) * (5 + 32) + (3 + 32);
+		}
 		else
 			// POP POP
 			return 2;
@@ -523,14 +532,18 @@ size_t AssemblyItem::opcodeCount() const noexcept
 	switch (m_type)
 	{
 		case AssemblyItemType::AssignImmutable:
-			// Append empty items if this AssignImmutable was referenced more than once.
-			// For n immutable occurrences the first (n - 1) occurrences will
-			// generate 5 opcodes and the last will generate 3 opcodes,
-			// because it is reusing the 2 top-most elements on the stack.
 			solAssert(m_immutableOccurrences, "");
 
 			if (m_immutableOccurrences.value() != 0)
-				return (*m_immutableOccurrences - 1) * 5 + 3;
+			{
+				if (m_immutableByteWidth >= 2 && m_immutableByteWidth < 32)
+					// Left-shift RMW: 17 opcodes. Non-last occurrence adds DUP2 DUP2 = 19.
+					return (*m_immutableOccurrences - 1) * 19 + 17;
+				else
+					// Per occurrence: PUSH ADD MSTORE[8] = 3 opcodes.
+					// Non-last add DUP2 DUP2 = 5 opcodes.
+					return (*m_immutableOccurrences - 1) * 5 + 3;
+			}
 			else
 				return 2; // two POP's
 		default:

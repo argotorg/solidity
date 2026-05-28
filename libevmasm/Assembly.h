@@ -87,8 +87,8 @@ public:
 	size_t numSubs() const { return m_subs.size(); }
 	AssemblyItem newPushSubSize(u256 const& _subId) { return AssemblyItem(PushSubSize, _subId); }
 	AssemblyItem newPushLibraryAddress(std::string const& _identifier);
-	AssemblyItem newPushImmutable(std::string const& _identifier);
-	AssemblyItem newImmutableAssignment(std::string const& _identifier);
+	AssemblyItem newPushImmutable(std::string const& _identifier, uint8_t _byteWidth = 32);
+	AssemblyItem newImmutableAssignment(std::string const& _identifier, uint8_t _byteWidth = 32);
 	AssemblyItem newAuxDataLoadN(size_t offset) const;
 	AssemblyItem newSwapN(size_t _depth) const;
 	AssemblyItem newDupN(size_t _depth) const;
@@ -102,8 +102,8 @@ public:
 	/// after compilation and CODESIZE is not an option.
 	void appendProgramSize() { append(AssemblyItem(PushProgramSize)); }
 	void appendLibraryAddress(std::string const& _identifier) { append(newPushLibraryAddress(_identifier)); }
-	void appendImmutable(std::string const& _identifier) { append(newPushImmutable(_identifier)); }
-	void appendImmutableAssignment(std::string const& _identifier) { append(newImmutableAssignment(_identifier)); }
+	void appendImmutable(std::string const& _identifier, uint8_t _byteWidth = 32) { append(newPushImmutable(_identifier, _byteWidth)); }
+	void appendImmutableAssignment(std::string const& _identifier, uint8_t _byteWidth = 32) { append(newImmutableAssignment(_identifier, _byteWidth)); }
 	void appendAuxDataLoadN(uint16_t _offset) { append(newAuxDataLoadN(_offset));}
 	void appendSwapN(size_t _depth) { append(newSwapN(_depth)); }
 	void appendDupN(size_t _depth) { append(newDupN(_depth)); }

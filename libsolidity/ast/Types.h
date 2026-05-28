@@ -1741,4 +1741,23 @@ public:
 	Type const* decodingType() const override;
 };
 
+/// Returns the optimal byte width for an immutable variable of the given type.
+/// Types excluded from the PUSH<N> optimization (returning 32):
+/// - left-aligned types (bytesN)
+/// - signed integer types (intN), including through UserDefinedValueType wrappers
+/// - types already 32 bytes wide
+inline uint8_t immutableByteWidth(Type const& _type)
+{
+	if (_type.leftAligned() || _type.storageBytes() >= 32)
+		return 32;
+	// Check signedness: need to look through UserDefinedValueType to find the underlying IntegerType.
+	Type const* underlying = &_type;
+	if (auto const* udvt = dynamic_cast<UserDefinedValueType const*>(underlying))
+		underlying = &udvt->underlyingType();
+	if (auto const* intType = dynamic_cast<IntegerType const*>(underlying))
+		if (intType->isSigned())
+			return 32;
+	return static_cast<uint8_t>(_type.storageBytes());
+}
+
 }
