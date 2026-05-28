@@ -211,7 +211,8 @@ public:
 		Json const& _json,
 		std::vector<std::string> const& _sourceList = {},
 		size_t _level = 0,
-		std::optional<uint8_t> _eofVersion = std::nullopt
+		std::optional<uint8_t> _eofVersion = std::nullopt,
+		langutil::EVMVersion _evmVersion = {}
 	);
 
 	/// Mark this assembly as invalid. Calling ``assemble`` on it will throw.
