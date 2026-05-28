@@ -23,7 +23,9 @@
 
 #include <libyul/backends/evm/ssa/CodeTransform.h>
 #include <libyul/backends/evm/ssa/SSACFGBuilder.h>
-#include <libyul/backends/evm/ssa/ControlFlow.h>
+#include <libyul/backends/evm/ssa/ControlFlowGraphs.h>
+
+#include <libyul/backends/evm/ssa/transform/OptimizationPipeline.h>
 
 #include <libyul/backends/evm/EVMCodeTransform.h>
 #include <libyul/backends/evm/EVMDialect.h>
@@ -89,13 +91,14 @@ void EVMObjectCompiler::run(Object const& _object, bool _optimize, bool _viaSSAC
 	{
 		if (_viaSSACFG)
 		{
-			std::unique_ptr<ssa::ControlFlow> controlFlow = ssa::SSACFGBuilder::build(
+			std::unique_ptr<ssa::ControlFlowGraphs> controlFlowGraphs = ssa::SSACFGBuilder::build(
 				*_object.analysisInfo,
 				*evmDialect,
 				_object.code()->root(),
 				false
 			);
-			ssa::ControlFlowLiveness const liveness(*controlFlow);
+			ssa::transform::optimize(*controlFlowGraphs);
+			ssa::ControlFlowGraphsLiveness const liveness(*controlFlowGraphs);
 			ssa::CodeTransform::run(
 				m_assembly,
 				liveness,

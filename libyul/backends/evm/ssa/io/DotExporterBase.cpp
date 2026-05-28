@@ -117,7 +117,7 @@ void DotExporterBase::writeBlock(std::ostream& _out, SSACFG::BlockId const _id)
 		},
 		[&](SSACFG::BasicBlock::FunctionReturn const& fr)
 		{
-			auto const valueToString = [&](SSACFG::ValueId const& valueId) { return valueId.str(m_cfg); };
+			auto const valueToString = [&](InstId const& valueId) { return valueId.str(m_cfg); };
 			_out << fmt::format("{}Exit [label=\"FunctionReturn[{}]\"];\n",
 				formatBlockHandle(_id),
 				fmt::join(fr.returnValues | ranges::views::transform(valueToString), ", ")
@@ -163,7 +163,11 @@ std::string DotExporterBase::exportBlocks(SSACFG::BlockId _entry, bool _wrapInDi
 	std::ostringstream out;
 	if (_wrapInDigraph)
 		out << fmt::format("digraph SSACFG {{\nnodesep=0.7;\ngraph[fontname=\"DejaVu Sans\", rankdir={}]\nnode[shape=box,fontname=\"DejaVu Sans\"];\n\n", m_rankDir);
-	out << fmt::format("Entry [label=\"Entry\"];\n");
+	auto const extra = extraEntryLabel();
+	if (extra.empty())
+		out << "Entry [label=\"Entry\"];\n";
+	else
+		out << fmt::format("Entry [label=\"Entry\n{}\"];\n", extra);
 	out << fmt::format("Entry -> {};\n", formatBlockHandle(_entry));
 	traverse(out, _entry);
 	if (_wrapInDigraph)
@@ -171,28 +175,31 @@ std::string DotExporterBase::exportBlocks(SSACFG::BlockId _entry, bool _wrapInDi
 	return out.str();
 }
 
-std::string DotExporterBase::exportFunction(Scope::Function const& _function, bool _wrapInDigraph)
+std::string DotExporterBase::exportFunction(SSACFG const& _function, bool _wrapInDigraph)
 {
 	std::ostringstream out;
 	if (_wrapInDigraph)
 		out << fmt::format("digraph SSACFG {{\nnodesep=0.7;\ngraph[fontname=\"DejaVu Sans\", rankdir={}]\nnode[shape=box,fontname=\"DejaVu Sans\"];\n\n", m_rankDir);
 
-	static auto constexpr returnsTransform = [](auto const& functionReturnValue) { return escapeLabel(functionReturnValue.get().name.str()); };
-	static auto constexpr argsTransform = [](auto const& arg) { return fmt::format("v{}", std::get<1>(arg).value()); };
-	auto const entryHandle = fmt::format("FunctionEntry_{}_{}", escapeId(_function.name.str()), m_cfg.entry.value);
-	if (!m_cfg.returns.empty())
-		out << fmt::format("{} [label=\"function {}:\n {} := {}({})\"];\n",
-			entryHandle, escapeLabel(_function.name.str()),
-			fmt::join(m_cfg.returns | ranges::views::transform(returnsTransform), ", "),
-			escapeLabel(_function.name.str()),
-			fmt::join(m_cfg.arguments | ranges::views::transform(argsTransform), ", "));
+	static auto constexpr argsTransform = [](InstId const& arg) { return fmt::format("v{}", arg.value); };
+	auto const entryHandle = fmt::format("FunctionEntry_{}_{}", escapeId(_function.name), _function.entry.value);
+	auto const extra = extraEntryLabel();
+	auto const extraSuffix = extra.empty() ? std::string{} : "\n" + extra;
+	if (_function.numReturns > 0)
+		out << fmt::format("{} [label=\"function {}:\n [{} returns] := {}({}){}\"];\n",
+			entryHandle, escapeLabel(_function.name),
+			_function.numReturns,
+			escapeLabel(_function.name),
+			fmt::join(_function.arguments | ranges::views::transform(argsTransform), ", "),
+			extraSuffix);
 	else
-		out << fmt::format("{} [label=\"function {}:\n {}({})\"];\n",
-			entryHandle, escapeLabel(_function.name.str()),
-			escapeLabel(_function.name.str()),
-			fmt::join(m_cfg.arguments | ranges::views::transform(argsTransform), ", "));
-	out << fmt::format("{} -> {};\n", entryHandle, formatBlockHandle(m_cfg.entry));
-	traverse(out, m_cfg.entry);
+		out << fmt::format("{} [label=\"function {}:\n {}({}){}\"];\n",
+			entryHandle, escapeLabel(_function.name),
+			escapeLabel(_function.name),
+			fmt::join(_function.arguments | ranges::views::transform(argsTransform), ", "),
+			extraSuffix);
+	out << fmt::format("{} -> {};\n", entryHandle, formatBlockHandle(_function.entry));
+	traverse(out, _function.entry);
 
 	if (_wrapInDigraph)
 		out << "}\n";

@@ -46,6 +46,7 @@ Solidity language without a compiler change.
     pragma solidity >=0.4.16 <0.9.0;
 
     library GetCode {
+        // This will report a warning - `at` will be promoted to reserved keyword
         function at(address addr) public view returns (bytes memory code) {
             assembly {
                 // retrieve the size of the code, this needs assembly

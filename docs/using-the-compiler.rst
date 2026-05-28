@@ -378,7 +378,8 @@ Input Description
           // How to treat revert (and require) reason strings. Settings are
           // "default", "strip", "debug" and "verboseDebug".
           // "default" does not inject compiler-generated revert strings and keeps user-supplied ones.
-          // "strip" removes all revert strings (if possible, i.e. if literals are used) keeping side-effects
+          // "strip" removes all revert strings (if possible, i.e. if literals are used) keeping side-effects.
+          // NOTE: "strip" does not remove custom errors.
           // "debug" injects strings for compiler-generated internal reverts, implemented for ABI encoders V1 and V2 for now.
           // "verboseDebug" even appends further information to user-supplied revert strings (not yet implemented)
           "revertStrings": "default",
@@ -393,7 +394,7 @@ Input Description
           //     The snippet is quoted and follows the corresponding `@src` annotation.
           // - `ast-id`: Annotations of the form `@ast-id <id>` over elements that can be mapped back to a definition in the original Solidity file.
           //   `<id>` is a node ID in the Solidity AST ('ast' output).
-          // - `ethdebug`: Ethdebug annotations (experimental).
+          // - `ethdebug`: Ethdebug annotations (experimental). Automatically enabled when any ethdebug output is requested.
           // - `*`: Wildcard value that can be used to request all non-experimental components.
           "debugInfo": ["location", "snippet", "ast-id", "ethdebug"]
         },
@@ -453,8 +454,8 @@ Input Description
         //   transientStorageLayout - Slots, offsets and types of the contract's state variables in transient storage
         //   evm.assembly - New assembly format
         //   evm.legacyAssembly - Old-style assembly format in JSON
-        //   evm.bytecode.ethdebug - Debug information in ethdebug format (ethdebug/format/program schema). Can only be requested when compiling via IR. (experimental)
-        //   evm.deployedBytecode.ethdebug - Like evm.bytecode.ethdebug, but for the runtime part of the contract (experimental)
+        //   evm.bytecode.ethdebug - Debug information in ethdebug format (ethdebug/format/program schema for creation bytecode). Can only be requested when compiling via IR. (experimental)
+        //   evm.deployedBytecode.ethdebug - Debug information in ethdebug format (ethdebug/format/program schema for deployed bytecode). Can only be requested when compiling via IR. (experimental)
         //   evm.bytecode.functionDebugData - Debugging information at function level
         //   evm.bytecode.object - Bytecode object
         //   evm.bytecode.opcodes - Opcodes list
@@ -466,6 +467,10 @@ Input Description
         //   evm.methodIdentifiers - The list of function hashes
         //   evm.gasEstimates - Function gas estimates
         //   yulCFGJson - Control Flow Graph (CFG) of the Single Static Assignment (SSA) form of the contract (experimental)
+        //
+        // Global level (needs "*" as file name and "*" as contract name):
+        //   ethdebug.resources - Global ethdebug output (ethdebug/format/info/resources schema) containing source list and compiler info (experimental)
+        //   ethdebug.compilation - Global ethdebug compilation output (the 'compilation' key from ethdebug/format/info/resources schema) (experimental)
         //
         // Note that using `evm`, `evm.bytecode`, etc. will select every
         // target part of that output. Additionally, `*` can be used as a wildcard to request everything.
@@ -696,7 +701,12 @@ Output Description
         }
       },
       // Global Ethdebug output (experimental)
-      "ethdebug": {/* ... */ }
+      "ethdebug": {
+        // Requested via ethdebug.resources output selection
+        "resources": {/* ... */},
+        // Requested via ethdebug.compilation output selection
+        "compilation": {/* ... */}
+      }
     }
 
 
@@ -744,33 +754,33 @@ Note that the use of this mode is recorded in the metadata:
 - ``settings.experimental`` in JSON metadata is set to ``true``,
 
 .. note::
-    Prior to version 0.8.34, most of the experimental features were usable without any extra safeguards.
+    Prior to version 0.8.35, most of the experimental features were usable without any extra safeguards.
     Some were gated behind ``pragma experimental``, but this was not done consistently.
     The information about them was also only recorded in CBOR metadata and even then not always.
     The main goal of the experimental mode is to systematize this and make users fully aware when relying on features which are unfinished or not production-ready.
 
 The table below details all currently available experimental features.
 
-+-----------------------+--------------------------+------------------+-------------------------------------------------------------------+
-| Feature               | ID                       | Affects bytecode | Flag/pragma                                                       |
-+=======================+==========================+==================+===================================================================+
-| AST import            | ``ast-import``           | yes              | ``--import-ast``                                                  |
-+-----------------------+--------------------------+------------------+-------------------------------------------------------------------+
-| LSP                   | ``lsp``                  | no               | ``--lsp``                                                         |
-+-----------------------+--------------------------+------------------+-------------------------------------------------------------------+
-| EVM Assembly import   | ``evmasm-import``        | yes              | ``--import-asm-json``                                             |
-+-----------------------+--------------------------+------------------+-------------------------------------------------------------------+
-| Generic Solidity      | ``generic-solidity``     | yes              | ``pragma experimental solidity``                                  |
-+-----------------------+--------------------------+------------------+-------------------------------------------------------------------+
-| IR AST                | ``ir-ast``               | no               | ``--ir-ast-json``, ``--ir-optimized-ast-json``                    |
-+-----------------------+--------------------------+------------------+-------------------------------------------------------------------+
-| EOF                   | ``eof``                  | yes              | ``--experimental-eof-version``                                    |
-+-----------------------+--------------------------+------------------+-------------------------------------------------------------------+
-| Non-mainnet EVMs      | ``evm``                  | yes              | ``--evm-version <version name>``                                  |
-+-----------------------+--------------------------+------------------+-------------------------------------------------------------------+
-| Ethdebug              | ``ethdebug``             | no               | ``--ethdebug``, ``--ethdebug-runtime``, ``--debug-info ethdebug`` |
-+-----------------------+--------------------------+------------------+-------------------------------------------------------------------+
-|                       |                          | no               | ``--yul-cfg-json``                                                |
-| SSA CFG               + ``ssa-cfg``              +------------------+-------------------------------------------------------------------+
-|                       |                          | yes              | ``--via-ssa-cfg``                                                 |
-+-----------------------+--------------------------+------------------+-------------------------------------------------------------------+
++-----------------------+--------------------------+------------------+-----------------------------------------------------------------------------------------------------------------------------------------+
+| Feature               | ID                       | Affects bytecode | Flag/pragma                                                                                                                             |
++=======================+==========================+==================+=========================================================================================================================================+
+| AST import            | ``ast-import``           | yes              | ``--import-ast``                                                                                                                        |
++-----------------------+--------------------------+------------------+-----------------------------------------------------------------------------------------------------------------------------------------+
+| LSP                   | ``lsp``                  | no               | ``--lsp``                                                                                                                               |
++-----------------------+--------------------------+------------------+-----------------------------------------------------------------------------------------------------------------------------------------+
+| EVM Assembly import   | ``evmasm-import``        | yes              | ``--import-asm-json``                                                                                                                   |
++-----------------------+--------------------------+------------------+-----------------------------------------------------------------------------------------------------------------------------------------+
+| Generic Solidity      | ``generic-solidity``     | yes              | ``pragma experimental solidity``                                                                                                        |
++-----------------------+--------------------------+------------------+-----------------------------------------------------------------------------------------------------------------------------------------+
+| IR AST                | ``ir-ast``               | no               | ``--ir-ast-json``, ``--ir-optimized-ast-json``                                                                                          |
++-----------------------+--------------------------+------------------+-----------------------------------------------------------------------------------------------------------------------------------------+
+| EOF                   | ``eof``                  | yes              | ``--experimental-eof-version``                                                                                                          |
++-----------------------+--------------------------+------------------+-----------------------------------------------------------------------------------------------------------------------------------------+
+| Non-mainnet EVMs      | ``evm``                  | yes              | ``--evm-version <version name>``                                                                                                        |
++-----------------------+--------------------------+------------------+-----------------------------------------------------------------------------------------------------------------------------------------+
+| Ethdebug              | ``ethdebug``             | no               | ``--ethdebug-resources``, ``--ethdebug-compilation``, ``--ethdebug-program``, ``--ethdebug-program-runtime``, ``--debug-info ethdebug`` |
++-----------------------+--------------------------+------------------+-----------------------------------------------------------------------------------------------------------------------------------------+
+|                       |                          | no               | ``--yul-cfg-json``                                                                                                                      |
+| SSA CFG               + ``ssa-cfg``              +------------------+-----------------------------------------------------------------------------------------------------------------------------------------+
+|                       |                          | yes              | ``--via-ssa-cfg``                                                                                                                       |
++-----------------------+--------------------------+------------------+-----------------------------------------------------------------------------------------------------------------------------------------+

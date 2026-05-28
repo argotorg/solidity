@@ -12,16 +12,17 @@
 // graph[fontname="DejaVu Sans", rankdir=LR]
 // node[shape=box,fontname="DejaVu Sans"];
 //
-// Entry [label="Entry"];
+// Entry [label="Entry
+// spilled: {}"];
 // Entry -> Block0_0;
 // Block0_0 [label="\
 // IN: []\l\
 // \l\
 // [FunctionCallReturnLabel[0], lit0]\l\
 // sum\l\
-// [FunctionCallReturnLabel[0], v0]\l\
+// [FunctionCallReturnLabel[0], v1]\l\
 // \l\
-// [v0, lit1]\l\
+// [v1, lit2]\l\
 // mstore\l\
 // []\l\
 // \l\
@@ -30,7 +31,8 @@
 // Block0_0Exit [label="MainExit"];
 // Block0_0 -> Block0_0Exit;
 // FunctionEntry_sum_0 [label="function sum:
-//  s := sum(v0)"];
+//  [1 returns] := sum(v0)
+// spilled: {}"];
 // FunctionEntry_sum_0 -> Block1_0;
 // Block1_0 [label="\
 // IN: [ReturnLabel[1], v0]\l\
@@ -44,28 +46,28 @@
 // Block1_1 [label="\
 // IN: [ReturnLabel[1], v0]\l\
 // \l\
-// [ReturnLabel[1], v0, lit1, v0]\l\
+// [ReturnLabel[1], v0, lit2, v0]\l\
 // sub\l\
-// [ReturnLabel[1], v0, v1]\l\
+// [ReturnLabel[1], v0, v3]\l\
 // \l\
-// [ReturnLabel[1], v0, FunctionCallReturnLabel[0], v1]\l\
+// [ReturnLabel[1], v0, FunctionCallReturnLabel[0], v3]\l\
 // sum\l\
-// [ReturnLabel[1], v0, FunctionCallReturnLabel[0], v2]\l\
+// [ReturnLabel[1], v0, FunctionCallReturnLabel[0], v4]\l\
 // \l\
-// [ReturnLabel[1], v2, v0]\l\
+// [ReturnLabel[1], v4, v0]\l\
 // add\l\
-// [ReturnLabel[1], v3]\l\
+// [ReturnLabel[1], v5]\l\
 // \l\
-// OUT: [ReturnLabel[1], v3]\l\
+// OUT: [ReturnLabel[1], v5]\l\
 // "];
 // Block1_1 -> Block1_1Exit [arrowhead=none];
 // Block1_1Exit [label="Jump" shape=oval];
 // Block1_1Exit -> Block1_2 [style="solid"];
 // Block1_2 [label="\
-// IN: [ReturnLabel[1], JUNK, phi0]\l\
+// IN: [ReturnLabel[1], JUNK, phi6]\l\
 // \l\
-// OUT: [phi0, ReturnLabel[1]]\l\
+// OUT: [phi6, ReturnLabel[1]]\l\
 // "];
-// Block1_2Exit [label="FunctionReturn[phi0]"];
+// Block1_2Exit [label="FunctionReturn[phi6]"];
 // Block1_2 -> Block1_2Exit;
 // }

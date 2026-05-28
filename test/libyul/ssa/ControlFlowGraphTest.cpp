@@ -23,6 +23,8 @@
 
 #include <libyul/backends/evm/ssa/SSACFGBuilder.h>
 
+#include <libyul/backends/evm/ssa/transform/OptimizationPipeline.h>
+
 #include <libyul/AsmAnalysis.h>
 #include <libyul/Object.h>
 #include <libyul/YulStack.h>
@@ -73,14 +75,15 @@ TestCase::TestResult ControlFlowGraphTest::run(std::ostream& _stream, std::strin
 	auto const* evmDialect = dynamic_cast<EVMDialect const*>(&yulStack.dialect());
 	yulAssert(evmDialect);
 
-	std::unique_ptr<yul::ssa::ControlFlow> controlFlow = yul::ssa::SSACFGBuilder::build(
+	std::unique_ptr<yul::ssa::ControlFlowGraphs> controlFlowGraphs = yul::ssa::SSACFGBuilder::build(
 		*yulStack.parserResult()->analysisInfo,
 		*evmDialect,
 		yulStack.parserResult()->code()->root(),
 		true
 	);
-	yul::ssa::ControlFlowLiveness liveness(*controlFlow);
-	m_obtainedResult = controlFlow->toDot(&liveness);
+	yul::ssa::transform::optimize(*controlFlowGraphs);
+	yul::ssa::ControlFlowGraphsLiveness liveness(*controlFlowGraphs);
+	m_obtainedResult = controlFlowGraphs->toDot(&liveness);
 
 	auto result = checkResult(_stream, _linePrefix, _formatted);
 

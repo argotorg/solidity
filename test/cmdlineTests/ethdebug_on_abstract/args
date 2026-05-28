@@ -1,1 +1,1 @@
---experimental --ethdebug --via-ir --pretty-json --json-indent 4
+--experimental --ethdebug-compilation --ethdebug-program --ethdebug-program-runtime --via-ir --pretty-json --json-indent 4

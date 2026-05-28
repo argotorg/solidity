@@ -295,6 +295,9 @@ void ASTJSONTest::printSource(std::ostream& _stream, std::string const& _linePre
 		printPrefixed(_stream, source.second, _linePrefix);
 		_stream << std::endl;
 	}
+
+	if (m_expectedFailAfter.has_value())
+		printPrefixed(_stream, "// failAfter: " + compilerStateToString(m_expectedFailAfter.value()) + "\n", _linePrefix);
 }
 
 void ASTJSONTest::printUpdatedExpectations(std::ostream&, std::string const&) const

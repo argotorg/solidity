@@ -792,6 +792,7 @@ bool CompilerStack::compile(State _stopAfter)
 
 	// Only compile contracts individually which have been requested.
 	std::map<ContractDefinition const*, std::shared_ptr<Compiler const>> otherCompilers;
+	bool requiresFullCompilation = false;
 
 	for (Source const* source: m_sourceOrder)
 		for (ASTPointer<ASTNode> const& node: source->ast->nodes())
@@ -802,6 +803,11 @@ bool CompilerStack::compile(State _stopAfter)
 
 					try
 					{
+						// Skip if full compilation is not needed (i.e. no IR/bytecode requested)
+						if (!pipelineConfig.needsFullCompilation())
+							continue;
+						requiresFullCompilation = true;
+
 						if (pipelineConfig.needIR(m_viaIR))
 							generateIR(*contract, pipelineConfig.needIRCodegenOnly(m_viaIR));
 						if (pipelineConfig.needBytecode())
@@ -831,7 +837,8 @@ bool CompilerStack::compile(State _stopAfter)
 
 	solAssert(!m_errorReporter.hasErrors());
 	m_stackState = CompilationSuccessful;
-	this->link();
+	if (requiresFullCompilation)
+		this->link();
 	return true;
 }
 
@@ -1227,8 +1234,12 @@ Json CompilerStack::interfaceSymbols(std::string const& _contractName) const
 Json CompilerStack::ethdebug() const
 {
 	solAssert(m_stackState >= AnalysisSuccessful, "Analysis was not successful.");
-	solAssert(!m_contracts.empty());
 	return evmasm::ethdebug::resources(sourceNames(), VersionString);
+}
+
+Json CompilerStack::ethdebugCompilation() const
+{
+	return evmasm::ethdebug::compilation(VersionString);
 }
 
 Json CompilerStack::ethdebug(std::string const& _contractName) const

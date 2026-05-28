@@ -377,7 +377,13 @@ namespace TokenTraits
 		return _token > Token::NonExperimentalEnd && _token < Token::ExperimentalEnd;
 	}
 
-	bool isYulKeyword(std::string_view _literal);
+	bool isYulKeyword(std::string_view const _literal);
+
+	bool isFutureSolidityKeyword(std::string_view const _literal);
+
+	bool isFutureYulKeyword(std::string_view const _literal);
+
+	bool isFutureYulReservedIdentifier(std::string_view const _literal);
 
 	Token AssignmentToBinaryOp(Token op);
 

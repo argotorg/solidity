@@ -160,6 +160,11 @@ public:
 			return bytecode;
 		}
 
+		bool needsFullCompilation() const
+		{
+			return irCodegen || irOptimization || bytecode;
+		}
+
 		PipelineConfig operator|(PipelineConfig const& _other) const
 		{
 			return {
@@ -409,6 +414,9 @@ public:
 	/// @returns a JSON representing the top-level ethdebug data (types, etc.).
 	/// Prerequisite: Successful call to parse or compile.
 	Json ethdebug() const override;
+
+	/// @returns a JSON representing the ethdebug compilation data (compiler name and version).
+	Json ethdebugCompilation() const override;
 
 	/// @returns the Contract Metadata matching the pipeline selected using the viaIR setting.
 	std::string const& metadata(std::string const& _contractName) const { return metadata(contract(_contractName)); }

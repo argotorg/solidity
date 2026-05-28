@@ -18,7 +18,8 @@
       "*": {
         "*": [
           "evm.bytecode.ethdebug",
-          "irOptimized"
+          "irOptimized",
+          "ethdebug.resources"
         ]
       }
     }

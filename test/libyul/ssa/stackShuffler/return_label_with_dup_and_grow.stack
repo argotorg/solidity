@@ -20,10 +20,7 @@ targetStackTop: [ReturnLabel[1], JUNK, JUNK, v2, JUNK, JUNK, JUNK, JUNK, JUNK, J
 //          POP| ReturnLabel[1]      *      *     v3      *      *      *      *      *      *      *      *      *      *      *     v1     v2
 //    PUSH lit2| ReturnLabel[1]      *      *     v3      *      *      *      *      *      *      *      *      *      *      *     v1     v2   lit2
 //         DUP2| ReturnLabel[1]      *      *     v3      *      *      *      *      *      *      *      *      *      *      *     v1     v2   lit2     v2
-//    PUSH lit1| ReturnLabel[1]      *      *     v3      *      *      *      *      *      *      *      *      *      *      *     v1     v2   lit2     v2   lit1
-//         DUP2| ReturnLabel[1]      *      *     v3      *      *      *      *      *      *      *      *      *      *      *     v1     v2   lit2     v2   lit1     v2
-//        SWAP1| ReturnLabel[1]      *      *     v3      *      *      *      *      *      *      *      *      *      *      *     v1     v2   lit2     v2     v2   lit1
-//          POP| ReturnLabel[1]      *      *     v3      *      *      *      *      *      *      *      *      *      *      *     v1     v2   lit2     v2     v2
+//         DUP1| ReturnLabel[1]      *      *     v3      *      *      *      *      *      *      *      *      *      *      *     v1     v2   lit2     v2     v2
 //       SWAP16| ReturnLabel[1]      *      *     v2      *      *      *      *      *      *      *      *      *      *      *     v1     v2   lit2     v2     v3
 //    PUSH lit1| ReturnLabel[1]      *      *     v2      *      *      *      *      *      *      *      *      *      *      *     v1     v2   lit2     v2     v3   lit1
 //        SWAP5| ReturnLabel[1]      *      *     v2      *      *      *      *      *      *      *      *      *      *      *   lit1     v2   lit2     v2     v3     v1

@@ -26,6 +26,7 @@
 #include <libsolutil/Visitor.h>
 
 #include <range/v3/algorithm/count.hpp>
+#include <range/v3/algorithm/none_of.hpp>
 #include <range/v3/algorithm/replace.hpp>
 #include <range/v3/view/transform.hpp>
 #include <range/v3/to_container.hpp>
@@ -37,30 +38,32 @@ using namespace solidity::yul::ssa;
 
 namespace
 {
-void handlePhiFunctions(StackData& _stackData, PhiInverse const& _phiInverse, LivenessAnalysis::LivenessData const& _liveness)
+void handlePhiFunctions(StackData& _stackData, PhiInverse const& _phiInverse, LivenessAnalysis::LivenessData const& _liveness, SSACFG const& _cfg)
 {
 	// add any phi function values here that are not already contained in the stack
 	for (auto const& [phi, preImage]: _phiInverse.data())
 	{
 		auto reversedStackData = _stackData | ranges::views::reverse;
-		auto it = ranges::find(reversedStackData, StackSlot::makeValueID(preImage));
+		auto const phiSlot = StackSlot::makeValue(_cfg, phi);
+		auto const preImageSlot = StackSlot::makeValue(_cfg, preImage);
+		auto it = ranges::find(reversedStackData, preImageSlot);
 		if (_liveness.contains(preImage))
 		{
 			// Both the phi function and the preimage are part of the live-in set.
 			// If the preimage occurs more than once on the stack, one occurrence is
 			// symbolically replaced by the phi function; otherwise, we push the phi value.
-			if (ranges::count(_stackData, StackSlot::makeValueID(preImage)) > 1)
-				*it = StackSlot::makeValueID(phi);
+			if (ranges::count(_stackData, preImageSlot) > 1)
+				*it = phiSlot;
 			else
-				_stackData.emplace_back(StackSlot::makeValueID(phi));
+				_stackData.emplace_back(phiSlot);
 		}
 		else
 		{
 			// replace all occurrences of the preimage with the phi value
-			ranges::replace(_stackData, StackSlot::makeValueID(preImage), StackSlot::makeValueID(phi));
+			ranges::replace(_stackData, preImageSlot, phiSlot);
 			// if it's not contained, push it (could be derived from a literal)
 			if (it == ranges::end(reversedStackData))
-				_stackData.emplace_back(StackSlot::makeValueID(phi));
+				_stackData.emplace_back(phiSlot);
 		}
 	}
 }
@@ -72,32 +75,36 @@ void declareJunk(StackType& _stack, LivenessAnalysis::LivenessData const& _live)
 	for (StackOffset offset{0}; offset < _stack.size(); ++offset.value)
 	{
 		auto const& slot = _stack[offset];
-		if (slot.isValueID() && !_live.contains(slot.valueID()))
+		if (slot.isValue() && !_live.contains(slot.value()))
 			_stack.declareJunk(offset);
 	}
 }
 
 }
 
-SSACFGStackLayout StackLayoutGenerator::generate(
+StackLayoutGenerator::Result StackLayoutGenerator::generate(
 	LivenessAnalysis const& _liveness,
 	CallSites const& _callSites,
-	ControlFlow::FunctionGraphID const _graphID
+	ControlFlowGraphs::FunctionGraphID const _graphID,
+	bool const _spillingAllowed
 )
 {
-	return StackLayoutGenerator(_liveness, _callSites, _graphID).m_resultLayout;
+	StackLayoutGenerator generator(_liveness, _callSites, _graphID, _spillingAllowed);
+	return Result{std::move(generator.m_resultLayout), std::move(generator.m_spillSet)};
 }
 
 StackLayoutGenerator::StackLayoutGenerator(
 	LivenessAnalysis const& _liveness,
 	CallSites const& _callSites,
-	ControlFlow::FunctionGraphID const _graphID
+	ControlFlowGraphs::FunctionGraphID const _graphID,
+	bool const _spillingAllowed
 ):
 	m_cfg(_liveness.cfg()),
 	m_liveness(_liveness),
 	m_callSites(_callSites),
 	m_graphID(_graphID),
-	m_hasFunctionReturnLabel(_liveness.cfg().function && _liveness.cfg().canContinue),
+	m_hasFunctionReturnLabel(!_liveness.cfg().isMainGraph() && _liveness.cfg().canContinue),
+	m_spillingAllowed(_spillingAllowed),
 	m_junkAdmittingBlocksFinder(std::make_unique<JunkAdmittingBlocksFinder>(_liveness.cfg(), _liveness.topologicalSort())),
 	m_inputStackProposalsPerBlock(m_cfg.numBlocks()),
 	m_resultLayout(m_cfg.numBlocks())
@@ -109,7 +116,7 @@ StackLayoutGenerator::StackLayoutGenerator(
 		// Future optimization: it might be beneficial to revisit the loop heads (back edge targets) after the first iteration
 		std::vector<std::size_t> inDegreesIgnoringBackedges(m_cfg.numBlocks(), 0);
 
-		for (SSACFG::BlockId id{0}; id.value < m_cfg.numBlocks(); ++id.value)
+		for (SSACFG::BlockId const id: m_cfg.liveBlocks())
 			for (auto const& entry: m_cfg.block(id).entries)
 				if (!m_liveness.topologicalSort().backEdge(entry, id))
 					inDegreesIgnoringBackedges[id.value] += 1;
@@ -144,13 +151,13 @@ void StackLayoutGenerator::defineStackIn(SSACFG::BlockId const& _blockId)
 
 	if (_blockId == m_cfg.entry)
 	{
-		if (m_cfg.function)
+		if (!m_cfg.isMainGraph())
 		{
 			blockLayout.stackIn.reserve(m_cfg.arguments.size() + (m_hasFunctionReturnLabel ? 1u : 0u));
 			if (m_hasFunctionReturnLabel)
 				blockLayout.stackIn.push_back(Slot::makeFunctionReturnLabel(m_graphID));
-			for (auto const& [_, valueID]: m_cfg.arguments | ranges::views::reverse)
-				blockLayout.stackIn.push_back(Slot::makeValueID(valueID));
+			for (auto const& arg: m_cfg.arguments | ranges::views::reverse)
+				blockLayout.stackIn.push_back(Slot::makeValue(m_cfg, arg));
 		}
 		m_resultLayout[_blockId] = blockLayout;
 		return;
@@ -167,7 +174,7 @@ void StackLayoutGenerator::defineStackIn(SSACFG::BlockId const& _blockId)
 		// pass through
 		yulAssert(stackInProposals.size() == 1);
 		blockLayout.stackIn = stackInProposals[0].second;
-		handlePhiFunctions(blockLayout.stackIn, PhiInverse(m_cfg, stackInProposals[0].first, _blockId), liveIn);
+		handlePhiFunctions(blockLayout.stackIn, PhiInverse(m_cfg, stackInProposals[0].first, _blockId), liveIn, m_cfg);
 		StackType stack(blockLayout.stackIn, {});
 		declareJunk(stack, liveIn);
 	}
@@ -178,7 +185,7 @@ void StackLayoutGenerator::defineStackIn(SSACFG::BlockId const& _blockId)
 		for (std::size_t i = 0; i < stackInProposals.size(); ++i)
 		{
 			proposals[i] = stackInProposals[i].second;
-			handlePhiFunctions(proposals[i], PhiInverse(m_cfg, stackInProposals[i].first, _blockId), liveIn);
+			handlePhiFunctions(proposals[i], PhiInverse(m_cfg, stackInProposals[i].first, _blockId), liveIn, m_cfg);
 			{
 				StackType stack(proposals[i], {});
 				declareJunk(stack, liveIn);
@@ -196,7 +203,8 @@ void StackLayoutGenerator::defineStackIn(SSACFG::BlockId const& _blockId)
 					stack,
 					proposals[i],
 					{},
-					proposals[i].size()
+					proposals[i].size(),
+					&m_spillSet
 				);
 				yulAssert(shuffleResult.status == StackShufflerResult::Status::Admissible);
 				cumulativeCost += stack.callbacks().opGas;
@@ -226,59 +234,63 @@ void StackLayoutGenerator::visitBlock(SSACFG::BlockId const& _blockId)
 	bool const junkCanBeAdded = m_junkAdmittingBlocksFinder->allowsAdditionOfJunk(_blockId);
 
 	auto const& operationsLiveOut = m_liveness.operationsLiveOut(_blockId);
-	blockLayout.operationIn.reserve(block.operations.size());
-	for (std::size_t operationIndex = 0; operationIndex < block.operations.size(); ++operationIndex)
-	{
-		SSACFG::Operation const& operation = m_cfg.operation(block.operations[operationIndex]);
-		LivenessAnalysis::LivenessData opLiveOut = operationsLiveOut[operationIndex];
-		auto opLiveOutWithoutOutputs = opLiveOut;
-		for (auto const& output: operation.outputs)
-			opLiveOutWithoutOutputs.erase(output);
+	blockLayout.operationIn.reserve(operationsLiveOut.size());
+	std::size_t operationIndex = 0;
+	m_cfg.forEachOperation(block, [&](InstId const _instId, SSACFG::Inst const& _inst) {
+		auto opLiveOutWithoutOutputs = operationsLiveOut[operationIndex];
+		m_cfg.forEachOutput(_instId, [&](InstId const id) { opLiveOutWithoutOutputs.erase(id); });
 
 		std::vector<Slot> requiredStackTop;
-		if (auto const* call = std::get_if<SSACFG::Call>(&operation.kind))
-			if (call->canContinue)
+		if (_inst.opcode == InstOpcode::Call)
+		{
+			auto const& callPayload = m_cfg.callPayload(_instId);
+			if (callPayload.canContinue)
 			{
-				auto const callSiteID = m_callSites.callSiteID(&call->call.get());
+				auto const callSiteID = m_callSites.callSiteID(_instId);
 				yulAssert(callSiteID.has_value());
 				requiredStackTop.emplace_back(Slot::makeFunctionCallReturnLabel(*callSiteID));
 			}
-		requiredStackTop += operation.inputs | ranges::views::transform(Slot::makeValueID);
+		}
+		requiredStackTop += _inst.inputs | ranges::views::transform([this](InstId const& _id) { return StackSlot::makeValue(m_cfg, _id); });
 
 		for (StackType::Depth depth{0}; depth < stack.size(); ++depth.value)
 			if (
-				stack.slot(depth).isValueID() &&
-				!opLiveOutWithoutOutputs.contains(stack.slot(depth).valueID()) &&
+				stack.slot(depth).isValue() &&
+				!opLiveOutWithoutOutputs.contains(stack.slot(depth).value()) &&
 				ranges::find(requiredStackTop, stack.slot(depth)) == ranges::end(requiredStackTop)
 			)
 				stack.declareJunk(depth);
 
-		std::size_t const targetSize = findOptimalTargetSize(
-			stack.data(),
-			requiredStackTop,
-			opLiveOutWithoutOutputs,
-			junkCanBeAdded,
-			m_hasFunctionReturnLabel
-		);
+		StackSlotLiveness const opLiveOutSlots = toStackSlotLiveness(m_cfg, opLiveOutWithoutOutputs);
 		{
-			auto const shuffleResult = StackShuffler<StackType::Callbacks>::shuffle(
-				stack,
+			auto [target, plannedSpillSet] = findOptimalTarget(
+				stack.data(),
 				requiredStackTop,
-				opLiveOutWithoutOutputs,
-				targetSize
+				opLiveOutSlots,
+				junkCanBeAdded,
+				m_hasFunctionReturnLabel,
+				m_spillSet,
+				m_spillingAllowed
 			);
+			auto const spillCountBefore = m_spillSet.numSpilled();
+			m_spillSet = std::move(plannedSpillSet);
+			auto const shuffleResult = shuffleWithSpillDiscovery(currentStackData, target, m_spillSet);
 			yulAssert(shuffleResult.status == StackShufflerResult::Status::Admissible);
+			yulAssert(m_spillingAllowed || m_spillSet.numSpilled() == spillCountBefore, "Spilling not allowed, stack too deep.");
 		}
 
 		blockLayout.operationIn.push_back(currentStackData);
 		for (std::size_t i = 0; i < requiredStackTop.size(); ++i)
 			stack.pop<false>();
-		for (auto const& val: operation.outputs)
-			stack.push<false>(Slot::makeValueID(val));
-	}
+		m_cfg.forEachOutput(_instId, [&](InstId const id) {
+			stack.push<false>(Slot::makeValue(m_cfg, id));
+		});
+		++operationIndex;
+	});
+	yulAssert(operationIndex == operationsLiveOut.size());
 
 	std::visit(
-		util::GenericVisitor{
+		solidity::util::GenericVisitor{
 			[&](SSACFG::BasicBlock::ConditionalJump const& _cJump) {
 				auto const& blockLiveOut = m_liveness.liveOut(_blockId);
 
@@ -286,25 +298,28 @@ void StackLayoutGenerator::visitBlock(SSACFG::BlockId const& _blockId)
 				bool const conditionSlotAlreadyFinal =
 					!blockLiveOut.contains(_cJump.condition) &&  // if our live out does not contain the condition (ie we dont have to dup it)
 					!stack.empty() &&   // our stack is not empty
-					stack.top().isValueID() && stack.top().valueID() == _cJump.condition;  // and the condition is already on top
+					stack.top().isValue() && stack.top().value() == _cJump.condition;  // and the condition is already on top
 				if (!conditionSlotAlreadyFinal)
 				{
-					auto const condition = Slot::makeValueID(_cJump.condition);
-					auto const targetSize = findOptimalTargetSize(
+					auto const condition = Slot::makeValue(m_cfg, _cJump.condition);
+					StackSlotLiveness const blockLiveOutSlots = toStackSlotLiveness(m_cfg, blockLiveOut);
+					auto [target, plannedSpillSet] = findOptimalTarget(
 						stack.data(),
 						{condition},
-						blockLiveOut,
+						blockLiveOutSlots,
 						false,
-						m_hasFunctionReturnLabel
+						m_hasFunctionReturnLabel,
+						m_spillSet,
+						m_spillingAllowed
 					);
-					auto const shuffleResult = StackShuffler<StackType::Callbacks>::shuffle(
-						stack, {condition}, blockLiveOut, targetSize
-					);
+					auto const spillCountBefore = m_spillSet.numSpilled();
+					m_spillSet = std::move(plannedSpillSet);
+					auto const shuffleResult = shuffleWithSpillDiscovery(currentStackData, target, m_spillSet);
 					yulAssert(shuffleResult.status == StackShufflerResult::Status::Admissible);
+					yulAssert(m_spillingAllowed || m_spillSet.numSpilled() == spillCountBefore, "Spilling not allowed, stack too deep.");
 				}
 
-				yulAssert(!stack.empty() && stack.top().isValueID() && stack.top().valueID() == _cJump.condition);
-				yulAssert(m_cfg.block(_cJump.nonZero).phis.empty());
+				yulAssert(!stack.empty() && stack.top().isValue() && stack.top().value() == _cJump.condition);
 
 				// exitIn = pre-JUMPI state (condition on top) for CodeTransform
 				blockLayout.exitIn = currentStackData;
@@ -320,10 +335,12 @@ void StackLayoutGenerator::visitBlock(SSACFG::BlockId const& _blockId)
 			[&](SSACFG::BasicBlock::FunctionReturn const& _functionReturn) {
 				yulAssert(m_hasFunctionReturnLabel, "When there is a proper function return, we need to have a label for it");
 				// in case there are return values, let's bring the function return label to the top
-				StackData returnStack = _functionReturn.returnValues | ranges::views::transform(StackSlot::makeValueID) | ranges::to<std::vector>;
+				StackData returnStack = _functionReturn.returnValues | ranges::views::transform([this](InstId const _id) { return StackSlot::makeValue(m_cfg, _id); }) | ranges::to<std::vector>;
 				returnStack.push_back(StackSlot::makeFunctionReturnLabel(m_graphID));
-				auto const shuffleResult = StackShuffler<StackType::Callbacks>::shuffle(stack, returnStack);
+				auto const spillCountBefore = m_spillSet.numSpilled();
+				auto const shuffleResult = shuffleWithSpillDiscovery(currentStackData, returnStack, m_spillSet);
 				yulAssert(shuffleResult.status == StackShufflerResult::Status::Admissible);
+				yulAssert(m_spillingAllowed || m_spillSet.numSpilled() == spillCountBefore, "Spilling not allowed, stack too deep.");
 				blockLayout.exitIn = currentStackData;
 			},
 			[&](SSACFG::BasicBlock::Jump const& _jump) {

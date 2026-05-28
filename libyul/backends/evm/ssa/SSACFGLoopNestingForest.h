@@ -54,7 +54,7 @@ private:
 	traversal::ForwardTopologicalSort const& m_sort;
 	SSACFG const& m_cfg;
 
-	util::ContiguousDisjointSet<BlockIdValue> m_vertexPartition;
+	solidity::util::ContiguousDisjointSet<BlockIdValue> m_vertexPartition;
 	std::vector<BlockIdValue> m_loopParents;
 	std::set<BlockIdValue> m_loopNodes;
 	std::set<BlockIdValue> m_loopRootNodes;

@@ -20,130 +20,23 @@
 
 #include <libsolutil/Visitor.h>
 
-#include <range/v3/algorithm/find.hpp>
-#include <range/v3/algorithm/find_if.hpp>
+#include <range/v3/algorithm/count_if.hpp>
 #include <range/v3/range/conversion.hpp>
 
+#include <range/v3/view/enumerate.hpp>
 #include <range/v3/view/filter.hpp>
 #include <range/v3/view/reverse.hpp>
 
 using namespace solidity::yul::ssa;
 
-namespace
-{
-constexpr auto excludingLiteralsFilter()
-{
-	return [](LivenessAnalysis::LivenessData::Value const& _valueId) -> bool
-	{
-		return !_valueId.isLiteral();
-	};
-}
-}
-
-bool LivenessAnalysis::LivenessData::contains(Value const& _valueId) const
-{
-	return findEntry(_valueId) != m_liveCounts.end();
-}
-
-LivenessAnalysis::LivenessData::Count LivenessAnalysis::LivenessData::count(Value const& _valueId) const
-{
-	if (
-		auto const it = findEntry(_valueId);
-		it != m_liveCounts.end()
-	)
-		return it->second;
-	return 0;
-}
-
-LivenessAnalysis::LivenessData::LiveCounts::const_iterator LivenessAnalysis::LivenessData::begin() const
-{
-	return m_liveCounts.begin();
-}
-
-LivenessAnalysis::LivenessData::LiveCounts::const_iterator LivenessAnalysis::LivenessData::end() const
-{
-	return m_liveCounts.end();
-}
-
-LivenessAnalysis::LivenessData::LiveCounts::size_type LivenessAnalysis::LivenessData::size() const
-{
-	return m_liveCounts.size();
-}
-
-bool LivenessAnalysis::LivenessData::empty() const { return m_liveCounts.empty(); }
-
-void LivenessAnalysis::LivenessData::insert(Value const& _value, Count _count)
-{
-	if (_count == 0)
-		return;
-
-	auto it = findEntry(_value);
-	if (it != m_liveCounts.end())
-		it->second += _count;
-	else
-		m_liveCounts.emplace_back(_value, _count);
-}
-
-LivenessAnalysis::LivenessData& LivenessAnalysis::LivenessData::maxUnion(LivenessData const& _other)
-{
-	for (auto const& [value, count]: _other.m_liveCounts)
-	{
-		auto it = findEntry(value);
-		if (it != m_liveCounts.end())
-			it->second = std::max(it->second, count);
-		else
-			m_liveCounts.emplace_back(value, count);
-	}
-	return *this;
-}
-
-LivenessAnalysis::LivenessData& LivenessAnalysis::LivenessData::operator+=(LivenessData const& _other)
-{
-	for (auto const& [valueId, count]: _other.m_liveCounts)
-		insert(valueId, count);
-	return *this;
-}
-
-LivenessAnalysis::LivenessData& LivenessAnalysis::LivenessData::operator-=(LivenessData const& _other)
-{
-	std::erase_if(m_liveCounts, [&](auto const& entry) { return _other.contains(entry.first); });
-	return *this;
-}
-
-void LivenessAnalysis::LivenessData::erase(Value const& _value)
-{
-	if (
-		auto const it = findEntry(_value);
-		it != m_liveCounts.end()
-	)
-		m_liveCounts.erase(it);
-}
-
-void LivenessAnalysis::LivenessData::remove(Value const& _value, Count _count)
-{
-	if (_count == 0)
-		return;
-
-	auto it = findEntry(_value);
-	if (it != m_liveCounts.end())
-	{
-		if (it->second <= _count)
-			m_liveCounts.erase(it);
-		else
-			it->second -= _count;
-	}
-}
-
-
 LivenessAnalysis::LivenessData LivenessAnalysis::blockExitValues(SSACFG::BlockId const& _blockId) const
 {
 	LivenessData result;
-	util::GenericVisitor exitVisitor{
+	solidity::util::GenericVisitor exitVisitor{
 		[](SSACFG::BasicBlock::MainExit const&) {},
 		[&](SSACFG::BasicBlock::FunctionReturn const& _functionReturn)
 		{
-			for (auto const& valueId: _functionReturn.returnValues | ranges::views::filter(excludingLiteralsFilter()))
-				result.insert(valueId);
+			result.insertAll(_functionReturn.returnValues | ranges::views::filter(excludingLiteralsFilter()));
 		},
 		[](SSACFG::BasicBlock::Jump const&) {},
 		[&](SSACFG::BasicBlock::ConditionalJump const& _conditionalJump)
@@ -154,17 +47,6 @@ LivenessAnalysis::LivenessData LivenessAnalysis::blockExitValues(SSACFG::BlockId
 		[](SSACFG::BasicBlock::Terminated const&) {}};
 	std::visit(exitVisitor, m_cfg.block(_blockId).exit);
 	return result;
-}
-
-
-LivenessAnalysis::LivenessData::LiveCounts::iterator LivenessAnalysis::LivenessData::findEntry(Value const& _value)
-{
-	return ranges::find_if(m_liveCounts, [&](auto const& _entry) { return _entry.first == _value; });
-}
-
-LivenessAnalysis::LivenessData::LiveCounts::const_iterator LivenessAnalysis::LivenessData::findEntry(Value const& _value) const
-{
-	return ranges::find_if(m_liveCounts, [&](auto const& _entry) { return _entry.first == _value; });
 }
 
 LivenessAnalysis::LivenessAnalysis(SSACFG const& _cfg):
@@ -201,12 +83,12 @@ void LivenessAnalysis::runDagDfs()
 
 		// live <- PhiUses(B)
 		LivenessData live{};
-		for (auto const& upsilon: block.upsilons)
-		{
-			yulAssert(!upsilon.value.isUnreachable());
-			if (!upsilon.value.isLiteral())
-				live.insert(upsilon.value);
-		}
+		m_cfg.forEachUpsilon(block, [&](InstId, SSACFG::Inst const& inst) {
+			InstId const v = inst.inputs.at(0);
+			yulAssert(!m_cfg.isUnreachable(v));
+			if (!m_cfg.isLiteral(v))
+				live.insert(v);
+		});
 
 		// for each S \in succs(B) s.t. (B, S) not a back edge: live <- live \cup (LiveIn(S) - PhiDefs(S))
 		block.forEachExit(
@@ -215,18 +97,18 @@ void LivenessAnalysis::runDagDfs()
 				{
 					// LiveIn(S) - PhiDefs(S)
 					auto liveInWithoutPhiDefs = m_liveIns[_successor.value];
-					for (auto const& phiId: m_cfg.block(_successor).phis)
-						liveInWithoutPhiDefs.erase(phiId);
+					m_cfg.forEachPhi(m_cfg.block(_successor), [&](InstId const succInstId, SSACFG::Inst const&) {
+						liveInWithoutPhiDefs.erase(succInstId);
+					});
 					live.maxUnion(liveInWithoutPhiDefs);
 				}
 			});
 
 		if (std::holds_alternative<SSACFG::BasicBlock::FunctionReturn>(block.exit))
-			for (auto const& returnValue: std::get<SSACFG::BasicBlock::FunctionReturn>(block.exit).returnValues | ranges::views::filter(excludingLiteralsFilter()))
-				live.insert(returnValue);
+			live.insertAll(std::get<SSACFG::BasicBlock::FunctionReturn>(block.exit).returnValues | ranges::views::filter(excludingLiteralsFilter()));
 
 		// clean out unreachables
-		live.eraseIf([&](auto const& _entry) { return _entry.first.isUnreachable(); });
+		live.eraseIf([&](auto const& _entry) { return m_cfg.isUnreachable(_entry.first); });
 
 		// LiveOut(B) <- live
 		m_liveOuts[blockId.value] = live;
@@ -236,19 +118,22 @@ void LivenessAnalysis::runDagDfs()
 			// add value ids to the live set that are used in exit blocks
 			live += blockExitValues(blockId);
 
-			for (auto const opId: block.operations | ranges::views::reverse)
+			for (InstId const instId: block.instructions | ranges::views::reverse)
 			{
-				auto const& op = m_cfg.operation(opId);
+				auto const& inst = m_cfg.inst(instId);
+				if (!inst.isOperation())
+					continue;
 				// remove variables defined at p from live
-				live.eraseAll(op.outputs | ranges::views::filter(excludingLiteralsFilter()) | ranges::to<std::vector>);
-				// add uses at p to live
-				live.insertAll(op.inputs | ranges::views::filter(excludingLiteralsFilter()) | ranges::to<std::vector>);
+				live.eraseAll(m_cfg.projectionsOf(instId));
+				live.erase(instId);
+				live.insertAll(inst.inputs | ranges::views::filter(excludingLiteralsFilter()));
 			}
 		}
 
 		// livein(b) <- live \cup PhiDefs(B)
-		for (auto const& phi: block.phis)
-			live.insert(phi);
+		m_cfg.forEachPhi(block, [&](InstId const instId, SSACFG::Inst const&) {
+			live.insert(instId);
+		});
 		m_liveIns[blockId.value] = live;
 	}
 }
@@ -262,43 +147,49 @@ void LivenessAnalysis::runLoopTreeDfs(SSACFG::BlockId::ValueType const _loopHead
 		auto const& block = m_cfg.block(SSACFG::BlockId{_loopHeader});
 		// LiveLoop <- LiveIn(B_N) - PhiDefs(B_N)
 		auto liveLoop = m_liveIns[_loopHeader];
-		for (auto const& phi: block.phis)
-			liveLoop.erase(phi);
+		m_cfg.forEachPhi(block, [&](InstId const instId, SSACFG::Inst const&) {
+			liveLoop.erase(instId);
+		});
 		// must be live out of header if live in of children
 		m_liveOuts[_loopHeader].maxUnion(liveLoop);
 		// for each blockId \in children(loopHeader)
-		for (SSACFG::BlockId::ValueType blockIdValue = 0u; blockIdValue < m_cfg.numBlocks(); ++blockIdValue)
-			if (m_loopNestingForest.loopParents()[blockIdValue] == _loopHeader)
+		for (SSACFG::BlockId const blockId: m_cfg.liveBlocks())
+			if (m_loopNestingForest.loopParents()[blockId.value] == _loopHeader)
 			{
 				// propagate loop liveness information down to the loop header's children
-				m_liveIns[blockIdValue].maxUnion(liveLoop);
-				m_liveOuts[blockIdValue].maxUnion(liveLoop);
+				m_liveIns[blockId.value].maxUnion(liveLoop);
+				m_liveOuts[blockId.value].maxUnion(liveLoop);
 
-				runLoopTreeDfs(blockIdValue);
+				runLoopTreeDfs(blockId.value);
 			}
 	}
 }
 
 void LivenessAnalysis::fillOperationsLiveOut()
 {
-	for (SSACFG::BlockId blockId{0}; blockId.value < m_cfg.numBlocks(); ++blockId.value)
+	for (SSACFG::BlockId const blockId: m_cfg.liveBlocks())
 	{
-		auto const& operations = m_cfg.block(blockId).operations;
+		auto const& block = m_cfg.block(blockId);
+		auto const opCount = static_cast<std::size_t>(ranges::count_if(
+			block.instructions,
+			[&](InstId const _id) { return m_cfg.isOperation(_id); }
+		));
 		auto& liveOuts = m_operationLiveOuts[blockId.value];
-		liveOuts.resize(operations.size());
-		if (!operations.empty())
+		liveOuts.resize(opCount);
+		if (opCount > 0)
 		{
 			auto live = m_liveOuts[blockId.value];
 			live += blockExitValues(blockId);
 			auto rit = liveOuts.rbegin();
-			for (auto const opId: operations | ranges::views::reverse)
+			for (InstId const instId: block.instructions | ranges::views::reverse)
 			{
-				auto const& op = m_cfg.operation(opId);
+				auto const& inst = m_cfg.inst(instId);
+				if (!inst.isOperation())
+					continue;
 				*rit = live;
-				for (auto const& output: op.outputs | ranges::views::filter(excludingLiteralsFilter()))
-					live.erase(output);
-				for (auto const& input: op.inputs | ranges::views::filter(excludingLiteralsFilter()))
-					live.insert(input);
+				live.eraseAll(m_cfg.projectionsOf(instId));
+				live.erase(instId);
+				live.insertAll(inst.inputs | ranges::views::filter(excludingLiteralsFilter()));
 				++rit;
 			}
 		}

@@ -149,7 +149,38 @@ static Token keywordByName(std::string_view const _name)
 
 bool isYulKeyword(std::string_view const _literal)
 {
-	return _literal == "leave" || isYulKeyword(keywordByName(_literal));
+	return isYulKeyword(keywordByName(_literal));
+}
+
+bool isFutureSolidityKeyword(std::string_view const _literal)
+{
+	return
+		_literal == "transient" ||
+		_literal == "layout" ||
+		_literal == "at" ||
+		_literal == "error" ||
+		_literal == "super" ||
+		_literal == "this" ||
+		isFutureYulKeyword(_literal);
+}
+
+bool isFutureYulKeyword(std::string_view const _literal)
+{
+	return _literal == "leave";
+}
+
+bool isFutureYulReservedIdentifier(std::string_view const _literal)
+{
+	return
+		_literal == "basefee" ||
+		_literal == "blobbasefee" ||
+		_literal == "blobhash" ||
+		_literal == "clz" ||
+		_literal == "mcopy" ||
+		_literal == "memoryguard" ||
+		_literal == "prevrandao" ||
+		_literal == "tload" ||
+		_literal == "tstore";
 }
 
 std::tuple<Token, unsigned int, unsigned int> fromIdentifierOrKeyword(std::string const& _literal)

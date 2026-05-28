@@ -20,7 +20,8 @@
       "*": {
         "*": [
           "evm.bytecode.ethdebug",
-          "evm.deployedBytecode.ethdebug"
+          "evm.deployedBytecode.ethdebug",
+          "ethdebug.resources"
         ]
       }
     }

@@ -285,7 +285,7 @@ void DocStringTagParser::handleCallable(
 	StructurallyDocumentedAnnotation& _annotation
 )
 {
-	static std::set<std::string> const validEventTags = std::set<std::string>{"dev", "notice", "return", "param"};
+	static std::set<std::string> const validEventTags = std::set<std::string>{"dev", "notice", "param"};
 	static std::set<std::string> const validErrorTags = std::set<std::string>{"dev", "notice", "param"};
 	static std::set<std::string> const validModifierTags = std::set<std::string>{"dev", "notice", "param", "inheritdoc"};
 	static std::set<std::string> const validTags = std::set<std::string>{"dev", "notice", "return", "param", "inheritdoc"};

@@ -32,4 +32,7 @@ Json program(std::string_view _name, unsigned _sourceID, Assembly const& _assemb
 // returns ethdebug/format/info/resources
 Json resources(std::vector<std::string> const& _sources, std::string const& _version);
 
+// returns the 'compilation' object from ethdebug/format/info/resources
+Json compilation(std::string_view _version);
+
 } // namespace solidity::evmasm::ethdebug

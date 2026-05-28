@@ -1,0 +1,1 @@
+--revert-strings strip --debug-info none --asm --optimize

@@ -74,6 +74,7 @@ public:
 	Json ethdebug(std::string const& _contractName) const override;
 	Json ethdebugRuntime(std::string const& _contractName) const override;
 	Json ethdebug() const override;
+	Json ethdebugCompilation() const override;
 
 	Json assemblyJSON() const;
 	Json assemblyJSON(std::string const& _contractName) const override;

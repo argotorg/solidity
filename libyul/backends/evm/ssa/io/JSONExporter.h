@@ -18,12 +18,12 @@
 
 #pragma once
 
-#include <libyul/backends/evm/ssa/ControlFlow.h>
+#include <libyul/backends/evm/ssa/ControlFlowGraphs.h>
 #include <libsolutil/JSON.h>
 
 namespace solidity::yul::ssa::io::json
 {
 
-Json exportControlFlow(ControlFlow const& _controlFlow, ControlFlowLiveness const* _liveness);
+Json exportControlFlow(ControlFlowGraphs const& _controlFlow, ControlFlowGraphsLiveness const* _liveness);
 
 }

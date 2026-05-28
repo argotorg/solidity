@@ -537,28 +537,38 @@ bool DeclarationRegistrationHelper::registerDeclaration(
 
 	static std::set<std::string> illegalNames{"_", "super", "this"};
 
-	if (illegalNames.count(name))
+	auto isPublicFunctionOrEvent = [](Declaration const* _d) -> bool
 	{
-		auto isPublicFunctionOrEvent = [](Declaration const* _d) -> bool
+		if (auto functionDefinition = dynamic_cast<FunctionDefinition const*>(_d))
 		{
-			if (auto functionDefinition = dynamic_cast<FunctionDefinition const*>(_d))
-			{
-				if (!functionDefinition->isFree() && functionDefinition->isPublic())
-					return true;
-			}
-			else if (dynamic_cast<EventDefinition const*>(_d))
+			if (!functionDefinition->isFree() && functionDefinition->isPublic())
 				return true;
+		}
+		else if (dynamic_cast<EventDefinition const*>(_d))
+			return true;
 
-			return false;
-		};
-
+		return false;
+	};
+	if (illegalNames.count(name) && !isPublicFunctionOrEvent(&_declaration))
+	{
 		// We allow an exception for public functions or events.
-		if (!isPublicFunctionOrEvent(&_declaration))
-			_errorReporter.declarationError(
-				3726_error,
-				*_errorLocation,
-				"The name \"" + name + "\" is reserved."
-			);
+		_errorReporter.declarationError(
+			3726_error,
+			*_errorLocation,
+			"The name \"" + name + "\" is reserved."
+		);
+	}
+	else if (TokenTraits::isFutureSolidityKeyword(name))
+	{
+		_errorReporter.warning(
+			6335_error,
+			*_errorLocation,
+			fmt::format(
+				"\"{}\" will be promoted to keyword in the future"
+				" and will not be allowed as an identifier anymore.",
+				name
+			)
+		);
 	}
 
 	if (!_container.registerDeclaration(_declaration, _name, _errorLocation, !_declaration.isVisibleInContract() || _inactive, false))

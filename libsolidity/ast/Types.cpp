@@ -403,9 +403,7 @@ std::set<FunctionDefinition const*, ASTNode::CompareByID> Type::operatorDefiniti
 			auto const& functionDefinition = dynamic_cast<FunctionDefinition const&>(
 				*identifierPath->annotation().referencedDeclaration
 			);
-			auto const* functionType = dynamic_cast<FunctionType const*>(
-				functionDefinition.libraryFunction() ? functionDefinition.typeViaContractName() : functionDefinition.type()
-			);
+			auto const* functionType = dynamic_cast<FunctionType const*>(functionDefinition.typeWhenAttached());
 			solAssert(functionType && !functionType->parameterTypes().empty());
 
 			size_t parameterCount = functionDefinition.parameterList().parameters().size();
@@ -425,8 +423,7 @@ MemberList::MemberMap Type::attachedFunctions(Type const& _type, ASTNode const& 
 	{
 		if (!_name)
 			_name = _function.name();
-		Type const* functionType =
-			_function.libraryFunction() ? _function.typeViaContractName() : _function.type();
+		Type const* functionType = _function.typeWhenAttached();
 		solAssert(functionType, "");
 		FunctionType const* withBoundFirstArgument =
 			dynamic_cast<FunctionType const&>(*functionType).withBoundFirstArgument();
@@ -3978,21 +3975,38 @@ MemberList::MemberMap TypeType::nativeMembers(ASTNode const* _currentScope) cons
 				if (declaration->name().empty())
 					continue;
 
-				if (!contract.isLibrary() && inDerivingScope && declaration->isVisibleInDerivedContracts())
+				if (!contract.isLibrary())
 				{
-					if (
-						auto const* functionDefinition = dynamic_cast<FunctionDefinition const*>(declaration);
-						functionDefinition && !functionDefinition->isImplemented()
-					)
-						members.emplace_back(declaration, declaration->typeViaContractName());
-					else
-						members.emplace_back(declaration, declaration->type());
+					if (inDerivingScope)
+					{
+						if (declaration->isVisibleViaContractName(Declaration::ContractNameAccessKind::Local))
+						{
+							members.emplace_back(
+								declaration,
+								declaration->typeViaContractName(Declaration::ContractNameAccessKind::Local));
+						}
+					}
+					else // !inDerivingScope
+					{
+						if (declaration->isVisibleViaContractName(Declaration::ContractNameAccessKind::Foreign))
+						{
+							members.emplace_back(
+								declaration,
+								declaration->typeViaContractName(Declaration::ContractNameAccessKind::Foreign)
+							);
+						}
+					}
 				}
-				else if (
-					(contract.isLibrary() && declaration->isVisibleAsLibraryMember()) ||
-					declaration->isVisibleViaContractTypeAccess()
-				)
-					members.emplace_back(declaration, declaration->typeViaContractName());
+				else // isLibrary
+				{
+					if (declaration->isVisibleViaContractName(Declaration::ContractNameAccessKind::Library))
+					{
+						members.emplace_back(
+							declaration,
+							declaration->typeViaContractName(Declaration::ContractNameAccessKind::Library)
+						);
+					}
+				}
 			}
 		}
 	}

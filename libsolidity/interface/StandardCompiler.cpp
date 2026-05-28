@@ -244,6 +244,18 @@ bool isArtifactRequested(Json const& _outputSelection, std::string const& _file,
 	return false;
 }
 
+/// @returns boolean indicating whether @_artifacts is contained in @_outputSelection. Helper function.
+template<ranges::range Range>
+bool areArtifactsRequested(Json const& _outputSelection, Range&& _artifacts)
+{
+	for (auto const& fileRequests: _outputSelection)
+		for (auto const& requests: fileRequests)
+			for (auto const& request: requests)
+				if (ranges::contains(_artifacts, request.get<std::string>()))
+					return true;
+	return false;
+}
+
 /// @returns all artifact names of the EVM object, either for creation or deploy time.
 std::vector<std::string> evmObjectComponents(std::string const& _objectKind)
 {
@@ -264,7 +276,7 @@ bool isBinaryRequested(Json const& _outputSelection)
 	static std::vector<std::string> const outputsThatRequireBinaries = std::vector<std::string>{
 		"*",
 		"ir", "irAst", "irOptimized", "irOptimizedAst", "yulCFGJson",
-		"evm.gasEstimates", "evm.legacyAssembly", "evm.assembly", "ethdebug"
+		"evm.gasEstimates", "evm.legacyAssembly", "evm.assembly"
 	} + evmObjectComponents("bytecode") + evmObjectComponents("deployedBytecode");
 
 	for (auto const& fileRequests: _outputSelection)
@@ -294,37 +306,60 @@ bool isEvmBytecodeRequested(Json const& _outputSelection)
 	return false;
 }
 
-/// @returns true if ethdebug was requested.
-bool isEthdebugRequested(Json const& _outputSelection)
+/// @returns true if any per-contract ethdebug program output was requested.
+bool isEthdebugProgramRequested(Json const& _outputSelection)
 {
 	if (!_outputSelection.is_object())
 		return false;
 
-	static std::array<std::string, 2> const ethdebugArtifacts{"evm.bytecode.ethdebug", "evm.deployedBytecode.ethdebug"};
+	static std::array constexpr ethdebugArtifacts{"evm.bytecode.ethdebug", "evm.deployedBytecode.ethdebug"};
 
-	for (auto const& fileRequests: _outputSelection)
-		for (auto const& requests: fileRequests)
-			for (auto const& request: requests)
-				if (ranges::contains(ethdebugArtifacts, request.get<std::string>()))
-					return true;
+	return areArtifactsRequested(_outputSelection, ethdebugArtifacts);
+}
+
+/// @returns true if any ethdebug output (global or per-contract) was requested.
+bool isAnyEthdebugRequested(Json const& _outputSelection)
+{
+	if (!_outputSelection.is_object())
+		return false;
+
+	static std::array constexpr ethdebugArtifacts{
+		"evm.bytecode.ethdebug", "evm.deployedBytecode.ethdebug",
+		"ethdebug.resources", "ethdebug.compilation"
+	};
+
+	return areArtifactsRequested(_outputSelection, ethdebugArtifacts);
+}
+
+/// @returns true if the given global ethdebug output was requested via */*.
+bool isEthdebugGlobalOutputRequested(Json const& _outputSelection, std::string const& _artifact)
+{
+	if (!_outputSelection.is_object())
+		return false;
+
+	static std::array constexpr globalEthdebugArtifacts{"ethdebug.resources", "ethdebug.compilation"};
+	if (!ranges::contains(globalEthdebugArtifacts, _artifact))
+		return false;
+
+	for (auto const& [file, contracts]: _outputSelection.items())
+		if (file == "*" && contracts.is_object())
+			for (auto const& [contract, requests]: contracts.items())
+				if (contract == "*" && requests.is_array())
+					for (auto const& request: requests)
+						if (request.get<std::string>() == _artifact)
+							return true;
 
 	return false;
 }
 
 bool isExperimentalArtifactRequested(Json const& _outputSelection)
 {
-	static std::array<std::string, 3> const experimentalArtifacts{"irAst", "irOptimizedAst", "yulCFGJson"};
+	static std::array constexpr experimentalArtifacts{"irAst", "irOptimizedAst", "yulCFGJson"};
 
-	if (isEthdebugRequested(_outputSelection))
+	if (isAnyEthdebugRequested(_outputSelection))
 		return true;
 
-	for (auto const& fileRequests: _outputSelection)
-		for (auto const& requests: fileRequests)
-			for (auto const& request: requests)
-				if (ranges::contains(experimentalArtifacts, request.get<std::string>()))
-					return true;
-
-	return false;
+	return areArtifactsRequested(_outputSelection, experimentalArtifacts);
 }
 
 /// @returns The set of selected contracts, along with their compiler pipeline configuration, based
@@ -1228,13 +1263,13 @@ std::variant<StandardCompiler::InputsAndSettings, Json> StandardCompiler::parseI
 		ret.modelCheckerSettings.timeout = modelCheckerSettings["timeout"].get<Json::number_unsigned_t>();
 	}
 
-	if ((ret.debugInfoSelection.has_value() && ret.debugInfoSelection->ethdebug) || isEthdebugRequested(ret.outputSelection))
+	if ((ret.debugInfoSelection.has_value() && ret.debugInfoSelection->ethdebug) || isAnyEthdebugRequested(ret.outputSelection))
 	{
 		if (ret.language != "Solidity" && ret.language != "Yul")
 			return formatFatalError(Error::Type::FatalError, "'settings.debug.debugInfo' 'ethdebug' is only supported for languages 'Solidity' and 'Yul'.");
 	}
 
-	if (isEthdebugRequested(ret.outputSelection))
+	if (isEthdebugProgramRequested(ret.outputSelection))
 	{
 		if (ret.language == "Solidity" && !ret.viaIR)
 			return formatFatalError(Error::Type::FatalError, "'evm.bytecode.ethdebug' or 'evm.deployedBytecode.ethdebug' can only be selected as output, if 'viaIR' was set.");
@@ -1255,11 +1290,9 @@ std::variant<StandardCompiler::InputsAndSettings, Json> StandardCompiler::parseI
 	{
 		if (!ret.experimental)
 			return formatFatalError(Error::Type::FatalError, "Ethdebug annotations are experimental and can only be included in 'settings.debug.debugInfo' by enabling the 'settings.experimental' option.");
-		if (!pipelineConfig(ret.outputSelection)[""][""].irCodegen && !isEthdebugRequested(ret.outputSelection))
-			return formatFatalError(Error::Type::FatalError, "'settings.debug.debugInfo' can only include 'ethdebug', if output 'ir', 'irOptimized', 'evm.bytecode.ethdebug', or 'evm.deployedBytecode.ethdebug' was selected.");
 	}
 
-	if (isEthdebugRequested(ret.outputSelection))
+	if (isEthdebugProgramRequested(ret.outputSelection))
 	{
 		if (ret.optimiserSettings.runYulOptimiser)
 			solUnimplemented("Optimization is not yet supported with ethdebug.");
@@ -1703,8 +1736,13 @@ Json StandardCompiler::compileSolidity(StandardCompiler::InputsAndSettings _inpu
 		}
 	}
 
-	if (isEthdebugRequested(_inputsAndSettings.outputSelection))
-		output["ethdebug"] = compilerStack.ethdebug();
+	if (analysisSuccess)
+	{
+		if (isEthdebugGlobalOutputRequested(_inputsAndSettings.outputSelection, "ethdebug.resources"))
+			output["ethdebug"]["resources"] = compilerStack.ethdebug();
+		if (isEthdebugGlobalOutputRequested(_inputsAndSettings.outputSelection, "ethdebug.compilation"))
+			output["ethdebug"]["compilation"] = compilerStack.ethdebugCompilation();
+	}
 
 	if (!contractsOutput.empty())
 		output["contracts"] = contractsOutput;
@@ -1867,10 +1905,15 @@ Json StandardCompiler::compileYul(InputsAndSettings _inputsAndSettings)
 		output["contracts"][sourceName][contractName]["yulCFGJson"] = stack.cfgJson();
 	}
 
-	if (isEthdebugRequested(_inputsAndSettings.outputSelection))
+	if (isEthdebugGlobalOutputRequested(_inputsAndSettings.outputSelection, "ethdebug.resources"))
 	{
 		solAssert(_inputsAndSettings.experimental, "");
-		output["ethdebug"] = evmasm::ethdebug::resources({sourceName}, VersionString);
+		output["ethdebug"]["resources"] = evmasm::ethdebug::resources({sourceName}, VersionString);
+	}
+	if (isEthdebugGlobalOutputRequested(_inputsAndSettings.outputSelection, "ethdebug.compilation"))
+	{
+		solAssert(_inputsAndSettings.experimental, "");
+		output["ethdebug"]["compilation"] = evmasm::ethdebug::compilation(VersionString);
 	}
 	return output;
 }

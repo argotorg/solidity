@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include <libyul/backends/evm/ssa/ControlFlow.h>
+#include <libyul/backends/evm/ssa/ControlFlowGraphs.h>
 #include <libyul/backends/evm/ssa/SSACFG.h>
 
 #include <range/v3/algorithm/find.hpp>
@@ -27,46 +27,41 @@
 #include <cstdint>
 #include <type_traits>
 
-namespace solidity::yul
-{
-
-struct FunctionCall;
-
-namespace ssa
+namespace solidity::yul::ssa
 {
 
 /// Registry for tracking function call sites.
 ///
-/// Maps FunctionCall AST nodes to unique numeric IDs. These IDs are used
+/// Maps user-function-call operations to unique numeric IDs. These IDs are used
 /// to generate return labels for function calls in the EVM bytecode.
 class CallSites
 {
 public:
 	using CallSiteID = std::uint32_t;
 
-	std::optional<CallSiteID> callSiteID(FunctionCall const* _functionCall) const
+	std::optional<CallSiteID> callSiteID(InstId _instId) const
 	{
-		if (auto const it = ranges::find(m_data, _functionCall); it != m_data.end())
+		if (auto const it = ranges::find(m_data, _instId); it != m_data.end())
 			return static_cast<CallSiteID>(std::distance(m_data.begin(), it));
 		return std::nullopt;
 	}
 
-	FunctionCall const& functionCall(CallSiteID _callSite) const
+	InstId instId(CallSiteID _callSite) const
 	{
 		yulAssert(_callSite < m_data.size());
-		return *m_data[_callSite];
+		return m_data[_callSite];
 	}
 
-	CallSiteID addCallSite(FunctionCall const* _functionCall)
+	CallSiteID addCallSite(InstId _instId)
 	{
-		if (auto const id = callSiteID(_functionCall))
+		if (auto const id = callSiteID(_instId))
 			return *id;
-		yulAssert(_functionCall);
-		m_data.emplace_back(_functionCall);
+		yulAssert(_instId.hasValue());
+		m_data.emplace_back(_instId);
 		return static_cast<CallSiteID>(m_data.size() - 1);
 	}
 private:
-	std::vector<FunctionCall const*> m_data;
+	std::vector<InstId> m_data;
 };
 
 /// A discriminated union corresponding to a single EVM stack slot.
@@ -82,10 +77,10 @@ class StackSlot
 public:
 	enum struct Kind: std::uint8_t
 	{
-		ValueID, // u32
+		Value, // u32 InstId
 		Junk, // empty
 		FunctionCallReturnLabel, // index into corresponding stack layout's call sites
-		FunctionReturnLabel // identifying the function graph via ControlFlow
+		FunctionReturnLabel // identifying the function graph via ControlFlowGraphs
 	};
 
 	constexpr StackSlot() = default;
@@ -94,34 +89,47 @@ public:
 	constexpr StackSlot& operator=(StackSlot const&) = default;
 	constexpr StackSlot& operator=(StackSlot&&) = default;
 
-	constexpr bool isValueID() const noexcept { return kind() == Kind::ValueID; }
-	constexpr bool isLiteralValueID() const noexcept { return m_valueIdKind == SSACFG::ValueId::Kind::Literal; }
+	constexpr bool isValue() const noexcept { return kind() == Kind::Value; }
+	constexpr bool isLiteralValue() const noexcept { return m_valueOpcode == InstOpcode::Const; }
+	constexpr bool isPhiValue() const noexcept { return m_valueOpcode == InstOpcode::Phi; }
 	constexpr bool isFunctionReturnLabel() const noexcept { return kind() == Kind::FunctionReturnLabel; }
 	constexpr bool isFunctionCallReturnLabel() const noexcept { return kind() == Kind::FunctionCallReturnLabel; }
 	constexpr bool isJunk() const noexcept { return kind() == Kind::Junk; }
 	constexpr Kind kind() const noexcept { return m_kind; }
 
-	ControlFlow::FunctionGraphID functionReturnLabel() const { yulAssert(isFunctionReturnLabel()); return m_payload; }
+	ControlFlowGraphs::FunctionGraphID functionReturnLabel() const { yulAssert(isFunctionReturnLabel()); return m_payload; }
 	CallSites::CallSiteID functionCallReturnLabel() const { yulAssert(isFunctionCallReturnLabel()); return m_payload; }
-	SSACFG::ValueId valueID() const { yulAssert(isValueID()); return {m_payload, m_valueIdKind}; }
+	InstId value() const
+	{
+		yulAssert(isValue());
+		return InstId{m_payload};
+	}
 
 	static constexpr StackSlot makeJunk() { return {0, Kind::Junk}; }
-	static constexpr StackSlot makeValueID(SSACFG::ValueId const& _valueID) { return {_valueID.value(), Kind::ValueID, _valueID.kind()}; }
-	static constexpr StackSlot makeFunctionReturnLabel(ControlFlow::FunctionGraphID const _graphID) { return {_graphID, Kind::FunctionReturnLabel}; }
+	static StackSlot makeValue(SSACFG const& _cfg, InstId _value)
+	{
+		return {_value.value, Kind::Value, _cfg.kindOf(_value)};
+	}
+	static StackSlot makeValue(InstructionStore const& _store, InstId _value)
+	{
+		return {_value.value, Kind::Value, _store.kindOf(_value)};
+	}
+	static constexpr StackSlot makeFunctionReturnLabel(ControlFlowGraphs::FunctionGraphID const _graphID) { return {_graphID, Kind::FunctionReturnLabel}; }
 	static constexpr StackSlot makeFunctionCallReturnLabel(CallSites::CallSiteID const _callSiteID) { return {_callSiteID, Kind::FunctionCallReturnLabel};	}
 
 	auto operator<=>(StackSlot const&) const = default;
 private:
-	constexpr StackSlot(std::uint32_t const _payload, Kind const _kind, SSACFG::ValueId::Kind const _valueIdKind = SSACFG::ValueId::Kind::Unreachable):
+	constexpr StackSlot(std::uint32_t const _payload, Kind const _kind, InstOpcode const _valueOpcode = InstOpcode::Unreachable):
 		m_payload(_payload),
 		m_kind(_kind),
-		m_valueIdKind(_valueIdKind)
+		m_valueOpcode(_valueOpcode)
 	{}
 
 	/// interpretation depends on kind
 	std::uint32_t m_payload;
 	Kind m_kind;
-	SSACFG::ValueId::Kind m_valueIdKind;
+	/// for Kind::Value: cached Opcode of the defining Inst
+	InstOpcode m_valueOpcode;
 };
 static_assert(sizeof(StackSlot) == 8, "Want cache efficiency, benchmark this if you go beyond 8 bytes");
 static_assert(std::is_trivially_copyable_v<StackSlot>, "Should be able to use memcpy semantics");
@@ -252,6 +260,7 @@ public:
 	bool dupReachable(Depth const& _depth) const noexcept { return _depth < size() && _depth.value + 1 <= reachableStackDepth; }
 	bool isValidSwapTarget(Offset const& _offset) const noexcept { return isValidSwapTarget(offsetToDepth(_offset)); }
 	bool isValidSwapTarget(Depth const& _depth) const noexcept { return _depth < size() && 1 <= _depth.value && _depth.value <= reachableStackDepth; }
+	bool isBeyondSwapRange(Offset const& _offset) const noexcept { return isBeyondSwapRange(offsetToDepth(_offset)); }
 	bool isBeyondSwapRange(Depth const& _depth) const noexcept { return _depth > reachableStackDepth; }
 
 	void declareJunk(Offset const& _offset) { (*m_data)[_offset.value] = Slot::makeJunk(); }
@@ -275,7 +284,7 @@ public:
 
 	static bool constexpr canBeFreelyGenerated(Slot const& _slot)
 	{
-		return _slot.isLiteralValueID() || _slot.isJunk() || _slot.isFunctionCallReturnLabel();
+		return _slot.isLiteralValue() || _slot.isJunk() || _slot.isFunctionCallReturnLabel();
 	}
 
 	Slot const& operator[](Offset const& _index) const noexcept { return (*m_data)[_index.value]; }
@@ -307,5 +316,4 @@ private:
 	Callbacks m_callbacks;
 };
 
-}
 }

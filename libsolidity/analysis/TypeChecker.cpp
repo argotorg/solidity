@@ -36,10 +36,6 @@
 #include <libsolutil/Algorithms.h>
 #include <libsolutil/StringUtils.h>
 #include <libsolutil/Views.h>
-#include <libsolutil/Visitor.h>
-
-#include <boost/algorithm/string/join.hpp>
-#include <boost/algorithm/string/predicate.hpp>
 
 #include <fmt/format.h>
 
@@ -3092,354 +3088,479 @@ void TypeChecker::endVisit(NewExpression const& _newExpression)
 	}
 }
 
-bool TypeChecker::visit(MemberAccess const& _memberAccess)
+MemberList::Member TypeChecker::resolveOverloads(MemberAccess const& _memberAccess) const
 {
-	_memberAccess.expression().accept(*this);
-	Type const* exprType = type(_memberAccess.expression());
+	Type const* owningObjectType = type(_memberAccess.expression());
 	ASTString const& memberName = _memberAccess.memberName();
 
-	auto& annotation = _memberAccess.annotation();
-
 	// Retrieve the types of the arguments if this is used to call a function.
-	auto const& arguments = annotation.arguments;
-	MemberList::MemberMap possibleMembers = exprType->members(currentDefinitionScope()).membersByName(memberName);
-	size_t const initialMemberCount = possibleMembers.size();
-	if (initialMemberCount > 1 && arguments)
+	auto const& arguments = _memberAccess.annotation().arguments;
+	MemberList::MemberMap possibleMembers = owningObjectType->members(currentDefinitionScope()).membersByName(memberName);
+	size_t const possibleMemberCountBeforeOverloading = possibleMembers.size();
+	if (possibleMemberCountBeforeOverloading >= 2 && arguments)
 	{
 		// do overload resolution
 		for (auto it = possibleMembers.begin(); it != possibleMembers.end();)
+		{
 			if (
 				it->type->category() == Type::Category::Function &&
-				!dynamic_cast<FunctionType const&>(*it->type).canTakeArguments(*arguments, exprType)
+				!dynamic_cast<FunctionType const&>(*it->type).canTakeArguments(*arguments, owningObjectType)
 			)
 				it = possibleMembers.erase(it);
 			else
 				++it;
+		}
 	}
-
-	annotation.isConstant = false;
 
 	if (possibleMembers.empty())
 	{
-		if (initialMemberCount == 0 && !dynamic_cast<ArraySliceType const*>(exprType))
-		{
-			// Try to see if the member was removed because it is only available for storage types.
-			auto storageType = TypeProvider::withLocationIfReference(
-				DataLocation::Storage,
-				exprType
-			);
-			if (!storageType->members(currentDefinitionScope()).membersByName(memberName).empty())
-				m_errorReporter.fatalTypeError(
-					4994_error,
-					_memberAccess.location(),
-					"Member \"" + memberName + "\" is not available in " +
-					exprType->humanReadableName() +
-					" outside of storage."
-				);
-		}
-
-		auto [errorId, description] = [&]() -> std::tuple<ErrorId, std::string> {
-			std::string errorMsg = "Member \"" + memberName + "\" not found or not visible "
-				"after argument-dependent lookup in " + exprType->humanReadableName() + ".";
-
-			if (auto const* funType = dynamic_cast<FunctionType const*>(exprType))
-			{
-				TypePointers const& t = funType->returnParameterTypes();
-
-				if (memberName == "value")
-				{
-					if (funType->kind() == FunctionType::Kind::Creation)
-						return {
-							8827_error,
-							"Constructor for " + t.front()->humanReadableName() + " must be payable for member \"value\" to be available."
-						};
-					else if (
-						funType->kind() == FunctionType::Kind::DelegateCall ||
-						funType->kind() == FunctionType::Kind::BareDelegateCall
-					)
-						return { 8477_error, "Member \"value\" is not allowed in delegated calls due to \"msg.value\" persisting." };
-					else
-						return { 8820_error, "Member \"value\" is only available for payable functions." };
-				}
-				else if (
-					t.size() == 1 && (
-						t.front()->category() == Type::Category::Struct ||
-						t.front()->category() == Type::Category::Contract
-					)
-				)
-					return { 6005_error, errorMsg + " Did you intend to call the function?" };
-			}
-			else if (exprType->category() == Type::Category::Contract)
-			{
-				for (MemberList::Member const& addressMember: TypeProvider::payableAddress()->nativeMembers(nullptr))
-					if (addressMember.name == memberName)
-					{
-						auto const* var = dynamic_cast<Identifier const*>(&_memberAccess.expression());
-						std::string varName = var ? var->name() : "...";
-						errorMsg += " Use \"address(" + varName + ")." + memberName + "\" to access this address member.";
-						return { 3125_error, errorMsg };
-					}
-			}
-			else if (auto const* addressType = dynamic_cast<AddressType const*>(exprType))
-			{
-				// Trigger error when using send or transfer with a non-payable fallback function.
-				if (memberName == "send" || memberName == "transfer")
-				{
-					solAssert(
-						addressType->stateMutability() != StateMutability::Payable,
-						"Expected address not-payable as members were not found"
-					);
-
-					return { 9862_error, "\"send\" and \"transfer\" are only available for objects of type \"address payable\", not \"" + exprType->humanReadableName() + "\"." };
-				}
-			}
-
-			return { 9582_error, errorMsg };
-		}();
-
-		m_errorReporter.fatalTypeError(
-			errorId,
-			_memberAccess.location(),
-			description
-		);
+		auto [errorID, errorMsg] = diagnoseUnresolvedMemberAccess(_memberAccess, possibleMemberCountBeforeOverloading);
+		m_errorReporter.fatalTypeError(errorID, _memberAccess.location(), errorMsg);
 	}
-	else if (possibleMembers.size() > 1)
+	else if (possibleMembers.size() >= 2)
 		m_errorReporter.fatalTypeError(
 			6675_error,
 			_memberAccess.location(),
-			"Member \"" + memberName + "\" not unique "
-			"after argument-dependent lookup in " + exprType->humanReadableName() +
-			(memberName == "value" ? " - did you forget the \"payable\" modifier?" : ".")
+			fmt::format(
+				R"(Member "{}" not unique after argument-dependent lookup in {}{})",
+				memberName,
+				owningObjectType->humanReadableName(),
+				memberName == "value" ? R"( - did you forget the "payable" modifier?)" : "."
+			)
 		);
 
-	annotation.referencedDeclaration = possibleMembers.front().declaration;
-	annotation.type = possibleMembers.front().type;
+	return possibleMembers.front();
+}
 
+std::pair<ErrorId, std::string> TypeChecker::diagnoseUnresolvedMemberAccess(
+	MemberAccess const& _memberAccess,
+	size_t const _possibleMemberCountBeforeOverloading
+) const
+{
+	Type const* owningObjectType = type(_memberAccess.expression());
+	ASTString const& memberName = _memberAccess.memberName();
+
+	if (_possibleMemberCountBeforeOverloading == 0 && !dynamic_cast<ArraySliceType const*>(owningObjectType))
+	{
+		// Try to see if the member was removed because it is only available for storage types.
+		auto storageType = TypeProvider::withLocationIfReference(
+			DataLocation::Storage,
+			owningObjectType
+		);
+		if (!storageType->members(currentDefinitionScope()).membersByName(memberName).empty())
+			return {
+				4994_error,
+				fmt::format(
+					R"(Member "{}" is not available in {} outside of storage.)",
+					memberName,
+					owningObjectType->humanReadableName()
+				)
+			};
+	}
+
+	std::string errorMsg = fmt::format(
+		R"(Member "{}" not found or not visible after argument-dependent lookup in {}.)",
+		memberName,
+		owningObjectType->humanReadableName()
+	);
+
+	if (auto const* funType = dynamic_cast<FunctionType const*>(owningObjectType))
+	{
+		TypePointers const& t = funType->returnParameterTypes();
+
+		if (memberName == "value")
+		{
+			if (funType->kind() == FunctionType::Kind::Creation)
+				return {
+					8827_error,
+					fmt::format(
+						R"(Constructor for {} must be payable for member "value" to be available.)",
+						t.front()->humanReadableName()
+					)
+				};
+			else if (
+				funType->kind() == FunctionType::Kind::DelegateCall ||
+				funType->kind() == FunctionType::Kind::BareDelegateCall
+			)
+				return {
+					8477_error,
+					R"(Member "value" is not allowed in delegated calls due to "msg.value" persisting.)"
+				};
+			else
+				return {8820_error, R"(Member "value" is only available for payable functions.)"};
+		}
+		else if (
+			t.size() == 1 && (
+				t.front()->category() == Type::Category::Struct ||
+				t.front()->category() == Type::Category::Contract
+			)
+		)
+			return {6005_error, errorMsg + " Did you intend to call the function?"};
+	}
+	else if (owningObjectType->category() == Type::Category::Contract)
+	{
+		for (MemberList::Member const& addressMember: TypeProvider::payableAddress()->nativeMembers(nullptr))
+			if (addressMember.name == memberName)
+			{
+				auto const* var = dynamic_cast<Identifier const*>(&_memberAccess.expression());
+				std::string varName = var ? var->name() : "...";
+				errorMsg += fmt::format(
+					R"( Use "address({}).{}" to access this address member.)",
+					varName,
+					memberName
+				);
+				return {3125_error, errorMsg};
+			}
+	}
+	else if (auto const* addressType = dynamic_cast<AddressType const*>(owningObjectType))
+	{
+		// Trigger error when using `send` or `transfer` with a non-payable fallback function.
+		if (memberName == "send" || memberName == "transfer")
+		{
+			solAssert(
+				addressType->stateMutability() != StateMutability::Payable,
+				"Expected address not-payable as members were not found"
+			);
+
+			return {
+				9862_error,
+				fmt::format(
+					R"("send" and "transfer" are only available for objects of type "address payable", not "{}".)",
+					owningObjectType->humanReadableName()
+				)
+			};
+		}
+	}
+
+	// If no detailed error were reported, issues a general unresolved member error.
+	return {9582_error, errorMsg};
+}
+
+void TypeChecker::checkAccessedMemberFunction(MemberAccess const& _memberAccess) const
+{
+	auto const* accessedMemberFunctionType = dynamic_cast<FunctionType const*>(type(_memberAccess));
+	solAssert(accessedMemberFunctionType, "Expected function type.");
+
+	Type const* owningObjectType = type(_memberAccess.expression());
+	solAssert(owningObjectType);
+
+	auto const& memberName = _memberAccess.memberName();
+
+	solAssert(
+		!accessedMemberFunctionType->hasBoundFirstArgument() ||
+		owningObjectType->isImplicitlyConvertibleTo(*accessedMemberFunctionType->selfType()),
+		fmt::format(
+			R"(Function "{}" cannot be called on an object of type {} (expected {}).)",
+			memberName,
+			owningObjectType->humanReadableName(),
+			accessedMemberFunctionType->selfType()->humanReadableName()
+		)
+	);
+
+	if (
+		dynamic_cast<FunctionType const*>(owningObjectType) &&
+		_memberAccess.annotation().referencedDeclaration == nullptr && // It's not defined
+		(memberName == "value" || memberName == "gas")
+	)
+		m_errorReporter.typeError(
+			1621_error,
+			_memberAccess.location(),
+			fmt::format(
+				R"abc(Using ".{}(...)" is deprecated. Use "{{{}: ...}}" instead.)abc",
+				memberName,
+				memberName
+			)
+		);
+
+	if (
+		accessedMemberFunctionType->kind() == FunctionType::Kind::ArrayPush &&
+		_memberAccess.annotation().arguments.value().numArguments() > 0 &&
+		owningObjectType->containsNestedMapping()
+	)
+		m_errorReporter.typeError(
+			8871_error,
+			_memberAccess.location(),
+			"Storage arrays with nested mappings do not support .push(<arg>)."
+		);
+
+	if (
+		accessedMemberFunctionType->kind() == FunctionType::Kind::Send ||
+		accessedMemberFunctionType->kind() == FunctionType::Kind::Transfer
+	)
+		m_errorReporter.warning(
+			9207_error,
+			_memberAccess.location(),
+			fmt::format(
+				R"('{}' is deprecated and scheduled for removal. Use 'call{{value: <amount>}}("")' instead.)",
+				accessedMemberFunctionType->kind() == FunctionType::Kind::Send ? "send" : "transfer"
+			)
+		);
+}
+
+bool TypeChecker::visit(MemberAccess const& _memberAccess)
+{
+	_memberAccess.expression().accept(*this);
+	Type const* owningObjectType = type(_memberAccess.expression());
+	ASTString const& memberName = _memberAccess.memberName();
+
+	// TODO: This should be probably deprecated.
+	_memberAccess.annotation().isConstant = false;
+	MemberList::Member const possibleMember = resolveOverloads(_memberAccess);
+
+	_memberAccess.annotation().referencedDeclaration = possibleMember.declaration;
+	_memberAccess.annotation().type = possibleMember.type;
+
+	// Lookup type required to find the function declaration.
 	VirtualLookup requiredLookup = VirtualLookup::Static;
 
-	if (auto funType = dynamic_cast<FunctionType const*>(annotation.type))
+	if (auto const* accessedMemberFunctionType = dynamic_cast<FunctionType const*>(type(_memberAccess)))
 	{
-		solAssert(
-			!funType->hasBoundFirstArgument() || exprType->isImplicitlyConvertibleTo(*funType->selfType()),
-			"Function \"" + memberName + "\" cannot be called on an object of type " +
-			exprType->humanReadableName() + " (expected " + funType->selfType()->humanReadableName() + ")."
-		);
-
-		if (
-			dynamic_cast<FunctionType const*>(exprType) &&
-			!annotation.referencedDeclaration &&
-			(memberName == "value" || memberName == "gas")
-		)
-			m_errorReporter.typeError(
-				1621_error,
-				_memberAccess.location(),
-				"Using \"." + memberName + "(...)\" is deprecated. Use \"{" + memberName + ": ...}\" instead."
-			);
-
-		if (
-			funType->kind() == FunctionType::Kind::ArrayPush &&
-			arguments.value().numArguments() != 0 &&
-			exprType->containsNestedMapping()
-		)
-			m_errorReporter.typeError(
-				8871_error,
-				_memberAccess.location(),
-				"Storage arrays with nested mappings do not support .push(<arg>)."
-			);
-
-		if (!funType->hasBoundFirstArgument())
-			if (auto typeType = dynamic_cast<TypeType const*>(exprType))
+		// Update required lookup
+		if (!accessedMemberFunctionType->hasBoundFirstArgument())
+			if (auto const* owningObjectTypeType = dynamic_cast<TypeType const*>(owningObjectType))
 			{
-				auto contractType = dynamic_cast<ContractType const*>(typeType->actualType());
-				if (contractType && contractType->isSuper())
+				auto const* owningObjectContractType = dynamic_cast<ContractType const*>(owningObjectTypeType->actualType());
+				if (owningObjectContractType && owningObjectContractType->isSuper())
 					requiredLookup = VirtualLookup::Super;
 			}
 
-		if (
-			funType->kind() == FunctionType::Kind::Send ||
-			funType->kind() == FunctionType::Kind::Transfer
-		)
-			m_errorReporter.warning(
-				9207_error,
-				_memberAccess.location(),
-				fmt::format(
-					"'{}' is deprecated and scheduled for removal. Use 'call{{value: <amount>}}(\"\")' instead.",
-					funType->kind() == FunctionType::Kind::Send ? "send" : "transfer"
-				)
-			);
+		checkAccessedMemberFunction(_memberAccess);
 	}
 
-	annotation.requiredLookup = requiredLookup;
+	_memberAccess.annotation().requiredLookup = requiredLookup;
 
-	if (auto const* structType = dynamic_cast<StructType const*>(exprType))
-		annotation.isLValue = !structType->dataStoredIn(DataLocation::CallData);
-	else if (exprType->category() == Type::Category::Array)
-		annotation.isLValue = false;
-	else if (exprType->category() == Type::Category::FixedBytes)
-		annotation.isLValue = false;
-	else if (TypeType const* typeType = dynamic_cast<decltype(typeType)>(exprType))
+	switch (owningObjectType->category())
 	{
-		if (ContractType const* contractType = dynamic_cast<decltype(contractType)>(typeType->actualType()))
+	case Type::Category::Struct:
+	{
+		auto const* owningObjectStructType = dynamic_cast<StructType const*>(owningObjectType);
+		solAssert(owningObjectStructType);
+		_memberAccess.annotation().isLValue = !owningObjectStructType->dataStoredIn(DataLocation::CallData);
+		break;
+	}
+	case Type::Category::Function:
+	{
+		auto const* owningObjectFunctionType = dynamic_cast<FunctionType const*>(owningObjectType);
+		solAssert(owningObjectFunctionType);
+
+		if (owningObjectFunctionType->hasDeclaration() && memberName == "selector")
 		{
-			annotation.isLValue = annotation.referencedDeclaration->isLValue();
-			if (
-				auto const* functionType = dynamic_cast<FunctionType const*>(annotation.type);
-				functionType &&
-				functionType->kind() == FunctionType::Kind::Declaration
-			)
-				annotation.isPure = *_memberAccess.expression().annotation().isPure;
-		}
-		else
-			annotation.isLValue = false;
-	}
-	else if (exprType->category() == Type::Category::Module)
-	{
-		annotation.isPure = *_memberAccess.expression().annotation().isPure;
-		annotation.isLValue = false;
-	}
-	else
-		annotation.isLValue = false;
-
-	// TODO some members might be pure, but for example `address(0x123).balance` is not pure
-	// although every subexpression is, so leaving this limited for now.
-	if (auto tt = dynamic_cast<TypeType const*>(exprType))
-	{
-		if (
-			tt->actualType()->category() == Type::Category::Enum ||
-			tt->actualType()->category() == Type::Category::UserDefinedValueType
-		)
-			annotation.isPure = true;
-
-		// `concat` purity depends also on its arguments, but this is checked later, in visit(FunctionCall...)
-		// This covers `bytes.concat` and `string.concat`.
-		if (tt->actualType()->category() == Type::Category::Array)
-		{
-			if (
-				auto const* funcType = dynamic_cast<FunctionType const*>(annotation.type);
-				funcType &&
-				(
-					funcType->kind() == FunctionType::Kind::StringConcat ||
-					funcType->kind() == FunctionType::Kind::BytesConcat
-				)
-			)
-				annotation.isPure = true;
-		}
-	}
-	if (
-		auto const* functionType = dynamic_cast<FunctionType const*>(exprType);
-		functionType &&
-		functionType->hasDeclaration() &&
-		memberName == "selector"
-	)
-	{
-		if (dynamic_cast<FunctionDefinition const*>(&functionType->declaration()))
-		{
-			if (auto const* parentAccess = dynamic_cast<MemberAccess const*>(&_memberAccess.expression()))
+			if (dynamic_cast<FunctionDefinition const*>(&owningObjectFunctionType->declaration()))
 			{
-				bool isPure = *parentAccess->expression().annotation().isPure;
-				// Accessing a function selector using `super|this.f.selector`.
-				if (auto const* exprInt = dynamic_cast<Identifier const*>(&parentAccess->expression()))
-					if (exprInt->name() == "this" || exprInt->name() == "super")
-						isPure = true;
+				if (auto const* parentMemberAccess = dynamic_cast<MemberAccess const*>(&_memberAccess.expression()))
+				{
+					bool isPure = *parentMemberAccess->expression().annotation().isPure;
+					// Accessing a function selector using `super|this.f.selector`.
+					if (auto const* exprInt = dynamic_cast<Identifier const*>(&parentMemberAccess->expression()))
+						if (exprInt->name() == "this" || exprInt->name() == "super")
+							isPure = true;
 
-				annotation.isPure = isPure;
+					_memberAccess.annotation().isPure = isPure;
+				}
 			}
-		}
-		// In case of event or error definition the selector is always compile-time constant, as it can be
-		// a keccak256 hash of the event signature or a function selector in case of an error.
-		else if (
-			dynamic_cast<EventDefinition const*>(&functionType->declaration()) ||
-			dynamic_cast<ErrorDefinition const*>(&functionType->declaration())
-		)
-			annotation.isPure = true;
-	}
-
-	if (
-		auto const* varDecl = dynamic_cast<VariableDeclaration const*>(annotation.referencedDeclaration);
-		!annotation.isPure.set() &&
-		varDecl &&
-		varDecl->isConstant()
-	)
-		annotation.isPure = true;
-
-	if (auto magicType = dynamic_cast<MagicType const*>(exprType))
-	{
-		if (magicType->kind() == MagicType::Kind::ABI)
-			annotation.isPure = true;
-		else if (magicType->kind() == MagicType::Kind::MetaType && (
-			memberName == "creationCode" || memberName == "runtimeCode"
-		))
-		{
-			annotation.isPure = true;
-			ContractType const& accessedContractType = dynamic_cast<ContractType const&>(*magicType->typeArgument());
-			solAssert(!accessedContractType.isSuper(), "");
-			if (
-				memberName == "runtimeCode" &&
-				!accessedContractType.immutableVariables().empty()
+			// In case of event or error definition, the selector is always compile-time constant, as it can be
+			// a keccak256 hash of the event signature or a function selector in case of an error.
+			else if (
+				dynamic_cast<EventDefinition const*>(&owningObjectFunctionType->declaration()) ||
+				dynamic_cast<ErrorDefinition const*>(&owningObjectFunctionType->declaration())
 			)
-				m_errorReporter.typeError(
-					9274_error,
-					_memberAccess.location(),
-					"\"runtimeCode\" is not available for contracts containing immutable variables."
-				);
+				_memberAccess.annotation().isPure = true;
 		}
-		else if (magicType->kind() == MagicType::Kind::MetaType && memberName == "name")
-			annotation.isPure = true;
-		else if (magicType->kind() == MagicType::Kind::MetaType && memberName == "interfaceId")
-			annotation.isPure = true;
-		else if (
-			magicType->kind() == MagicType::Kind::MetaType &&
-			(memberName == "min" || memberName == "max")
-		)
-			annotation.isPure = true;
-		else if (magicType->kind() == MagicType::Kind::Block)
+
+		_memberAccess.annotation().isLValue = false;
+		break;
+	}
+	case Type::Category::TypeType:
+	{
+		// TODO some members might be pure, but for example `address(0x123).balance` is not pure
+		// although every subexpression is, so leaving this limited for now.
+		auto const* owningObjectTypeType = dynamic_cast<TypeType const*>(owningObjectType);
+		solAssert(owningObjectTypeType);
+
+		switch (owningObjectTypeType->actualType()->category())
+		{
+		case Type::Category::Array:
+		{
+			// `concat` purity depends also on its arguments, but this is checked later, in visit(FunctionCall...)
+			// This covers `bytes.concat` and `string.concat`.
+			auto const* accessedMemberFunctionType = dynamic_cast<FunctionType const*>(type(_memberAccess));
+			solAssert(accessedMemberFunctionType && (
+				accessedMemberFunctionType->kind() == FunctionType::Kind::StringConcat ||
+				accessedMemberFunctionType->kind() == FunctionType::Kind::BytesConcat
+			));
+
+			_memberAccess.annotation().isPure = true;
+			_memberAccess.annotation().isLValue = false;
+			break;
+		}
+		case Type::Category::Contract:
+		{
+			_memberAccess.annotation().isLValue = _memberAccess.annotation().referencedDeclaration->isLValue();
+			if (
+				auto const* accessedMemberFunctionType = dynamic_cast<FunctionType const*>(type(_memberAccess));
+				accessedMemberFunctionType &&
+				accessedMemberFunctionType->kind() == FunctionType::Kind::Declaration
+			)
+				_memberAccess.annotation().isPure = *_memberAccess.expression().annotation().isPure;
+			break;
+		}
+		case Type::Category::Enum:
+		case Type::Category::UserDefinedValueType:
+			_memberAccess.annotation().isPure = true;
+			_memberAccess.annotation().isLValue = false;
+			break;
+		case Type::Category::Address:
+		case Type::Category::Integer:
+		case Type::Category::RationalNumber:
+		case Type::Category::StringLiteral:
+		case Type::Category::Bool:
+		case Type::Category::FixedPoint:
+		case Type::Category::ArraySlice:
+		case Type::Category::FixedBytes:
+		case Type::Category::Struct:
+		case Type::Category::Function:
+		case Type::Category::Tuple:
+		case Type::Category::Mapping:
+		case Type::Category::TypeType:
+		case Type::Category::Modifier:
+		case Type::Category::Magic:
+		case Type::Category::Module:
+		case Type::Category::InaccessibleDynamic:
+			_memberAccess.annotation().isLValue = false;
+			break;
+		}
+		break;
+	}
+	case Type::Category::Magic:
+	{
+		auto const* owningObjectMagicType = dynamic_cast<MagicType const*>(owningObjectType);
+		solAssert(owningObjectMagicType);
+
+		switch (owningObjectMagicType->kind())
+		{
+		case MagicType::Kind::Block:
 		{
 			if (memberName == "chainid" && !m_evmVersion.hasChainID())
 				m_errorReporter.typeError(
 					3081_error,
 					_memberAccess.location(),
-					"\"chainid\" is not supported by the VM version."
+					R"("chainid" is not supported by the VM version.)"
 				);
 			else if (memberName == "basefee" && !m_evmVersion.hasBaseFee())
 				m_errorReporter.typeError(
 					5921_error,
 					_memberAccess.location(),
-					"\"basefee\" is not supported by the VM version."
+					R"("basefee" is not supported by the VM version.)"
 				);
 			else if (memberName == "blobbasefee" && !m_evmVersion.hasBlobBaseFee())
 				m_errorReporter.typeError(
 					1006_error,
 					_memberAccess.location(),
-					"\"blobbasefee\" is not supported by the VM version."
+					R"("blobbasefee" is not supported by the VM version.)"
 				);
 			else if (memberName == "prevrandao" && !m_evmVersion.hasPrevRandao())
 				m_errorReporter.warning(
 					9432_error,
 					_memberAccess.location(),
-					"\"prevrandao\" is not supported by the VM version and will be treated as \"difficulty\"."
+					R"("prevrandao" is not supported by the VM version and will be treated as "difficulty".)"
 				);
 			else if (memberName == "difficulty" && m_evmVersion.hasPrevRandao())
 				m_errorReporter.warning(
 					8417_error,
 					_memberAccess.location(),
-					"Since the VM version paris, \"difficulty\" was replaced by \"prevrandao\", which now returns a random number based on the beacon chain."
+					R"(Since the VM version paris, "difficulty" was replaced by "prevrandao", which now returns a random number based on the beacon chain.)"
 				);
+			break;
 		}
+		case MagicType::Kind::ABI:
+			_memberAccess.annotation().isPure = true;
+			break;
+		case MagicType::Kind::MetaType:
+		{
+			if (memberName == "creationCode" || memberName == "runtimeCode")
+			{
+				_memberAccess.annotation().isPure = true;
+				ContractType const& accessedContractType = dynamic_cast<ContractType const&>(*owningObjectMagicType->typeArgument());
+				solAssert(!accessedContractType.isSuper(), "");
+				if (
+					memberName == "runtimeCode" &&
+					!accessedContractType.immutableVariables().empty()
+				)
+					m_errorReporter.typeError(
+						9274_error,
+						_memberAccess.location(),
+						R"("runtimeCode" is not available for contracts containing immutable variables.)"
+					);
+			}
+			else if (
+				memberName == "name" ||
+				memberName == "interfaceId" ||
+				memberName == "min" ||
+				memberName == "max"
+			)
+				_memberAccess.annotation().isPure = true;
+			break;
+		}
+		// Empty cases.
+		case MagicType::Kind::Message:
+		case MagicType::Kind::Transaction:
+		case MagicType::Kind::Error:
+			break;
+		}
+
+		_memberAccess.annotation().isLValue = false;
+		break;
+	}
+	case Type::Category::Module:
+		_memberAccess.annotation().isPure = *_memberAccess.expression().annotation().isPure;
+		_memberAccess.annotation().isLValue = false;
+		break;
+	case Type::Category::Address:
+		if (memberName == "codehash" && !m_evmVersion.hasExtCodeHash())
+			m_errorReporter.typeError(
+				7598_error,
+				_memberAccess.location(),
+				R"("codehash" is not supported by the VM version.)"
+			);
+		_memberAccess.annotation().isLValue = false;
+		break;
+	case Type::Category::Integer:
+	case Type::Category::RationalNumber:
+	case Type::Category::StringLiteral:
+	case Type::Category::Bool:
+	case Type::Category::FixedPoint:
+	case Type::Category::FixedBytes:
+	case Type::Category::Array:
+	case Type::Category::ArraySlice:
+	case Type::Category::Contract:
+	case Type::Category::Enum:
+	case Type::Category::UserDefinedValueType:
+	case Type::Category::Tuple:
+	case Type::Category::Mapping:
+	case Type::Category::Modifier:
+	case Type::Category::InaccessibleDynamic:
+		_memberAccess.annotation().isLValue = false;
+		break;
 	}
 
-	if (
-		_memberAccess.expression().annotation().type->category() == Type::Category::Address &&
-		memberName == "codehash" &&
-		!m_evmVersion.hasExtCodeHash()
-	)
-		m_errorReporter.typeError(
-			7598_error,
-			_memberAccess.location(),
-			"\"codehash\" is not supported by the VM version."
-		);
+	solAssert(_memberAccess.annotation().isLValue.set());
 
-	if (!annotation.isPure.set())
-		annotation.isPure = false;
+	// TODO: Leave it for now, but it should be moved to TypeType -> Contract case.
+	// We do not want to change the logic in refactor PR.
+	if (
+		auto const* varDecl = dynamic_cast<VariableDeclaration const*>(_memberAccess.annotation().referencedDeclaration);
+		!_memberAccess.annotation().isPure.set() &&
+		varDecl &&
+		varDecl->isConstant()
+	)
+	{
+		solAssert(owningObjectType->category() != Type::Category::Magic);
+		_memberAccess.annotation().isPure = true;
+	}
+
+
+	if (!_memberAccess.annotation().isPure.set())
+		_memberAccess.annotation().isPure = false;
 
 	return false;
 }
@@ -3931,12 +4052,7 @@ void TypeChecker::endVisit(UsingForDirective const& _usingFor)
 		FunctionDefinition const& functionDefinition =
 			dynamic_cast<FunctionDefinition const&>(*path->annotation().referencedDeclaration);
 
-		FunctionType const* functionType = dynamic_cast<FunctionType const*>(
-			functionDefinition.libraryFunction() ?
-				functionDefinition.typeViaContractName() :
-				functionDefinition.type()
-			);
-
+		FunctionType const* functionType = dynamic_cast<FunctionType const*>(functionDefinition.typeWhenAttached());
 		solAssert(functionType);
 
 		if (functionDefinition.parameters().empty())

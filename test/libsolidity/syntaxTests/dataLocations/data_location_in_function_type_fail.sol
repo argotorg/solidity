@@ -7,5 +7,6 @@ library L {
 
 // ----
 // Warning 6162: (251-267): Naming function type parameters is deprecated.
+// Warning 6335: (251-267): "transient" will be promoted to keyword in the future and will not be allowed as an identifier anymore.
 // TypeError 6651: (159-173): Data location must be "memory" or "calldata" for parameter in function, but "storage" was given.
 // TypeError 6651: (251-267): Data location must be "memory" or "calldata" for parameter in function, but none was given.

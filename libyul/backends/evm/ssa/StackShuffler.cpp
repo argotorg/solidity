@@ -24,23 +24,31 @@
 using namespace solidity::yul::ssa;
 using namespace solidity::yul::ssa::detail;
 
-Target::Target(StackData const& _args, LivenessAnalysis::LivenessData const& _liveOut, std::size_t const _targetSize):
+Target::Target(
+	StackData const& _args,
+	StackSlotLiveness const& _liveOut,
+	std::size_t const _targetSize,
+	spill::SpillSet const* _spilledVariables
+):
 	args(_args),
 	liveOut(_liveOut),
+	spilledVariables(_spilledVariables),
 	size(_targetSize),
 	tailSize(_targetSize - _args.size())
 {
 	minCount.reserve(_args.size() + _liveOut.size());
 	for (auto const& arg: _args)
-		if (!arg.isJunk())
+		if (!arg.isJunk() && !slotIsSpilled(arg, _spilledVariables))
 			++minCount[arg];
-	for (auto const& _liveValueId: _liveOut | ranges::views::keys)
-		++minCount[StackSlot::makeValueID(_liveValueId)];
+	for (auto const& liveSlot: _liveOut | ranges::views::keys)
+		if (!slotIsSpilled(liveSlot, _spilledVariables))
+			++minCount[liveSlot];
 }
 
-State::State(StackData const& _stackData, Target const& _target, std::size_t const _reachableStackDepth):
+State::State(StackData const& _stackData, Target const& _target, spill::SpillSet const* const _spilledVariables, std::size_t const _reachableStackDepth):
 	m_stackData(_stackData),
 	m_target(_target),
+	m_spilledVariables(_spilledVariables),
 	m_reachableStackDepth(_reachableStackDepth)
 {
 	m_histogram.reserve(_stackData.size());
@@ -73,27 +81,27 @@ std::size_t State::size() const
 
 std::size_t State::count(StackSlot const& _slot) const
 {
-	return util::valueOrDefault(m_histogram, _slot, static_cast<size_t>(0));
+	return solidity::util::valueOrDefault(m_histogram, _slot, static_cast<size_t>(0));
 }
 
 std::size_t State::countInArgs(StackSlot const& _slot) const
 {
-	return util::valueOrDefault(m_histogramArgs, _slot, static_cast<size_t>(0));
+	return solidity::util::valueOrDefault(m_histogramArgs, _slot, static_cast<size_t>(0));
 }
 
 std::size_t State::countInTail(StackSlot const& _slot) const
 {
-	return util::valueOrDefault(m_histogramTail, _slot, static_cast<size_t>(0));
+	return solidity::util::valueOrDefault(m_histogramTail, _slot, static_cast<size_t>(0));
 }
 
 std::size_t State::countReachable(StackSlot const& _slot) const
 {
-	return util::valueOrDefault(m_histogramReachable, _slot, static_cast<size_t>(0));
+	return solidity::util::valueOrDefault(m_histogramReachable, _slot, static_cast<size_t>(0));
 }
 
 std::size_t State::targetMinCount(StackSlot const& _slot) const
 {
-	return util::valueOrDefault(m_target.minCount, _slot, static_cast<size_t>(0));
+	return solidity::util::valueOrDefault(m_target.minCount, _slot, static_cast<size_t>(0));
 }
 
 std::size_t State::targetArgsCount(StackSlot const& _slot) const
@@ -125,7 +133,10 @@ bool State::requiredInArgs(StackSlot const& _slot) const
 
 bool State::requiredInTail(StackSlot const& _slot) const
 {
-	return _slot.isValueID() && m_target.liveOut.contains(_slot.valueID());
+	if (!_slot.isValue() || !m_target.liveOut.contains(_slot))
+		return false;
+	// Spilled values can be rematerialized, so they need not occupy a tail slot.
+	return !slotIsSpilled(_slot);
 }
 
 bool State::offsetInTargetArgsRegion(StackOffset const _offset) const
@@ -194,4 +205,14 @@ bool State::willRequireShrinking() const
 			deficit += minCount - currentCount;
 	}
 	return deficit + size() > target().size;
+}
+
+std::optional<StackDepth> State::findDeepestIncorrectArgSlot() const
+{
+	for (StackOffset const offset: stackArgsRange())
+	{
+		if (!isArgsCompatible(offset, offset))
+			return StackDepth{m_stackData.size() - offset.value};
+	}
+	return std::nullopt;
 }

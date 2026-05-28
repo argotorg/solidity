@@ -1,0 +1,15 @@
+{
+    "ethdebug": {
+        "compilation": {
+            "compiler": {
+                "name": "solc",
+                "version": "<VERSION REMOVED>"
+            }
+        }
+    },
+    "sources": {
+        "a.sol": {
+            "id": 0
+        }
+    }
+}

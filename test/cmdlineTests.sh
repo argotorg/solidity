@@ -222,7 +222,7 @@ open("$stdout_path", "w").write(json)
 EOF
         # Only do this to files that actually contain ethdebug output, because jq will reformat
         # the whole file and its formatting differs from `solc --pretty-json`
-        if jq 'has("ethdebug")' "$stdout_path" --exit-status > /dev/null; then
+        if jq '[.. | objects | has("ethdebug")] | any' "$stdout_path" --exit-status > /dev/null; then
             local temporary_file
             temporary_file=$(mktemp -t cmdline-ethdebug-XXXXXX.tmp)
             if [[ -e strip-ethdebug ]]; then
@@ -231,7 +231,9 @@ EOF
                 ' "$stdout_path" > "$temporary_file"
             else
                 jq --indent 4 '
-                    if .ethdebug.compilation.compiler.version? != null then
+                    if .ethdebug.resources.compilation.compiler.version? != null then
+                        .ethdebug.resources.compilation.compiler.version = "<VERSION REMOVED>"
+                    elif .ethdebug.compilation.compiler.version? != null then
                         .ethdebug.compilation.compiler.version = "<VERSION REMOVED>"
                     else
                         .

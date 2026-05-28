@@ -1,0 +1,17 @@
+// Grow the stack and shuffle value to the correct places. Should be doable with 3 swaps, 3 dups and 1 push
+initial: [v2, lit2, v3, v1]
+targetStackTop: [v2, lit1, v2, lit2, v2, lit1, v1, v3]
+// ----
+//             |      0      1      2      3      4      5      6      7
+//             +--------------------------------------------------------
+//    (initial)|     v2   lit2     v3     v1
+//        SWAP2|     v2     v1     v3   lit2
+//         DUP4|     v2     v1     v3   lit2     v2
+//    PUSH lit1|     v2     v1     v3   lit2     v2   lit1
+//         DUP1|     v2     v1     v3   lit2     v2   lit1   lit1
+//        SWAP5|     v2   lit1     v3   lit2     v2   lit1     v1
+//         DUP3|     v2   lit1     v3   lit2     v2   lit1     v1     v2
+//        SWAP5|     v2   lit1     v2   lit2     v2   lit1     v1     v3
+//             +--------------------------------------------------------
+//     (target)|     v2   lit1     v2   lit2     v2   lit1     v1     v3
+// Status: Admissible

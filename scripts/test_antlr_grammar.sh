@@ -66,8 +66,9 @@ done < <(
       # Skipping a test with "revert E;" because ANTLR cannot distinguish it from
       # a variable declaration.
       grep -v -E 'revertStatement/non_called.sol' |
-      # Skipping a test with "let basefee := ..."
+      # Skipping tests with "let basefee := ..."
       grep -v -E 'inlineAssembly/basefee_berlin_function.sol' |
+      grep -v -E 'inlineAssembly/basefee_pre_london.sol' |
       # Skipping a test with "let blobbasefee := ..."
       grep -v -E 'inlineAssembly/blobbasefee_shanghai_function.sol' |
       # Skipping a test with "let mcopy := ..."

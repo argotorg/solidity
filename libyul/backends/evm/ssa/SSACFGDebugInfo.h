@@ -23,6 +23,7 @@
 #include <liblangutil/DebugData.h>
 #include <libyul/Exceptions.h>
 
+#include <map>
 #include <vector>
 
 namespace solidity::yul::ssa
@@ -38,10 +39,7 @@ struct SSACFGDebugInfo
 		m_blockDebugData[_id.value] = std::move(_data);
 	}
 
-	langutil::DebugData::ConstPtr const& blockDebugData(BlockId _id) const
-	{
-		return getOrEmpty(m_blockDebugData, _id.value);
-	}
+	langutil::DebugData::ConstPtr blockDebugData(BlockId _id) const { return lookup(m_blockDebugData, _id.value); }
 
 	void setExitDebugData(BlockId _id, langutil::DebugData::ConstPtr _data)
 	{
@@ -50,34 +48,29 @@ struct SSACFGDebugInfo
 		m_exitDebugData[_id.value] = std::move(_data);
 	}
 
-	langutil::DebugData::ConstPtr const& exitDebugData(BlockId _id) const
-	{
-		return getOrEmpty(m_exitDebugData, _id.value);
-	}
+	langutil::DebugData::ConstPtr exitDebugData(BlockId _id) const { return lookup(m_exitDebugData, _id.value); }
 
-	void setOperationDebugData(OperationId _id, langutil::DebugData::ConstPtr _data)
+	void setInstDebugData(InstId _id, langutil::DebugData::ConstPtr _data)
 	{
 		yulAssert(_id.hasValue());
-		ensureSize(m_operationDebugData, _id.value);
-		m_operationDebugData[_id.value] = std::move(_data);
+		ensureSize(m_instDebugData, _id.value);
+		m_instDebugData[_id.value] = std::move(_data);
 	}
 
-	langutil::DebugData::ConstPtr const& operationDebugData(OperationId _id) const
-	{
-		return getOrEmpty(m_operationDebugData, _id.value);
-	}
+	langutil::DebugData::ConstPtr instDebugData(InstId _id) const { return lookup(m_instDebugData, _id.value); }
 
-	void setValueDebugData(ValueId _id, langutil::DebugData::ConstPtr _data)
+	void setValueDebugData(InstId _id, langutil::DebugData::ConstPtr _data)
 	{
 		yulAssert(_id.hasValue());
-		auto& vec = vectorForKind(_id.kind());
-		ensureSize(vec, _id.value());
-		vec[_id.value()] = std::move(_data);
+		m_valueDebugData[_id] = std::move(_data);
 	}
 
-	langutil::DebugData::ConstPtr const& valueDebugData(ValueId _id) const
+	langutil::DebugData::ConstPtr valueDebugData(InstId _id) const
 	{
-		return getOrEmpty(vectorForKind(_id.kind()), _id.value());
+		auto const it = m_valueDebugData.find(_id);
+		if (it == m_valueDebugData.end())
+			return nullptr;
+		return it->second;
 	}
 
 	/// Top-level debug data for the SSACFG (e.g. the function definition's debug data).
@@ -90,44 +83,15 @@ private:
 			_vec.resize(_index + 1);
 	}
 
-	static langutil::DebugData::ConstPtr const& getOrEmpty(
-		std::vector<langutil::DebugData::ConstPtr> const& _debugData,
-		std::size_t const _index
-	)
+	static langutil::DebugData::ConstPtr lookup(std::vector<langutil::DebugData::ConstPtr> const& _vec, std::size_t const _index)
 	{
-		static langutil::DebugData::ConstPtr const empty{nullptr};
-		if (_index >= _debugData.size())
-			return empty;
-		return _debugData[_index];
-	}
-
-	std::vector<langutil::DebugData::ConstPtr>& vectorForKind(ValueId::Kind const _kind)
-	{
-		switch (_kind)
-		{
-		case ValueId::Kind::Literal: return m_literalDebugData;
-		case ValueId::Kind::Variable: return m_variableDebugData;
-		case ValueId::Kind::Phi: return m_phiDebugData;
-		default: yulAssert(false, "No debug data for unreachable values.");
-		}
-	}
-	std::vector<langutil::DebugData::ConstPtr> const& vectorForKind(ValueId::Kind const _kind) const
-	{
-		switch (_kind)
-		{
-		case ValueId::Kind::Literal: return m_literalDebugData;
-		case ValueId::Kind::Variable: return m_variableDebugData;
-		case ValueId::Kind::Phi: return m_phiDebugData;
-		default: yulAssert(false, "No debug data for unreachable values.");
-		}
+		return _index < _vec.size() ? _vec[_index] : nullptr;
 	}
 
 	std::vector<langutil::DebugData::ConstPtr> m_blockDebugData;
 	std::vector<langutil::DebugData::ConstPtr> m_exitDebugData;
-	std::vector<langutil::DebugData::ConstPtr> m_operationDebugData;
-	std::vector<langutil::DebugData::ConstPtr> m_literalDebugData;
-	std::vector<langutil::DebugData::ConstPtr> m_variableDebugData;
-	std::vector<langutil::DebugData::ConstPtr> m_phiDebugData;
+	std::vector<langutil::DebugData::ConstPtr> m_instDebugData;
+	std::map<InstId, langutil::DebugData::ConstPtr> m_valueDebugData;
 };
 
 }

@@ -49,11 +49,11 @@ struct AssemblyCallbacks
 	{
 		switch (_slot.kind())
 		{
-		case StackSlot::Kind::ValueID:
+		case StackSlot::Kind::Value:
 		{
-			auto const id = _slot.valueID();
-			yulAssert(id.isLiteral(), fmt::format("Tried bringing up v{}", id.value()));
-			assembly->appendConstant(cfg->literalInfo(id).value);
+			auto const id = _slot.value();
+			yulAssert(cfg->isLiteral(id), fmt::format("Tried bringing up non-const {}", id));
+			assembly->appendConstant(cfg->literalPayload(id));
 			return;
 		}
 		case StackSlot::Kind::Junk:
@@ -66,9 +66,9 @@ struct AssemblyCallbacks
 		}
 		case StackSlot::Kind::FunctionCallReturnLabel:
 		{
-			auto const& call = callSites->functionCall(_slot.functionCallReturnLabel());
-			yulAssert(returnLabels->count(&call), "FunctionCallReturnLabel not pre-registered before shuffle.");
-			assembly->appendLabelReference(returnLabels->at(&call));
+			auto const instId = callSites->instId(_slot.functionCallReturnLabel());
+			yulAssert(returnLabels->count(instId), "FunctionCallReturnLabel not pre-registered before shuffle.");
+			assembly->appendLabelReference(returnLabels->at(instId));
 			return;
 		}
 		case StackSlot::Kind::FunctionReturnLabel:
@@ -86,7 +86,7 @@ struct AssemblyCallbacks
 	SSACFG const* cfg{};
 	AbstractAssembly* assembly{};
 	CallSites const* callSites{};
-	std::map<FunctionCall const*, AbstractAssembly::LabelID> const* returnLabels{};
+	std::map<InstId, AbstractAssembly::LabelID> const* returnLabels{};
 };
 static_assert(StackManipulationCallbackConcept<AssemblyCallbacks>);
 
@@ -95,30 +95,30 @@ class CodeTransform
 public:
 	static void run(
 		AbstractAssembly& _assembly,
-		ControlFlowLiveness const& _liveness,
+		ControlFlowGraphsLiveness const& _liveness,
 		BuiltinContext& _builtinContext
 	);
 
 private:
-	using FunctionLabels = std::map<Scope::Function const*, AbstractAssembly::LabelID>;
+	using FunctionLabels = std::map<ControlFlowGraphs::FunctionGraphID, AbstractAssembly::LabelID>;
 
 	static FunctionLabels registerFunctionLabels(
 		AbstractAssembly& _assembly,
-		ControlFlow const& _controlFlow
+		ControlFlowGraphs const& _controlFlow
 	);
 
 	CodeTransform(
 		AbstractAssembly& _assembly,
 		BuiltinContext& _builtinContext,
+		ControlFlowGraphs const& _controlFlow,
 		FunctionLabels const& _functionLabels,
 		CallSites const& _callSites,
 		SSACFG const& _cfg,
 		SSACFGStackLayout const& _stackLayout,
-		Scope::Function const* _function,
-		ControlFlow::FunctionGraphID _graphID);
+		ControlFlowGraphs::FunctionGraphID _graphID);
 
 	void operator()(SSACFG::BlockId _blockId);
-	void operator()(SSACFG::OperationId _opId, StackData const& _operationInputLayout);
+	void operator()(InstId _instId, StackData const& _operationInputLayout);
 	void operator()(SSACFG::BlockId const& _currentBlock, SSACFG::BasicBlock::MainExit const& _mainExit);
 	void operator()(SSACFG::BlockId const& _currentBlock, SSACFG::BasicBlock::ConditionalJump const& _conditionalJump);
 	void operator()(SSACFG::BlockId const& _currentBlock, SSACFG::BasicBlock::Jump const& _jump);
@@ -129,18 +129,19 @@ private:
 
 	AbstractAssembly& m_assembly;
 	BuiltinContext& m_builtinContext;
+	ControlFlowGraphs const& m_controlFlow;
 	FunctionLabels const& m_functionLabels;
 	CallSites const& m_callSites;
 	SSACFG const& m_cfg;
 	SSACFGStackLayout const& m_stackLayout;
-	ControlFlow::FunctionGraphID const m_graphID;
+	ControlFlowGraphs::FunctionGraphID const m_graphID;
 
 	std::vector<std::uint8_t> m_blockIsTransformed;
 	std::vector<AbstractAssembly::LabelID> m_blockLabels;
 	AssemblyCallbacks m_assemblyCallbacks;
 	StackData m_stackData;
 	Stack<AssemblyCallbacks> m_stack;
-	std::map<FunctionCall const*, AbstractAssembly::LabelID> m_returnLabels;
+	std::map<InstId, AbstractAssembly::LabelID> m_returnLabels;
 };
 
 }

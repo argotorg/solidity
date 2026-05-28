@@ -44,9 +44,9 @@ void GasAccumulatingCallbacks::dup(StackDepth _depth)
 
 void GasAccumulatingCallbacks::push(StackSlot const& _slot)
 {
-	if (_slot.isLiteralValueID())
+	if (_slot.isLiteralValue())
 	{
-		auto const size = numberEncodingSize(cfg.literalInfo(_slot.valueID()).value);
+		auto const size = numberEncodingSize(cfg.literalPayload(_slot.value()));
 		opGas += evmasm::GasMeter::runGas(evmasm::pushInstruction(size), cfg.evmDialect.evmVersion());
 	}
 	else if (_slot.isJunk())
@@ -54,12 +54,18 @@ void GasAccumulatingCallbacks::push(StackSlot const& _slot)
 		auto const op = cfg.evmDialect.evmVersion().hasPush0() ? evmasm::Instruction::PUSH0 : evmasm::Instruction::CODESIZE;
 		opGas += evmasm::GasMeter::runGas(op, cfg.evmDialect.evmVersion());
 	}
-	else
+	else if (_slot.isFunctionCallReturnLabel())
 	{
-		yulAssert(_slot.isFunctionCallReturnLabel(), "we can only push literals, junk, and function call return labels");
 		// this is a jump dest, we don't really know yet how big it is going to be, just assume that it fits into
 		// a 2-byte number
 		opGas += evmasm::GasMeter::runGas(evmasm::Instruction::PUSH2, cfg.evmDialect.evmVersion());
+	}
+	else
+	{
+		// Spilled SSA value
+		yulAssert(_slot.isValue(), "unexpected slot kind in GasAccumulatingCallbacks::push");
+		opGas += evmasm::GasMeter::runGas(evmasm::Instruction::PUSH32, cfg.evmDialect.evmVersion());
+		opGas += evmasm::GasMeter::runGas(evmasm::Instruction::MLOAD, cfg.evmDialect.evmVersion());
 	}
 }
 
@@ -68,28 +74,33 @@ void GasAccumulatingCallbacks::pop()
 	opGas += evmasm::GasMeter::runGas(evmasm::Instruction::POP, cfg.evmDialect.evmVersion());
 }
 
-StackData solidity::yul::ssa::stackPreImage(StackData _stack, PhiInverse const& _phiInverse)
+StackData solidity::yul::ssa::stackPreImage(SSACFG const& _cfg, StackData _stack, PhiInverse const& _phiInverse)
 {
 	if (!_phiInverse.noOp())
 		for (auto& slot: _stack)
-			if (slot.isValueID())
-				slot = StackSlot::makeValueID(_phiInverse(slot.valueID()));
+			if (slot.isValue())
+			{
+				auto const preImage = _phiInverse(slot.value());
+				slot = StackSlot::makeValue(_cfg, preImage);
+			}
 	return _stack;
 }
 
-std::size_t solidity::yul::ssa::findOptimalTargetSize
+OptimalTarget solidity::yul::ssa::findOptimalTarget
 (
 	StackData const& _stackData,
 	StackData const& _targetArgs,
-	LivenessAnalysis::LivenessData const& _targetLiveOut,
+	StackSlotLiveness const& _targetLiveOut,
 	bool const _canIntroduceJunk,
-	bool const _hasFunctionReturnLabel
+	bool const _hasFunctionReturnLabel,
+	spill::SpillSet const& _spillSet,
+	bool const _spillingAllowed
 )
 {
 	std::size_t const minSize = _targetLiveOut.size() + _targetArgs.size() + (_hasFunctionReturnLabel ? 1 : 0);
 	boost::container::flat_map<StackSlot, std::size_t> deficit;
-	for (auto const& v: _targetLiveOut | ranges::views::keys)
-		deficit[StackSlot::makeValueID(v)]++;
+	for (auto const& slot: _targetLiveOut | ranges::views::keys)
+		deficit[slot]++;
 	for (auto const& arg: _targetArgs)
 		deficit[arg]++;
 	for (auto const& slot: _stackData)
@@ -102,18 +113,45 @@ std::size_t solidity::yul::ssa::findOptimalTargetSize
 
 	StackData data;
 	data.reserve(startSize + maxUpwardExpansion);
+	spill::SpillSet spillSet;
 	auto const evaluateCost = [&](std::size_t const _targetSize) -> std::size_t
 	{
-		data = _stackData;
-		Stack<OpsCountingCallbacks> countOpsStack(data, {});
-		auto const shuffleResult = StackShuffler<OpsCountingCallbacks>::shuffle(countOpsStack, _targetArgs, _targetLiveOut, _targetSize);
-		yulAssert(shuffleResult.status == StackShufflerResult::Status::Admissible);
-		yulAssert(countOpsStack.size() == _targetSize);
-		return countOpsStack.callbacks().numOps;
+		StackShufflerResult result;
+		spillSet = _spillSet;
+		OpsCountingCallbacks callbacks;
+		do
+		{
+			data = _stackData;
+			Stack<OpsCountingCallbacks> countOpsStack(data, {});
+			result = StackShuffler<OpsCountingCallbacks>::shuffle(countOpsStack, _targetArgs, _targetLiveOut, _targetSize, &spillSet);
+			callbacks = countOpsStack.callbacks();
+			switch (result.status)
+			{
+			case StackShufflerResult::Status::Continue:
+				yulAssert(false);
+			case StackShufflerResult::Status::Admissible:
+				break;
+			case StackShufflerResult::Status::StackTooDeep:
+			{
+				yulAssert(result.culprit.isValue() && !result.culprit.isLiteralValue());
+				yulAssert(!spillSet.isSpilled(result.culprit.value()));
+				spillSet.add(result.culprit.value());
+				break;
+			}
+			case StackShufflerResult::Status::MaxIterationsReached:
+				break;
+			}
+		}
+		while (result.status == StackShufflerResult::Status::StackTooDeep);
+		yulAssert(data.size() == _targetSize);
+		yulAssert(result.status == StackShufflerResult::Status::Admissible);
+		std::size_t const cost = callbacks.numOps + 1000 * spillSet.numSpilled();
+		return cost;
 	};
 
 	std::size_t bestCost = evaluateCost(startSize);
-	auto result = startSize;
+	StackData bestData = data;
+	spill::SpillSet bestSpillSet = spillSet;
 
 	// On non-reverting paths, only search downward from pivot to avoid growing the stack.
 	// On reverting paths, search in both directions since stack cleanup doesn't matter.
@@ -129,7 +167,8 @@ std::size_t solidity::yul::ssa::findOptimalTargetSize
 			if (cost <= bestCost)
 			{
 				bestCost = cost;
-				result = size;
+				bestData = data;
+				bestSpillSet = spillSet;
 				consecutiveIncreases = 0;
 			}
 			else if (++consecutiveIncreases >= stopAfter)
@@ -146,14 +185,17 @@ std::size_t solidity::yul::ssa::findOptimalTargetSize
 			if (cost < bestCost)
 			{
 				bestCost = cost;
-				result = size;
+				bestData = data;
+				bestSpillSet = spillSet;
 				consecutiveIncreases = 0;
 			}
 			else if (++consecutiveIncreases >= stopAfter)
 				break;
 		}
 	}
-	return result;
+
+	yulAssert(_spillingAllowed || bestSpillSet.numSpilled() == _spillSet.numSpilled(), "Spilling not allowed, stack too deep.");
+	return OptimalTarget{std::move(bestData), std::move(bestSpillSet)};
 }
 
 CallSites solidity::yul::ssa::gatherCallSites(SSACFG const& _cfg)
@@ -178,10 +220,14 @@ CallSites solidity::yul::ssa::gatherCallSites(SSACFG const& _cfg)
 			}
 		});
 
-		for (auto const opId: block.operations)
-			if (auto const* call = std::get_if<SSACFG::Call>(&_cfg.operation(opId).kind))
-				if (call->canContinue)
-					result.addCallSite(&call->call.get());
+		for (InstId const instId: block.instructions)
+		{
+			auto const& inst = _cfg.inst(instId);
+			if (inst.opcode != InstOpcode::Call)
+				continue;
+			if (_cfg.callPayload(instId).canContinue)
+				result.addCallSite(instId);
+		}
 	}
 	return result;
 }

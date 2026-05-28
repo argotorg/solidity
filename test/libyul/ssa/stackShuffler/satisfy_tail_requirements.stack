@@ -8,9 +8,9 @@ targetStackSize: 17
 //             +------------------------------------------------- +----------------------------------------------------------------------
 //    (initial)|     v2     v3     v4     v5     v6     v7     v8 |     v9    v10
 //        SWAP8|    v10     v3     v4     v5     v6     v7     v8 |     v9     v2
-//    PUSH lit3|    v10     v3     v4     v5     v6     v7     v8 |     v9     v2   lit3
-//        SWAP2|    v10     v3     v4     v5     v6     v7     v8 |   lit3     v2     v9
-//        SWAP1|    v10     v3     v4     v5     v6     v7     v8 |   lit3     v9     v2
+//        SWAP1|    v10     v3     v4     v5     v6     v7     v8 |     v2     v9
+//    PUSH lit3|    v10     v3     v4     v5     v6     v7     v8 |     v2     v9   lit3
+//        SWAP2|    v10     v3     v4     v5     v6     v7     v8 |   lit3     v9     v2
 //         DUP4|    v10     v3     v4     v5     v6     v7     v8 |   lit3     v9     v2     v8
 //        SWAP1|    v10     v3     v4     v5     v6     v7     v8 |   lit3     v9     v8     v2
 //         DUP6|    v10     v3     v4     v5     v6     v7     v8 |   lit3     v9     v8     v2     v7

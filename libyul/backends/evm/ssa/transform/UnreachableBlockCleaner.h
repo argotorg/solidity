@@ -17,7 +17,6 @@
 // SPDX-License-Identifier: GPL-3.0
 /**
  * Removes unreachable blocks from an SSA CFG and cleans up entry lists referencing them.
- * Note that this invalidates ValueIds and OperationIds pointing into the (unreachable) blocks.
  */
 #pragma once
 

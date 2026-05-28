@@ -1414,73 +1414,36 @@ BOOST_AUTO_TEST_CASE(cli_include_paths_ambiguous_import)
 BOOST_AUTO_TEST_CASE(cli_ethdebug_incompatible_outputs)
 {
 	TemporaryDirectory tempDir(TEST_CASE_NAME);
-	createFilesWithParentDirs({tempDir.path() / "input.sol"});
-	static std::vector<std::vector<std::string>> tests{
+	createFilesWithParentDirs({tempDir.path() / "input.sol"}, "pragma solidity >=0.0; contract C { function f() public pure {} }");
+	// The old incompatibility between ethdebug and --asm-json / --ir-ast-json / --ir-optimized-ast-json
+	// has been removed. These combinations are now valid as long as other requirements are met.
+	static std::vector<std::vector<std::string>> supportedCLIFlagCombinations{
 		{
-			{"solc", "--ethdebug",  "--asm-json", tempDir.path().string() + "/input.sol"},
+			{"solc", "--experimental", "--via-ir", "--ethdebug-program", "--asm-json", tempDir.path().string() + "/input.sol"},
 		},
 		{
-			{"solc", "--via-ir", "--ethdebug",  "--asm-json", tempDir.path().string() + "/input.sol"},
+			{"solc", "--experimental", "--via-ir", "--ethdebug-program-runtime", "--asm-json", tempDir.path().string() + "/input.sol"},
 		},
 		{
-			{"solc", "--via-ir", "--ethdebug",  "--optimize", tempDir.path().string() + "/input.sol"},
+			{"solc", "--experimental", "--via-ir", "--ethdebug-program", "--ir-ast-json", tempDir.path().string() + "/input.sol"},
 		},
 		{
-			{"solc", "--via-ir", "--ethdebug",  "--ir-ast-json", tempDir.path().string() + "/input.sol"},
+			{"solc", "--experimental", "--via-ir", "--ethdebug-program", "--ir-optimized-ast-json", tempDir.path().string() + "/input.sol"},
 		},
 		{
-			{"solc", "--via-ir", "--ethdebug",  "--ir-optimized-ast-json", tempDir.path().string() + "/input.sol"},
+			{"solc", "--experimental", "--debug-info", "ethdebug", "--asm-json", tempDir.path().string() + "/input.sol"},
 		},
 		{
-			{"solc", "--ethdebug", "--import-asm-json", tempDir.path().string() + "/input.json"},
+			{"solc", "--experimental", "--debug-info", "ethdebug", "--ir-ast-json", tempDir.path().string() + "/input.sol"},
 		},
 		{
-			{"solc", "--via-ir", "--ethdebug",  "--asm-json", tempDir.path().string() + "/input.sol"},
+			{"solc", "--experimental", "--debug-info", "ethdebug", "--ir-optimized-ast-json", tempDir.path().string() + "/input.sol"},
 		},
-		{
-			{"solc", "--ethdebug-runtime",  "--asm-json", tempDir.path().string() + "/input.sol"},
-		},
-		{
-			{"solc", "--via-ir", "--ethdebug-runtime",  "--asm-json", tempDir.path().string() + "/input.sol"},
-		},
-		{
-			{"solc", "--via-ir", "--ethdebug-runtime",  "--ir-ast-json", tempDir.path().string() + "/input.sol"},
-		},
-		{
-			{"solc", "--via-ir", "--ethdebug-runtime",  "--ir-optimized-ast-json", tempDir.path().string() + "/input.sol"},
-		},
-		{
-			{"solc", "--ethdebug-runtime", "--import-asm-json", tempDir.path().string() + "/input.json"},
-		},
-		{
-			{"solc", "--via-ir", "--ethdebug-runtime",  "--asm-json", tempDir.path().string() + "/input.sol"},
-		},
-		{
-			{"solc", "--debug-info", "ethdebug",  "--asm-json", tempDir.path().string() + "/input.sol"},
-		},
-		{
-			{"solc", "--debug-info", "ethdebug",  "--asm-json", tempDir.path().string() + "/input.sol"},
-		},
-		{
-			{"solc", "--debug-info", "ethdebug",  "--ir-ast-json", tempDir.path().string() + "/input.sol"},
-		},
-		{
-			{"solc", "--debug-info", "ethdebug",  "--ir-optimized-ast-json", tempDir.path().string() + "/input.sol"},
-		},
-		{
-			{"solc", "--debug-info", "ethdebug", "--import-asm-json", tempDir.path().string() + "/input.json"},
-		},
-		{
-			{"solc", "--debug-info", "ethdebug", "--import-asm-json", tempDir.path().string() + "/input.json"},
-		},
-		{
-			{"solc", "--debug-info", "ethdebug", "--asm-json", tempDir.path().string() + "/input.json"},
-		}
 	};
-	for (auto const& test: tests)
+	for (auto const& test: supportedCLIFlagCombinations)
 	{
 		OptionsReaderAndMessages result = runCLI(test, "");
-		BOOST_REQUIRE(!result.success);
+		BOOST_REQUIRE(result.success);
 	}
 }
 
@@ -1490,22 +1453,22 @@ BOOST_AUTO_TEST_CASE(cli_ethdebug_incompatible_input_modes)
 	createFilesWithParentDirs({tempDir.path() / "input.json"});
 	static std::vector<std::vector<std::string>> tests{
 		{
-			{"solc", "--ethdebug", "--import-asm-json", tempDir.path().string() + "/input.json"},
+			{"solc", "--ethdebug-program", "--import-asm-json", tempDir.path().string() + "/input.json"},
 		},
 		{
-			{"solc", "--ethdebug", "--via-ir", "--import-asm-json", tempDir.path().string() + "/input.json"},
+			{"solc", "--ethdebug-program", "--via-ir", "--import-asm-json", tempDir.path().string() + "/input.json"},
 		},
 		{
-			{"solc", "--ethdebug", "--import-asm-json", tempDir.path().string() + "/input.json"},
+			{"solc", "--ethdebug-program-runtime", "--import-asm-json", tempDir.path().string() + "/input.json"},
 		},
 		{
 			{"solc", "--debug-info", "ethdebug", "--import-asm-json", tempDir.path().string() + "/input.json"},
 		},
 		{
-			{"solc", "--ethdebug", "--import-ast", tempDir.path().string() + "/input.json"},
+			{"solc", "--ethdebug-program", "--import-ast", tempDir.path().string() + "/input.json"},
 		},
 		{
-			{"solc", "--ethdebug", "--via-ir", "--import-ast", tempDir.path().string() + "/input.json"},
+			{"solc", "--ethdebug-program", "--via-ir", "--import-ast", tempDir.path().string() + "/input.json"},
 		},
 		{
 			{"solc", "--debug-info", "ethdebug", "--ir", "--import-ast", tempDir.path().string() + "/input.json"},
@@ -1524,50 +1487,18 @@ BOOST_AUTO_TEST_CASE(cli_ethdebug_debug_info_ethdebug)
 	createFilesWithParentDirs({tempDir.path() / "input.sol"},  "pragma solidity >=0.0; contract C { function f() public pure {} }");
 	createFilesWithParentDirs({tempDir.path() / "input.yul"}, "{}");
 	static std::vector<std::vector<std::string>> erroneousCLIFlagCombinations{
+		// --debug-info ethdebug with --optimize is not supported
 		{
-			{"solc", "--experimental", "--debug-info", "ethdebug", tempDir.path().string() + "/input.sol"},
+			{"solc", "--experimental", "--debug-info", "ethdebug", "--optimize", "--ir", tempDir.path().string() + "/input.sol"},
 		},
 		{
-			{"solc", "--experimental", "--debug-info", "ethdebug", "--ir-optimized", tempDir.path().string() + "/input.sol"},
+			{"solc", "--experimental", "--debug-info", "location", "--ethdebug-program", "--via-ir", tempDir.path().string() + "/input.sol"},
 		},
 		{
-			{"solc", "--experimental", "--debug-info", "ethdebug", "--optimize", tempDir.path().string() + "/input.sol"},
+			{"solc", "--experimental", "--debug-info", "location", "--ethdebug-program-runtime", "--via-ir", tempDir.path().string() + "/input.sol"},
 		},
 		{
-			{"solc", "--experimental", "--debug-info", "ethdebug", "--ethdebug", tempDir.path().string() + "/input.sol"},
-		},
-		{
-			{"solc",  "--experimental", "--ethdebug-runtime", "--strict-assembly", tempDir.path().string() + "/input.yul"},
-		},
-		{
-			{"solc",  "--experimental", "--ethdebug", "--ethdebug-runtime", "--strict-assembly", tempDir.path().string() + "/input.yul"},
-		},
-		{
-			{"solc", "--experimental", "--debug-info", "ethdebug", "--ethdebug", tempDir.path().string() + "/input.sol"},
-		},
-		{
-			{"solc", "--experimental", "--debug-info", "ethdebug", "--ethdebug-runtime", tempDir.path().string() + "/input.sol"},
-		},
-		{
-			{"solc", "--experimental", "--debug-info", "ethdebug", "--ethdebug", "--ethdebug-runtime", tempDir.path().string() + "/input.sol"},
-		},
-		{
-			{"solc", "--experimental", "--debug-info", "location", "--ethdebug", "--via-ir", tempDir.path().string() + "/input.sol"},
-		},
-		{
-			{"solc", "--experimental", "--debug-info", "location", "--ethdebug-runtime", "--via-ir", tempDir.path().string() + "/input.sol"},
-		},
-		{
-			{"solc", "--experimental", "--debug-info", "location", "--ethdebug", "--ethdebug-runtime", "--via-ir", tempDir.path().string() + "/input.sol"},
-		},
-		{
-			{"solc", "--experimental", "--debug-info", "all", "--ethdebug", "--via-ir", tempDir.path().string() + "/input.sol"},
-		},
-		{
-			{"solc", "--experimental", "--debug-info", "all", "--ethdebug-runtime", "--via-ir", tempDir.path().string() + "/input.sol"},
-		},
-		{
-			{"solc", "--experimental", "--debug-info", "all", "--ethdebug", "--ethdebug-runtime", "--via-ir", tempDir.path().string() + "/input.sol"},
+			{"solc", "--experimental", "--debug-info", "location", "--ethdebug-program", "--ethdebug-program-runtime", "--via-ir", tempDir.path().string() + "/input.sol"},
 		},
 	};
 	static std::vector<std::vector<std::string>> supportedCLIFlagCombinations{
@@ -1575,36 +1506,19 @@ BOOST_AUTO_TEST_CASE(cli_ethdebug_debug_info_ethdebug)
 			{"solc", "--experimental", "--debug-info", "ethdebug", "--ir", tempDir.path().string() + "/input.sol"},
 		},
 		{
-			{"solc", "--experimental", "--debug-info", "ethdebug", "--ethdebug", "--via-ir", tempDir.path().string() + "/input.sol"},
+			{"solc", "--experimental", "--debug-info", "ethdebug", tempDir.path().string() + "/input.sol"},
 		},
 		{
-			{
-				"solc",
-				"--experimental",
-				"--debug-info",
-				"ethdebug",
-				"--ethdebug-runtime",
-				"--via-ir",
-				tempDir.path().string() + "/input.sol"
-			},
+			{"solc", "--experimental", "--debug-info", "ethdebug", "--ethdebug-program", "--via-ir", tempDir.path().string() + "/input.sol"},
+		},
+		{
+			{"solc", "--experimental", "--debug-info", "ethdebug", "--ethdebug-program-runtime", "--via-ir", tempDir.path().string() + "/input.sol"},
+		},
+		{
+			{"solc", "--experimental", "--debug-info", "ethdebug", "--ethdebug-program", "--ethdebug-program-runtime", "--via-ir", tempDir.path().string() + "/input.sol"},
 		},
 		{
 			{"solc", "--experimental", "--debug-info", "ethdebug", "--strict-assembly", tempDir.path().string() + "/input.yul"},
-		},
-		{
-			{"solc", "--experimental", "--ethdebug", "--strict-assembly", tempDir.path().string() + "/input.yul"},
-		},
-		{
-			{
-				"solc",
-				"--experimental",
-				"--debug-info",
-				"ethdebug",
-				"--ethdebug",
-				"--ethdebug-runtime",
-				"--via-ir",
-				tempDir.path().string() + "/input.sol"
-			},
 		},
 	};
 
@@ -1626,56 +1540,57 @@ BOOST_AUTO_TEST_CASE(cli_ethdebug_ethdebug_output)
 	createFilesWithParentDirs({tempDir.path() / "input.sol"}, "pragma solidity >=0.0; contract C { function f() public pure {} }");
 	static std::vector<std::vector<std::string>> erroneousCLIFlagCombinations{
 		{
-			{"solc", "--experimental", "--ethdebug", "--ethdebug-runtime", "--via-ir", "--ir-optimized", "--optimize", tempDir.path().string() + "/input.sol"},
+			{"solc", "--experimental", "--ethdebug-program", "--ethdebug-program-runtime", "--via-ir", "--optimize", tempDir.path().string() + "/input.sol"},
 		},
 		{
-			{
-				"solc",
-				"--experimental",
-				"--ethdebug-runtime",
-				"--via-ir",
-				"--ir-optimized",
-				"--optimize",
-				tempDir.path().string() + "/input.sol"
-			},
+			{"solc", "--experimental", "--ethdebug-program-runtime", "--via-ir", "--optimize", tempDir.path().string() + "/input.sol"},
 		},
 		{
-			{"solc", "--experimental", "--ethdebug", "--via-ir", "--ir-optimized", "--optimize", tempDir.path().string() + "/input.sol"},
+			{"solc", "--experimental", "--ethdebug-program", "--via-ir", "--optimize", tempDir.path().string() + "/input.sol"},
 		},
 		{
-			{"solc", "--experimental", "--ethdebug", tempDir.path().string() + "/input.sol"},
+			{"solc", "--experimental", "--ethdebug-program", tempDir.path().string() + "/input.sol"},
 		},
 		{
-			{"solc", "--experimental", "--ethdebug", "--ethdebug-runtime", tempDir.path().string() + "/input.sol"},
+			{"solc", "--experimental", "--ethdebug-program", "--ethdebug-program-runtime", tempDir.path().string() + "/input.sol"},
 		},
 		{
-			{"solc", "--experimental", "--ethdebug-runtime", tempDir.path().string() + "/input.sol"},
+			{"solc", "--experimental", "--ethdebug-program-runtime", tempDir.path().string() + "/input.sol"},
 		},
 	};
 	static std::vector<std::vector<std::string>> supportedCLIFlagCombinations{
 		{
-			{"solc", "--experimental", "--ethdebug", "--via-ir", tempDir.path().string() + "/input.sol"},
+			{"solc", "--experimental", "--ethdebug-program", "--via-ir", tempDir.path().string() + "/input.sol"},
 		},
 		{
-			{"solc", "--experimental", "--ethdebug-runtime", "--via-ir", tempDir.path().string() + "/input.sol"},
+			{"solc", "--experimental", "--ethdebug-program-runtime", "--via-ir", tempDir.path().string() + "/input.sol"},
 		},
 		{
-			{"solc", "--experimental", "--ethdebug", "--ethdebug-runtime", "--via-ir", tempDir.path().string() + "/input.sol"},
+			{"solc", "--experimental", "--ethdebug-program", "--ethdebug-program-runtime", "--via-ir", tempDir.path().string() + "/input.sol"},
 		},
 		{
-			{"solc", "--experimental", "--ethdebug", "--via-ir", "--ir", tempDir.path().string() + "/input.sol"},
+			{"solc", "--experimental", "--ethdebug-program", "--via-ir", "--ir", tempDir.path().string() + "/input.sol"},
 		},
 		{
-			{"solc", "--experimental", "--ethdebug-runtime", "--via-ir", "--ir", tempDir.path().string() + "/input.sol"},
+			{"solc", "--experimental", "--ethdebug-program-runtime", "--via-ir", "--ir", tempDir.path().string() + "/input.sol"},
 		},
 		{
-			{"solc", "--experimental", "--ethdebug", "--ethdebug-runtime", "--via-ir", "--ir", tempDir.path().string() + "/input.sol"},
+			{"solc", "--experimental", "--ethdebug-program", "--ethdebug-program-runtime", "--via-ir", "--ir", tempDir.path().string() + "/input.sol"},
 		},
 		{
-			{"solc", "--experimental", "--ethdebug", "--via-ir", "--ir-optimized", tempDir.path().string() + "/input.sol"},
+			{"solc", "--experimental", "--ethdebug-program", "--via-ir", "--ir-optimized", tempDir.path().string() + "/input.sol"},
 		},
 		{
-			{"solc", "--experimental", "--ethdebug-runtime", "--via-ir", "--ir-optimized", tempDir.path().string() + "/input.sol"},
+			{"solc", "--experimental", "--ethdebug-program-runtime", "--via-ir", "--ir-optimized", tempDir.path().string() + "/input.sol"},
+		},
+		{
+			{"solc", "--experimental", "--ethdebug-resources", tempDir.path().string() + "/input.sol"},
+		},
+		{
+			{"solc", "--experimental", "--ethdebug-compilation", tempDir.path().string() + "/input.sol"},
+		},
+		{
+			{"solc", "--experimental", "--ethdebug-resources", "--ethdebug-compilation", tempDir.path().string() + "/input.sol"},
 		},
 	};
 

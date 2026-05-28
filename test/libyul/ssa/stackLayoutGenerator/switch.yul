@@ -21,23 +21,24 @@
 // graph[fontname="DejaVu Sans", rankdir=LR]
 // node[shape=box,fontname="DejaVu Sans"];
 //
-// Entry [label="Entry"];
+// Entry [label="Entry
+// spilled: {}"];
 // Entry -> Block0_0;
 // Block0_0 [label="\
 // IN: []\l\
 // \l\
 // [lit0]\l\
 // sload\l\
-// [v0]\l\
+// [v3]\l\
 // \l\
-// [v0, lit3, v0]\l\
+// [v3, lit4, v3]\l\
 // eq\l\
-// [v0, v1]\l\
+// [v3, v5]\l\
 // \l\
-// OUT: [v0, v1]\l\
+// OUT: [v3, v5]\l\
 // "];
 // Block0_0 -> Block0_0Exit;
-// Block0_0Exit [label="{ If v1 | { <0> Zero | <1> NonZero }}" shape=Mrecord];
+// Block0_0Exit [label="{ If v5 | { <0> Zero | <1> NonZero }}" shape=Mrecord];
 // Block0_0Exit:0 -> Block0_3 [style="solid"];
 // Block0_0Exit:1 -> Block0_2 [style="solid"];
 // Block0_2 [label="\
@@ -49,22 +50,22 @@
 // Block0_2Exit [label="Jump" shape=oval];
 // Block0_2Exit -> Block0_1 [style="solid"];
 // Block0_3 [label="\
-// IN: [v0]\l\
+// IN: [v3]\l\
 // \l\
-// [lit5, v0]\l\
+// [lit7, v3]\l\
 // eq\l\
-// [v2]\l\
+// [v8]\l\
 // \l\
-// OUT: [v2]\l\
+// OUT: [v8]\l\
 // "];
 // Block0_3 -> Block0_3Exit;
-// Block0_3Exit [label="{ If v2 | { <0> Zero | <1> NonZero }}" shape=Mrecord];
+// Block0_3Exit [label="{ If v8 | { <0> Zero | <1> NonZero }}" shape=Mrecord];
 // Block0_3Exit:0 -> Block0_5 [style="solid"];
 // Block0_3Exit:1 -> Block0_4 [style="solid"];
 // Block0_1 [label="\
-// IN: [phi0]\l\
+// IN: [phi10]\l\
 // \l\
-// [phi0, lit6]\l\
+// [phi10, lit14]\l\
 // sstore\l\
 // []\l\
 // \l\

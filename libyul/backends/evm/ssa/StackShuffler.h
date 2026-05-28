@@ -18,11 +18,14 @@
 
 #pragma once
 
-#include <libyul/backends/evm/ssa/LivenessAnalysis.h>
+#include <libyul/backends/evm/ssa/spill/SpillSet.h>
+
 #include <libyul/backends/evm/ssa/Stack.h>
+#include <libyul/backends/evm/ssa/StackSlotLiveness.h>
 
 #include <boost/container/flat_map.hpp>
 
+#include <range/v3/algorithm/contains.hpp>
 #include <range/v3/view/iota.hpp>
 #include <range/v3/view/map.hpp>
 #include <range/v3/view/transform.hpp>
@@ -35,14 +38,31 @@ namespace solidity::yul::ssa
 
 namespace detail
 {
+
+inline bool slotIsSpilled(StackSlot const& _slot, spill::SpillSet const* const _spilledVariables)
+{
+	return _spilledVariables && _slot.isValue() && _spilledVariables->isSpilled(_slot.value());
+}
+
+inline bool slotCanBeLoadedOrPushed(StackSlot const& _slot, spill::SpillSet const* const _spilledVariables)
+{
+	return Stack<>::canBeFreelyGenerated(_slot) || slotIsSpilled(_slot, _spilledVariables);
+}
+
 /// Contains information about the shuffling target, aggregates over args and live out to
 /// provide a lower bound for the slot distribution.
 struct Target
 {
-	Target(StackData const& _args, LivenessAnalysis::LivenessData const& _liveOut, std::size_t _targetSize);
+	Target(
+		StackData const& _args,
+		StackSlotLiveness const& _liveOut,
+		std::size_t _targetSize,
+		spill::SpillSet const* _spilledVariables = nullptr
+	);
 
 	StackData const& args;
-	LivenessAnalysis::LivenessData const& liveOut;
+	StackSlotLiveness const& liveOut;
+	spill::SpillSet const* const spilledVariables;
 	std::size_t const size;
 	std::size_t const tailSize;
 	boost::container::flat_map<StackSlot, size_t> minCount;
@@ -51,7 +71,7 @@ struct Target
 class State
 {
 public:
-	State(StackData const& _stackData, Target const& _target, std::size_t _reachableStackDepth);
+	State(StackData const& _stackData, Target const& _target, spill::SpillSet const* _spilledVariables, std::size_t _reachableStackDepth);
 
 	std::size_t size() const;
 	/// How many of `_slot` do we have on stack
@@ -124,9 +144,23 @@ public:
 		return ranges::views::iota(0u, std::min(m_stackData.size(), m_reachableStackDepth)) | ranges::views::transform([&](auto _i) { return StackOffset{m_stackData.size() - _i - 1}; });
 	}
 
+	/// Depth of the deepest arg slot incompatible with target or Nothing for no incompatibility in current state
+	std::optional<StackDepth> findDeepestIncorrectArgSlot() const;
+
+	bool slotCanBeLoadedOrPushed(StackSlot const& _slot) const
+	{
+		return detail::slotCanBeLoadedOrPushed(_slot, m_spilledVariables);
+	}
+
+	bool slotIsSpilled(StackSlot const& _slot) const
+	{
+		return detail::slotIsSpilled(_slot, m_spilledVariables);
+	}
+
 private:
 	StackData const& m_stackData;
 	Target const& m_target;
+	spill::SpillSet const* const m_spilledVariables;
 	std::size_t const m_reachableStackDepth;
 	boost::container::flat_map<StackSlot, size_t> m_histogramTail;
 	boost::container::flat_map<StackSlot, size_t> m_histogramArgs;
@@ -151,26 +185,33 @@ public:
 	[[nodiscard]] static StackShufflerResult shuffle(
 		Stack<Callback>& _stack,
 		StackData const& _args,
-		LivenessAnalysis::LivenessData const& _liveOut,
-		std::size_t _targetStackSize
+		StackSlotLiveness const& _liveOut,
+		std::size_t _targetStackSize,
+		spill::SpillSet const* const _spilledVariables = nullptr
 	)
 	{
-		detail::Target const target(_args, _liveOut, _targetStackSize);
-		yulAssert(_liveOut.size() <= target.size, "not enough tail space");
+		detail::Target const target(_args, _liveOut, _targetStackSize, _spilledVariables);
+		// If the caller has wired up a spill set, the shuffler can reduce the effective liveOut
+		// size by spilling; otherwise the liveOut must fit into the target up front.
+		if (!_spilledVariables)
+			yulAssert(_liveOut.size() <= target.size, "not enough tail space");
 		{
 			// check that all required values are on stack
-			detail::State const state(_stack.data(), target, ReachableStackDepth);
-			for (auto const& liveVariable: _liveOut | ranges::views::keys | ranges::views::transform(Slot::makeValueID))
-				yulAssert(_stack.canBeFreelyGenerated(liveVariable) || ranges::find(_stack.data(), liveVariable) != ranges::end(_stack.data()));
+			detail::State const state(_stack.data(), target, _spilledVariables, ReachableStackDepth);
+			for (auto const& liveSlot: _liveOut | ranges::views::keys)
+				yulAssert(
+					!_stack.canBeFreelyGenerated(liveSlot) &&
+					(ranges::contains(_stack.data(), liveSlot) || detail::slotIsSpilled(liveSlot, _spilledVariables))
+				);
 			for (auto const& arg: _args)
-				yulAssert(_stack.canBeFreelyGenerated(arg) || ranges::find(_stack.data(), arg) != ranges::end(_stack.data()));
+				yulAssert(detail::slotCanBeLoadedOrPushed(arg, _spilledVariables) || ranges::contains(_stack.data(), arg));
 		}
 
 		static std::size_t constexpr maxIterations = 1000;
 		std::size_t i = 0;
 		while (true)
 		{
-			detail::State const state(_stack.data(), target, ReachableStackDepth);
+			detail::State const state(_stack.data(), target, _spilledVariables, ReachableStackDepth);
 			auto result = shuffleStep(_stack, state);
 			if (result.status == StackShufflerResult::Status::Admissible)
 			{
@@ -224,13 +265,13 @@ private:
 				return {StackShufflerResult::Status::Continue};
 
 		// after this, all current slots are either in acceptable positions or at least dup-reachable
-		if (auto unreachableOffset = allNecessarySlotsReachableOrFinal(_stack, _state))
+		if (auto culprit = allNecessarySlotsReachableOrFinal(_stack, _state))
 		{
 			// !allNecessarySlotsReachableOrFinal(ops) ≡ ¬(∀s: reachable(s) ∨ final(s)) ≡ ∃s: ¬reachable(s) ∧ ¬final(s)
 			if (shrinkStack(_stack, _state))
 				return {StackShufflerResult::Status::Continue};
 
-			return {StackShufflerResult::Status::StackTooDeep, _stack[*unreachableOffset]};
+			return {StackShufflerResult::Status::StackTooDeep, _stack.top()};
 		}
 
 		// this will either grow the tail as needed, swap down something from args that needs to be in the tail,
@@ -269,6 +310,18 @@ private:
 		if (shrinkStack(_stack, _state))
 			return {StackShufflerResult::Status::Continue};
 
+		// if we couldn't shrink the stack we surface this failed state as stack too deep
+		for (StackOffset const offset: _state.stackRange() | ranges::views::reverse)
+		{
+			Slot const& candidate = _stack[offset];
+			if (
+				candidate.isValue() &&
+				!candidate.isLiteralValue() &&
+				!_state.slotIsSpilled(candidate)
+			)
+				return {StackShufflerResult::Status::StackTooDeep, candidate};
+		}
+
 		yulAssert(false, "reached final and forbidden state");
 	}
 
@@ -294,8 +347,8 @@ private:
 			int currentCount = static_cast<int>(_state.count(slot));
 
 			int liveOutCount = 0;
-			if (slot.isValueID() && _state.target().liveOut.contains(slot.valueID()))
-				liveOutCount = static_cast<int>(_state.target().liveOut.count(slot.valueID()));
+			if (slot.isValue() && _state.target().liveOut.contains(slot))
+				liveOutCount = static_cast<int>(_state.target().liveOut.count(slot));
 			int deficit = liveOutCount - currentCount;
 
 			// Update best if this deficit is higher
@@ -408,10 +461,10 @@ private:
 		if (_stack.size() < _state.target().tailSize)
 			return {ShuffleHelperResult::Status::NoAction};
 
+		StackOffset const stackTop{_stack.size() - 1};
 		// if we have at least one slot in the args section, try to fix something there
 		if (_stack.size() > _state.target().tailSize)
 		{
-			StackOffset const stackTop{_stack.size() - 1};
 			// if the stack top isn't where it likes to be right now, try to put it somewhere more sensible
 			if (!_state.isArgsCompatible(stackTop, stackTop))
 			{
@@ -468,7 +521,8 @@ private:
 			// swap up any slot in args that is out of position and has a slot available in args that it can occupy
 			for (StackOffset offset: _state.stackArgsRange())
 			{
-				bool const reachable = _stack.isValidSwapTarget(offset);
+				// when offset is already top no swap-up is needed, so it doesn't have to be a valid swap target itself
+				bool const reachable = !_stack.isBeyondSwapRange(offset);
 				bool const identical = _state.isArgsCompatible(offset, stackTop) && !_state.targetArbitrary(stackTop);
 				if (
 					reachable &&
@@ -479,7 +533,7 @@ private:
 					)
 				)
 				{
-					// for each `targetOffset` in target args, see if we can't swap the out of position `offset` to `targetOffset`
+					// for each `targetOffset` in stack args range, see if we can't swap the out of position `offset` to `targetOffset`
 					for (StackOffset targetOffset: _state.stackArgsRange())
 						if (
 							targetOffset != offset &&  // we shouldn't be looking at the very same offset
@@ -489,14 +543,59 @@ private:
 						)
 						{
 							if (offset != stackTop)
+							{
 								// swap up slot at offset
-									_stack.swap(offset);
+								_stack.swap(offset);
+							}
 							// bring slot at offset into fixed position
 							_stack.swap(targetOffset);
 							return {ShuffleHelperResult::Status::StackModified};
 						}
 				}
+
+				if (!_state.targetArbitrary(offset) && _stack.isValidSwapTarget(offset))
+				{
+					// for each `argOffset` in the stack args range, see if we can swap something into `offset`; reverse to prioritize shallow slots
+					for (StackOffset argOffset: _state.stackArgsRange() | ranges::views::reverse)
+					{
+						if (
+							!_state.isSourceCompatible(offset, argOffset) &&  // we're not looking at the same thing
+							!_stack.isBeyondSwapRange(argOffset) &&  // the target offset should not be beyond reach
+							_state.isArgsCompatible(argOffset, offset) && // we can put argOffset -> offset
+							_state.countReachable(_stack[argOffset]) > 1 &&  // we still have another reachable copy so a subsequent dup is recoverable
+							(  // we only get a strict improvement if
+								!_state.isArgsCompatible(argOffset, argOffset) ||  // either the argOffset isn't in position anyway
+								_stack.offsetToDepth(offset).value == ReachableStackDepth  // or offset is at the swap edge
+							)
+						)
+						{
+							if (argOffset != stackTop)
+							{
+								// swap up slot at offset
+								_stack.swap(argOffset);
+							}
+							// bring slot at offset into fixed position
+							_stack.swap(offset);
+							return {ShuffleHelperResult::Status::StackModified};
+						}
+					}
+				}
 			}
+			// If there were no other swapping opportunities, try fixing at least the top before we start pushing
+			// more stuff on stack
+			if (!_state.isArgsCompatible(stackTop, stackTop))
+				for (StackOffset offset: _state.stackArgsRange())
+					if (
+						offset != stackTop &&
+						_stack[offset] != _stack[stackTop] &&  // don't swap identical values (no-op)
+						_stack.isValidSwapTarget(offset) &&
+						!_state.isArgsCompatible(offset, offset) &&
+						_state.isArgsCompatible(offset, stackTop)
+					)
+					{
+						_stack.swap(offset);
+						return {ShuffleHelperResult::Status::StackModified};
+					}
 		}
 
 		// dup up whatever is missing
@@ -505,6 +604,8 @@ private:
 			if (auto result = dupDeepSlotIfRequired(_stack, _state); result.status != ShuffleHelperResult::Status::NoAction)
 				return result;
 
+			auto const maybeIncorrectArgSlotDepth = _state.findDeepestIncorrectArgSlot();
+			if (!maybeIncorrectArgSlotDepth || maybeIncorrectArgSlotDepth->value < ReachableStackDepth - 1)
 			{
 				StackOffset const targetOffset{_stack.size()};
 				if (_state.count(_state.targetArg(targetOffset)) < _state.targetMinCount(_state.targetArg(targetOffset)))
@@ -528,22 +629,27 @@ private:
 			for (StackOffset offset{_state.target().tailSize}; offset < _state.target().size; ++offset.value)
 			{
 				Slot const& arg = _state.targetArg(offset);
-				if (!arg.isJunk() && (_state.count(arg) < _state.targetMinCount(arg) || _state.countInArgs(arg) < _state.targetArgsCount(arg)))
+				// skip this arg, if
+				if (
+					arg.isJunk() ||  // .. the target arg is junk, it doesn't matter what slot occupies it, skip
+					_state.isArgsCompatible(offset, offset) ||  // .. it's already in place
+					(_state.count(arg) >= _state.targetMinCount(arg) && _state.countInArgs(arg) >= _state.targetArgsCount(arg))  // .. we have enough of it
+				)
+					continue;
+
+				if (auto sourceDepth = _stack.findSlotDepth(arg))
 				{
-					if (auto sourceDepth = _stack.findSlotDepth(arg))
+					if (_stack.dupReachable(*sourceDepth))
 					{
-						if (_stack.dupReachable(*sourceDepth))
-						{
-							_stack.dup(*sourceDepth);
-							return {ShuffleHelperResult::Status::StackModified};
-						}
-						if (!_stack.canBeFreelyGenerated(arg))
-							return {ShuffleHelperResult::Status::StackTooDeep, arg};
+						_stack.dup(*sourceDepth);
+						return {ShuffleHelperResult::Status::StackModified};
 					}
-					yulAssert(_stack.canBeFreelyGenerated(arg));
-					_stack.push(arg);
-					return {ShuffleHelperResult::Status::StackModified};
+					if (!_state.slotCanBeLoadedOrPushed(arg))
+						return {ShuffleHelperResult::Status::StackTooDeep, arg};
 				}
+				yulAssert(_state.slotCanBeLoadedOrPushed(arg));
+				_stack.push(arg);
+				return {ShuffleHelperResult::Status::StackModified};
 			}
 
 			// Try to dup the optimal slot based on liveness analysis
@@ -579,7 +685,7 @@ private:
 					}
 					else
 					{
-						if (!_stack.canBeFreelyGenerated(arg))
+						if (!_state.slotCanBeLoadedOrPushed(arg))
 							return {ShuffleHelperResult::Status::StackTooDeep, arg};
 						auto result = dupDeepSlotIfRequired(_stack, _state);
 						if (result.status == ShuffleHelperResult::Status::StackTooDeep)
@@ -629,8 +735,8 @@ private:
 				for (StackOffset tailOffset: _state.stackTailRange())
 					if (
 						_stack.isValidSwapTarget(tailOffset) &&
-						_stack.canBeFreelyGenerated(_stack[tailOffset]) &&
-						!_stack[tailOffset].isLiteralValueID()
+						_state.slotCanBeLoadedOrPushed(_stack[tailOffset]) &&
+						!_stack[tailOffset].isLiteralValue()
 					)
 					{
 						// bring up offset slot if necessary
@@ -644,7 +750,7 @@ private:
 				for (StackOffset tailOffset: _state.stackTailRange())
 					if (
 						_stack.isValidSwapTarget(tailOffset) &&
-						_stack[tailOffset].isLiteralValueID()
+						_stack[tailOffset].isLiteralValue()
 					)
 					{
 						// bring up offset slot if necessary
@@ -742,71 +848,84 @@ private:
 					}
 			}
 		}
-		// pop junk (but not if JUNK is exactly what's needed at that position)
-		for (StackOffset offset: _state.stackSwapReachableRange())
-			if (_stack[offset].isJunk() && !_state.isArgsCompatible(offset, offset))
+
+		{
+			auto const shrinkPriority = [&](StackOffset const _offset) -> std::uint32_t
 			{
-				if (offset != stackTop && _stack[offset] != _stack[stackTop])
-					_stack.swap(offset);
+				auto const& slot = _stack[_offset];
+				bool const notInPosition = !_state.isArgsCompatible(_offset, _offset);
+				bool const isJunk = slot.isJunk();
+				bool const hasSurplus = _state.count(slot) > _state.targetMinCount(slot);
+				bool const hasReachableDuplicate = _state.countReachable(slot) > 1;
+				bool const canBeFreelyGenerated = _stack.canBeFreelyGenerated(slot);
+				bool const isLit = slot.isLiteralValue();
+
+				if (isJunk && notInPosition)
+					return 5;
+				if (canBeFreelyGenerated && !isLit && notInPosition)
+					return 4;
+				if (hasSurplus)
+					return 3;
+				if (canBeFreelyGenerated)
+					return 2;
+				if (hasReachableDuplicate)
+					return 1;
+				return 0;
+			};
+			std::optional<StackOffset> slotToPop{std::nullopt};
+			std::uint32_t bestScore = 0;
+			for (StackOffset offset: _state.stackSwapReachableRange())
+				if (std::uint32_t const score = shrinkPriority(offset); score > bestScore)
+				{
+					bestScore = score;
+					slotToPop = offset;
+				}
+
+			if (slotToPop)
+			{
+				if (*slotToPop != stackTop && _stack[*slotToPop] != _stack[stackTop])
+					_stack.swap(*slotToPop);
 				_stack.pop();
 				return true;
 			}
 
-		// pop something that can be freely generated except for literals
-		// (but not if it's already in a compatible position)
-		for (StackOffset offset: _state.stackSwapReachableRange())
-			if (
-				_stack.canBeFreelyGenerated(_stack[offset]) &&
-				!_stack[offset].isLiteralValueID() &&
-				!_state.isArgsCompatible(offset, offset)
-			)
-			{
-				if (offset != stackTop && _stack[offset] != _stack[stackTop])
-					_stack.swap(offset);
-				_stack.pop();
-				return true;
-			}
+		}
 
-		// pop anything that isn't in position and we have more than one of
-		for (StackOffset offset: _state.stackSwapReachableRange())
-			if (_state.count(_stack[offset]) > _state.targetMinCount(_stack[offset]))
-			{
-				if (offset != stackTop && _stack[offset] != _stack[stackTop])
-					_stack.swap(offset);
-				_stack.pop();
-				return true;
-			}
-		// pop anything that can be freely generated
-		for (StackOffset offset: _state.stackSwapReachableRange())
-			if (_stack.canBeFreelyGenerated(_stack[offset]))
-			{
-				if (offset != stackTop && _stack[offset] != _stack[stackTop])
-					_stack.swap(offset);
-				_stack.pop();
-				return true;
-			}
 		return false;
 	}
 
-	/// Checks if all current slots are either in a position that is compatible with the target or, if not, are dup-reachable.
-	static std::optional<StackOffset> allNecessarySlotsReachableOrFinal(Stack<Callback> const& _stack, detail::State const& _state)
+	/// Checks if all current slots are either in a position that is compatible with the target or, if not, are
+	/// dup-reachable.
+	/// Returns the culprit slot (guaranteed to be non-junk) that cannot be placed or duplicated, or `std::nullopt`
+	/// if every slot is reachable-or-final.
+	static std::optional<StackSlot> allNecessarySlotsReachableOrFinal(Stack<Callback> const& _stack, detail::State const& _state)
 	{
 		// check that args are either in position or reachable
 		for (StackOffset offset{_state.target().tailSize}; offset < _state.target().size; ++offset.value)
 		{
 			if (_state.isArgsCompatible(offset, offset))
 				continue;
+
+			auto const& targetArg = _state.targetArg(offset);
+			// if the target arg is junk, we can simply push0 and it's fine
+			if (targetArg.isJunk())
+				continue;
+
+			// the target offset itself is out of swap range, we must shrink to reach it
+			if (offset.value < _stack.size() && _stack.isBeyondSwapRange(offset))
+				return targetArg;
+
 			// find first occurrence of the slot
-			std::optional<StackDepth> depth = _stack.findSlotDepth(_state.targetArg(offset));
+			std::optional<StackDepth> const depth = _stack.findSlotDepth(targetArg);
 			if (!depth)
 			{
 				// if there is no occurrence of the slot anywhere, we must be able to freely generate it
-				yulAssert(_stack.canBeFreelyGenerated(_state.targetArg(offset)));
+				yulAssert(_state.slotCanBeLoadedOrPushed(targetArg));
 			}
 			else
 			{
-				if (_stack.isBeyondSwapRange(*depth))
-					return _stack.depthToOffset(*depth);
+				if (_stack.isBeyondSwapRange(*depth) && !_state.slotCanBeLoadedOrPushed(targetArg))
+					return targetArg;
 			}
 		}
 		// distribution check: all we have to dup can be duped
@@ -823,13 +942,58 @@ private:
 				std::optional<StackDepth> depth = _stack.findSlotDepth(slotAtOffset);
 				// it must exist
 				yulAssert(depth);
-				if (!_stack.dupReachable(*depth))
-					return _stack.depthToOffset(*depth);
+				if (!_stack.dupReachable(*depth) && !_state.slotCanBeLoadedOrPushed(slotAtOffset))
+					return slotAtOffset;
 			}
 		}
 
 		return std::nullopt;
 	}
 };
+
+[[nodiscard]] inline StackShufflerResult shuffleWithSpillDiscovery(
+	StackData& _data,
+	StackData const& _args,
+	StackSlotLiveness const& _liveOut,
+	std::size_t const _targetStackSize,
+	spill::SpillSet& _spilledVariables
+)
+{
+	StackData const initialData = _data;
+	StackShufflerResult result;
+	do
+	{
+		_data = initialData;
+		Stack<> stack(_data, {});
+		result = StackShuffler<NoOpStackManipulationCallbacks>::shuffle(stack, _args, _liveOut, _targetStackSize, &_spilledVariables);
+		switch (result.status)
+		{
+		case StackShufflerResult::Status::Continue:
+			yulAssert(false);
+		case StackShufflerResult::Status::Admissible:
+			break;
+		case StackShufflerResult::Status::StackTooDeep:
+		{
+			yulAssert(result.culprit.isValue() && !result.culprit.isLiteralValue());
+			yulAssert(!_spilledVariables.isSpilled(result.culprit.value()));
+			_spilledVariables.add(result.culprit.value());
+			break;
+		}
+		case StackShufflerResult::Status::MaxIterationsReached:
+			break;
+		}
+	}
+	while (result.status == StackShufflerResult::Status::StackTooDeep);
+	return result;
+}
+
+[[nodiscard]] inline StackShufflerResult shuffleWithSpillDiscovery(
+	StackData& _data,
+	StackData const& _target,
+	spill::SpillSet& _spilledVariables)
+{
+	return shuffleWithSpillDiscovery(_data, _target, {}, _target.size(), _spilledVariables);
+}
+
 
 }

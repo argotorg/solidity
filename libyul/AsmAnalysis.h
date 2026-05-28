@@ -129,6 +129,8 @@ private:
 
 	void validateObjectStructure(langutil::SourceLocation const& _astRootLocation);
 
+	void warnIfFutureKeywordOrReservedIdentifier(YulName _identifier, langutil::SourceLocation const& _location);
+
 	yul::ExternalIdentifierAccess::Resolver m_resolver;
 	Scope* m_currentScope = nullptr;
 	/// Variables that are active at the current point in assembly (as opposed to

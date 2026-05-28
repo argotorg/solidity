@@ -88,6 +88,20 @@ We thoroughly review every PR and will help you get it right, but there are many
 
 Thank you for your help!
 
+AI-Assisted Contributions
+=========================
+
+We do not ban the use of AI tools, but we hold all contributions to the same high standard
+regardless of how they are produced, and we require full transparency about their use.
+
+Submitting AI-generated code means you have reviewed it, understand it, can explain it, and have
+tested it as thoroughly as if you had written it by hand.
+
+If you used AI tools to generate code, tests, or documentation in any part of your contribution,
+disclosure in the pull request is mandatory.
+If we determine that a PR contains undisclosed AI-generated content, we may close it.
+
+
 Running the Compiler Tests
 ==========================
 

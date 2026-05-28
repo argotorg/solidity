@@ -30,8 +30,12 @@ std::string slotToString(StackSlot const& _slot)
 {
 	switch (_slot.kind())
 	{
-	case StackSlot::Kind::ValueID:
-		return fmt::format("{}", _slot.valueID());
+	case StackSlot::Kind::Value:
+		if (_slot.isLiteralValue())
+			return fmt::format("lit{}", _slot.value().value);
+		if (_slot.isPhiValue())
+			return fmt::format("phi{}", _slot.value().value);
+		return fmt::format("{}", _slot.value());
 	case StackSlot::Kind::Junk:
 		return "JUNK";
 	case StackSlot::Kind::FunctionCallReturnLabel:
@@ -39,7 +43,7 @@ std::string slotToString(StackSlot const& _slot)
 	case StackSlot::Kind::FunctionReturnLabel:
 		return fmt::format("ReturnLabel[{}]", _slot.functionReturnLabel());
 	}
-	util::unreachable();
+	solidity::util::unreachable();
 }
 
 std::string stackToString(StackData const& _stackData)

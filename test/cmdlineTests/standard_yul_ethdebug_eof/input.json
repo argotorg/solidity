@@ -8,7 +8,7 @@
 		"eofVersion": 1,
 		"evmVersion": "osaka",
 		"outputSelection": {
-			"*": {"*": ["evm.bytecode.ethdebug", "evm.deployedBytecode.ethdebug", "ir", "irOptimized"]}
+			"*": {"*": ["evm.bytecode.ethdebug", "evm.deployedBytecode.ethdebug", "ir", "irOptimized", "ethdebug.resources"]}
 		}
 	}
 }

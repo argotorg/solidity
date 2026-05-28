@@ -6,7 +6,7 @@
 	"settings": {
 		"experimental": true,
 		"outputSelection": {
-			"*": {"*": ["evm.bytecode.ethdebug", "ir"]}
+			"*": {"*": ["evm.bytecode.ethdebug", "ir", "ethdebug.resources"]}
 		}
 	}
 }

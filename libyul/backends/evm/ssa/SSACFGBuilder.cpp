@@ -21,10 +21,7 @@
 
 #include <libyul/backends/evm/ssa/SSACFGBuilder.h>
 
-#include <libyul/backends/evm/ssa/transform/TrivialPhiEliminator.h>
-#include <libyul/backends/evm/ssa/transform/UnreachableBlockCleaner.h>
-
-#include <libyul/backends/evm/ssa/ControlFlow.h>
+#include <libyul/backends/evm/ssa/ControlFlowGraphs.h>
 
 #include <libyul/AST.h>
 #include <libyul/ControlFlowSideEffectsCollector.h>
@@ -48,51 +45,53 @@ using namespace solidity::yul;
 using namespace solidity::yul::ssa;
 
 SSACFGBuilder::SSACFGBuilder(
-	ControlFlow& _controlFlow,
+	ControlFlowGraphs& _controlFlow,
 	SSACFG& _graph,
 	AsmAnalysisInfo const& _analysisInfo,
 	ControlFlowSideEffectsCollector const& _sideEffects,
 	EVMDialect const& _dialect,
-	bool _keepLiteralAssignments,
-	bool _generateDebugInfo
+	bool _generateDebugInfo,
+	FunctionRegistry& _functionRegistry
 ):
 	m_controlFlow(_controlFlow),
 	m_graph(_graph),
 	m_info(_analysisInfo),
 	m_sideEffects(_sideEffects),
 	m_dialect(_dialect),
-	m_keepLiteralAssignments(_keepLiteralAssignments),
-	m_generateDebugInfo(_generateDebugInfo)
+	m_generateDebugInfo(_generateDebugInfo),
+	m_functionRegistry(_functionRegistry),
+	m_memoryGuardHandle([&] {
+		auto const memoryGuardHandle = m_dialect.findBuiltin("memoryguard");
+		yulAssert(memoryGuardHandle.has_value(), "We only support EVM dialects that contain memoryguard");
+		return *memoryGuardHandle;
+	}())
 {
 }
 
-std::unique_ptr<ControlFlow> SSACFGBuilder::build(
+std::unique_ptr<ControlFlowGraphs> SSACFGBuilder::build(
 	AsmAnalysisInfo const& _analysisInfo,
 	EVMDialect const& _dialect,
 	Block const& _block,
-	bool _keepLiteralAssignments,
 	bool _generateDebugInfo
 )
 {
 	ControlFlowSideEffectsCollector sideEffects(_dialect, _block);
 
-	auto controlFlow = std::make_unique<ControlFlow>();
-	controlFlow->functionGraphs.emplace_back(std::make_unique<SSACFG>(
+	auto controlFlowGraphs = std::make_unique<ControlFlowGraphs>();
+	controlFlowGraphs->functionGraphs.emplace_back(std::make_unique<SSACFG>(
 		_dialect,
 		_generateDebugInfo ? std::make_unique<SSACFGDebugInfo>() : nullptr
 	));
-	controlFlow->functionGraphMapping.emplace_back(nullptr, controlFlow->functionGraphs.back().get());
-	SSACFG& mainGraph = *controlFlow->functionGraphs.back();
-	SSACFGBuilder builder(*controlFlow, mainGraph, _analysisInfo, sideEffects, _dialect, _keepLiteralAssignments, _generateDebugInfo);
+	SSACFG& mainGraph = *controlFlowGraphs->functionGraphs.back();
+	FunctionRegistry functionRegistry;
+	SSACFGBuilder builder(*controlFlowGraphs, mainGraph, _analysisInfo, sideEffects, _dialect, _generateDebugInfo, functionRegistry);
 	builder.m_currentBlock = mainGraph.makeBlock(debugDataOf(_block));
 	builder.sealBlock(builder.m_currentBlock);
 	builder(_block);
 	if (!builder.blockInfo(builder.m_currentBlock).sealed)
 		builder.sealBlock(builder.m_currentBlock);
 	mainGraph.block(builder.m_currentBlock).exit = SSACFG::BasicBlock::MainExit{};
-	transform::cleanUnreachableBlocks(mainGraph);
-	transform::eliminateTrivialPhis(mainGraph);
-	return controlFlow;
+	return controlFlowGraphs;
 }
 
 
@@ -101,56 +100,52 @@ void SSACFGBuilder::buildFunctionGraph(
 	FunctionDefinition const* _functionDefinition
 )
 {
-	m_controlFlow.functionGraphs.emplace_back(std::make_unique<SSACFG>(
-		m_dialect,
-		m_generateDebugInfo ? std::make_unique<SSACFGDebugInfo>() : nullptr
-	));
-	auto& cfg = *m_controlFlow.functionGraphs.back();
-	m_controlFlow.functionGraphMapping.emplace_back(_function, &cfg);
+	// The graph slot and the FunctionGraphID have already been allocated in
+	// `registerFunctionDefinition`; this call builds the body into that slot.
+	auto const regIt = m_functionRegistry.find(_function);
+	yulAssert(regIt != m_functionRegistry.end(), "Function graph must be registered before building.");
+	auto& cfg = *m_controlFlow.functionGraphs[regIt->second.id];
 
 	yulAssert(m_info.scopes.at(&_functionDefinition->body), "");
 	Scope* virtualFunctionScope = m_info.scopes.at(m_info.virtualBlocks.at(_functionDefinition).get()).get();
 	yulAssert(virtualFunctionScope, "");
 
 	cfg.entry = cfg.makeBlock(debugDataOf(_functionDefinition->body));
-	auto arguments = _functionDefinition->parameters | ranges::views::transform([&](auto const& _param) {
+	auto argumentBindings = _functionDefinition->parameters | ranges::views::transform([&](auto const& _param) {
 		auto const& var = std::get<Scope::Variable>(virtualFunctionScope->identifiers.at(_param.name));
 		// Note: cannot use std::make_tuple since it unwraps reference wrappers.
-		return std::tuple{std::cref(var), cfg.newVariable(cfg.entry)};
+		return std::tuple{std::cref(var), cfg.newFunctionArgument()};
 	}) | ranges::to<std::vector>;
-	auto returns = _functionDefinition->returnVariables | ranges::views::transform([&](auto const& _param) {
+	auto returnVars = _functionDefinition->returnVariables | ranges::views::transform([&](auto const& _param) {
 		return std::cref(std::get<Scope::Variable>(virtualFunctionScope->identifiers.at(_param.name)));
-	}) | ranges::to<std::vector>;
+	}) | ranges::to<std::vector<std::reference_wrapper<Scope::Variable const>>>();
 
 	if (cfg.debugInfo)
 		cfg.debugInfo->graphDebugData = _functionDefinition->debugData;
-	cfg.function = _function;
 	cfg.canContinue = m_sideEffects.functionSideEffects().at(_functionDefinition).canContinue;
-	cfg.arguments = arguments;
-	cfg.returns = returns;
+	cfg.arguments = argumentBindings
+		| ranges::views::transform([](auto const& _binding) { return std::get<1>(_binding); })
+		| ranges::to<std::vector>;
 
-	SSACFGBuilder builder(m_controlFlow, cfg, m_info, m_sideEffects, m_dialect, m_keepLiteralAssignments, m_generateDebugInfo);
+	SSACFGBuilder builder(m_controlFlow, cfg, m_info, m_sideEffects, m_dialect, m_generateDebugInfo, m_functionRegistry);
 	builder.m_currentBlock = cfg.entry;
-	builder.m_functionDefinitions = m_functionDefinitions;
-	for (auto&& [var, varId]: cfg.arguments)
+	builder.m_currentReturnVars = returnVars;
+	for (auto&& [var, varId]: argumentBindings)
 		builder.currentDef(var, cfg.entry) = varId;
-	for (auto const& var: cfg.returns)
+	for (auto const& var: returnVars)
 		builder.currentDef(var.get(), cfg.entry) = builder.zero();
 	builder.sealBlock(cfg.entry);
 	builder(_functionDefinition->body);
 	cfg.exits.insert(builder.m_currentBlock);
 	// Artificial explicit function exit (`leave`) at the end of the body.
 	builder(Leave{debugDataOf(*_functionDefinition)});
-	transform::cleanUnreachableBlocks(cfg);
-	transform::eliminateTrivialPhis(cfg);
 }
 
 void SSACFGBuilder::operator()(ExpressionStatement const& _expressionStatement)
 {
 	auto const* functionCall = std::get_if<FunctionCall>(&_expressionStatement.expression);
 	yulAssert(functionCall);
-	auto results = visitFunctionCall(*functionCall);
-	yulAssert(results.empty());
+	visitFunctionCall(*functionCall);
 }
 
 void SSACFGBuilder::operator()(Assignment const& _assignment)
@@ -235,23 +230,15 @@ void SSACFGBuilder::operator()(Switch const& _switch)
 	std::optional<BuiltinHandle> equalityBuiltinHandle = m_dialect.equalityFunctionHandle();
 	yulAssert(equalityBuiltinHandle);
 
+	auto const& equalityBuiltin = m_dialect.builtin(*equalityBuiltinHandle);
 	auto makeValueCompare = [&](Case const& _case) {
-		FunctionCall const& ghostCall = m_graph.ghostCalls.emplace_back(FunctionCall{
-			debugDataOf(_case),
-			BuiltinName{{}, *equalityBuiltinHandle},
-			{*_case.value /* skip second argument */ }
-		});
-		auto outputValue = m_graph.newVariable(m_currentBlock);
-		auto opId = m_graph.makeOperation(SSACFG::Operation{
-			{outputValue},
-			SSACFG::BuiltinCall{
-				m_dialect.builtin(*equalityBuiltinHandle),
-				ghostCall
-			},
-			{m_graph.newLiteral(debugDataOf(_case), _case.value->value.value()), expression}
-		}, debugDataOf(_case));
-		currentBlock().operations.emplace_back(opId);
-		return outputValue;
+		return m_graph.makeBuiltinCallWithProjections(
+			m_currentBlock,
+			SSACFG::BuiltinCall{*equalityBuiltinHandle, {}},
+			{m_graph.newLiteral(debugDataOf(_case), _case.value->value.value()), expression},
+			static_cast<InstructionStore::NumReturnsSizeType>(equalityBuiltin.numReturns),
+			debugDataOf(_case)
+		);
 	};
 
 	auto afterSwitch = m_graph.makeBlock(currentBlockDebugData());
@@ -369,7 +356,7 @@ void SSACFGBuilder::operator()(Leave const& _leaveStatement)
 	if (m_graph.debugInfo)
 		m_graph.debugInfo->setExitDebugData(m_currentBlock, debugDataOf(_leaveStatement));
 	currentBlock().exit = SSACFG::BasicBlock::FunctionReturn{
-		m_graph.returns | ranges::views::transform([&](auto _var) {
+		m_currentReturnVars | ranges::views::transform([&](auto _var) {
 			return readVariable(_var, m_currentBlock);
 		}) | ranges::to<std::vector>
 	};
@@ -383,8 +370,18 @@ void SSACFGBuilder::registerFunctionDefinition(FunctionDefinition const& _functi
 	auto const it = m_scope->identifiers.find(_functionDefinition.name);
 	yulAssert(it != m_scope->identifiers.end(), "");
 	auto& function = std::get<Scope::Function>(it->second);
-	m_graph.functions.emplace_back(function);
-	m_functionDefinitions.emplace_back(&function, &_functionDefinition);
+
+	// Allocate the graph slot up front so sibling functions (and mutually-recursive pairs) can
+	// reference this function by its FunctionGraphID when their bodies are built later.
+	m_controlFlow.functionGraphs.emplace_back(std::make_unique<SSACFG>(
+		m_dialect,
+		m_generateDebugInfo ? std::make_unique<SSACFGDebugInfo>() : nullptr
+	));
+	auto const graphID = static_cast<FunctionGraphID>(m_controlFlow.functionGraphs.size() - 1);
+	auto& cfg = *m_controlFlow.functionGraphs.back();
+	cfg.name = function.name.str();
+	cfg.numReturns = _functionDefinition.returnVariables.size();
+	m_functionRegistry[&function] = {graphID, &_functionDefinition};
 }
 
 void SSACFGBuilder::operator()(Block const& _block)
@@ -401,102 +398,134 @@ void SSACFGBuilder::operator()(Block const& _block)
 		std::visit(*this, statement);
 }
 
-SSACFG::ValueId SSACFGBuilder::operator()(FunctionCall const& _call)
+InstId SSACFGBuilder::operator()(FunctionCall const& _call)
 {
-	auto results = visitFunctionCall(_call);
-	yulAssert(results.size() == 1);
-	return results.front();
+	// Single-output expression context: the call's InstId is itself the value handle.
+	return visitFunctionCall(_call);
 }
 
-SSACFG::ValueId SSACFGBuilder::operator()(Identifier const& _identifier)
+InstId SSACFGBuilder::operator()(Identifier const& _identifier)
 {
 	auto const& var = lookupVariable(_identifier.name);
 	return readVariable(var, m_currentBlock);
 }
 
-SSACFG::ValueId SSACFGBuilder::operator()(Literal const& _literal)
+InstId SSACFGBuilder::operator()(Literal const& _literal)
 {
 	return m_graph.newLiteral(currentBlockDebugData(), _literal.value.value());
 }
 
 void SSACFGBuilder::assign(std::vector<std::reference_wrapper<Scope::Variable const>> _variables, Expression const* _expression)
 {
-	auto rhs = [&]() -> std::vector<SSACFG::ValueId> {
-		if (auto const* functionCall = std::get_if<FunctionCall>(_expression))
-			return visitFunctionCall(*functionCall);
-		if (_expression)
-			return {std::visit(*this, *_expression)};
-		return {_variables.size(), zero()};
-	}();
-	yulAssert(rhs.size() == _variables.size());
-
-	for (auto const& [var, value]: ranges::zip_view(_variables, rhs))
+	if (auto const* functionCall = std::get_if<FunctionCall>(_expression))
 	{
-		if (m_keepLiteralAssignments && value.isLiteral())
+		InstId const callId = visitFunctionCall(*functionCall);
+		if (m_graph.isUnreachable(callId))
 		{
-			SSACFG::Operation assignment{
-				.outputs = {m_graph.newVariable(m_currentBlock)},
-				.kind = SSACFG::LiteralAssignment{},
-				.inputs = {value}
-			};
-			auto opId = m_graph.makeOperation(std::move(assignment));
-			currentBlock().operations.emplace_back(opId);
-			writeVariable(var, m_currentBlock, m_graph.operation(opId).outputs.back());
+			// The callee did not continue: post-call block is unreachable. Bind variables to unreachable.
+			for (auto const& var: _variables)
+				writeVariable(var, m_currentBlock, callId);
 		}
 		else
-			writeVariable(var, m_currentBlock, value);
+		{
+			yulAssert(m_graph.numReturnsOf(callId) == _variables.size());
+			auto const outputs = m_graph.outputsOf(callId);
+			yulAssert(outputs.size() == _variables.size());
+			for (auto const& [var, output]: ranges::views::zip(_variables, outputs))
+				writeVariable(var, m_currentBlock, output);
+		}
+		return;
 	}
-
+	auto const rhs = _expression ?
+		std::vector{std::visit(*this, *_expression)} :
+		std::vector(_variables.size(), zero());
+	yulAssert(rhs.size() == _variables.size());
+	for (auto const& [var, value]: ranges::zip_view(_variables, rhs))
+		writeVariable(var, m_currentBlock, value);
 }
 
-std::vector<SSACFG::ValueId> SSACFGBuilder::visitFunctionCall(FunctionCall const& _call)
+InstId SSACFGBuilder::visitFunctionCall(FunctionCall const& _call)
 {
 	bool canContinue = true;
-	SSACFG::Operation operation = std::visit(util::GenericVisitor{
-		[&](BuiltinName const& _builtinName)
+	InstId const id = std::visit(solidity::util::GenericVisitor{
+		[&](BuiltinName const& _builtinName) -> InstId
 		{
+			// memoryguard(N) is represented as a dedicated MemoryGuard Inst; the boundary value lives in the
+			// corresponding ControlFlowGraphs instance
+			if (_builtinName.handle == m_memoryGuardHandle)
+			{
+				yulAssert(_call.arguments.size() == 1);
+				Literal const* literal = std::get_if<Literal>(&_call.arguments.front());
+				yulAssert(literal && literal->kind == LiteralKind::Number);
+				u256 const value = literal->value.value();
+				if (m_controlFlow.memoryGuard)
+					yulAssert(
+						*m_controlFlow.memoryGuard == value,
+						"memoryguard: inconsistent literal across subobject"
+					);
+				else
+					m_controlFlow.memoryGuard = value;
+				canContinue = m_dialect.builtin(m_memoryGuardHandle).controlFlowSideEffects.canContinue;
+				return m_graph.makeMemoryGuard(m_currentBlock, debugDataOf(_call));
+			}
+
 			auto const& builtin = m_dialect.builtin(_builtinName.handle);
-			SSACFG::Operation result{{}, SSACFG::BuiltinCall{builtin, _call}, {}};
+			yulAssert(_call.arguments.size() == builtin.numParameters);
+			std::vector<Literal> literalArguments;
+			for (auto&& [kind, arg]: ranges::views::zip(builtin.literalArguments, _call.arguments))
+				if (kind.has_value())
+				{
+					yulAssert(std::holds_alternative<Literal>(arg));
+					literalArguments.emplace_back(std::get<Literal>(arg));
+				}
+			std::vector<InstId> inputs;
 			for (auto&& [idx, arg]: _call.arguments | ranges::views::enumerate | ranges::views::reverse)
 				if (!builtin.literalArgument(idx).has_value())
-					result.inputs.emplace_back(std::visit(*this, arg));
-			for (size_t i = 0; i < builtin.numReturns; ++i)
-				result.outputs.emplace_back(m_graph.newVariable(m_currentBlock));
+					inputs.emplace_back(std::visit(*this, arg));
 			canContinue = builtin.controlFlowSideEffects.canContinue;
-			return result;
+			return m_graph.makeBuiltinCallWithProjections(
+				m_currentBlock,
+				SSACFG::BuiltinCall{_builtinName.handle, std::move(literalArguments)},
+				std::move(inputs),
+				static_cast<InstructionStore::NumReturnsSizeType>(builtin.numReturns),
+				debugDataOf(_call)
+			);
 		},
-		[&](Identifier const& _identifier)
+		[&](Identifier const& _identifier) -> InstId
 		{
 			YulName const& functionName = _identifier.name;
 			Scope::Function const& function = lookupFunction(functionName);
-			auto const* definition = findFunctionDefinition(&function);
-			yulAssert(definition);
-			canContinue = m_sideEffects.functionSideEffects().at(definition).canContinue;
-			SSACFG::Operation result{{}, SSACFG::Call{function, _call, canContinue}, {}};
+			auto const calleeIt = m_functionRegistry.find(&function);
+			yulAssert(calleeIt != m_functionRegistry.end(), "Called function has no registered graph id.");
+			canContinue = m_sideEffects.functionSideEffects().at(calleeIt->second.definition).canContinue;
+			std::vector<InstId> inputs;
 			for (auto const& arg: _call.arguments | ranges::views::reverse)
-				result.inputs.emplace_back(std::visit(*this, arg));
-			for (size_t i = 0; i < function.numReturns; ++i)
-				result.outputs.emplace_back(m_graph.newVariable(m_currentBlock));
-			return result;
+				inputs.emplace_back(std::visit(*this, arg));
+			return m_graph.makeCallWithProjections(
+				m_currentBlock,
+				SSACFG::Call{calleeIt->second.id, canContinue, function.numReturns},
+				std::move(inputs),
+				static_cast<InstructionStore::NumReturnsSizeType>(function.numReturns),
+				debugDataOf(_call)
+			);
 		}
 	}, _call.functionName);
-	auto results = operation.outputs;
-	currentBlock().operations.emplace_back(m_graph.makeOperation(std::move(operation), debugDataOf(_call)));
-	if (!canContinue)
-	{
-		currentBlock().exit = SSACFG::BasicBlock::Terminated{};
-		m_currentBlock = m_graph.makeBlock(currentBlockDebugData());
-		sealBlock(m_currentBlock);
-	}
-	return results;
+	if (canContinue)
+		return id;
+	// `id` lives in the now-Terminated call block and won't dominate the successor,
+	// so terminate, open a fresh successor and signal non-continuation via unreachableValue.
+	currentBlock().exit = SSACFG::BasicBlock::Terminated{};
+	m_currentBlock = m_graph.makeBlock(currentBlockDebugData());
+	sealBlock(m_currentBlock);
+	return m_graph.unreachableValue();
 }
 
-SSACFG::ValueId SSACFGBuilder::zero()
+InstId SSACFGBuilder::zero()
 {
 	return m_graph.newLiteral(currentBlockDebugData(), 0u);
 }
 
-SSACFG::ValueId SSACFGBuilder::readVariable(Scope::Variable const& _variable, SSACFG::BlockId _block)
+InstId SSACFGBuilder::readVariable(Scope::Variable const& _variable, SSACFG::BlockId _block)
 {
 	auto const& def = currentDef(_variable, _block);
 	if (def.hasValue())
@@ -504,17 +533,16 @@ SSACFG::ValueId SSACFGBuilder::readVariable(Scope::Variable const& _variable, SS
 	return readVariableRecursive(_variable, _block);
 }
 
-SSACFG::ValueId SSACFGBuilder::readVariableRecursive(Scope::Variable const& _variable, SSACFG::BlockId _block)
+InstId SSACFGBuilder::readVariableRecursive(Scope::Variable const& _variable, SSACFG::BlockId _block)
 {
 	auto& block = m_graph.block(_block);
 	auto& info = blockInfo(_block);
 
-	SSACFG::ValueId val;
+	InstId val;
 	if (!info.sealed)
 	{
 		// incomplete block: create a phi and defer upsilon emission until the block is sealed
 		val = m_graph.newPhi(_block);
-		block.phis.push_back(val);
 		info.incompletePhis.emplace_back(val, _variable);
 	}
 	else if (block.entries.size() == 1)
@@ -524,7 +552,6 @@ SSACFG::ValueId SSACFGBuilder::readVariableRecursive(Scope::Variable const& _var
 	{
 		// Break potential cycles with an argument-less phi; emit upsilons for all predecessors.
 		val = m_graph.newPhi(_block);
-		block.phis.push_back(val);
 		writeVariable(_variable, _block, val);
 		addPhiOperands(_variable, val);
 	}
@@ -532,22 +559,23 @@ SSACFG::ValueId SSACFGBuilder::readVariableRecursive(Scope::Variable const& _var
 	return val;
 }
 
-void SSACFGBuilder::addPhiOperands(Scope::Variable const& _variable, SSACFG::ValueId _phi)
+void SSACFGBuilder::addPhiOperands(Scope::Variable const& _variable, InstId _phi)
 {
-	for (auto const& pred: m_graph.block(m_graph.phiInfo(_phi).block).entries)
+	SSACFG::BlockId const phiBlock = m_graph.inst(_phi).block;
+	for (auto const& pred: m_graph.block(phiBlock).entries)
 	{
 		auto const val = readVariable(_variable, pred);
 		emitUpsilon(pred, val, _phi);
 	}
 }
 
-void SSACFGBuilder::emitUpsilon(SSACFG::BlockId _block, SSACFG::ValueId _value, SSACFG::ValueId _phi)
+void SSACFGBuilder::emitUpsilon(SSACFG::BlockId _block, InstId _value, InstId _phi)
 {
-	yulAssert(_phi.isPhi());
-	m_graph.block(_block).upsilons.emplace_back(SSACFG::Upsilon{_value, _phi});
+	yulAssert(m_graph.isPhi(_phi));
+	m_graph.emitUpsilon(_block, _value, _phi);
 }
 
-void SSACFGBuilder::writeVariable(Scope::Variable const& _variable, SSACFG::BlockId _block, SSACFG::ValueId _value)
+void SSACFGBuilder::writeVariable(Scope::Variable const& _variable, SSACFG::BlockId _block, InstId _value)
 {
 	currentDef(_variable, _block) = _value;
 }
@@ -555,7 +583,7 @@ void SSACFGBuilder::writeVariable(Scope::Variable const& _variable, SSACFG::Bloc
 Scope::Function const& SSACFGBuilder::lookupFunction(YulName _name) const
 {
 	Scope::Function const* function = nullptr;
-	yulAssert(m_scope->lookup(_name, util::GenericVisitor{
+	yulAssert(m_scope->lookup(_name, solidity::util::GenericVisitor{
 		[](Scope::Variable&) { yulAssert(false, "Expected function name."); },
 		[&](Scope::Function& _function) { function = &_function; }
 	}), "Function name not found.");
@@ -567,7 +595,7 @@ Scope::Variable const& SSACFGBuilder::lookupVariable(YulName _name) const
 {
 	yulAssert(m_scope, "");
 	Scope::Variable const* var = nullptr;
-	if (m_scope->lookup(_name, util::GenericVisitor{
+	if (m_scope->lookup(_name, solidity::util::GenericVisitor{
 		[&](Scope::Variable const& _var) { var = &_var; },
 		[](Scope::Function const&)
 		{
@@ -594,7 +622,7 @@ void SSACFGBuilder::sealBlock(SSACFG::BlockId _block)
 
 void SSACFGBuilder::conditionalJump(
 	langutil::DebugData::ConstPtr _debugData,
-	SSACFG::ValueId _condition,
+	InstId _condition,
 	SSACFG::BlockId _nonZero,
 	SSACFG::BlockId _zero
 )
@@ -624,13 +652,3 @@ void SSACFGBuilder::jump(
 	m_currentBlock = _target;
 }
 
-FunctionDefinition const* SSACFGBuilder::findFunctionDefinition(Scope::Function const* _function) const
-{
-	auto it = ranges::find_if(
-			m_functionDefinitions,
-			[&_function](auto const& _entry) { return std::get<0>(_entry) == _function; }
-		);
-	if (it != m_functionDefinitions.end())
-		return std::get<1>(*it);
-	return nullptr;
-}

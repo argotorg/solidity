@@ -26,21 +26,23 @@
         }
     },
     "ethdebug": {
-        "compilation": {
-            "compiler": {
-                "name": "solc",
-                "version": "<VERSION REMOVED>"
-            },
-            "sources": [
-                {
-                    "id": 0,
-                    "path": "a.sol"
+        "resources": {
+            "compilation": {
+                "compiler": {
+                    "name": "solc",
+                    "version": "<VERSION REMOVED>"
                 },
-                {
-                    "id": 1,
-                    "path": "b.sol"
-                }
-            ]
+                "sources": [
+                    {
+                        "id": 0,
+                        "path": "a.sol"
+                    },
+                    {
+                        "id": 1,
+                        "path": "b.sol"
+                    }
+                ]
+            }
         }
     },
     "sources": {

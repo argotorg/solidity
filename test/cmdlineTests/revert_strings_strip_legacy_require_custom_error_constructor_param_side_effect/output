@@ -1,0 +1,271 @@
+
+======= input.sol:C =======
+EVM assembly:
+  mstore(0x40, 0x80)
+  0x00
+  0x00
+  sstore
+  callvalue
+  dup1
+  iszero
+  tag_1
+  jumpi
+  revert(0x00, 0x00)
+tag_1:
+  pop
+  dataSize(sub_0)
+  dup1
+  dataOffset(sub_0)
+  0x00
+  codecopy
+  0x00
+  return
+stop
+
+sub_0: assembly {
+      mstore(0x40, 0x80)
+      callvalue
+      dup1
+      iszero
+      tag_1
+      jumpi
+      revert(0x00, 0x00)
+    tag_1:
+      pop
+      jumpi(tag_2, lt(calldatasize, 0x04))
+      shr(0xe0, calldataload(0x00))
+      dup1
+      0x06661abd
+      eq
+      tag_3
+      jumpi
+      dup1
+      0x26121ff0
+      eq
+      tag_4
+      jumpi
+      dup1
+      0x61bc221a
+      eq
+      tag_5
+      jumpi
+    tag_2:
+      revert(0x00, 0x00)
+    tag_3:
+      tag_6
+      tag_7
+      jump	// in
+    tag_6:
+      mload(0x40)
+      swap1
+      dup2
+      mstore
+      0x20
+      add
+      mload(0x40)
+      dup1
+      swap2
+      sub
+      swap1
+      return
+    tag_4:
+      tag_10
+      tag_11
+      jump	// in
+    tag_10:
+      stop
+    tag_5:
+      tag_6
+      sload(0x00)
+      dup2
+      jump
+    tag_7:
+      0x00
+      0x00
+      0x00
+      dup2
+      sload
+      tag_16
+      swap1
+      tag_17
+      jump	// in
+    tag_16:
+      swap2
+      dup3
+      swap1
+      sstore
+      pop
+      swap2
+      swap1
+      pop
+      jump	// out
+    tag_11:
+      0x40
+      dup1
+      mload
+      dup1
+      dup3
+      add
+      swap1
+      swap2
+      mstore
+      0x05
+      dup2
+      mstore
+      shl(0xd9, 0x32b93937b9)
+      0x20
+      dup3
+      add
+      mstore
+      0x00
+      tag_19
+      tag_7
+      jump	// in
+    tag_19:
+      dup3
+      swap1
+      swap2
+      tag_20
+      jumpi
+      mload(0x40)
+      shl(0xe1, 0x05c9a271)
+      dup2
+      mstore
+      0x04
+      add
+      tag_21
+      swap3
+      swap2
+      swap1
+      tag_22
+      jump	// in
+    tag_21:
+      mload(0x40)
+      dup1
+      swap2
+      sub
+      swap1
+      revert
+    tag_20:
+      pop
+      pop
+      0x02
+      0x00
+      0x00
+      dup3
+      dup3
+      sload
+      tag_23
+      swap2
+      swap1
+      tag_24
+      jump	// in
+    tag_23:
+      swap1
+      swap2
+      sstore
+      pop
+      pop
+      pop
+      jump	// out
+    tag_25:
+      0x4e487b71
+      0xe0
+      shl
+      0x00
+      mstore
+      0x11
+      0x04
+      mstore
+      0x24
+      0x00
+      revert
+    tag_17:
+      0x00
+      0x01
+      dup3
+      add
+      tag_31
+      jumpi
+      tag_31
+      tag_25
+      jump	// in
+    tag_31:
+      pop
+      0x01
+      add
+      swap1
+      jump	// out
+    tag_22:
+      dup3
+      dup2
+      mstore
+      0x40
+      0x20
+      dup3
+      add
+      mstore
+      0x00
+      dup3
+      mload
+      dup1
+      0x40
+      dup5
+      add
+      mstore
+      dup1
+      0x20
+      dup6
+      add
+      0x60
+      dup6
+      add
+      mcopy
+      0x00
+      0x60
+      dup3
+      dup6
+      add
+      add
+      mstore
+      0x60
+      0x1f
+      not
+      0x1f
+      dup4
+      add
+      and
+      dup5
+      add
+      add
+      swap2
+      pop
+      pop
+      swap4
+      swap3
+      pop
+      pop
+      pop
+      jump	// out
+    tag_24:
+      dup1
+      dup3
+      add
+      dup1
+      dup3
+      gt
+      iszero
+      tag_35
+      jumpi
+      tag_35
+      tag_25
+      jump	// in
+    tag_35:
+      swap3
+      swap2
+      pop
+      pop
+      jump	// out
+
+    auxdata: <AUXDATA REMOVED>
+}

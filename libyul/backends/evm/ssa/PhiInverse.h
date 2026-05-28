@@ -35,12 +35,12 @@ public:
 
 	/// whether the transform is guaranteed to be a no-op, ie, there is no phi function in `_to`
 	bool noOp() const;
-	SSACFG::ValueId operator()(SSACFG::ValueId _valueId) const;
+	InstId operator()(InstId _valueId) const;
 
-	std::map<SSACFG::ValueId, SSACFG::ValueId> const& data() const;
+	std::map<InstId, InstId> const& data() const;
 
 private:
-	std::map<SSACFG::ValueId, SSACFG::ValueId> m_phiToPreImage = {};
+	std::map<InstId, InstId> m_phiToPreImage = {};
 };
 
 }

@@ -123,6 +123,11 @@ Json EVMAssemblyStack::ethdebug() const
 	return {};
 }
 
+Json EVMAssemblyStack::ethdebugCompilation() const
+{
+	return {};
+}
+
 Json EVMAssemblyStack::assemblyJSON() const
 {
 	solAssert(m_evmAssembly);

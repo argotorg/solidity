@@ -1,1 +1,1 @@
---experimental --via-ssa-cfg --ethdebug
+--experimental --via-ssa-cfg --ethdebug-program --ethdebug-compilation

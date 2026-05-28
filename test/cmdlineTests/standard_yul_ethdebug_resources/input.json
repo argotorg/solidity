@@ -1,0 +1,12 @@
+{
+	"language": "Yul",
+	"sources": {
+		"C": {"urls": ["in.yul"]}
+	},
+	"settings": {
+		"experimental": true,
+		"outputSelection": {
+			"*": {"*": ["ethdebug.resources"]}
+		}
+	}
+}

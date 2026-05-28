@@ -1,0 +1,18 @@
+{
+    "ethdebug": {
+        "resources": {
+            "compilation": {
+                "compiler": {
+                    "name": "solc",
+                    "version": "<VERSION REMOVED>"
+                },
+                "sources": [
+                    {
+                        "id": 0,
+                        "path": "C"
+                    }
+                ]
+            }
+        }
+    }
+}

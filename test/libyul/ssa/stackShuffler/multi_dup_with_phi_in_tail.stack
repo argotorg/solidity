@@ -9,10 +9,7 @@ targetStackTop: [JUNK, v5, JUNK, v1, v2, JUNK, JUNK, JUNK, JUNK, phi1, JUNK, v3,
 //          POP|      *     v6      *     v1     v2      *      *      *      *   phi1      *     v3   phi2     v4     v5
 //    PUSH lit2|      *     v6      *     v1     v2      *      *      *      *   phi1      *     v3   phi2     v4     v5   lit2
 //         DUP2|      *     v6      *     v1     v2      *      *      *      *   phi1      *     v3   phi2     v4     v5   lit2     v5
-//    PUSH lit3|      *     v6      *     v1     v2      *      *      *      *   phi1      *     v3   phi2     v4     v5   lit2     v5   lit3
-//         DUP2|      *     v6      *     v1     v2      *      *      *      *   phi1      *     v3   phi2     v4     v5   lit2     v5   lit3     v5
-//        SWAP1|      *     v6      *     v1     v2      *      *      *      *   phi1      *     v3   phi2     v4     v5   lit2     v5     v5   lit3
-//          POP|      *     v6      *     v1     v2      *      *      *      *   phi1      *     v3   phi2     v4     v5   lit2     v5     v5
+//         DUP1|      *     v6      *     v1     v2      *      *      *      *   phi1      *     v3   phi2     v4     v5   lit2     v5     v5
 //       SWAP16|      *     v5      *     v1     v2      *      *      *      *   phi1      *     v3   phi2     v4     v5   lit2     v5     v6
 //    PUSH lit1|      *     v5      *     v1     v2      *      *      *      *   phi1      *     v3   phi2     v4     v5   lit2     v5     v6   lit1
 //        SWAP5|      *     v5      *     v1     v2      *      *      *      *   phi1      *     v3   phi2   lit1     v5   lit2     v5     v6     v4

@@ -13,24 +13,25 @@
 // graph[fontname="DejaVu Sans", rankdir=LR]
 // node[shape=box,fontname="DejaVu Sans"];
 //
-// Entry [label="Entry"];
+// Entry [label="Entry
+// spilled: {}"];
 // Entry -> Block0_0;
 // Block0_0 [label="\
 // IN: []\l\
 // \l\
 // [FunctionCallReturnLabel[0], lit0]\l\
 // pair\l\
-// [FunctionCallReturnLabel[0], v0, v1]\l\
+// [FunctionCallReturnLabel[0], v2, v3]\l\
 // \l\
-// [v0, v1, FunctionCallReturnLabel[1], v0]\l\
+// [v2, v3, FunctionCallReturnLabel[1], v2]\l\
 // pair\l\
-// [v0, v1, FunctionCallReturnLabel[1], v2, v3]\l\
+// [v2, v3, FunctionCallReturnLabel[1], v5, v6]\l\
 // \l\
-// [JUNK, v1, v3, v2]\l\
+// [JUNK, v3, v6, v5]\l\
 // add\l\
-// [JUNK, v1, v4]\l\
+// [JUNK, v3, v7]\l\
 // \l\
-// [JUNK, v4, v1]\l\
+// [JUNK, v7, v3]\l\
 // sstore\l\
 // [JUNK]\l\
 // \l\
@@ -39,21 +40,22 @@
 // Block0_0Exit [label="MainExit"];
 // Block0_0 -> Block0_0Exit;
 // FunctionEntry_pair_0 [label="function pair:
-//  x, y := pair(v0)"];
+//  [2 returns] := pair(v0)
+// spilled: {}"];
 // FunctionEntry_pair_0 -> Block1_0;
 // Block1_0 [label="\
 // IN: [ReturnLabel[1], v0]\l\
 // \l\
-// [ReturnLabel[1], v0, lit1, v0]\l\
+// [ReturnLabel[1], v0, lit2, v0]\l\
 // add\l\
-// [ReturnLabel[1], v0, v1]\l\
+// [ReturnLabel[1], v0, v3]\l\
 // \l\
-// [ReturnLabel[1], v1, lit2, v0]\l\
+// [ReturnLabel[1], v3, lit4, v0]\l\
 // add\l\
-// [ReturnLabel[1], v1, v2]\l\
+// [ReturnLabel[1], v3, v5]\l\
 // \l\
-// OUT: [v1, v2, ReturnLabel[1]]\l\
+// OUT: [v3, v5, ReturnLabel[1]]\l\
 // "];
-// Block1_0Exit [label="FunctionReturn[v1, v2]"];
+// Block1_0Exit [label="FunctionReturn[v3, v5]"];
 // Block1_0 -> Block1_0Exit;
 // }

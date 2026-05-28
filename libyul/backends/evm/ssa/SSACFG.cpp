@@ -18,15 +18,16 @@
 
 #include <libyul/backends/evm/ssa/SSACFG.h>
 
-#include <libyul/backends/evm/ssa/LivenessAnalysis.h>
+#include <libyul/backends/evm/ssa/ControlFlowGraphs.h>
 #include <libyul/backends/evm/ssa/JunkAdmittingBlocksFinder.h>
+#include <libyul/backends/evm/ssa/LivenessAnalysis.h>
 #include <libyul/backends/evm/ssa/io/DotExporterBase.h>
 
 #include <libsolutil/StringUtils.h>
-#include <libsolutil/Visitor.h>
 
 #include <fmt/ranges.h>
 
+#include <range/v3/view/iota.hpp>
 #include <range/v3/view/transform.hpp>
 #include <range/v3/view/zip.hpp>
 
@@ -40,16 +41,17 @@ namespace
 
 /// Build a human-readable Phi/Upsilon annotation for a phi value.
 /// Shows which upsilons feed it, listed per predecessor block.
-std::string formatPhi(SSACFG const& _cfg, SSACFG::ValueId _phiId)
+std::string formatPhi(SSACFG const& _cfg, InstId _phiId)
 {
 	// Collect all upsilons targeting _phiId from the whole CFG.
 	std::vector<std::string> formattedUpsilons;
-	for (SSACFG::BlockId::ValueType bv = 0; bv < _cfg.numBlocks(); ++bv)
-		for (auto const& u: _cfg.block(SSACFG::BlockId{bv}).upsilons)
-			if (u.phi == _phiId)
+	for (BlockId const blockId: _cfg.liveBlocks())
+		_cfg.forEachUpsilon(_cfg.block(blockId), [&](InstId const instId, SSACFG::Inst const& inst) {
+			if (_cfg.upsilonPhi(instId) == _phiId)
 				formattedUpsilons.push_back(
-					fmt::format("Block {} => {}", bv, u.value.str(_cfg))
+					fmt::format("Block {} => {}", blockId.value, inst.inputs.at(0).str(_cfg))
 				);
+		});
 	if (!formattedUpsilons.empty())
 		return fmt::format("φ(\\l\\\n\t{}\\l\\\n)", fmt::join(formattedUpsilons, ",\\l\\\n\t"));
 	return "φ()";
@@ -58,19 +60,20 @@ std::string formatPhi(SSACFG const& _cfg, SSACFG::ValueId _phiId)
 class SSACFGDotExporter: public io::DotExporterBase
 {
 public:
-	SSACFGDotExporter(SSACFG const& _cfg, size_t _functionIndex, LivenessAnalysis const* _liveness):
+	SSACFGDotExporter(SSACFG const& _cfg, size_t _functionIndex, LivenessAnalysis const* _liveness, ControlFlowGraphs const* _controlFlow):
 		DotExporterBase(_cfg, _functionIndex),
-		m_liveness(_liveness)
+		m_liveness(_liveness),
+		m_controlFlow(_controlFlow)
 	{
 		if (_liveness)
 			m_junkAdmittingBlocks = std::make_unique<JunkAdmittingBlocksFinder>(_cfg, _liveness->topologicalSort());
 	}
 
 protected:
-	void writeBlockLabel(std::ostream& _out, SSACFG::BlockId _blockId) override
+	void writeBlockLabel(std::ostream& _out, BlockId _blockId) override
 	{
 		auto const& block = m_cfg.block(_blockId);
-		auto const valueToString = [&](SSACFG::ValueId const& valueId) { return valueId.str(m_cfg); };
+		auto const valueToString = [&](InstId const& valueId) { return valueId.str(m_cfg); };
 
 		if (m_liveness)
 		{
@@ -82,66 +85,74 @@ protected:
 			);
 			_out << fmt::format(
 				"LiveIn: {}\\l\\\n",
-				fmt::join(m_liveness->liveIn(_blockId) | ranges::views::transform([&](auto const& liveIn) { return valueToString(SSACFG::ValueId{liveIn.first}) + fmt::format("[{}]", liveIn.second); }), ", ")
+				fmt::join(m_liveness->liveIn(_blockId) | ranges::views::transform([&](auto const& liveIn) { return valueToString(liveIn.first) + fmt::format("[{}]", liveIn.second); }), ", ")
 			);
 			_out << fmt::format(
 				"LiveOut: {}\\l\\n",
-				fmt::join(m_liveness->liveOut(_blockId) | ranges::views::transform([&](auto const& liveOut) { return valueToString(SSACFG::ValueId{liveOut.first}) + fmt::format("[{}]", liveOut.second); }), ", ")
+				fmt::join(m_liveness->liveOut(_blockId) | ranges::views::transform([&](auto const& liveOut) { return valueToString(liveOut.first) + fmt::format("[{}]", liveOut.second); }), ", ")
 			);
 			auto const usedVariables = m_liveness->used(_blockId);
 			_out << fmt::format(
 				"Used: {}\\l\\n",
-				fmt::join(usedVariables | ranges::views::transform([&](auto const& used) { return valueToString(SSACFG::ValueId{used.first}) + fmt::format("[{}]", used.second); }), ", ")
+				fmt::join(usedVariables | ranges::views::transform([&](auto const& used) { return valueToString(used.first) + fmt::format("[{}]", used.second); }), ", ")
 			);
 		}
 		else
 			_out << fmt::format("\\\nBlock {}\\n", _blockId.value);
 
-		for (auto const& phi: block.phis)
-			_out << fmt::format("phi{} := {}\\l\\\n", phi.value(), formatPhi(m_cfg, phi));
-		for (auto const opId: block.operations)
-		{
-			auto const& operation = m_cfg.operation(opId);
-			std::string const label = std::visit(GenericVisitor{
-				[&](SSACFG::Call const& _call) {
-					return _call.function.get().name.str();
-				},
-				[&](SSACFG::BuiltinCall const& _call) {
-					return _call.builtin.get().name;
-				},
-				[&](SSACFG::LiteralAssignment const&)
-				{
-					yulAssert(operation.inputs.size() == 1);
-					return operation.inputs.back().str(m_cfg);
-				}
-			}, operation.kind);
-			if (!operation.outputs.empty())
+		// Phis first, then BuiltinCall / Call in program order. Upsilons are rendered
+		// under successor phis (via formatPhi) and skipped here. Trailing Projections of
+		// multi-return calls are rendered as standalone lines following their producer.
+		m_cfg.forEachPhi(block, [&](InstId const instId, SSACFG::Inst const&) {
+			_out << fmt::format("phi{} := {}\\l\\\n", instId.value, formatPhi(m_cfg, instId));
+		});
+		m_cfg.forEachOperation(block, [&](InstId const instId, SSACFG::Inst const& inst) {
+			std::string label;
+			switch (inst.opcode)
+			{
+			case InstOpcode::Call:
+			{
+				auto const graphID = m_cfg.callPayload(instId).graphID;
+				label = m_controlFlow ? m_controlFlow->functionGraph(graphID)->name : fmt::format("func{}", graphID);
+				break;
+			}
+			case InstOpcode::BuiltinCall:
+				label = m_cfg.evmDialect.builtin(m_cfg.builtinPayload(instId).builtin).name;
+				break;
+			case InstOpcode::MemoryGuard:
+				if (m_controlFlow && m_controlFlow->memoryGuard)
+					label = fmt::format("memoryguard<{}>", toCompactHexWithPrefix(*m_controlFlow->memoryGuard));
+				else
+					label = "memoryguard";
+				break;
+			default:
+				yulAssert(false);
+			}
+			if (m_cfg.numReturnsOf(instId) >= 1)
+				_out << fmt::format("{} := ", valueToString(instId));
+			_out << fmt::format(
+				"{}({})\\l\\\n",
+				escapeLabel(label),
+				fmt::join(inst.inputs | ranges::views::transform(valueToString), ", ")
+			);
+			for (InstId const projId: m_cfg.projectionsOf(instId))
 				_out << fmt::format(
-					"{} := ",
-					fmt::join(operation.outputs | ranges::views::transform(valueToString), ", ")
+					"{} := {}.proj({})\\l\\\n",
+					valueToString(projId),
+					valueToString(instId),
+					static_cast<unsigned>(m_cfg.projectionIndex(projId))
 				);
-			if (std::holds_alternative<SSACFG::LiteralAssignment>(operation.kind))
-				_out << fmt::format(
-					"{}\\l\\\n",
-					escapeLabel(label)
-				);
-			else
-				_out << fmt::format(
-					"{}({})\\l\\\n",
-					escapeLabel(label),
-					fmt::join(operation.inputs | ranges::views::transform(valueToString), ", ")
-				);
-		}
+		});
 	}
 
-	std::vector<std::pair<std::string, std::string>> blockNodeAttributes(SSACFG::BlockId _blockId) override
+	std::vector<std::pair<std::string, std::string>> blockNodeAttributes(BlockId _blockId) override
 	{
 		if (m_junkAdmittingBlocks && m_junkAdmittingBlocks->allowsAdditionOfJunk(_blockId))
 			return {{"fillcolor", "\"#FF746C\""}, {"style", "filled"}};
 		return {};
 	}
 
-	EdgeStyle edgeStyle(SSACFG::BlockId _source, SSACFG::BlockId _target) override
+	EdgeStyle edgeStyle(BlockId _source, BlockId _target) override
 	{
 		if (m_liveness && m_liveness->topologicalSort().backEdge(_source, _target))
 			return EdgeStyle::Dashed;
@@ -150,35 +161,22 @@ protected:
 
 private:
 	LivenessAnalysis const* m_liveness;
+	ControlFlowGraphs const* m_controlFlow;
 	std::unique_ptr<JunkAdmittingBlocksFinder> m_junkAdmittingBlocks;
 };
 
 }
 
-std::string ValueId::str(SSACFG const& _cfg) const
-{
-	if (!hasValue())
-		return "INVALID";
-	switch (kind())
-	{
-		case Kind::Literal:  return toCompactHexWithPrefix(_cfg.literalInfo(*this).value);
-		case Kind::Variable: return fmt::format("v{}", value());
-		case Kind::Phi: return fmt::format("phi{}", value());
-		case Kind::Unreachable: return "[unreachable]";
-	}
-	unreachable();
-}
-
-
 std::string SSACFG::toDot(
 	bool _includeDiGraphDefinition,
 	std::optional<size_t> _functionIndex,
-	LivenessAnalysis const* _liveness
+	LivenessAnalysis const* _liveness,
+	ControlFlowGraphs const* _controlFlow
 ) const
 {
-	SSACFGDotExporter exporter(*this, _functionIndex.value_or(function ? 1 : 0), _liveness);
-	if (function)
-		return exporter.exportFunction(*function, _includeDiGraphDefinition);
+	SSACFGDotExporter exporter(*this, _functionIndex.value_or(isMainGraph() ? 0 : 1), _liveness, _controlFlow);
+	if (!isMainGraph())
+		return exporter.exportFunction(*this, _includeDiGraphDefinition);
 	else
 		return exporter.exportBlocks(entry, _includeDiGraphDefinition);
 }

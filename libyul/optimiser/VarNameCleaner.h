@@ -91,6 +91,9 @@ private:
 	/// Set of names that are in use.
 	std::unordered_set<YulName> m_usedNames;
 
+	/// Next suffix to try per stripped base name, avoids O(n²) probing.
+	mutable std::map<YulName, size_t> m_nextSuffix;
+
 	/// Maps old to new names.
 	std::unordered_map<YulName, YulName> m_translatedNames;
 

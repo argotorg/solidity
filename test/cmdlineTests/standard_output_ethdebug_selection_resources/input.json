@@ -1,0 +1,18 @@
+{
+  "language": "Solidity",
+  "sources": {
+    "a.sol": {
+      "content": "//SPDX-License-Identifier: GPL-3.0\npragma solidity >=0.0;\ncontract C { function f() public pure {} }"
+    }
+  },
+  "settings": {
+    "experimental": true,
+    "outputSelection": {
+      "*": {
+        "*": [
+          "ethdebug.resources"
+        ]
+      }
+    }
+  }
+}

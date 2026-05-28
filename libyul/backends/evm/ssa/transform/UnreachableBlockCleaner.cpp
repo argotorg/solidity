@@ -37,8 +37,9 @@ void transform::cleanUnreachableBlocks(SSACFG& _cfg)
 	{
 		auto const blockId = worklist.front();
 		worklist.pop_front();
-		auto const& block = _cfg.block(blockId);
-		block.forEachExit([&](BlockId const _exitBlock) {
+		if (!_cfg.hasBlock(blockId))
+			continue;
+		_cfg.block(blockId).forEachExit([&](BlockId const _exitBlock) {
 			if (!reachable[_exitBlock.value])
 			{
 				reachable[_exitBlock.value] = true;
@@ -47,12 +48,16 @@ void transform::cleanUnreachableBlocks(SSACFG& _cfg)
 		});
 	}
 
-	for (SSACFG::BlockId blockId{0}; blockId.value < _cfg.numBlocks(); ++blockId.value)
+	auto& store = _cfg.instructionStore();
+	for (SSACFG::BlockId const blockId: _cfg.liveBlocks())
 	{
-		auto& block = _cfg.block(blockId);
 		if (reachable[blockId.value])
-			std::erase_if(block.entries, [&](auto const& entry) { return !reachable[entry.value]; });
+			std::erase_if(_cfg.block(blockId).entries, [&](auto const& entry) { return !reachable[entry.value]; });
 		else
-			block = {};
+		{
+			for (InstId const id: _cfg.block(blockId).instructions)
+				store.tombstone(id);
+			_cfg.resetBlock(blockId);
+		}
 	}
 }

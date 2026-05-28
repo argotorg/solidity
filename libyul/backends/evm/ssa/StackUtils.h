@@ -18,8 +18,11 @@
 
 #pragma once
 
+#include <libyul/backends/evm/ssa/spill/SpillSet.h>
+
 #include <libyul/backends/evm/ssa/PhiInverse.h>
 #include <libyul/backends/evm/ssa/Stack.h>
+#include <libyul/backends/evm/ssa/StackSlotLiveness.h>
 
 #include <string>
 #include <vector>
@@ -60,14 +63,28 @@ struct GasAccumulatingCallbacks
 };
 
 /// Transform stack data by replacing all its phi variables with their respective preimages.
-StackData stackPreImage(StackData _stack, PhiInverse const& _phiInverse);
+StackData stackPreImage(SSACFG const& _cfg, StackData _stack, PhiInverse const& _phiInverse);
 
-std::size_t findOptimalTargetSize(
+struct OptimalTarget
+{
+	StackData data;
+	spill::SpillSet spillSet;
+};
+
+/// Searches for the cheapest target stack size for shuffling _stackData towards
+/// (_targetArgs on top, _targetLiveOut anywhere in the tail). Realizes that size and returns the resolved post-shuffle
+/// StackData together with the spill set that was needed to reach it.
+/// Callers must use the returned spill set for any subsequent shuffle of the real stack to this target, otherwise
+/// live values that were planned-spilled here will silently disappear from the real stack while
+/// staying outside the caller's spill set.
+OptimalTarget findOptimalTarget(
 	StackData const& _stackData,
 	StackData const& _targetArgs,
-	LivenessAnalysis::LivenessData const& _targetLiveOut,
+	StackSlotLiveness const& _targetLiveOut,
 	bool _canIntroduceJunk,
-	bool _hasFunctionReturnLabel
+	bool _hasFunctionReturnLabel,
+	spill::SpillSet const& _spillSet,
+	bool _spillingAllowed
 );
 
 CallSites gatherCallSites(SSACFG const& _cfg);

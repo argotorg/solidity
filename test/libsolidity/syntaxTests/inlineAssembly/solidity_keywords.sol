@@ -12,6 +12,7 @@ contract C {
   let constructor := 1
   // continue is Yul keyword
   let contract := 1
+  let delete := 1
   let do := 1
   let else := 1
   let enum := 1
@@ -110,4 +111,4 @@ contract C {
   }
 }
 // ----
-// Warning 5740: (955-2168): Unreachable code.
+// Warning 5740: (973-2186): Unreachable code.

@@ -191,6 +191,29 @@ private:
 			return m_currentSourceUnit;
 	}
 
+	// MemberAccess visitor helpers:
+
+	/// Resolves overloaded functions by filtering out inapplicable candidates based on the provided arguments
+	/// and the type of the owning object.
+	/// Reports an error in case of ambiguity or failure to resolve.
+	MemberList::Member resolveOverloads(MemberAccess const& _memberAccess) const;
+
+	/// Uses heuristics to determine the cause of unresolved member access and
+	/// produce a more specific and helpful error.
+	/// @param _memberAccess The member access expression where the unresolved member access occurred.
+	/// @param _possibleMemberCountBeforeOverloading The initial count of possible members before overloading resolution.
+	/// @returns error ID and error message.
+	std::pair<langutil::ErrorId, std::string> diagnoseUnresolvedMemberAccess(
+		MemberAccess const& _memberAccess,
+		size_t _possibleMemberCountBeforeOverloading
+	) const;
+
+	/// Validates access to a member function of a given type, ensuring that the invocation
+	/// is consistent with the expected types and semantics. Reports errors and warnings
+	/// for invalid access, use of deprecated features, and unsupported operations.
+	/// @param _memberAccess Member access expression.
+	void checkAccessedMemberFunction(MemberAccess const& _memberAccess) const;
+
 	SourceUnit const* m_currentSourceUnit = nullptr;
 	ContractDefinition const* m_currentContract = nullptr;
 

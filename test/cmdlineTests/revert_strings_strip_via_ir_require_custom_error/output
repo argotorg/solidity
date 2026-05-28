@@ -1,0 +1,146 @@
+
+======= input.sol:C =======
+EVM assembly:
+  0x80
+  dup1
+  0x40
+  mstore
+  jumpi(tag_1, callvalue)
+  dataSize(sub_0)
+  swap1
+  dup2
+  dataOffset(sub_0)
+  dup3
+  codecopy
+  return
+tag_1:
+  0x00
+  dup1
+  revert
+stop
+
+sub_0: assembly {
+      0x80
+      dup1
+      0x40
+      mstore
+      jumpi(tag_1, iszero(lt(calldatasize, 0x04)))
+      0x00
+      dup1
+      revert
+    tag_1:
+      shr(0xe0, calldataload(0x00))
+      swap1
+      dup2
+      0x26121ff0
+      eq
+      tag_3
+      jumpi
+      pop
+      0x890eba68
+      eq
+      tag_5
+      jumpi
+      0x00
+      dup1
+      revert
+    tag_5:
+      jumpi(tag_9, callvalue)
+      jumpi(tag_9, slt(add(not(0x03), calldatasize), 0x00))
+      0x20
+      mload(0x40)
+      0x00
+      dup2
+      mstore
+      return
+    tag_9:
+      0x00
+      dup1
+      revert
+    tag_3:
+      jumpi(tag_9, callvalue)
+      jumpi(tag_9, slt(add(not(0x03), calldatasize), 0x00))
+      0x40
+      dup2
+      add
+      dup2
+      dup2
+      lt
+      0xffffffffffffffff
+      dup3
+      gt
+      or
+      tag_15
+      jumpi
+      0x40
+      mstore
+      0x05
+      dup2
+      mstore
+      0x84
+      0x20
+      dup3
+      add
+      swap2
+      shl(0xd9, 0x32b93937b9)
+      dup4
+      mstore
+      mload(0x40)
+      swap3
+      dup4
+      swap2
+      shl(0xe5, 0x01676c8b)
+      dup4
+      mstore
+      0x08
+      0x04
+      dup5
+      add
+      mstore
+      0x60
+      0x24
+      dup5
+      add
+      mstore
+      mload
+      dup1
+      swap2
+      dup2
+      0x64
+      dup6
+      add
+      mstore
+      dup5
+      dup5
+      add
+      mcopy
+      0x00
+      dup3
+      dup3
+      add
+      dup5
+      add
+      dup2
+      swap1
+      mstore
+      0x44
+      dup4
+      add
+      mstore
+      0x1f
+      add
+      not(0x1f)
+      and
+      dup2
+      add
+      sub
+      add
+      swap1
+      revert
+    tag_15:
+      mstore(0x00, shl(0xe0, 0x4e487b71))
+      mstore(0x04, 0x41)
+      revert(0x00, 0x24)
+
+    auxdata: <AUXDATA REMOVED>
+}

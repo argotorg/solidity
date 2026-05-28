@@ -43,6 +43,7 @@ public:
 	virtual Json ethdebug(std::string const& _contractName) const = 0;
 	virtual Json ethdebugRuntime(std::string const& _contractName) const = 0;
 	virtual Json ethdebug() const = 0;
+	virtual Json ethdebugCompilation() const = 0;
 
 	virtual Json assemblyJSON(std::string const& _contractName) const = 0;
 	virtual std::string assemblyString(std::string const& _contractName, StringMap const& _sourceCodes) const = 0;

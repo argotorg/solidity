@@ -45,10 +45,10 @@
 // Entry -> Block0_0;
 // Block0_0 [fillcolor="#FF746C", style=filled, label="\
 // Block 0; (0, max 0)\nLiveIn: \l\
-// LiveOut: \l\nUsed: \l\nv0 := calldataload(0x03)\l\
-// v1 := calldataload(0x58)\l\
-// v2 := calldataload(0x63)\l\
-// sstore(0x00, v2)\l\
+// LiveOut: \l\nUsed: \l\nv1 := calldataload(0x03)\l\
+// v4 := calldataload(0x58)\l\
+// v7 := calldataload(0x63)\l\
+// sstore(0x00, v7)\l\
 // "];
 // Block0_0Exit [label="MainExit"];
 // Block0_0 -> Block0_0Exit;

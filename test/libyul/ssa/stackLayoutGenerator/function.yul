@@ -26,16 +26,17 @@
 // graph[fontname="DejaVu Sans", rankdir=LR]
 // node[shape=box,fontname="DejaVu Sans"];
 //
-// Entry [label="Entry"];
+// Entry [label="Entry
+// spilled: {}"];
 // Entry -> Block0_0;
 // Block0_0 [label="\
 // IN: []\l\
 // \l\
 // [FunctionCallReturnLabel[0]]\l\
 // i\l\
-// [FunctionCallReturnLabel[0], v0, v1]\l\
+// [FunctionCallReturnLabel[0], v1, v2]\l\
 // \l\
-// [v0]\l\
+// [v1]\l\
 // h\l\
 // []\l\
 // \l\
@@ -44,25 +45,27 @@
 // Block0_0Exit [label="Terminated"];
 // Block0_0 -> Block0_0Exit;
 // FunctionEntry_f_0 [label="function f:
-//  r := f(v0, v1)"];
+//  [1 returns] := f(v0, v1)
+// spilled: {}"];
 // FunctionEntry_f_0 -> Block1_0;
 // Block1_0 [label="\
 // IN: [ReturnLabel[1], v1, v0]\l\
 // \l\
 // [ReturnLabel[1], v0, v1, v0]\l\
 // add\l\
-// [ReturnLabel[1], v0, v2]\l\
+// [ReturnLabel[1], v0, v3]\l\
 // \l\
-// [ReturnLabel[1], v0, v2]\l\
+// [ReturnLabel[1], v0, v3]\l\
 // sub\l\
-// [ReturnLabel[1], v3]\l\
+// [ReturnLabel[1], v4]\l\
 // \l\
-// OUT: [v3, ReturnLabel[1]]\l\
+// OUT: [v4, ReturnLabel[1]]\l\
 // "];
-// Block1_0Exit [label="FunctionReturn[v3]"];
+// Block1_0Exit [label="FunctionReturn[v4]"];
 // Block1_0 -> Block1_0Exit;
 // FunctionEntry_g_0 [label="function g:
-//  g()"];
+//  g()
+// spilled: {}"];
 // FunctionEntry_g_0 -> Block2_0;
 // Block2_0 [label="\
 // IN: [ReturnLabel[2]]\l\
@@ -76,16 +79,17 @@
 // Block2_0Exit [label="FunctionReturn[]"];
 // Block2_0 -> Block2_0Exit;
 // FunctionEntry_h_0 [label="function h:
-//  h(v0)"];
+//  h(v0)
+// spilled: {}"];
 // FunctionEntry_h_0 -> Block3_0;
 // Block3_0 [label="\
 // IN: [v0]\l\
 // \l\
-// [FunctionCallReturnLabel[0], lit0, v0]\l\
+// [FunctionCallReturnLabel[0], lit1, v0]\l\
 // f\l\
-// [FunctionCallReturnLabel[0], v1]\l\
+// [FunctionCallReturnLabel[0], v2]\l\
 // \l\
-// [v1]\l\
+// [v2]\l\
 // h\l\
 // []\l\
 // \l\
@@ -94,7 +98,8 @@
 // Block3_0Exit [label="Terminated"];
 // Block3_0 -> Block3_0Exit;
 // FunctionEntry_i_0 [label="function i:
-//  v, w := i()"];
+//  [2 returns] := i()
+// spilled: {}"];
 // FunctionEntry_i_0 -> Block4_0;
 // Block4_0 [label="\
 // IN: [ReturnLabel[4]]\l\

@@ -25,6 +25,7 @@ add_executable(isoltest
 	../libsolidity/util/ContractABIUtils.cpp
 	../libsolidity/util/TestFileParser.cpp
 	../libsolidity/util/TestFunctionCall.cpp
+	../libsolidity/EthdebugTest.cpp
 	../libsolidity/GasTest.cpp
 	../libsolidity/MemoryGuardTest.cpp
 	../libsolidity/NatspecJSONTest.cpp
@@ -39,6 +40,7 @@ add_executable(isoltest
 	../libsolidity/ASTJSONTest.cpp
 	../libsolidity/ASTPropertyTest.cpp
 	../libsolidity/FunctionDependencyGraphTest.cpp
+	../libsolidity/JSONExpectationTest.cpp
 	../libsolidity/SMTCheckerTest.cpp
 	../libyul/Common.cpp
 	../libyul/ControlFlowGraphTest.cpp
@@ -52,8 +54,12 @@ add_executable(isoltest
 	../libyul/YulOptimizerTest.cpp
 	../libyul/YulOptimizerTestCommon.cpp
 	../libyul/YulInterpreterTest.cpp
+	../libyul/ssa/CallGraphTest.cpp
+	../libyul/ssa/CallGraphTest.h
 	../libyul/ssa/ControlFlowGraphTest.cpp
 	../libyul/ssa/ControlFlowGraphTest.h
+	../libyul/ssa/PrinterTest.cpp
+	../libyul/ssa/PrinterTest.h
 	../libyul/ssa/StackLayoutGeneratorTest.cpp
 	../libyul/ssa/StackLayoutGeneratorTest.h
 	../libyul/ssa/StackShufflerTest.cpp

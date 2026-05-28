@@ -21,6 +21,7 @@
 #include <libyul/backends/evm/ssa/traversal/ForwardTopologicalSort.h>
 #include <libyul/backends/evm/ssa/SSACFG.h>
 #include <libyul/backends/evm/ssa/SSACFGLoopNestingForest.h>
+#include <libyul/backends/evm/ssa/util/UseCountSet.h>
 
 #include <vector>
 
@@ -33,74 +34,10 @@ namespace solidity::yul::ssa
 class LivenessAnalysis
 {
 public:
-	class LivenessData
-	{
-	public:
-		using Count = std::uint32_t;
-		using Value = SSACFG::ValueId;
-		using LiveCounts = std::vector<std::pair<Value, Count>>;
+	/// Per-program-point liveness, each value's use count is the max number of times the value will be read along
+	/// all paths downstream of that point
+	using LivenessData = util::UseCountSet<InstId>;
 
-		LivenessData() = default;
-		template<std::input_iterator Iter, std::sentinel_for<Iter> Sentinel>
-		LivenessData(Iter begin, Sentinel end): m_liveCounts(begin, end) {}
-		explicit LivenessData(LiveCounts&& _liveCounts): m_liveCounts(std::move(_liveCounts)) {}
-
-		bool contains(Value const& _valueId) const;
-		Count count(Value const& _valueId) const;
-		LiveCounts::const_iterator begin() const;
-		LiveCounts::const_iterator end() const;
-		LiveCounts::size_type size() const;
-		bool empty() const;
-
-		// Core modification
-		/// Add value with count (default 1), incrementing if already present
-		void insert(Value const& _value, Count _count = 1);
-		/// Remove value completely regardless of count
-		void erase(Value const& _value);
-		/// Decrement value count, removing if count reaches zero
-		void remove(Value const& _value, Count _count = 1);
-
-		// Set operations
-		/// Add all entries from other, summing counts
-		LivenessData& operator+=(LivenessData const& _other);
-		/// Remove all values present in other
-		LivenessData& operator-=(LivenessData const& _other);
-		/// Union with other, taking max count for each value
-		LivenessData& maxUnion(LivenessData const& _other);
-
-		// Bulk operations
-		/// Insert all values from range with count 1 each
-		template<typename Range>
-		void insertAll(Range const& _values)
-		{
-			for (auto const& value: _values)
-				insert(value);
-		}
-
-		/// Erase all values from range
-		template<typename Range>
-		void eraseAll(Range const& _values)
-		{
-			for (auto const& value: _values)
-				erase(value);
-		}
-
-		// Conditional removal
-		/// Remove all entries matching predicate
-		template<typename Predicate>
-		void eraseIf(Predicate&& _predicate)
-		{
-			std::erase_if(m_liveCounts, std::forward<Predicate>(_predicate));
-		}
-
-	private:
-		LiveCounts::iterator findEntry(Value const& _value);
-		LiveCounts::const_iterator findEntry(Value const& _value) const;
-
-		/// Usage counts represent the total number of times each variable will be used
-		/// downstream across all possible execution paths from this program point.
-		LiveCounts m_liveCounts;
-	};
 	explicit LivenessAnalysis(SSACFG const& _cfg);
 
 	LivenessData const& liveIn(SSACFG::BlockId const _blockId) const { return m_liveIns[_blockId.value]; }
@@ -115,6 +52,11 @@ private:
 	void runLoopTreeDfs(SSACFG::BlockId::ValueType _loopHeader);
 	void fillOperationsLiveOut();
 	LivenessData blockExitValues(SSACFG::BlockId const& _blockId) const;
+
+	auto excludingLiteralsFilter() const
+	{
+		return [this](InstId _v) { return !m_cfg.isLiteral(_v); };
+	}
 
 	SSACFG const& m_cfg;
 	traversal::ForwardTopologicalSort m_topologicalSort;

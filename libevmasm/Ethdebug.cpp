@@ -160,10 +160,16 @@ Json ethdebug::resources(std::vector<std::string> const& _sources, std::string c
 		sources.push_back(source);
 	}
 	Json result = Json::object();
-	result["compilation"] = Json::object();
-	result["compilation"]["compiler"] = Json::object();
-	result["compilation"]["compiler"]["name"] = "solc";
-	result["compilation"]["compiler"]["version"] = _version;
+	result["compilation"] = compilation(_version);
 	result["compilation"]["sources"] = sources;
+	return result;
+}
+
+Json ethdebug::compilation(std::string_view _version)
+{
+	Json result = Json::object();
+	result["compiler"] = Json::object();
+	result["compiler"]["name"] = "solc";
+	result["compiler"]["version"] = _version;
 	return result;
 }

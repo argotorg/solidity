@@ -1,16 +1,8 @@
-======= Debug Data (ethdebug/format/info/resources) =======
+======= Debug Data (ethdebug compilation) =======
 {
-    "compilation": {
-        "compiler": {
-            "name": "solc",
-            "version": "<VERSION REMOVED>"
-        },
-        "sources": [
-            {
-                "id": 0,
-                "path": "input.sol"
-            }
-        ]
+    "compiler": {
+        "name": "solc",
+        "version": "<VERSION REMOVED>"
     }
 }
 
@@ -245,6 +237,1015 @@ Debug Data (ethdebug/format/program):
                 }
             },
             "offset": 49,
+            "operation": {
+                "mnemonic": "REVERT"
+            }
+        }
+    ]
+}
+Debug Data of the runtime part (ethdebug/format/program):
+{
+    "contract": {
+        "definition": {
+            "source": {
+                "id": 0
+            }
+        },
+        "name": "C"
+    },
+    "environment": "call",
+    "instructions": [
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 67,
+            "operation": {
+                "arguments": [
+                    "0x80"
+                ],
+                "mnemonic": "PUSH1"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 69,
+            "operation": {
+                "arguments": [
+                    "0x40"
+                ],
+                "mnemonic": "PUSH1"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 71,
+            "operation": {
+                "mnemonic": "MSTORE"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 72,
+            "operation": {
+                "arguments": [
+                    "0x04"
+                ],
+                "mnemonic": "PUSH1"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 74,
+            "operation": {
+                "mnemonic": "CALLDATASIZE"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 75,
+            "operation": {
+                "mnemonic": "LT"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 76,
+            "operation": {
+                "mnemonic": "ISZERO"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 77,
+            "operation": {
+                "arguments": [
+                    "0x0003"
+                ],
+                "mnemonic": "RJUMPI"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 80,
+            "operation": {
+                "arguments": [
+                    "0x0008"
+                ],
+                "mnemonic": "JUMPF"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 83,
+            "operation": {
+                "mnemonic": "PUSH0"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 84,
+            "operation": {
+                "mnemonic": "CALLDATALOAD"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 85,
+            "operation": {
+                "arguments": [
+                    "0x0001"
+                ],
+                "mnemonic": "CALLF"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 88,
+            "operation": {
+                "arguments": [
+                    "0x26121ff0"
+                ],
+                "mnemonic": "PUSH4"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 93,
+            "operation": {
+                "mnemonic": "EQ"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 94,
+            "operation": {
+                "arguments": [
+                    "0x0003"
+                ],
+                "mnemonic": "RJUMPI"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 97,
+            "operation": {
+                "arguments": [
+                    "0xffec"
+                ],
+                "mnemonic": "RJUMP"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 100,
+            "operation": {
+                "arguments": [
+                    "0x0007"
+                ],
+                "mnemonic": "JUMPF"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 103,
+            "operation": {
+                "arguments": [
+                    "0xe0"
+                ],
+                "mnemonic": "PUSH1"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 105,
+            "operation": {
+                "mnemonic": "SHR"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 106,
+            "operation": {
+                "mnemonic": "RETF"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 107,
+            "operation": {
+                "arguments": [
+                    "0x40"
+                ],
+                "mnemonic": "PUSH1"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 109,
+            "operation": {
+                "mnemonic": "MLOAD"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 110,
+            "operation": {
+                "mnemonic": "RETF"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 111,
+            "operation": {
+                "mnemonic": "PUSH0"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 112,
+            "operation": {
+                "mnemonic": "DUP1"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 113,
+            "operation": {
+                "mnemonic": "REVERT"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 114,
+            "operation": {
+                "mnemonic": "PUSH0"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 115,
+            "operation": {
+                "mnemonic": "DUP1"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 116,
+            "operation": {
+                "mnemonic": "REVERT"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 117,
+            "operation": {
+                "mnemonic": "PUSH0"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 118,
+            "operation": {
+                "mnemonic": "SWAP2"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 119,
+            "operation": {
+                "mnemonic": "SUB"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 120,
+            "operation": {
+                "mnemonic": "SLT"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 121,
+            "operation": {
+                "arguments": [
+                    "0x0001"
+                ],
+                "mnemonic": "RJUMPI"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 124,
+            "operation": {
+                "mnemonic": "RETF"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 125,
+            "operation": {
+                "arguments": [
+                    "0x0004"
+                ],
+                "mnemonic": "JUMPF"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 128,
+            "operation": {
+                "mnemonic": "PUSH0"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 129,
+            "operation": {
+                "mnemonic": "ADD"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 130,
+            "operation": {
+                "mnemonic": "RETF"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 131,
+            "operation": {
+                "mnemonic": "CALLVALUE"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 132,
+            "operation": {
+                "arguments": [
+                    "0x0011"
+                ],
+                "mnemonic": "RJUMPI"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 135,
+            "operation": {
+                "mnemonic": "CALLDATASIZE"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 136,
+            "operation": {
+                "arguments": [
+                    "0x04"
+                ],
+                "mnemonic": "PUSH1"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 138,
+            "operation": {
+                "arguments": [
+                    "0x0005"
+                ],
+                "mnemonic": "CALLF"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 141,
+            "operation": {
+                "arguments": [
+                    "0x0002"
+                ],
+                "mnemonic": "CALLF"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 144,
+            "operation": {
+                "mnemonic": "DUP1"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 145,
+            "operation": {
+                "mnemonic": "DUP1"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 146,
+            "operation": {
+                "arguments": [
+                    "0x0006"
+                ],
+                "mnemonic": "CALLF"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 149,
+            "operation": {
+                "mnemonic": "SUB"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 150,
+            "operation": {
+                "mnemonic": "SWAP1"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 151,
+            "operation": {
+                "mnemonic": "RETURN"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 152,
+            "operation": {
+                "arguments": [
+                    "0x0003"
+                ],
+                "mnemonic": "JUMPF"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 155,
+            "operation": {
+                "mnemonic": "PUSH0"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 156,
+            "operation": {
+                "mnemonic": "DUP1"
+            }
+        },
+        {
+            "context": {
+                "code": {
+                    "range": {
+                        "length": 41,
+                        "offset": 60
+                    },
+                    "source": {
+                        "id": 0
+                    }
+                }
+            },
+            "offset": 157,
             "operation": {
                 "mnemonic": "REVERT"
             }
