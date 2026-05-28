@@ -4,6 +4,7 @@ Language Features:
 
 Compiler Features:
 * General: Speed up SHA-256 hashing (`picosha2`).
+* General: Speed up compilation times.  
 
 Bugfixes:
 * NatSpec: Disallow `@return` tag in event documentation.

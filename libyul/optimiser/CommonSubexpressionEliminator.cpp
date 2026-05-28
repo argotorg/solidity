@@ -31,6 +31,8 @@
 #include <libyul/Dialect.h>
 #include <libyul/Utilities.h>
 
+#include <algorithm>
+
 using namespace solidity;
 using namespace solidity::yul;
 using namespace solidity::util;
@@ -129,6 +131,10 @@ void CommonSubexpressionEliminator::visit(Expression& _e)
 void CommonSubexpressionEliminator::assignValue(YulName _variable, Expression const* _value)
 {
 	if (_value)
-		m_replacementCandidates[*_value].insert(_variable);
+	{
+		auto& candidates = m_replacementCandidates[*_value];
+		if (std::find(candidates.begin(), candidates.end(), _variable) == candidates.end())
+			candidates.emplace_back(_variable);
+	}
 	DataFlowAnalyzer::assignValue(_variable, _value);
 }

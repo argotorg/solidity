@@ -27,7 +27,8 @@
 #include <libyul/optimiser/SyntacticalEquality.h>
 #include <libyul/optimiser/BlockHasher.h>
 
-#include <set>
+#include <unordered_set>
+#include <vector>
 
 namespace solidity::yul
 {
@@ -62,10 +63,10 @@ protected:
 
 	void assignValue(YulName _variable, Expression const* _value) override;
 private:
-	std::set<YulName> m_returnVariables;
+	std::unordered_set<YulName> m_returnVariables;
 	std::unordered_map<
 		std::reference_wrapper<Expression const>,
-		std::set<YulName>,
+		std::vector<YulName>,
 		ExpressionHash,
 		SyntacticallyEqualExpression
 	> m_replacementCandidates;
