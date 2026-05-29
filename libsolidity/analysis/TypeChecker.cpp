@@ -2350,7 +2350,7 @@ void TypeChecker::typeCheckStringConcatFunction(
 		m_errorReporter.typeError(
 			7173_error,
 			_functionCall.location(),
-			"Named arguments cannot be used for the string.concat function call."
+			"Named arguments cannot be used for functions that take arbitrary parameters."
 		);
 		return;
 	}
@@ -2386,7 +2386,7 @@ void TypeChecker::typeCheckBytesConcatFunction(
 		m_errorReporter.typeError(
 			7101_error,
 			_functionCall.location(),
-			"Named arguments cannot be used for the bytes.concat function call."
+			"Named arguments cannot be used for functions that take arbitrary parameters."
 		);
 		return;
 	}
