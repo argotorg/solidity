@@ -26,6 +26,7 @@
 #include <libyul/optimiser/OptimiserStep.h>
 #include <libyul/optimiser/SyntacticalEquality.h>
 #include <libyul/optimiser/BlockHasher.h>
+#include <libyul/FunctionHandle.h>
 
 #include <set>
 
@@ -53,7 +54,7 @@ public:
 private:
 	CommonSubexpressionEliminator(
 		Dialect const& _dialect,
-		std::map<FunctionHandle, SideEffects> _functionSideEffects
+		std::unordered_map<FunctionHandle, SideEffects> _functionSideEffects
 	);
 
 protected:

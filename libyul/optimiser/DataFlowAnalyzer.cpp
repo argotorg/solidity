@@ -44,7 +44,7 @@ using namespace solidity::yul;
 DataFlowAnalyzer::DataFlowAnalyzer(
 	Dialect const& _dialect,
 	MemoryAndStorage _analyzeStores,
-	std::map<FunctionHandle, SideEffects> _functionSideEffects
+	std::unordered_map<FunctionHandle, SideEffects> _functionSideEffects
 ):
 	m_dialect(_dialect),
 	m_functionSideEffects(std::move(_functionSideEffects)),
@@ -107,7 +107,7 @@ void DataFlowAnalyzer::operator()(VariableDeclaration& _varDecl)
 	std::set<YulName> names;
 	for (auto const& var: _varDecl.variables)
 		names.emplace(var.name);
-	m_variableScopes.back().variables += names;
+	m_variableScopes.back().variables.insert(names.begin(), names.end());
 
 	if (_varDecl.value)
 	{

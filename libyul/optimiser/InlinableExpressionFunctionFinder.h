@@ -24,7 +24,7 @@
 #include <libyul/ASTForward.h>
 #include <libyul/optimiser/ASTWalker.h>
 
-#include <set>
+#include <vector>
 
 namespace solidity::yul
 {
@@ -56,7 +56,9 @@ private:
 	void checkAllowed(FunctionName const& _name);
 
 	bool m_foundDisallowedIdentifier = false;
-	std::set<YulName> m_disallowedIdentifiers;
+	/// At most two elements (return variable and function name); a flat vector is
+	/// faster than a hash set for membership checks at this size.
+	std::vector<YulName> m_disallowedIdentifiers;
 	std::map<YulName, FunctionDefinition const*> m_inlinableFunctions;
 };
 

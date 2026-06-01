@@ -87,13 +87,13 @@ FunctionDefinition FunctionSpecializer::specialize(
 {
 	yulAssert(_arguments.size() == _f.parameters.size(), "");
 
-	std::map<YulName, YulName> translatedNames = applyMap(
+	std::unordered_map<YulName, YulName> translatedNames = applyMap(
 		NameCollector{_f, NameCollector::OnlyVariables}.names(),
 		[&](auto& _name) -> std::pair<YulName, YulName>
 		{
 			return std::make_pair(_name, m_nameDispenser.newName(_name));
 		},
-		std::map<YulName, YulName>{}
+		std::unordered_map<YulName, YulName>{}
 	);
 
 	FunctionDefinition newFunction = std::get<FunctionDefinition>(FunctionCopier{translatedNames}(_f));
@@ -140,10 +140,13 @@ void FunctionSpecializer::run(OptimiserStepContext& _context, Block& _ast)
 		{
 			auto& functionDefinition = std::get<FunctionDefinition>(_s);
 
-			if (f.m_oldToNewMap.count(functionDefinition.name))
+			if (
+				auto const it = f.m_oldToNewMap.find(functionDefinition.name);
+				it != f.m_oldToNewMap.end()
+			)
 			{
 				std::vector<Statement> out = applyMap(
-					f.m_oldToNewMap.at(functionDefinition.name),
+					it->second,
 					[&](auto& _p) -> Statement
 					{
 						return f.specialize(functionDefinition, std::move(_p.first), std::move(_p.second));

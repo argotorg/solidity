@@ -23,10 +23,12 @@
 
 #include <libyul/optimiser/ASTWalker.h>
 #include <libyul/optimiser/OptimiserStep.h>
+#include <libyul/FunctionHandle.h>
 #include <libyul/YulName.h>
 
 #include <map>
 #include <set>
+#include <unordered_map>
 
 namespace solidity::yul
 {
@@ -63,7 +65,7 @@ public:
 		Dialect const& _dialect,
 		Block& _ast,
 		bool _allowMSizeOptimization,
-		std::map<FunctionHandle, SideEffects> const* _functionSideEffects = nullptr,
+		std::unordered_map<FunctionHandle, SideEffects> const* _functionSideEffects = nullptr,
 		std::set<YulName> const& _externallyUsedFunctions = {}
 	);
 
@@ -82,18 +84,18 @@ private:
 		Dialect const& _dialect,
 		Block& _ast,
 		bool _allowMSizeOptimization,
-		std::map<FunctionHandle, SideEffects> const* _functionSideEffects = nullptr,
+		std::unordered_map<FunctionHandle, SideEffects> const* _functionSideEffects = nullptr,
 		std::set<YulName> const& _externallyUsedFunctions = {}
 	);
 
 	bool used(YulName _name) const;
-	void subtractReferences(std::map<FunctionHandle, size_t> const& _subtrahend);
+	void subtractReferences(std::unordered_map<FunctionHandle, size_t> const& _subtrahend);
 
 	Dialect const& m_dialect;
 	bool m_allowMSizeOptimization = false;
-	std::map<FunctionHandle, SideEffects> const* m_functionSideEffects = nullptr;
+	std::unordered_map<FunctionHandle, SideEffects> const* m_functionSideEffects = nullptr;
 	bool m_shouldRunAgain = false;
-	std::map<FunctionHandle, size_t> m_references;
+	std::unordered_map<FunctionHandle, size_t> m_references;
 };
 
 }

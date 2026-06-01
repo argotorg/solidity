@@ -135,10 +135,11 @@ BuiltinFunctionForEVM datasizeBuiltin()
 				_assembly.appendAssemblySize();
 			else
 			{
+				auto const it = _context.subIDs.find(dataName.str());
 				std::vector<AbstractAssembly::SubID> subIdPath =
-					_context.subIDs.count(dataName.str()) == 0 ?
+					it == _context.subIDs.end() ?
 						_context.currentObject->pathToSubObject(dataName.str()) :
-						std::vector{_context.subIDs.at(dataName.str())};
+						std::vector{it->second};
 				yulAssert(!subIdPath.empty(), "Could not find assembly object <" + dataName.str() + ">.");
 				_assembly.appendDataSize(subIdPath);
 			}
@@ -161,10 +162,11 @@ BuiltinFunctionForEVM dataoffsetBuiltin()
 			_assembly.appendConstant(0);
 		else
 		{
+			auto const it = _context.subIDs.find(dataName.str());
 			std::vector<AbstractAssembly::SubID> subIdPath =
-				_context.subIDs.count(dataName.str()) == 0 ?
+				it == _context.subIDs.end() ?
 					_context.currentObject->pathToSubObject(dataName.str()) :
-					std::vector{_context.subIDs.at(dataName.str())};
+					std::vector{it->second};
 			yulAssert(!subIdPath.empty(), "Could not find assembly object <" + dataName.str() + ">.");
 			_assembly.appendDataOffset(subIdPath);
 		}

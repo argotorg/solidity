@@ -36,6 +36,7 @@
 #include <list>
 #include <memory>
 #include <optional>
+#include <unordered_set>
 #include <utility>
 
 namespace solidity::langutil
@@ -134,7 +135,7 @@ private:
 	Scope* m_currentScope = nullptr;
 	/// Variables that are active at the current point in assembly (as opposed to
 	/// "part of the scope but not yet declared")
-	std::set<Scope::Variable const*> m_activeVariables;
+	std::unordered_set<Scope::Variable const*> m_activeVariables;
 	AsmAnalysisInfo& m_info;
 	langutil::ErrorReporter& m_errorReporter;
 	langutil::EVMVersion m_evmVersion;

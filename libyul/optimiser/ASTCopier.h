@@ -27,9 +27,8 @@
 
 #include <memory>
 #include <optional>
-#include <set>
 #include <vector>
-#include <map>
+#include <unordered_map>
 
 namespace solidity::yul
 {
@@ -125,7 +124,7 @@ class FunctionCopier: public ASTCopier
 {
 public:
 	FunctionCopier(
-		std::map<YulName, YulName> const& _translations
+		std::unordered_map<YulName, YulName> const& _translations
 	):
 		m_translations(_translations)
 	{}
@@ -134,7 +133,7 @@ public:
 private:
 	/// A mapping between old and new names. We replace the names of variable declarations contained
 	/// in the mapping with their new names.
-	std::map<YulName, YulName> const& m_translations;
+	std::unordered_map<YulName, YulName> const& m_translations;
 };
 
 }

@@ -24,6 +24,8 @@
 #include <libyul/optimiser/BlockHasher.h>
 #include <libyul/ASTForward.h>
 
+#include <unordered_map>
+
 namespace solidity::yul
 {
 
@@ -35,7 +37,7 @@ namespace solidity::yul
 class EquivalentFunctionDetector: public ASTWalker
 {
 public:
-	static std::map<YulName, FunctionDefinition const*> run(Block& _block)
+	static std::unordered_map<YulName, FunctionDefinition const*> run(Block& _block)
 	{
 		EquivalentFunctionDetector detector{BlockHasher::run(_block)};
 		detector(_block);
@@ -49,8 +51,8 @@ private:
 	EquivalentFunctionDetector(std::map<Block const*, uint64_t> _blockHashes): m_blockHashes(std::move(_blockHashes)) {}
 
 	std::map<Block const*, uint64_t> m_blockHashes;
-	std::map<uint64_t, std::vector<FunctionDefinition const*>> m_candidates;
-	std::map<YulName, FunctionDefinition const*> m_duplicates;
+	std::unordered_map<uint64_t, std::vector<FunctionDefinition const*>> m_candidates;
+	std::unordered_map<YulName, FunctionDefinition const*> m_duplicates;
 };
 
 

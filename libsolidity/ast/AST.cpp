@@ -37,6 +37,7 @@
 #include <boost/algorithm/string.hpp>
 
 #include <functional>
+#include <unordered_set>
 #include <utility>
 
 using namespace solidity;
@@ -215,7 +216,7 @@ FunctionDefinition const* ContractDefinition::receiveFunction() const
 std::vector<EventDefinition const*> const& ContractDefinition::definedInterfaceEvents() const
 {
 	return m_interfaceEvents.init([&]{
-		std::set<std::string> eventsSeen;
+		std::unordered_set<std::string> eventsSeen;
 		std::vector<EventDefinition const*> interfaceEvents;
 
 		for (ContractDefinition const* contract: annotation().linearizedBaseContracts)
@@ -280,7 +281,7 @@ std::vector<ErrorDefinition const*> ContractDefinition::interfaceErrors(bool _re
 std::vector<std::pair<util::FixedHash<4>, FunctionTypePointer>> const& ContractDefinition::interfaceFunctionList(bool _includeInheritedFunctions) const
 {
 	return m_interfaceFunctionList[_includeInheritedFunctions].init([&]{
-		std::set<std::string> signaturesSeen;
+		std::unordered_set<std::string> signaturesSeen;
 		std::vector<std::pair<util::FixedHash<4>, FunctionTypePointer>> interfaceFunctionList;
 
 		for (ContractDefinition const* contract: annotation().linearizedBaseContracts)

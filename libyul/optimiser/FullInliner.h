@@ -21,6 +21,7 @@
 #pragma once
 
 #include <libyul/ASTForward.h>
+#include <libyul/FunctionHandle.h>
 
 #include <libyul/optimiser/ASTCopier.h>
 #include <libyul/optimiser/ASTWalker.h>
@@ -32,6 +33,7 @@
 
 #include <optional>
 #include <set>
+#include <unordered_set>
 #include <utility>
 
 namespace solidity::yul
@@ -110,15 +112,15 @@ private:
 	Block& m_ast;
 	std::map<YulName, FunctionDefinition*> m_functions;
 	/// Functions not to be inlined (because they contain the ``leave`` statement).
-	std::set<YulName> m_noInlineFunctions;
+	std::unordered_set<YulName> m_noInlineFunctions;
 	/// True, if the code contains a ``memoryguard`` and we can expect to be able to move variables to memory later.
 	bool m_hasMemoryGuard = false;
 	/// Set of recursive functions.
 	std::set<FunctionHandle> m_recursiveFunctions;
 	/// Names of functions to always inline.
-	std::set<YulName> m_singleUse;
+	std::unordered_set<YulName> m_singleUse;
 	/// Variables that are constants (used for inlining heuristic)
-	std::set<YulName> m_constants;
+	std::unordered_set<YulName> m_constants;
 	std::map<YulName, size_t> m_functionSizes;
 	NameDispenser& m_nameDispenser;
 	Dialect const& m_dialect;

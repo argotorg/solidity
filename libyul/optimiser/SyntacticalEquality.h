@@ -26,6 +26,7 @@
 
 #include <map>
 #include <type_traits>
+#include <unordered_map>
 
 namespace solidity::yul
 {
@@ -85,8 +86,8 @@ private:
 	}
 
 	std::size_t m_idsUsed = 0;
-	std::map<YulName, std::size_t> m_identifiersLHS;
-	std::map<YulName, std::size_t> m_identifiersRHS;
+	std::unordered_map<YulName, std::size_t> m_identifiersLHS;
+	std::unordered_map<YulName, std::size_t> m_identifiersRHS;
 };
 
 /**

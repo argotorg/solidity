@@ -43,6 +43,7 @@ GasMeter::GasConsumption PathGasMeter::estimateMax(
 	auto path = std::make_unique<GasPath>();
 	path->index = _startIndex;
 	path->state = _state->copy();
+	path->visitedJumpdests.assign(m_items.size(), 0);
 	queue(std::move(path));
 
 	GasMeter::GasConsumption gas;
@@ -53,12 +54,13 @@ GasMeter::GasConsumption PathGasMeter::estimateMax(
 
 void PathGasMeter::queue(std::unique_ptr<GasPath>&& _newPath)
 {
-	if (
-		m_highestGasUsagePerJumpdest.count(_newPath->index) &&
-		_newPath->gas < m_highestGasUsagePerJumpdest.at(_newPath->index)
-	)
-		return;
-	m_highestGasUsagePerJumpdest[_newPath->index] = _newPath->gas;
+	auto const [it, inserted] = m_highestGasUsagePerJumpdest.emplace(_newPath->index, _newPath->gas);
+	if (!inserted)
+	{
+		if (_newPath->gas < it->second)
+			return;
+		it->second = _newPath->gas;
+	}
 	m_queue[_newPath->index] = std::move(_newPath);
 }
 
@@ -91,9 +93,9 @@ GasMeter::GasConsumption PathGasMeter::handleQueueItem()
 		{
 			// Do not allow any backwards jump. This is quite restrictive but should work for
 			// the simplest things.
-			if (path->visitedJumpdests.count(index))
+			if (path->visitedJumpdests[index])
 				return GasMeter::GasConsumption::infinite();
-			path->visitedJumpdests.insert(index);
+			path->visitedJumpdests[index] = 1;
 		}
 		else if (item == AssemblyItem(Instruction::JUMP))
 		{
@@ -122,8 +124,11 @@ GasMeter::GasConsumption PathGasMeter::handleQueueItem()
 		{
 			auto newPath = std::make_unique<GasPath>();
 			newPath->index = m_items.size();
-			if (m_tagPositions.count(tag))
-				newPath->index = m_tagPositions.at(tag);
+			if (
+				auto const it = m_tagPositions.find(tag);
+				it != m_tagPositions.end()
+			)
+				newPath->index = it->second;
 			newPath->gas = gas;
 			newPath->largestMemoryAccess = meter.largestMemoryAccess();
 			newPath->state = state->copy();

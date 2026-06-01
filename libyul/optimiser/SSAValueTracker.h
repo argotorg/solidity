@@ -27,6 +27,7 @@
 
 #include <map>
 #include <set>
+#include <unordered_set>
 
 namespace solidity::yul
 {
@@ -50,7 +51,7 @@ public:
 	std::map<YulName, Expression const*> const& values() const { return m_values; }
 	Expression const* value(YulName _name) const { return m_values.at(_name); }
 
-	static std::set<YulName> ssaVariables(Block const& _ast);
+	static std::unordered_set<YulName> ssaVariables(Block const& _ast);
 
 private:
 	void setValue(YulName _name, Expression const* _value);

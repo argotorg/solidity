@@ -24,6 +24,8 @@
 #include <libyul/optimiser/ASTWalker.h>
 #include <liblangutil/EVMVersion.h>
 
+#include <unordered_map>
+
 namespace solidity::yul
 {
 
@@ -141,7 +143,7 @@ public:
 	void operator()(Assignment const& _assignment) override;
 	std::size_t assignmentCount(YulName _name) const;
 private:
-	std::map<YulName, size_t> m_assignmentCounters;
+	std::unordered_map<YulName, size_t> m_assignmentCounters;
 };
 
 }

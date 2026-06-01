@@ -313,9 +313,12 @@ void StackToMemoryMover::visit(Expression& _expression)
 
 std::optional<LiteralValue> StackToMemoryMover::VariableMemoryOffsetTracker::operator()(YulName const& _variable) const
 {
-	if (m_memorySlots.count(_variable))
+	if (
+		auto const it = m_memorySlots.find(_variable);
+		it != m_memorySlots.end()
+	)
 	{
-		uint64_t slot = m_memorySlots.at(_variable);
+		uint64_t slot = it->second;
 		yulAssert(slot < m_numRequiredSlots, "");
 		auto const memoryOffset = m_reservedMemory + 32 * (m_numRequiredSlots - slot - 1);
 		return valueOfNumberLiteral(toCompactHexWithPrefix(memoryOffset));

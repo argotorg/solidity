@@ -24,6 +24,8 @@
 #include <libyul/optimiser/OptimizerUtilities.h>
 #include <libyul/AST.h>
 
+#include <libsolutil/CommonData.h>
+
 using namespace solidity;
 using namespace solidity::yul;
 
@@ -56,7 +58,7 @@ void InlinableExpressionFunctionFinder::operator()(FunctionDefinition const& _fu
 				// would not be valid here if we were searching inside a functionally inlinable
 				// function body.
 				assertThrow(m_disallowedIdentifiers.empty() && !m_foundDisallowedIdentifier, OptimizerException, "");
-				m_disallowedIdentifiers = std::set<YulName>{retVariable, _function.name};
+				m_disallowedIdentifiers = {retVariable, _function.name};
 				std::visit(*this, *assignment.value);
 				if (!m_foundDisallowedIdentifier)
 					m_inlinableFunctions[_function.name] = &_function;
@@ -70,6 +72,6 @@ void InlinableExpressionFunctionFinder::operator()(FunctionDefinition const& _fu
 void InlinableExpressionFunctionFinder::checkAllowed(FunctionName const& _name)
 {
 	// disallowed function names can only ever be user-defined `yul::Identifier`s, not builtins
-	if (std::holds_alternative<Identifier>(_name) && m_disallowedIdentifiers.count(std::get<Identifier>(_name).name) != 0)
+	if (std::holds_alternative<Identifier>(_name) && util::contains(m_disallowedIdentifiers, std::get<Identifier>(_name).name))
 		m_foundDisallowedIdentifier = true;
 }

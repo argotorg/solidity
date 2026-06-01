@@ -26,9 +26,10 @@
 
 #include <liblangutil/EVMVersion.h>
 
-#include <set>
+#include <unordered_map>
 #include <vector>
 #include <memory>
+#include <cstdint>
 
 namespace solidity::evmasm
 {
@@ -41,7 +42,8 @@ struct GasPath
 	std::shared_ptr<KnownState> state;
 	u256 largestMemoryAccess;
 	GasMeter::GasConsumption gas;
-	std::set<size_t> visitedJumpdests;
+	/// Bitmap indexed by AssemblyItem index, sized to m_items.size().
+	std::vector<std::uint8_t> visitedJumpdests;
 };
 
 /**
@@ -77,7 +79,7 @@ private:
 	/// Map of jumpdest -> gas path, so not really a queue. We only have one queued up
 	/// item per jumpdest, because of the behaviour of `queue` above.
 	std::map<size_t, std::unique_ptr<GasPath>> m_queue;
-	std::map<size_t, GasMeter::GasConsumption> m_highestGasUsagePerJumpdest;
+	std::unordered_map<size_t, GasMeter::GasConsumption> m_highestGasUsagePerJumpdest;
 	std::map<u256, size_t> m_tagPositions;
 	AssemblyItems const& m_items;
 	langutil::EVMVersion m_evmVersion;

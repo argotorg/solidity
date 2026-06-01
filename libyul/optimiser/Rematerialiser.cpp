@@ -44,7 +44,7 @@ Rematerialiser::Rematerialiser(
 ):
 	DataFlowAnalyzer(_dialect, MemoryAndStorage::Ignore),
 	m_referenceCounts(VariableReferencesCounter::countReferences(_ast)),
-	m_varsToAlwaysRematerialize(std::move(_varsToAlwaysRematerialize)),
+	m_varsToAlwaysRematerialize(_varsToAlwaysRematerialize.begin(), _varsToAlwaysRematerialize.end()),
 	m_onlySelectedVariables(_onlySelectedVariables)
 {
 }

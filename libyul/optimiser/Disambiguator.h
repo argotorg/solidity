@@ -28,6 +28,7 @@
 
 #include <optional>
 #include <set>
+#include <unordered_map>
 
 namespace solidity::yul
 {
@@ -66,7 +67,7 @@ protected:
 	std::set<YulName> const& m_externallyUsedIdentifiers;
 
 	std::vector<Scope*> m_scopes;
-	std::map<void const*, YulName> m_translations;
+	std::unordered_map<void const*, YulName> m_translations;
 	NameDispenser m_nameDispenser;
 };
 

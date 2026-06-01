@@ -130,11 +130,11 @@ void BlockHasher::operator()(VariableDeclaration const& _varDecl)
 	hash64(_varDecl.variables.size());
 	for (auto const& var: _varDecl.variables)
 	{
-		yulAssert(!m_variableReferences.count(var.name), "");
-		m_variableReferences[var.name] = VariableReference{
+		auto const [it, inserted] = m_variableReferences.try_emplace(var.name, VariableReference{
 			m_internalIdentifierCount++,
 			false
-		};
+		});
+		yulAssert(inserted, "");
 	}
 	ASTWalker::operator()(_varDecl);
 }

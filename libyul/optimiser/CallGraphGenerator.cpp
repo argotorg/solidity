@@ -53,8 +53,11 @@ struct CallGraphCycleFinder
 		else
 		{
 			currentPath.emplace_back(_function);
-			if (callGraph.functionCalls.count(_function))
-				for (auto const& child: callGraph.functionCalls.at(_function))
+			if (
+				auto const it = callGraph.functionCalls.find(_function);
+				it != callGraph.functionCalls.end()
+			)
+				for (auto const& child: it->second)
 					visit(child);
 			currentPath.pop_back();
 			visited.insert(_function);
@@ -101,8 +104,8 @@ void CallGraphGenerator::operator()(FunctionDefinition const& _functionDefinitio
 {
 	YulName previousFunction = m_currentFunction;
 	m_currentFunction = _functionDefinition.name;
-	yulAssert(m_callGraph.functionCalls.count(m_currentFunction) == 0, "");
-	m_callGraph.functionCalls[m_currentFunction] = {};
+	auto const [it, inserted] = m_callGraph.functionCalls.try_emplace(m_currentFunction);
+	yulAssert(inserted, "");
 	ASTWalker::operator()(_functionDefinition);
 	m_currentFunction = previousFunction;
 }

@@ -122,13 +122,16 @@ void ControlFlowGraph::resolveNextLinks()
 		{
 		case BasicBlock::EndType::JUMPI:
 		case BasicBlock::EndType::HANDOVER:
+		{
+			auto const it = blockByBeginPos.find(block.end);
 			assertThrow(
-				blockByBeginPos.count(block.end),
+				it != blockByBeginPos.end(),
 				OptimizerException,
 				"Successor block not found."
 			);
-			block.next = blockByBeginPos.at(block.end);
+			block.next = it->second;
 			break;
+		}
 		default:
 			break;
 		}
@@ -193,15 +196,22 @@ void ControlFlowGraph::setPrevLinks()
 		if (push.type() != PushTag)
 			continue;
 		BlockId nextId(push.data());
-		if (m_blocks.count(nextId) && m_blocks.at(nextId).prev)
+		auto const nextIt = m_blocks.find(nextId);
+		if (nextIt != m_blocks.end() && nextIt->second.prev)
 			continue;
 		bool hasLoop = false;
-		for (BlockId id = nextId; id && m_blocks.count(id) && !hasLoop; id = m_blocks.at(id).next)
+		for (BlockId id = nextId; id && !hasLoop;)
+		{
+			auto const loopIt = m_blocks.find(id);
+			if (loopIt == m_blocks.end())
+				break;
 			hasLoop = (id == blockId);
-		if (hasLoop || !m_blocks.count(nextId))
+			id = loopIt->second.next;
+		}
+		if (hasLoop || nextIt == m_blocks.end())
 			continue;
 
-		m_blocks[nextId].prev = blockId;
+		nextIt->second.prev = blockId;
 		block.next = nextId;
 		block.end -= 2;
 		assertThrow(
@@ -244,9 +254,10 @@ void ControlFlowGraph::gatherKnowledge()
 		workQueue.pop_back();
 		//@todo we might have to do something like incrementing the sequence number for each JUMPDEST
 		assertThrow(!!item.blockId, OptimizerException, "");
-		if (!m_blocks.count(item.blockId))
+		auto const blockIt = m_blocks.find(item.blockId);
+		if (blockIt == m_blocks.end())
 			continue; // too bad, we do not know the tag, probably an invalid jump
-		BasicBlock& block = m_blocks.at(item.blockId);
+		BasicBlock& block = blockIt->second;
 		KnownStatePointer state = item.state;
 		if (block.startState)
 		{

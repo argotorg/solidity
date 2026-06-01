@@ -25,6 +25,8 @@
 #include <libyul/optimiser/OptimiserStep.h>
 #include <libyul/ASTForward.h>
 
+#include <unordered_map>
+
 namespace solidity::yul
 {
 
@@ -46,8 +48,8 @@ public:
 	void operator()(FunctionCall& _funCall) override;
 
 private:
-	EquivalentFunctionCombiner(std::map<YulName, FunctionDefinition const*> _duplicates): m_duplicates(std::move(_duplicates)) {}
-	std::map<YulName, FunctionDefinition const*> m_duplicates;
+	EquivalentFunctionCombiner(std::unordered_map<YulName, FunctionDefinition const*> _duplicates): m_duplicates(std::move(_duplicates)) {}
+	std::unordered_map<YulName, FunctionDefinition const*> m_duplicates;
 };
 
 

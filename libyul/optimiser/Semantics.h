@@ -22,16 +22,18 @@
 #pragma once
 
 #include <libyul/AST.h>
-#include <libyul/Object.h>
+#include <libyul/FunctionHandle.h>
 #include <libyul/SideEffects.h>
 #include <libyul/optimiser/ASTWalker.h>
 #include <libyul/optimiser/CallGraphGenerator.h>
 
 #include <set>
+#include <unordered_map>
 
 namespace solidity::yul
 {
 class Dialect;
+class Object;
 
 /**
  * Specific AST walker that determines side-effect free-ness and movability of code.
@@ -42,23 +44,23 @@ class SideEffectsCollector: public ASTWalker
 public:
 	explicit SideEffectsCollector(
 		Dialect const& _dialect,
-		std::map<FunctionHandle, SideEffects> const* _functionSideEffects = nullptr
+		std::unordered_map<FunctionHandle, SideEffects> const* _functionSideEffects = nullptr
 	): m_dialect(_dialect), m_functionSideEffects(_functionSideEffects) {}
 	SideEffectsCollector(
 		Dialect const& _dialect,
 		Expression const& _expression,
-		std::map<FunctionHandle, SideEffects> const* _functionSideEffects = nullptr
+		std::unordered_map<FunctionHandle, SideEffects> const* _functionSideEffects = nullptr
 	);
 	SideEffectsCollector(Dialect const& _dialect, Statement const& _statement);
 	SideEffectsCollector(
 		Dialect const& _dialect,
 		Block const& _ast,
-		std::map<FunctionHandle, SideEffects> const* _functionSideEffects = nullptr
+		std::unordered_map<FunctionHandle, SideEffects> const* _functionSideEffects = nullptr
 	);
 	SideEffectsCollector(
 		Dialect const& _dialect,
 		ForLoop const& _ast,
-		std::map<FunctionHandle, SideEffects> const* _functionSideEffects = nullptr
+		std::unordered_map<FunctionHandle, SideEffects> const* _functionSideEffects = nullptr
 	);
 
 	using ASTWalker::operator();
@@ -117,7 +119,7 @@ public:
 
 private:
 	Dialect const& m_dialect;
-	std::map<FunctionHandle, SideEffects> const* m_functionSideEffects = nullptr;
+	std::unordered_map<FunctionHandle, SideEffects> const* m_functionSideEffects = nullptr;
 	SideEffects m_sideEffects;
 };
 
@@ -130,7 +132,7 @@ private:
 class SideEffectsPropagator
 {
 public:
-	static std::map<FunctionHandle, SideEffects> sideEffects(
+	static std::unordered_map<FunctionHandle, SideEffects> sideEffects(
 		Dialect const& _dialect,
 		CallGraph const& _directCallGraph
 	);
@@ -195,7 +197,7 @@ class MovableChecker: public SideEffectsCollector
 public:
 	explicit MovableChecker(
 		Dialect const& _dialect,
-		std::map<FunctionHandle, SideEffects> const* _functionSideEffects = nullptr
+		std::unordered_map<FunctionHandle, SideEffects> const* _functionSideEffects = nullptr
 	): SideEffectsCollector(_dialect, _functionSideEffects) {}
 	MovableChecker(Dialect const& _dialect, Expression const& _expression);
 
@@ -231,7 +233,7 @@ public:
 
 	TerminationFinder(
 		Dialect const& _dialect,
-		std::map<YulName, ControlFlowSideEffects> const* _functionSideEffects = nullptr
+		std::unordered_map<YulName, ControlFlowSideEffects> const* _functionSideEffects = nullptr
 	): m_dialect(_dialect), m_functionSideEffects(_functionSideEffects) {}
 
 	/// @returns the index of the first statement in the provided sequence
@@ -256,7 +258,7 @@ public:
 
 private:
 	Dialect const& m_dialect;
-	std::map<YulName, ControlFlowSideEffects> const* m_functionSideEffects;
+	std::unordered_map<YulName, ControlFlowSideEffects> const* m_functionSideEffects;
 };
 
 }

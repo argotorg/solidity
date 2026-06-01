@@ -43,7 +43,7 @@ UnusedPruner::UnusedPruner(
 	Dialect const& _dialect,
 	Block& _ast,
 	bool _allowMSizeOptimization,
-	std::map<FunctionHandle, SideEffects> const* _functionSideEffects,
+	std::unordered_map<FunctionHandle, SideEffects> const* _functionSideEffects,
 	std::set<YulName> const& _externallyUsedFunctions
 ):
 	m_dialect(_dialect),
@@ -122,7 +122,7 @@ void UnusedPruner::runUntilStabilised(
 	Dialect const& _dialect,
 	Block& _ast,
 	bool _allowMSizeOptimization,
-	std::map<FunctionHandle, SideEffects> const* _functionSideEffects,
+	std::unordered_map<FunctionHandle, SideEffects> const* _functionSideEffects,
 	std::set<YulName> const& _externallyUsedFunctions
 )
 {
@@ -147,7 +147,7 @@ void UnusedPruner::runUntilStabilisedOnFullAST(
 	std::set<YulName> const& _externallyUsedFunctions
 )
 {
-	std::map<FunctionHandle, SideEffects> functionSideEffects =
+	std::unordered_map<FunctionHandle, SideEffects> functionSideEffects =
 		SideEffectsPropagator::sideEffects(_dialect, CallGraphGenerator::callGraph(_ast));
 	bool allowMSizeOptimization = !MSizeFinder::containsMSize(_dialect, _ast);
 	runUntilStabilised(_dialect, _ast, allowMSizeOptimization, &functionSideEffects, _externallyUsedFunctions);
@@ -155,16 +155,18 @@ void UnusedPruner::runUntilStabilisedOnFullAST(
 
 bool UnusedPruner::used(YulName _name) const
 {
-	return m_references.count(_name) && m_references.at(_name) > 0;
+	auto const it = m_references.find(_name);
+	return it != m_references.end() && it->second > 0;
 }
 
-void UnusedPruner::subtractReferences(std::map<FunctionHandle, size_t> const& _subtrahend)
+void UnusedPruner::subtractReferences(std::unordered_map<FunctionHandle, size_t> const& _subtrahend)
 {
 	for (auto const& ref: _subtrahend)
 	{
-		assertThrow(m_references.count(ref.first), OptimizerException, "");
-		assertThrow(m_references.at(ref.first) >= ref.second, OptimizerException, "");
-		m_references[ref.first] -= ref.second;
+		auto const it = m_references.find(ref.first);
+		assertThrow(it != m_references.end(), OptimizerException, "");
+		assertThrow(it->second >= ref.second, OptimizerException, "");
+		it->second -= ref.second;
 		m_shouldRunAgain = true;
 	}
 }

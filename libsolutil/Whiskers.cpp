@@ -179,24 +179,26 @@ std::string Whiskers::replace(
 		std::string conditionName(_match[4]);
 		if (!tagName.empty())
 		{
+			auto const it = _parameters.find(tagName);
 			assertThrow(
-				_parameters.count(tagName),
+				it != _parameters.end(),
 				WhiskersError,
 				"Value for tag " + tagName + " not provided.\n" +
 				"Template:\n" +
 				_template
 			);
-			return _parameters.at(tagName);
+			return it->second;
 		}
 		else if (!listName.empty())
 		{
 			std::string templ(_match[3]);
+			auto const it = _listParameters.find(listName);
 			assertThrow(
-				_listParameters.count(listName),
+				it != _listParameters.end(),
 				WhiskersError, "List parameter " + listName + " not set."
 			);
 			std::string replacement;
-			for (auto const& parameters: _listParameters.at(listName))
+			for (auto const& parameters: it->second)
 				replacement += replace(templ, joinMaps(_parameters, parameters), _conditions);
 			return replacement;
 		}
@@ -208,20 +210,27 @@ std::string Whiskers::replace(
 			{
 				std::string tag = conditionName.substr(1);
 
-				if (_parameters.count(tag))
-					conditionValue = !_parameters.at(tag).empty();
-				else if (_listParameters.count(tag))
-					conditionValue = !_listParameters.at(tag).empty();
+				if (
+					auto const it = _parameters.find(tag);
+					it != _parameters.end()
+				)
+					conditionValue = !it->second.empty();
+				else if (
+					auto const it2 = _listParameters.find(tag);
+					it2 != _listParameters.end()
+				)
+					conditionValue = !it2->second.empty();
 				else
 					assertThrow(false, WhiskersError, "Tag " + tag + " used as condition but was not set.");
 			}
 			else
 			{
+				auto const it = _conditions.find(conditionName);
 				assertThrow(
-					_conditions.count(conditionName),
+					it != _conditions.end(),
 					WhiskersError, "Condition parameter " + conditionName + " not set."
 				);
-				conditionValue = _conditions.at(conditionName);
+				conditionValue = it->second;
 			}
 			return replace(
 				conditionValue ? _match[5] : _match[7],

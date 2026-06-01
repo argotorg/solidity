@@ -354,10 +354,11 @@ void OptimizedEVMCodeTransform::createStackLayout(langutil::DebugData::ConstPtr 
 				},
 				[&](FunctionCallReturnLabelSlot const& _returnLabel)
 				{
-					if (!m_returnLabels.count(&_returnLabel.call.get()))
-						m_returnLabels[&_returnLabel.call.get()] = m_assembly.newLabelId();
+					auto const [it, inserted] = m_returnLabels.try_emplace(&_returnLabel.call.get());
+					if (inserted)
+						it->second = m_assembly.newLabelId();
 					m_assembly.setSourceLocation(originLocationOf(_returnLabel.call.get()));
-					m_assembly.appendLabelReference(m_returnLabels.at(&_returnLabel.call.get()));
+					m_assembly.appendLabelReference(it->second);
 					m_assembly.setSourceLocation(sourceLocation);
 				},
 				[&](VariableSlot const& _variable)
@@ -482,12 +483,13 @@ void OptimizedEVMCodeTransform::operator()(CFG::BasicBlock const& _block)
 			else
 			{
 				// Generate a jump label for the target, if not already present.
-				if (!m_blockLabels.count(_jump.target))
-					m_blockLabels[_jump.target] = m_assembly.newLabelId();
+				auto const [it, inserted] = m_blockLabels.try_emplace(_jump.target);
+				if (inserted)
+					it->second = m_assembly.newLabelId();
 
 				// If we already have generated the target block, jump to it, otherwise generate it in place.
 				if (m_generated.count(_jump.target))
-					m_assembly.appendJumpTo(m_blockLabels[_jump.target]);
+					m_assembly.appendJumpTo(it->second);
 				else
 					(*this)(*_jump.target);
 			}
@@ -498,10 +500,16 @@ void OptimizedEVMCodeTransform::operator()(CFG::BasicBlock const& _block)
 			createStackLayout(debugDataOf(_conditionalJump), blockInfo.exitLayout);
 
 			// Create labels for the targets, if not already present.
-			if (!m_blockLabels.count(_conditionalJump.nonZero))
-				m_blockLabels[_conditionalJump.nonZero] = m_assembly.newLabelId();
-			if (!m_blockLabels.count(_conditionalJump.zero))
-				m_blockLabels[_conditionalJump.zero] = m_assembly.newLabelId();
+			if (
+				auto const [it, inserted] = m_blockLabels.try_emplace(_conditionalJump.nonZero);
+				inserted
+			)
+				it->second = m_assembly.newLabelId();
+			if (
+				auto const [it, inserted] = m_blockLabels.try_emplace(_conditionalJump.zero);
+				inserted
+			)
+				it->second = m_assembly.newLabelId();
 
 			// Assert that we have the correct condition on stack.
 			yulAssert(!m_stack.empty(), "");

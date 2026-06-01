@@ -35,6 +35,7 @@
 #include <memory>
 #include <set>
 #include <limits>
+#include <map>
 
 namespace solidity::yul
 {

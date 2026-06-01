@@ -77,7 +77,7 @@ void NameSimplifier::operator()(FunctionCall& _funCall)
 
 void NameSimplifier::findSimplification(YulName const& _name)
 {
-	if (m_translations.count(_name))
+	if (m_translations.contains(_name))
 		return;
 
 	std::string name = _name.str();

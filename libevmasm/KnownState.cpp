@@ -215,20 +215,22 @@ KnownState::StoreOperation KnownState::feedItem(AssemblyItem const& _item, bool 
 /// _this which is not in or not equal to the value in _other.
 template <class Mapping> void intersect(Mapping& _this, Mapping const& _other)
 {
-	for (auto it = _this.begin(); it != _this.end();)
-		if (_other.count(it->first) && _other.at(it->first) == it->second)
-			++it;
-		else
-			it = _this.erase(it);
+	std::erase_if(_this, [&](auto const& elem) {
+		auto const it = _other.find(elem.first);
+		return it == _other.end() || it->second != elem.second;
+	});
 }
 
 void KnownState::reduceToCommonKnowledge(KnownState const& _other, bool _combineSequenceNumbers)
 {
 	int stackDiff = m_stackHeight - _other.m_stackHeight;
 	for (auto it = m_stackElements.begin(); it != m_stackElements.end();)
-		if (_other.m_stackElements.count(it->first - stackDiff))
+		if (
+			auto const otherIt = _other.m_stackElements.find(it->first - stackDiff);
+			otherIt != _other.m_stackElements.end()
+		)
 		{
-			Id other = _other.m_stackElements.at(it->first - stackDiff);
+			Id other = otherIt->second;
 			if (it->second == other)
 				++it;
 			else
@@ -279,8 +281,11 @@ bool KnownState::operator==(KnownState const& _other) const
 
 ExpressionClasses::Id KnownState::stackElement(int _stackHeight, langutil::DebugData::ConstPtr _debugData)
 {
-	if (m_stackElements.count(_stackHeight))
-		return m_stackElements.at(_stackHeight);
+	if (
+		auto const it = m_stackElements.find(_stackHeight);
+		it != m_stackElements.end()
+	)
+		return it->second;
 	// Stack element not found (not assigned yet), create new unknown equivalence class.
 	return m_stackElements[_stackHeight] =
 			m_expressionClasses->find(AssemblyItem(UndefinedItem, _stackHeight, std::move(_debugData)));
@@ -325,8 +330,11 @@ KnownState::StoreOperation KnownState::storeInStorage(
 	langutil::DebugData::ConstPtr _debugData
 )
 {
-	if (m_storageContent.count(_slot) && m_storageContent[_slot] == _value)
-		// do not execute the storage if we know that the value is already there
+	// do not execute the storage if we know that the value is already there
+	if (
+		auto const it = m_storageContent.find(_slot);
+		it != m_storageContent.end() && it->second == _value
+	)
 		return StoreOperation();
 	m_sequenceNumber++;
 	decltype(m_storageContent) storageContents;
@@ -350,8 +358,11 @@ KnownState::StoreOperation KnownState::storeInStorage(
 
 ExpressionClasses::Id KnownState::loadFromStorage(Id _slot, langutil::DebugData::ConstPtr _debugData)
 {
-	if (m_storageContent.count(_slot))
-		return m_storageContent.at(_slot);
+	if (
+		auto const it = m_storageContent.find(_slot);
+		it != m_storageContent.end()
+	)
+		return it->second;
 
 	AssemblyItem item(Instruction::SLOAD, std::move(_debugData));
 	return m_storageContent[_slot] = m_expressionClasses->find(item, {_slot}, true, m_sequenceNumber);
@@ -359,8 +370,11 @@ ExpressionClasses::Id KnownState::loadFromStorage(Id _slot, langutil::DebugData:
 
 KnownState::StoreOperation KnownState::storeInMemory(Id _slot, Id _value, langutil::DebugData::ConstPtr _debugData)
 {
-	if (m_memoryContent.count(_slot) && m_memoryContent[_slot] == _value)
-		// do not execute the store if we know that the value is already there
+	// do not execute the store if we know that the value is already there
+	if (
+		auto const it = m_memoryContent.find(_slot);
+		it != m_memoryContent.end() && it->second == _value
+	)
 		return StoreOperation();
 	m_sequenceNumber++;
 	decltype(m_memoryContent) memoryContents;
@@ -381,8 +395,11 @@ KnownState::StoreOperation KnownState::storeInMemory(Id _slot, Id _value, langut
 
 ExpressionClasses::Id KnownState::loadFromMemory(Id _slot, langutil::DebugData::ConstPtr _debugData)
 {
-	if (m_memoryContent.count(_slot))
-		return m_memoryContent.at(_slot);
+	if (
+		auto const it = m_memoryContent.find(_slot);
+		it != m_memoryContent.end()
+	)
+		return it->second;
 
 	AssemblyItem item(Instruction::MLOAD, std::move(_debugData));
 	return m_memoryContent[_slot] = m_expressionClasses->find(item, {_slot}, true, m_sequenceNumber);
@@ -410,8 +427,11 @@ KnownState::Id KnownState::applyKeccak256(
 		);
 		arguments.push_back(loadFromMemory(slot, _debugData));
 	}
-	if (m_knownKeccak256Hashes.count({arguments, length}))
-		return m_knownKeccak256Hashes.at({arguments, length});
+	if (
+		auto const it = m_knownKeccak256Hashes.find({arguments, length});
+		it != m_knownKeccak256Hashes.end()
+	)
+		return it->second;
 	Id v;
 	// If all arguments are known constants, compute the Keccak-256 here
 	if (all_of(arguments.begin(), arguments.end(), [this](Id _a) { return !!m_expressionClasses->knownConstant(_a); }))
@@ -429,8 +449,11 @@ KnownState::Id KnownState::applyKeccak256(
 
 std::set<u256> KnownState::tagsInExpression(KnownState::Id _expressionId)
 {
-	if (m_tagUnions.left.count(_expressionId))
-		return m_tagUnions.left.at(_expressionId);
+	if (
+		auto const it = m_tagUnions.left.find(_expressionId);
+		it != m_tagUnions.left.end()
+	)
+		return it->second;
 	// Might be a tag, then return the set of itself.
 	ExpressionClasses::Expression expr = m_expressionClasses->representative(_expressionId);
 	if (expr.item && expr.item->type() == PushTag)
@@ -441,8 +464,11 @@ std::set<u256> KnownState::tagsInExpression(KnownState::Id _expressionId)
 
 KnownState::Id KnownState::tagUnion(std::set<u256> _tags)
 {
-	if (m_tagUnions.right.count(_tags))
-		return m_tagUnions.right.at(_tags);
+	if (
+		auto const it = m_tagUnions.right.find(_tags);
+		it != m_tagUnions.right.end()
+	)
+		return it->second;
 	else
 	{
 		Id id = m_expressionClasses->newClass(langutil::DebugData::create());

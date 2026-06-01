@@ -490,8 +490,9 @@ void ControlFlowGraphBuilder::operator()(Leave const& leave_)
 void ControlFlowGraphBuilder::operator()(FunctionDefinition const& _function)
 {
 	yulAssert(m_scope, "");
-	yulAssert(m_scope->identifiers.count(_function.name), "");
-	Scope::Function& function = std::get<Scope::Function>(m_scope->identifiers.at(_function.name));
+	auto const it = m_scope->identifiers.find(_function.name);
+	yulAssert(it != m_scope->identifiers.end(), "");
+	Scope::Function& function = std::get<Scope::Function>(it->second);
 	m_graph.functions.emplace_back(&function);
 
 	CFG::FunctionInfo& functionInfo = m_graph.functionInfo.at(&function);
@@ -507,8 +508,9 @@ void ControlFlowGraphBuilder::operator()(FunctionDefinition const& _function)
 void ControlFlowGraphBuilder::registerFunction(FunctionDefinition const& _functionDefinition)
 {
 	yulAssert(m_scope, "");
-	yulAssert(m_scope->identifiers.count(_functionDefinition.name), "");
-	Scope::Function& function = std::get<Scope::Function>(m_scope->identifiers.at(_functionDefinition.name));
+	auto const it = m_scope->identifiers.find(_functionDefinition.name);
+	yulAssert(it != m_scope->identifiers.end(), "");
+	Scope::Function& function = std::get<Scope::Function>(it->second);
 
 	yulAssert(m_info.scopes.at(&_functionDefinition.body), "");
 	Scope* virtualFunctionScope = m_info.scopes.at(m_info.virtualBlocks.at(&_functionDefinition).get()).get();

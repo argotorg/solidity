@@ -23,6 +23,7 @@
 
 #include <libyul/optimiser/ASTWalker.h>
 #include <libyul/AST.h>
+#include <libyul/FunctionHandle.h>
 
 #include <map>
 #include <set>
