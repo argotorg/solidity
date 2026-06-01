@@ -4,6 +4,7 @@ Language Features:
 
 Compiler Features:
 * General: Speed up SHA-256 hashing (`picosha2`).
+* General: Remove support for the experimental EOF (EVM Object Format) backend.
 
 Bugfixes:
 * NatSpec: Disallow `@return` tag in event documentation.

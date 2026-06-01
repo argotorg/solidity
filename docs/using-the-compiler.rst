@@ -363,10 +363,6 @@ Input Description
         // petersburg, istanbul, berlin, london, paris, shanghai, cancun,
         // prague, osaka (default), or @future (experimental).
         "evmVersion": "osaka",
-        // EVM Object Format version to compile for (optional, experimental).
-        // Currently the only valid value is 1. If not specified, legacy non-EOF bytecode will be generated.
-        // Requires `evmVersion` >= osaka.
-        "eofVersion": null,
         // Optional: Change compilation pipeline to go through the Yul intermediate representation.
         // This is false by default.
         "viaIR": true,
@@ -773,8 +769,6 @@ The table below details all currently available experimental features.
 | Generic Solidity      | ``generic-solidity``     | yes              | ``pragma experimental solidity``                                                                                                        |
 +-----------------------+--------------------------+------------------+-----------------------------------------------------------------------------------------------------------------------------------------+
 | IR AST                | ``ir-ast``               | no               | ``--ir-ast-json``, ``--ir-optimized-ast-json``                                                                                          |
-+-----------------------+--------------------------+------------------+-----------------------------------------------------------------------------------------------------------------------------------------+
-| EOF                   | ``eof``                  | yes              | ``--experimental-eof-version``                                                                                                          |
 +-----------------------+--------------------------+------------------+-----------------------------------------------------------------------------------------------------------------------------------------+
 | Non-mainnet EVMs      | ``evm``                  | yes              | ``--evm-version <version name>``                                                                                                        |
 +-----------------------+--------------------------+------------------+-----------------------------------------------------------------------------------------------------------------------------------------+

@@ -58,7 +58,6 @@ public:
 
 	IRGenerationContext(
 		langutil::EVMVersion _evmVersion,
-		std::optional<uint8_t> _eofVersion,
 		ExecutionContext _executionContext,
 		RevertStrings _revertStrings,
 		std::map<std::string, unsigned> _sourceIndices,
@@ -66,7 +65,6 @@ public:
 		langutil::CharStreamProvider const* _soliditySourceProvider
 	):
 		m_evmVersion(_evmVersion),
-		m_eofVersion(_eofVersion),
 		m_executionContext(_executionContext),
 		m_revertStrings(_revertStrings),
 		m_sourceIndices(std::move(_sourceIndices)),
@@ -101,9 +99,6 @@ public:
 	/// Registers an immutable variable of the contract.
 	/// Should only be called at construction time.
 	void registerImmutableVariable(VariableDeclaration const& _varDecl);
-	void registerLibraryAddressImmutable();
-	size_t libraryAddressImmutableOffset() const;
-	size_t libraryAddressImmutableOffsetRelative() const;
 	/// @returns the reserved memory for storing the value of the
 	/// immutable @a _variable during contract creation.
 	size_t immutableMemoryOffset(VariableDeclaration const& _variable) const;
@@ -141,7 +136,6 @@ public:
 	YulUtilFunctions utils();
 
 	langutil::EVMVersion evmVersion() const { return m_evmVersion; }
-	std::optional<uint8_t> eofVersion() const { return m_eofVersion; }
 	ExecutionContext executionContext() const { return m_executionContext; }
 
 	void setArithmetic(Arithmetic _value) { m_arithmetic = _value; }
@@ -166,22 +160,9 @@ public:
 	langutil::DebugInfoSelection debugInfoSelection() const { return m_debugInfoSelection; }
 	langutil::CharStreamProvider const* soliditySourceProvider() const { return m_soliditySourceProvider; }
 	std::map<VariableDeclaration const*, size_t> const& immutableVariables() const { return m_immutableVariables; }
-	void setImmutableVariables(std::map<VariableDeclaration const*, size_t> _immutableVariables)
-	{
-		solAssert(m_eofVersion.has_value());
-		solAssert(m_executionContext == ExecutionContext::Deployed);
-		m_immutableVariables = std::move(_immutableVariables);
-	}
-	void setLibraryAddressImmutableOffset(size_t _libraryAddressImmutableOffset)
-	{
-		solAssert(m_eofVersion.has_value());
-		solAssert(m_executionContext == ExecutionContext::Deployed);
-		m_libraryAddressImmutableOffset = _libraryAddressImmutableOffset;
-	}
 
 private:
 	langutil::EVMVersion m_evmVersion;
-	std::optional<uint8_t> m_eofVersion;
 	ExecutionContext m_executionContext;
 	RevertStrings m_revertStrings;
 	std::map<std::string, unsigned> m_sourceIndices;
@@ -189,9 +170,8 @@ private:
 	ContractDefinition const* m_mostDerivedContract = nullptr;
 	std::map<VariableDeclaration const*, IRVariable> m_localVariables;
 	/// Memory offsets reserved for the values of immutable variables during contract creation.
-	/// This map is empty in the legacy runtime context and may be not empty in EOF runtime context.
+	/// This map is empty in the runtime context.
 	std::map<VariableDeclaration const*, size_t> m_immutableVariables;
-	std::optional<size_t> m_libraryAddressImmutableOffset;
 	/// Total amount of reserved memory. Reserved memory is used to store
 	/// immutable variables during contract creation.
 	std::optional<size_t> m_reservedMemory = {0};

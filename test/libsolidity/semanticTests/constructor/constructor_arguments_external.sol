@@ -16,7 +16,7 @@ contract Main {
     }
 }
 // ====
-// bytecodeFormat: legacy,>=EOFv1
+// bytecodeFormat: legacy
 // ----
 // constructor(): "abc", true
 // gas irOptimized: 80174

@@ -6,13 +6,20 @@
                     "name": "solc",
                     "version": "<VERSION REMOVED>"
                 },
+                "id": "solc-16f212cfefc133646daa9c29bfe430dea2930e5128748cca05a6e47d4c72e51e",
                 "sources": [
                     {
+                        "contents": "//SPDX-License-Identifier: GPL-3.0
+pragma solidity >=0.0;
+contract C { function f() public pure {} }",
                         "id": 0,
+                        "language": "Solidity",
                         "path": "a.sol"
                     }
                 ]
-            }
+            },
+            "pointers": {},
+            "types": {}
         }
     },
     "sources": {

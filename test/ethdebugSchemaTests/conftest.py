@@ -1,5 +1,3 @@
-import shutil
-import subprocess
 from pathlib import Path
 
 import pytest
@@ -21,24 +19,19 @@ def solc_path(request):
 
 
 @pytest.fixture(scope="module")
-def ethdebug_clone_dir(tmpdir_factory):
-    temporary_dir = Path(tmpdir_factory.mktemp("data"))
-    yield temporary_dir
-    shutil.rmtree(temporary_dir)
+def ethdebug_schema_dir():
+    schema_dir = Path(__file__).parent / "ethdebug-format" / "schemas"
+    assert schema_dir.is_dir(), (
+        "ethdebug/format schemas are missing. "
+        "Run `git submodule update --init test/ethdebugSchemaTests/ethdebug-format`."
+    )
+    return schema_dir
 
 
 @pytest.fixture(scope="module")
-def ethdebug_schema_repository(ethdebug_clone_dir):
-    process = subprocess.run(
-        ["git", "clone", "https://github.com/ethdebug/format.git", ethdebug_clone_dir],
-        encoding="utf8",
-        capture_output=True,
-        check=True
-    )
-    assert process.returncode == 0
-
+def ethdebug_schema_repository(ethdebug_schema_dir):
     registry = referencing.Registry()
-    for path in (ethdebug_clone_dir / "schemas").rglob("*.yaml"):
+    for path in ethdebug_schema_dir.rglob("*.yaml"):
         with open(path, "r", encoding="utf8") as f:
             schema = yaml.safe_load(f)
             if "$id" in schema:

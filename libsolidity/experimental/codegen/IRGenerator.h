@@ -43,7 +43,6 @@ class IRGenerator
 public:
 	IRGenerator(
 		langutil::EVMVersion _evmVersion,
-		std::optional<uint8_t> _eofVersion,
 		RevertStrings /*_revertStrings*/,
 		std::map<std::string, unsigned> /*_sourceIndices*/,
 		langutil::DebugInfoSelection const& /*_debugInfoSelection*/,
@@ -61,7 +60,6 @@ public:
 	std::string generate(FunctionDefinition const& _function, Type _type);
 private:
 	langutil::EVMVersion const m_evmVersion;
-	std::optional<uint8_t> const m_eofVersion;
 	OptimiserSettings const m_optimiserSettings;
 	//langutil::DebugInfoSelection m_debugInfoSelection = {};
 	//langutil::CharStreamProvider const* m_soliditySourceProvider = nullptr;

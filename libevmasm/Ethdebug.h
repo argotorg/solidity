@@ -26,13 +26,21 @@
 namespace solidity::evmasm::ethdebug
 {
 
+struct Source
+{
+	unsigned id;
+	std::string path;
+	std::string contents;
+	std::string language;
+};
+
 // returns ethdebug/format/program.
 Json program(std::string_view _name, unsigned _sourceID, Assembly const& _assembly, LinkerObject const& _linkerObject);
 
 // returns ethdebug/format/info/resources
-Json resources(std::vector<std::string> const& _sources, std::string const& _version);
+Json resources(std::vector<Source> const& _sources, std::string_view _version);
 
 // returns the 'compilation' object from ethdebug/format/info/resources
-Json compilation(std::string_view _version);
+Json compilation(std::vector<Source> const& _sources, std::string_view _version);
 
 } // namespace solidity::evmasm::ethdebug

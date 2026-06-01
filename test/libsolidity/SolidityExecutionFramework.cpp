@@ -58,7 +58,6 @@ bytes SolidityExecutionFramework::multiSourceCompileContract(
 	m_compiler.setLibraries(_libraryAddresses);
 	m_compiler.setRevertStringBehaviour(m_revertStrings);
 	m_compiler.setEVMVersion(m_evmVersion);
-	m_compiler.setEOFVersion(m_eofVersion);
 	m_compiler.setOptimiserSettings(m_optimiserSettings);
 	m_compiler.setViaIR(m_compileViaYul);
 	m_compiler.setViaSSACFG(m_compileViaSSACFG);

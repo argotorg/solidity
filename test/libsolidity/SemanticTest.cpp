@@ -59,12 +59,11 @@ std::ostream& solidity::frontend::test::operator<<(std::ostream& _output, Requir
 SemanticTest::SemanticTest(
 	std::string const& _filename,
 	langutil::EVMVersion _evmVersion,
-	std::optional<uint8_t> _eofVersion,
 	std::vector<boost::filesystem::path> const& _vmPaths,
 	bool _enforceGasCost,
 	u256 _enforceGasCostMinValue
 ):
-	SolidityExecutionFramework(_evmVersion, _eofVersion, _vmPaths, false),
+	SolidityExecutionFramework(_evmVersion, _vmPaths, false),
 	EVMVersionRestrictedTestCase(_filename),
 	m_sources(m_reader.sources()),
 	m_lineOffset(m_reader.lineNumber()),
@@ -91,11 +90,7 @@ SemanticTest::SemanticTest(
 	if (m_runWithABIEncoderV1Only && !solidity::test::CommonOptions::get().useABIEncoderV1)
 		m_shouldRun = false;
 
-	auto const eofEnabled = solidity::test::CommonOptions::get().eofVersion().has_value();
-	std::string compileViaYul = m_reader.stringSetting("compileViaYul", eofEnabled ? "true" : "also");
-
-	if (compileViaYul == "false" && eofEnabled)
-		m_shouldRun = false;
+	std::string compileViaYul = m_reader.stringSetting("compileViaYul", "also");
 
 	if (m_runWithABIEncoderV1Only && compileViaYul != "false")
 		BOOST_THROW_EXCEPTION(std::runtime_error(
@@ -323,7 +318,7 @@ TestCase::TestResult SemanticTest::run(std::ostream& _stream, std::string const&
 {
 	TestResult result = TestResult::Success;
 
-	if (m_testCaseWantsLegacyRun && !m_eofVersion.has_value())
+	if (m_testCaseWantsLegacyRun)
 		result = runTest(_stream, _linePrefix, _formatted, false /* _isYulRun */);
 
 	if (m_testCaseWantsYulRun && result == TestResult::Success)

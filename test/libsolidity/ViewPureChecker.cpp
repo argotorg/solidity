@@ -134,7 +134,7 @@ BOOST_AUTO_TEST_CASE(address_staticcall)
 }
 
 
-BOOST_AUTO_TEST_CASE(assembly_staticcall, *boost::unit_test::precondition(nonEOF()))
+BOOST_AUTO_TEST_CASE(assembly_staticcall)
 {
 	std::string text = R"(
 		contract C {

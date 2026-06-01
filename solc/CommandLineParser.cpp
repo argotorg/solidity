@@ -47,7 +47,6 @@ static std::string const g_strAssemble = "assemble";
 static std::string const g_strCombinedJson = "combined-json";
 static std::string const g_strEVM = "evm";
 static std::string const g_strEVMVersion = "evm-version";
-static std::string const g_strEOFVersion = "experimental-eof-version";
 static std::string const g_strViaIR = "via-ir";
 static std::string const g_strViaSSACFG = "via-ssa-cfg";
 static std::string const g_strExperimentalViaIR = "experimental-via-ir";
@@ -172,7 +171,6 @@ std::vector<std::string> const& CommandLineParser::experimentalOptionNames()
 		"ethdebug-compilation",
 		"ethdebug-program",
 		"ethdebug-program-runtime",
-		g_strEOFVersion,
 		g_strViaSSACFG,
 	};
 	return names;
@@ -533,8 +531,6 @@ void CommandLineParser::parseOutputSelection()
 			"The following outputs are not supported in " + g_inputModeName.at(m_options.input.mode) + " mode: " +
 			joinOptionNames(unsupportedOutputs) + "."
 		);
-
-	// TODO: restrict EOF version to correct EVM version.
 }
 
 po::options_description CommandLineParser::optionsDescription()
@@ -626,13 +622,6 @@ General Information)").c_str(),
 		)
 	;
 	outputOptions.add_options()
-		(
-			g_strEOFVersion.c_str(),
-			// Declared as uint64_t, since uint8_t will be parsed as character by boost.
-			po::value<uint64_t>()->value_name("version")->implicit_value(1),
-			"(experimental) Select desired EOF version. Currently the only valid value is 1. "
-			"If not specified, non-EOF bytecode will be generated."
-		)
 		(
 			g_strExperimentalViaIR.c_str(),
 			"Deprecated synonym of --via-ir."
@@ -1297,18 +1286,6 @@ void CommandLineParser::processArgs()
 			solThrow(CommandLineValidationError, "Invalid option for --" + g_strEVMVersion + ": " + versionOptionStr);
 		m_options.output.evmVersion = *versionOption;
 	}
-
-	if (m_args.count(g_strEOFVersion))
-	{
-		// Request as uint64_t, since uint8_t will be parsed as character by boost.
-		uint64_t versionOption = m_args[g_strEOFVersion].as<uint64_t>();
-		if (versionOption != 1)
-			solThrow(CommandLineValidationError, "Invalid option for --" + g_strEOFVersion + ": " + std::to_string(versionOption));
-		m_options.output.eofVersion = 1;
-	}
-
-	if (m_options.output.eofVersion.has_value() && !m_options.output.evmVersion.supportsEOF())
-		solThrow(CommandLineValidationError, "EOF is not supported by EVM versions earlier than " + EVMVersion::firstWithEOF().name() + ".");
 
 	if (m_args.count(g_strNoOptimizeYul) > 0 && m_args.count(g_strOptimizeYul) > 0)
 		solThrow(

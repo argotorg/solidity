@@ -3,7 +3,16 @@
     "compiler": {
         "name": "solc",
         "version": "<VERSION REMOVED>"
-    }
+    },
+    "id": "solc-4743915c828ac077c907e396c21c675b200f1fd5faefcab84ccd46bb7d5cd48b",
+    "sources": [
+        {
+            "contents": "// SPDX-License-Identifier: GPL-3.0\npragma solidity *;\n\ncontract C {}\n",
+            "id": 0,
+            "language": "Solidity",
+            "path": "input.sol"
+        }
+    ]
 }
 
 ======= input.sol:C =======

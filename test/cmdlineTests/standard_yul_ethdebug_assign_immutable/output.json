@@ -117,13 +117,24 @@
                     "name": "solc",
                     "version": "<VERSION REMOVED>"
                 },
+                "id": "solc-b25a00fbb503b1ec21ab2c73518834633c063188f521655e16df0205086472dc",
                 "sources": [
                     {
+                        "contents": "object \"a\" {
+    code {
+        {
+            setimmutable(0, \"long___name___that___definitely___exceeds___the___thirty___two___byte___limit\", 0x1234567890123456789012345678901234567890)
+        }
+    }
+}",
                         "id": 0,
+                        "language": "Yul",
                         "path": "C"
                     }
                 ]
-            }
+            },
+            "pointers": {},
+            "types": {}
         }
     }
 }

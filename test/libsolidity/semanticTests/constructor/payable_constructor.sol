@@ -2,6 +2,6 @@ contract C {
     constructor() payable {}
 }
 // ====
-// bytecodeFormat: legacy,>=EOFv1
+// bytecodeFormat: legacy
 // ----
 // constructor(), 27 wei ->

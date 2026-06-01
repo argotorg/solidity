@@ -23,6 +23,7 @@
 
 #include <concepts>
 #include <optional>
+#include <string>
 #include <variant>
 #include <vector>
 
@@ -88,6 +89,29 @@ struct SourceRange
 	std::optional<Range> range;
 };
 
+struct Source
+{
+	ID id;
+	std::string path;
+	std::string contents;
+	std::optional<std::string> encoding;
+	std::string language;
+};
+
+struct Compilation
+{
+	struct Compiler
+	{
+		std::string name;
+		std::string version;
+	};
+
+	ID id;
+	Compiler compiler;
+	std::optional<Json> settings;
+	std::vector<Source> sources;
+};
+
 }
 
 namespace program
@@ -143,6 +167,18 @@ struct Program
 	std::vector<program::Instruction> instructions;
 };
 
+namespace info
+{
+
+struct Resources
+{
+	materials::Compilation compilation;
+	Json types;
+	Json pointers;
+};
+
+}
+
 namespace data
 {
 void to_json(Json& _json, HexValue const& _hexValue);
@@ -155,6 +191,9 @@ void to_json(Json& _json, ID const& _id);
 void to_json(Json& _json, Reference const& _source);
 void to_json(Json& _json, SourceRange::Range const& _range);
 void to_json(Json& _json, SourceRange const& _sourceRange);
+void to_json(Json& _json, Source const& _source);
+void to_json(Json& _json, Compilation::Compiler const& _compiler);
+void to_json(Json& _json, Compilation const& _compilation);
 }
 
 namespace program
@@ -168,5 +207,10 @@ void to_json(Json& _json, Instruction const& _instruction);
 void to_json(Json& _json, Program::Contract const& _contract);
 void to_json(Json& _json, Program::Environment const& _environment);
 void to_json(Json& _json, Program const& _program);
+
+namespace info
+{
+void to_json(Json& _json, Resources const& _resources);
+}
 
 }

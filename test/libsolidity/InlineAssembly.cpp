@@ -61,7 +61,7 @@ std::optional<Error> parseAndReturnFirstError(
 {
 	YulStack stack(
 		solidity::test::CommonOptions::get().evmVersion(),
-		solidity::test::CommonOptions::get().eofVersion(),
+		std::nullopt,
 		solidity::frontend::OptimiserSettings::none(),
 		DebugInfoSelection::None()
 	);
@@ -119,7 +119,7 @@ void parsePrintCompare(std::string const& _source, bool _canWarn = false)
 {
 	YulStack stack(
 		solidity::test::CommonOptions::get().evmVersion(),
-		solidity::test::CommonOptions::get().eofVersion(),
+		std::nullopt,
 		OptimiserSettings::none(),
 		DebugInfoSelection::None()
 	);
@@ -206,7 +206,7 @@ BOOST_AUTO_TEST_CASE(print_string_literal_unicode)
 	std::string parsed = "object \"object\" {\n    code { let x := \"\\xe1\\xae\\xac\" }\n}\n";
 	YulStack stack(
 		solidity::test::CommonOptions::get().evmVersion(),
-		solidity::test::CommonOptions::get().eofVersion(),
+		std::nullopt,
 		OptimiserSettings::none(),
 		DebugInfoSelection::None()
 	);
@@ -286,8 +286,7 @@ BOOST_AUTO_TEST_CASE(designated_invalid_instruction)
 	BOOST_CHECK(successAssemble("{ invalid() }"));
 }
 
-// TODO: Implement EOF counterpart
-BOOST_AUTO_TEST_CASE(inline_assembly_shadowed_instruction_declaration, *boost::unit_test::precondition(nonEOF()))
+BOOST_AUTO_TEST_CASE(inline_assembly_shadowed_instruction_declaration)
 {
 	CHECK_ASSEMBLE_ERROR("{ let gas := 1 }", ParserError, "Cannot use builtin");
 }
@@ -326,14 +325,14 @@ BOOST_AUTO_TEST_CASE(returndatacopy)
 	BOOST_CHECK(successAssemble("{ returndatacopy(0, 32, 64) }"));
 }
 
-BOOST_AUTO_TEST_CASE(staticcall, *boost::unit_test::precondition(nonEOF()))
+BOOST_AUTO_TEST_CASE(staticcall)
 {
 	if (!solidity::test::CommonOptions::get().evmVersion().hasStaticCall())
 		return;
 	BOOST_CHECK(successAssemble("{ pop(staticcall(10000, 0x123, 64, 0x10, 128, 0x10)) }"));
 }
 
-BOOST_AUTO_TEST_CASE(create2, *boost::unit_test::precondition(nonEOF()))
+BOOST_AUTO_TEST_CASE(create2)
 {
 	if (!solidity::test::CommonOptions::get().evmVersion().hasCreate2())
 		return;

@@ -250,13 +250,6 @@ void CompilerStack::setEVMVersion(langutil::EVMVersion _version)
 	m_globalContext.reset();
 }
 
-void CompilerStack::setEOFVersion(std::optional<uint8_t> _version)
-{
-	solAssert(m_stackState < CompilationSuccessful, "Must set EOF version before compiling.");
-	solAssert(!_version || _version == 1, "Invalid EOF version.");
-	m_eofVersion = _version;
-}
-
 void CompilerStack::setModelCheckerSettings(ModelCheckerSettings _settings)
 {
 	solAssert(m_stackState < ParsedAndImported, "Must set model checking settings before parsing.");
@@ -333,7 +326,6 @@ void CompilerStack::reset(bool _keepSettings)
 		m_viaIR = false;
 		m_viaSSACFG = false;
 		m_evmVersion = langutil::EVMVersion();
-		m_eofVersion.reset();
 		m_modelCheckerSettings = ModelCheckerSettings{};
 		m_selectedContracts.clear();
 		m_revertStrings = RevertStrings::Default;
@@ -371,7 +363,7 @@ bool CompilerStack::parse()
 
 	try
 	{
-		Parser parser{m_errorReporter, m_evmVersion, m_eofVersion};
+		Parser parser{m_errorReporter, m_evmVersion};
 
 		std::vector<std::string> sourcesToParse;
 		for (auto const& s: m_sources)
@@ -443,7 +435,7 @@ void CompilerStack::importASTs(std::map<std::string, Json> const& _sources)
 {
 	solAssert(m_stackState == Empty, "Must call importASTs only before the SourcesSet state.");
 	std::map<std::string, ASTPointer<SourceUnit>> reconstructedSources =
-		ASTJsonImporter(m_evmVersion, m_eofVersion).jsonToSourceUnit(_sources);
+		ASTJsonImporter(m_evmVersion).jsonToSourceUnit(_sources);
 	for (auto& src: reconstructedSources)
 	{
 		solUnimplementedAssert(!src.second->experimentalSolidity());
@@ -594,7 +586,7 @@ bool CompilerStack::analyzeLegacy(bool _noErrorsSoFar)
 	//
 	// Note: this does not resolve overloaded functions. In order to do that, types of arguments are needed,
 	// which is only done one step later.
-	TypeChecker typeChecker(m_evmVersion, m_eofVersion, m_errorReporter);
+	TypeChecker typeChecker(m_evmVersion, m_errorReporter);
 	for (Source const* source: m_sourceOrder)
 		if (source->ast && !typeChecker.checkTypeRequirements(*source->ast))
 			noErrors = false;
@@ -856,7 +848,7 @@ YulStack CompilerStack::loadGeneratedIR(std::string const& _ir) const
 {
 	YulStack stack(
 		m_evmVersion,
-		m_eofVersion,
+		std::nullopt,
 		m_optimiserSettings,
 		m_debugInfoSelection,
 		this, // _soliditySourceProvider
@@ -906,7 +898,6 @@ evmasm::AssemblyItems const* CompilerStack::assemblyItems(std::string const& _co
 	Contract const& currentContract = contract(_contractName);
 	if (!currentContract.evmAssembly)
 		return nullptr;
-	solUnimplementedAssert(!m_eofVersion.has_value(), "EVM assembly output not implemented for EOF yet.");
 	solAssert(currentContract.evmAssembly->codeSections().size() == 1, "Expected a single code section in legacy codegen.");
 	return &currentContract.evmAssembly->codeSections().front().items;
 }
@@ -919,7 +910,6 @@ evmasm::AssemblyItems const* CompilerStack::runtimeAssemblyItems(std::string con
 
 	if (!currentContract.evmRuntimeAssembly)
 		return nullptr;
-	solUnimplementedAssert(!m_eofVersion.has_value(), "EVM assembly output not implemented for EOF yet.");
 	solAssert(currentContract.evmRuntimeAssembly->codeSections().size() == 1, "Expected a single code section in legacy codegen.");
 	return &currentContract.evmRuntimeAssembly->codeSections().front().items;
 }
@@ -947,7 +937,7 @@ Json CompilerStack::generatedSources(std::string const& _contractName, bool _run
 			ErrorList errors;
 			ErrorReporter errorReporter(errors);
 			CharStream charStream(source, sourceName);
-			yul::EVMDialect const& dialect = yul::EVMDialect::strictAssemblyForEVM(m_evmVersion, m_eofVersion);
+			yul::EVMDialect const& dialect = yul::EVMDialect::strictAssemblyForEVM(m_evmVersion, std::nullopt);
 			std::shared_ptr<yul::AST> parserResult = yul::Parser{errorReporter, dialect}.parse(charStream);
 			solAssert(parserResult);
 			sources[0]["ast"] = yul::AsmJsonConverter{dialect, sourceIndex}(parserResult->root());
@@ -964,10 +954,6 @@ std::string const* CompilerStack::sourceMapping(std::string const& _contractName
 {
 	solAssert(m_stackState == CompilationSuccessful, "Compilation was not successful.");
 
-	// TODO
-	if (m_eofVersion.has_value())
-		return nullptr;
-
 	Contract const& c = contract(_contractName);
 	if (!c.sourceMapping)
 	{
@@ -980,10 +966,6 @@ std::string const* CompilerStack::sourceMapping(std::string const& _contractName
 std::string const* CompilerStack::runtimeSourceMapping(std::string const& _contractName) const
 {
 	solAssert(m_stackState == CompilationSuccessful, "Compilation was not successful.");
-
-	// TODO
-	if (m_eofVersion.has_value())
-		return nullptr;
 
 	Contract const& c = contract(_contractName);
 	if (!c.runtimeSourceMapping)
@@ -1234,12 +1216,28 @@ Json CompilerStack::interfaceSymbols(std::string const& _contractName) const
 Json CompilerStack::ethdebug() const
 {
 	solAssert(m_stackState >= AnalysisSuccessful, "Analysis was not successful.");
-	return evmasm::ethdebug::resources(sourceNames(), VersionString);
+	return evmasm::ethdebug::resources(ethdebugSources(), VersionString);
 }
 
 Json CompilerStack::ethdebugCompilation() const
 {
-	return evmasm::ethdebug::compilation(VersionString);
+	solAssert(m_stackState >= AnalysisSuccessful, "Analysis was not successful.");
+	return evmasm::ethdebug::compilation(ethdebugSources(), VersionString);
+}
+
+std::vector<evmasm::ethdebug::Source> CompilerStack::ethdebugSources() const
+{
+	auto const sourceIDs = sourceIndices();
+	std::vector<evmasm::ethdebug::Source> sources;
+	sources.reserve(m_sources.size());
+	for (auto const& [sourceName, source]: m_sources)
+		sources.push_back({
+			.id = sourceIDs.at(sourceName),
+			.path = sourceName,
+			.contents = source.charStream->source(),
+			.language = "Solidity"
+		});
+	return sources;
 }
 
 Json CompilerStack::ethdebug(std::string const& _contractName) const
@@ -1567,7 +1565,6 @@ void CompilerStack::compileContract(
 )
 {
 	solAssert(!m_viaIR, "");
-	solUnimplementedAssert(!m_eofVersion.has_value(), "Experimental EOF support is only available for via-IR compilation.");
 	solAssert(m_stackState >= AnalysisSuccessful, "");
 
 	if (_otherCompilers.count(&_contract))
@@ -1583,7 +1580,6 @@ void CompilerStack::compileContract(
 
 	std::shared_ptr<Compiler> compiler = std::make_shared<Compiler>(
 		m_evmVersion,
-		m_eofVersion,
 		m_revertStrings,
 		m_optimiserSettings
 	);
@@ -1634,7 +1630,6 @@ void CompilerStack::generateIR(ContractDefinition const& _contract, bool _unopti
 	{
 		experimental::IRGenerator generator(
 			m_evmVersion,
-			m_eofVersion,
 			m_revertStrings,
 			sourceIndices(),
 			m_debugInfoSelection,
@@ -1651,7 +1646,6 @@ void CompilerStack::generateIR(ContractDefinition const& _contract, bool _unopti
 	{
 		IRGenerator generator(
 			m_evmVersion,
-			m_eofVersion,
 			m_revertStrings,
 			sourceIndices(),
 			m_debugInfoSelection,
@@ -1850,8 +1844,6 @@ std::string CompilerStack::createMetadata(Contract const& _contract, bool _forIR
 	meta["settings"]["evmVersion"] = m_evmVersion.name();
 	if (m_experimental)
 		meta["settings"]["experimental"] = m_experimental;
-	if (m_eofVersion.has_value())
-		meta["settings"]["eofVersion"] = *m_eofVersion;
 	if (m_viaSSACFG)
 		meta["settings"]["viaSSACFG"] = m_viaSSACFG;
 	meta["settings"]["compilationTarget"][_contract.contract->sourceUnitName()] =
@@ -1968,7 +1960,7 @@ bytes CompilerStack::createCBORMetadata(Contract const& _contract, bool _forIR) 
 		_contract.contract->sourceUnit().annotation().experimentalFeatures
 	);
 
-	if (m_eofVersion.has_value() || (usesExperimentalSyntax && !onlySafeExperimentalFeatures))
+	if (usesExperimentalSyntax && !onlySafeExperimentalFeatures)
 		solAssert(m_experimental, "Experimental mode not enabled");
 
 	std::string meta = (_forIR == m_viaIR ? metadata(_contract) : createMetadata(_contract, _forIR));

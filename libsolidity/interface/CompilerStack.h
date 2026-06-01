@@ -69,6 +69,11 @@ namespace solidity::evmasm
 class Assembly;
 class AssemblyItem;
 using AssemblyItems = std::vector<AssemblyItem>;
+
+namespace ethdebug
+{
+struct Source;
+}
 }
 
 namespace solidity::yul
@@ -239,10 +244,6 @@ public:
 	/// When called without an argument it will revert to the default version.
 	/// Must be set before parsing.
 	void setEVMVersion(langutil::EVMVersion _version = langutil::EVMVersion{});
-
-	/// Set the EOF version used before running compile.
-	/// If set to std::nullopt (the default), legacy non-EOF bytecode is generated.
-	void setEOFVersion(std::optional<uint8_t> version);
 
 	/// Set model checker settings.
 	void setModelCheckerSettings(ModelCheckerSettings _settings);
@@ -461,6 +462,8 @@ private:
 		std::string const& ipfsUrl() const;
 	};
 
+	std::vector<evmasm::ethdebug::Source> ethdebugSources() const;
+
 	/// The state per contract. Filled gradually during compilation.
 	struct Contract
 	{
@@ -625,7 +628,6 @@ private:
 	bool m_viaSSACFG = false;
 	bool m_experimental = false;
 	langutil::EVMVersion m_evmVersion;
-	std::optional<uint8_t> m_eofVersion;
 	ModelCheckerSettings m_modelCheckerSettings;
 	ContractSelection m_selectedContracts;
 	std::map<std::string, util::h160> m_libraries;

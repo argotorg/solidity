@@ -689,13 +689,6 @@ bool ASTJsonExporter::visit(InlineAssembly const& _node)
 		std::make_pair("evmVersion", evmDialect.evmVersion().name())
 	};
 
-	// TODO: Add test in test/linsolidity/ASTJSON/assembly. This requires adding support for eofVersion in ASTJSONTest
-	if (evmDialect.eofVersion())
-	{
-		solAssert(*evmDialect.eofVersion() > 0);
-		attributes.push_back(std::make_pair("eofVersion", *evmDialect.eofVersion()));
-	}
-
 	if (_node.flags())
 	{
 		Json flags = Json::array();

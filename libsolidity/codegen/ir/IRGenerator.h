@@ -48,7 +48,6 @@ public:
 
 	IRGenerator(
 		langutil::EVMVersion _evmVersion,
-		std::optional<uint8_t> _eofVersion,
 		RevertStrings _revertStrings,
 		std::map<std::string, unsigned> _sourceIndices,
 		langutil::DebugInfoSelection const& _debugInfoSelection,
@@ -56,17 +55,15 @@ public:
 		OptimiserSettings& _optimiserSettings
 	):
 		m_evmVersion(_evmVersion),
-		m_eofVersion(_eofVersion),
 		m_context(
 			_evmVersion,
-			_eofVersion,
 			ExecutionContext::Creation,
 			_revertStrings,
 			std::move(_sourceIndices),
 			_debugInfoSelection,
 			_soliditySourceProvider
 		),
-		m_utils(_evmVersion, _eofVersion, m_context.revertStrings(), m_context.functionCollector()),
+		m_utils(_evmVersion, m_context.revertStrings(), m_context.functionCollector()),
 		m_optimiserSettings(_optimiserSettings)
 	{}
 
@@ -141,7 +138,6 @@ private:
 	std::string dispenseLocationComment(ASTNode const& _node);
 
 	langutil::EVMVersion const m_evmVersion;
-	std::optional<uint8_t> const m_eofVersion;
 
 	IRGenerationContext m_context;
 	YulUtilFunctions m_utils;

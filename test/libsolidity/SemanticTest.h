@@ -60,7 +60,6 @@ public:
 		return std::make_unique<SemanticTest>(
 			_options.filename,
 			_options.evmVersion,
-			_options.eofVersion,
 			_options.vmPaths,
 			_options.enforceGasCost,
 			_options.enforceGasCostMinValue
@@ -70,7 +69,6 @@ public:
 	explicit SemanticTest(
 		std::string const& _filename,
 		langutil::EVMVersion _evmVersion,
-		std::optional<uint8_t> _eofVersion,
 		std::vector<boost::filesystem::path> const& _vmPaths,
 		bool _enforceGasCost = false,
 		u256 _enforceGasCostMinValue = 100000

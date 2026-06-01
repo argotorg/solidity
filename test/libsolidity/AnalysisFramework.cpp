@@ -90,7 +90,6 @@ void AnalysisFramework::setupCompiler(CompilerStack& _compiler)
 	// Technically, every TestCase should override these with values passed to it in TestCase::Config.
 	// In practice TestCase::Config always matches global config so most test cases don't care.
 	_compiler.setEVMVersion(solidity::test::CommonOptions::get().evmVersion());
-	_compiler.setEOFVersion(solidity::test::CommonOptions::get().eofVersion());
 	_compiler.setOptimiserSettings(solidity::test::CommonOptions::get().optimize);
 }
 

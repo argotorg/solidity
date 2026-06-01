@@ -1710,7 +1710,11 @@ jobs:
       - install_python3:
             packages: pyyaml jsonschema pytest
       - run:
-          name: Ethdebug validity tests
+          name: Initialize ethdebug/format schemas
+          command: |
+            git submodule update --init test/ethdebugSchemaTests/ethdebug-format
+      - run:
+          name: ETHDebug schema validation
           command: |
             pytest test/ethdebugSchemaTests --solc-binary-path=/tmp/workspace/solc/solc-static-linux -v
 
@@ -2153,6 +2157,7 @@ workflows:
       #- t_ext: *job_native_compile_ext_bleeps
 
       - t_ethdebug_output_validity:
+          name: ETHDebug
           <<: *requires_b_ubu_static
 
       - c_ext_benchmarks:

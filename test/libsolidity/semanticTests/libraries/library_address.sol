@@ -36,7 +36,7 @@ contract C {
 }
 // ====
 // EVMVersion: >=byzantium
-// bytecodeFormat: legacy,>=EOFv1
+// bytecodeFormat: legacy
 // ----
 // library: L
 // addr() -> false

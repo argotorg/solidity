@@ -16,7 +16,7 @@ contract C {
     }
 }
 // ====
-// bytecodeFormat: legacy,>=EOFv1
+// bytecodeFormat: legacy
 // ----
 // use(uint256): 3 -> 6
 // result_in_constructor() -> 4

@@ -7,3 +7,6 @@
 [submodule "deps/fmtlib"]
 	path = deps/fmtlib
 	url = https://github.com/fmtlib/fmt.git
+[submodule "test/ethdebugSchemaTests/ethdebug-format"]
+	path = test/ethdebugSchemaTests/ethdebug-format
+	url = https://github.com/ethdebug/format.git

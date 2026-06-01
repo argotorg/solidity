@@ -456,14 +456,46 @@ BOOST_AUTO_TEST_CASE(ethdebug_program_last_instruction_with_immediate_arguments)
 
 BOOST_AUTO_TEST_CASE(ethdebug_resources)
 {
-	Json const resources = ethdebug::resources({"sourceA", "sourceB"}, "version1");
+	Json const resources = ethdebug::resources(
+		{
+			{.id = 0, .path = "sourceA", .contents = "contentsA", .language = "Solidity"},
+			{.id = 1, .path = "sourceB", .contents = "contentsB", .language = "Yul"}
+		},
+		"version1"
+	);
+	std::string const compilationID = resources["compilation"]["id"];
+	BOOST_REQUIRE(compilationID.substr(0, 5) == "solc-");
+	std::string const repeatedCompilationID = ethdebug::resources(
+		{
+			{.id = 0, .path = "sourceA", .contents = "contentsA", .language = "Solidity"},
+			{.id = 1, .path = "sourceB", .contents = "contentsB", .language = "Yul"}
+		},
+		"version1"
+	)["compilation"]["id"];
+	BOOST_REQUIRE(compilationID == repeatedCompilationID);
+	std::string const changedCompilationID = ethdebug::resources(
+		{
+			{.id = 0, .path = "sourceA", .contents = "changedContentsA", .language = "Solidity"},
+			{.id = 1, .path = "sourceB", .contents = "contentsB", .language = "Yul"}
+		},
+		"version1"
+	)["compilation"]["id"];
+	BOOST_REQUIRE(compilationID != changedCompilationID);
+	BOOST_REQUIRE(resources["types"].is_object());
+	BOOST_REQUIRE(resources["types"].empty());
+	BOOST_REQUIRE(resources["pointers"].is_object());
+	BOOST_REQUIRE(resources["pointers"].empty());
 	BOOST_REQUIRE(resources["compilation"]["compiler"]["name"] == "solc");
 	BOOST_REQUIRE(resources["compilation"]["compiler"]["version"] == "version1");
 	BOOST_REQUIRE(resources["compilation"]["sources"].size() == 2);
 	BOOST_REQUIRE(resources["compilation"]["sources"][0]["id"] == 0);
 	BOOST_REQUIRE(resources["compilation"]["sources"][0]["path"] == "sourceA");
+	BOOST_REQUIRE(resources["compilation"]["sources"][0]["contents"] == "contentsA");
+	BOOST_REQUIRE(resources["compilation"]["sources"][0]["language"] == "Solidity");
 	BOOST_REQUIRE(resources["compilation"]["sources"][1]["id"] == 1);
 	BOOST_REQUIRE(resources["compilation"]["sources"][1]["path"] == "sourceB");
+	BOOST_REQUIRE(resources["compilation"]["sources"][1]["contents"] == "contentsB");
+	BOOST_REQUIRE(resources["compilation"]["sources"][1]["language"] == "Yul");
 }
 
 BOOST_AUTO_TEST_SUITE_END()

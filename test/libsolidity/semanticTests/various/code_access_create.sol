@@ -1,4 +1,3 @@
-// TODO: Recreate this test when eofcreate will be allowed in inline assembly.
 contract D {
     uint256 x;
 

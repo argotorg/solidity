@@ -39,13 +39,12 @@ class Compiler
 public:
 	Compiler(
 		langutil::EVMVersion _evmVersion,
-		std::optional<uint8_t> _eofVersion,
 		RevertStrings _revertStrings,
 		OptimiserSettings _optimiserSettings
 	):
 		m_optimiserSettings(std::move(_optimiserSettings)),
-		m_runtimeContext(_evmVersion, _eofVersion, _revertStrings),
-		m_context(_evmVersion, _eofVersion, _revertStrings, &m_runtimeContext)
+		m_runtimeContext(_evmVersion, _revertStrings),
+		m_context(_evmVersion, _revertStrings, &m_runtimeContext)
 	{ }
 
 	/// Compiles a contract.

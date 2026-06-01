@@ -149,10 +149,6 @@ SMTCheckerTest::SMTCheckerTest(std::string const& _filename):
 
 	auto const& bmcLoopIterations = m_reader.sizetSetting("BMCLoopIterations", 1);
 	m_modelCheckerSettings.bmcLoopIterations = std::optional<unsigned>{bmcLoopIterations};
-
-	// TODO: Enable EOF testing when EOF gets stable and smtCheckerTest starts using IR.
-	if (CommonOptions::get().eofVersion().has_value())
-		m_shouldRun = false;
 }
 
 void SMTCheckerTest::setupCompiler(CompilerStack& _compiler)

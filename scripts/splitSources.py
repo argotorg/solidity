@@ -10,8 +10,8 @@
 # -  'false' if the file only had one source
 
 import sys
-import os
 import traceback
+from pathlib import Path
 
 
 def uncaught_exception_hook(exc_type, exc_value, exc_traceback):
@@ -38,7 +38,7 @@ def writeSourceToFile(lines):
     # print("sourceName is ", srcName)
     # print("filePath is", filePath)
     if filePath:
-        os.system("mkdir -p " + filePath)
+        Path(filePath).mkdir(parents=True, exist_ok=True)
     with open(srcName, mode='a+', encoding='utf8', newline='') as f:
         for idx, line in enumerate(lines[1:]):
             # write to file

@@ -208,7 +208,6 @@ struct CommandLineOptions
 		RevertStrings revertStrings = RevertStrings::Default;
 		std::optional<langutil::DebugInfoSelection> debugInfoSelection;
 		CompilerStack::State stopAfter = CompilerStack::State::CompilationSuccessful;
-		std::optional<uint8_t> eofVersion;
 	} output;
 
 	struct Assembly

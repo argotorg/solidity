@@ -46,14 +46,12 @@ using namespace solidity::util;
 
 IRGenerator::IRGenerator(
 	EVMVersion _evmVersion,
-	std::optional<uint8_t> _eofVersion,
 	frontend::RevertStrings, std::map<std::string, unsigned int>,
 	DebugInfoSelection const&,
 	CharStreamProvider const*,
 	Analysis const& _analysis
 ):
 	m_evmVersion(_evmVersion),
-	m_eofVersion(_eofVersion),
 	//m_debugInfoSelection(_debugInfoSelection),
 	//m_soliditySourceProvider(_soliditySourceProvider),
 	m_env(_analysis.typeSystem().env().clone()),
@@ -67,8 +65,6 @@ std::string IRGenerator::run(
 	std::map<ContractDefinition const*, std::string_view const> const& /*_otherYulSources*/
 )
 {
-	solUnimplementedAssert(!m_eofVersion.has_value(), "Experimental IRGenerator not implemented for EOF");
-
 	Whiskers t(R"(
 		object "<CreationObject>" {
 			code {

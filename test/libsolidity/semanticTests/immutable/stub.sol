@@ -10,6 +10,6 @@ contract C {
 	}
 }
 // ====
-// bytecodeFormat: legacy,>=EOFv1
+// bytecodeFormat: legacy
 // ----
 // f() -> 84, 23

@@ -16,7 +16,7 @@ contract C {
     }
 }
 // ====
-// bytecodeFormat: legacy,>=EOFv1
+// bytecodeFormat: legacy
 // ----
 // f() -> 16
 // gas legacy: 78477

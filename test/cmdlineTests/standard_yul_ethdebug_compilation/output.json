@@ -4,7 +4,33 @@
             "compiler": {
                 "name": "solc",
                 "version": "<VERSION REMOVED>"
-            }
+            },
+            "id": "solc-3a049701c860c06be82a623ac416ee6504d093aa0293cec7f49b67373f4aeb7a",
+            "sources": [
+                {
+                    "contents": "/// @use-src 0:\"input.sol\"
+object \"C_6_deployed\" {
+    code {
+        /// @src 0:60:101  \"contract C {...\"
+        mstore(64, 128)
+
+        // f()
+        fun_f_5()
+
+        /// @src 0:77:99  \"function f() public {}\"
+        function fun_f_5() {
+            sstore(0, 42)
+        }
+        /// @src 0:60:101  \"contract C {...\"
+    }
+}
+
+",
+                    "id": 0,
+                    "language": "Yul",
+                    "path": "C"
+                }
+            ]
         }
     }
 }

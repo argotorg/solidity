@@ -14,6 +14,6 @@ contract C {
     }
 }
 // ====
-// bytecodeFormat: legacy,>=EOFv1
+// bytecodeFormat: legacy
 // ----
 // t() -> 7

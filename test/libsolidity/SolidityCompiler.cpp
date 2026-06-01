@@ -43,8 +43,7 @@ class SolidityCompilerFixture: protected AnalysisFramework
 
 BOOST_FIXTURE_TEST_SUITE(SolidityCompiler, SolidityCompilerFixture)
 
-// TODO: Implement EOF counterpart
-BOOST_AUTO_TEST_CASE(does_not_include_creation_time_only_internal_functions, *boost::unit_test::precondition(nonEOF()))
+BOOST_AUTO_TEST_CASE(does_not_include_creation_time_only_internal_functions)
 {
 	char const* sourceCode = R"(
 		contract C {

@@ -3002,12 +3002,6 @@ bool TypeChecker::visit(FunctionCallOptions const& _functionCallOptions)
 					_functionCallOptions.location(),
 					"Function call option \"gas\" cannot be used with \"new\"."
 				);
-			else if (m_eofVersion.has_value())
-				m_errorReporter.typeError(
-					3765_error,
-					_functionCallOptions.location(),
-					"Function call option \"gas\" cannot be used when compiling to EOF."
-				);
 			else
 			{
 				expectType(*_functionCallOptions.options()[i], *TypeProvider::uint256());

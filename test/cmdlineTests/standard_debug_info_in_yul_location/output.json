@@ -84,7 +84,6 @@ object \"C_54\" {
         }
 
         function copy_arguments_for_constructor_20_object_C_54() -> ret_param_0 {
-
             let programSize := datasize(\"C_54\")
             let argSize := sub(codesize(), programSize)
 
@@ -851,7 +850,6 @@ object \"D_72\" {
         }
 
         function copy_arguments_for_constructor_71_object_D_72() -> ret_param_0 {
-
             let programSize := datasize(\"D_72\")
             let argSize := sub(codesize(), programSize)
 

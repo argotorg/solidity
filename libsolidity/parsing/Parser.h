@@ -40,12 +40,10 @@ class Parser: public langutil::ParserBase
 public:
 	explicit Parser(
 		langutil::ErrorReporter& _errorReporter,
-		langutil::EVMVersion _evmVersion,
-		std::optional<uint8_t> _eofVersion
+		langutil::EVMVersion _evmVersion
 	):
 		ParserBase(_errorReporter),
-		m_evmVersion(_evmVersion),
-		m_eofVersion(_eofVersion)
+		m_evmVersion(_evmVersion)
 	{}
 
 	ASTPointer<SourceUnit> parse(langutil::CharStream& _charStream);
@@ -251,7 +249,6 @@ private:
 	/// Flag that signifies whether '_' is parsed as a PlaceholderStatement or a regular identifier.
 	bool m_insideModifier = false;
 	langutil::EVMVersion m_evmVersion;
-	std::optional<uint8_t> m_eofVersion;
 	/// Counter for the next AST node ID
 	int64_t m_currentNodeID = 0;
 	/// Flag that indicates whether experimental mode is enabled in the current source unit

@@ -731,10 +731,6 @@ BOOST_AUTO_TEST_CASE(experimental_features_without_experimental_flag)
 		std::vector<std::string> const commandLineOptions{"solc", experimentalFeature, "contract.sol"};
 		BOOST_CHECK_EXCEPTION(parseCommandLine(commandLineOptions), CommandLineValidationError, hasCorrectMessage);
 	}
-
-	std::vector<std::string> const commandLineOptions{"solc", "--experimental-eof-version", "1", "contract.sol"};
-	expectedErrorMessage = "The following options are only available in experimental mode: --experimental-eof-version. To enable experimental mode, use the --experimental flag.";
-	BOOST_CHECK_EXCEPTION(parseCommandLine(commandLineOptions), CommandLineValidationError, hasCorrectMessage);
 }
 
 BOOST_AUTO_TEST_CASE(via_ssa_cfg_smoke)
