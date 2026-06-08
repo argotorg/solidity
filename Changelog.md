@@ -8,6 +8,7 @@ Compiler Features:
 
 Bugfixes:
 * NatSpec: Disallow `@return` tag in event documentation.
+* Type Checker: Allow comparisons and arithmetic between a fractional rational literal and a fixed-point variable to type-check regardless of operand order, fixing the inconsistency where ``num > 2.5`` compiled but ``2.5 < num`` did not.
 
 
 ### 0.8.35 (2026-04-29)
