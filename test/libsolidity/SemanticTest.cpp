@@ -113,6 +113,41 @@ SemanticTest::SemanticTest(
 	parseExpectations(m_reader.stream());
 	soltestAssert(!m_tests.empty(), "No tests specified in " + _filename);
 
+	// Validate that gas expectations only reference pipelines the test actually runs.
+	// E.g. a test with compileViaYul: true should not have gas legacy: expectations.
+	for (auto const& test: m_tests)
+	{
+		auto checkNoStaleGasKey = [&](std::string const& _key)
+		{
+			if (
+				test.call().expectations.gasUsedExcludingCode.count(_key) ||
+				test.call().expectations.gasUsedForCodeDeposit.count(_key)
+			)
+				BOOST_THROW_EXCEPTION(std::runtime_error(
+					"Test has gas expectation for \"" + _key + "\", "
+					"but the corresponding pipeline is not enabled "
+					"(compileViaYul: " + compileViaYul +
+					", compileViaSSACFG: " + (m_testCaseWantsSSACFGRun ? "true" : "false") + ")."
+				));
+		};
+
+		if (!m_testCaseWantsLegacyRun)
+		{
+			checkNoStaleGasKey("legacy");
+			checkNoStaleGasKey("legacyOptimized");
+		}
+		if (!m_testCaseWantsYulRun)
+		{
+			checkNoStaleGasKey("ir");
+			checkNoStaleGasKey("irOptimized");
+		}
+		if (!m_testCaseWantsSSACFGRun)
+		{
+			checkNoStaleGasKey("ssaCFG");
+			checkNoStaleGasKey("ssaCFGOptimized");
+		}
+	}
+
 	if (m_enforceGasCost)
 	{
 		m_compiler.setMetadataFormat(CompilerStack::MetadataFormat::NoMetadata);
