@@ -147,10 +147,12 @@ bool EquivalentBlocksDetector::areEquivalent(BlockIdentifier const _bid1, BlockI
 	std::unordered_map<InstId::ValueType, InstId::ValueType> instMapping;
 	auto knownToBeEquivalent = [&](auto const& idPair) {
 		auto && [id1, id2] = idPair;
-		if (id1 == id2)
-			return true;
 		auto const it = instMapping.find(id1.value);
-		return it != instMapping.end() && it->second == id2.value;
+		if (it != instMapping.end() && it->second == id2.value)
+			return true;
+		if (cfg1.isLiteral(id1) && cfg2.isLiteral(id2) && cfg1.literalPayload(id1) == cfg2.literalPayload(id2))
+			return true;
+		return false;
 	};
 
 	for (auto&& [iid1, iid2] : ranges::views::zip(block1.instructions, block2.instructions))
@@ -180,8 +182,9 @@ bool EquivalentBlocksDetector::areEquivalent(BlockIdentifier const _bid1, BlockI
 			}
 			case InstOpcode::Const:
 			{
-				if (iid1 != iid2)
+				if (cfg1.literalPayload(iid1) != cfg2.literalPayload(iid2))
 					return false;
+				instMapping.insert({iid1.value, iid2.value});
 				break;
 			}
 			case InstOpcode::Identity:
@@ -233,8 +236,6 @@ EquivalentBlocksDetector::EquivalenceClasses EquivalentBlocksDetector::run() &&
 {
 	for (auto const& [id, cfg]: m_program.functionGraphs | ranges::views::enumerate)
 	{
-		if (cfg->numBlocks() == 1)
-			continue;
 		auto const graphId = static_cast<ControlFlowGraphs::FunctionGraphID>(id);
 		for (BlockId const blockId: cfg->liveBlocks())
 			processBlock({.graphId = graphId, .blockId = blockId});

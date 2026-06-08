@@ -41,8 +41,8 @@ contract test {
 // gas legacy code: 629800
 // gas legacyOptimized: 87926
 // gas legacyOptimized code: 429800
-// gas ssaCFGOptimized: 79463
-// gas ssaCFGOptimized code: 327800
+// gas ssaCFGOptimized: 79879
+// gas ssaCFGOptimized code: 331800
 // encode_inline_asm(bytes): 0x20, 0 -> 0x20, 0
 // encode_inline_asm(bytes): 0x20, 1, "f" -> 0x20, 4, "Zg=="
 // encode_inline_asm(bytes): 0x20, 2, "fo" -> 0x20, 4, "Zm8="
