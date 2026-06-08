@@ -94,7 +94,7 @@ void DocumentHoverHandler::operator()(MessageID _id, Json const& _args)
 					if (declaration && declaration->type())
 						markdown.solidityCode(declaration->type()->toString(false));
 					if (auto const* structurallyDocumented = dynamic_cast<StructurallyDocumented const*>(declaration))
-						if (structurallyDocumented->documentation()->text())
+						if (structurallyDocumented->documentation() && structurallyDocumented->documentation()->text())
 							markdown.paragraph(*structurallyDocumented->documentation()->text());
 				}
 				break;
