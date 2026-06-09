@@ -26,6 +26,7 @@
 #include <test/evmc/evmc.h>
 
 #include <boost/filesystem/path.hpp>
+#include <boost/optional.hpp>
 #include <boost/program_options.hpp>
 #include <boost/test/unit_test.hpp>
 
@@ -58,6 +59,7 @@ struct CommonOptions
 
 	std::vector<boost::filesystem::path> vmPaths;
 	boost::filesystem::path testPath;
+	boost::optional<boost::filesystem::path> solcPath = boost::none;
 	bool optimize = false;
 	bool enforceGasTest = false;
 	u256 enforceGasTestMinValue = 100000;
