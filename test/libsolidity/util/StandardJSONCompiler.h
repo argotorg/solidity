@@ -45,6 +45,11 @@ template<StandardJSONOutputType Output = StandardJSONOutput>
 class StandardJSONCompiler
 {
 public:
+	StandardJSONCompiler() = default;
+	explicit StandardJSONCompiler(boost::filesystem::path _externalCompiler):
+		m_externalCompiler(_externalCompiler)
+	{}
+
 	/// Takes the current compiler input, requests the compiler under test to compile
 	/// and stores its output.
 	/// @returns the stored output
@@ -55,8 +60,10 @@ public:
 	Output const& output() const;
 
 private:
-	/// Last generated output. Will be none before initial compilation.
-	std::optional<Output> m_output;
+	/// If a path is set, this instance will try to call the external compiler via IPC.
+	std::optional<boost::filesystem::path> m_externalCompiler;
+    /// Last generated output. Will be none before initial compilation.
+    std::optional<Output> m_output;
 };
 
 template<StandardJSONOutputType Output>
