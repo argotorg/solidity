@@ -589,7 +589,8 @@ std::pair<std::shared_ptr<Assembly>, std::vector<std::string>> Assembly::fromJSO
 	Json const& _json,
 	std::vector<std::string> const& _sourceList,
 	size_t _level,
-	std::optional<uint8_t> _eofVersion
+	std::optional<uint8_t> _eofVersion,
+	EVMVersion _evmVersion
 )
 {
 	solRequire(_json.is_object(), AssemblyImportException, "Supplied JSON is not an object.");
@@ -620,7 +621,7 @@ std::pair<std::shared_ptr<Assembly>, std::vector<std::string>> Assembly::fromJSO
 			"Member 'sourceList' may only be present in the root JSON object."
 		);
 
-	auto result = std::make_shared<Assembly>(EVMVersion{}, _level == 0 /* _creation */, _eofVersion, "" /* _name */);
+	auto result = std::make_shared<Assembly>(_evmVersion, _level == 0 /* _creation */, _eofVersion, "" /* _name */);
 	std::vector<std::string> parsedSourceList;
 	if (_json.contains("sourceList"))
 	{
@@ -687,7 +688,13 @@ std::pair<std::shared_ptr<Assembly>, std::vector<std::string>> Assembly::fromJSO
 					solThrow(AssemblyImportException, "The key '" + key + "' inside '.data' is out of the supported integer range.");
 				}
 
-				auto [subAssembly, emptySourceList] = Assembly::fromJSON(value, _level == 0 ? parsedSourceList : _sourceList, _level + 1, _eofVersion);
+				auto [subAssembly, emptySourceList] = Assembly::fromJSON(
+					value,
+					_level == 0 ? parsedSourceList : _sourceList,
+					_level + 1,
+					_eofVersion,
+					_evmVersion
+				);
 				solAssert(subAssembly);
 				solAssert(emptySourceList.empty());
 				solAssert(subAssemblies.count(index) == 0);

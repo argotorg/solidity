@@ -1,0 +1,11 @@
+{
+    ".code": [
+        {"name": "PUSH", "value": "0"}
+    ]
+}
+// ====
+// EVMVersion: =paris
+// outputs: Bytecode,Opcodes
+// ----
+// Bytecode: 6000
+// Opcodes: PUSH1 0x0
