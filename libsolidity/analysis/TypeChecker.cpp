@@ -2344,7 +2344,16 @@ void TypeChecker::typeCheckStringConcatFunction(
 {
 	solAssert(_functionType);
 	solAssert(_functionType->kind() == FunctionType::Kind::StringConcat);
-	solAssert(_functionCall.names().empty());
+
+	if (!_functionCall.names().empty())
+	{
+		m_errorReporter.typeError(
+			7173_error,
+			_functionCall.location(),
+			"Named arguments cannot be used for functions that take arbitrary parameters."
+		);
+		return;
+	}
 
 	typeCheckFunctionGeneralChecks(_functionCall, _functionType);
 
@@ -2371,7 +2380,16 @@ void TypeChecker::typeCheckBytesConcatFunction(
 {
 	solAssert(_functionType);
 	solAssert(_functionType->kind() == FunctionType::Kind::BytesConcat);
-	solAssert(_functionCall.names().empty());
+
+	if (!_functionCall.names().empty())
+	{
+		m_errorReporter.typeError(
+			7101_error,
+			_functionCall.location(),
+			"Named arguments cannot be used for functions that take arbitrary parameters."
+		);
+		return;
+	}
 
 	typeCheckFunctionGeneralChecks(_functionCall, _functionType);
 
