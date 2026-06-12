@@ -3876,9 +3876,13 @@ std::string YulUtilFunctions::copyStructToStorageFunction(StructType const& _fro
 std::string YulUtilFunctions::arrayConversionFunction(ArrayType const& _from, ArrayType const& _to)
 {
 	if (_to.dataStoredIn(DataLocation::CallData))
+		// NOTE: Calldata array slices (ArraySliceType) are handled via a separate code path and
+		// do not reach this function when targeting calldata.
 		solAssert(
-			_from.dataStoredIn(DataLocation::CallData) && _from.isByteArrayOrString() && _to.isByteArrayOrString(),
-			""
+			_from.dataStoredIn(DataLocation::CallData) &&
+			(_from == _to || (_from.isByteArrayOrString() && _to.isByteArrayOrString())),
+			"Conversion to calldata array is possible only from a calldata array of the same type or for "
+			"(bytes calldata) <-> (string calldata) conversion."
 		);
 
 	// Other cases are done explicitly in LValue::storeValue, and only possible by assignment.

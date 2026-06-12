@@ -8,6 +8,8 @@ Compiler Features:
 
 Bugfixes:
 * NatSpec: Disallow `@return` tag in event documentation.
+* Yul IR Code Generation: Fix identical tuple types sometimes being seen by the compiler as different, leading to superfluous conversion code being emitted.
+* Yul IR Code Generation: Fix internal compiler error when non-byte calldata arrays of the same type were involved in operations that require converting operands to a common type, such as ternary operator.
 
 
 ### 0.8.35 (2026-04-29)
