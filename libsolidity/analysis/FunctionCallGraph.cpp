@@ -82,8 +82,19 @@ CallGraph FunctionCallGraphBuilder::buildDeployedGraph(
 		if (function)
 			builder.functionReferenced(*function);
 		else
-			// If it's not a function, it must be a getter of a public variable; we ignore those
+		{
+			// If it's not a function, it must be a getter of a public variable.
 			solAssert(variable, "");
+			// For public constant state variables, the getter evaluates the initializer at
+			// deployed time. Visit it so that any internal functions referenced inside (e.g.
+			// via .selector access) are recorded and get assigned an internalFunctionID.
+			if (variable->isConstant())
+			{
+				solAssert(variable->value());
+				solAssert(variable->value()->annotation().isPure.set() && *variable->value()->annotation().isPure);
+				variable->accept(builder);
+			}
+		}
 	}
 
 	if (_contract.fallbackFunction())

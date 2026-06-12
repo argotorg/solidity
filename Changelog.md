@@ -8,6 +8,7 @@ Compiler Features:
 
 Bugfixes:
 * NatSpec: Disallow `@return` tag in event documentation.
+* FunctionCallGraphBuilder: Fix crash when declaring function selector of parent class as public constant.
 
 
 ### 0.8.35 (2026-04-29)
