@@ -1,0 +1,16 @@
+{% extends "!page.html" %}
+
+{% block extrahead %}
+    {{ super() }}
+    {% if meta and meta.description %}
+        <meta name="description" content="{{ meta.description | truncate(160) }}">
+    {% else %}
+        <meta name="description" content="Solidity is a contract-oriented programming language for writing smart contracts that run on the Ethereum Virtual Machine. Learn Solidity syntax, features, and best practices.">
+    {% endif %}
+    <meta property="og:title" content="{{ title }}">
+    <meta property="og:description" content="{% if meta and meta.description %}{{ meta.description | truncate(160) }}{% else %}Solidity Documentation{% endif %}">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="{{ title }}">
+    <meta name="twitter:description" content="{% if meta and meta.description %}{{ meta.description | truncate(160) }}{% else %}Solidity Documentation{% endif %}">
+{% endblock %}

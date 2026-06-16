@@ -1,5 +1,5 @@
 User-Agent: *
-Sitemap: http://docs.soliditylang.org/sitemap.xml
+Sitemap: https://docs.soliditylang.org/sitemap.xml
 Host: docs.soliditylang.org
 
 Allow: /en/latest/
