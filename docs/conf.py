@@ -225,7 +225,8 @@ html_js_files = ["js/constants.js", "js/initialize.js", "js/toggle.js"]
 # Add any extra paths that contain custom files (such as robots.txt or
 # .htaccess) here, relative to this directory. These files are copied
 # directly to the root of the documentation.
-html_extra_path = ["_static/css", "_build/robots.txt"]
+# Change from pointing to the file, to pointing to the target build directory
+html_extra_path = ["_static/css", "_build"] 
 
 # List of templates of static files to be included in the HTML output.
 # Keys represent paths to input files and values are dicts containing:
