@@ -228,7 +228,6 @@ html_js_files = ["js/constants.js", "js/initialize.js", "js/toggle.js"]
 # Change from pointing to the file, to pointing to the target build directory
 html_extra_path = [
     "_static/css",
-    "_build",
 ]
 
 # List of templates of static files to be included in the HTML output.
@@ -239,7 +238,7 @@ html_extra_path = [
 # Rendered templates are automatically added to html_extra_path setting.
 html_extra_templates = {
     os.path.join(ROOT_PATH, "robots.txt.template"): {
-        'target': os.path.join(ROOT_PATH, "_build/robots.txt"),
+        'target': os.path.join(ROOT_PATH, "_static/robots.txt"),
         'context': {'LATEST_VERSION': version},
     }
 }
