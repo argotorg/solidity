@@ -504,8 +504,6 @@ bool CompilerStack::analyze()
 			if (source->ast && !resolver.performImports(*source->ast, sourceUnitsByName))
 				return false;
 
-		resolver.warnHomonymDeclarations();
-
 		{
 			DocStringTagParser docStringTagParser(m_errorReporter);
 			for (Source const* source: m_sourceOrder)
@@ -517,6 +515,8 @@ bool CompilerStack::analyze()
 		for (Source const* source: m_sourceOrder)
 			if (source->ast && !resolver.resolveNamesAndTypes(*source->ast))
 				return false;
+
+		resolver.warnHomonymDeclarations();
 
 		if (experimentalSolidity)
 		{
