@@ -14,13 +14,13 @@ contract C {
         return counter - 1;
     }
 
-    function bumpVal() internal returns (uint) {
+    function calculateVal() internal returns (uint) {
         return 10 * (counter + 100);
     }
 
     function run() public returns (uint c, uint a0, uint a1) {
-        a[bumpIdx()] = bumpVal();
-        a[bumpIdx()] = bumpVal();
+        a[bumpIdx()] = calculateVal();
+        a[bumpIdx()] = calculateVal();
         c = counter;
         a0 = a[0];
         a1 = a[1];
