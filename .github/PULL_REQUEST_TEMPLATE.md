@@ -21,6 +21,6 @@ https://docs.soliditylang.org/en/latest/contributing.html#ai-assisted-contributi
 If you used AI tools in any part of this PR you MUST disclose it below.
 -->
 
-- [ ] I declared any AI tool usage below
+- [ ] No AI tools were used
 
 <!-- If AI tools were used, describe which tools and for which parts here. -->
