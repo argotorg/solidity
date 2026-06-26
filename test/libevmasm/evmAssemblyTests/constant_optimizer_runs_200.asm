@@ -21,6 +21,9 @@ PUSH 0x2
     // PUSH0 NOT shift right:
     PUSH 0x3ffffffff
     PUSH 0x3ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+    // PUSH0 NOT shift left:
+    PUSH 0xffffffffffffffffffffffffffff000000000000000000000000000000000000
+    PUSH 0xffffff0000000000000000000000000000000000000000000000000000000000
     // PUSH0 NOT shift right then left:
     PUSH 0x1fffffffffffffffe0000000000000000000000000000000000000000000
     PUSH 0x7ffffffffffffff0000000000000000
@@ -57,6 +60,8 @@ PUSH 0x2
 //       not(0xffffffff0000000000000000)
 //       0x03ffffffff
 //       shr(0x06, not(0x00))
+//       shl(0x90, not(0x00))
+//       shl(0xe8, 0xffffff)
 //       shl(0xad, 0xffffffffffffffff)
 //       0x07ffffffffffffff0000000000000000
 //       shl(0xac, 0x100000000000000003)
