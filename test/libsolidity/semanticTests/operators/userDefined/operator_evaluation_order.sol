@@ -74,10 +74,10 @@ contract C {
 // testOperatorsNestedInCalls() ->
 // ~ emit Wrapped(uint256): 0x00
 // ~ emit Wrapped(uint256): 0x01
-// ~ emit Probe(bool): 0x00
+// ~ emit Probe(bool): false
 // ~ emit Wrapped(uint256): 0x02
 // ~ emit Wrapped(uint256): 0x03
-// ~ emit Probe(bool): 0x00
+// ~ emit Probe(bool): false
 // ~ emit Wrapped(uint256): 0x04
 // ~ emit Wrapped(uint256): 0x05
-// ~ emit Probe(bool): 0x00
+// ~ emit Probe(bool): false
