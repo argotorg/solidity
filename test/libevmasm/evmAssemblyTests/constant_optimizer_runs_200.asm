@@ -56,14 +56,14 @@ PUSH 0x2
 //       not(0xffffffff)
 //       not(0xffffffff0000000000000000)
 //       0x03ffffffff
-//       sub(shl(0xfa, 0x01), 0x01)
+//       shr(0x06, not(0x00))
 //       shl(0xad, 0xffffffffffffffff)
 //       0x07ffffffffffffff0000000000000000
 //       shl(0xac, 0x100000000000000003)
 //       0x100000000001000000000000100000000000
 //       not(0x0200000000ffffffffffffffff0000000000000000)
 //       not(0xffffffff000000000000000000000000ffffffff)
-//       add(shl(0xea, 0x01deaf), 0x01)
+//       or(0x01, shl(0xea, 0x01deaf))
 //       0x3fffffffffffffffc0
 //       0xffffffffffffffe0
 // }
