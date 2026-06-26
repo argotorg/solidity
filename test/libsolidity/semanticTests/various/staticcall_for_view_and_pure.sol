@@ -47,7 +47,7 @@ contract D {
 // gas ssaCFGOptimized: 98426763
 // gas ssaCFGOptimized code: 11800
 // fpure() -> FAILURE
-// gas irOptimized: 98425388
+// gas irOptimized: 98425389
 // gas irOptimized code: 13200
 // gas legacy: 98413173
 // gas legacy code: 25600

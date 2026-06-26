@@ -17,12 +17,12 @@ contract D {
 // EVMVersion: >=constantinople
 // ----
 // constructor(): 2 ->
-// gas irOptimized: 139112
-// gas irOptimized code: 53800
+// gas irOptimized: 138659
+// gas irOptimized code: 53200
 // gas legacy: 145935
 // gas legacy code: 95600
-// gas legacyOptimized: 138529
-// gas legacyOptimized code: 54600
-// gas ssaCFGOptimized: 138684
-// gas ssaCFGOptimized code: 49400
+// gas legacyOptimized: 138310
+// gas legacyOptimized code: 53400
+// gas ssaCFGOptimized: 138357
+// gas ssaCFGOptimized code: 48800
 // f() -> 2

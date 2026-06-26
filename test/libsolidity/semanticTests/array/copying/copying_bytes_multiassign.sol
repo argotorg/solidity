@@ -18,16 +18,16 @@ contract sender {
 }
 // ----
 // (): 7 ->
-// gas irOptimized: 110735
+// gas irOptimized: 110751
 // gas legacy: 111388
 // gas legacyOptimized: 111066
-// gas ssaCFGOptimized: 110716
+// gas ssaCFGOptimized: 110732
 // val() -> 0
 // forward(bool): true -> true
-// gas irOptimized: 49573
+// gas irOptimized: 49569
 // val() -> 0x80
 // forward(bool): false -> true
-// gas irOptimized: 31410
+// gas irOptimized: 31407
 // val() -> 0x80
 // forward(bool): true -> true
 // val() -> 0x80
