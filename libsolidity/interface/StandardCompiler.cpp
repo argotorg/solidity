@@ -455,7 +455,7 @@ Json formatImmutableReferences(std::map<u256, evmasm::LinkerObject::ImmutableRef
 
 std::optional<Json> checkKeys(Json const& _input, std::set<std::string> const& _keys, std::string const& _name)
 {
-	if (!_input.empty() && !_input.is_object())
+	if (!_input.is_object())
 		return formatFatalError(Error::Type::JSONError, "\"" + _name + "\" must be an object");
 
 	for (auto const& [member, _]: _input.items())

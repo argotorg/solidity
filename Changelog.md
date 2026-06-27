@@ -11,6 +11,7 @@ Bugfixes:
 * NatSpec: Disallow `@return` tag in event documentation.
 * SMTChecker: Fix incorrect handling of constant operands of unary operations.
 * Standard JSON Interface: Fix incorrect serialization of `optimizer.runs` setting for values in the interval [INT64_MAX, UINT64_MAX].
+* Standard JSON Interface: Fix crash in `checkKeys` when source entry is `null` or an empty array instead of an object.
 
 
 ### 0.8.35 (2026-04-29)

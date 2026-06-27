@@ -401,6 +401,34 @@ BOOST_AUTO_TEST_CASE(sources_is_array)
 	BOOST_CHECK(containsError(result, "JSONError", "\"sources\" is not a JSON object."));
 }
 
+BOOST_AUTO_TEST_CASE(source_entry_null)
+{
+	char const* input = R"(
+	{
+		"language": "Solidity",
+		"sources": {
+			"a.sol": null
+		}
+	}
+	)";
+	Json result = compile(input);
+	BOOST_CHECK(containsError(result, "JSONError", "\"sources.a.sol\" must be an object"));
+}
+
+BOOST_AUTO_TEST_CASE(source_entry_empty_array)
+{
+	char const* input = R"(
+	{
+		"language": "Solidity",
+		"sources": {
+			"a.sol": []
+		}
+	}
+	)";
+	Json result = compile(input);
+	BOOST_CHECK(containsError(result, "JSONError", "\"sources.a.sol\" must be an object"));
+}
+
 BOOST_AUTO_TEST_CASE(unexpected_trailing_test)
 {
 	char const* input = R"(
