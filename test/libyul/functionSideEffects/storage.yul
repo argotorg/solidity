@@ -5,7 +5,6 @@
     function h() { pop(sload(0))}
 }
 // ====
-// bytecodeFormat: legacy
 // ----
 // : movable, movable apart from effects, can be removed, can be removed if no msize
 // a: writes storage

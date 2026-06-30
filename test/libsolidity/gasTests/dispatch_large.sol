@@ -24,7 +24,6 @@ contract Large {
 }
 // ====
 // EVMVersion: =current
-// bytecodeFormat: legacy
 // ----
 // creation:
 //   codeDepositCost: 618400

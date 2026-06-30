@@ -14,7 +14,6 @@
 }
 // ====
 // EVMVersion: >=shanghai
-// bytecodeFormat: legacy
 // outputs: Assembly
 // ----
 // Assembly:

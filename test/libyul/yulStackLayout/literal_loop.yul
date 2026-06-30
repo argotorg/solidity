@@ -5,7 +5,6 @@
 			{}
 }
 // ====
-// bytecodeFormat: legacy
 // ----
 // digraph CFG {
 // nodesep=0.7;

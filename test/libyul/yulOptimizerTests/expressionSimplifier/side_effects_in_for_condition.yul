@@ -5,7 +5,6 @@
 }
 // ====
 // EVMVersion: >byzantium
-// bytecodeFormat: legacy
 // ----
 // step: expressionSimplifier
 //

@@ -55,27 +55,14 @@ class Assembly
 	using LinkRef = std::pair<size_t, std::string>;
 
 public:
-	Assembly(langutil::EVMVersion _evmVersion, bool _creation, std::optional<uint8_t> _eofVersion, std::string _name):
+	Assembly(langutil::EVMVersion _evmVersion, bool _creation, std::string _name):
 		m_evmVersion(_evmVersion),
 		m_creation(_creation),
-		m_eofVersion(_eofVersion),
 		m_name(std::move(_name))
-	{
-		// Code section number 0 has to be non-returning.
-		m_codeSections.emplace_back(CodeSection{0, 0, true, {}});
-	}
+	{}
 
-	std::optional<uint8_t> eofVersion() const { return m_eofVersion; }
-	bool supportsFunctions() const { return m_eofVersion.has_value(); }
-	bool supportsRelativeJumps() const { return m_eofVersion.has_value(); }
 	AssemblyItem newTag() { assertThrow(m_usedTags < 0xffffffff, AssemblyException, ""); return AssemblyItem(Tag, m_usedTags++); }
 	AssemblyItem newPushTag() { assertThrow(m_usedTags < 0xffffffff, AssemblyException, ""); return AssemblyItem(PushTag, m_usedTags++); }
-
-	AssemblyItem newFunctionCall(uint16_t _functionID) const;
-	AssemblyItem newFunctionReturn() const;
-	uint16_t createFunction(uint8_t _args, uint8_t _rets, bool _nonReturning);
-	void beginFunction(uint16_t _functionID);
-	void endFunction();
 
 	/// Returns a tag identified by the given name. Creates it if it does not yet exist.
 	AssemblyItem namedTag(std::string const& _name, size_t _params, size_t _returns, std::optional<uint64_t> _sourceID);
@@ -89,9 +76,6 @@ public:
 	AssemblyItem newPushLibraryAddress(std::string const& _identifier);
 	AssemblyItem newPushImmutable(std::string const& _identifier);
 	AssemblyItem newImmutableAssignment(std::string const& _identifier);
-	AssemblyItem newAuxDataLoadN(size_t offset) const;
-	AssemblyItem newSwapN(size_t _depth) const;
-	AssemblyItem newDupN(size_t _depth) const;
 
 	AssemblyItem const& append(AssemblyItem _i);
 	AssemblyItem const& append(bytes const& _data) { return append(newData(_data)); }
@@ -104,35 +88,10 @@ public:
 	void appendLibraryAddress(std::string const& _identifier) { append(newPushLibraryAddress(_identifier)); }
 	void appendImmutable(std::string const& _identifier) { append(newPushImmutable(_identifier)); }
 	void appendImmutableAssignment(std::string const& _identifier) { append(newImmutableAssignment(_identifier)); }
-	void appendAuxDataLoadN(uint16_t _offset) { append(newAuxDataLoadN(_offset));}
-	void appendSwapN(size_t _depth) { append(newSwapN(_depth)); }
-	void appendDupN(size_t _depth) { append(newDupN(_depth)); }
 
 	void appendVerbatim(bytes _data, size_t _arguments, size_t _returnVariables)
 	{
 		append(AssemblyItem(std::move(_data), _arguments, _returnVariables));
-	}
-
-	AssemblyItem appendEOFCreate(ContainerID _containerId)
-	{
-		solAssert(_containerId < m_subs.size(), "EOF Create of undefined container.");
-		return append(AssemblyItem::eofCreate(_containerId));
-	}
-	AssemblyItem appendReturnContract(ContainerID _containerId)
-	{
-		solAssert(_containerId < m_subs.size(), "Return undefined container ID.");
-		return append(AssemblyItem::returnContract(_containerId));
-	}
-
-	AssemblyItem appendFunctionCall(uint16_t _functionID)
-	{
-		return append(newFunctionCall(_functionID));
-	}
-
-	AssemblyItem appendFunctionReturn()
-	{
-		solAssert(m_currentCodeSection != 0, "Appending function return without begin function.");
-		return append(newFunctionReturn());
 	}
 
 	AssemblyItem appendJump() { auto ret = append(newPushTag()); append(Instruction::JUMP); return ret; }
@@ -171,9 +130,11 @@ public:
 		bool runDeduplicate = false;
 		bool runCSE = false;
 		bool runConstantOptimiser = false;
+
+		using ExecutionCount = frontend::OptimiserSettings::ExecutionCount;
 		/// This specifies an estimate on how often each opcode in this assembly will be executed,
 		/// i.e. use a small value to optimise for size and a large value to optimise for runtime gas usage.
-		size_t expectedExecutionsPerDeployment = frontend::OptimiserSettings{}.expectedExecutionsPerDeployment;
+		ExecutionCount expectedExecutionsPerDeployment = frontend::OptimiserSettings{}.expectedExecutionsPerDeployment;
 
 		static OptimiserSettings translateSettings(frontend::OptimiserSettings const& _settings);
 	};
@@ -210,8 +171,7 @@ public:
 	static std::pair<std::shared_ptr<Assembly>, std::vector<std::string>> fromJSON(
 		Json const& _json,
 		std::vector<std::string> const& _sourceList = {},
-		size_t _level = 0,
-		std::optional<uint8_t> _eofVersion = std::nullopt
+		size_t _level = 0
 	);
 
 	/// Mark this assembly as invalid. Calling ``assemble`` on it will throw.
@@ -222,25 +182,8 @@ public:
 
 	bool isCreation() const { return m_creation; }
 
-	struct CodeSection
-	{
-		uint8_t inputs = 0;
-		// Number of outputs needs to be set properly even for non-returning function.
-		// It matters in case of stack height calculation of the function call instruction.
-		uint8_t outputs = 0;
-		bool nonReturning = false;
-		AssemblyItems items{};
-	};
-
-	std::vector<CodeSection>& codeSections()
-	{
-		return m_codeSections;
-	}
-
-	std::vector<CodeSection> const& codeSections() const
-	{
-		return m_codeSections;
-	}
+	AssemblyItems& items() { return m_items; }
+	AssemblyItems const& items() const { return m_items; }
 
 protected:
 	/// Does the same operations as @a optimise, but should only be applied to a sub and
@@ -248,7 +191,7 @@ protected:
 	/// that are referenced in a super-assembly.
 	std::map<u256, u256> const& optimiseInternal(OptimiserSettings const& _settings, std::set<size_t> _tagsReferencedFromOutside);
 
-	/// For EOF and legacy it calculates approximate size of "pure" code without data.
+	/// Calculates approximate size of "pure" code without data.
 	unsigned codeSize(unsigned subTagSize) const;
 
 	/// Add all assembly items from given JSON array. This function imports the items by iterating through
@@ -272,16 +215,7 @@ private:
 
 	std::shared_ptr<std::string const> sharedSourceName(std::string const& _name) const;
 
-	/// Returns EOF header bytecode | code section sizes offsets | data section size offset
-	std::tuple<bytes, std::vector<size_t>, size_t> createEOFHeader(std::set<ContainerID> const& _referencedSubIds) const;
-
 	LinkerObject const& assembleLegacy() const;
-	LinkerObject const& assembleEOF() const;
-
-	/// Returns map from m_subs to an index of subcontainer in the final EOF bytecode
-	std::map<ContainerID, ContainerID> findReferencedContainers() const;
-	/// Returns max AuxDataLoadN offset for the assembly.
-	std::optional<uint16_t> findMaxAuxDataLoadNOffset() const;
 
 	/// Assemble bytecode for AssemblyItem type.
 	[[nodiscard]] bytes assembleOperation(AssemblyItem const& _item) const;
@@ -308,8 +242,7 @@ protected:
 	/// Data that is appended to the very end of the contract.
 	bytes m_auxiliaryData;
 	std::vector<std::shared_ptr<Assembly>> m_subs;
-	std::vector<CodeSection> m_codeSections;
-	uint16_t m_currentCodeSection = 0;
+	AssemblyItems m_items;
 	std::map<util::h256, std::string> m_strings;
 	std::map<util::h256, std::string> m_libraries; ///< Identifiers of libraries to be linked.
 	std::map<util::h256, std::string> m_immutables; ///< Identifiers of immutables.
@@ -333,7 +266,6 @@ protected:
 	int m_deposit = 0;
 	/// True, if the assembly contains contract creation code.
 	bool const m_creation = false;
-	std::optional<uint8_t> m_eofVersion;
 	/// Internal name of the assembly object, only used with the Yul backend
 	/// currently
 	std::string m_name;

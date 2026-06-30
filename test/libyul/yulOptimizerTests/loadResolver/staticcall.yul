@@ -11,7 +11,6 @@
 }
 // ====
 // EVMVersion: >=byzantium
-// bytecodeFormat: legacy
 // ----
 // step: loadResolver
 //

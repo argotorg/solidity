@@ -22,8 +22,6 @@ contract Creator {
         ch = c.part(x);
     }
 }
-// ====
-// bytecodeFormat: legacy
 // ----
 // f(uint256,bytes): 7, 0x40, 78, "abcdefghijklmnopqrstuvwxyzabcdef", "ghijklmnopqrstuvwxyzabcdefghijkl", "mnopqrstuvwxyz" -> 7, "h"
 // gas irOptimized: 169297
@@ -32,3 +30,5 @@ contract Creator {
 // gas legacy code: 239800
 // gas legacyOptimized: 169823
 // gas legacyOptimized code: 118600
+// gas ssaCFGOptimized: 169268
+// gas ssaCFGOptimized code: 100600

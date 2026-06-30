@@ -15,7 +15,6 @@ contract Derived is Base {
     }
 }
 // ====
-// bytecodeFormat: legacy
 // ----
 // getBMember() -> 5
 // getDMember() -> 6

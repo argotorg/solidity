@@ -22,7 +22,6 @@ contract C {
     }
 }
 // ====
-// bytecodeFormat: legacy
 // ----
 // f() -> FAILURE
 // g() -> FAILURE

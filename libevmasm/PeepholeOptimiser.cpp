@@ -329,29 +329,6 @@ struct IsZeroIsZeroJumpI: SimplePeepholeOptimizerMethod<IsZeroIsZeroJumpI>
 	}
 };
 
-struct IsZeroIsZeroRJumpI: SimplePeepholeOptimizerMethod<IsZeroIsZeroRJumpI>
-{
-	static size_t applySimple(
-		AssemblyItem const& _iszero1,
-		AssemblyItem const& _iszero2,
-		AssemblyItem const& _rjumpi,
-		std::back_insert_iterator<AssemblyItems> _out
-	)
-	{
-		if (
-			_iszero1 == Instruction::ISZERO &&
-			_iszero2 == Instruction::ISZERO &&
-			_rjumpi.type() == ConditionalRelativeJump
-		)
-		{
-			*_out = _rjumpi;
-			return true;
-		}
-		else
-			return false;
-	}
-};
-
 struct EqIsZeroJumpI: SimplePeepholeOptimizerMethod<EqIsZeroJumpI>
 {
 	static size_t applySimple(
@@ -372,30 +349,6 @@ struct EqIsZeroJumpI: SimplePeepholeOptimizerMethod<EqIsZeroJumpI>
 			*_out = AssemblyItem(Instruction::SUB, _eq.debugData());
 			*_out = _pushTag;
 			*_out = _jumpi;
-			return true;
-		}
-		else
-			return false;
-	}
-};
-
-struct EqIsZeroRJumpI: SimplePeepholeOptimizerMethod<EqIsZeroRJumpI>
-{
-	static size_t applySimple(
-		AssemblyItem const& _eq,
-		AssemblyItem const& _iszero,
-		AssemblyItem const& _rjumpi,
-		std::back_insert_iterator<AssemblyItems> _out
-	)
-	{
-		if (
-			_eq == Instruction::EQ &&
-			_iszero == Instruction::ISZERO &&
-			_rjumpi.type() == ConditionalRelativeJump
-		)
-		{
-			*_out = AssemblyItem(Instruction::SUB, _eq.debugData());
-			*_out = _rjumpi;
 			return true;
 		}
 		else
@@ -435,33 +388,6 @@ struct DoubleJump: SimplePeepholeOptimizerMethod<DoubleJump>
 	}
 };
 
-// rjumpi(tag_1) rjump(tag_2) tag_1: -> iszero rjumpi(tag_2) tag_1:
-struct DoubleRJump: SimplePeepholeOptimizerMethod<DoubleRJump>
-{
-	static size_t applySimple(
-		AssemblyItem const& _rjumpi,
-		AssemblyItem const& _rjump,
-		AssemblyItem const& _tag1,
-		std::back_insert_iterator<AssemblyItems> _out
-	)
-	{
-		if (
-			_rjumpi.type() == ConditionalRelativeJump &&
-			_rjump.type() == RelativeJump &&
-			_tag1.type() == Tag &&
-			_rjumpi.data() == _tag1.data()
-		)
-		{
-			*_out = AssemblyItem(Instruction::ISZERO, _rjumpi.debugData());
-			*_out = AssemblyItem::conditionalRelativeJumpTo(_rjump.tag(), _rjump.debugData());
-			*_out = _tag1;
-			return true;
-		}
-		else
-			return false;
-	}
-};
-
 struct JumpToNext: SimplePeepholeOptimizerMethod<JumpToNext>
 {
 	static size_t applySimple(
@@ -480,30 +406,6 @@ struct JumpToNext: SimplePeepholeOptimizerMethod<JumpToNext>
 		{
 			if (_jump == Instruction::JUMPI)
 				*_out = AssemblyItem(Instruction::POP, _jump.debugData());
-			*_out = _tag;
-			return true;
-		}
-		else
-			return false;
-	}
-};
-
-struct RJumpToNext: SimplePeepholeOptimizerMethod<RJumpToNext>
-{
-	static size_t applySimple(
-		AssemblyItem const& _rjump,
-		AssemblyItem const& _tag,
-		std::back_insert_iterator<AssemblyItems> _out
-	)
-	{
-		if (
-			(_rjump.type() == ConditionalRelativeJump || _rjump.type() == RelativeJump) &&
-			_tag.type() == Tag &&
-			_rjump.data() == _tag.data()
-		)
-		{
-			if (_rjump.type() == ConditionalRelativeJump)
-				*_out = AssemblyItem(Instruction::POP, _rjump.debugData());
 			*_out = _tag;
 			return true;
 		}
@@ -565,8 +467,6 @@ struct TruthyAnd: SimplePeepholeOptimizerMethod<TruthyAnd>
 };
 
 /// Removes everything after an non-continuing instruction until the next Tag.
-/// Note: JUMPF can return but to the caller's parent call frame.
-/// So it won't continue from the next to the JUMPF instruction
 struct UnreachableCode
 {
 	static bool apply(OptimiserState& _state)
@@ -582,11 +482,7 @@ struct UnreachableCode
 			it[0] != Instruction::STOP &&
 			it[0] != Instruction::INVALID &&
 			it[0] != Instruction::SELFDESTRUCT &&
-			it[0] != Instruction::REVERT &&
-			it[0] != Instruction::RJUMP &&
-			it[0] != Instruction::JUMPF &&
-			it[0] != Instruction::RETF &&
-			it[0] != Instruction::RETURNCONTRACT
+			it[0] != Instruction::REVERT
 		)
 			return false;
 
@@ -735,13 +631,9 @@ bool PeepholeOptimiser::optimise()
 			SwapComparison,
 			DupSwap,
 			IsZeroIsZeroJumpI,
-			IsZeroIsZeroRJumpI, // EOF specific
 			EqIsZeroJumpI,
-			EqIsZeroRJumpI, // EOF specific
 			DoubleJump,
-			DoubleRJump, // EOF specific
 			JumpToNext,
-			RJumpToNext, // EOF specific
 			UnreachableCode,
 			DeduplicateNextTagSize3,
 			DeduplicateNextTagSize2,

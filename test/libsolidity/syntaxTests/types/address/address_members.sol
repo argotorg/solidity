@@ -6,5 +6,4 @@ contract C {
     function j() public view returns (uint) { return h().length; }
 }
 // ====
-// bytecodeFormat: legacy
 // ----

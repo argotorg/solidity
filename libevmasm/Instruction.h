@@ -184,27 +184,13 @@ enum class Instruction: uint8_t
 	LOG3,                     ///< Makes a log entry; 3 topics.
 	LOG4,                     ///< Makes a log entry; 4 topics.
 
-	DATALOADN = 0xd1,         ///< load data from EOF data section
-
-	RJUMP = 0xe0,             ///< relative jump
-	RJUMPI = 0xe1,            ///< conditional relative jump
-	CALLF = 0xe3,             ///< call function in a EOF code section
-	RETF = 0xe4,              ///< return to caller from the code section of EOF container
-	JUMPF = 0xe5,             ///< jump to a code section of EOF container without adding a new return stack frame.
-	DUPN = 0xe6,              ///< copies a value at the stack depth given as immediate argument to the top of the stack
-	SWAPN = 0xe7,             ///< swaps the highest value with a value at a stack depth given as immediate argument
-	EOFCREATE = 0xec,         ///< create a new account with associated container code.
-	RETURNCONTRACT = 0xee,    ///< return container to be deployed with axiliary data filled in.
 	CREATE = 0xf0,            ///< create a new account with associated code
 	CALL,                     ///< message-call into an account
 	CALLCODE,                 ///< message-call with another account's code only
 	RETURN,                   ///< halt execution returning output data
 	DELEGATECALL,             ///< like CALLCODE but keeps caller's value and sender
 	CREATE2 = 0xf5,           ///< create new account with associated code at address `sha3(0xff + sender + salt + init code) % 2**160`
-	EXTCALL = 0xf8,           ///< EOF message-call into an account
-	EXTDELEGATECALL = 0xf9,   ///< EOF delegate call
 	STATICCALL = 0xfa,        ///< like CALL but disallow state modifications
-	EXTSTATICCALL = 0xfb,     ///< like EXTCALL but disallow state modifications
 
 	REVERT = 0xfd,            ///< halt execution, revert state and return output data
 	INVALID = 0xfe,           ///< invalid instruction for expressing runtime errors (e.g., division-by-zero)
@@ -220,9 +206,6 @@ constexpr bool isCallInstruction(Instruction _inst) noexcept
 		case Instruction::CALLCODE:
 		case Instruction::DELEGATECALL:
 		case Instruction::STATICCALL:
-		case Instruction::EXTCALL:
-		case Instruction::EXTSTATICCALL:
-		case Instruction::EXTDELEGATECALL:
 			return true;
 		default:
 			return false;
@@ -290,13 +273,8 @@ enum class Tier
 	// NOTE: Tiers should be ordered by cost, since we sometimes perform comparisons between them.
 	Zero = 0,   // 0, Zero
 	Base,       // 2, Quick
-	RJump,      // 2, RJump
 	VeryLow,    // 3, Fastest
-	RetF,       // 3,
-	RJumpI,     // 4,
 	Low,        // 5, Fast
-	CallF,      // 5,
-	JumpF,      // 5,
 	Mid,        // 8, Mid
 	High,       // 10, Slow
 	BlockHash,  // 20

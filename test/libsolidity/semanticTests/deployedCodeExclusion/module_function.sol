@@ -1,4 +1,3 @@
-// TODO: Recreate this test for EOF when subassembly deduplication will be supported for EOF too.
 ==== Source: mod.sol ====
 function longdata() pure returns (bytes memory) {
     return
@@ -34,6 +33,5 @@ contract C {
     }
 }
 // ====
-// bytecodeFormat: legacy
 // ----
 // test() -> true

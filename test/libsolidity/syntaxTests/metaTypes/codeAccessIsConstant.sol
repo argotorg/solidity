@@ -5,5 +5,4 @@ contract Test {
 }
 contract B { function f() public pure {} }
 // ====
-// bytecodeFormat: legacy
 // ----

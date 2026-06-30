@@ -16,7 +16,6 @@ contract C {
 }
 // ====
 // EVMVersion: =current
-// bytecodeFormat: legacy
 // optimize: true
 // optimize-yul: true
 // ----

@@ -14,7 +14,6 @@
 }
 // ====
 // EVMVersion: >=constantinople
-// bytecodeFormat: legacy
 // ----
 // Trace:
 // Memory dump:

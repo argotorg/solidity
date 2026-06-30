@@ -260,10 +260,9 @@ public:
 	/// Literal InstIds are deduplicated. Const Insts are pinned to the entry block.
 	InstId newLiteral(langutil::DebugData::ConstPtr _debugData, u256 _value)
 	{
-		auto const previousNumInsts = m_instructions.numInsts();
-		InstId const id = m_instructions.appendLiteral(entry, std::move(_value));
+		auto const [id, newlyAllocated] = m_instructions.appendLiteral(entry, std::move(_value));
 		// Newly allocated (not deduplicated): schedule in entry and attach debug data.
-		if (m_instructions.numInsts() > previousNumInsts)
+		if (newlyAllocated)
 		{
 			scheduleInBlock(id, entry);
 			if (debugInfo)

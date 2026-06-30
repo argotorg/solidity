@@ -3,7 +3,6 @@
 }
 // ====
 // EVMVersion: >=shanghai
-// bytecodeFormat: legacy
 // ----
 // Assembly:
 //     /* "source":41:42   */

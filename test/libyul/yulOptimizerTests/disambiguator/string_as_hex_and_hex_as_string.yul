@@ -5,7 +5,6 @@ object "A" {
     data 'abc' "1234"
 }
 // ====
-// bytecodeFormat: legacy
 // ----
 // step: disambiguator
 //

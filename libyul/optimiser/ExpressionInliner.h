@@ -66,10 +66,6 @@ private:
 
 	Dialect const& m_dialect;
 	std::map<YulName, FunctionDefinition const*> const& m_inlinableFunctions;
-
-	std::map<YulName, YulName> m_varReplacements;
-	/// Set of functions we are currently visiting inside.
-	std::set<YulName> m_currentFunctions;
 };
 
 }

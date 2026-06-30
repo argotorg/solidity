@@ -11,7 +11,6 @@ contract C {
     receive() external payable {}
 }
 // ====
-// bytecodeFormat: legacy
 // ----
 // (), 1 ether
 // call() -> 1, 2, 2, 2

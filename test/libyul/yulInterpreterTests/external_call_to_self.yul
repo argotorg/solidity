@@ -11,7 +11,6 @@
 }
 // ====
 // simulateExternalCall: true
-// bytecodeFormat: legacy
 // ----
 // Trace:
 //   CALL(153, 0x11111111, 0, 64, 32, 256, 32)

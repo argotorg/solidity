@@ -37,7 +37,9 @@ template<typename R, typename T>
 concept InputRangeOf = ranges::input_range<R> && std::same_as<ranges::range_value_t<R>, T>;
 
 class SSACFG;
-
+class SSACFGStackLayout;
+class StackSlot;
+using StackData = std::vector<StackSlot>;
 using FunctionGraphID = std::uint32_t;
 
 struct BlockId

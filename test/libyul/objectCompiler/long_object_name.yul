@@ -10,7 +10,6 @@ object "t" {
 // EVMVersion: >=shanghai
 // optimizationPreset: full
 // outputs: Assembly
-// bytecodeFormat: legacy
 // ----
 // Assembly:
 //     /* "source":56:169   */

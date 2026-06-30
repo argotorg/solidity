@@ -5,7 +5,6 @@
     mstore(0, eq(a, b))
 }
 // ====
-// bytecodeFormat: legacy
 // ----
 // Trace:
 //   CREATE(0, 0, 0)

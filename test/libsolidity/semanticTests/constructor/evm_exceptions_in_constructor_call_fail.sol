@@ -14,7 +14,6 @@ contract B {
     }
 }
 // ====
-// bytecodeFormat: legacy
 // ----
 // testIt() ->
 // test() -> 2

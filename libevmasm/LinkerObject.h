@@ -72,10 +72,9 @@ struct LinkerObject
 		/// The instructions must be ordered according to their positions (ascending).
 		std::vector<InstructionLocation> instructionLocations;
 	};
-	/// Descriptions of all code sections in the ascending order of their positions.
-	/// There are no duplicates and the sections never overlap.
-	/// Only sections belonging to the top-level assembly are included, even if the bytecode contains subassemblies.
-	std::vector<CodeSectionLocation> codeSectionLocations;
+	/// Description of the code section of the assembly.
+	/// Only instructions belonging to the top-level assembly are included, even if the bytecode contains subassemblies.
+	CodeSectionLocation codeSectionLocation;
 
 	struct FunctionDebugData
 	{

@@ -53,19 +53,7 @@ enum AssemblyItemType
 	PushImmutable, ///< Push the currently unknown value of an immutable variable. The actual value will be filled in by the constructor.
 	AssignImmutable, ///< Assigns the current value on the stack to an immutable variable. Only valid during creation code.
 
-	/// Loads 32 bytes from static auxiliary data of EOF data section. The offset does *not* have to be always from the beginning
-	/// of the data EOF section. More details here: https://github.com/ipsilon/eof/blob/main/spec/eof.md#data-section-lifecycle
-	AuxDataLoadN,
-	EOFCreate, ///< Creates new contract using subcontainer as initcode
-	ReturnContract, ///< Returns new container (with auxiliary data filled in) to be deployed
-	RelativeJump, ///< Jumps to relative position accordingly to its argument
-	ConditionalRelativeJump, ///< Same as RelativeJump but takes condition from the stack
-	CallF, ///< Jumps to a returning EOF function, adding a new frame to the return stack.
-	JumpF, ///< Jumps to a returning or non-returning EOF function without changing the return stack.
-	RetF, ///< Returns from an EOF function, removing a frame from the return stack.
 	VerbatimBytecode, ///< Contains data that is inserted into the bytecode code section without modification.
-	SwapN, ///< EOF SWAPN with immediate argument.
-	DupN, ///< EOF DUPN with immediate argument.
 };
 
 enum class Precision { Precise , Approximate };
@@ -86,10 +74,7 @@ public:
 		m_type(Operation),
 		m_instruction(_i),
 		m_debugData(std::move(_debugData))
-	{
-		solAssert(_i != Instruction::SWAPN, "Construct via AssemblyItem::swapN");
-		solAssert(_i != Instruction::DUPN, "Construct via AssemblyItem::dupN");
-	}
+	{}
 	AssemblyItem(AssemblyItemType _type, u256 _data = 0, langutil::DebugData::ConstPtr _debugData = langutil::DebugData::create()):
 		m_type(_type),
 		m_debugData(std::move(_debugData))
@@ -113,63 +98,13 @@ public:
 		m_debugData{langutil::DebugData::create()}
 	{}
 
-	static AssemblyItem functionCall(uint16_t _functionID, uint8_t _args, uint8_t _rets, langutil::DebugData::ConstPtr _debugData = langutil::DebugData::create())
-	{
-		// TODO: Make this constructor this way that it's impossible to create it without setting functions signature.
-		// It can be done by template constructor with Instruction as template parameter i.e. Same for JumpF below.
-		AssemblyItem result(CallF, Instruction::CALLF, _functionID, _debugData);
-		solAssert(_args <= 127 && _rets <= 127);
-		result.m_functionSignature = {_args, _rets};
-		return result;
-	}
-	static AssemblyItem jumpToFunction(uint16_t _functionID, uint8_t _args, uint8_t _rets, langutil::DebugData::ConstPtr _debugData = langutil::DebugData::create())
-	{
-		AssemblyItem result(JumpF, Instruction::JUMPF, _functionID, _debugData);
-		solAssert(_args <= 127 && _rets <= 127);
-		result.m_functionSignature = {_args, _rets};
-		return result;
-	}
-	static AssemblyItem functionReturn(langutil::DebugData::ConstPtr _debugData = langutil::DebugData::create())
-	{
-		return AssemblyItem(RetF, Instruction::RETF, 0, std::move(_debugData));
-	}
-
-	static AssemblyItem eofCreate(ContainerID _containerID, langutil::DebugData::ConstPtr _debugData = langutil::DebugData::create())
-	{
-		return AssemblyItem(EOFCreate, Instruction::EOFCREATE, _containerID, std::move(_debugData));
-	}
-	static AssemblyItem returnContract(ContainerID _containerID, langutil::DebugData::ConstPtr _debugData = langutil::DebugData::create())
-	{
-		return AssemblyItem(ReturnContract, Instruction::RETURNCONTRACT, _containerID, std::move(_debugData));
-	}
-	static AssemblyItem relativeJumpTo(AssemblyItem _tag, langutil::DebugData::ConstPtr _debugData = langutil::DebugData::create())
-	{
-		solAssert(_tag.type() == Tag);
-		return AssemblyItem(RelativeJump, Instruction::RJUMP, _tag.data(), _debugData);
-	}
-	static AssemblyItem conditionalRelativeJumpTo(AssemblyItem _tag, langutil::DebugData::ConstPtr _debugData = langutil::DebugData::create())
-	{
-		solAssert(_tag.type() == Tag);
-		return AssemblyItem(ConditionalRelativeJump, Instruction::RJUMPI, _tag.data(), _debugData);
-	}
-	static AssemblyItem swapN(size_t _depth, langutil::DebugData::ConstPtr _debugData = langutil::DebugData::create())
-	{
-		solAssert(_depth >= 1 && _depth <= 256);
-		return AssemblyItem(SwapN, Instruction::SWAPN, _depth, _debugData);
-	}
-	static AssemblyItem dupN(size_t _depth, langutil::DebugData::ConstPtr _debugData = langutil::DebugData::create())
-	{
-		solAssert(_depth >= 1 && _depth <= 256);
-		return AssemblyItem(DupN, Instruction::DUPN, _depth, _debugData);
-	}
-
 	AssemblyItem(AssemblyItem const&) = default;
 	AssemblyItem(AssemblyItem&&) = default;
 	AssemblyItem& operator=(AssemblyItem const&) = default;
 	AssemblyItem& operator=(AssemblyItem&&) = default;
 
-	AssemblyItem tag() const { solAssert(m_type == PushTag || m_type == Tag || m_type == RelativeJump || m_type == ConditionalRelativeJump); return AssemblyItem(Tag, data()); }
-	AssemblyItem pushTag() const { solAssert(m_type == PushTag || m_type == Tag || m_type == RelativeJump || m_type == ConditionalRelativeJump); return AssemblyItem(PushTag, data()); }
+	AssemblyItem tag() const { solAssert(m_type == PushTag || m_type == Tag); return AssemblyItem(Tag, data()); }
+	AssemblyItem pushTag() const { solAssert(m_type == PushTag || m_type == Tag); return AssemblyItem(PushTag, data()); }
 	/// Converts the tag to a subassembly tag. This has to be called in order to move a tag across assemblies.
 	/// @param _subId the identifier of the subassembly the tag is taken from.
 	AssemblyItem toSubAssemblyTag(SubAssemblyID _subId) const;
@@ -199,16 +134,7 @@ public:
 	bool hasInstruction() const
 	{
 		bool const shouldHaveInstruction =
-			m_type == Operation ||
-			m_type == EOFCreate ||
-			m_type == ReturnContract ||
-			m_type == RelativeJump ||
-			m_type == ConditionalRelativeJump ||
-			m_type == CallF ||
-			m_type == JumpF ||
-			m_type == RetF ||
-			m_type == SwapN ||
-			m_type == DupN;
+			m_type == Operation;
 		solAssert(shouldHaveInstruction == m_instruction.has_value());
 		return shouldHaveInstruction;
 	}
@@ -309,28 +235,12 @@ public:
 
 	void setImmutableOccurrences(size_t _n) const { m_immutableOccurrences = _n; }
 
-	struct FunctionSignature
-	{
-		/// Number of EOF function arguments. must be less than 128
-		uint8_t argsNum;
-		/// Number of EOF function return values. Must be less than 128.
-		uint8_t retsNum;
-	};
-
-	FunctionSignature const& functionSignature() const
-	{
-		solAssert(m_type == CallF || m_type == JumpF);
-		solAssert(m_functionSignature.has_value());
-		return *m_functionSignature;
-	}
-
 private:
 	size_t opcodeCount() const noexcept;
 
 	AssemblyItemType m_type;
 	std::optional<Instruction> m_instruction; ///< Only valid for item types that represent a specific opcode
 	std::shared_ptr<u256> m_data; ///< Only valid if m_type != Operation
-	std::optional<FunctionSignature> m_functionSignature; ///< Only valid if m_type == CallF or JumpF
 	/// If m_type == VerbatimBytecode, this holds number of arguments, number of
 	/// return variables and verbatim bytecode.
 	std::optional<std::tuple<size_t, size_t, bytes>> m_verbatimBytecode;

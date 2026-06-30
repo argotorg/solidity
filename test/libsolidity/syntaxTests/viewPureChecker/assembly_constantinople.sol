@@ -5,5 +5,4 @@ contract C {
 }
 // ====
 // EVMVersion: >=constantinople
-// bytecodeFormat: legacy
 // ----

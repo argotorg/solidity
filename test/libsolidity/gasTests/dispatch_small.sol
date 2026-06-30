@@ -6,7 +6,6 @@ contract Small {
 }
 // ====
 // EVMVersion: =current
-// bytecodeFormat: legacy
 // ----
 // creation:
 //   codeDepositCost: 103800

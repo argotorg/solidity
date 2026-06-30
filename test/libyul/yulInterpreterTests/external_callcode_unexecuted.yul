@@ -3,7 +3,6 @@
 	sstore(100, x)
 }
 // ====
-// bytecodeFormat: legacy
 // ----
 // Trace:
 //   CALLCODE(153, 69, 5, 0, 32, 48, 32)

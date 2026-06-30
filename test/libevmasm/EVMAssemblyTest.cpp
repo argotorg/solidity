@@ -95,17 +95,12 @@ EVMAssemblyTest::EVMAssemblyTest(std::string const& _filename):
 	optimizerComponentSetting("deduplicate", m_optimizerSettings.runDeduplicate);
 	optimizerComponentSetting("cse", m_optimizerSettings.runCSE);
 	optimizerComponentSetting("constantOptimizer", m_optimizerSettings.runConstantOptimiser);
-
-	// TODO: Enable when assembly import for EOF is implemented.
-	if (CommonOptions::get().eofVersion().has_value())
-		m_shouldRun = false;
 }
 
 TestCase::TestResult EVMAssemblyTest::run(std::ostream& _stream, std::string const& _linePrefix, bool const _formatted)
 {
 	EVMAssemblyStack evmAssemblyStack(
 		CommonOptions::get().evmVersion(),
-		CommonOptions::get().eofVersion(),
 		m_optimizerSettings
 	);
 

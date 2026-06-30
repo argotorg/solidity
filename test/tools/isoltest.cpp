@@ -158,7 +158,6 @@ TestTool::Result TestTool::process()
 			m_test = m_testCaseCreator(TestCase::Config{
 				m_path.string(),
 				m_options.evmVersion(),
-				m_options.eofVersion(),
 				m_options.vmPaths,
 				m_options.enforceGasTest,
 				m_options.enforceGasTestMinValue

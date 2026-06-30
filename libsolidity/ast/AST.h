@@ -74,11 +74,11 @@ public:
 	using CompareByID = frontend::ASTCompareByID<ASTNode>;
 	using SourceLocation = langutil::SourceLocation;
 
-	explicit ASTNode(int64_t _id, SourceLocation _location);
-	virtual ~ASTNode() {}
+	explicit ASTNode(std::int64_t _id, SourceLocation _location);
+	virtual ~ASTNode() = default;
 
 	/// @returns an identifier of this AST node that is unique for a single compilation run.
-	int64_t id() const { return int64_t(m_id); }
+	std::int64_t id() const { return m_id; }
 
 	virtual void accept(ASTVisitor& _visitor) = 0;
 	virtual void accept(ASTConstVisitor& _visitor) const = 0;
@@ -127,7 +127,7 @@ public:
 	virtual bool experimentalSolidityOnly() const { return false; }
 
 protected:
-	size_t const m_id = 0;
+	std::int64_t const m_id = 0;
 
 	template <class T>
 	T& initAnnotation() const

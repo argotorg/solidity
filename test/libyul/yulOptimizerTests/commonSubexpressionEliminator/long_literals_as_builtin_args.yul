@@ -11,7 +11,6 @@ object "AccessControlDefaultAdminRules4233_14" {
 
 }
 // ====
-// bytecodeFormat: legacy
 // ----
 // step: commonSubexpressionEliminator
 //

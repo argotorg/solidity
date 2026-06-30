@@ -1,4 +1,3 @@
-// TODO: Recreate this test for EOF when subassembly deduplication will be supported for EOF too.
 function longdata(S memory) pure returns (bytes memory) {
     return
         "xasopca.pngaibngidak.jbtnudak.cAP.BRRSMCPJAGPD KIAJDOMHUKR,SCPID"
@@ -38,6 +37,5 @@ contract C {
     }
 }
 // ====
-// bytecodeFormat: legacy
 // ----
 // test() -> true

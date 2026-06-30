@@ -137,7 +137,6 @@ object "root" {
 // ====
 // EVMVersion: >=shanghai
 // outputs: Assembly
-// bytecodeFormat: legacy
 // ----
 // Assembly:
 //     /* "source":59:75   */

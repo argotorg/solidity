@@ -14,7 +14,6 @@ object "t" {
 	}
 }
 // ====
-// bytecodeFormat: legacy
 // ----
 // Trace:
 // Memory dump:

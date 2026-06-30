@@ -9,5 +9,4 @@ object "A" {
   }
 }
 // ====
-// bytecodeFormat: legacy
 // ----

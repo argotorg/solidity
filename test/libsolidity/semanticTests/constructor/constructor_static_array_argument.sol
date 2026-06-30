@@ -8,7 +8,6 @@ contract C {
     }
 }
 // ====
-// bytecodeFormat: legacy
 // ----
 // constructor(): 1, 2, 3, 4 ->
 // gas irOptimized: 148129
@@ -17,6 +16,8 @@ contract C {
 // gas legacy code: 60400
 // gas legacyOptimized: 149177
 // gas legacyOptimized code: 26200
+// gas ssaCFGOptimized: 147962
+// gas ssaCFGOptimized code: 21200
 // a() -> 1
 // b(uint256): 0 -> 2
 // b(uint256): 1 -> 3

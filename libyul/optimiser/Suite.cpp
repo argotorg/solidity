@@ -94,7 +94,7 @@ void OptimiserSuite::run(
 	bool _optimizeStackAllocation,
 	std::string_view _optimisationSequence,
 	std::string_view _optimisationCleanupSequence,
-	std::optional<size_t> _expectedExecutionsPerDeployment,
+	std::optional<std::uint64_t> _expectedExecutionsPerDeployment,
 	std::set<YulName> const& _externallyUsedIdentifiers
 )
 {

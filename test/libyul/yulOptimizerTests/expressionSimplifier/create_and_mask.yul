@@ -8,7 +8,6 @@
     sstore(a, b)
 }
 // ====
-// bytecodeFormat: legacy
 // ----
 // step: expressionSimplifier
 //

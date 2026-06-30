@@ -10,7 +10,6 @@
     sstore(10, d)
 }
 // ====
-// bytecodeFormat: legacy
 // ----
 // step: expressionSimplifier
 //

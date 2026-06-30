@@ -111,8 +111,6 @@ void CommonOptions::addOptions()
 {
 	options.add_options()
 		("evm-version", po::value(&evmVersionString), "which EVM version to use")
-		// "eof-version" is declared as uint64_t, since uint8_t will be parsed as character by boost.
-		("eof-version", po::value<uint64_t>()->implicit_value(1u), "which EOF version to use")
 		("testpath", po::value<fs::path>(&this->testPath)->default_value(solidity::test::testPath()), "path to test files")
 		("vm", po::value<std::vector<fs::path>>(&vmPaths), "path to evmc library, can be supplied multiple times.")
 		("batches", po::value<size_t>(&this->batches)->default_value(1), "set number of batches to split the tests into")
@@ -161,12 +159,6 @@ void CommonOptions::validate() const
 			std::cout << "- ABI coder: v1 (default: v2)" << std::endl;
 		std::cout << std::endl << "DO NOT COMMIT THE UPDATED EXPECTATIONS." << std::endl << std::endl;
 	}
-
-	solRequire(
-		!eofVersion().has_value(),
-		ConfigException,
-		"EOF is not supported by EVM versions earlier than " + langutil::EVMVersion::future().name() + "."
-	);
 }
 
 bool CommonOptions::parse(int argc, char const* const* argv)
@@ -181,14 +173,6 @@ bool CommonOptions::parse(int argc, char const* const* argv)
 		auto parsedOptions = cmdLineParser.run();
 		po::store(parsedOptions, arguments);
 		po::notify(arguments);
-		if (arguments.count("eof-version"))
-		{
-			// Request as uint64_t, since uint8_t will be parsed as character by boost.
-			uint64_t eofVersion = arguments["eof-version"].as<uint64_t>();
-			if (eofVersion != 1)
-				BOOST_THROW_EXCEPTION(std::runtime_error("Invalid EOF version: " + std::to_string(eofVersion)));
-			m_eofVersion = 1;
-		}
 
 		for (auto const& parsedOption: parsedOptions.options)
 			if (parsedOption.position_key >= 0)
@@ -304,20 +288,6 @@ bool isValidSemanticTestPath(boost::filesystem::path const& _testPath)
 			return false;
 	}
 	return true;
-}
-
-boost::unit_test::precondition::predicate_t nonEOF()
-{
-	return [](boost::unit_test::test_unit_id) {
-		return !solidity::test::CommonOptions::get().eofVersion().has_value();
-	};
-}
-
-boost::unit_test::precondition::predicate_t onEOF()
-{
-	return [](boost::unit_test::test_unit_id) {
-		return solidity::test::CommonOptions::get().eofVersion().has_value();
-	};
 }
 
 boost::unit_test::precondition::predicate_t minEVMVersionCheck(langutil::EVMVersion _minEVMVersion)

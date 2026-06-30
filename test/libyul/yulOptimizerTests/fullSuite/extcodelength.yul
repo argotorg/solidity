@@ -18,7 +18,6 @@
 }
 // ====
 // EVMVersion: >byzantium
-// bytecodeFormat: legacy
 // ----
 // step: fullSuite
 //

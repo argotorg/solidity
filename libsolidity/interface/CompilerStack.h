@@ -220,7 +220,7 @@ public:
 
 	/// Changes the optimiser settings.
 	/// Must be set before parsing.
-	void setOptimiserSettings(bool _optimize, size_t _runs = OptimiserSettings{}.expectedExecutionsPerDeployment);
+	void setOptimiserSettings(bool _optimize, OptimiserSettings::ExecutionCount _runs = OptimiserSettings{}.expectedExecutionsPerDeployment);
 
 	/// Changes the optimiser settings.
 	/// Must be set before parsing.

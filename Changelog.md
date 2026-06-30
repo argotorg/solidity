@@ -3,11 +3,14 @@
 Language Features:
 
 Compiler Features:
+* Commandline Interface: `--optimize-runs` now also accepts values from the interval [INT64_MAX, UINT64_MAX].
 * General: Speed up SHA-256 hashing (`picosha2`).
 * General: Remove support for the experimental EOF (EVM Object Format) backend.
 
 Bugfixes:
 * NatSpec: Disallow `@return` tag in event documentation.
+* SMTChecker: Fix incorrect handling of constant operands of unary operations.
+* Standard JSON Interface: Fix incorrect serialization of `optimizer.runs` setting for values in the interval [INT64_MAX, UINT64_MAX].
 
 
 ### 0.8.35 (2026-04-29)

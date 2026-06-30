@@ -14,6 +14,5 @@ contract C {
 }
 // ====
 // EVMVersion: >=byzantium
-// bytecodeFormat: legacy
 // ----
 // f() -> 0x00, 0x08c379a000000000000000000000000000000000000000000000000000000000

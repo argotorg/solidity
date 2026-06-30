@@ -18,6 +18,8 @@
 
 #pragma once
 
+#include <libyul/backends/evm/ssa/spill/Emitter.h>
+
 #include <libyul/backends/evm/ssa/PhiInverse.h>
 #include <libyul/backends/evm/ssa/Stack.h>
 #include <libyul/backends/evm/ssa/StackLayout.h>
@@ -52,9 +54,17 @@ struct AssemblyCallbacks
 		case StackSlot::Kind::Value:
 		{
 			auto const id = _slot.value();
-			yulAssert(cfg->isLiteral(id), fmt::format("Tried bringing up non-const {}", id));
-			assembly->appendConstant(cfg->literalPayload(id));
-			return;
+			if (cfg->isLiteral(id))
+			{
+				assembly->appendConstant(cfg->literalPayload(id));
+				return;
+			}
+			if (spillEmitter && spillEmitter->hasAddress(id))
+			{
+				spillEmitter->emitLoad(id);
+				return;
+			}
+			yulAssert(false, fmt::format("Tried bringing up non-spilled non-const {}", id));
 		}
 		case StackSlot::Kind::Junk:
 		{
@@ -87,6 +97,7 @@ struct AssemblyCallbacks
 	AbstractAssembly* assembly{};
 	CallSites const* callSites{};
 	std::map<InstId, AbstractAssembly::LabelID> const* returnLabels{};
+	spill::Emitter const* spillEmitter{};
 };
 static_assert(StackManipulationCallbackConcept<AssemblyCallbacks>);
 
@@ -95,6 +106,7 @@ class CodeTransform
 public:
 	static void run(
 		AbstractAssembly& _assembly,
+		ControlFlowGraphs& _controlFlowGraphs,
 		ControlFlowGraphsLiveness const& _liveness,
 		BuiltinContext& _builtinContext
 	);
@@ -115,7 +127,10 @@ private:
 		CallSites const& _callSites,
 		SSACFG const& _cfg,
 		SSACFGStackLayout const& _stackLayout,
-		ControlFlowGraphs::FunctionGraphID _graphID);
+		spill::SpillSet const& _spillSet,
+		ControlFlowGraphs::FunctionGraphID _graphID,
+		spill::MemoryAddressing const& _addressing
+	);
 
 	void operator()(SSACFG::BlockId _blockId);
 	void operator()(InstId _instId, StackData const& _operationInputLayout);
@@ -127,6 +142,9 @@ private:
 
 	void prepareBlockExitStack(StackData const& _target, PhiInverse const& _phiInverse);
 
+	/// If `_value` is spilled, shuffles it to the stack top and stores it into its memory slot
+	void spillStore(InstId _value);
+
 	AbstractAssembly& m_assembly;
 	BuiltinContext& m_builtinContext;
 	ControlFlowGraphs const& m_controlFlow;
@@ -134,10 +152,12 @@ private:
 	CallSites const& m_callSites;
 	SSACFG const& m_cfg;
 	SSACFGStackLayout const& m_stackLayout;
+	spill::SpillSet const& m_spillSet;
 	ControlFlowGraphs::FunctionGraphID const m_graphID;
 
 	std::vector<std::uint8_t> m_blockIsTransformed;
 	std::vector<AbstractAssembly::LabelID> m_blockLabels;
+	std::optional<spill::Emitter> m_spillEmitter{std::nullopt};
 	AssemblyCallbacks m_assemblyCallbacks;
 	StackData m_stackData;
 	Stack<AssemblyCallbacks> m_stack;

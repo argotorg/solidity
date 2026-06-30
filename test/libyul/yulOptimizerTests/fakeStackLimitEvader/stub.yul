@@ -24,7 +24,6 @@
     h(1, 2, 3, 4)
 }
 // ====
-// bytecodeFormat: legacy
 // ----
 // step: fakeStackLimitEvader
 //

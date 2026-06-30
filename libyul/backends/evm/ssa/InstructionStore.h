@@ -192,11 +192,13 @@ public:
 
 	/// Allocates a new Const Inst with payload `_value`, pinned to `_entryBlock`.
 	/// Literals are deduplicated by value (see class comment).
-	InstId appendLiteral(BlockId const _entryBlock, u256 _value)
+	/// Returns id of the corresponding Const instruction and a bool indicating
+	/// whether new instruction has been appended (`true`) or existing instruction reused (`false`).
+	std::pair<InstId, bool> appendLiteral(BlockId const _entryBlock, u256 _value)
 	{
 		yulAssert(_entryBlock.hasValue());
 		if (auto const it = m_literalDedup.find(_value); it != m_literalDedup.end())
-			return it->second;
+			return {it->second, false};
 		InstId const id = appendInst(Inst{
 			InstOpcode::Const,
 			_entryBlock,
@@ -204,7 +206,7 @@ public:
 			std::make_unique<Payload>(LiteralPayload{_value})
 		});
 		m_literalDedup.emplace(std::move(_value), id);
-		return id;
+		return {id, true};
 	}
 
 	/// Allocates a new single-output BuiltinCall Inst. Returns the new InstId.

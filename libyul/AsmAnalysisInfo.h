@@ -34,7 +34,6 @@ struct Scope;
 
 struct AsmAnalysisInfo
 {
-	using StackHeightInfo = std::map<void const*, int>;
 	using Scopes = std::map<Block const*, std::shared_ptr<Scope>>;
 	Scopes scopes;
 	/// Virtual blocks which will be used for scopes for function arguments and return values.

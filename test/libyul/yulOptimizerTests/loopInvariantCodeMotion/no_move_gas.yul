@@ -4,7 +4,6 @@
     }
 }
 // ====
-// bytecodeFormat: legacy
 // ----
 // step: loopInvariantCodeMotion
 //

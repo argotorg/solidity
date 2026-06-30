@@ -4,7 +4,6 @@ contract C {
     }
 }
 // ====
-// bytecodeFormat: legacy
 // ----
 // f() -> true
 // f() -> true

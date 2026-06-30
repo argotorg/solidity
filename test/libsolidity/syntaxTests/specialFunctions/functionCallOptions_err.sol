@@ -6,7 +6,6 @@ contract C {
     }
 }
 // ====
-// bytecodeFormat: legacy
 // ----
 // TypeError 2056: (60-76): This type cannot be encoded.
 // TypeError 2056: (92-106): This type cannot be encoded.

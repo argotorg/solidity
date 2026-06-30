@@ -36,3 +36,5 @@ contract C is B {
 // gas legacy code: 94600
 // gas legacyOptimized: 55195
 // gas legacyOptimized code: 55000
+// gas ssaCFGOptimized: 55059
+// gas ssaCFGOptimized code: 56400

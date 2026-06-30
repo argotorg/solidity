@@ -14,6 +14,5 @@ contract C {
 
 // ====
 // EVMVersion: >=cancun
-// bytecodeFormat: legacy
 // ----
 // f() -> 100

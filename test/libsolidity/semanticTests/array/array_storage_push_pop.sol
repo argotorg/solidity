@@ -20,8 +20,10 @@ contract C {
 // gas irOptimized: 833586
 // gas legacy: 807764
 // gas legacyOptimized: 784467
+// gas ssaCFGOptimized: 837668
 // set_get_length(uint256): 0xFFF -> 0
 // gas irOptimized: 13029438
 // gas legacy: 12608096
 // gas legacyOptimized: 12239199
+// gas ssaCFGOptimized: 13094960
 // set_get_length(uint256): 0xFFFF -> FAILURE # Out-of-gas #

@@ -3,7 +3,6 @@
     let b := gas()
 }
 // ====
-// bytecodeFormat: legacy
 // ----
 // step: commonSubexpressionEliminator
 //

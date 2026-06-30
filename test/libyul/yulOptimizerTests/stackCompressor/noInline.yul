@@ -3,7 +3,6 @@
   function f() { let y := 9 }
 }
 // ====
-// bytecodeFormat: legacy
 // ----
 // step: stackCompressor
 //

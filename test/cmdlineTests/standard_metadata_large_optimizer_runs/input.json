@@ -1,0 +1,12 @@
+{
+	"language": "Solidity",
+	"sources": {
+		"C": {"urls": ["in.sol"]}
+	},
+	"settings": {
+		"optimizer": { "enabled": true, "runs": 18446744073709551615 },
+		"outputSelection": {
+			"*": {"*": ["metadata"]}
+		}
+	}
+}

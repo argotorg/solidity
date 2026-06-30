@@ -23,8 +23,9 @@
 
 #include <fmt/format.h>
 
-#include <unordered_map>
+#include <deque>
 #include <memory>
+#include <unordered_map>
 #include <vector>
 #include <string>
 #include <string_view>
@@ -59,15 +60,15 @@ public:
 		std::uint64_t h = hash(_string);
 		auto range = m_hashToID.equal_range(h);
 		for (auto it = range.first; it != range.second; ++it)
-			if (*m_strings[it->second] == _string)
+			if (m_strings[it->second] == _string)
 				return Handle{it->second, h};
-		m_strings.emplace_back(std::make_shared<std::string>(_string));
+		m_strings.emplace_back(_string);
 		size_t id = m_strings.size() - 1;
 		m_hashToID.emplace_hint(range.second, std::make_pair(h, id));
 
 		return Handle{id, h};
 	}
-	std::string const& idToString(size_t _id) const { return *m_strings.at(_id); }
+	std::string const& idToString(size_t _id) const { return m_strings.at(_id); }
 
 	static std::uint64_t hash(std::string_view const v)
 	{
@@ -115,7 +116,7 @@ private:
 		return callbacks;
 	}
 
-	std::vector<std::shared_ptr<std::string>> m_strings = {std::make_shared<std::string>()};
+	std::deque<std::string> m_strings = {""};
 	std::unordered_multimap<std::uint64_t, size_t> m_hashToID = {{emptyHash(), 0}};
 };
 

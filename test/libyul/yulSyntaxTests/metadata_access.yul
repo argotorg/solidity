@@ -22,7 +22,6 @@ object "A" {
   data ".other" "Hello, World2!"
 }
 // ====
-// bytecodeFormat: legacy
 // ----
 // TypeError 3517: (41-49): Unknown data object ".other".
 // TypeError 3517: (69-77): Unknown data object ".other".

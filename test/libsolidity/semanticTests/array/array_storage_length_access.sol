@@ -19,4 +19,5 @@ contract C {
 // gas irOptimized: 1209116
 // gas legacy: 1689548
 // gas legacyOptimized: 1393535
+// gas ssaCFGOptimized: 1197598
 // set_get_length(uint256): 0xFFFFF -> FAILURE # Out-of-gas #

@@ -1,0 +1,36 @@
+// A spilled value (v0) is required at the very bottom of an 18-deep target, but every value on the
+// stack is still needed (no junk, no surplus) so the stack cannot be shrunk to expose the bottom slot.
+// The shuffler must surface a reachable value as too deep, spill it, and only then shrink and place v0.
+allowSpilling: true
+initialSpilledSet: {v0}
+initial: [v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17]
+targetStackTop: [v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17]
+// ----
+//             |      0      1      2      3      4      5      6      7      8      9     10     11     12     13     14     15     16     17
+//             +------------------------------------------------------------------------------------------------------------------------------
+//    (initial)|     v1     v2     v3     v4     v5     v6     v7     v8     v9    v10    v11    v12    v13    v14    v15    v16    v17
+//       SWAP16|    v17     v2     v3     v4     v5     v6     v7     v8     v9    v10    v11    v12    v13    v14    v15    v16     v1
+//       SWAP15|    v17     v1     v3     v4     v5     v6     v7     v8     v9    v10    v11    v12    v13    v14    v15    v16     v2
+//       SWAP14|    v17     v1     v2     v4     v5     v6     v7     v8     v9    v10    v11    v12    v13    v14    v15    v16     v3
+//       SWAP13|    v17     v1     v2     v3     v5     v6     v7     v8     v9    v10    v11    v12    v13    v14    v15    v16     v4
+//       SWAP12|    v17     v1     v2     v3     v4     v6     v7     v8     v9    v10    v11    v12    v13    v14    v15    v16     v5
+//       SWAP11|    v17     v1     v2     v3     v4     v5     v7     v8     v9    v10    v11    v12    v13    v14    v15    v16     v6
+//       SWAP10|    v17     v1     v2     v3     v4     v5     v6     v8     v9    v10    v11    v12    v13    v14    v15    v16     v7
+//        SWAP9|    v17     v1     v2     v3     v4     v5     v6     v7     v9    v10    v11    v12    v13    v14    v15    v16     v8
+//        SWAP8|    v17     v1     v2     v3     v4     v5     v6     v7     v8    v10    v11    v12    v13    v14    v15    v16     v9
+//        SWAP7|    v17     v1     v2     v3     v4     v5     v6     v7     v8     v9    v11    v12    v13    v14    v15    v16    v10
+//        SWAP6|    v17     v1     v2     v3     v4     v5     v6     v7     v8     v9    v10    v12    v13    v14    v15    v16    v11
+//        SWAP5|    v17     v1     v2     v3     v4     v5     v6     v7     v8     v9    v10    v11    v13    v14    v15    v16    v12
+//        SWAP4|    v17     v1     v2     v3     v4     v5     v6     v7     v8     v9    v10    v11    v12    v14    v15    v16    v13
+//        SWAP3|    v17     v1     v2     v3     v4     v5     v6     v7     v8     v9    v10    v11    v12    v13    v15    v16    v14
+//        SWAP2|    v17     v1     v2     v3     v4     v5     v6     v7     v8     v9    v10    v11    v12    v13    v14    v16    v15
+//        SWAP1|    v17     v1     v2     v3     v4     v5     v6     v7     v8     v9    v10    v11    v12    v13    v14    v15    v16
+//          POP|    v17     v1     v2     v3     v4     v5     v6     v7     v8     v9    v10    v11    v12    v13    v14    v15
+//      PUSH v0|    v17     v1     v2     v3     v4     v5     v6     v7     v8     v9    v10    v11    v12    v13    v14    v15     v0
+//       SWAP16|     v0     v1     v2     v3     v4     v5     v6     v7     v8     v9    v10    v11    v12    v13    v14    v15    v17
+//     PUSH v16|     v0     v1     v2     v3     v4     v5     v6     v7     v8     v9    v10    v11    v12    v13    v14    v15    v17    v16
+//        SWAP1|     v0     v1     v2     v3     v4     v5     v6     v7     v8     v9    v10    v11    v12    v13    v14    v15    v16    v17
+//             +------------------------------------------------------------------------------------------------------------------------------
+//     (target)|     v0     v1     v2     v3     v4     v5     v6     v7     v8     v9    v10    v11    v12    v13    v14    v15    v16    v17
+// Status: Admissible
+// Spilled: {v0, v16}

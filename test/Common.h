@@ -70,7 +70,6 @@ struct CommonOptions
 	size_t selectedBatch = 0;
 
 	langutil::EVMVersion evmVersion() const;
-	std::optional<uint8_t> eofVersion() const { return m_eofVersion; }
 	yul::EVMDialect const& evmDialect() const;
 
 	virtual void addOptions();
@@ -98,7 +97,6 @@ protected:
 
 private:
 	std::string evmVersionString;
-	std::optional<uint8_t> m_eofVersion;
 	static std::unique_ptr<CommonOptions const> m_singleton;
 };
 
@@ -111,14 +109,6 @@ bool isValidSemanticTestPath(boost::filesystem::path const& _testPath);
 /// is older than @p _minEVMVersion.
 /// @return A predicate (function) that can be passed into @a boost::unit_test::precondition().
 boost::unit_test::precondition::predicate_t minEVMVersionCheck(langutil::EVMVersion _minEVMVersion);
-
-/// Helper that can be used to skip tests when the EOF is not supported by the test case.
-/// @return A predicate (function) that can be passed into @a boost::unit_test::precondition().
-boost::unit_test::precondition::predicate_t nonEOF();
-
-/// Helper that can be used to skip tests when the legacy bytecode is not supported by the test case.
-/// @return A predicate (function) that can be passed into @a boost::unit_test::precondition().
-boost::unit_test::precondition::predicate_t onEOF();
 
 bool loadVMs(CommonOptions const& _options);
 

@@ -33,4 +33,5 @@ contract test {
 // gas irOptimized: 134073
 // gas legacy: 135243
 // gas legacyOptimized: 134062
+// gas ssaCFGOptimized: 134067
 // check() -> true

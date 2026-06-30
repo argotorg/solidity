@@ -36,11 +36,9 @@ class EVMAssemblyStack: public AbstractAssemblyStack
 public:
 	explicit EVMAssemblyStack(
 		langutil::EVMVersion _evmVersion,
-		std::optional<uint8_t> _eofVersion,
 		Assembly::OptimiserSettings _optimiserSettings
 	):
 		m_evmVersion(_evmVersion),
-		m_eofVersion(_eofVersion),
 		m_optimiserSettings(std::move(_optimiserSettings))
 	{}
 
@@ -96,7 +94,6 @@ public:
 
 private:
 	langutil::EVMVersion m_evmVersion;
-	std::optional<uint8_t> m_eofVersion;
 	Assembly::OptimiserSettings m_optimiserSettings;
 	std::string m_name;
 	std::shared_ptr<evmasm::Assembly> m_evmAssembly;

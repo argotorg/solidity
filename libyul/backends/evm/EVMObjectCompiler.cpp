@@ -96,6 +96,7 @@ void EVMObjectCompiler::run(Object const& _object, bool _optimize, bool _viaSSAC
 			ssa::ControlFlowGraphsLiveness const liveness(*controlFlowGraphs);
 			ssa::CodeTransform::run(
 				m_assembly,
+				*controlFlowGraphs,
 				liveness,
 				context
 			);

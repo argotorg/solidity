@@ -640,7 +640,8 @@ std::variant<OptimiserSettings, Json> parseOptimizerSettings(std::string_view co
 	{
 		if (!_jsonInput["runs"].is_number_unsigned())
 			return formatFatalError(Error::Type::JSONError, "The \"runs\" setting must be an unsigned number.");
-		settings.expectedExecutionsPerDeployment = _jsonInput["runs"].get<size_t>();
+		static_assert(std::is_same_v<decltype(settings.expectedExecutionsPerDeployment), Json::number_unsigned_t>);
+		settings.expectedExecutionsPerDeployment = _jsonInput["runs"].get<Json::number_unsigned_t>();
 	}
 
 	if (_jsonInput.contains("details"))
@@ -1335,7 +1336,6 @@ Json StandardCompiler::importEVMAssembly(StandardCompiler::InputsAndSettings _in
 
 	evmasm::EVMAssemblyStack stack(
 		_inputsAndSettings.evmVersion,
-		std::nullopt,
 		evmasm::Assembly::OptimiserSettings::translateSettings(
 			_inputsAndSettings.optimiserSettings
 		)

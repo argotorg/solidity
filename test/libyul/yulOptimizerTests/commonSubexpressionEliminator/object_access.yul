@@ -15,7 +15,6 @@ object "main" {
     data "abc" "Hello, World!"
 }
 // ====
-// bytecodeFormat: legacy
 // ----
 // step: commonSubexpressionEliminator
 //

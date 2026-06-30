@@ -39,7 +39,6 @@ public:
 	{
 		std::string filename;
 		langutil::EVMVersion evmVersion;
-		std::optional<uint8_t> eofVersion;
 		std::vector<boost::filesystem::path> vmPaths;
 		bool enforceGasCost = false;
 		u256 enforceGasCostMinValue;
@@ -114,7 +113,6 @@ class EVMVersionRestrictedTestCase: public TestCase
 {
 private:
 	void processEVMVersionSetting();
-	void processBytecodeFormatSetting();
 
 protected:
 	EVMVersionRestrictedTestCase(std::string const& _filename);

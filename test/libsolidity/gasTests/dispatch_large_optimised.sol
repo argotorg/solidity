@@ -24,7 +24,6 @@ contract Large {
 }
 // ====
 // EVMVersion: =current
-// bytecodeFormat: legacy
 // optimize: true
 // optimize-runs: 2
 // ----

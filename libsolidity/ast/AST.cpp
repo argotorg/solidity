@@ -53,8 +53,8 @@ TryCatchClause const* findClause(std::vector<ASTPointer<TryCatchClause>> const& 
 }
 }
 
-ASTNode::ASTNode(int64_t _id, SourceLocation _location):
-	m_id(static_cast<size_t>(_id)),
+ASTNode::ASTNode(std::int64_t _id, SourceLocation _location):
+	m_id(_id),
 	m_location(std::move(_location))
 {
 }

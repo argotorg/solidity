@@ -46,7 +46,6 @@
     }
 }
 // ====
-// bytecodeFormat: legacy
 // ----
 // step: stackLimitEvader
 //

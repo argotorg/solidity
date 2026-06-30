@@ -48,4 +48,5 @@ contract C {
 // gas irOptimized: 104629
 // gas legacy: 111170
 // gas legacyOptimized: 104620
+// gas ssaCFGOptimized: 104602
 // copyInternalArrayOfFunctionType() -> true

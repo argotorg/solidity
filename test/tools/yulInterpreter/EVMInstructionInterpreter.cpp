@@ -489,8 +489,6 @@ u256 EVMInstructionInterpreter::eval(
 	case Instruction::SWAP15:
 	case Instruction::SWAP16:
 		yulAssert(false, "Impossible in strict assembly.");
-	default:
-		yulAssert(false, "EOF opcodes. Remove `default` after removing EOF from libevmasm");
 	}
 
 	util::unreachable();

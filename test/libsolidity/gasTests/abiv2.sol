@@ -14,7 +14,6 @@ contract C {
 }
 // ====
 // EVMVersion: =current
-// bytecodeFormat: legacy
 // ----
 // creation:
 //   codeDepositCost: 1208000

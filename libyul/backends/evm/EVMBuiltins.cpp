@@ -246,24 +246,6 @@ EVMBuiltins::EVMBuiltins()
 {
 	for (auto const& [name, opcode]: evmasm::c_instructions)
 	{
-		// EOF opcodes. To be removed together with libevmasm update.
-		if (
-			opcode == evmasm::Instruction::DATALOADN ||
-			opcode == evmasm::Instruction::RJUMP ||
-			opcode == evmasm::Instruction::RJUMPI ||
-			opcode == evmasm::Instruction::CALLF ||
-			opcode == evmasm::Instruction::RETF ||
-			opcode == evmasm::Instruction::JUMPF ||
-			opcode == evmasm::Instruction::DUPN ||
-			opcode == evmasm::Instruction::SWAPN ||
-			opcode == evmasm::Instruction::EOFCREATE ||
-			opcode == evmasm::Instruction::RETURNCONTRACT ||
-			opcode == evmasm::Instruction::EXTCALL ||
-			opcode == evmasm::Instruction::EXTDELEGATECALL ||
-			opcode == evmasm::Instruction::EXTSTATICCALL
-		)
-			continue;
-
 		if (
 			evmasm::SemanticInformation::isSwapInstruction(opcode) ||
 			evmasm::SemanticInformation::isDupInstruction(opcode)

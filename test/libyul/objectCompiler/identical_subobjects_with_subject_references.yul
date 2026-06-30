@@ -96,7 +96,6 @@ object "A" {
 }
 // ====
 // EVMVersion: >=shanghai
-// bytecodeFormat: legacy
 // optimizationPreset: full
 // outputs: Assembly
 // ----

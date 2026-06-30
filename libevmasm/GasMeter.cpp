@@ -271,13 +271,8 @@ std::optional<unsigned> gasCostForTier(Tier _tier)
 	{
 	case Tier::Zero:        return GasCosts::tier0Gas;
 	case Tier::Base:        return GasCosts::tier1Gas;
-	case Tier::RJump:       return GasCosts::tier1Gas;
-	case Tier::RJumpI:      return GasCosts::rjumpiGas;
 	case Tier::VeryLow:     return GasCosts::tier2Gas;
-	case Tier::RetF:        return GasCosts::tier2Gas;
 	case Tier::Low:         return GasCosts::tier3Gas;
-	case Tier::CallF:       return GasCosts::tier3Gas;
-	case Tier::JumpF:       return GasCosts::tier3Gas;
 	case Tier::Mid:         return GasCosts::tier4Gas;
 	case Tier::High:        return GasCosts::tier5Gas;
 	case Tier::BlockHash:   return GasCosts::tier6Gas;
@@ -313,18 +308,14 @@ unsigned GasMeter::swapGas(size_t _depth, langutil::EVMVersion _evmVersion)
 {
 	if (_depth <= 16)
 		return runGas(evmasm::swapInstruction(static_cast<unsigned>(_depth)), _evmVersion);
-	auto gasCost = gasCostForTier(instructionInfo(evmasm::Instruction::SWAPN, _evmVersion).gasPriceTier);
-	solAssert(gasCost.has_value(), "Expected gas cost for SWAPN to be defined.");
-	return *gasCost;
+	solAssert(false, "Unexpected swap instruction depth");
 }
 
 unsigned GasMeter::dupGas(size_t _depth, langutil::EVMVersion _evmVersion)
 {
 	if (_depth <= 16)
 		return runGas(evmasm::dupInstruction(static_cast<unsigned>(_depth)), _evmVersion);
-	auto gasCost = gasCostForTier(instructionInfo(evmasm::Instruction::DUPN, _evmVersion).gasPriceTier);
-	solAssert(gasCost.has_value(), "Expected gas cost for DUPN to be defined.");
-	return *gasCost;
+	solAssert(false, "Unexpected dup instruction depth");
 }
 
 u256 GasMeter::dataGas(bytes const& _data, bool _inCreation, langutil::EVMVersion _evmVersion)

@@ -60,21 +60,6 @@ bool EVMVersion::hasOpcode(Instruction _opcode) const
 	case Instruction::TSTORE:
 	case Instruction::TLOAD:
 		return supportsTransientStorage();
-	// Instructions below available only in EOF
-	case Instruction::EOFCREATE:
-	case Instruction::RETURNCONTRACT:
-	case Instruction::DATALOADN:
-	case Instruction::RJUMP:
-	case Instruction::RJUMPI:
-	case Instruction::CALLF:
-	case Instruction::JUMPF:
-	case Instruction::DUPN:
-	case Instruction::SWAPN:
-	case Instruction::RETF:
-	case Instruction::EXTCALL:
-	case Instruction::EXTSTATICCALL:
-	case Instruction::EXTDELEGATECALL:
-		return false;
 	default:
 		return true;
 	}

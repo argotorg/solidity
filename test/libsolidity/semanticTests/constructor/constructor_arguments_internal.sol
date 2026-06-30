@@ -33,7 +33,6 @@ contract Main {
     }
 }
 // ====
-// bytecodeFormat: legacy
 // ----
 // getFlag() -> true
 // getName() -> "abc"

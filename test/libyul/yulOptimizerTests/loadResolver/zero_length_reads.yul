@@ -18,7 +18,6 @@
 }
 // ====
 // EVMVersion: >=constantinople
-// bytecodeFormat: legacy
 // ----
 // step: loadResolver
 //

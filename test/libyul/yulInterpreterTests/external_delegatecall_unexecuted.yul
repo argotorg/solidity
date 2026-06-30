@@ -3,7 +3,6 @@
 	sstore(100, x)
 }
 // ====
-// bytecodeFormat: legacy
 // ----
 // Trace:
 //   DELEGATECALL(153, 69, 0, 32, 48, 32)

@@ -5,7 +5,6 @@
     sstore(0, mload(2))
 }
 // ====
-// bytecodeFormat: legacy
 // ----
 // step: loadResolver
 //

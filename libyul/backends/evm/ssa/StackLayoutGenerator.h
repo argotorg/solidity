@@ -42,6 +42,8 @@ public:
 		spill::SpillSet spillSet;
 	};
 
+	/// Generates the stack layout for the function graph together with the set of values that have to be spilled
+	/// to memory to realize it; layout generation and def-site closure are iterated to a fixed point of the spill set
 	static Result generate(
 		LivenessAnalysis const& _liveness,
 		CallSites const& _callSites,
@@ -54,7 +56,8 @@ private:
 		LivenessAnalysis const& _liveness,
 		CallSites const& _callSites,
 		ControlFlowGraphs::FunctionGraphID _graphID,
-		bool _spillingAllowed
+		bool _spillingAllowed,
+		spill::SpillSet _initialSpillSet
 	);
 
 	void defineStackIn(SSACFG::BlockId const& _blockId);

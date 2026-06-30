@@ -8,5 +8,4 @@ contract Test {
     }
 }
 // ====
-// bytecodeFormat: legacy
 // ----

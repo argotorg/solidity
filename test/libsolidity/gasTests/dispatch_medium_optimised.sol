@@ -11,7 +11,6 @@ contract Medium {
 }
 // ====
 // EVMVersion: =current
-// bytecodeFormat: legacy
 // ====
 // optimize: true
 // optimize-runs: 2

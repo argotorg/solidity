@@ -52,10 +52,12 @@ contract C {
 // gas irOptimized: 122114
 // gas legacy: 126159
 // gas legacyOptimized: 122742
+// gas ssaCFGOptimized: 122136
 // test_g() -> true
 // gas irOptimized: 106248
 // gas legacy: 111821
 // gas legacyOptimized: 106591
+// gas ssaCFGOptimized: 106242
 // addresses(uint256): 0 -> 0x18
 // addresses(uint256): 1 -> 0x19
 // addresses(uint256): 3 -> 0x1b

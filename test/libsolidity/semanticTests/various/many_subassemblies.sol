@@ -38,3 +38,5 @@ contract D {
 // gas legacy code: 17600
 // gas legacyOptimized: 375464
 // gas legacyOptimized code: 17600
+// gas ssaCFGOptimized: 375134
+// gas ssaCFGOptimized code: 6600

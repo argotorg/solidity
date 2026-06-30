@@ -17,7 +17,6 @@
     }
 }
 // ====
-// bytecodeFormat: legacy
 // ----
 // step: fullSuite
 //

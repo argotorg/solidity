@@ -2,7 +2,6 @@
 	revert(call(0,0,0,0,0,0,0), 0)
 }
 // ====
-// bytecodeFormat: legacy
 // ----
 // step: expressionSimplifier
 //

@@ -3,7 +3,6 @@
 }
 // ====
 // EVMVersion: >=constantinople
-// bytecodeFormat: legacy
 // ----
 // Trace:
 //   CALL(0, 0, 0, 0, 0, 0, 0)

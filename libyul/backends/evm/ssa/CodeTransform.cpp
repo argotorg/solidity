@@ -45,36 +45,60 @@ void assertLayoutCompatibility(StackData const& _layout1, StackData const& _layo
 void CodeTransform::run
 (
 	AbstractAssembly& _assembly,
+	ControlFlowGraphs& _controlFlowGraphs,
 	ControlFlowGraphsLiveness const& _controlFlowLiveness,
 	BuiltinContext& _builtinContext
 )
 {
+	yulAssert(&_controlFlowLiveness.controlFlowGraphs.get() == &_controlFlowGraphs);
 	yulAssert(!_controlFlowLiveness.cfgLiveness.empty());
-	ControlFlowGraphs const& controlFlowGraphs = _controlFlowLiveness.controlFlowGraphs.get();
-	yulAssert(controlFlowGraphs.functionGraphs.size() == _controlFlowLiveness.cfgLiveness.size());
-	FunctionLabels const functionLabels = registerFunctionLabels(_assembly, controlFlowGraphs);
-	CallGraph const callGraph(controlFlowGraphs);
+	yulAssert(_controlFlowGraphs.functionGraphs.size() == _controlFlowLiveness.cfgLiveness.size());
+	FunctionLabels const functionLabels = registerFunctionLabels(_assembly, _controlFlowGraphs);
+	CallGraph const callGraph(_controlFlowGraphs);
 
-	for (std::size_t functionIndex = 0; functionIndex < controlFlowGraphs.functionGraphs.size(); ++functionIndex)
+	std::size_t const numCFGs = _controlFlowGraphs.functionGraphs.size();
+	std::vector<CallSites> callSitesPerCFG;
+	std::vector<SSACFGStackLayout> layouts;
+	std::vector<spill::SpillSet> spillSetsPerCFG;
+	callSitesPerCFG.reserve(numCFGs);
+	layouts.reserve(numCFGs);
+	spillSetsPerCFG.reserve(numCFGs);
+
+	for (std::size_t functionIndex = 0; functionIndex < numCFGs; ++functionIndex)
 	{
-		std::unique_ptr<SSACFG> const& functionGraphPtr = controlFlowGraphs.functionGraphs[functionIndex];
+		std::unique_ptr<SSACFG> const& functionGraphPtr = _controlFlowGraphs.functionGraphs[functionIndex];
 		yulAssert(functionGraphPtr);
 		SSACFG const& cfg = *functionGraphPtr;
-		auto const callSites = gatherCallSites(cfg);
 		auto const& liveness = _controlFlowLiveness.cfgLiveness[functionIndex];
 		yulAssert(liveness);
 		auto const graphID = static_cast<ControlFlowGraphs::FunctionGraphID>(functionIndex);
+		callSitesPerCFG.push_back(gatherCallSites(cfg));
 		bool const spillingAllowed = !callGraph.isRecursive(graphID);
-		auto const stackLayoutGeneratorResult = StackLayoutGenerator::generate(*liveness, callSites, graphID, spillingAllowed);
+		auto [layout, spillSet] = StackLayoutGenerator::generate(*liveness, callSitesPerCFG.back(), graphID, spillingAllowed);
+		layouts.push_back(std::move(layout));
+		spillSetsPerCFG.push_back(std::move(spillSet));
+	}
+
+	// build up global addressing based on the spill sets
+	spill::MemoryAddressing const addressing(_controlFlowGraphs, spillSetsPerCFG);
+
+	for (std::size_t functionIndex = 0; functionIndex < _controlFlowGraphs.functionGraphs.size(); ++functionIndex)
+	{
+		SSACFG const& cfg = *_controlFlowGraphs.functionGraphs[functionIndex];
+		auto const graphID = static_cast<ControlFlowGraphs::FunctionGraphID>(functionIndex);
+		auto const& liveness = _controlFlowLiveness.cfgLiveness[functionIndex];
+		yulAssert(liveness);
 		CodeTransform transform(
 			_assembly,
 			_builtinContext,
-			controlFlowGraphs,
+			_controlFlowGraphs,
 			functionLabels,
-			callSites,
+			callSitesPerCFG[functionIndex],
 			cfg,
-			stackLayoutGeneratorResult.layout,
-			graphID
+			layouts[functionIndex],
+			spillSetsPerCFG[functionIndex],
+			graphID,
+			addressing
 		);
 		transform(cfg.entry);
 	}
@@ -120,7 +144,9 @@ CodeTransform::CodeTransform(
 	CallSites const& _callSites,
 	SSACFG const& _cfg,
 	SSACFGStackLayout const& _stackLayout,
-	ControlFlowGraphs::FunctionGraphID _graphID
+	spill::SpillSet const& _spillSet,
+	ControlFlowGraphs::FunctionGraphID _graphID,
+	spill::MemoryAddressing const& _addressing
 ):
 	m_assembly(_assembly),
 	m_builtinContext(_builtinContext),
@@ -129,6 +155,7 @@ CodeTransform::CodeTransform(
 	m_callSites(_callSites),
 	m_cfg(_cfg),
 	m_stackLayout(_stackLayout),
+	m_spillSet(_spillSet),
 	m_graphID(_graphID),
 	m_blockIsTransformed(_cfg.numBlocks(), false),
 	m_blockLabels([this] {
@@ -138,11 +165,17 @@ CodeTransform::CodeTransform(
 			blockLabels.push_back(m_assembly.newLabelId());
 		return blockLabels;
 	}()),
+	m_spillEmitter([&]() -> std::optional<spill::Emitter> {
+		if (_spillSet.numSpilled() > 0)
+			return spill::Emitter(_addressing, _graphID, _assembly);
+		return std::nullopt;
+	}()),
 	m_assemblyCallbacks{
 		.cfg = &_cfg,
 		.assembly = &_assembly,
 		.callSites = &_callSites,
-		.returnLabels = &m_returnLabels
+		.returnLabels = &m_returnLabels,
+		.spillEmitter = m_spillEmitter ? &*m_spillEmitter : nullptr
 	},
 	m_stackData([&]
 	{
@@ -167,6 +200,11 @@ CodeTransform::CodeTransform(
 	for (auto const& arg: m_cfg.arguments | ranges::views::reverse)
 		expectedStackTop.push_back(StackSlot::makeValue(_cfg, arg));
 	assertLayoutCompatibility(m_stack.data(), expectedStackTop);
+
+	// Spilled function args need an `mstore` at function entry so later `mload`s see a populated slot
+	if (m_spillEmitter && isFunctionGraph)
+		for (InstId const argId: m_cfg.arguments)
+			spillStore(argId);
 }
 
 void CodeTransform::operator()(SSACFG::BlockId const _blockId)
@@ -184,18 +222,28 @@ void CodeTransform::operator()(SSACFG::BlockId const _blockId)
 	auto const& block = m_cfg.block(_blockId);
 
 	std::size_t operationIndex = 0;
-	m_cfg.forEachOperation(block, [&](InstId const instId, SSACFG::Inst const&) {
-		yulAssert(operationIndex < blockLayout->operationIn.size());
-		auto const& operationInLayout = blockLayout->operationIn[operationIndex];
-		(*this)(instId, operationInLayout);
-		++operationIndex;
-	});
+
+	// Iterate every Inst in the block in scheduled order. Only Operations advance codegen;
+	// Phis are otherwise pure stack assertions (already materialized on the block's stackIn).
+	for (InstId const instId: block.instructions)
+	{
+		SSACFG::Inst const& inst = m_cfg.inst(instId);
+		if (inst.isPhi())
+			// this is a no-op for not spilled phis
+			spillStore(instId);
+		if (inst.isOperation())
+		{
+			yulAssert(operationIndex < blockLayout->operationIn.size());
+			(*this)(instId, blockLayout->operationIn[operationIndex]);
+			++operationIndex;
+		}
+	}
 	yulAssert(operationIndex == blockLayout->operationIn.size());
 
 	// Shuffle to the block's exit layout before dispatching the exit.
 	// This ensures the condition is on top for ConditionalJump, phi pre-images are
 	// in the right positions for jumps, and return values are accessible for FunctionReturn.
-	auto const shuffleResult = StackShuffler<AssemblyCallbacks>::shuffle(m_stack, blockLayout->exitIn);
+	auto const shuffleResult = StackShuffler<AssemblyCallbacks>::shuffle(m_stack, blockLayout->exitIn, &m_spillSet);
 	yulAssert(shuffleResult.status == StackShufflerResult::Status::Admissible);
 
 	// handle the block exit
@@ -221,7 +269,7 @@ void CodeTransform::operator()(InstId _instId, StackData const& _operationInputL
 
 	// prepare stack for operation
 	{
-		auto const shuffleResult = StackShuffler<AssemblyCallbacks>::shuffle(m_stack, _operationInputLayout);
+		auto const shuffleResult = StackShuffler<AssemblyCallbacks>::shuffle(m_stack, _operationInputLayout, &m_spillSet);
 		yulAssert(shuffleResult.status == StackShufflerResult::Status::Admissible);
 	}
 
@@ -322,6 +370,11 @@ void CodeTransform::operator()(InstId _instId, StackData const& _operationInputL
 	for (InstId const id: m_cfg.outputsOf(_instId))
 		m_stack.push<false>(StackSlot::makeValue(m_cfg, id));
 
+	// Each output the layout decided to spill gets its `mstore` here
+	if (m_spillEmitter)
+		for (InstId const outputId: m_cfg.outputsOf(_instId))
+			spillStore(outputId);
+
 	yulAssert(m_stack.size() == baseHeight + numOutputs);
 	for (auto const& [stackEntry, output]: ranges::views::zip(
 		m_stack.data() | ranges::views::take_last(numOutputs),
@@ -332,6 +385,32 @@ void CodeTransform::operator()(InstId _instId, StackData const& _operationInputL
 		static_cast<int>(m_stack.size()) == m_assembly.stackHeight(),
 		fmt::format("symbolic stack size = {} =/= {} = assembly stack height", m_stack.size(), m_assembly.stackHeight())
 	);
+}
+
+void CodeTransform::spillStore(InstId const _value)
+{
+	if (!m_spillEmitter || !m_spillSet.isSpilled(_value))
+		return;
+
+	// Bring `_value` to the stack top so that the `mstore` below consumes it
+	StackData target = m_stack.data();
+	target.push_back(StackSlot::makeValue(m_cfg, _value));
+	// addr(_value) is the slot THIS `mstore` populates, so we have to exclude it from the spill set to
+	// prevent the shuffler from just `mload`ing it back
+	spill::SpillSet const spillSetExcludingSpillee = m_spillSet.without(_value);
+	auto const shuffleResult = StackShuffler<AssemblyCallbacks>::shuffle(m_stack, target, &spillSetExcludingSpillee);
+	yulAssert(
+		shuffleResult.status == StackShufflerResult::Status::Admissible,
+		fmt::format(
+			"shuffler failed to bring spilled value {} to top (status={})",
+			_value,
+			static_cast<int>(shuffleResult.status)
+		)
+	);
+
+	m_spillEmitter->emitStore(_value);
+	// `mstore` consumed the value; the address it pushed never persists on the symbolic stack
+	m_stack.pop<false>();
 }
 
 void CodeTransform::operator()(SSACFG::BlockId const&, SSACFG::BasicBlock::MainExit const&)
@@ -446,7 +525,7 @@ void CodeTransform::prepareBlockExitStack(StackData const& _target, PhiInverse c
 	auto const pulledBackTarget = stackPreImage(m_cfg, _target, _phiInverse);
 	// shuffle to target
 	{
-		auto const shuffleResult = StackShuffler<AssemblyCallbacks>::shuffle(m_stack, pulledBackTarget);
+		auto const shuffleResult = StackShuffler<AssemblyCallbacks>::shuffle(m_stack, pulledBackTarget, &m_spillSet);
 		yulAssert(shuffleResult.status == StackShufflerResult::Status::Admissible);
 	}
 	// check that shuffling was successful

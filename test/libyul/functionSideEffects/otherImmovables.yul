@@ -5,7 +5,6 @@
     function h() { invalid() }
 }
 // ====
-// bytecodeFormat: legacy
 // ----
 // : movable, movable apart from effects, can be removed, can be removed if no msize
 // a: can be removed, can be removed if no msize

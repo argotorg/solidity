@@ -21,6 +21,7 @@ contract test {
 // gas irOptimized: 111237
 // gas legacy: 113742
 // gas legacyOptimized: 111768
+// gas ssaCFGOptimized: 111195
 // get(uint8): 1 -> 21, 22, 42, 43
 // set(uint8,uint8,uint8,uint8,uint8): 1, 10, 30, 11, 31 -> 21, 22, 42, 43
 // get(uint8): 1 -> 10, 30, 11, 31

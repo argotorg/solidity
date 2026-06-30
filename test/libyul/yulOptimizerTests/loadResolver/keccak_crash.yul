@@ -3,7 +3,6 @@
   for {} addmod(keccak256(0x0,create(0x0, 0x0, 0x0)), 0x0, 0x0) {} {}
 }
 // ====
-// bytecodeFormat: legacy
 // ----
 // step: loadResolver
 //

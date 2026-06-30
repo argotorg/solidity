@@ -7,5 +7,4 @@ object "A" {
   data "3" "hello world this is longer than 32 bytes and should still work"
 }
 // ====
-// bytecodeFormat: legacy
 // ----

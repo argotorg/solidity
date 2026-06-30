@@ -4,7 +4,6 @@
 	mstore(0, a)
 }
 // ====
-// bytecodeFormat: legacy
 // ----
 // step: fullSimplify
 //

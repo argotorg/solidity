@@ -38,12 +38,14 @@ contract C layout at 2**256 - 5 {
 // gas irOptimized: 220749
 // gas legacy: 221473
 // gas legacyOptimized: 220915
+// gas ssaCFGOptimized: 220748
 // partialAssignArrayBeforeStorageBoundary()
 // x() -> 11, 12, 13, 0, 0, 0, 0, 0, 0, 0
 // fillArray()
 // gas irOptimized: 186549
 // gas legacy: 187273
 // gas legacyOptimized: 186715
+// gas ssaCFGOptimized: 186548
 // x() -> 11, 1, 2, 3, 4, 5, 6, 7, 8, 9
 // partialAssignArrayCrossStorageBoundary()
 // x() -> 14, 15, 16, 17, 18, 19, 20, 0, 0, 0

@@ -53,7 +53,6 @@ contract X {
     function get() public view returns (Data memory) {}
 }
 // ====
-// bytecodeFormat: legacy
 // ----
 // Warning 9511: (V1A:0-19): ABI coder v1 is deprecated and scheduled for removal. Use ABI coder v2 instead.
 // Warning 9511: (V1B:0-19): ABI coder v1 is deprecated and scheduled for removal. Use ABI coder v2 instead.

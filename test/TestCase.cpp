@@ -144,28 +144,8 @@ void EVMVersionRestrictedTestCase::processEVMVersionSetting()
 		m_shouldRun = false;
 }
 
-void EVMVersionRestrictedTestCase::processBytecodeFormatSetting()
-{
-	std::optional<uint8_t> eofVersion = solidity::test::CommonOptions::get().eofVersion();
-	// EOF only available since Osaka
-	solAssert(!eofVersion.has_value());
-
-	std::string bytecodeFormatString = m_reader.stringSetting("bytecodeFormat", "legacy,>=EOFv1");
-	if (bytecodeFormatString == "legacy,>=EOFv1" || bytecodeFormatString == ">=EOFv1,legacy")
-		return;
-
-	// TODO: This is naive implementation because for now we support only one EOF version.
-	if (bytecodeFormatString == "legacy" && eofVersion.has_value())
-		m_shouldRun = false;
-	else if (bytecodeFormatString == ">=EOFv1" && !eofVersion.has_value())
-		m_shouldRun = false;
-	else if (bytecodeFormatString != "legacy" && bytecodeFormatString != ">=EOFv1" )
-		BOOST_THROW_EXCEPTION(std::runtime_error{"Invalid bytecodeFormat flag: \"" + bytecodeFormatString + "\""});
-}
-
 EVMVersionRestrictedTestCase::EVMVersionRestrictedTestCase(std::string const& _filename):
 	TestCase(_filename)
 {
 	processEVMVersionSetting();
-	processBytecodeFormatSetting();
 }

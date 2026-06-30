@@ -18,6 +18,8 @@ contract C {
 // gas legacy code: 68600
 // gas legacyOptimized: 80338
 // gas legacyOptimized code: 26400
+// gas ssaCFGOptimized: 80245
+// gas ssaCFGOptimized code: 26400
 // genesisHash() -> 0x3737373737373737373737373737373737373737373737373737373737373737
 // currentHash() -> 0
 // f(uint256): 0 -> 0x3737373737373737373737373737373737373737373737373737373737373737

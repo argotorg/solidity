@@ -1009,182 +1009,6 @@ BOOST_AUTO_TEST_CASE(clear_unreachable_code)
 	);
 }
 
-BOOST_AUTO_TEST_CASE(clear_unreachable_code_eof, *boost::unit_test::precondition(onEOF()))
-{
-	for (auto const& blockTerminatingItem:
-		 {
-			AssemblyItem::relativeJumpTo(AssemblyItem(Tag, 1)),
-			AssemblyItem::jumpToFunction(1, 0, 0),
-			AssemblyItem::functionReturn(),
-			AssemblyItem::returnContract(0),
-		}
- 	)
-	{
-		AssemblyItems items{
-			blockTerminatingItem,
-			u256(0),
-			Instruction::SLOAD,
-			AssemblyItem(Tag, 2),
-			u256(5),
-			u256(6),
-			Instruction::SSTORE,
-			blockTerminatingItem,
-			u256(5),
-			u256(6)
-		};
-		AssemblyItems expectation{
-			blockTerminatingItem,
-			AssemblyItem(Tag, 2),
-			u256(5),
-			u256(6),
-			Instruction::SSTORE,
-			blockTerminatingItem,
-		};
-		PeepholeOptimiser peepOpt(items, solidity::test::CommonOptions::get().evmVersion());
-		BOOST_REQUIRE(peepOpt.optimise());
-		BOOST_CHECK_EQUAL_COLLECTIONS(
-			items.begin(), items.end(),
-			expectation.begin(), expectation.end()
-		);
-	}
-}
-
-BOOST_AUTO_TEST_CASE(is_zero_is_zero_rjumpi, *boost::unit_test::precondition(onEOF()))
-{
-	AssemblyItems items{
-		u256(1),
-		Instruction::ISZERO,
-		Instruction::ISZERO,
-		AssemblyItem::conditionalRelativeJumpTo(AssemblyItem(Tag, 1)),
-		u256(0),
-		Instruction::SLOAD,
-		AssemblyItem(Tag, 1),
-	};
-
-	AssemblyItems expectation{
-		u256(1),
-		AssemblyItem::conditionalRelativeJumpTo(AssemblyItem(Tag, 1)),
-		u256(0),
-		Instruction::SLOAD,
-		AssemblyItem(Tag, 1),
-	};
-
-	PeepholeOptimiser peepOpt(items, solidity::test::CommonOptions::get().evmVersion());
-	BOOST_REQUIRE(peepOpt.optimise());
-	BOOST_CHECK_EQUAL_COLLECTIONS(
-		items.begin(), items.end(),
-		expectation.begin(), expectation.end()
-	);
-}
-
-BOOST_AUTO_TEST_CASE(equal_is_zero_rjumpi, *boost::unit_test::precondition(onEOF()))
-{
-	AssemblyItems items{
-		u256(1),
-		u256(2),
-		Instruction::EQ,
-		Instruction::ISZERO,
-		AssemblyItem::conditionalRelativeJumpTo(AssemblyItem(Tag, 1)),
-		u256(0),
-		Instruction::SLOAD,
-		AssemblyItem(Tag, 1),
-	};
-
-	AssemblyItems expectation{
-		u256(1),
-		u256(2),
-		Instruction::SUB,
-		AssemblyItem::conditionalRelativeJumpTo(AssemblyItem(Tag, 1)),
-		u256(0),
-		Instruction::SLOAD,
-		AssemblyItem(Tag, 1),
-	};
-
-	PeepholeOptimiser peepOpt(items, solidity::test::CommonOptions::get().evmVersion());
-	BOOST_REQUIRE(peepOpt.optimise());
-	BOOST_CHECK_EQUAL_COLLECTIONS(
-		items.begin(), items.end(),
-		expectation.begin(), expectation.end()
-	);
-}
-
-BOOST_AUTO_TEST_CASE(double_rjump, *boost::unit_test::precondition(onEOF()))
-{
-	AssemblyItems items{
-		u256(1),
-		AssemblyItem::conditionalRelativeJumpTo(AssemblyItem(Tag, 1)),
-		AssemblyItem::relativeJumpTo(AssemblyItem(Tag, 2)),
-		AssemblyItem(Tag, 1),
-		u256(0),
-		Instruction::SLOAD,
-		AssemblyItem(Tag, 2),
-	};
-
-	AssemblyItems expectation{
-		u256(1),
-		Instruction::ISZERO,
-		AssemblyItem::conditionalRelativeJumpTo(AssemblyItem(Tag, 2)),
-		AssemblyItem(Tag, 1),
-		u256(0),
-		Instruction::SLOAD,
-		AssemblyItem(Tag, 2),
-	};
-
-	PeepholeOptimiser peepOpt(items, solidity::test::CommonOptions::get().evmVersion());
-	BOOST_REQUIRE(peepOpt.optimise());
-	BOOST_CHECK_EQUAL_COLLECTIONS(
-		items.begin(), items.end(),
-		expectation.begin(), expectation.end()
-	);
-}
-
-BOOST_AUTO_TEST_CASE(rjump_to_next, *boost::unit_test::precondition(onEOF()))
-{
-	AssemblyItems items{
-		AssemblyItem::relativeJumpTo(AssemblyItem(Tag, 1)),
-		AssemblyItem(Tag, 1),
-		u256(0),
-		Instruction::SLOAD,
-	};
-
-	AssemblyItems expectation{
-		AssemblyItem(Tag, 1),
-		u256(0),
-		Instruction::SLOAD,
-	};
-
-	PeepholeOptimiser peepOpt(items, solidity::test::CommonOptions::get().evmVersion());
-	BOOST_REQUIRE(peepOpt.optimise());
-	BOOST_CHECK_EQUAL_COLLECTIONS(
-		items.begin(), items.end(),
-		expectation.begin(), expectation.end()
-	);
-}
-
-BOOST_AUTO_TEST_CASE(rjumpi_to_next, *boost::unit_test::precondition(onEOF()))
-{
-	AssemblyItems items{
-		AssemblyItem::conditionalRelativeJumpTo(AssemblyItem(Tag, 1)),
-		AssemblyItem(Tag, 1),
-		u256(0),
-		Instruction::SLOAD,
-	};
-
-	AssemblyItems expectation{
-		Instruction::POP,
-		AssemblyItem(Tag, 1),
-		u256(0),
-		Instruction::SLOAD,
-	};
-
-	PeepholeOptimiser peepOpt(items, solidity::test::CommonOptions::get().evmVersion());
-	BOOST_REQUIRE(peepOpt.optimise());
-	BOOST_CHECK_EQUAL_COLLECTIONS(
-		items.begin(), items.end(),
-		expectation.begin(), expectation.end()
-	);
-}
-
 BOOST_AUTO_TEST_CASE(deduplicateNextTagBlockSize3)
 {
 	AssemblyItems items{
@@ -1506,14 +1330,13 @@ BOOST_AUTO_TEST_CASE(jumpdest_removal)
 	);
 }
 
-BOOST_AUTO_TEST_CASE(jumpdest_removal_subassemblies, *boost::unit_test::precondition(nonEOF()))
+BOOST_AUTO_TEST_CASE(jumpdest_removal_subassemblies)
 {
 	// This tests that tags from subassemblies are not removed
 	// if they are referenced by a super-assembly. Furthermore,
 	// tag unifications (due to block deduplication) is also
 	// visible at the super-assembly.
 
-	solAssert(!solidity::test::CommonOptions::get().eofVersion().has_value());
 	Assembly::OptimiserSettings settings;
 	settings.runInliner = false;
 	settings.runJumpdestRemover = true;
@@ -1524,8 +1347,8 @@ BOOST_AUTO_TEST_CASE(jumpdest_removal_subassemblies, *boost::unit_test::precondi
 	settings.expectedExecutionsPerDeployment = OptimiserSettings{}.expectedExecutionsPerDeployment;
 
 	auto const evmVersion = CommonOptions::get().evmVersion();
-	Assembly main{evmVersion, false, std::nullopt, {}};
-	AssemblyPointer sub = std::make_shared<Assembly>(evmVersion, true, std::nullopt, std::string{});
+	Assembly main{evmVersion, false, {}};
+	AssemblyPointer sub = std::make_shared<Assembly>(evmVersion, true, std::string{});
 
 	sub->append(u256(1));
 	auto t1 = sub->newTag();
@@ -1559,18 +1382,16 @@ BOOST_AUTO_TEST_CASE(jumpdest_removal_subassemblies, *boost::unit_test::precondi
 		t1.toSubAssemblyTag(subId).pushTag(),
 		u256(8)
 	};
-	BOOST_REQUIRE(main.codeSections().size() == 1);
 	BOOST_CHECK_EQUAL_COLLECTIONS(
-		main.codeSections().at(0).items.begin(),main.codeSections().at(0).items.end(),
+		main.items().begin(), main.items().end(),
 		expectationMain.begin(), expectationMain.end()
 	);
 
 	AssemblyItems expectationSub{
 		u256(1), t1.tag(), u256(2), Instruction::JUMP, t4.tag(), u256(7), t4.pushTag(), Instruction::JUMP
 	};
-	BOOST_REQUIRE(sub->codeSections().size() == 1);
 	BOOST_CHECK_EQUAL_COLLECTIONS(
-		sub->codeSections().at(0).items.begin(), sub->codeSections().at(0).items.end(),
+		sub->items().begin(), sub->items().end(),
 		expectationSub.begin(), expectationSub.end()
 	);
 }

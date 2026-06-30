@@ -115,6 +115,10 @@ add_library(yul
 	backends/evm/ssa/io/JSONExporter.h
 	backends/evm/ssa/io/Printer.cpp
 	backends/evm/ssa/io/Printer.h
+	backends/evm/ssa/spill/Emitter.h
+	backends/evm/ssa/spill/MemoryAddressing.cpp
+	backends/evm/ssa/spill/MemoryAddressing.h
+	backends/evm/ssa/spill/SpillSet.cpp
 	backends/evm/ssa/spill/SpillSet.h
 	backends/evm/ssa/transform/IdentityAndNopRemover.cpp
 	backends/evm/ssa/transform/IdentityAndNopRemover.h

@@ -27,7 +27,6 @@ object "test"
 }
 
 // ====
-// bytecodeFormat: legacy
 // ----
 // step: equivalentFunctionCombiner
 //

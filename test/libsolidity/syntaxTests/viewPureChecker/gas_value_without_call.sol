@@ -12,5 +12,4 @@ contract C {
 	}
 }
 // ====
-// bytecodeFormat: legacy
 // ----

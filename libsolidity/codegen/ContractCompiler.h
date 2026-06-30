@@ -93,7 +93,7 @@ private:
 		std::map<util::FixedHash<4>, evmasm::AssemblyItem const> const& _entryPoints,
 		std::vector<util::FixedHash<4>> const& _ids,
 		evmasm::AssemblyItem const& _notFoundTag,
-		size_t _runs
+		OptimiserSettings::ExecutionCount _runs
 	);
 	void appendFunctionSelector(ContractDefinition const& _contract);
 	void appendCallValueCheck();

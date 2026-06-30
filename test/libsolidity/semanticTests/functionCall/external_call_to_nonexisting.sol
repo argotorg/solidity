@@ -21,7 +21,6 @@ contract C {
     }
 }
 // ====
-// bytecodeFormat: legacy
 // ----
 // constructor(), 1 ether ->
 // gas irOptimized: 88853
@@ -30,6 +29,8 @@ contract C {
 // gas legacy code: 334400
 // gas legacyOptimized: 91499
 // gas legacyOptimized code: 196400
+// gas ssaCFGOptimized: 87601
+// gas ssaCFGOptimized code: 151000
 // f(uint256): 0 -> FAILURE
 // f(uint256): 1 -> FAILURE
 // f(uint256): 2 -> FAILURE

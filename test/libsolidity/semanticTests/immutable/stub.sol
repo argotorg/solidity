@@ -10,6 +10,5 @@ contract C {
 	}
 }
 // ====
-// bytecodeFormat: legacy
 // ----
 // f() -> 84, 23

@@ -8,7 +8,6 @@
 	sstore(1, h(32))
 }
 // ====
-// bytecodeFormat: legacy
 // ----
 // step: fakeStackLimitEvader
 //

@@ -9,6 +9,5 @@ object "A" {
 	}
 }
 // ====
-// bytecodeFormat: legacy
 // ----
 // TypeError 3517: (41-54): Unknown data object ".metadata.x".

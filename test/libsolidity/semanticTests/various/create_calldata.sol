@@ -6,8 +6,6 @@ contract C {
 		assert(msg.data.length == 0);
 	}
 }
-// ====
-// bytecodeFormat: legacy
 // ----
 // constructor(): 42 ->
 // gas irOptimized: 68387
@@ -16,4 +14,6 @@ contract C {
 // gas legacy code: 90200
 // gas legacyOptimized: 68548
 // gas legacyOptimized code: 64600
+// gas ssaCFGOptimized: 68186
+// gas ssaCFGOptimized code: 66800
 // s() -> 0x20, 0

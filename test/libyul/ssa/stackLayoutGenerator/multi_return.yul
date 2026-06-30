@@ -27,15 +27,15 @@
 // pair\l\
 // [v2, v3, FunctionCallReturnLabel[1], v5, v6]\l\
 // \l\
-// [JUNK, v3, v6, v5]\l\
+// [v2, v3, v6, v5]\l\
 // add\l\
-// [JUNK, v3, v7]\l\
+// [v2, v3, v7]\l\
 // \l\
-// [JUNK, v7, v3]\l\
+// [v2, v7, v3]\l\
 // sstore\l\
-// [JUNK]\l\
+// [v2]\l\
 // \l\
-// OUT: [JUNK]\l\
+// OUT: [v2]\l\
 // "];
 // Block0_0Exit [label="MainExit"];
 // Block0_0 -> Block0_0Exit;

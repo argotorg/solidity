@@ -21,5 +21,7 @@ contract C {
 // gas legacy code: 109400
 // gas legacyOptimized: 81858
 // gas legacyOptimized code: 55800
+// gas ssaCFGOptimized: 81069
+// gas ssaCFGOptimized code: 40600
 // f() -> 84, 23
 // m(uint256): 3 -> 7

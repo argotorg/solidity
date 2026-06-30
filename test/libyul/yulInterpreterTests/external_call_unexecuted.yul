@@ -3,7 +3,6 @@
 	sstore(0x64, x)
 }
 // ====
-// bytecodeFormat: legacy
 // ----
 // Trace:
 //   CALL(153, 69, 5, 0, 32, 48, 32)

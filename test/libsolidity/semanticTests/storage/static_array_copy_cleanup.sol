@@ -71,12 +71,14 @@ contract C {
 // gas irOptimized: 135018
 // gas legacy: 146851
 // gas legacyOptimized: 137549
+// gas ssaCFGOptimized: 137978
 // canary() -> 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
 // getSourceAsUint() -> 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20
 // fillDest()
 // gas irOptimized: 248706
 // gas legacy: 272468
 // gas legacyOptimized: 253871
+// gas ssaCFGOptimized: 254266
 // canary() -> 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
 // getSourceAsUint() -> 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20
 // getDestAsUint() -> 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139

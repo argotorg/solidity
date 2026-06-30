@@ -4,7 +4,6 @@
     function g() { sstore(0, 1) }
 }
 // ====
-// bytecodeFormat: legacy
 // ----
 // : movable, movable apart from effects, can be removed, can be removed if no msize
 // a: writes other state, writes storage, writes memory

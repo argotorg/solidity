@@ -106,7 +106,7 @@ bool BlockDeduplicator::applyTagReplacement(
 {
 	bool changed = false;
 	for (AssemblyItem& item: _items)
-		if (item.type() == PushTag || item.type() == RelativeJump || item.type() == ConditionalRelativeJump)
+		if (item.type() == PushTag)
 		{
 			SubAssemblyID subId;
 			size_t tagId;
@@ -131,7 +131,7 @@ BlockDeduplicator::BlockIterator& BlockDeduplicator::BlockIterator::operator++()
 {
 	if (it == end)
 		return *this;
-	if (SemanticInformation::altersControlFlow(*it) && *it != AssemblyItem{Instruction::JUMPI} && it->type() != ConditionalRelativeJump)
+	if (SemanticInformation::altersControlFlow(*it) && *it != AssemblyItem{Instruction::JUMPI})
 		it = end;
 	else
 	{

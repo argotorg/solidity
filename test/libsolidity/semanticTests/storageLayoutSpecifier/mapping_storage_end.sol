@@ -16,7 +16,9 @@ contract C layout at 2**256 - 2 {
 // gas irOptimized: 22266229
 // gas legacy: 22447245
 // gas legacyOptimized: 22310238
+// gas ssaCFGOptimized: 22260228
 // validate() ->
 // gas irOptimized: 2279210
 // gas legacy: 2456223
 // gas legacyOptimized: 2327216
+// gas ssaCFGOptimized: 2276210

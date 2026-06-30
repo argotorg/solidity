@@ -1575,7 +1575,7 @@ jobs:
     # Runs out of memory on the small instance
     <<: *base_ubuntu2404
     docker:
-      - image: cimg/rust:1.79.0-node
+      - image: cimg/rust:1.85.0-node
     environment:
       <<: *base_ubuntu2404_env
       EDR_TESTS_SOLC_PATH: /tmp/workspace/soljson.js
@@ -1585,8 +1585,7 @@ jobs:
           at: /tmp/workspace
       - run:
           name: Ensure pnpm is installed if npm is present
-          # Pin to pnpm v9 as v10 introduces additional safe guards and causes failures
-          command: sudo npm install -g pnpm@9
+          command: sudo npm install -g pnpm
       - run:
           name: Retrieve EDR latest release tag
           command: |

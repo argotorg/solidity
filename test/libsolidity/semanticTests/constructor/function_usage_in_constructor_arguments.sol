@@ -20,6 +20,5 @@ contract Derived is Base {
     }
 }
 // ====
-// bytecodeFormat: legacy
 // ----
 // getA() -> 2

@@ -18,6 +18,7 @@ contract c {
 // gas irOptimized: 111321
 // gas legacy: 112434
 // gas legacyOptimized: 111494
+// gas ssaCFGOptimized: 111318
 // getData2(uint256): 5 -> 10, 4
 // setData1(uint256,uint256,uint256): 0, 0, 0 ->
 // copyStorageStorage() ->

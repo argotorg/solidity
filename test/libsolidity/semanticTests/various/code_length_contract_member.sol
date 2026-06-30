@@ -12,6 +12,5 @@ contract C {
     }
 }
 // ====
-// bytecodeFormat: legacy
 // ----
 // f() -> 0x20, 0x20, true

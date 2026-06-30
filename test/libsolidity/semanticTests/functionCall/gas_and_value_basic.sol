@@ -34,8 +34,6 @@ contract test {
         myBal = address(this).balance;
     }
 }
-// ====
-// bytecodeFormat: legacy
 // ----
 // constructor(), 20 wei ->
 // gas irOptimized: 120218
@@ -44,6 +42,8 @@ contract test {
 // gas legacy code: 261200
 // gas legacyOptimized: 121069
 // gas legacyOptimized code: 147000
+// gas ssaCFGOptimized: 119466
+// gas ssaCFGOptimized code: 122800
 // sendAmount(uint256): 5 -> 5
 // outOfGas() -> FAILURE # call to helper should not succeed but amount should be transferred anyway #
 // checkState() -> false, 15

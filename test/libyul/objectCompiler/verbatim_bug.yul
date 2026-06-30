@@ -24,7 +24,6 @@ object "a" {
 }
 // ====
 // EVMVersion: >=shanghai
-// bytecodeFormat: legacy
 // optimizationPreset: full
 // outputs: Assembly
 // ----

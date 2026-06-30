@@ -15,4 +15,6 @@ contract B is A {
 // gas legacy code: 32600
 // gas legacyOptimized: 99137
 // gas legacyOptimized code: 16200
+// gas ssaCFGOptimized: 99321
+// gas ssaCFGOptimized code: 18600
 // y() -> 42

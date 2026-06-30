@@ -10,7 +10,6 @@ object "Contract" {
 
 // ====
 // EVMVersion: >=shanghai
-// bytecodeFormat: legacy
 // optimizationPreset: none
 // ----
 // Assembly:

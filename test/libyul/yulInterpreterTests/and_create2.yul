@@ -6,7 +6,6 @@
 }
 // ====
 // EVMVersion: >=constantinople
-// bytecodeFormat: legacy
 // ----
 // Trace:
 //   CREATE2(0, 0, 0, 0)

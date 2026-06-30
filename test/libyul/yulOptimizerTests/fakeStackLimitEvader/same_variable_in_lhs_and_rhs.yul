@@ -6,7 +6,6 @@
     $z := f($z)
 }
 // ====
-// bytecodeFormat: legacy
 // ----
 // step: fakeStackLimitEvader
 //

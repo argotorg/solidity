@@ -29,55 +29,53 @@ using namespace solidity::evmasm;
 
 unsigned ConstantOptimisationMethod::optimiseConstants(
 	bool _isCreation,
-	size_t _runs,
+	std::uint64_t _runs,
 	langutil::EVMVersion _evmVersion,
 	Assembly& _assembly
 )
 {
 	// TODO: design the optimiser in a way this is not needed
 	unsigned optimisations = 0;
-	for (auto& codeSection: _assembly.codeSections())
-	{
-		AssemblyItems& _items = codeSection.items;
+	AssemblyItems& items = _assembly.items();
 
-		std::map<AssemblyItem, size_t> pushes;
-		for (AssemblyItem const& item: _items)
-			if (item.type() == Push)
-				pushes[item]++;
-		std::map<u256, AssemblyItems> pendingReplacements;
-		for (auto it: pushes)
+	std::map<AssemblyItem, size_t> pushes;
+	for (AssemblyItem const& item: items)
+		if (item.type() == Push)
+			pushes[item]++;
+	std::map<u256, AssemblyItems> pendingReplacements;
+	for (auto it: pushes)
+	{
+		AssemblyItem const& item = it.first;
+		if (item.data() < 0x100)
+			continue;
+		Params params;
+		params.multiplicity = it.second;
+		params.isCreation = _isCreation;
+		params.runs = _runs;
+		params.evmVersion = _evmVersion;
+		LiteralMethod lit(params, item.data());
+		bigint literalGas = lit.gasNeeded();
+		CodeCopyMethod copy(params, item.data());
+		bigint copyGas = copy.gasNeeded();
+		ComputeMethod compute(params, item.data());
+		bigint computeGas = compute.gasNeeded();
+		AssemblyItems replacement;
+		if (copyGas < literalGas && copyGas < computeGas)
 		{
-			AssemblyItem const& item = it.first;
-			if (item.data() < 0x100)
-				continue;
-			Params params;
-			params.multiplicity = it.second;
-			params.isCreation = _isCreation;
-			params.runs = _runs;
-			params.evmVersion = _evmVersion;
-			LiteralMethod lit(params, item.data());
-			bigint literalGas = lit.gasNeeded();
-			CodeCopyMethod copy(params, item.data());
-			bigint copyGas = copy.gasNeeded();
-			ComputeMethod compute(params, item.data());
-			bigint computeGas = compute.gasNeeded();
-			AssemblyItems replacement;
-			if (copyGas < literalGas && copyGas < computeGas)
-			{
-				replacement = copy.execute(_assembly);
-				optimisations++;
-			}
-			else if (computeGas < literalGas && computeGas <= copyGas)
-			{
-				replacement = compute.execute(_assembly);
-				optimisations++;
-			}
-			if (!replacement.empty())
-				pendingReplacements[item.data()] = replacement;
+			replacement = copy.execute(_assembly);
+			optimisations++;
 		}
-		if (!pendingReplacements.empty())
-			replaceConstants(_items, pendingReplacements);
+		else if (computeGas < literalGas && computeGas <= copyGas)
+		{
+			replacement = compute.execute(_assembly);
+			optimisations++;
+		}
+		if (!replacement.empty())
+			pendingReplacements[item.data()] = replacement;
 	}
+	if (!pendingReplacements.empty())
+		replaceConstants(items, pendingReplacements);
+
 	return optimisations;
 }
 

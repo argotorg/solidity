@@ -17,6 +17,5 @@ contract C {
     }
 }
 // ====
-// bytecodeFormat: legacy
 // ----
 // t() -> 7

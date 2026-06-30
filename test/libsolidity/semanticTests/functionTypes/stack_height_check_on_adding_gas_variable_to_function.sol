@@ -20,6 +20,5 @@ contract C {
     }
 }
 // ====
-// bytecodeFormat: legacy
 // ----
 // test_function() -> true

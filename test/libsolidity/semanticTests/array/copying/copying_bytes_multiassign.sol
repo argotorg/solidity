@@ -21,6 +21,7 @@ contract sender {
 // gas irOptimized: 110735
 // gas legacy: 111388
 // gas legacyOptimized: 111066
+// gas ssaCFGOptimized: 110716
 // val() -> 0
 // forward(bool): true -> true
 // gas irOptimized: 49573

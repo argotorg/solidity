@@ -107,8 +107,8 @@ SemanticTest::SemanticTest(
 	m_revertStrings = revertStrings.value();
 
 	m_allowNonExistingFunctions = m_reader.boolSetting("allowNonExistingFunctions", false);
-	m_testCaseWantsSSACFGRun = m_reader.boolSetting("compileViaSSACFG", false);
-	m_compiler.setExperimental(m_reader.boolSetting("experimental", false));
+	m_testCaseWantsSSACFGRun = m_reader.boolSetting("compileViaSSACFG", true);
+	m_compiler.setExperimental(m_reader.boolSetting("experimental", m_testCaseWantsSSACFGRun));
 
 	parseExpectations(m_reader.stream());
 	soltestAssert(!m_tests.empty(), "No tests specified in " + _filename);

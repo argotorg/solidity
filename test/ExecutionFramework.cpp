@@ -147,7 +147,6 @@ u256 ExecutionFramework::blockNumber() const
 
 void ExecutionFramework::sendMessage(bytes const& _bytecode, bytes const& _arguments, bool _isCreation, u256 const& _value)
 {
-	auto const eof = _bytecode.size() > 1 && _bytecode[0] == 0xef && _bytecode[1] == 0x00;
 	m_evmcHost->newBlock();
 
 	auto const data = _bytecode + _arguments;
@@ -163,19 +162,14 @@ void ExecutionFramework::sendMessage(bytes const& _bytecode, bytes const& _argum
 		std::cout << " in:      " << util::toHex(data) << std::endl;
 	}
 	evmc_message message{};
-	message.input_data = eof ? _arguments.data() : data.data();
-	message.input_size = eof ? _arguments.size() : data.size();
-	if (eof)
-	{
-		message.code = _bytecode.data();
-		message.code_size = _bytecode.size();
-	}
+	message.input_data = data.data();
+	message.input_size = data.size();
 	message.sender = EVMHost::convertToEVMC(m_sender);
 	message.value = EVMHost::convertToEVMC(_value);
 
 	if (_isCreation)
 	{
-		message.kind = eof ? EVMC_EOFCREATE : EVMC_CREATE;
+		message.kind = EVMC_CREATE;
 		message.recipient = {};
 		message.code_address = {};
 	}

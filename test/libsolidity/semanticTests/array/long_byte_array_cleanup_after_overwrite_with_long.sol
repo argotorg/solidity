@@ -85,19 +85,20 @@ contract C {
 // ====
 // EVMVersion: >=constantinople
 // ----
-// arrayLength() ->0
+// arrayLength() -> 0
 // canaryValue() -> 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
 // fillArray()
 // gas irOptimized: 197352
 // gas legacy: 220574
 // gas legacyOptimized: 206839
-// arrayLength() ->96
+// gas ssaCFGOptimized: 197540
+// arrayLength() -> 96
 // canaryValue() -> 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
 // getArrayBytes(uint256,uint256): 0, 5 -> 0x20, 5, 0x0102030405000000000000000000000000000000000000000000000000000000
 // getArrayBytes(uint256,uint256): 32, 5 -> 0x20, 5, 0x2122232425000000000000000000000000000000000000000000000000000000
 // getArrayBytes(uint256,uint256): 64, 5 -> 0x20, 5, 0x4142434445000000000000000000000000000000000000000000000000000000
 // shrinkArray() -> 50
-// arrayLength() ->50
+// arrayLength() -> 50
 // canaryValue() -> 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
 // getArrayBytes(uint256,uint256): 0, 5 -> 0x20, 5, 0x0203040506000000000000000000000000000000000000000000000000000000
 // getArrayBytes(uint256,uint256): 32, 5 -> 0x20, 5, 0x2223242526000000000000000000000000000000000000000000000000000000

@@ -903,7 +903,6 @@ void CommandLineInterface::assembleFromEVMAssemblyJSON()
 
 	auto evmAssemblyStack = std::make_unique<evmasm::EVMAssemblyStack>(
 		m_options.output.evmVersion,
-		std::nullopt,
 		evmasm::Assembly::OptimiserSettings::translateSettings(
 			m_options.optimiserSettings()
 		)

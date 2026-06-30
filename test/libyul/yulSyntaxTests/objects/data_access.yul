@@ -7,5 +7,4 @@ object "A" {
   data "B" hex"00"
 }
 // ====
-// bytecodeFormat: legacy
 // ----

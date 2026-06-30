@@ -72,6 +72,7 @@ contract C {
 // gas irOptimized: 197289
 // gas legacy: 220574
 // gas legacyOptimized: 206839
+// gas ssaCFGOptimized: 196710
 // canaryValue() -> 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
 // deleteArray()
 // canaryValue() -> 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff

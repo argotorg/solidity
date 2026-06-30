@@ -64,7 +64,7 @@
 // Block1_1Exit [label="Jump" shape=oval];
 // Block1_1Exit -> Block1_2 [style="solid"];
 // Block1_2 [label="\
-// IN: [ReturnLabel[1], JUNK, phi6]\l\
+// IN: [ReturnLabel[1], phi6]\l\
 // \l\
 // OUT: [phi6, ReturnLabel[1]]\l\
 // "];

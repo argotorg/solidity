@@ -22,6 +22,5 @@ If you used AI tools in any part of this PR you MUST disclose it below.
 -->
 
 - [ ] No AI tools were used
-- [ ] AI tools were used (details below)
 
 <!-- If AI tools were used, describe which tools and for which parts here. -->

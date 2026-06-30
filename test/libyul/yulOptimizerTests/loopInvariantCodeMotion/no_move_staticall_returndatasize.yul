@@ -10,7 +10,6 @@
   }
 }
 // ====
-// bytecodeFormat: legacy
 // ====
 // EVMVersion: >=byzantium
 // ----

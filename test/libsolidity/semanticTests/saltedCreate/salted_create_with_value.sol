@@ -19,7 +19,6 @@ contract A {
 }
 // ====
 // EVMVersion: >=constantinople
-// bytecodeFormat: legacy
 // ----
 // f(), 10 ether -> 3007, 3008, 3009
 // gas irOptimized: 187022
@@ -28,3 +27,5 @@ contract A {
 // gas legacy code: 190200
 // gas legacyOptimized: 187256
 // gas legacyOptimized code: 92400
+// gas ssaCFGOptimized: 186904
+// gas ssaCFGOptimized code: 62400

@@ -26,6 +26,7 @@ contract C {
 // gas irOptimized: 220705
 // gas legacy: 221434
 // gas legacyOptimized: 220871
+// gas ssaCFGOptimized: 220704
 // x() -> 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
 // clearArray()
 // x() -> 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
