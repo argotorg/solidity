@@ -4,6 +4,8 @@ Important Bugfixes:
 * Yul Optimizer: Fix call graph cycle detection failing to classify some mutually recursive functions as recursive.
 
 Language Features:
+* General: Add support for constant evaluation of `keccak256` builtin.
+* General: Add support for constant evaluation for `uint256` type conversion.
 
 Compiler Features:
 * EVM: Support for the EVM version "Amsterdam".

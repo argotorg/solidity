@@ -246,17 +246,65 @@ TypedValue convertType(rational const& _value, Type const& _type)
 		else
 			return TypedValue{&_type, _value.numerator() / _value.denominator()};
 	}
-	else
-		return TypedValue{};
+	else if (auto const* fixedBytesType = dynamic_cast<FixedBytesType const*>(&_type))
+	{
+		// Only bytes32 is supported for now.
+		if (fixedBytesType->numBytes() != 32)
+			return TypedValue{};
+
+		if (
+			_value.denominator() != 1 ||
+			_value.numerator() < 0 ||
+			_value.numerator() > TypeProvider::integer(fixedBytesType->numBytes() * 8, IntegerType::Modifier::Unsigned)->max()
+		)
+			return TypedValue{};
+
+		u256 integerValue = u256(_value.numerator());
+		// toBigEndian always returns 32 bytes, which is the only width supported.
+		// If support for narrower widths is added, then unused high bytes need to be erased
+		bytes bytesRepresentation = toBigEndian(integerValue);
+		return TypedValue{&_type, bytesRepresentation};
+	}
+
+	return TypedValue{};
 }
 
 TypedValue convertType(std::string const& _value, Type const& _type)
 {
 	if (
-		_type.category() != Type::Category::StringLiteral &&
-		_type.category() != Type::Category::Array
+		_type.category() == Type::Category::StringLiteral ||
+		_type.category() == Type::Category::Array
+	)
+		return TypedValue{&_type, _value};
+	else if (_type.category() == Type::Category::FixedBytes)
+	{
+		auto const& fixedBytes = dynamic_cast<FixedBytesType const&>(_type);
+		// Only bytes32 is supported for now.
+		if (fixedBytes.numBytes() != 32)
+			return TypedValue{};
+
+		if (_value.size() > fixedBytes.numBytes())
+			return TypedValue{};
+
+		// Right pad with zeros to the full width
+		auto bytesValue = asBytes(_value);
+		bytesValue.resize(fixedBytes.numBytes(), 0);
+		return TypedValue{&_type, bytesValue};
+	}
+
+	return TypedValue{};
+}
+
+TypedValue convertType(bytes const& _value, Type const& _type)
+{
+	auto const* fixedBytes = dynamic_cast<FixedBytesType const*>(&_type);
+	if (
+		!fixedBytes ||
+		_value.size() > fixedBytes->numBytes() ||
+		fixedBytes->numBytes() != 32  // Supports only bytes32 for now
 	)
 		return TypedValue{};
+
 	return TypedValue{&_type, _value};
 }
 
@@ -269,10 +317,13 @@ TypedValue convertType(TypedValue const& _value, Type const& _type)
 		[&](rational const& value) {
 			return convertType(value, _type);
 		},
+		[&](bytes const& value) {
+			return convertType(value, _type);
+		},
 		[&](std::monostate const&) {
 			return TypedValue{};
 		}
-	}, _value.value);
+	}, _value.value());
 }
 
 TypedValue constantToTypedValue(Type const& _type)
@@ -346,20 +397,20 @@ TypedValue ConstantEvaluator::evaluate(ASTNode const& _node)
 void ConstantEvaluator::endVisit(UnaryOperation const& _operation)
 {
 	TypedValue value = evaluate(_operation.subExpression());
-	if (!value.type)
+	if (value.empty())
 		return;
 
-	Type const* resultType = value.type->unaryOperatorResult(_operation.getOperator());
+	Type const* resultType = value.type()->unaryOperatorResult(_operation.getOperator());
 	if (!resultType)
 		return;
 	value = convertType(value, *resultType);
-	if (!std::holds_alternative<rational>(value.value))
+	if (!value.isRational())
 		return;
 
-	if (std::optional<rational> result = evaluateUnaryOperator(_operation.getOperator(), std::get<rational>(value.value)))
+	if (std::optional<rational> result = evaluateUnaryOperator(_operation.getOperator(), value.asRational()))
 	{
 		TypedValue convertedValue = convertType(*result, *resultType);
-		if (!convertedValue.type)
+		if (!convertedValue.type())
 			m_errorReporter.fatalTypeError(
 				3667_error,
 				_operation.location(),
@@ -373,7 +424,7 @@ void ConstantEvaluator::endVisit(BinaryOperation const& _operation)
 {
 	TypedValue left = evaluate(_operation.leftExpression());
 	TypedValue right = evaluate(_operation.rightExpression());
-	if (!left.type || !right.type)
+	if (!left.type() || !right.type())
 		return;
 
 	// If this is implemented in the future: Comparison operators have a "binaryOperatorResult"
@@ -381,7 +432,7 @@ void ConstantEvaluator::endVisit(BinaryOperation const& _operation)
 	if (TokenTraits::isCompareOp(_operation.getOperator()))
 		return;
 
-	Type const* resultType = left.type->binaryOperatorResult(_operation.getOperator(), right.type);
+	Type const* resultType = left.type()->binaryOperatorResult(_operation.getOperator(), right.type());
 	if (!resultType)
 	{
 		m_errorReporter.fatalTypeError(
@@ -390,9 +441,9 @@ void ConstantEvaluator::endVisit(BinaryOperation const& _operation)
 			"Operator " +
 			std::string(TokenTraits::toString(_operation.getOperator())) +
 			" not compatible with types " +
-			left.type->toString() +
+			left.type()->toString() +
 			" and " +
-			right.type->toString()
+			right.type()->toString()
 			);
 		return;
 	}
@@ -400,19 +451,19 @@ void ConstantEvaluator::endVisit(BinaryOperation const& _operation)
 	left = convertType(left, *resultType);
 	right = convertType(right, *resultType);
 	if (
-		!std::holds_alternative<rational>(left.value) ||
-		!std::holds_alternative<rational>(right.value)
+		!left.isRational() ||
+		!right.isRational()
 	)
 		return;
 
 	if (std::optional<rational> value = evaluateBinaryOperator(
 		_operation.getOperator(),
-		std::get<rational>(left.value),
-		std::get<rational>(right.value)
+		left.asRational(),
+		right.asRational()
 	))
 	{
 		TypedValue convertedValue = convertType(*value, *resultType);
-		if (!convertedValue.type)
+		if (!convertedValue.type())
 			m_errorReporter.fatalTypeError(
 				2643_error,
 				_operation.location(),
@@ -443,6 +494,65 @@ void ConstantEvaluator::endVisit(TupleExpression const& _tuple)
 
 void ConstantEvaluator::endVisit(FunctionCall const& _functionCall)
 {
+	auto const* elementaryTypeNameExpression = dynamic_cast<ElementaryTypeNameExpression const*>(&_functionCall.expression());
+	if (elementaryTypeNameExpression)
+	{
+		// Type checking might not have been performed yet. This is the same that is done in that step.
+		auto const* expressionTypeType = TypeProvider::typeType(TypeProvider::fromElementaryTypeName(
+			elementaryTypeNameExpression->type().typeName(),
+			elementaryTypeNameExpression->type().stateMutability()
+		));
+		solAssert(expressionTypeType);
+		solAssert(expressionTypeType->actualType());
+
+		// For now, only conversion target supported: uint256
+		auto const* integerResultType = dynamic_cast<IntegerType const*>(expressionTypeType->actualType());
+		if (!integerResultType || integerResultType != TypeProvider::uint256())
+			return;
+
+		if (_functionCall.arguments().size() != 1 || !_functionCall.names().empty())
+			return;
+
+		TypedValue valueToConvert = evaluate(*_functionCall.arguments().front());
+		if (!valueToConvert.type() || !valueToConvert.type()->isExplicitlyConvertibleTo(*integerResultType))
+			return;
+
+		u256 convertedValue = 0;
+		if (
+			valueToConvert.type()->category() == Type::Category::Integer ||
+			valueToConvert.type()->category() == Type::Category::RationalNumber
+		)
+		{
+			solAssert(valueToConvert.isRational());
+			auto const& rationalValue = valueToConvert.asRational();
+			solAssert(rationalValue.denominator() == 1);
+
+			convertedValue = rationalValue >= rational(0) ?
+				u256(rationalValue.numerator()) :
+				s2u(s256(rationalValue.numerator()));
+		}
+		else if (valueToConvert.type()->category() == Type::Category::FixedBytes)
+		{
+			solAssert(valueToConvert.isBytes());
+			auto const& bytesValue = valueToConvert.asBytes();
+			auto const& fixedBytesType = static_cast<FixedBytesType const&>(*valueToConvert.type());
+			solAssert(size_t(integerResultType->numBits()) == fixedBytesType.numBytes() * 8);
+
+			// FixedBytes is left-aligned.
+			for (auto byte: bytesValue)
+				convertedValue = (convertedValue << 8) | u256(byte);
+
+			// fill with remaining zero bytes
+			auto remainingBytes = size_t(fixedBytesType.numBytes()) - bytesValue.size();
+			convertedValue <<= 8 * remainingBytes;
+		}
+		else // Type is explicitly convertible but not evaluated at comptime
+			return;
+
+		m_values[&_functionCall] = TypedValue{integerResultType, rational(convertedValue)};
+		return;
+	}
+
 	auto const* builtinFunction = dynamic_cast<MagicVariableDeclaration const*>(ASTNode::referencedDeclaration(_functionCall.expression()));
 	if (!builtinFunction)
 		return;
@@ -455,10 +565,10 @@ void ConstantEvaluator::endVisit(FunctionCall const& _functionCall)
 		{
 			solAssert(_functionCall.arguments().size() == 1);
 			auto stringArg = evaluate(*(_functionCall.arguments()[0].get()));
-			if (!std::holds_alternative<std::string>(stringArg.value))
+			if (!stringArg.isString())
 				return;
 
-			h256 innerKeccak = keccak256(std::get<std::string>(stringArg.value));
+			h256 innerKeccak = keccak256(stringArg.asString());
 			h256 outerKeccak = keccak256(h256(u256(innerKeccak) - 1));
 			outerKeccak.data()[31] = 0;
 			u256 slot = outerKeccak;
@@ -466,7 +576,63 @@ void ConstantEvaluator::endVisit(FunctionCall const& _functionCall)
 			m_values[&_functionCall] = TypedValue{functionType->returnParameterTypes()[0], rational{slot}};
 			break;
 		}
+		case FunctionType::Kind::KECCAK256:
+		{
+			if (_functionCall.arguments().size() != 1)
+				return;
+			auto argValue = evaluate(*_functionCall.arguments()[0]);
+			if (!argValue.isString())
+				return;
+
+			h256 hash = keccak256(argValue.asString());
+			solAssert(functionType->returnParameterTypes().size() == 1);
+			solAssert(functionType->returnParameterTypes()[0] == TypeProvider::fixedBytes(32));
+			m_values[&_functionCall] = TypedValue{functionType->returnParameterTypes()[0], hash.asBytes()};
+			break;
+		}
 		default:
 			break;
 	}
+}
+
+TypedValue::TypedValue(Type const* _type, TypedValue::Value _value)
+{
+	std::visit(util::GenericVisitor{
+		[&](std::string const&) {
+			solAssert(dynamic_cast<StringLiteralType const*>(_type) || dynamic_cast<ArrayType const*>(_type));
+		},
+		[&](rational const&) {
+			solAssert(dynamic_cast<RationalNumberType const*>(_type) || dynamic_cast<IntegerType const*>(_type));
+		},
+		[&](bytes const&) {
+			solAssert(dynamic_cast<FixedBytesType const*>(_type));
+		},
+		[&](std::monostate const&) {
+			solAssert(!_type);
+		}
+	}, _value);
+
+	m_type = _type;
+	m_value = std::move(_value);
+}
+
+std::string const& TypedValue::asString() const
+{
+	auto const* stringValue = std::get_if<std::string>(&m_value);
+	solAssert(stringValue);
+	return *stringValue;
+}
+
+rational const& TypedValue::asRational() const
+{
+	auto const* rationalValue = std::get_if<rational>(&m_value);
+	solAssert(rationalValue);
+	return *rationalValue;
+}
+
+bytes const& TypedValue::asBytes() const
+{
+	auto const* bytesValue = std::get_if<bytes>(&m_value);
+	solAssert(bytesValue);
+	return *bytesValue;
 }
