@@ -15,16 +15,15 @@ contract Main {
         return flag;
     }
 }
-// ====
 // ----
 // constructor(): "abc", true
-// gas irOptimized: 80174
-// gas irOptimized code: 24200
+// gas irOptimized: 80019
+// gas irOptimized code: 23800
 // gas legacy: 85098
 // gas legacy code: 58200
-// gas legacyOptimized: 80132
-// gas legacyOptimized code: 22800
-// gas ssaCFGOptimized: 80062
-// gas ssaCFGOptimized code: 22600
+// gas legacyOptimized: 80018
+// gas legacyOptimized code: 22400
+// gas ssaCFGOptimized: 79907
+// gas ssaCFGOptimized code: 22200
 // getFlag() -> true
 // getName() -> "abc"

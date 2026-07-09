@@ -54,16 +54,10 @@ struct MiniEVMInterpreter
 			args.emplace_back(eval(arg));
 		switch (_instr)
 		{
-		case evmasm::Instruction::ADD:
-			return args.at(0) + args.at(1);
-		case evmasm::Instruction::SUB:
-			return args.at(0) - args.at(1);
-		case evmasm::Instruction::MUL:
-			return args.at(0) * args.at(1);
-		case evmasm::Instruction::EXP:
-			return exp256(args.at(0), args.at(1));
 		case evmasm::Instruction::SHL:
 			return args.at(0) > 255 ? 0 : (args.at(1) << unsigned(args.at(0)));
+		case evmasm::Instruction::SHR:
+			return args.at(1) >> unsigned(args.at(0));
 		case evmasm::Instruction::NOT:
 			return ~args.at(0);
 		default:
@@ -97,6 +91,8 @@ void ConstantOptimiser::visit(Expression& _e)
 		if (literal.kind != LiteralKind::Number)
 			return;
 
+		yulAssert(m_dialect.auxiliaryBuiltinHandles().not_);
+
 		if (
 			Expression const* repr =
 				RepresentationFinder(m_dialect, m_meter, debugDataOf(_e), m_cache)
@@ -110,7 +106,7 @@ void ConstantOptimiser::visit(Expression& _e)
 
 Expression const* RepresentationFinder::tryFindRepresentation(u256 const& _value)
 {
-	if (_value < 0x10000)
+	if (_value < 0x100000000)
 		return nullptr;
 
 	Representation const& repr = findRepresentation(_value);
@@ -122,64 +118,44 @@ Expression const* RepresentationFinder::tryFindRepresentation(u256 const& _value
 
 Representation const& RepresentationFinder::findRepresentation(u256 const& _value)
 {
+	// since findRepresentation is called recursively, the small value check must be done here
+	if (_value < 0x100000000)
+		return m_cache[_value] = represent(_value);
+
 	if (m_cache.count(_value))
 		return m_cache.at(_value);
-
-	yulAssert(m_dialect.auxiliaryBuiltinHandles().not_);
-	yulAssert(m_dialect.auxiliaryBuiltinHandles().exp);
-	yulAssert(m_dialect.auxiliaryBuiltinHandles().mul);
-	yulAssert(m_dialect.auxiliaryBuiltinHandles().add);
-	yulAssert(m_dialect.auxiliaryBuiltinHandles().sub);
 
 	auto const& auxHandles = m_dialect.auxiliaryBuiltinHandles();
 
 	Representation routine = represent(_value);
 
+	if (m_dialect.evmVersion().hasBitwiseShifting())
+	{
+		// try left shift for patterns like xxxx0000
+		unsigned zerosAtEnd = 0;
+		while (((_value >> zerosAtEnd) & 1) == 0 && zerosAtEnd < 256)
+			++zerosAtEnd;
+		if (zerosAtEnd > 0)
+		{
+			Representation newRoutine = represent(*auxHandles.shl, represent(zerosAtEnd), findRepresentation(_value >> zerosAtEnd));
+			routine = min(std::move(routine), std::move(newRoutine));
+		}
+		// try notZeroShift for patterns 0000....0011111
+		unsigned onesAtEnd = 0;
+		while (((_value >> onesAtEnd) & 1) == 1 && onesAtEnd < 256)
+			++onesAtEnd;
+
+		if ((_value >> onesAtEnd) == 0) // implicitly checks that onesAtEnd > 0
+		{
+			Representation newRoutine = represent(*auxHandles.shr, represent(256 - onesAtEnd), represent(*auxHandles.not_, represent(0)));
+			routine = min(std::move(routine), std::move(newRoutine));
+		}
+	}
+
+	// try NOT
 	if (numberEncodingSize(~_value) < numberEncodingSize(_value))
-		// Negated is shorter to represent
 		routine = min(std::move(routine), represent(*auxHandles.not_, findRepresentation(~_value)));
 
-	// Decompose value into a * 2**k + b where abs(b) << 2**k
-	for (unsigned bits = 255; bits > 8 && m_maxSteps > 0; --bits)
-	{
-		unsigned gapDetector = unsigned((_value >> (bits - 8)) & 0x1ff);
-		if (gapDetector != 0xff && gapDetector != 0x100)
-			continue;
-
-		u256 powerOfTwo = u256(1) << bits;
-		u256 upperPart = _value >> bits;
-		bigint lowerPart = _value & (powerOfTwo - 1);
-		if ((powerOfTwo - lowerPart) < lowerPart)
-		{
-			lowerPart = lowerPart - powerOfTwo; // make it negative
-			upperPart++;
-		}
-		if (upperPart == 0)
-			continue;
-		if (abs(lowerPart) >= (powerOfTwo >> 8))
-			continue;
-		Representation newRoutine;
-		if (m_dialect.evmVersion().hasBitwiseShifting())
-			newRoutine = represent(*auxHandles.shl, represent(bits), findRepresentation(upperPart));
-		else
-		{
-			newRoutine = represent(*auxHandles.exp, represent(2), represent(bits));
-			if (upperPart != 1)
-				newRoutine = represent(*auxHandles.mul, findRepresentation(upperPart), newRoutine);
-		}
-
-		if (newRoutine.cost >= routine.cost)
-			continue;
-
-		if (lowerPart > 0)
-			newRoutine = represent(*auxHandles.add, newRoutine, findRepresentation(u256(abs(lowerPart))));
-		else if (lowerPart < 0)
-			newRoutine = represent(*auxHandles.sub, newRoutine, findRepresentation(u256(abs(lowerPart))));
-
-		if (m_maxSteps > 0)
-			m_maxSteps--;
-		routine = min(std::move(routine), std::move(newRoutine));
-	}
 	yulAssert(MiniEVMInterpreter{m_dialect}.eval(*routine.expression) == _value, "Invalid expression generated.");
 	return m_cache[_value] = std::move(routine);
 }

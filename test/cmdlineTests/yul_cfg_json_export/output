@@ -1041,7 +1041,7 @@ Yul Control Flow Graph:
                     },
                     {
                         "exit": {
-                            "cond": "v85",
+                            "cond": "v84",
                             "targets": [
                                 "Block18",
                                 "Block17"
@@ -1079,45 +1079,44 @@ Yul Control Flow Graph:
                             },
                             {
                                 "in": [
-                                    "0xa0",
-                                    "0x01"
+                                    "0x00"
                                 ],
-                                "op": "shl",
+                                "op": "not",
+                                "out": [
+                                    "v74"
+                                ]
+                            },
+                            {
+                                "in": [
+                                    "0x60",
+                                    "v74"
+                                ],
+                                "op": "shr",
                                 "out": [
                                     "v76"
                                 ]
                             },
                             {
                                 "in": [
-                                    "v76",
-                                    "0x01"
-                                ],
-                                "op": "sub",
-                                "out": [
-                                    "v77"
-                                ]
-                            },
-                            {
-                                "in": [
                                     "v60",
-                                    "v77"
+                                    "v76"
                                 ],
                                 "op": "and",
                                 "out": [
-                                    "v82"
+                                    "v81"
                                 ]
                             },
                             {
                                 "in": [],
                                 "op": "gas",
                                 "out": [
-                                    "v83"
+                                    "v82"
                                 ]
                             },
                             {
                                 "in": [
-                                    "v83",
                                     "v82",
+                                    "v81",
                                     "v68",
                                     "0x04",
                                     "v68",
@@ -1125,16 +1124,16 @@ Yul Control Flow Graph:
                                 ],
                                 "op": "staticcall",
                                 "out": [
-                                    "v84"
+                                    "v83"
                                 ]
                             },
                             {
                                 "in": [
-                                    "v84"
+                                    "v83"
                                 ],
                                 "op": "iszero",
                                 "out": [
-                                    "v85"
+                                    "v84"
                                 ]
                             }
                         ],
@@ -1144,7 +1143,7 @@ Yul Control Flow Graph:
                             ],
                             "out": [
                                 "v68",
-                                "v84"
+                                "v83"
                             ]
                         },
                         "type": "BuiltinCall"
@@ -1204,7 +1203,7 @@ Yul Control Flow Graph:
                     },
                     {
                         "exit": {
-                            "cond": "v84",
+                            "cond": "v83",
                             "targets": [
                                 "Block21",
                                 "Block20"
@@ -1216,7 +1215,7 @@ Yul Control Flow Graph:
                         "liveness": {
                             "in": [
                                 "v68",
-                                "v84"
+                                "v83"
                             ],
                             "out": [
                                 "v68"
@@ -1235,21 +1234,21 @@ Yul Control Flow Graph:
                                 ],
                                 "op": "mload",
                                 "out": [
-                                    "v86"
+                                    "v85"
                                 ]
                             },
                             {
                                 "in": [],
                                 "op": "returndatasize",
                                 "out": [
-                                    "v87"
+                                    "v86"
                                 ]
                             },
                             {
                                 "in": [
-                                    "v86",
+                                    "v85",
                                     "0x00",
-                                    "v87"
+                                    "v86"
                                 ],
                                 "op": "returndatacopy",
                                 "out": []
@@ -1258,13 +1257,13 @@ Yul Control Flow Graph:
                                 "in": [],
                                 "op": "returndatasize",
                                 "out": [
-                                    "v89"
+                                    "v88"
                                 ]
                             },
                             {
                                 "in": [
-                                    "v86",
-                                    "v89"
+                                    "v85",
+                                    "v88"
                                 ],
                                 "op": "revert",
                                 "out": []
@@ -1289,11 +1288,11 @@ Yul Control Flow Graph:
                             {
                                 "in": [
                                     "0x00",
-                                    "v144"
+                                    "v143"
                                 ],
                                 "op": "PhiFunction",
                                 "out": [
-                                    "phi146"
+                                    "phi145"
                                 ]
                             },
                             {
@@ -1302,20 +1301,20 @@ Yul Control Flow Graph:
                                 ],
                                 "op": "mload",
                                 "out": [
-                                    "v145"
+                                    "v144"
                                 ]
                             },
                             {
                                 "in": [
-                                    "v145",
-                                    "phi146"
+                                    "v144",
+                                    "phi145"
                                 ],
                                 "op": "mstore",
                                 "out": []
                             },
                             {
                                 "in": [
-                                    "v145",
+                                    "v144",
                                     "0x20"
                                 ],
                                 "op": "return",
@@ -1324,7 +1323,7 @@ Yul Control Flow Graph:
                         ],
                         "liveness": {
                             "in": [
-                                "phi146"
+                                "phi145"
                             ],
                             "out": []
                         },
@@ -1332,7 +1331,7 @@ Yul Control Flow Graph:
                     },
                     {
                         "exit": {
-                            "cond": "v97",
+                            "cond": "v96",
                             "targets": [
                                 "Block23",
                                 "Block22"
@@ -1345,17 +1344,17 @@ Yul Control Flow Graph:
                                 "in": [],
                                 "op": "returndatasize",
                                 "out": [
-                                    "v96"
+                                    "v95"
                                 ]
                             },
                             {
                                 "in": [
                                     "0x20",
-                                    "v96"
+                                    "v95"
                                 ],
                                 "op": "gt",
                                 "out": [
-                                    "v97"
+                                    "v96"
                                 ]
                             }
                         ],
@@ -1375,7 +1374,7 @@ Yul Control Flow Graph:
                             "Block22"
                         ],
                         "exit": {
-                            "cond": "v116",
+                            "cond": "v115",
                             "targets": [
                                 "Block25",
                                 "Block24"
@@ -1387,11 +1386,11 @@ Yul Control Flow Graph:
                             {
                                 "in": [
                                     "0x20",
-                                    "v98"
+                                    "v97"
                                 ],
                                 "op": "PhiFunction",
                                 "out": [
-                                    "phi101"
+                                    "phi100"
                                 ]
                             },
                             {
@@ -1400,79 +1399,79 @@ Yul Control Flow Graph:
                                 ],
                                 "op": "not",
                                 "out": [
-                                    "v100"
+                                    "v99"
                                 ]
                             },
                             {
                                 "in": [
-                                    "phi101",
+                                    "phi100",
                                     "0x1f"
                                 ],
                                 "op": "add",
+                                "out": [
+                                    "v103"
+                                ]
+                            },
+                            {
+                                "in": [
+                                    "v103",
+                                    "v99"
+                                ],
+                                "op": "and",
                                 "out": [
                                     "v104"
                                 ]
                             },
                             {
                                 "in": [
-                                    "v104",
-                                    "v100"
+                                    "v68",
+                                    "v104"
                                 ],
-                                "op": "and",
+                                "op": "add",
                                 "out": [
-                                    "v105"
+                                    "v112"
                                 ]
                             },
                             {
                                 "in": [
-                                    "v68",
-                                    "v105"
+                                    "v112",
+                                    "v68"
                                 ],
-                                "op": "add",
+                                "op": "lt",
                                 "out": [
                                     "v113"
                                 ]
                             },
                             {
                                 "in": [
-                                    "v113",
-                                    "v68"
-                                ],
-                                "op": "lt",
-                                "out": [
-                                    "v114"
-                                ]
-                            },
-                            {
-                                "in": [
-                                    "v113",
+                                    "v112",
                                     "0xffffffffffffffff"
                                 ],
                                 "op": "gt",
                                 "out": [
-                                    "v115"
+                                    "v114"
                                 ]
                             },
                             {
                                 "in": [
-                                    "v115",
-                                    "v114"
+                                    "v114",
+                                    "v113"
                                 ],
                                 "op": "or",
                                 "out": [
-                                    "v116"
+                                    "v115"
                                 ]
                             }
                         ],
                         "liveness": {
                             "in": [
                                 "v68",
-                                "phi101"
+                                "phi100"
                             ],
                             "out": [
                                 "v68",
-                                "phi101",
-                                "v113"
+                                "phi100",
+                                "v112"
                             ]
                         },
                         "type": "BuiltinCall"
@@ -1490,7 +1489,7 @@ Yul Control Flow Graph:
                                 "in": [],
                                 "op": "returndatasize",
                                 "out": [
-                                    "v98"
+                                    "v97"
                                 ]
                             }
                         ],
@@ -1499,7 +1498,7 @@ Yul Control Flow Graph:
                                 "v68"
                             ],
                             "out": [
-                                "v98",
+                                "v97",
                                 "v68"
                             ]
                         },
@@ -1507,7 +1506,7 @@ Yul Control Flow Graph:
                     },
                     {
                         "exit": {
-                            "cond": "v137",
+                            "cond": "v136",
                             "targets": [
                                 "Block28",
                                 "Block27"
@@ -1519,7 +1518,7 @@ Yul Control Flow Graph:
                             {
                                 "in": [
                                     "0x40",
-                                    "v113"
+                                    "v112"
                                 ],
                                 "op": "mstore",
                                 "out": []
@@ -1527,9 +1526,19 @@ Yul Control Flow Graph:
                             {
                                 "in": [
                                     "v68",
-                                    "phi101"
+                                    "phi100"
                                 ],
                                 "op": "add",
+                                "out": [
+                                    "v134"
+                                ]
+                            },
+                            {
+                                "in": [
+                                    "v134",
+                                    "v68"
+                                ],
+                                "op": "sub",
                                 "out": [
                                     "v135"
                                 ]
@@ -1537,29 +1546,19 @@ Yul Control Flow Graph:
                             {
                                 "in": [
                                     "v135",
-                                    "v68"
-                                ],
-                                "op": "sub",
-                                "out": [
-                                    "v136"
-                                ]
-                            },
-                            {
-                                "in": [
-                                    "v136",
                                     "0x20"
                                 ],
                                 "op": "slt",
                                 "out": [
-                                    "v137"
+                                    "v136"
                                 ]
                             }
                         ],
                         "liveness": {
                             "in": [
                                 "v68",
-                                "phi101",
-                                "v113"
+                                "phi100",
+                                "v112"
                             ],
                             "out": [
                                 "v68"
@@ -1580,13 +1579,13 @@ Yul Control Flow Graph:
                                 ],
                                 "op": "shl",
                                 "out": [
-                                    "v117"
+                                    "v116"
                                 ]
                             },
                             {
                                 "in": [
                                     "0x00",
-                                    "v117"
+                                    "v116"
                                 ],
                                 "op": "mstore",
                                 "out": []
@@ -1629,7 +1628,7 @@ Yul Control Flow Graph:
                                 ],
                                 "op": "mload",
                                 "out": [
-                                    "v144"
+                                    "v143"
                                 ]
                             }
                         ],
@@ -1638,7 +1637,7 @@ Yul Control Flow Graph:
                                 "v68"
                             ],
                             "out": [
-                                "v144"
+                                "v143"
                             ]
                         },
                         "type": "BuiltinCall"

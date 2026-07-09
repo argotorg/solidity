@@ -33,15 +33,15 @@ contract test {
 }
 // ----
 // constructor()
-// gas irOptimized: 77816
-// gas irOptimized code: 307600
+// gas irOptimized: 77366
+// gas irOptimized code: 302200
 // gas legacy: 92110
 // gas legacy code: 523600
-// gas legacyOptimized: 82667
-// gas legacyOptimized code: 369200
-// gas ssaCFGOptimized: 77956
-// gas ssaCFGOptimized code: 313400
+// gas legacyOptimized: 82523
+// gas legacyOptimized code: 367400
+// gas ssaCFGOptimized: 77512
+// gas ssaCFGOptimized code: 308000
 // prb_pi() -> 3141592656369545286
-// gas irOptimized: 55036
+// gas irOptimized: 54848
 // gas legacy: 100657
-// gas legacyOptimized: 74311
+// gas legacyOptimized: 74147

@@ -37,6 +37,6 @@ contract C {
 // x() -> 11, 12, 13, 14, 15, 16, 17, 0, 0, 0
 // partialAssignArrayBeforeStorageBoundary()
 // x() -> 21, 22, 23, 0, 0, 0, 0, 0, 0, 0
-// gas irOptimized: 44183
+// gas irOptimized: 44199
 // gas legacy: 46012
 // gas legacyOptimized: 43907

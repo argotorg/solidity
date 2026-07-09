@@ -58,12 +58,9 @@ public:
 	/// e.g., certain optimization steps.
 	struct AuxiliaryBuiltinHandles
 	{
-		std::optional<BuiltinHandle> add;
-		std::optional<BuiltinHandle> exp;
-		std::optional<BuiltinHandle> mul;
 		std::optional<BuiltinHandle> not_;
 		std::optional<BuiltinHandle> shl;
-		std::optional<BuiltinHandle> sub;
+		std::optional<BuiltinHandle> shr;
 	};
 	/// Constructor, should only be used internally. Use the factory functions below.
 	EVMDialect(langutil::EVMVersion _evmVersion, bool _objectAccess);

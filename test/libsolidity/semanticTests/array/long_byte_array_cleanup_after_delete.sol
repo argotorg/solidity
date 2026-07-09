@@ -69,7 +69,7 @@ contract C {
 // checkSlots() -> 0, 0, 0, 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff, 0
 // canaryValue() -> 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
 // fillArray()
-// gas irOptimized: 197289
+// gas irOptimized: 196425
 // gas legacy: 220574
 // gas legacyOptimized: 206839
 // gas ssaCFGOptimized: 196710
