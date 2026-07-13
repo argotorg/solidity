@@ -128,7 +128,6 @@ with open('../CMakeLists.txt', 'r', encoding='utf8') as f:
 
 html_context["allowed_indexed_versions"] = [
     "latest",
-    "v0.7.6",
     "v" + version,
 ]
 # The full version, including alpha/beta/rc tags.
