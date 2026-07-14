@@ -29,7 +29,9 @@
 #include <liblangutil/SemVerHandler.h>
 #include <test/FilesystemUtils.h>
 
+#include <libsolutil/CommonData.h>
 #include <libsolutil/JSON.h>
+#include <libsolutil/Logger.h>
 #include <libsolutil/TemporaryDirectory.h>
 
 #include <boost/algorithm/string.hpp>
@@ -53,6 +55,8 @@ using PathSet = std::set<boost::filesystem::path>;
 
 namespace
 {
+
+DEFINE_LOGGER(cliTestLogger, "test.cli.interface");
 
 std::ostream& operator<<(std::ostream& _out, std::vector<ImportRemapper::Remapping> const& _remappings)
 {
@@ -146,6 +150,54 @@ BOOST_AUTO_TEST_CASE(version)
 	BOOST_TEST(result.options.input.mode == InputMode::Version);
 }
 
+BOOST_AUTO_TEST_CASE(log_list_categories)
+{
+	OptionsReaderAndMessages result = runCLI({"solc", "--log-list-categories"}, "");
+
+	BOOST_TEST(result.success);
+	BOOST_TEST(result.stderrContent == "");
+	BOOST_TEST(result.options.input.mode == InputMode::LogListCategories);
+
+	std::vector<std::string> const categories = solidity::log::LoggerRegistry::singleton().categories();
+	std::string expectedOutput;
+	for (std::string const& category: categories)
+		expectedOutput += category + "\n";
+	BOOST_TEST(result.stdoutContent == expectedOutput);
+	BOOST_TEST(util::contains(categories, "test.cli.interface"));
+}
+
+BOOST_AUTO_TEST_CASE(log_file)
+{
+	TemporaryDirectory tempDir(TEST_CASE_NAME);
+	boost::filesystem::path const logPath = tempDir.path() / "solc.log";
+
+	std::string const standardJsonInput = R"({"language": "Solidity", "sources": {"a.sol": {"content": "contract C {}"}}})";
+
+	OptionsReaderAndMessages result = runCLI(
+		{"solc", "--standard-json", "--log=test.cli.interface=1", "--log-file=" + logPath.string()},
+		standardJsonInput
+	);
+	BOOST_TEST(result.success);
+	BOOST_TEST(result.stderrContent == "");
+	BOOST_TEST(result.options.logging.categoryLevels.size() == 1);
+	BOOST_TEST(boost::filesystem::exists(logPath));
+	// The CLI resets the process-wide registry on destruction.
+	BOOST_TEST(!cliTestLogger.shouldLog(1));
+}
+
+BOOST_AUTO_TEST_CASE(log_file_cannot_be_opened)
+{
+	TemporaryDirectory tempDir(TEST_CASE_NAME);
+	boost::filesystem::path const logPath = tempDir.path() / "missing_dir" / "solc.log";
+
+	OptionsReaderAndMessages result = runCLI(
+		{"solc", "--standard-json", "--no-color", "--log-file=" + logPath.string()},
+		"{}"
+	);
+	BOOST_TEST(!result.success);
+	BOOST_TEST(result.stderrContent == "Error: Could not open log file \"" + logPath.string() + "\".\n");
+}
+
 BOOST_AUTO_TEST_CASE(multiple_input_modes)
 {
 	std::array inputModeOptions {
@@ -157,10 +209,12 @@ BOOST_AUTO_TEST_CASE(multiple_input_modes)
 		"--strict-assembly",
 		"--import-ast",
 		"--import-asm-json",
+		"--log-list-categories",
 	};
 	std::string expectedMessage =
 		"The following options are mutually exclusive: "
-		"--help, --license, --version, --standard-json, --link, --strict-assembly, --import-ast, --import-asm-json. "
+		"--help, --license, --version, --standard-json, --link, --strict-assembly, --import-ast, --import-asm-json, "
+		"--log-list-categories. "
 		"Select at most one.";
 
 	for (auto const& mode1: inputModeOptions)
