@@ -1,0 +1,11 @@
+{
+    "errors": [
+        {
+            "component": "general",
+            "formattedMessage": "Assembly import error: Value provided for instruction 'PUSH data' is not a valid 256-bit hexadecimal number.",
+            "message": "Assembly import error: Value provided for instruction 'PUSH data' is not a valid 256-bit hexadecimal number.",
+            "severity": "error",
+            "type": "Exception"
+        }
+    ]
+}

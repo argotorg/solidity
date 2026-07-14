@@ -1,0 +1,11 @@
+{
+    "errors": [
+        {
+            "component": "general",
+            "formattedMessage": "Assembly import error: Value provided for instruction 'PUSH [tag]' is out of the allowed range [0, 0xffffffff].",
+            "message": "Assembly import error: Value provided for instruction 'PUSH [tag]' is out of the allowed range [0, 0xffffffff].",
+            "severity": "error",
+            "type": "Exception"
+        }
+    ]
+}

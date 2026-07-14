@@ -1,0 +1,28 @@
+{
+    "language": "EVMAssembly",
+    "sources": {
+        "A": {
+            "assemblyJson": {
+                ".code": [
+                    {
+                        "begin": 0,
+                        "end": 0,
+                        "name": "PUSH data",
+                        "source": 0,
+                        "value": "112233445566778899aabbccddeeff00112233445566778899aabbccddeeffgg"
+                    }
+                ],
+                "sourceList": [
+                    "<stdin>"
+                ]
+            }
+        }
+    },
+    "settings": {
+        "outputSelection": {
+            "*": {
+                "": ["evm.bytecode"]
+            }
+        }
+    }
+}

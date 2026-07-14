@@ -223,6 +223,17 @@ AssemblyItem Assembly::createAssemblyItemFromJSON(Json const& _json, std::vector
 		);
 	};
 
+	auto requireValueInRange = [&](std::string const& _name, std::string const& _value, u256 _min, u256 _max)
+	{
+		bigint parsedValue(_value);
+		solRequire(
+			_min <= parsedValue && parsedValue <= _max,
+			AssemblyImportException,
+			"Value provided for instruction '" + _name + "' is out of the allowed range "
+			"[" + formatNumber(_min) + ", " + formatNumber(_max) + "]."
+		);
+	};
+
 	solRequire(srcIndex >= -1 && srcIndex < static_cast<int>(_sourceList.size()), AssemblyImportException, "Source index out of bounds.");
 	if (srcIndex != -1)
 		location.sourceName = sharedSourceName(_sourceList[static_cast<size_t>(srcIndex)]);
@@ -260,6 +271,7 @@ AssemblyItem Assembly::createAssemblyItemFromJSON(Json const& _json, std::vector
 		if (name == "PUSH")
 		{
 			requireValueDefinedForInstruction(name, value);
+			requireValueInRange(name, "0x" + value, 0, std::numeric_limits<u256>::max());
 			result = {AssemblyItemType::Push, u256("0x" + value)};
 		}
 		else if (name == "PUSH [ErrorTag]")
@@ -270,16 +282,19 @@ AssemblyItem Assembly::createAssemblyItemFromJSON(Json const& _json, std::vector
 		else if (name == "PUSH [tag]")
 		{
 			requireValueDefinedForInstruction(name, value);
+			requireValueInRange(name, value, 0, std::numeric_limits<unsigned>::max());
 			result = {AssemblyItemType::PushTag, updateUsedTags(u256(value))};
 		}
 		else if (name == "PUSH [$]")
 		{
 			requireValueDefinedForInstruction(name, value);
+			requireValueInRange(name, "0x" + value, 0, std::numeric_limits<size_t>::max());
 			result = {AssemblyItemType::PushSub, u256("0x" + value)};
 		}
 		else if (name == "PUSH #[$]")
 		{
 			requireValueDefinedForInstruction(name, value);
+			requireValueInRange(name, "0x" + value, 0, std::numeric_limits<size_t>::max());
 			result = {AssemblyItemType::PushSubSize, u256("0x" + value)};
 		}
 		else if (name == "PUSHSIZE")
@@ -310,11 +325,17 @@ AssemblyItem Assembly::createAssemblyItemFromJSON(Json const& _json, std::vector
 		else if (name == "tag")
 		{
 			requireValueDefinedForInstruction(name, value);
+			requireValueInRange(name, value, 0, std::numeric_limits<unsigned>::max());
 			result = {AssemblyItemType::Tag, updateUsedTags(u256(value))};
 		}
 		else if (name == "PUSH data")
 		{
 			requireValueDefinedForInstruction(name, value);
+			solRequire(
+				value.size() == 64 && value.find_first_not_of("0123456789abcdefABCDEF") == std::string::npos,
+				AssemblyImportException,
+				"Value provided for instruction 'PUSH data' is not a valid 256-bit hexadecimal number."
+			);
 			result = {AssemblyItemType::PushData, u256("0x" + value)};
 		}
 		else if (name == "VERBATIM")

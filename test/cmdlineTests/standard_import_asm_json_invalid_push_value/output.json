@@ -1,0 +1,11 @@
+{
+    "errors": [
+        {
+            "component": "general",
+            "formattedMessage": "Assembly import error: Value provided for instruction 'PUSH' is out of the allowed range [0, 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff].",
+            "message": "Assembly import error: Value provided for instruction 'PUSH' is out of the allowed range [0, 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff].",
+            "severity": "error",
+            "type": "Exception"
+        }
+    ]
+}
