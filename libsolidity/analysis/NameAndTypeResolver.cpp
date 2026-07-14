@@ -260,6 +260,9 @@ void NameAndTypeResolver::warnHomonymDeclarations() const
 		for (Declaration const* outerDeclaration: outerDeclarations)
 		{
 			solAssert(outerDeclaration, "");
+			if (auto const* varDecl = dynamic_cast<VariableDeclaration const*>(outerDeclaration))
+				if (varDecl->isLocalVariable() && outerDeclaration->location().start >= innerLocation->start)
+					continue;
 			if (dynamic_cast<MagicVariableDeclaration const*>(outerDeclaration))
 				magicShadowed = true;
 			else if (!outerDeclaration->isVisibleInContract())
