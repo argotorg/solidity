@@ -53,6 +53,7 @@
 #include <libsolutil/CommonData.h>
 #include <libsolutil/CommonIO.h>
 #include <libsolutil/JSON.h>
+#include <libsolutil/Logger.h>
 
 #include <algorithm>
 #include <fstream>
@@ -581,7 +582,8 @@ void CommandLineInterface::readInputFiles()
 	static std::set<frontend::InputMode> const noInputFiles{
 		frontend::InputMode::Help,
 		frontend::InputMode::License,
-		frontend::InputMode::Version
+		frontend::InputMode::Version,
+		frontend::InputMode::LogListCategories
 	};
 
 	if (noInputFiles.count(m_options.input.mode) == 1)
@@ -789,7 +791,46 @@ bool CommandLineInterface::parseArguments(int _argc, char const* const* _argv)
 	}
 	m_options = parser.options();
 
+	applyLoggingOptions();
+
 	return true;
+}
+
+CommandLineInterface::~CommandLineInterface()
+{
+	log::LoggerRegistry::singleton().reset();
+}
+
+void CommandLineInterface::applyLoggingOptions()
+{
+	auto& registry = log::LoggerRegistry::singleton();
+
+	if (!m_options.logging.file)
+		registry.setOutput(serr(false));
+	else if (*m_options.logging.file == "stdout")
+		registry.setOutput(sout(false));
+	else
+	{
+		boost::system::error_code fileSystemError;
+		boost::filesystem::file_type const logFileStatus = boost::filesystem::status(*m_options.logging.file, fileSystemError).type();
+		if (logFileStatus == boost::filesystem::status_error)
+			solThrow(CommandLineOutputError, "Logger cannot use file \"" + *m_options.logging.file + "\". " + fileSystemError.message());
+		if (logFileStatus != boost::filesystem::file_not_found)
+			solThrow(CommandLineOutputError, "Logger will not overwrite already existing file \"" + *m_options.logging.file + "\".");
+
+		m_logFile = std::make_unique<std::ofstream>(*m_options.logging.file);
+		if (!m_logFile->is_open())
+			solThrow(CommandLineOutputError, "Could not open log file \"" + *m_options.logging.file + "\".");
+		registry.setOutput(*m_logFile);
+	}
+
+	// Apply the global default first, then the per-category overrides in order, so that the
+	// overrides supersede --log-level and later occurrences win.
+	if (m_options.logging.globalLevel)
+		registry.setLevel("", *m_options.logging.globalLevel);
+
+	for (auto const& [prefix, level]: m_options.logging.categoryLevels)
+		registry.setLevel(prefix, level);
 }
 
 void CommandLineInterface::processInput()
@@ -810,6 +851,9 @@ void CommandLineInterface::processInput()
 		break;
 	case InputMode::Version:
 		printVersion();
+		break;
+	case InputMode::LogListCategories:
+		printLogCategories();
 		break;
 	case InputMode::StandardJson:
 	{
@@ -839,6 +883,12 @@ void CommandLineInterface::processInput()
 		handleEVMAssembly(m_assemblyStack->contractNames().front());
 		break;
 	}
+}
+
+void CommandLineInterface::printLogCategories()
+{
+	for (std::string const& category: log::LoggerRegistry::singleton().categories())
+		sout() << category << std::endl;
 }
 
 void CommandLineInterface::printVersion()
