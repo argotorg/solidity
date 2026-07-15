@@ -102,6 +102,19 @@ public:
 		m_debugData{langutil::DebugData::create()}
 	{}
 
+	/// @returns an item swapping the top of the stack with the value at @a _depth using SWAP1-16.
+	static AssemblyItem swap(size_t _depth, langutil::DebugData::ConstPtr _debugData = langutil::DebugData::create())
+	{
+		// Depths outside the range [1, 16] are rejected by an assert in swapInstruction().
+		return AssemblyItem(swapInstruction(static_cast<unsigned>(_depth)), std::move(_debugData));
+	}
+	/// @returns an item duplicating the value at stack depth @a _depth to the top of the stack using DUP1-16.
+	static AssemblyItem dup(size_t _depth, langutil::DebugData::ConstPtr _debugData = langutil::DebugData::create())
+	{
+		// Depths outside the range [1, 16] are rejected by an assert in dupInstruction().
+		return AssemblyItem(dupInstruction(static_cast<unsigned>(_depth)), std::move(_debugData));
+	}
+
 	AssemblyItem(AssemblyItem const&) = default;
 	AssemblyItem(AssemblyItem&&) = default;
 	AssemblyItem& operator=(AssemblyItem const&) = default;
