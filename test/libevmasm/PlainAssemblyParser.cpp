@@ -115,6 +115,17 @@ Json PlainAssemblyParser::parseAssembly(size_t _nestingLevel)
 				codeJSON.push_back({{"name", "PUSH"}, {"value", immediateArgument}});
 			}
 		}
+		else if (currentToken().value == "VERBATIM")
+		{
+			std::string_view verbatimData = expectArgument();
+			expectNoMoreArguments();
+
+			if (!verbatimData.starts_with("0x"))
+				BOOST_THROW_EXCEPTION(std::runtime_error(formatError("The argument to VERBATIM must be a hex string prefixed with '0x'.")));
+
+			verbatimData.remove_prefix("0x"s.size());
+			codeJSON.push_back({{"name", "VERBATIM"}, {"value", verbatimData}});
+		}
 		else if (currentToken().value == "tag")
 		{
 			std::string_view tagID = expectArgument();
