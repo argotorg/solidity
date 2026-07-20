@@ -1,0 +1,10 @@
+Warning: This contract is very close to the end of storage. This limits its future upgradability.
+ --> <stdin>:6:17:
+  |
+6 | contract C is B layout at 2**256 - 2**40 { uint z; }
+  |                 ^^^^^^^^^^^^^^^^^^^^^^^^
+Note: There are 0xfffffffffc storage slots between this state variable and the end of storage.
+ --> <stdin>:6:44:
+  |
+6 | contract C is B layout at 2**256 - 2**40 { uint z; }
+  |                                            ^^^^^^

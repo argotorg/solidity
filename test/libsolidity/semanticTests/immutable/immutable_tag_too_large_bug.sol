@@ -45,6 +45,6 @@ contract C {
 // gas irOptimized code: 291200
 // gas legacy: 83499
 // gas legacy code: 408800
-// gas ssaCFGOptimized: 72146
-// gas ssaCFGOptimized code: 272200
+// gas ssaCFGOptimized: 67393
+// gas ssaCFGOptimized code: 157400
 // f() -> -1, 1

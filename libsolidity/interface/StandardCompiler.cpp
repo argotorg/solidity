@@ -640,7 +640,8 @@ std::variant<OptimiserSettings, Json> parseOptimizerSettings(std::string_view co
 	{
 		if (!_jsonInput["runs"].is_number_unsigned())
 			return formatFatalError(Error::Type::JSONError, "The \"runs\" setting must be an unsigned number.");
-		settings.expectedExecutionsPerDeployment = _jsonInput["runs"].get<size_t>();
+		static_assert(std::is_same_v<decltype(settings.expectedExecutionsPerDeployment), Json::number_unsigned_t>);
+		settings.expectedExecutionsPerDeployment = _jsonInput["runs"].get<Json::number_unsigned_t>();
 	}
 
 	if (_jsonInput.contains("details"))
@@ -1809,7 +1810,7 @@ Json StandardCompiler::compileYul(InputsAndSettings _inputsAndSettings)
 			sourceResult["ast"] = stack.astJson();
 			output["sources"][sourceName] = sourceResult;
 		}
-		stack.optimize();
+		stack.optimize(_inputsAndSettings.viaSSACFG);
 		std::tie(object, deployedObject) = stack.assembleWithDeployed({}, _inputsAndSettings.viaSSACFG);
 		if (object.bytecode)
 			object.bytecode->link(_inputsAndSettings.libraries);

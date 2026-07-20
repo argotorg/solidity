@@ -326,7 +326,7 @@ void ContractCompiler::appendInternalSelector(
 	std::map<FixedHash<4>, evmasm::AssemblyItem const> const& _entryPoints,
 	std::vector<FixedHash<4>> const& _ids,
 	evmasm::AssemblyItem const& _notFoundTag,
-	size_t _runs
+	OptimiserSettings::ExecutionCount _runs
 )
 {
 	// Code for selecting from n functions without split:

@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include <libyul/Exceptions.h>
+#include <liblangutil/Exceptions.h>
 
 #include <algorithm>
 #include <concepts>
@@ -26,7 +26,7 @@
 #include <limits>
 #include <vector>
 
-namespace solidity::yul::ssa::util
+namespace solidity::util
 {
 
 namespace detail
@@ -65,7 +65,7 @@ struct TarjanSCC
 
 	void enter(NodeIndex const _v)
 	{
-		yulAssert(_v < adjacency.size());
+		solAssert(_v < adjacency.size());
 		discoveryIndex[_v] = nextIndex;
 		lowlink[_v] = nextIndex;
 		++nextIndex;
@@ -76,7 +76,7 @@ struct TarjanSCC
 
 	void emitSCC(NodeIndex const _root)
 	{
-		yulAssert(!nodeStack.empty());
+		solAssert(!nodeStack.empty());
 		std::vector<NodeIndex> scc;
 		NodeIndex w;
 		do

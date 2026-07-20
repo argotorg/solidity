@@ -49,7 +49,7 @@ public:
 	/// @returns zero if no optimisations could be performed.
 	static unsigned optimiseConstants(
 		bool _isCreation,
-		size_t _runs,
+		std::uint64_t _runs,
 		langutil::EVMVersion _evmVersion,
 		Assembly& _assembly
 	);
@@ -60,7 +60,7 @@ protected:
 	struct Params
 	{
 		bool isCreation; ///< Whether this is called during contract creation or runtime.
-		size_t runs; ///< Estimated number of calls per opcode oven the lifetime of the contract.
+		std::uint64_t runs; ///< Estimated number of calls per opcode oven the lifetime of the contract.
 		size_t multiplicity; ///< Number of times the constant appears in the code.
 		langutil::EVMVersion evmVersion; ///< Version of the EVM
 	};

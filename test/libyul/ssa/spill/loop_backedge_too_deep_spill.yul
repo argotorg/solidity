@@ -52,7 +52,7 @@ code {
 // ----
 // object "C"
 // ===== SSA CFG =====
-// memoryguard = 0x01a0
+// memoryguard = 0x0180
 //
 // #0:
 //     v0 = memoryguard
@@ -108,7 +108,7 @@ code {
 //     upsilon v19 -> ^v58
 //     upsilon v20 -> ^v60
 //     jump #1
-// #1: preds: #0, #3
+// #1: preds: #0, #2
 //     v22 = phi
 //     v23 = builtin @lt v22, v0
 //     v24 = phi
@@ -151,8 +151,6 @@ code {
 //     v57 = builtin @add v56, v22
 //     v59 = builtin @add v58, v22
 //     v61 = builtin @add v60, v22
-//     jump #3
-// #3: preds: #2
 //     v62 = builtin @add v22, v2
 //     upsilon v62 -> ^v22
 //     upsilon v25 -> ^v24
@@ -202,22 +200,20 @@ code {
 //   spilled: none
 // CFG[1] f
 //   spilled:
-//     v51 (value) -> mem 0x80
-//     v52 (phi) -> mem 0xa0
-//     v54 (phi) -> mem 0xc0
-//     v56 (phi) -> mem 0xe0
+//     v52 (phi) -> mem 0x80
+//     v54 (phi) -> mem 0xa0
+//     v56 (phi) -> mem 0xc0
+//     v57 (value) -> mem 0xe0
 //     v58 (phi) -> mem 0x0100
 //     v59 (value) -> mem 0x0120
 //     v60 (phi) -> mem 0x0140
 //     v61 (value) -> mem 0x0160
-//     v62 (value) -> mem 0x0180
 //   mstore schedule:
-//     mstore addr(v51) <- v51 (B#2)
 //     mstore addr(v52) <- v52 (B#1)
 //     mstore addr(v54) <- v54 (B#1)
 //     mstore addr(v56) <- v56 (B#1)
+//     mstore addr(v57) <- v57 (B#2)
 //     mstore addr(v58) <- v58 (B#1)
 //     mstore addr(v59) <- v59 (B#2)
 //     mstore addr(v60) <- v60 (B#1)
 //     mstore addr(v61) <- v61 (B#2)
-//     mstore addr(v62) <- v62 (B#3)

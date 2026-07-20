@@ -69,7 +69,7 @@
 // ----
 // object "object"
 // ===== SSA CFG =====
-// memoryguard = 0x0140
+// memoryguard = 0x0100
 //
 // #0:
 //     v0 = memoryguard
@@ -239,13 +239,9 @@
 //     v34 (value) -> mem 0x80
 //     v57 (value) -> mem 0xa0
 //     v62 (value) -> mem 0xc0
-//     v77 (phi) -> mem 0xe0
-//     v80 (phi) -> mem 0x0100
-//     v128 (phi) -> mem 0x0120
+//     v76 (value) -> mem 0xe0
 //   mstore schedule:
 //     mstore addr(v34) <- v34 (B#0)
 //     mstore addr(v57) <- v57 (B#2)
 //     mstore addr(v62) <- v62 (B#3)
-//     mstore addr(v77) <- v77 (B#1)
-//     mstore addr(v80) <- v80 (B#1)
-//     mstore addr(v128) <- v128 (B#1)
+//     mstore addr(v76) <- v76 (B#3)

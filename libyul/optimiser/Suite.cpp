@@ -94,8 +94,9 @@ void OptimiserSuite::run(
 	bool _optimizeStackAllocation,
 	std::string_view _optimisationSequence,
 	std::string_view _optimisationCleanupSequence,
-	std::optional<size_t> _expectedExecutionsPerDeployment,
-	std::set<YulName> const& _externallyUsedIdentifiers
+	std::optional<std::uint64_t> _expectedExecutionsPerDeployment,
+	std::set<YulName> const& _externallyUsedIdentifiers,
+	bool _viaSSACFG
 )
 {
 	yulAssert(_object.dialect());
@@ -106,6 +107,7 @@ void OptimiserSuite::run(
 		evmDialect &&
 		evmDialect->evmVersion().canOverchargeGasForCall() &&
 		evmDialect->providesObjectAccess();
+	bool usesSSACFGCodeGenerator = usesOptimizedCodeGenerator && _viaSSACFG;
 	std::set<YulName> reservedIdentifiers = _externallyUsedIdentifiers;
 
 	Block astRoot;
@@ -161,29 +163,33 @@ void OptimiserSuite::run(
 			PROFILER_PROBE("ConstantOptimiser", probe);
 			ConstantOptimiser{*evmDialect, *_meter}(astRoot);
 		}
-		if (usesOptimizedCodeGenerator)
+		// The SSA CFG code generator performs its own stack layout and spilling.
+		if (!usesSSACFGCodeGenerator)
 		{
+			if (usesOptimizedCodeGenerator)
 			{
-				PROFILER_PROBE("StackCompressor", probe);
-				_object.setCode(std::make_shared<AST>(dialect, std::move(astRoot)));
-				astRoot = std::get<1>(StackCompressor::run(
-					_object,
-					_optimizeStackAllocation,
-					stackCompressorMaxIterations
-				));
+				{
+					PROFILER_PROBE("StackCompressor", probe);
+					_object.setCode(std::make_shared<AST>(dialect, std::move(astRoot)));
+					astRoot = std::get<1>(StackCompressor::run(
+						_object,
+						_optimizeStackAllocation,
+						stackCompressorMaxIterations
+					));
+				}
+				if (evmDialect->providesObjectAccess())
+				{
+					PROFILER_PROBE("StackLimitEvader", probe);
+					_object.setCode(std::make_shared<AST>(dialect, std::move(astRoot)));
+					astRoot = StackLimitEvader::run(suite.m_context, _object);
+				}
 			}
-			if (evmDialect->providesObjectAccess())
+			else if (evmDialect->providesObjectAccess() && _optimizeStackAllocation)
 			{
 				PROFILER_PROBE("StackLimitEvader", probe);
 				_object.setCode(std::make_shared<AST>(dialect, std::move(astRoot)));
 				astRoot = StackLimitEvader::run(suite.m_context, _object);
 			}
-		}
-		else if (evmDialect->providesObjectAccess() && _optimizeStackAllocation)
-		{
-			PROFILER_PROBE("StackLimitEvader", probe);
-			_object.setCode(std::make_shared<AST>(dialect, std::move(astRoot)));
-			astRoot = StackLimitEvader::run(suite.m_context, _object);
 		}
 	}
 

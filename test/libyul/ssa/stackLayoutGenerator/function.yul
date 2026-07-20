@@ -34,7 +34,7 @@
 // \l\
 // [FunctionCallReturnLabel[0]]\l\
 // i\l\
-// [FunctionCallReturnLabel[0], v1, v2]\l\
+// [v1, v2]\l\
 // \l\
 // [v1]\l\
 // h\l\
@@ -87,7 +87,7 @@
 // \l\
 // [FunctionCallReturnLabel[0], lit1, v0]\l\
 // f\l\
-// [FunctionCallReturnLabel[0], v2]\l\
+// [v2]\l\
 // \l\
 // [v2]\l\
 // h\l\

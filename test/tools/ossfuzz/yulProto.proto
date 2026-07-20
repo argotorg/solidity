@@ -408,6 +408,7 @@ message Program {
     CANCUN = 11;
     PRAGUE = 12;
     OSAKA = 13;
+    AMSTERDAM = 14;
   }
   oneof program_oneof {
     Block block = 1;

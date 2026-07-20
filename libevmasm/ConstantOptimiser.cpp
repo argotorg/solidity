@@ -29,7 +29,7 @@ using namespace solidity::evmasm;
 
 unsigned ConstantOptimisationMethod::optimiseConstants(
 	bool _isCreation,
-	size_t _runs,
+	std::uint64_t _runs,
 	langutil::EVMVersion _evmVersion,
 	Assembly& _assembly
 )

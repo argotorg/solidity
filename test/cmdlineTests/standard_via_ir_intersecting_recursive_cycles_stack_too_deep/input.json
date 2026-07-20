@@ -1,0 +1,12 @@
+{
+    "language": "Solidity",
+    "sources": {
+        "in.sol": {"urls": ["in.sol"]}
+    },
+    "settings": {
+        "viaIR": true,
+        "outputSelection": {
+            "*": {"*": ["evm.bytecode"]}
+        }
+    }
+}

@@ -64,6 +64,7 @@ public:
 	static EVMVersion constexpr cancun() { return {Version::Cancun}; }
 	static EVMVersion constexpr prague() { return {Version::Prague}; }
 	static EVMVersion constexpr osaka() { return {Version::Osaka}; }
+	static EVMVersion constexpr amsterdam() { return {Version::Amsterdam}; }
 	static EVMVersion constexpr future() { return {Version::Future}; }
 
 	static auto constexpr allVersions() {
@@ -82,6 +83,7 @@ public:
 			cancun(),
 			prague(),
 			osaka(),
+			amsterdam(),
 			future(),
 		};
 	}
@@ -119,6 +121,7 @@ public:
 		case Version::Cancun: return "cancun";
 		case Version::Prague: return "prague";
 		case Version::Osaka: return "osaka";
+		case Version::Amsterdam: return "amsterdam";
 		case Version::Future: return "@future";
 		}
 		util::unreachable();
@@ -164,6 +167,7 @@ private:
 		Cancun,
 		Prague,
 		Osaka,
+		Amsterdam,
 		Future,
 	};
 	static auto constexpr currentVersion = Version::Osaka;

@@ -40,7 +40,7 @@ public:
 	explicit Inliner(
 		AssemblyItems& _items,
 		std::set<size_t> const& _tagsReferencedFromOutside,
-		size_t _runs,
+		Assembly::OptimiserSettings::ExecutionCount _runs,
 		bool _isCreation,
 		langutil::EVMVersion _evmVersion
 	):
@@ -76,7 +76,7 @@ private:
 
 	AssemblyItems& m_items;
 	std::set<size_t> const& m_tagsReferencedFromOutside;
-	size_t const m_runs = Assembly::OptimiserSettings{}.expectedExecutionsPerDeployment;
+	Assembly::OptimiserSettings::ExecutionCount const m_runs = Assembly::OptimiserSettings{}.expectedExecutionsPerDeployment;
 	bool const m_isCreation = false;
 	langutil::EVMVersion const m_evmVersion;
 };

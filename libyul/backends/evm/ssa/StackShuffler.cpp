@@ -32,7 +32,6 @@ Target::Target(
 ):
 	args(_args),
 	liveOut(_liveOut),
-	spilledVariables(_spilledVariables),
 	size(_targetSize),
 	tailSize(_targetSize - _args.size())
 {
@@ -141,7 +140,7 @@ bool State::requiredInTail(StackSlot const& _slot) const
 
 bool State::offsetInTargetArgsRegion(StackOffset const _offset) const
 {
-	return _offset.value >= m_target.size - m_target.args.size() && _offset.value < m_target.size;
+	return _offset.value >= m_target.tailSize && _offset.value < m_target.size;
 }
 
 StackSlot const& State::targetArg(StackOffset const _targetOffset) const
@@ -186,6 +185,23 @@ bool State::isSafeToSwapWithTop(StackOffset const _offset) const
 			!requiredInTail(slot) ||  // we're in tail but sourceOffset not needed in tail
 			(countInTail(slot) > 1 && requiredInTail(slot))  // swapping source offset away from tail doesn't decrease tail correctness
 		);
+}
+
+std::optional<StackOffset> State::canSwapWithNonTopArg(StackOffset const _offset) const
+{
+	auto const& slot = m_stackData[_offset.value];
+	for (auto argOffset: stackArgsRange())
+	{
+		if (argOffset.value == m_stackData.size() - 1)
+			continue;
+		auto const& argSlot = m_stackData[argOffset.value];
+		if (slot == argSlot)
+			continue;
+		bool const goodCandidateForSwap = !isArgsCompatible(argOffset, argOffset) && !requiredInArgs(argSlot);
+		if (goodCandidateForSwap)
+			return argOffset;
+	}
+	return std::nullopt;
 }
 
 Target const& State::target() const

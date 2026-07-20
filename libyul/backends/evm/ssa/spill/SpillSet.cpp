@@ -61,8 +61,12 @@ StackData computeOperationOut(
 
 	StackData opOutStack = blockLayout->operationIn[opIndex];
 	SSACFG::Inst const& inst = _cfg.inst(producer);
-	yulAssert(opOutStack.size() >= inst.inputs.size(), "operationIn smaller than input count");
-	for (std::size_t i = 0; i < inst.inputs.size(); ++i)
+	// a call that can continue also consumes its return label, which sits right below the inputs
+	std::size_t consumedSlots = inst.inputs.size();
+	if (inst.opcode == InstOpcode::Call && _cfg.callPayload(producer).canContinue)
+		++consumedSlots;
+	yulAssert(opOutStack.size() >= consumedSlots, "operationIn smaller than consumed slot count");
+	for (std::size_t i = 0; i < consumedSlots; ++i)
 		opOutStack.pop_back();
 	_cfg.forEachOutput(producer, [&](InstId const id) {
 		opOutStack.push_back(StackSlot::makeValue(_cfg, id));

@@ -79,12 +79,6 @@ void CodeTransform::run
 		spillSetsPerCFG.push_back(std::move(spillSet));
 	}
 
-	for (std::size_t functionIndex = 0; functionIndex < numCFGs; ++functionIndex)
-		spillSetsPerCFG[functionIndex].closeUnderReachabilityConstraints(
-			*_controlFlowGraphs.functionGraphs[functionIndex],
-			layouts[functionIndex]
-		);
-
 	// build up global addressing based on the spill sets
 	spill::MemoryAddressing const addressing(_controlFlowGraphs, spillSetsPerCFG);
 

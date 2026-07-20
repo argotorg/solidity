@@ -42,6 +42,7 @@ add_executable(isoltest
 	../libsolidity/FunctionDependencyGraphTest.cpp
 	../libsolidity/JSONExpectationTest.cpp
 	../libsolidity/SMTCheckerTest.cpp
+	../libyul/CallGraphTest.cpp
 	../libyul/Common.cpp
 	../libyul/ControlFlowGraphTest.cpp
 	../libyul/ControlFlowSideEffectsTest.cpp

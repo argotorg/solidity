@@ -463,6 +463,20 @@ footer .rst-footer-buttons {
     border-bottom: 1px solid var(--color-c);
 }
 
+/* Read the Docs Addons version-warning notification.
+   The addon hardcodes top:2rem / z-index:1750 inside its shadow DOM, so the
+   fixed site header (--navHeight tall, z-index:99999) both overlaps and covers
+   it. Style the host element to sit below the header and above its z-index;
+   the transform makes the host the containing block for the addon's fixed
+   toast, shifting its internal top:2rem offset down past the header. */
+readthedocs-notification {
+    position: fixed;
+    top: var(--navHeight);
+    right: 0;
+    z-index: 100000;
+    transform: translateZ(0);
+}
+
 /* Rest: Flex-row, with two children: side bar, and content */
 .unified-wrapper .wy-grid-for-nav {
     position: relative !important;

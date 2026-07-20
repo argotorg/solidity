@@ -189,6 +189,18 @@ AssemblyItem Assembly::createAssemblyItemFromJSON(Json const& _json, std::vector
 		return data;
 	};
 
+	// m_tagPositionsInBytecode is sized from m_usedTags, so an imported tag ID has to stay within the
+	// same range that newTag() enforces on the ones we hand out ourselves.
+	auto requireTagIDInRange = [&](u256 const& _tagID)
+	{
+		solRequire(
+			_tagID < 0xffffffff,
+			AssemblyImportException,
+			"The 'value' of a tag or tag reference is out of the supported range."
+		);
+		return _tagID;
+	};
+
 	auto storeImmutableHash = [&](std::string const& _immutableName) -> h256
 	{
 		h256 hash(util::keccak256(_immutableName));
@@ -270,7 +282,9 @@ AssemblyItem Assembly::createAssemblyItemFromJSON(Json const& _json, std::vector
 		else if (name == "PUSH [tag]")
 		{
 			requireValueDefinedForInstruction(name, value);
-			result = {AssemblyItemType::PushTag, updateUsedTags(u256(value))};
+			result = {AssemblyItemType::PushTag, u256(value)};
+			// The value has the sub-assembly ID packed above the tag ID, so only the latter is range-checked.
+			updateUsedTags(requireTagIDInRange(result.splitForeignPushTag().second));
 		}
 		else if (name == "PUSH [$]")
 		{
@@ -310,7 +324,7 @@ AssemblyItem Assembly::createAssemblyItemFromJSON(Json const& _json, std::vector
 		else if (name == "tag")
 		{
 			requireValueDefinedForInstruction(name, value);
-			result = {AssemblyItemType::Tag, updateUsedTags(u256(value))};
+			result = {AssemblyItemType::Tag, updateUsedTags(requireTagIDInRange(u256(value)))};
 		}
 		else if (name == "PUSH data")
 		{

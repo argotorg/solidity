@@ -104,6 +104,13 @@ protected:
 			yulAssert(_inst.inputs.size() <= operationStack.size());
 			for (std::size_t j = 0; j < _inst.inputs.size(); ++j)
 				operationStack.pop_back();
+			// A continuing function call's return label is not an SSA input but is consumed by the
+			// callee's return jump, so drop it to reflect the actual post-call stack.
+			if (_inst.opcode == InstOpcode::Call && m_cfg.callPayload(_instId).canContinue)
+			{
+				yulAssert(!operationStack.empty() && operationStack.back().isFunctionCallReturnLabel());
+				operationStack.pop_back();
+			}
 			m_cfg.forEachOutput(_instId, [&](InstId const output) {
 				operationStack.push_back(StackSlot::makeValue(m_cfg, output));
 			});

@@ -8,6 +8,17 @@ macro(configure_project)
 	eth_default_option(COVERAGE OFF)
 	eth_default_option(OSSFUZZ OFF)
 
+	# Master switch for the FuzzTest-based property tests. OFF means deps/fuzztest is never
+	# add_subdirectory'd, so none of its transitive FetchContent deps (abseil/re2/gtest/antlr)
+	# are configured.
+	eth_default_option(PROPERTY_BASED_TESTS OFF)
+
+	# Mode selector, only meaningful when PROPERTY_BASED_TESTS is ON.
+	if (NOT DEFINED PROPERTY_BASED_TESTS_MODE)
+		set(PROPERTY_BASED_TESTS_MODE "unittest" CACHE STRING "Property-based test mode: unittest or fuzzing")
+	endif()
+	set_property(CACHE PROPERTY_BASED_TESTS_MODE PROPERTY STRINGS "unittest" "fuzzing")
+
 	# components
 	eth_default_option(TESTS ON)
 	eth_default_option(TOOLS ON)
@@ -41,6 +52,8 @@ if (SUPPORT_TOOLS)
 endif()
 	message("------------------------------------------------------------------ flags")
 	message("-- OSSFUZZ                                                   ${OSSFUZZ}")
+	message("-- PROPERTY_BASED_TESTS (FuzzTest)                           ${PROPERTY_BASED_TESTS}")
+	message("-- PROPERTY_BASED_TESTS_MODE                                 ${PROPERTY_BASED_TESTS_MODE}")
 	message("------------------------------------------------------------------------")
 	message("")
 endmacro()

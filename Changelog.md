@@ -1,14 +1,32 @@
-### 0.8.36 (unreleased)
+### 0.8.37 (unreleased)
 
 Language Features:
 
 Compiler Features:
-* General: Speed up SHA-256 hashing (`picosha2`).
-* General: Remove support for the experimental EOF (EVM Object Format) backend.
 
 Bugfixes:
+* Commandline Interface: Report proper error instead of ICE on non-hex mixed-case address value given via `--libraries`.
+
+
+### 0.8.36 (2026-07-09)
+
+Important Bugfixes:
+* PostTypeContractLevelChecker: Fix unintentional reversal of `linearizedBaseContracts` annotation when emitting the warning about the base slot of storage layout being too close to the end of storage. The reversal would affect analysis and code generation dependent on the inheritance order.
+* Yul Optimizer: Fix call graph cycle detection failing to classify some mutually recursive functions as recursive.
+
+Compiler Features:
+* Commandline Interface: `--optimize-runs` now also accepts values from the interval [INT64_MAX, UINT64_MAX].
+* EVM: Support for the EVM version "Amsterdam".
+* General: Remove support for the experimental EOF (EVM Object Format) backend.
+* General: Speed up SHA-256 hashing (`picosha2`).
+* General: The experimental SSA CFG codegen can now spill stack values to memory to avoid stack-too-deep errors.
+
+Bugfixes:
+* Constant Evaluator: Fix ICE when evaluating `erc7201` builtin with wrong number of arguments.
+* Custom Storage Layout: Fix segfault when emitting the "too close to end of storage" warning for contracts with no storage variables.
 * NatSpec: Disallow `@return` tag in event documentation.
 * SMTChecker: Fix incorrect handling of constant operands of unary operations.
+* Standard JSON Interface: Fix incorrect serialization of `optimizer.runs` setting for values in the interval [INT64_MAX, UINT64_MAX].
 
 
 ### 0.8.35 (2026-04-29)

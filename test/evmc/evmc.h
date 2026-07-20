@@ -39,12 +39,13 @@ enum
     /**
      * The EVMC ABI version number of the interface declared in this file.
      *
-     * The EVMC ABI version always equals the major version number of the EVMC project.
+     * The ABI version is incremented on every incompatible change of the EVMC API or ABI
+     * (up to EVMC 12 it equaled the major version number of the standalone EVMC project).
      * The Host SHOULD check if the ABI versions match when dynamically loading VMs.
      *
      * @see @ref versioning
      */
-    EVMC_ABI_VERSION = 12
+    EVMC_ABI_VERSION = 13
 };
 
 
@@ -80,13 +81,13 @@ enum evmc_call_kind
     EVMC_CALLCODE = 2,     /**< Request CALLCODE. */
     EVMC_CREATE = 3,       /**< Request CREATE. */
     EVMC_CREATE2 = 4,      /**< Request CREATE2. Valid since Constantinople.*/
-    EVMC_EOFCREATE = 5     /**< Request EOFCREATE. Valid since Prague.*/
 };
 
 /** The flags for ::evmc_message. */
 enum evmc_flags
 {
-    EVMC_STATIC = 1 /**< Static call mode. */
+    EVMC_STATIC = 1,   /**< Static call mode. */
+    EVMC_DELEGATED = 2 /**< Delegated call mode (EIP-7702). Valid since Prague. */
 };
 
 /**
@@ -101,7 +102,7 @@ struct evmc_message
 
     /**
      * Additional flags modifying the call execution behavior.
-     * In the current version the only valid values are ::EVMC_STATIC or 0.
+     *
      */
     uint32_t flags;
 
@@ -169,8 +170,7 @@ struct evmc_message
     /**
      * The optional value used in new contract address construction.
      *
-     * Needed only for a Host to calculate created address when kind is ::EVMC_CREATE2 or
-     * ::EVMC_EOFCREATE.
+     * Needed only for a Host to calculate created address when kind is ::EVMC_CREATE2.
      * Ignored in evmc_execute_fn().
      */
     evmc_bytes32 create2_salt;
@@ -181,7 +181,7 @@ struct evmc_message
      * For ::EVMC_CALLCODE or ::EVMC_DELEGATECALL this may be different from
      * the evmc_message::recipient.
      * Not required when invoking evmc_execute_fn(), only when invoking evmc_call_fn().
-     * Ignored if kind is ::EVMC_CREATE, ::EVMC_CREATE2 or ::EVMC_EOFCREATE.
+     * Ignored if kind is ::EVMC_CREATE or ::EVMC_CREATE2.
      *
      * In case of ::EVMC_CAPABILITY_PRECOMPILES implementation, this fields should be inspected
      * to identify the requested precompile.
@@ -201,31 +201,22 @@ struct evmc_message
     size_t code_size;
 };
 
-/** The hashed initcode used for TXCREATE instruction. */
-typedef struct evmc_tx_initcode
-{
-    evmc_bytes32 hash;   /**< The initcode hash. */
-    const uint8_t* code; /**< The code. */
-    size_t code_size;    /**< The length of the code. */
-} evmc_tx_initcode;
-
 /** The transaction and block data for execution. */
 struct evmc_tx_context
 {
-    evmc_uint256be tx_gas_price;       /**< The transaction gas price. */
-    evmc_address tx_origin;            /**< The transaction origin account. */
-    evmc_address block_coinbase;       /**< The miner of the block. */
-    int64_t block_number;              /**< The block number. */
-    int64_t block_timestamp;           /**< The block timestamp. */
-    int64_t block_gas_limit;           /**< The block gas limit. */
-    evmc_uint256be block_prev_randao;  /**< The block previous RANDAO (EIP-4399). */
-    evmc_uint256be chain_id;           /**< The blockchain's ChainID. */
-    evmc_uint256be block_base_fee;     /**< The block base fee per gas (EIP-1559, EIP-3198). */
-    evmc_uint256be blob_base_fee;      /**< The blob base fee (EIP-7516). */
-    const evmc_bytes32* blob_hashes;   /**< The array of blob hashes (EIP-4844). */
-    size_t blob_hashes_count;          /**< The number of blob hashes (EIP-4844). */
-    const evmc_tx_initcode* initcodes; /**< The array of transaction initcodes (TXCREATE). */
-    size_t initcodes_count;            /**< The number of transaction initcodes (TXCREATE). */
+    evmc_uint256be tx_gas_price;      /**< The transaction gas price. */
+    evmc_address tx_origin;           /**< The transaction origin account. */
+    evmc_address block_coinbase;      /**< The miner of the block. */
+    int64_t block_number;             /**< The block number. */
+    int64_t block_timestamp;          /**< The block timestamp. */
+    int64_t block_gas_limit;          /**< The block gas limit. */
+    evmc_uint256be block_prev_randao; /**< The block previous RANDAO (EIP-4399). */
+    evmc_uint256be chain_id;          /**< The blockchain's ChainID. */
+    evmc_uint256be block_base_fee;    /**< The block base fee per gas (EIP-1559, EIP-3198). */
+    evmc_uint256be blob_base_fee;     /**< The blob base fee (EIP-7516). */
+    const evmc_bytes32* blob_hashes;  /**< The array of blob hashes (EIP-4844). */
+    size_t blob_hashes_count;         /**< The number of blob hashes (EIP-4844). */
+    uint64_t block_slot_number;       /**< The beacon chain slot number (EIP-7843). */
 };
 
 /**
@@ -278,7 +269,7 @@ typedef evmc_bytes32 (*evmc_get_block_hash_fn)(struct evmc_host_context* context
  *
  * @note
  * In case new status codes are needed, please create an issue or pull request
- * in the EVMC repository (https://github.com/ipsilon/evmc).
+ * in the EVMC repository (https://github.com/ethereum/evmc).
  */
 enum evmc_status_code
 {
@@ -484,19 +475,6 @@ struct evmc_result
      * In all other cases the address MUST be null bytes.
      */
     evmc_address create_address;
-
-    /**
-     * Reserved data that MAY be used by a evmc_result object creator.
-     *
-     * This reserved 4 bytes together with 20 bytes from create_address form
-     * 24 bytes of memory called "optional data" within evmc_result struct
-     * to be optionally used by the evmc_result object creator.
-     *
-     * @see evmc_result_optional_data, evmc_get_optional_data().
-     *
-     * Also extends the size of the evmc_result to 64 bytes (full cache line).
-     */
-    uint8_t padding[4];
 };
 
 
@@ -1033,28 +1011,41 @@ enum evmc_revision
     EVMC_CANCUN = 12,
 
     /**
-     * The Prague revision.
+     * The Prague / Pectra revision.
      *
-     * The future next revision after Cancun.
+     * https://eips.ethereum.org/EIPS/eip-7600
      */
     EVMC_PRAGUE = 13,
 
     /**
-     * The Osaka revision.
+     * The Osaka / Fusaka revision.
      *
-     * The future next revision after Prague.
+     * https://eips.ethereum.org/EIPS/eip-7607
      */
     EVMC_OSAKA = 14,
 
+    /**
+     * The Amsterdam / Glamsterdam revision.
+     *
+     * https://eips.ethereum.org/EIPS/eip-7773
+     */
+    EVMC_AMSTERDAM = 15,
+
+    /**
+     * The unspecified EVM revision used for EVM implementations to expose
+     * experimental features.
+     */
+    EVMC_EXPERIMENTAL = 16,
+
     /** The maximum EVM revision supported. */
-    EVMC_MAX_REVISION = EVMC_OSAKA,
+    EVMC_MAX_REVISION = EVMC_EXPERIMENTAL,
 
     /**
      * The latest known EVM revision with finalized specification.
      *
      * This is handy for EVM tools to always use the latest revision available.
      */
-    EVMC_LATEST_STABLE_REVISION = EVMC_CANCUN
+    EVMC_LATEST_STABLE_REVISION = EVMC_OSAKA
 };
 
 

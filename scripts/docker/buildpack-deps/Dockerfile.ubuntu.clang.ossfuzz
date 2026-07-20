@@ -22,7 +22,7 @@
 # (c) 2016-2021 solidity contributors.
 #------------------------------------------------------------------------------
 FROM gcr.io/oss-fuzz-base/base-builder AS base
-LABEL version="13"
+LABEL version="14"
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -140,12 +140,12 @@ RUN set -ex; \
 # EVMONE
 RUN set -ex; \
 	cd /usr/src; \
-	git clone --branch="v0.16.0" --recurse-submodules https://github.com/ipsilon/evmone.git; \
+	git clone --branch="v0.22.0" --recurse-submodules https://github.com/ipsilon/evmone.git; \
 	cd evmone; \
 	mkdir build; \
 	cd build; \
 	CXX=clang++ cmake .. -G Ninja \
-		-DCMAKE_CXX_STANDARD=20 -DCMAKE_CXX_FLAGS="-stdlib=libc++" \
+		-DCMAKE_CXX_STANDARD=20 -DCMAKE_CXX_FLAGS="-stdlib=libc++ -pthread" \
 		-DBUILD_SHARED_LIBS=OFF -DCMAKE_INSTALL_PREFIX="/usr"; \
 	ninja; \
 	ninja install/strip; \

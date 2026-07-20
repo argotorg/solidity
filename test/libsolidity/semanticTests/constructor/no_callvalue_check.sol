@@ -25,5 +25,5 @@ contract C {
 // gas legacy code: 4800
 // gas legacyOptimized: 117761
 // gas legacyOptimized code: 4800
-// gas ssaCFGOptimized: 117686
+// gas ssaCFGOptimized: 117690
 // gas ssaCFGOptimized code: 1800

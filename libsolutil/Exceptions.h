@@ -101,7 +101,6 @@ struct Exception: virtual std::exception, virtual boost::exception
 
 DEV_SIMPLE_EXCEPTION(InvalidAddress);
 DEV_SIMPLE_EXCEPTION(BadHexCharacter);
-DEV_SIMPLE_EXCEPTION(BadHexCase);
 DEV_SIMPLE_EXCEPTION(FileNotFound);
 DEV_SIMPLE_EXCEPTION(NotAFile);
 DEV_SIMPLE_EXCEPTION(DataTooLong);

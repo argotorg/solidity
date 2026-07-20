@@ -1,5 +1,28 @@
 [
     {
+        "uid": "SOL-2026-3",
+        "name": "InheritanceOrderReversalOnStorageEndWarning",
+        "summary": "Emitting a warning about storage base location being too close to the storage end unintentionally reversed the ``linearizedBaseContracts`` annotation, possibly leading to miscompilation due to reversing the order in which inheritance is resolved.",
+        "description": "When the compiler detects that a custom layout specifier puts contract's static storage area too close to the end of the address space, it emits a warning. To make the warning more useful, the compiler tries to point at the last storage variable in that area. For this reason it walks the linearized inheritance hierarchy in reverse (from the least to the most derived). The list is calculated once and stored in an AST annotation called ``linearizedBaseContracts``. The direct cause of the bug was the fact that the code that reverses the list was doing it in place rather than on a copy, modifying the annotation. This effectively reversed the order of base contracts seen by any component that runs after layout checks: later phases of analysis, AST export, code generator, SMTChecker, etc. The observable effect was a reversed order of state variable initialization, constructor invocation, virtual function/modifier resolution, leading either to miscompilations or internal compiler errors, depending on the specific usage. Since the source of the bug was in the analysis stage, it was independent of the codegen pipeline or optimizer settings. The main condition necessary to trigger the bug was the presence of the warning in the output. The other is presence of language constructs whose evaluation depends on the inheritance order. While potential effects are very serious, this requirement excludes the vast majority of contracts as intentionally placing the storage variables in the last 2**64 slots is highly discouraged, which was actually the main reason for adding this warning.",
+        "link": "https://blog.soliditylang.org/2026/07/09/inheritance-order-reversal-on-storage-end-warning-bug/",
+        "introduced": "0.8.29",
+        "fixed": "0.8.36",
+        "severity": "medium"
+    },
+    {
+        "uid": "SOL-2026-2",
+        "name": "UnsoundSpillInMutualRecursion",
+        "summary": "Local variables of a function involved in mutual recursion may spuriously be moved to fixed memory offsets and overwritten across recursive calls.",
+        "description": "To work around the 16-slot stack access limit of the EVM, the IR-based code generator can move local variables of stack-too-deep functions to fixed memory offsets. This relocation is unsound for recursive functions: a fixed offset would be shared by all activations of the function, so a recursive call would overwrite the caller's value. The stack limit evader therefore must not relocate variables of functions that are part of a recursive call chain. To this end, the call graph was searched for cycles using a path-based depth-first search that, once a function had been fully explored and popped from the search path, short-circuited on it on any later visit. As a result, a function shared between several intersecting cycles could be reached first through a path that did not yet close a cycle through it, get marked as finished, and then be skipped when a later path would have revealed that it does lie on a cycle. Such a function was misclassified as non-recursive. When a misclassified function was complex enough for the stack limit evader to relocate some of its variables, those variables were moved to fixed memory offsets and silently corrupted on recursion, producing wrong results rather than a compile-time error. Triggering the bug requires the IR pipeline, a set of mutually recursive functions whose call graph contains intersecting cycles, at least one of the functions in an undetected part of a cycle being complex enough to require relocation to memory, and an unfortunate processing order of the functions (which depends on the hashes of their Yul names). It is independent of whether the optimizer is enabled.",
+        "link": "https://blog.soliditylang.org/2026/07/09/unsound-spill-in-mutual-recursion-bug/",
+        "introduced": "0.7.2",
+        "fixed": "0.8.36",
+        "severity": "medium",
+        "conditions": {
+            "viaIR": true
+        }
+    },
+    {
         "uid": "SOL-2026-1",
         "name": "TransientStorageClearingHelperCollision",
         "summary": "Clearing both storage and transient storage variables in the same contract may result in only one of these locations being cleared.",

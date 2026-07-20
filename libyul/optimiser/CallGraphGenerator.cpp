@@ -22,10 +22,17 @@
 #include <libyul/AST.h>
 #include <libyul/optimiser/CallGraphGenerator.h>
 
+#include <libyul/Exceptions.h>
+
 #include <libsolutil/CommonData.h>
+#include <libsolutil/TarjanSCC.h>
 #include <libsolutil/Visitor.h>
 
-#include <stack>
+#include <range/v3/algorithm/binary_search.hpp>
+#include <range/v3/algorithm/sort.hpp>
+#include <range/v3/algorithm/unique.hpp>
+
+#include <cstddef>
 
 using namespace solidity;
 using namespace solidity::yul;
@@ -33,43 +40,82 @@ using namespace solidity::util;
 
 namespace
 {
-// TODO: This algorithm is non-optimal.
-struct CallGraphCycleFinder
-{
-	CallGraph const& callGraph;
-	std::set<FunctionHandle> containedInCycle{};
-	std::set<FunctionHandle> visited{};
-	std::vector<FunctionHandle> currentPath{};
 
-	void visit(FunctionHandle const& _function)
+class FunctionToIndexBiMapping
+{
+public:
+	explicit FunctionToIndexBiMapping(std::map<FunctionHandle, std::vector<FunctionHandle>> const& _functionCalls)
 	{
-		if (visited.count(_function))
-			return;
-		if (
-			auto it = find(currentPath.begin(), currentPath.end(), _function);
-			it != currentPath.end()
-		)
-			containedInCycle.insert(it, currentPath.end());
-		else
+		for (auto const& [function, callees]: _functionCalls)
 		{
-			currentPath.emplace_back(_function);
-			if (callGraph.functionCalls.count(_function))
-				for (auto const& child: callGraph.functionCalls.at(_function))
-					visit(child);
-			currentPath.pop_back();
-			visited.insert(_function);
+			if (m_functionToIndex.try_emplace(function, m_indexToFunction.size()).second)
+				m_indexToFunction.emplace_back(function);
+			for (auto const& callee: callees)
+				if (m_functionToIndex.try_emplace(callee, m_indexToFunction.size()).second)
+					m_indexToFunction.emplace_back(callee);
 		}
 	}
+
+	FunctionHandle const& indexToFunction(std::size_t const _index) const
+	{
+		return m_indexToFunction.at(_index);
+	}
+
+	std::size_t numFunctions() const
+	{
+		return m_indexToFunction.size();
+	}
+
+	std::size_t functionToIndex(FunctionHandle const& _functionHandle) const
+	{
+		return m_functionToIndex.at(_functionHandle);
+	}
+
+private:
+	std::vector<FunctionHandle> m_indexToFunction;
+	std::map<FunctionHandle, std::size_t> m_functionToIndex;
 };
+
 }
 
 std::set<FunctionHandle> CallGraph::recursiveFunctions() const
 {
-	CallGraphCycleFinder cycleFinder{*this};
-	// Visiting the root only is not enough, since there may be disconnected recursive functions.
-	for (auto const& call: functionCalls)
-		cycleFinder.visit(call.first);
-	return cycleFinder.containedInCycle;
+	// A function is recursive iff it is part of a non-trivial strongly-connected component of the call graph (a
+	// mutual-recursion cycle of any length) or it directly calls itself. The SCCs are computed with Tarjan's algorithm.
+	// Tarjan's implementation requires dense node indices in [0, N), so assign each function handle
+	// (both callers and callees) a consecutive index.
+	FunctionToIndexBiMapping const functionIndexBimap(functionCalls);
+
+	// Build list of edges in the call graph
+	std::vector<std::vector<std::size_t>> indexBasedAdjacencyList(functionIndexBimap.numFunctions());
+	for (auto const& [function, callees]: functionCalls)
+		for (auto const& callee: callees)
+			indexBasedAdjacencyList[functionIndexBimap.functionToIndex(function)].emplace_back(functionIndexBimap.functionToIndex(callee));
+
+	// Sort and deduplicate each adjacency list so the self-loop check below can use a binary search
+	for (auto& callees: indexBasedAdjacencyList)
+	{
+		ranges::sort(callees);
+		callees.erase(ranges::unique(callees), callees.end());
+	}
+
+	std::set<FunctionHandle> recursiveFunctionHandleSet;
+	for (std::vector<std::size_t> const& scc: util::computeStronglyConnectedComponents<std::size_t>(indexBasedAdjacencyList))
+	{
+		yulAssert(!scc.empty());
+		if (scc.size() > 1)
+			// more than one element in the SCC: everything in it is mutually recursive
+			for (std::size_t const node: scc)
+				recursiveFunctionHandleSet.insert(functionIndexBimap.indexToFunction(node));
+		else if (ranges::binary_search(indexBasedAdjacencyList[scc.front()], scc.front()))
+			// self-recursion f -> f
+			recursiveFunctionHandleSet.insert(functionIndexBimap.indexToFunction(scc.front()));
+	}
+
+	yulAssert(!recursiveFunctionHandleSet.contains(YulName{}), "the top-level block cannot be recursive");
+	for (FunctionHandle const& recursiveFunction: recursiveFunctionHandleSet)
+		yulAssert(std::holds_alternative<YulName>(recursiveFunction), "a builtin cannot be recursive");
+	return recursiveFunctionHandleSet;
 }
 
 CallGraph CallGraphGenerator::callGraph(Block const& _ast)
@@ -99,9 +145,13 @@ void CallGraphGenerator::operator()(ForLoop const& _forLoop)
 
 void CallGraphGenerator::operator()(FunctionDefinition const& _functionDefinition)
 {
+	solRequire(
+		!m_callGraph.functionCalls.contains(_functionDefinition.name),
+		InputNotDisambiguatedException,
+		"CallGraphGenerator requires a disambiguated AST: duplicate function name " + _functionDefinition.name.str() + "."
+	);
 	YulName previousFunction = m_currentFunction;
 	m_currentFunction = _functionDefinition.name;
-	yulAssert(m_callGraph.functionCalls.count(m_currentFunction) == 0, "");
 	m_callGraph.functionCalls[m_currentFunction] = {};
 	ASTWalker::operator()(_functionDefinition);
 	m_currentFunction = previousFunction;

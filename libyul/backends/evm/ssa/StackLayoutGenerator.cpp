@@ -89,15 +89,27 @@ StackLayoutGenerator::Result StackLayoutGenerator::generate(
 	bool const _spillingAllowed
 )
 {
-	StackLayoutGenerator generator(_liveness, _callSites, _graphID, _spillingAllowed);
-	return Result{std::move(generator.m_resultLayout), std::move(generator.m_spillSet)};
+	spill::SpillSet spillSet;
+	while (true)
+	{
+		auto const spillCountBefore = spillSet.numSpilled();
+		StackLayoutGenerator generator(_liveness, _callSites, _graphID, _spillingAllowed, std::move(spillSet));
+		spillSet = std::move(generator.m_spillSet);
+		spillSet.closeUnderReachabilityConstraints(_liveness.cfg(), generator.m_resultLayout);
+		if (spillSet.numSpilled() == spillCountBefore)
+			return Result{std::move(generator.m_resultLayout), std::move(spillSet)};
+
+		// there is an upper bound to how much can be spilled (number of variables). this assert ensures termination.
+		yulAssert(spillSet.numSpilled() > spillCountBefore, "spill set cannot shrink");
+	}
 }
 
 StackLayoutGenerator::StackLayoutGenerator(
 	LivenessAnalysis const& _liveness,
 	CallSites const& _callSites,
 	ControlFlowGraphs::FunctionGraphID const _graphID,
-	bool const _spillingAllowed
+	bool const _spillingAllowed,
+	spill::SpillSet _initialSpillSet
 ):
 	m_cfg(_liveness.cfg()),
 	m_liveness(_liveness),
@@ -107,7 +119,8 @@ StackLayoutGenerator::StackLayoutGenerator(
 	m_spillingAllowed(_spillingAllowed),
 	m_junkAdmittingBlocksFinder(std::make_unique<JunkAdmittingBlocksFinder>(_liveness.cfg(), _liveness.topologicalSort())),
 	m_inputStackProposalsPerBlock(m_cfg.numBlocks()),
-	m_resultLayout(m_cfg.numBlocks())
+	m_resultLayout(m_cfg.numBlocks()),
+	m_spillSet(std::move(_initialSpillSet))
 {
 	// traverse the cfg layer-wise using Kahn's algorithm:
 	// if a block is visited, the predecessors of that block have already their exit layouts defined
@@ -200,25 +213,15 @@ void StackLayoutGenerator::defineStackIn(SSACFG::BlockId const& _blockId)
 			spill::SpillSet candidateSpillSet = m_spillSet;
 			for (std::size_t j = 0; j < stackInProposals.size(); ++j)
 			{
-				StackShufflerResult result;
-				std::size_t opGas = 0;
-				do
-				{
-					auto proposalCopy = proposals[j];
-					Stack<GasAccumulatingCallbacks> stack(proposalCopy, {.cfg = m_cfg});
-					result = StackShuffler<GasAccumulatingCallbacks>::shuffle(
-						stack, proposals[i], {}, proposals[i].size(), &candidateSpillSet);
-					opGas = stack.callbacks().opGas;
-					if (result.status == StackShufflerResult::Status::StackTooDeep)
-					{
-						yulAssert(result.culprit.isValue() && !result.culprit.isLiteralValue());
-						yulAssert(!candidateSpillSet.isSpilled(result.culprit.value()));
-						candidateSpillSet.add(result.culprit.value());
-					}
-				}
-				while (result.status == StackShufflerResult::Status::StackTooDeep);
+				StackData edgeStack = stackInProposals[j].second;
+				Stack<GasAccumulatingCallbacks> stack(edgeStack, {.cfg = m_cfg});
+				StackShufflerResult const result = StackShuffler<GasAccumulatingCallbacks>::shuffleWithSpillDiscovery(
+					stack,
+					stackPreImage(m_cfg, proposals[i], PhiInverse(m_cfg, stackInProposals[j].first, _blockId)),
+					candidateSpillSet
+				);
 				yulAssert(result.status == StackShufflerResult::Status::Admissible);
-				cumulativeGas[i] += opGas;
+				cumulativeGas[i] += stack.callbacks().opGas;
 			}
 			candidateSpillSets[i] = std::move(candidateSpillSet);
 		}
@@ -237,6 +240,24 @@ void StackLayoutGenerator::defineStackIn(SSACFG::BlockId const& _blockId)
 		m_spillSet = std::move(candidateSpillSets[best]);
 		blockLayout.stackIn = std::move(proposals[best]);
 	}
+
+	// Validate every incoming forward edge
+	for (auto const& [parentBlockId, parentExitStack]: stackInProposals)
+	{
+		StackData edgeStack = parentExitStack;
+		auto const spillCountBefore = m_spillSet.numSpilled();
+		auto const shuffleResult = shuffleWithSpillDiscovery(
+			edgeStack,
+			stackPreImage(m_cfg, blockLayout.stackIn, PhiInverse(m_cfg, parentBlockId, _blockId)),
+			m_spillSet
+		);
+		yulAssert(shuffleResult.status == StackShufflerResult::Status::Admissible);
+		yulAssert(
+			m_spillingAllowed || m_spillSet.numSpilled() == spillCountBefore,
+			"Stack too deep, but spilling is disabled because the function is part of a recursive call chain."
+		);
+	}
+
 	m_resultLayout[_blockId] = blockLayout;
 }
 
@@ -252,11 +273,9 @@ void StackLayoutGenerator::visitBlock(SSACFG::BlockId const& _blockId)
 	StackType stack(currentStackData, {});
 	bool const junkCanBeAdded = m_junkAdmittingBlocksFinder->allowsAdditionOfJunk(_blockId);
 
-	auto const& operationsLiveOut = m_liveness.operationsLiveOut(_blockId);
-	blockLayout.operationIn.reserve(operationsLiveOut.size());
-	std::size_t operationIndex = 0;
+	blockLayout.operationIn.reserve(block.instructions.size());
 	m_cfg.forEachOperation(block, [&](InstId const _instId, SSACFG::Inst const& _inst) {
-		auto opLiveOutWithoutOutputs = operationsLiveOut[operationIndex];
+		auto opLiveOutWithoutOutputs = m_liveness.operationLiveOut(_instId);
 		m_cfg.forEachOutput(_instId, [&](InstId const id) { opLiveOutWithoutOutputs.erase(id); });
 
 		std::vector<Slot> requiredStackTop;
@@ -275,16 +294,10 @@ void StackLayoutGenerator::visitBlock(SSACFG::BlockId const& _blockId)
 			ranges::views::reverse |
 			ranges::views::transform([this](InstId const& _id) { return StackSlot::makeValue(m_cfg, _id); });
 
-		for (StackType::Depth depth{0}; depth < stack.size(); ++depth.value)
-			if (
-				stack.slot(depth).isValue() &&
-				!opLiveOutWithoutOutputs.contains(stack.slot(depth).value()) &&
-				ranges::find(requiredStackTop, stack.slot(depth)) == ranges::end(requiredStackTop)
-			)
-				stack.declareJunk(depth);
-
-		StackSlotLiveness const opLiveOutSlots = toStackSlotLiveness(m_cfg, opLiveOutWithoutOutputs);
 		{
+			// Values that are dead before the operation are left on the stack; the shuffle to the
+			// optimal target pops them as surplus as needed
+			StackSlotLiveness const opLiveOutSlots = toStackSlotLiveness(m_cfg, opLiveOutWithoutOutputs);
 			auto [target, plannedSpillSet] = findOptimalTarget(
 				stack.data(),
 				requiredStackTop,
@@ -307,9 +320,7 @@ void StackLayoutGenerator::visitBlock(SSACFG::BlockId const& _blockId)
 		m_cfg.forEachOutput(_instId, [&](InstId const id) {
 			stack.push<false>(Slot::makeValue(m_cfg, id));
 		});
-		++operationIndex;
 	});
-	yulAssert(operationIndex == operationsLiveOut.size());
 
 	// we don't explicitly visit backedges and might have to spill here, too
 	auto const validateBackEdge = [&](SSACFG::BlockId const& _target) {

@@ -46,7 +46,7 @@
 // \l\
 // [FunctionCallReturnLabel[0]]\l\
 // f\l\
-// [FunctionCallReturnLabel[0]]\l\
+// []\l\
 // \l\
 // OUT: []\l\
 // "];
@@ -54,7 +54,7 @@
 // Block0_0 -> Block0_0Exit;
 // FunctionEntry_f_0 [label="function f:
 //  f()
-// spilled: {v1, v33}"];
+// spilled: {v33, v35}"];
 // FunctionEntry_f_0 -> Block1_0;
 // Block1_0 [label="\
 // IN: [ReturnLabel[1]]\l\
@@ -131,37 +131,37 @@
 // calldataload\l\
 // [ReturnLabel[1], v1, v3, v5, v7, v9, v11, v13, v15, v17, v19, v21, v23, v25, v27, v29, v31, v33, v35]\l\
 // \l\
-// [ReturnLabel[1], v31, v3, v5, v7, v9, v11, v13, v15, v17, v19, v21, v23, v25, v27, v29, v35, v35, v1]\l\
+// [ReturnLabel[1], v33, v3, v5, v7, v9, v11, v13, v15, v17, v19, v21, v23, v25, v27, v29, v31, v35, v1]\l\
 // sstore\l\
-// [ReturnLabel[1], v31, v3, v5, v7, v9, v11, v13, v15, v17, v19, v21, v23, v25, v27, v29, v35]\l\
+// [ReturnLabel[1], v33, v3, v5, v7, v9, v11, v13, v15, v17, v19, v21, v23, v25, v27, v29, v31]\l\
 // \l\
-// [ReturnLabel[1], v31, v3, v5, v7, v9, v11, v13, v15, v17, v19, v21, v23, v25, v27, v29, v33, v3]\l\
+// [ReturnLabel[1], v31, v29, v5, v7, v9, v11, v13, v15, v17, v19, v21, v23, v25, v27, v33, v3]\l\
 // sstore\l\
-// [ReturnLabel[1], v31, v3, v5, v7, v9, v11, v13, v15, v17, v19, v21, v23, v25, v27, v29]\l\
+// [ReturnLabel[1], v31, v29, v5, v7, v9, v11, v13, v15, v17, v19, v21, v23, v25, v27]\l\
 // \l\
-// [ReturnLabel[1], v29, JUNK, v27, v7, v9, v11, v13, v15, v17, v19, v21, v23, v25, v31, v5]\l\
+// [ReturnLabel[1], v27, v29, v25, v7, v9, v11, v13, v15, v17, v19, v21, v23, v31, v5]\l\
 // sstore\l\
-// [ReturnLabel[1], v29, JUNK, v27, v7, v9, v11, v13, v15, v17, v19, v21, v23, v25]\l\
+// [ReturnLabel[1], v27, v29, v25, v7, v9, v11, v13, v15, v17, v19, v21, v23]\l\
 // \l\
-// [ReturnLabel[1], v25, JUNK, v27, v23, v9, v11, v13, v15, v17, v19, v21, v29, v7]\l\
+// [ReturnLabel[1], v27, v23, v25, v21, v9, v11, v13, v15, v17, v19, v29, v7]\l\
 // sstore\l\
-// [ReturnLabel[1], v25, JUNK, v27, v23, v9, v11, v13, v15, v17, v19, v21]\l\
+// [ReturnLabel[1], v27, v23, v25, v21, v9, v11, v13, v15, v17, v19]\l\
 // \l\
-// [ReturnLabel[1], v25, JUNK, v21, v23, v19, v11, v13, v15, v17, v27, v9]\l\
+// [ReturnLabel[1], v19, v23, v25, v21, v17, v11, v13, v15, v27, v9]\l\
 // sstore\l\
-// [ReturnLabel[1], v25, JUNK, v21, v23, v19, v11, v13, v15, v17]\l\
+// [ReturnLabel[1], v19, v23, v25, v21, v17, v11, v13, v15]\l\
 // \l\
-// [ReturnLabel[1], v17, JUNK, v21, v23, v19, v15, v13, v25, v11]\l\
+// [ReturnLabel[1], v19, v23, v15, v21, v17, v13, v25, v11]\l\
 // sstore\l\
-// [ReturnLabel[1], v17, JUNK, v21, v23, v19, v15, v13]\l\
+// [ReturnLabel[1], v19, v23, v15, v21, v17, v13]\l\
 // \l\
-// [ReturnLabel[1], v17, JUNK, v21, v15, v19, v23, v13]\l\
+// [ReturnLabel[1], v19, v17, v15, v21, v23, v13]\l\
 // sstore\l\
-// [ReturnLabel[1], v17, JUNK, v21, v15, v19]\l\
+// [ReturnLabel[1], v19, v17, v15, v21]\l\
 // \l\
-// [ReturnLabel[1], v17, v19, v21, v15]\l\
+// [ReturnLabel[1], v19, v17, v21, v15]\l\
 // sstore\l\
-// [ReturnLabel[1], v17, v19]\l\
+// [ReturnLabel[1], v19, v17]\l\
 // \l\
 // [ReturnLabel[1], v19, v17]\l\
 // sstore\l\

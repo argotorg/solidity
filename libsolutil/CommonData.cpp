@@ -42,8 +42,6 @@ static char const* lowerHexChars = "0123456789abcdef";
 
 std::string solidity::util::toHex(uint8_t _data, HexCase _case)
 {
-	assertThrow(_case != HexCase::Mixed, BadHexCase, "Mixed case can only be used for byte arrays.");
-
 	char const* chars = _case == HexCase::Upper ? upperHexChars : lowerHexChars;
 
 	return std::string{
@@ -63,15 +61,9 @@ std::string solidity::util::toHex(bytes const& _data, HexPrefix _prefix, HexCase
 		ret[i++] = 'x';
 	}
 
-	// Mixed case will be handled inside the loop.
 	char const* chars = _case == HexCase::Upper ? upperHexChars : lowerHexChars;
-	size_t rix = _data.size() - 1;
 	for (uint8_t c: _data)
 	{
-		// switch hex case every four hexchars
-		if (_case == HexCase::Mixed)
-			chars = (rix-- & 2) == 0 ? lowerHexChars : upperHexChars;
-
 		ret[i++] = chars[(static_cast<size_t>(c) >> 4ul) & 0xfu];
 		ret[i++] = chars[c & 0xfu];
 	}

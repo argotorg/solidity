@@ -12,7 +12,6 @@ contract C {
     function g() public view returns (uint) { return address(0).code.length; }
     function h() public view returns (uint) { return address(1).code.length; }
 }
-// ====
 // ----
 // constructor() ->
 // gas irOptimized: 70924
@@ -21,7 +20,7 @@ contract C {
 // gas legacy code: 153800
 // gas legacyOptimized: 69675
 // gas legacyOptimized code: 79200
-// gas ssaCFGOptimized: 71121
+// gas ssaCFGOptimized: 71073
 // gas ssaCFGOptimized code: 92000
 // initCode() -> 0x20, 0
 // f() -> true

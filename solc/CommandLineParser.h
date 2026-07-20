@@ -24,6 +24,7 @@
 #include <libsolidity/interface/DebugSettings.h>
 #include <libsolidity/interface/FileReader.h>
 #include <libsolidity/interface/ImportRemapper.h>
+#include <libsolidity/interface/OptimiserSettings.h>
 
 #include <libyul/YulStack.h>
 
@@ -263,7 +264,7 @@ struct CommandLineOptions
 
 		bool optimizeEvmasm = false;
 		bool optimizeYul = false;
-		std::optional<unsigned> expectedExecutionsPerDeployment;
+		std::optional<OptimiserSettings::ExecutionCount> expectedExecutionsPerDeployment;
 		std::optional<std::string> yulSteps;
 	} optimizer;
 

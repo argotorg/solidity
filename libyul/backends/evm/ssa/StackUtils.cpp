@@ -116,36 +116,19 @@ OptimalTarget solidity::yul::ssa::findOptimalTarget
 	spill::SpillSet spillSet;
 	auto const evaluateCost = [&](std::size_t const _targetSize) -> std::size_t
 	{
-		StackShufflerResult result;
 		spillSet = _spillSet;
-		OpsCountingCallbacks callbacks;
-		do
-		{
-			data = _stackData;
-			Stack<OpsCountingCallbacks> countOpsStack(data, {});
-			result = StackShuffler<OpsCountingCallbacks>::shuffle(countOpsStack, _targetArgs, _targetLiveOut, _targetSize, &spillSet);
-			callbacks = countOpsStack.callbacks();
-			switch (result.status)
-			{
-			case StackShufflerResult::Status::Continue:
-				yulAssert(false);
-			case StackShufflerResult::Status::Admissible:
-				break;
-			case StackShufflerResult::Status::StackTooDeep:
-			{
-				yulAssert(result.culprit.isValue() && !result.culprit.isLiteralValue());
-				yulAssert(!spillSet.isSpilled(result.culprit.value()));
-				spillSet.add(result.culprit.value());
-				break;
-			}
-			case StackShufflerResult::Status::MaxIterationsReached:
-				break;
-			}
-		}
-		while (result.status == StackShufflerResult::Status::StackTooDeep);
+		data = _stackData;
+		Stack<OpsCountingCallbacks> countOpsStack(data, {});
+		StackShufflerResult const result = StackShuffler<OpsCountingCallbacks>::shuffleWithSpillDiscovery(
+			countOpsStack,
+			_targetArgs,
+			_targetLiveOut,
+			_targetSize,
+			spillSet
+		);
 		yulAssert(data.size() == _targetSize);
 		yulAssert(result.status == StackShufflerResult::Status::Admissible);
-		std::size_t const cost = callbacks.numOps + 1000 * spillSet.numSpilled();
+		std::size_t const cost = countOpsStack.callbacks().numOps + 1000 * spillSet.numSpilled();
 		return cost;
 	};
 
@@ -171,12 +154,12 @@ OptimalTarget solidity::yul::ssa::findOptimalTarget
 				bestSpillSet = spillSet;
 				consecutiveIncreases = 0;
 			}
-			else if (++consecutiveIncreases >= stopAfter)
+			else if (bestCost == 0 || ++consecutiveIncreases >= stopAfter)
 				break;
 		}
 	}
 	// search upward (only on reverting paths)
-	if (_canIntroduceJunk)
+	if (_canIntroduceJunk && bestCost != 0)
 	{
 		consecutiveIncreases = 0;
 		for (std::size_t size = startSize + 1; size <= startSize + maxUpwardExpansion; ++size)
@@ -189,7 +172,7 @@ OptimalTarget solidity::yul::ssa::findOptimalTarget
 				bestSpillSet = spillSet;
 				consecutiveIncreases = 0;
 			}
-			else if (++consecutiveIncreases >= stopAfter)
+			else if (bestCost == 0 || ++consecutiveIncreases >= stopAfter)
 				break;
 		}
 	}

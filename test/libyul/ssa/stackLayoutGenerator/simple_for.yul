@@ -81,21 +81,13 @@
 // Block0_6 [label="\
 // IN: [phi14, phi2]\l\
 // \l\
-// OUT: [phi14, phi2]\l\
-// "];
-// Block0_6 -> Block0_6Exit [arrowhead=none];
-// Block0_6Exit [label="Jump" shape=oval];
-// Block0_6Exit -> Block0_3 [style="solid"];
-// Block0_3 [label="\
-// IN: [phi14, phi2]\l\
-// \l\
 // [phi14, lit8, phi2]\l\
 // add\l\
 // [phi14, v12]\l\
 // \l\
 // OUT: [phi14, v12]\l\
 // "];
-// Block0_3 -> Block0_3Exit [arrowhead=none];
-// Block0_3Exit [label="Jump" shape=oval];
-// Block0_3Exit -> Block0_1 [style="solid"];
+// Block0_6 -> Block0_6Exit [arrowhead=none];
+// Block0_6Exit [label="Jump" shape=oval];
+// Block0_6Exit -> Block0_1 [style="solid"];
 // }

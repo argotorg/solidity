@@ -1328,7 +1328,7 @@ void CommandLineInterface::assembleYul(yul::YulStack::Machine _targetMachine)
 					"Source indices provided in the @use-src annotation in the Yul input do not start at 0 or are not contiguous."
 				);
 
-			stack.optimize();
+			stack.optimize(m_options.output.viaSSACFG);
 
 			yul::MachineAssemblyObject object = stack.assemble(_targetMachine, m_options.output.viaSSACFG);
 			if (object.bytecode)

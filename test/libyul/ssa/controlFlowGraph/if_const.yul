@@ -22,9 +22,9 @@
 // Block0_0 [fillcolor="#FF746C", style=filled, label="\
 // Block 0; (0, max 0)\nLiveIn: \l\
 // LiveOut: \l\nUsed: \l\nv1 := calldataload(0x03)\l\
-// v3 := calldataload(0x2a)\l\
-// v4 := calldataload(v3)\l\
-// sstore(v4, 0x00)\l\
+// v7 := calldataload(0x2a)\l\
+// v14 := calldataload(v7)\l\
+// sstore(v14, 0x00)\l\
 // "];
 // Block0_0Exit [label="MainExit"];
 // Block0_0 -> Block0_0Exit;

@@ -54,7 +54,7 @@ function build() {
     # TODO: This can be removed if and when all usages of `move()` in our codebase use the `std::` qualifier.
     CMAKE_CXX_FLAGS="-Wno-unqualified-std-cast-call"
 
-    export CCACHE_DIR="$HOME/.ccache"
+    export CCACHE_DIR="${CCACHE_DIR:-$HOME/.ccache}"
     CCACHE_BASEDIR="$(pwd)"
     export CCACHE_BASEDIR
     export CCACHE_NOHASHDIR=1

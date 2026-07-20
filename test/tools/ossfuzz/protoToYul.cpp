@@ -123,6 +123,8 @@ EVMVersion ProtoConverter::evmVersionMapping(Program_Version const& _ver)
 		return EVMVersion::prague();
 	case Program::OSAKA:
 		return EVMVersion::osaka();
+	case Program::AMSTERDAM:
+		return EVMVersion::amsterdam();
 	}
 }
 

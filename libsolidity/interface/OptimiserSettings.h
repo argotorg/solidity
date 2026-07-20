@@ -23,9 +23,8 @@
 
 #pragma once
 
-#include <liblangutil/Exceptions.h>
+#include <libsolutil/Assertions.h>
 
-#include <cstddef>
 #include <string>
 
 namespace solidity::frontend
@@ -145,9 +144,11 @@ struct OptimiserSettings
 	/// is left empty, there will still be hard-coded optimisation steps that will run regardless.
 	/// Set @a runYulOptimiser to false if you want no optimisations.
 	std::string yulOptimiserCleanupSteps = DefaultYulOptimiserCleanupSteps;
+
+	using ExecutionCount = std::uint64_t;
 	/// This specifies an estimate on how often each opcode in this assembly will be executed,
 	/// i.e. use a small value to optimise for size and a large value to optimise for runtime gas usage.
-	size_t expectedExecutionsPerDeployment = 200;
+	ExecutionCount expectedExecutionsPerDeployment = 200;
 };
 
 }

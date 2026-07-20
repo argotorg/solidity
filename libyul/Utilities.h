@@ -89,6 +89,7 @@ struct SwitchCaseCompareByLiteralValue
 };
 
 std::string_view resolveFunctionName(FunctionName const& _functionName, Dialect const& _dialect);
+std::string_view resolveFunctionName(FunctionHandle const& _functionHandle, Dialect const& _dialect);
 
 BuiltinFunction const* resolveBuiltinFunction(FunctionName const& _functionName, Dialect const& _dialect);
 BuiltinFunctionForEVM const* resolveBuiltinFunctionForEVM(FunctionName const& _functionName, EVMDialect const& _dialect);

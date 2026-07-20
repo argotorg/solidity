@@ -68,8 +68,9 @@ public:
 		bool _optimizeStackAllocation,
 		std::string_view _optimisationSequence,
 		std::string_view _optimisationCleanupSequence,
-		std::optional<size_t> _expectedExecutionsPerDeployment,
-		std::set<YulName> const& _externallyUsedIdentifiers = {}
+		std::optional<std::uint64_t> _expectedExecutionsPerDeployment,
+		std::set<YulName> const& _externallyUsedIdentifiers = {},
+		bool _viaSSACFG = false
 	);
 
 	/// Ensures that specified sequence of step abbreviations is well-formed and can be executed.

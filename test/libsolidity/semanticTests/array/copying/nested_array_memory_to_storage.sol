@@ -41,7 +41,7 @@ contract Test {
 // gas irOptimized: 226647
 // gas legacy: 229060
 // gas legacyOptimized: 226495
-// gas ssaCFGOptimized: 226743
+// gas ssaCFGOptimized: 226750
 // test1() -> 3
 // test2() -> 6
 // gas irOptimized: 95905
@@ -50,4 +50,4 @@ contract Test {
 // gas irOptimized: 141297
 // gas legacy: 146668
 // gas legacyOptimized: 141331
-// gas ssaCFGOptimized: 141344
+// gas ssaCFGOptimized: 141345

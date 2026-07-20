@@ -41,9 +41,9 @@ DEFAULT_EVM_VALUES=(
     shanghai
     cancun
     osaka
+    amsterdam
     @future
 )
-EVMS_WITH_EOF=(osaka @future)
 
 # Deserialize the EVM_VALUES array if it was provided as argument or
 # set EVM_VALUES to the default values.
@@ -51,8 +51,6 @@ IFS=" " read -ra EVM_VALUES <<< "${1:-${DEFAULT_EVM_VALUES[@]}}"
 
 DEFAULT_EVM=osaka
 OPTIMIZE_VALUES=(0 1)
-# TODO: EOF is marked as experimental in evmone. Reenable when proper handling for that is added here.
-EOF_VERSIONS=(0)
 
 # Run for ABI encoder v1, without SMTChecker tests.
 EVM="${DEFAULT_EVM}" \
@@ -68,26 +66,19 @@ for OPTIMIZE in "${OPTIMIZE_VALUES[@]}"
 do
     for EVM in "${EVM_VALUES[@]}"
     do
-        for EOF_VERSION in "${EOF_VERSIONS[@]}"
-        do
-            if (( EOF_VERSION > 0 )) && [[ ! " ${EVMS_WITH_EOF[*]} " == *" $EVM "* ]]; then
-                continue
-            fi
-            ENFORCE_GAS_ARGS=""
-            [ "${EVM}" = "${DEFAULT_EVM}" ] && ENFORCE_GAS_ARGS="--enforce-gas-cost"
-            # Run SMTChecker tests only when OPTIMIZE == 0
-            DISABLE_SMTCHECKER=""
-            [ "${OPTIMIZE}" != "0" ] && DISABLE_SMTCHECKER="-t !smtCheckerTests"
+        ENFORCE_GAS_ARGS=""
+        [ "${EVM}" = "${DEFAULT_EVM}" ] && ENFORCE_GAS_ARGS="--enforce-gas-cost"
+        # Run SMTChecker tests only when OPTIMIZE == 0
+        DISABLE_SMTCHECKER=""
+        [ "${OPTIMIZE}" != "0" ] && DISABLE_SMTCHECKER="-t !smtCheckerTests"
 
-            EVM="$EVM" \
-            EOF_VERSION="$EOF_VERSION" \
-            OPTIMIZE="$OPTIMIZE" \
-            SOLTEST_FLAGS="$SOLTEST_FLAGS $ENFORCE_GAS_ARGS" \
-            BOOST_TEST_ARGS="-t !@nooptions $DISABLE_SMTCHECKER" \
-            INDEX_SHIFT="$INDEX_SHIFT" \
-            "${REPODIR}/.circleci/soltest.sh"
+        EVM="$EVM" \
+        OPTIMIZE="$OPTIMIZE" \
+        SOLTEST_FLAGS="$SOLTEST_FLAGS $ENFORCE_GAS_ARGS" \
+        BOOST_TEST_ARGS="-t !@nooptions $DISABLE_SMTCHECKER" \
+        INDEX_SHIFT="$INDEX_SHIFT" \
+        "${REPODIR}/.circleci/soltest.sh"
 
-            INDEX_SHIFT=$((INDEX_SHIFT + 1))
-        done
+        INDEX_SHIFT=$((INDEX_SHIFT + 1))
     done
 done

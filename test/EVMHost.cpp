@@ -136,6 +136,8 @@ EVMHost::EVMHost(langutil::EVMVersion _evmVersion, evmc::VM& _vm):
 		m_evmRevision = EVMC_PRAGUE;
 	else if (_evmVersion == langutil::EVMVersion::osaka())
 		m_evmRevision = EVMC_OSAKA;
+	else if (_evmVersion == langutil::EVMVersion::amsterdam())
+		m_evmRevision = EVMC_AMSTERDAM;
 	else if (_evmVersion == langutil::EVMVersion::future())
 		m_evmRevision = EVMC_MAX_REVISION;
 	else
@@ -313,8 +315,6 @@ evmc::Result EVMHost::call(evmc_message const& _message) noexcept
 			return result;
 		}
 	}
-
-	solAssert(message.kind != EVMC_EOFCREATE);
 
 	if (message.kind == EVMC_CREATE)
 	{
@@ -1380,9 +1380,6 @@ void EVMHostPrinter::callRecords()
 				return "CREATE";
 			case evmc_call_kind::EVMC_CREATE2:
 				return "CREATE2";
-			case evmc_call_kind::EVMC_EOFCREATE:
-				solAssert(false); // EOF is not supported.
-				return "";
 		}
 		unreachable();
 	};

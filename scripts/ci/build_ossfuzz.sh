@@ -18,7 +18,7 @@ function generate_protobuf_bindings
 function build_fuzzers
 {
   cd "${BUILDDIR}"
-  export CCACHE_DIR="$HOME/.ccache"
+  export CCACHE_DIR="${CCACHE_DIR:-$HOME/.ccache}"
   export CCACHE_BASEDIR="$ROOTDIR"
   export CCACHE_NOHASHDIR=1
   CMAKE_OPTIONS="${CMAKE_OPTIONS:-} -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache"
