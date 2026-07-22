@@ -3,6 +3,8 @@
 Language Features:
 
 Compiler Features:
+* Commandline Interface: Add logging options `--log-level`, `--log` and `--log-output` to set the global default level, specific logger level and the output.
+* Logging: Introduce runtime switchable logging functionality to the compiler. Loggers are declared at call sites with `DEFINE_LOGGER` and used via the `solTrace`/`solDebug`/`solWarn` macros.
 
 Bugfixes:
 * Commandline Interface: Report proper error instead of ICE on non-hex mixed-case address value given via `--libraries`.
