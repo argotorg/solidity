@@ -120,7 +120,7 @@ function download_project
     # NOTE: Sadly this will not work with monorepos and may not always
     # return the latest tag.
     if [[ "$ref" == "<latest-release>" ]]; then
-        ref=$(git tag --sort=-v:refname | head --lines=1)
+        ref=$(git tag --sort=-v:refname | grep -vE -- '-(rc|alpha|beta)' | head --lines=1)
     fi
 
     [[ $ref != "" ]] || assertFail
