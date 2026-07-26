@@ -154,6 +154,7 @@ std::set<std::string, std::less<>> createReservedIdentifiers(langutil::EVMVersio
 		"datacopy",
 		"setimmutable",
 		"loadimmutable",
+		"deploytimeaddress",
 	};
 
 	return reserved;

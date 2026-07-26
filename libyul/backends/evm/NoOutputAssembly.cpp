@@ -87,6 +87,12 @@ void NoOutputAssembly::appendLinkerSymbol(std::string const&)
 	yulAssert(false, "Linker symbols not yet implemented.");
 }
 
+void NoOutputAssembly::appendDeployTimeAddress()
+{
+	// The deploy-time address is assembled as a "PUSH20 00...000".
+	appendInstruction(evmasm::pushInstruction(20));
+}
+
 void NoOutputAssembly::appendVerbatim(bytes, size_t _arguments, size_t _returnVariables)
 {
 	m_stackHeight += static_cast<int>(_returnVariables) - static_cast<int>(_arguments);

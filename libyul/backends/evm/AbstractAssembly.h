@@ -85,6 +85,9 @@ public:
 	/// Append a reference to a to-be-linked symbol.
 	/// Currently, we assume that the value is always a 20 byte number.
 	virtual void appendLinkerSymbol(std::string const& _name) = 0;
+	/// Append a special constant that will be replaced by the address of the deployed contract
+	/// at deploy time. At compilation time, this is just "PUSH20 00...000".
+	virtual void appendDeployTimeAddress() = 0;
 
 	/// Append raw bytes that stay untouched by the optimizer.
 	virtual void appendVerbatim(bytes _data, size_t _arguments, size_t _returnVariables) = 0;

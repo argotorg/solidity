@@ -541,6 +541,13 @@ u256 EVMInstructionInterpreter::evalBuiltin(
 	if (fun == "memoryguard")
 		return _evaluatedArguments.at(0);
 
+	if (fun == "deploytimeaddress")
+	{
+		yulAssert(_arguments.empty());
+		// At compile time this is a zero address that gets patched at deploy time.
+		return 0;
+	}
+
 	if (fun == "linkersymbol")
 	{
 		yulAssert(_arguments.size() == 1);

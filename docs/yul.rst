@@ -1026,6 +1026,22 @@ option.
 
 See :ref:`Using the Commandline Compiler <commandline-compiler>` for details about the Solidity linker.
 
+deploytimeaddress
+^^^^^^^^^^^^^^^^^^
+The function ``deploytimeaddress()`` is a placeholder for the address at which the contract is
+deployed. It takes no arguments and returns a single value.
+At compilation time it is just a push of a zero address (``PUSH20 0``), which is replaced by the
+actual address of the contract when it is deployed.
+
+This is the same mechanism the legacy code generator uses to prevent a contract from being called
+via ``DELEGATECALL`` (for example, in libraries). Comparing ``deploytimeaddress()`` with the current
+``address()`` tells whether the code runs in the context of the contract it was deployed as, or in a
+foreign context via ``DELEGATECALL``:
+
+.. code-block:: yul
+
+    if iszero(eq(deploytimeaddress(), address())) { revert(0, 0) }
+
 memoryguard
 ^^^^^^^^^^^
 

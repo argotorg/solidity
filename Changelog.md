@@ -3,6 +3,7 @@
 Language Features:
 
 Compiler Features:
+* Yul: Add ``deploytimeaddress()`` builtin that returns the address at which the contract is deployed (a zero address at compile time, patched at deploy time).
 * SMTChecker: Emit a deprecation warning for the BMC engine.
 
 Bugfixes:

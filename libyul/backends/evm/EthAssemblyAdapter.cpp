@@ -93,6 +93,11 @@ void EthAssemblyAdapter::appendLinkerSymbol(std::string const& _linkerSymbol)
 	m_assembly.appendLibraryAddress(_linkerSymbol);
 }
 
+void EthAssemblyAdapter::appendDeployTimeAddress()
+{
+	m_assembly.append(evmasm::PushDeployTimeAddress);
+}
+
 void EthAssemblyAdapter::appendVerbatim(bytes _data, size_t _arguments, size_t _returnVariables)
 {
 	m_assembly.appendVerbatim(std::move(_data), _arguments, _returnVariables);

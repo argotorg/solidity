@@ -99,6 +99,22 @@ BuiltinFunctionForEVM linkersymbolBuiltin()
 	);
 }
 
+BuiltinFunctionForEVM deploytimeaddressBuiltin()
+{
+	return createFunction(
+		"deploytimeaddress",
+		0,
+		1,
+		SideEffects{},
+		ControlFlowSideEffects{},
+		{},
+		[](FunctionCall const& _call, AbstractAssembly& _assembly, BuiltinContext&) {
+			yulAssert(_call.arguments.empty(), "");
+			_assembly.appendDeployTimeAddress();
+		}
+	);
+}
+
 BuiltinFunctionForEVM memoryguardBuiltin()
 {
 	return createFunction(
@@ -260,6 +276,7 @@ EVMBuiltins::EVMBuiltins()
 	}
 
 	m_scopesAndFunctions.emplace_back(objectAccess, linkersymbolBuiltin());
+	m_scopesAndFunctions.emplace_back(objectAccess, deploytimeaddressBuiltin());
 	m_scopesAndFunctions.emplace_back(objectAccess, memoryguardBuiltin());
 
 	m_scopesAndFunctions.emplace_back(objectAccess, datasizeBuiltin());
