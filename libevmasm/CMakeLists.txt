@@ -4,6 +4,8 @@ set(sources
 	Assembly.h
 	AssemblyItem.cpp
 	AssemblyItem.h
+	CodeSizeLimits.cpp
+	CodeSizeLimits.h
 	Ethdebug.cpp
 	Ethdebug.h
 	EthdebugSchema.cpp
@@ -48,4 +50,4 @@ set(sources
 )
 
 add_library(evmasm ${sources})
-target_link_libraries(evmasm PUBLIC solutil fmt::fmt-header-only)
+target_link_libraries(evmasm PUBLIC solutil langutil fmt::fmt-header-only)
