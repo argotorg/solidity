@@ -78,7 +78,8 @@ std::optional<std::vector<Statement>> SwitchSplitter::tryTransform(Switch& _swit
 	if (!m_gtHandle)
 		return {};
 
-	// Requires a simple identifier — ensured by ExpressionSplitter running first.
+	// Only switches on a simple identifier are transformed; without ExpressionSplitter
+	// having run first, more complex expressions are left untouched here.
 	auto const* exprIdent = std::get_if<Identifier>(_switch.expression.get());
 	if (!exprIdent)
 		return {};

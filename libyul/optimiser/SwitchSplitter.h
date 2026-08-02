@@ -42,11 +42,22 @@ namespace solidity::yul
  * overhead comes from the gt-switch structure; k accounts for each split duplicating
  * the default body into one additional leaf.
  *
+ * This mirrors the formula ContractCompiler::appendInternalSelector uses to decide
+ * whether to binary-split the legacy function selector dispatch (ContractCompiler.cpp,
+ * see the comment above that function for the full per-opcode derivation of the 6 and 4
+ * constants). That formula fixes the split overhead at 17 bytes because selectors are
+ * always 4-byte literals; here the fulcrum can be any literal, so the fixed 4 is broken
+ * out into f and the remaining 13-byte base overhead is unchanged (13 + 4 == 17).
+ *
  * Applied recursively: each sub-slice re-evaluates the formula.
  * The default case body is duplicated into each leaf branch when present.
  *
- * Prerequisite: Disambiguator, ExpressionSplitter.
- * The switch expression must already be a simple identifier (ensured by ExpressionSplitter).
+ * Prerequisite: Disambiguator.
+ *
+ * ExpressionSplitter is recommended, though not required for correctness: this step only
+ * transforms switches whose expression is already a simple identifier, so without
+ * ExpressionSplitter having run first, switches with more complex expressions are simply
+ * left untouched rather than causing incorrect output.
  *
  * Important: Can only be used on EVM code.
  */
