@@ -251,6 +251,15 @@ std::string_view yul::resolveFunctionName(FunctionName const& _functionName, Dia
 	return std::visit(visitor, _functionName);
 }
 
+std::string_view yul::resolveFunctionName(FunctionHandle const& _functionHandle, Dialect const& _dialect)
+{
+	GenericVisitor visitor{
+		[&](YulName const& _name) -> std::string const& { return _name.str(); },
+		[&](BuiltinHandle const& _handle) -> std::string const& { return _dialect.builtin(_handle).name; }
+	};
+	return std::visit(visitor, _functionHandle);
+}
+
 BuiltinFunction const* yul::resolveBuiltinFunction(FunctionName const& _functionName, Dialect const& _dialect)
 {
 	GenericVisitor visitor{

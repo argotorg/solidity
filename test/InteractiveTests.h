@@ -41,6 +41,7 @@
 #include <test/libyul/ControlFlowGraphTest.h>
 #include <test/libyul/EVMCodeTransformTest.h>
 #include <test/libyul/YulOptimizerTest.h>
+#include <test/libyul/CallGraphTest.h>
 #include <test/libyul/YulInterpreterTest.h>
 #include <test/libyul/ObjectCompilerTest.h>
 #include <test/libyul/ControlFlowSideEffectsTest.h>
@@ -78,6 +79,7 @@ Testsuite const g_interactiveTestsuites[] = {
 	{"Yul Interpreter",             "libyul",      "yulInterpreterTests",           false, false, &yul::test::YulInterpreterTest::create},
 	{"Yul Object Compiler",         "libyul",      "objectCompiler",                false, false, &yul::test::ObjectCompilerTest::create},
 	{"Yul Control Flow Graph",      "libyul",      "yulControlFlowGraph",           false, false, &yul::test::ControlFlowGraphTest::create},
+	{"Yul Call Graph",              "libyul",      "yulCallGraph",                  false, false, &yul::test::CallGraphTest::create},
 	{"Yul SSA Control Flow Graph",  "libyul",      "ssa/controlFlowGraph",          false, false, &yul::test::ssa::ControlFlowGraphTest::create},
 	{"Yul SSA Call Graph",          "libyul",      "ssa/callGraph",                 false, false, &yul::test::ssa::CallGraphTest::create},
 	{"Yul SSA Printer",             "libyul",      "ssa/printer",                   false, false, &yul::test::ssa::PrinterTest::create},

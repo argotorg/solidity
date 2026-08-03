@@ -18,7 +18,7 @@
  * Unit tests for the Tarjan SCC utility.
  */
 
-#include <libyul/backends/evm/ssa/util/TarjanSCC.h>
+#include <libsolutil/TarjanSCC.h>
 
 #include <boost/test/data/monomorphic.hpp>
 #include <boost/test/data/test_case.hpp>
@@ -35,7 +35,7 @@
 #include <string>
 #include <vector>
 
-namespace solidity::yul::test::ssa
+namespace solidity::util::test
 {
 
 using NodeID = std::uint32_t;
@@ -49,7 +49,7 @@ namespace bdata = boost::unit_test::data;
 
 SCCList compute(Graph const& _g)
 {
-	return solidity::yul::ssa::util::computeStronglyConnectedComponents<NodeID>(_g);
+	return solidity::util::computeStronglyConnectedComponents<NodeID>(_g);
 }
 
 SCCList canonicalize(SCCList _sccs)

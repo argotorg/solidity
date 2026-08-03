@@ -29,5 +29,6 @@ contract C {
 
 
 // ----
-// Warning 6328: (431-445): CHC: Assertion violation happens here.
+// Warning 6328: (431-445): CHC: Assertion violation happens here.\nCounterexample:\ny = 0, z = 1\n = 0\ns = {x: 0}\nret = 0\n\nTransaction trace:\nC.constructor()\nState: y = 0, z = 0\nC.f()\n    s.x() -- untrusted external call, synthesized as:\n        C.setZ(1) -- reentrant call
 // Info 1391: CHC: 1 verification condition(s) proved safe! Enable the model checker option "show proved safe" to see all of them.
+// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

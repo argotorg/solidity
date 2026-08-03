@@ -11,3 +11,4 @@ contract Test {
 // ----
 // Warning 2072: (104-133): Unused local variable.
 // Warning 8364: (138-180): Assertion checker does not yet implement type struct Test.RecursiveStruct memory
+// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

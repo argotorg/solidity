@@ -45,7 +45,8 @@ JunkAdmittingBlocksFinder::JunkAdmittingBlocksFinder(SSACFG const& _cfg, travers
 	for (auto const blockIndex: _topologicalSort.preOrder())
 	{
 		SSACFG::BlockId const blockId {blockIndex};
-		m_blockAllowsJunk[blockIndex] = bridgeFinder.bridgeVertex(blockId) || _cfg.block(blockId).isTerminationBlock();
+		bool const isLoopHead = _topologicalSort.backEdgeTargets().contains(blockIndex);
+		m_blockAllowsJunk[blockIndex] = (bridgeFinder.bridgeVertex(blockId) && !isLoopHead) || _cfg.block(blockId).isTerminationBlock();
 		if (_cfg.block(blockId).isFunctionReturnBlock())
 			toVisit.emplace_back(SSACFG::BlockId{blockIndex});
 	}

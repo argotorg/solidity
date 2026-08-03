@@ -20,3 +20,4 @@ contract C is A, B {
 // ----
 // Warning 6328: (60-74): CHC: Assertion violation happens here.\nCounterexample:\nx = 115792089237316195423570985008687907853269984665640564039457584007913129637498\n\nTransaction trace:\nC.constructor(){ msg.value: 115792089237316195423570985008687907853269984665640564039457584007913129637498 }
 // Info 1391: CHC: 2 verification condition(s) proved safe! Enable the model checker option "show proved safe" to see all of them.
+// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

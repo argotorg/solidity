@@ -15,7 +15,8 @@ contract C {
 // SMTIgnoreCex: yes
 // SMTIgnoreOS: macos
 // ----
-// Warning 6368: (188-192): CHC: Out of bounds access happens here.
-// Warning 6368: (188-195): CHC: Out of bounds access happens here.
-// Warning 6328: (181-202): CHC: Assertion violation happens here.
+// Warning 6368: (188-192): CHC: Out of bounds access happens here.\nCounterexample:\n\nb = [32]\n\nTransaction trace:\nC.constructor()\nState: a = []\nC.f()
+// Warning 6368: (188-195): CHC: Out of bounds access happens here.\nCounterexample:\n\nb = [32]\n\nTransaction trace:\nC.constructor()\nState: a = []\nC.f()
+// Warning 6328: (181-202): CHC: Assertion violation happens here.\nCounterexample:\n\nb = [32]\n\nTransaction trace:\nC.constructor()\nState: a = []\nC.f()
 // Info 1391: CHC: 5 verification condition(s) proved safe! Enable the model checker option "show proved safe" to see all of them.
+// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

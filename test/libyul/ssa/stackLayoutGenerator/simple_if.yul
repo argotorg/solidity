@@ -22,7 +22,7 @@
 // \l\
 // [FunctionCallReturnLabel[0], lit0, lit1]\l\
 // f\l\
-// [FunctionCallReturnLabel[0], v2]\l\
+// [v2]\l\
 // \l\
 // [v2, lit3]\l\
 // mstore\l\

@@ -4,6 +4,8 @@ Warning: 'transfer' is deprecated and scheduled for removal. Use 'call{value: <a
 10 | 		a.transfer(x);
    | 		^^^^^^^^^^
 
+Warning: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.
+
 Warning: BMC: Division by zero happens here.
  --> input.sol:9:3:
   |

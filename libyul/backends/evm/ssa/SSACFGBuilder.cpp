@@ -25,6 +25,7 @@
 
 #include <libyul/AST.h>
 #include <libyul/ControlFlowSideEffectsCollector.h>
+#include <libyul/optimiser/Metrics.h>
 #include <libyul/Exceptions.h>
 #include <libyul/Utilities.h>
 
@@ -81,7 +82,8 @@ std::unique_ptr<ControlFlowGraphs> SSACFGBuilder::build(
 	auto controlFlowGraphs = std::make_unique<ControlFlowGraphs>();
 	controlFlowGraphs->functionGraphs.emplace_back(std::make_unique<SSACFG>(
 		_dialect,
-		_generateDebugInfo ? std::make_unique<SSACFGDebugInfo>() : nullptr
+		_generateDebugInfo ? std::make_unique<SSACFGDebugInfo>() : nullptr,
+		2 * CodeSize::codeSize(_block)  // empirically there are roughly 2x the instructions
 	));
 	SSACFG& mainGraph = *controlFlowGraphs->functionGraphs.back();
 	FunctionRegistry functionRegistry;
@@ -173,60 +175,25 @@ void SSACFGBuilder::operator()(FunctionDefinition const& _functionDefinition)
 
 void SSACFGBuilder::operator()(If const& _if)
 {
-	std::optional<bool> constantCondition;
-	if (auto const* literalCondition = std::get_if<Literal>(_if.condition.get()))
-		constantCondition = literalCondition->value.value() != 0;
-	// deal with literal (constant) conditions explicitly
-	if (constantCondition)
-	{
-		if (*constantCondition)
-			// Always true - skip conditional, just execute if branch
-			(*this)(_if.body);
-	}
-	else
-	{
-		auto condition = std::visit(*this, *_if.condition);
-		auto ifBranch = m_graph.makeBlock(debugDataOf(_if.body));
-		auto afterIf = m_graph.makeBlock(currentBlockDebugData());
-		conditionalJump(
-			debugDataOf(_if),
-			condition,
-			ifBranch,
-			afterIf
-		);
-		sealBlock(ifBranch);
-		m_currentBlock = ifBranch;
-		(*this)(_if.body);
-		jump(debugDataOf(_if.body), afterIf);
-		sealBlock(afterIf);
-	}
+	auto const condition = std::visit(*this, *_if.condition);
+	auto const ifBranch = m_graph.makeBlock(debugDataOf(_if.body));
+	auto const afterIf = m_graph.makeBlock(currentBlockDebugData());
+	conditionalJump(
+		debugDataOf(_if),
+		condition,
+		ifBranch,
+		afterIf
+	);
+	sealBlock(ifBranch);
+	m_currentBlock = ifBranch;
+	(*this)(_if.body);
+	jump(debugDataOf(_if.body), afterIf);
+	sealBlock(afterIf);
 }
 
 void SSACFGBuilder::operator()(Switch const& _switch)
 {
 	auto expression = std::visit(*this, *_switch.expression);
-
-	if (auto const* constantExpression = std::get_if<Literal>(_switch.expression.get()))
-	{
-		Case const* matchedCase = nullptr;
-		// select case that matches (or default if available)
-		for (auto const& switchCase: _switch.cases)
-		{
-			if (!switchCase.value)
-				matchedCase = &switchCase;
-			if (switchCase.value && switchCase.value->value.value() == constantExpression->value.value())
-			{
-				matchedCase = &switchCase;
-				break;
-			}
-		}
-		if (matchedCase)
-		{
-			// inject directly into the current block
-			(*this)(matchedCase->body);
-		}
-		return;
-	}
 
 	std::optional<BuiltinHandle> equalityBuiltinHandle = m_dialect.equalityFunctionHandle();
 	yulAssert(equalityBuiltinHandle);
@@ -276,14 +243,10 @@ void SSACFGBuilder::operator()(ForLoop const& _loop)
 	(*this)(_loop.pre);
 	auto preLoopDebugData = currentBlockDebugData();
 
-	std::optional<bool> constantCondition;
-	if (auto const* literalCondition = std::get_if<Literal>(_loop.condition.get()))
-		constantCondition = literalCondition->value.value() != 0;
-
-	SSACFG::BlockId loopCondition = m_graph.makeBlock(debugDataOf(*_loop.condition));
-	SSACFG::BlockId loopBody = m_graph.makeBlock(debugDataOf(_loop.body));
-	SSACFG::BlockId post = m_graph.makeBlock(debugDataOf(_loop.post));
-	SSACFG::BlockId afterLoop = m_graph.makeBlock(preLoopDebugData);
+	SSACFG::BlockId const loopCondition = m_graph.makeBlock(debugDataOf(*_loop.condition));
+	SSACFG::BlockId const loopBody = m_graph.makeBlock(debugDataOf(_loop.body));
+	SSACFG::BlockId const post = m_graph.makeBlock(debugDataOf(_loop.post));
+	SSACFG::BlockId const afterLoop = m_graph.makeBlock(preLoopDebugData);
 
 	class ForLoopInfoScope {
 	public:
@@ -298,36 +261,17 @@ void SSACFGBuilder::operator()(ForLoop const& _loop)
 		std::stack<ForLoopInfo>& m_info;
 	} forLoopInfoScope(m_forLoopInfo, afterLoop, post);
 
-	if (constantCondition.has_value())
-	{
-		std::visit(*this, *_loop.condition);
-		if (*constantCondition)
-		{
-			jump(debugDataOf(*_loop.condition), loopBody);
-			(*this)(_loop.body);
-			jump(debugDataOf(_loop.body), post);
-			sealBlock(post);
-			(*this)(_loop.post);
-			jump(debugDataOf(_loop.post), loopBody);
-			sealBlock(loopBody);
-		}
-		else
-			jump(debugDataOf(*_loop.condition), afterLoop);
-	}
-	else
-	{
-		jump(debugDataOf(_loop.pre), loopCondition);
-		auto condition = std::visit(*this, *_loop.condition);
-		conditionalJump(debugDataOf(*_loop.condition), condition, loopBody, afterLoop);
-		sealBlock(loopBody);
-		m_currentBlock = loopBody;
-		(*this)(_loop.body);
-		jump(debugDataOf(_loop.body), post);
-		sealBlock(post);
-		(*this)(_loop.post);
-		jump(debugDataOf(_loop.post), loopCondition);
-		sealBlock(loopCondition);
-	}
+	jump(debugDataOf(_loop.pre), loopCondition);
+	auto condition = std::visit(*this, *_loop.condition);
+	conditionalJump(debugDataOf(*_loop.condition), condition, loopBody, afterLoop);
+	sealBlock(loopBody);
+	m_currentBlock = loopBody;
+	(*this)(_loop.body);
+	jump(debugDataOf(_loop.body), post);
+	sealBlock(post);
+	(*this)(_loop.post);
+	jump(debugDataOf(_loop.post), loopCondition);
+	sealBlock(loopCondition);
 
 	sealBlock(afterLoop);
 	m_currentBlock = afterLoop;
@@ -375,7 +319,8 @@ void SSACFGBuilder::registerFunctionDefinition(FunctionDefinition const& _functi
 	// reference this function by its FunctionGraphID when their bodies are built later.
 	m_controlFlow.functionGraphs.emplace_back(std::make_unique<SSACFG>(
 		m_dialect,
-		m_generateDebugInfo ? std::make_unique<SSACFGDebugInfo>() : nullptr
+		m_generateDebugInfo ? std::make_unique<SSACFGDebugInfo>() : nullptr,
+		2 * CodeSize::codeSize(_functionDefinition.body)  // empirically there are roughly 2x the instructions
 	));
 	auto const graphID = static_cast<FunctionGraphID>(m_controlFlow.functionGraphs.size() - 1);
 	auto& cfg = *m_controlFlow.functionGraphs.back();

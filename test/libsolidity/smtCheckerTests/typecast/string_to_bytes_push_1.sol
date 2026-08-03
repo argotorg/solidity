@@ -11,5 +11,6 @@ contract C {
 // ====
 // SMTEngine: all
 // ----
-// Warning 6328: (132-160): CHC: Assertion violation happens here.
+// Warning 6328: (132-160): CHC: Assertion violation happens here.\nCounterexample:\nx = [0x61, 0x62, 0x63, 0x61]\n\nTransaction trace:\nC.constructor()\nState: x = []\nC.s()
 // Info 1391: CHC: 1 verification condition(s) proved safe! Enable the model checker option "show proved safe" to see all of them.
+// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

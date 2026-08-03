@@ -108,7 +108,7 @@ code {
 //     upsilon v19 -> ^v58
 //     upsilon v20 -> ^v60
 //     jump #1
-// #1: preds: #0, #3
+// #1: preds: #0, #2
 //     v22 = phi
 //     v23 = builtin @lt v22, v0
 //     v24 = phi
@@ -151,8 +151,6 @@ code {
 //     v57 = builtin @add v56, v22
 //     v59 = builtin @add v58, v22
 //     v61 = builtin @add v60, v22
-//     jump #3
-// #3: preds: #2
 //     v62 = builtin @add v22, v2
 //     upsilon v62 -> ^v22
 //     upsilon v25 -> ^v24

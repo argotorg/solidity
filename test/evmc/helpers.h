@@ -168,55 +168,6 @@ static inline void evmc_release_result(struct evmc_result* result)
         result->release(result);
 }
 
-
-/**
- * Helpers for optional storage of evmc_result.
- *
- * In some contexts (i.e. evmc_result::create_address is unused) objects of
- * type evmc_result contains a memory storage that MAY be used by the object
- * owner. This group defines helper types and functions for accessing
- * the optional storage.
- *
- * @defgroup result_optional_storage Result Optional Storage
- * @{
- */
-
-/**
- * The union representing evmc_result "optional storage".
- *
- * The evmc_result struct contains 24 bytes of optional storage that can be
- * reused by the object creator if the object does not contain
- * evmc_result::create_address.
- *
- * A VM implementation MAY use this memory to keep additional data
- * when returning result from evmc_execute_fn().
- * The host application MAY use this memory to keep additional data
- * when returning result of performed calls from evmc_call_fn().
- *
- * @see evmc_get_optional_storage(), evmc_get_const_optional_storage().
- */
-union evmc_result_optional_storage
-{
-    uint8_t bytes[24]; /**< 24 bytes of optional storage. */
-    void* pointer;     /**< Optional pointer. */
-};
-
-/** Provides read-write access to evmc_result "optional storage". */
-static inline union evmc_result_optional_storage* evmc_get_optional_storage(
-    struct evmc_result* result)
-{
-    return (union evmc_result_optional_storage*)&result->create_address;
-}
-
-/** Provides read-only access to evmc_result "optional storage". */
-static inline const union evmc_result_optional_storage* evmc_get_const_optional_storage(
-    const struct evmc_result* result)
-{
-    return (const union evmc_result_optional_storage*)&result->create_address;
-}
-
-/** @} */
-
 /** Returns text representation of the ::evmc_status_code. */
 static inline const char* evmc_status_code_to_string(enum evmc_status_code status_code)
 {
@@ -303,6 +254,10 @@ static inline const char* evmc_revision_to_string(enum evmc_revision rev)
         return "Prague";
     case EVMC_OSAKA:
         return "Osaka";
+    case EVMC_AMSTERDAM:
+        return "Amsterdam";
+    case EVMC_EXPERIMENTAL:
+        return "Experimental";
     }
     return "<unknown>";
 }

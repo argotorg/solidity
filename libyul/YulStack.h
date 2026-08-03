@@ -108,7 +108,7 @@ public:
 
 	/// Run the optimizer suite. Can only be used with Yul or strict assembly.
 	/// If the settings (see constructor) disabled the optimizer, nothing is done here.
-	void optimize();
+	void optimize(bool _viaSSACFG = false);
 
 	/// Run the assembly step (should only be called after parseAndAnalyze).
 	MachineAssemblyObject assemble(Machine _machine, bool _viaSSACFG = false);

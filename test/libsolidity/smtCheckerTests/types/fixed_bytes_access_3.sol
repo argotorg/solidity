@@ -34,3 +34,4 @@ contract C {
 // ----
 // Warning 6368: (456-462): CHC: Out of bounds access happens here.
 // Info 1391: CHC: 13 verification condition(s) proved safe! Enable the model checker option "show proved safe" to see all of them.
+// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

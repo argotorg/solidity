@@ -16,3 +16,4 @@ contract C {
 // ----
 // Warning 6133: (53-67): Statement has no effect.
 // Warning 6133: (166-188): Statement has no effect.
+// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

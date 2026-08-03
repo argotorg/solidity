@@ -145,9 +145,9 @@ BOOST_AUTO_TEST_CASE(test_format_number_readable)
 		u256(0xFFFFffffFFFFffff) << 64 |
 		u256(0xFFFFffffFFFFffff);
 	BOOST_CHECK_EQUAL(formatNumberReadable(b, true), "0x5555...{+56 more}...5555");
-	BOOST_CHECK_EQUAL(formatNumberReadable(c, true), "0xABCD...{+56 more}...6789");
-	BOOST_CHECK_EQUAL(formatNumberReadable(d, true), "0xAAAAaaaaAAAAaaaa * 2**192");
-	BOOST_CHECK_EQUAL(formatNumberReadable(e, true), "0xAAAAaaaaAAAAaaab * 2**192 - 1");
+	BOOST_CHECK_EQUAL(formatNumberReadable(c, true), "0xabcd...{+56 more}...6789");
+	BOOST_CHECK_EQUAL(formatNumberReadable(d, true), "0xaaaaaaaaaaaaaaaa * 2**192");
+	BOOST_CHECK_EQUAL(formatNumberReadable(e, true), "0xaaaaaaaaaaaaaaab * 2**192 - 1");
 
 	BOOST_CHECK_EQUAL(formatNumberReadable(u256(0x20000000)), "2**29");
 	BOOST_CHECK_EQUAL(formatNumberReadable(u256(0x200000000)), "2**33");
@@ -260,7 +260,7 @@ BOOST_AUTO_TEST_CASE(test_format_number_readable_signed)
 	);
 
 	BOOST_CHECK_EQUAL(formatNumberReadable(b, true), "-0x5555...{+56 more}...5555");
-	BOOST_CHECK_EQUAL(formatNumberReadable(c, true), "-0x0BCD...{+56 more}...6789");
+	BOOST_CHECK_EQUAL(formatNumberReadable(c, true), "-0x0bcd...{+56 more}...6789");
 	BOOST_CHECK_EQUAL(formatNumberReadable(d, true), "-0x5555555555555556 * 2**192 + 1");
 
 	BOOST_CHECK_EQUAL(formatNumberReadable((-1) * s256(0x20000000)), "-2**29");

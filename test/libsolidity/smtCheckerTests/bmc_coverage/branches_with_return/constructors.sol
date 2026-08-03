@@ -26,6 +26,7 @@ contract C is B {
 // SMTEngine: bmc
 // ----
 // Warning 5740: (119-124): Unreachable code.
+// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.
 // Warning 4661: (277-291): BMC: Assertion violation happens here.
 // Warning 4661: (310-324): BMC: Assertion violation happens here.
 // Warning 4661: (343-357): BMC: Assertion violation happens here.

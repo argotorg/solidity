@@ -68,6 +68,16 @@ A.f(0)",
         },
         {
             "component": "general",
+            "errorCode": "3993",
+            "formattedMessage": "Warning: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.
+
+",
+            "message": "The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.",
+            "severity": "warning",
+            "type": "Warning"
+        },
+        {
+            "component": "general",
             "errorCode": "6328",
             "formattedMessage": "Warning: CHC: Assertion violation happens here.
 Counterexample:
@@ -97,6 +107,16 @@ C.h(0)",
                 "file": "Source2",
                 "start": 150
             },
+            "type": "Warning"
+        },
+        {
+            "component": "general",
+            "errorCode": "3993",
+            "formattedMessage": "Warning: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.
+
+",
+            "message": "The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.",
+            "severity": "warning",
             "type": "Warning"
         }
     ],

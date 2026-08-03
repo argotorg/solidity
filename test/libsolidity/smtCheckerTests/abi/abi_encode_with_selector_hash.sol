@@ -16,5 +16,6 @@ contract C {
 // SMTIgnoreCex: yes
 // ----
 // Warning 2072: (161-176): Unused local variable.
-// Warning 6328: (379-417): CHC: Assertion violation happens here.
-// Warning 6328: (436-474): CHC: Assertion violation happens here.
+// Warning 6328: (379-417): CHC: Assertion violation happens here.\nCounterexample:\n\nsel = 0x0\na = 0\nb = 0\n\nTransaction trace:\nC.constructor()\nC.abiEncodeHash(0x0, 0, 0)
+// Warning 6328: (436-474): CHC: Assertion violation happens here.\nCounterexample:\n\nsel = 0x0\na = 0\nb = 0\n\nTransaction trace:\nC.constructor()\nC.abiEncodeHash(0x0, 0, 0)
+// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

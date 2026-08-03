@@ -19,6 +19,7 @@ contract C {
 // ====
 // SMTEngine: bmc
 // ----
+// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.
 // Warning 4661: (49-62): BMC: Assertion violation happens here.
 // Warning 6838: (111-117): BMC: Condition is always true.
 // Warning 6838: (186-192): BMC: Condition is always false.

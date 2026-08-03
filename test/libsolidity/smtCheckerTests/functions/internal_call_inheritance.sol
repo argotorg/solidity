@@ -18,3 +18,4 @@ contract A is B {
 // SMTEngine: all
 // ----
 // Warning 6328: (221-235): CHC: Assertion violation happens here.\nCounterexample:\nx = 42\n\nTransaction trace:\nA.constructor()\nState: x = 0\nA.a()\n    B.b() -- internal call\n        C.c() -- internal call
+// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

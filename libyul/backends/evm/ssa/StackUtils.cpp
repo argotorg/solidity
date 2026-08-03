@@ -32,46 +32,46 @@
 
 using namespace solidity::yul::ssa;
 
-void GasAccumulatingCallbacks::swap(StackDepth _depth)
+std::size_t solidity::yul::ssa::stackOpsGas(SSACFG const& _cfg, ShuffleTrace const& _trace)
 {
-	opGas += evmasm::GasMeter::swapGas(_depth.value, cfg.evmDialect.evmVersion());
-}
-
-void GasAccumulatingCallbacks::dup(StackDepth _depth)
-{
-	opGas += evmasm::GasMeter::dupGas(_depth.value, cfg.evmDialect.evmVersion());
-}
-
-void GasAccumulatingCallbacks::push(StackSlot const& _slot)
-{
-	if (_slot.isLiteralValue())
-	{
-		auto const size = numberEncodingSize(cfg.literalPayload(_slot.value()));
-		opGas += evmasm::GasMeter::runGas(evmasm::pushInstruction(size), cfg.evmDialect.evmVersion());
-	}
-	else if (_slot.isJunk())
-	{
-		auto const op = cfg.evmDialect.evmVersion().hasPush0() ? evmasm::Instruction::PUSH0 : evmasm::Instruction::CODESIZE;
-		opGas += evmasm::GasMeter::runGas(op, cfg.evmDialect.evmVersion());
-	}
-	else if (_slot.isFunctionCallReturnLabel())
-	{
-		// this is a jump dest, we don't really know yet how big it is going to be, just assume that it fits into
-		// a 2-byte number
-		opGas += evmasm::GasMeter::runGas(evmasm::Instruction::PUSH2, cfg.evmDialect.evmVersion());
-	}
-	else
-	{
-		// Spilled SSA value
-		yulAssert(_slot.isValue(), "unexpected slot kind in GasAccumulatingCallbacks::push");
-		opGas += evmasm::GasMeter::runGas(evmasm::Instruction::PUSH32, cfg.evmDialect.evmVersion());
-		opGas += evmasm::GasMeter::runGas(evmasm::Instruction::MLOAD, cfg.evmDialect.evmVersion());
-	}
-}
-
-void GasAccumulatingCallbacks::pop()
-{
-	opGas += evmasm::GasMeter::runGas(evmasm::Instruction::POP, cfg.evmDialect.evmVersion());
+	auto const evmVersion = _cfg.evmDialect.evmVersion();
+	auto const runGas = [&](evmasm::Instruction const _instruction) {
+		return evmasm::GasMeter::runGas(_instruction, evmVersion);
+	};
+	std::size_t gas = 0;
+	for (ShuffleOp const& op: _trace)
+		switch (op.kind)
+		{
+		case ShuffleOp::Kind::Swap:
+			gas += evmasm::GasMeter::swapGas(op.depth, evmVersion);
+			break;
+		case ShuffleOp::Kind::Dup:
+			gas += evmasm::GasMeter::dupGas(op.depth, evmVersion);
+			break;
+		case ShuffleOp::Kind::Pop:
+			gas += runGas(evmasm::Instruction::POP);
+			break;
+		case ShuffleOp::Kind::Push:
+			if (op.slot.isLiteralValue())
+				gas += runGas(evmasm::pushInstruction(numberEncodingSize(_cfg.literalPayload(op.slot.value()))));
+			else if (op.slot.isJunk())
+				gas += runGas(evmVersion.hasPush0() ? evmasm::Instruction::PUSH0 : evmasm::Instruction::CODESIZE);
+			else
+			{
+				yulAssert(op.slot.isFunctionCallReturnLabel(), "unexpected slot kind in shuffle trace push");
+				// this is a jump dest, we don't really know yet how big it is going to be, just assume that it fits
+				// into a 2-byte number
+				gas += runGas(evmasm::Instruction::PUSH2);
+			}
+			break;
+		case ShuffleOp::Kind::Load:
+			gas += runGas(evmasm::Instruction::PUSH32) + runGas(evmasm::Instruction::MLOAD);
+			break;
+		case ShuffleOp::Kind::Store:
+			gas += runGas(evmasm::Instruction::PUSH32) + runGas(evmasm::Instruction::MSTORE);
+			break;
+		}
+	return gas;
 }
 
 StackData solidity::yul::ssa::stackPreImage(SSACFG const& _cfg, StackData _stack, PhiInverse const& _phiInverse)
@@ -118,9 +118,8 @@ OptimalTarget solidity::yul::ssa::findOptimalTarget
 	{
 		spillSet = _spillSet;
 		data = _stackData;
-		Stack<OpsCountingCallbacks> countOpsStack(data, {});
-		StackShufflerResult const result = StackShuffler<OpsCountingCallbacks>::shuffleWithSpillDiscovery(
-			countOpsStack,
+		StackShufflerResult const result = StackShuffler::shuffleWithSpillDiscovery(
+			data,
 			_targetArgs,
 			_targetLiveOut,
 			_targetSize,
@@ -128,7 +127,7 @@ OptimalTarget solidity::yul::ssa::findOptimalTarget
 		);
 		yulAssert(data.size() == _targetSize);
 		yulAssert(result.status == StackShufflerResult::Status::Admissible);
-		std::size_t const cost = countOpsStack.callbacks().numOps + 1000 * spillSet.numSpilled();
+		std::size_t const cost = result.trace.size() + 1000 * spillSet.numSpilled();
 		return cost;
 	};
 
@@ -154,12 +153,12 @@ OptimalTarget solidity::yul::ssa::findOptimalTarget
 				bestSpillSet = spillSet;
 				consecutiveIncreases = 0;
 			}
-			else if (++consecutiveIncreases >= stopAfter)
+			else if (bestCost == 0 || ++consecutiveIncreases >= stopAfter)
 				break;
 		}
 	}
 	// search upward (only on reverting paths)
-	if (_canIntroduceJunk)
+	if (_canIntroduceJunk && bestCost != 0)
 	{
 		consecutiveIncreases = 0;
 		for (std::size_t size = startSize + 1; size <= startSize + maxUpwardExpansion; ++size)
@@ -172,7 +171,7 @@ OptimalTarget solidity::yul::ssa::findOptimalTarget
 				bestSpillSet = spillSet;
 				consecutiveIncreases = 0;
 			}
-			else if (++consecutiveIncreases >= stopAfter)
+			else if (bestCost == 0 || ++consecutiveIncreases >= stopAfter)
 				break;
 		}
 	}

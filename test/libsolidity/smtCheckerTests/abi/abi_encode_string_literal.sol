@@ -21,3 +21,4 @@ contract C {
 // Warning 6328: (326-356): CHC: Assertion violation happens here.\nCounterexample:\n\nb5 = []\n\nTransaction trace:\nC.constructor()\nC.abiEncodeStringLiteral()
 // Warning 6328: (420-450): CHC: Assertion violation happens here.\nCounterexample:\n\n\nTransaction trace:\nC.constructor()\nC.abiEncodeStringLiteral()
 // Info 1391: CHC: 2 verification condition(s) proved safe! Enable the model checker option "show proved safe" to see all of them.
+// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

@@ -38,5 +38,6 @@ contract C {
 // SMTEngine: all
 // SMTIgnoreCex: yes
 // ----
-// Warning 6328: (804-842): CHC: Assertion violation happens here.
+// Warning 6328: (804-842): CHC: Assertion violation happens here.\nCounterexample:\n\ns2 = {x: 46, t: {y: 14, a: [12, 12, 12, 12, 12, 12, 33, 12, 12, 12, 12, 12, 12]}, a: [15, 15, 15, 15, 15, 15, 60, 15, 15, 15, 15, 15, 15, 15, 15, 15], ts}\ns1 = {x: 2, t: {y: 3, a: []}, a: [0, 0, 4], ts: [{y: 0, a: []}, {y: 0, a: []}, {y: 0, a: []}, {y: 5, a: []}, {y: 0, a: [0, 0, 0, 0, 0, 6]}, {y: 0, a: []}]}\n\nTransaction trace:\nC.constructor()\nC.f({x: 0, t: {y: 0, a: []}, a: [], ts: []})
 // Info 1391: CHC: 10 verification condition(s) proved safe! Enable the model checker option "show proved safe" to see all of them.
+// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

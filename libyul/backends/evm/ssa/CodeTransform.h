@@ -20,13 +20,11 @@
 
 #include <libyul/backends/evm/ssa/spill/Emitter.h>
 
-#include <libyul/backends/evm/ssa/PhiInverse.h>
+#include <libyul/backends/evm/ssa/ShuffleTrace.h>
 #include <libyul/backends/evm/ssa/Stack.h>
 #include <libyul/backends/evm/ssa/StackLayout.h>
 
 #include <libyul/backends/evm/AbstractAssembly.h>
-
-#include <libevmasm/Instruction.h>
 
 namespace solidity::yul
 {
@@ -34,72 +32,6 @@ struct BuiltinContext;
 }
 namespace solidity::yul::ssa
 {
-
-struct AssemblyCallbacks
-{
-	void swap(StackDepth const _depth)
-	{
-		assembly->appendInstruction(evmasm::swapInstruction(static_cast<unsigned>(_depth.value)));
-	}
-
-	void pop()
-	{
-		assembly->appendInstruction(evmasm::Instruction::POP);
-	}
-
-	void push(StackSlot const& _slot)
-	{
-		switch (_slot.kind())
-		{
-		case StackSlot::Kind::Value:
-		{
-			auto const id = _slot.value();
-			if (cfg->isLiteral(id))
-			{
-				assembly->appendConstant(cfg->literalPayload(id));
-				return;
-			}
-			if (spillEmitter && spillEmitter->hasAddress(id))
-			{
-				spillEmitter->emitLoad(id);
-				return;
-			}
-			yulAssert(false, fmt::format("Tried bringing up non-spilled non-const {}", id));
-		}
-		case StackSlot::Kind::Junk:
-		{
-			if (assembly->evmVersion().hasPush0())
-				assembly->appendConstant(0);
-			else
-				assembly->appendInstruction(evmasm::Instruction::CODESIZE);
-			return;
-		}
-		case StackSlot::Kind::FunctionCallReturnLabel:
-		{
-			auto const instId = callSites->instId(_slot.functionCallReturnLabel());
-			yulAssert(returnLabels->count(instId), "FunctionCallReturnLabel not pre-registered before shuffle.");
-			assembly->appendLabelReference(returnLabels->at(instId));
-			return;
-		}
-		case StackSlot::Kind::FunctionReturnLabel:
-		{
-			yulAssert(false, "Cannot produce function return label.");
-		}
-		}
-	}
-
-	void dup(StackDepth const _depth)
-	{
-		assembly->appendInstruction(evmasm::dupInstruction(static_cast<unsigned>(_depth.value)));
-	}
-
-	SSACFG const* cfg{};
-	AbstractAssembly* assembly{};
-	CallSites const* callSites{};
-	std::map<InstId, AbstractAssembly::LabelID> const* returnLabels{};
-	spill::Emitter const* spillEmitter{};
-};
-static_assert(StackManipulationCallbackConcept<AssemblyCallbacks>);
 
 class CodeTransform
 {
@@ -128,21 +60,28 @@ private:
 		SSACFG const& _cfg,
 		SSACFGStackLayout const& _stackLayout,
 		spill::SpillSet const& _spillSet,
+		spill::SpillStoreTraces const& _spillStoreTraces,
 		ControlFlowGraphs::FunctionGraphID _graphID,
 		spill::MemoryAddressing const& _addressing
 	);
 
 	void operator()(SSACFG::BlockId _blockId);
-	void operator()(InstId _instId, StackData const& _operationInputLayout);
+	void operator()(InstId _instId, ShuffleTrace const& _operationShuffle);
 	void operator()(SSACFG::BlockId const& _currentBlock, SSACFG::BasicBlock::MainExit const& _mainExit);
 	void operator()(SSACFG::BlockId const& _currentBlock, SSACFG::BasicBlock::ConditionalJump const& _conditionalJump);
 	void operator()(SSACFG::BlockId const& _currentBlock, SSACFG::BasicBlock::Jump const& _jump);
 	void operator()(SSACFG::BlockId const& _currentBlock, SSACFG::BasicBlock::FunctionReturn const& _functionReturn);
 	void operator()(SSACFG::BlockId const& _currentBlock, SSACFG::BasicBlock::Terminated const& _terminated);
 
-	void prepareBlockExitStack(StackData const& _target, PhiInverse const& _phiInverse);
+	void prepareBlockExitStack(SSACFG::BlockId const& _currentBlock, SSACFG::BlockId const& _target);
 
-	/// If `_value` is spilled, shuffles it to the stack top and stores it into its memory slot
+	/// Plays back a recorded shuffle trace: applies each operation to the symbolic stack and emits its assembly.
+	void playback(ShuffleTrace const& _trace);
+	/// Appends the assembly realizing a single recorded shuffle operation. Does not touch the symbolic stack.
+	void emit(ShuffleOp const& _op);
+
+	/// If `_value` is spilled, plays back its recorded def-site trace, which brings it to the stack top and
+	/// stores it into its memory slot
 	void spillStore(InstId _value);
 
 	AbstractAssembly& m_assembly;
@@ -153,14 +92,14 @@ private:
 	SSACFG const& m_cfg;
 	SSACFGStackLayout const& m_stackLayout;
 	spill::SpillSet const& m_spillSet;
+	spill::SpillStoreTraces const& m_spillStoreTraces;
 	ControlFlowGraphs::FunctionGraphID const m_graphID;
 
 	std::vector<std::uint8_t> m_blockIsTransformed;
 	std::vector<AbstractAssembly::LabelID> m_blockLabels;
 	std::optional<spill::Emitter> m_spillEmitter{std::nullopt};
-	AssemblyCallbacks m_assemblyCallbacks;
 	StackData m_stackData;
-	Stack<AssemblyCallbacks> m_stack;
+	Stack m_stack;
 	std::map<InstId, AbstractAssembly::LabelID> m_returnLabels;
 };
 

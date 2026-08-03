@@ -16,7 +16,7 @@
 */
 // SPDX-License-Identifier: GPL-3.0
 
-#include <libyul/backends/evm/ssa/Stack.h>
+#include <libyul/backends/evm/ssa/StackSlot.h>
 
 #include <range/v3/view/transform.hpp>
 

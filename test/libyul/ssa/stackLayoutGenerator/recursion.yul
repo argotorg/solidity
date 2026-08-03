@@ -20,7 +20,7 @@
 // \l\
 // [FunctionCallReturnLabel[0], lit0]\l\
 // sum\l\
-// [FunctionCallReturnLabel[0], v1]\l\
+// [v1]\l\
 // \l\
 // [v1, lit2]\l\
 // mstore\l\
@@ -52,7 +52,7 @@
 // \l\
 // [ReturnLabel[1], v0, FunctionCallReturnLabel[0], v3]\l\
 // sum\l\
-// [ReturnLabel[1], v0, FunctionCallReturnLabel[0], v4]\l\
+// [ReturnLabel[1], v0, v4]\l\
 // \l\
 // [ReturnLabel[1], v4, v0]\l\
 // add\l\

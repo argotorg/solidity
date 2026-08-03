@@ -9,4 +9,5 @@ contract C {
 // SMTEngine: all
 // ----
 // Warning 6328: (85-98): CHC: Assertion violation happens here.\nCounterexample:\n\nb = true\nc = 5\n\nTransaction trace:\nC.constructor()\nC.f(true)
+// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.
 // Warning 6838: (72-73): BMC: Condition is always true.

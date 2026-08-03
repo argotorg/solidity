@@ -1163,9 +1163,10 @@ void IRGeneratorForStatements::endVisit(FunctionCall const& _functionCall)
 		auto const* magicType = dynamic_cast<MagicType const*>(messageArgumentType);
 		if (magicType && magicType->kind() == MagicType::Kind::Error)
 		{
-			auto const& errorConstructorCall = dynamic_cast<FunctionCall const&>(*arguments[1]);
-			appendCode() << m_utils.requireWithErrorFunction(errorConstructorCall) << "(" <<IRVariable(*arguments[0]).name();
-			for (auto argument: errorConstructorCall.arguments())
+			auto const errorConstructorCall = dynamic_cast<FunctionCall const*>(resolveOuterUnaryTuples(arguments[1].get()));
+			solAssert(errorConstructorCall);
+			appendCode() << m_utils.requireWithErrorFunction(*errorConstructorCall) << "(" <<IRVariable(*arguments[0]).name();
+			for (auto argument: errorConstructorCall->arguments())
 				if (argument->annotation().type->sizeOnStack() > 0)
 					appendCode() << ", " << IRVariable(*argument).commaSeparatedList();
 			appendCode() << ")\n";

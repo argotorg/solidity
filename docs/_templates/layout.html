@@ -1,5 +1,12 @@
 {% extends "!layout.html" %}
 
+{% block extrahead %}
+    {{ super() }}
+    {% if github_version not in allowed_indexed_versions %}
+        <meta name="robots" content="noindex, follow">
+    {% endif %}
+{% endblock %}
+
 {% block scripts %}
     <script>
         window.NAV_LINKS = {

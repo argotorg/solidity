@@ -20,4 +20,6 @@ contract ERC20 {
 // ====
 // SMTEngine: all
 // ----
-// Warning 3944: (ERC20.sol:121-126): CHC: Underflow (resulting value less than 0) happens here.\nCounterexample:\n\namount = 1\n\nTransaction trace:\nERC20.constructor()\nERC20.transferFrom(1){ msg.sender: 0x52f6 }\n    ERC20.sol:sub(0, 1) -- internal call
+// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.
+// Warning 3944: (ERC20.sol:121-126): CHC: Underflow (resulting value less than 0) happens here.\nCounterexample:\n\namount = 1\n\nTransaction trace:\nERC20.constructor()\nERC20.transferFrom(1){ msg.sender: 0x2e15 }\n    ERC20.sol:sub(0, 1) -- internal call
+// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

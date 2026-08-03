@@ -114,7 +114,7 @@ object "C" {
 //     v83 = const 0x10
 //     upsilon v17 -> ^v19
 //     jump #1
-// #1: preds: #0, #3
+// #1: preds: #0, #2
 //     v19 = phi
 //     v20 = builtin @lt v19, v18
 //     branch v20, #2, #4
@@ -152,8 +152,6 @@ object "C" {
 //     builtin @sstore v80, v1
 //     v84 = builtin @add v19, v83
 //     builtin @sstore v84, v0
-//     jump #3
-// #3: preds: #2
 //     v86 = builtin @add v19, v24
 //     upsilon v86 -> ^v19
 //     jump #1
@@ -164,9 +162,9 @@ object "C" {
 // ===== spill info =====
 // CFG[0] <main>
 //   spilled:
-//     v4 (value) -> mem 0x80
+//     v35 (value) -> mem 0x80
 //   mstore schedule:
-//     mstore addr(v4) <- v4 (B#0)
+//     mstore addr(v35) <- v35 (B#0)
 // CFG[1] f
 //   spilled:
 //     v0 (value) -> mem 0xa0

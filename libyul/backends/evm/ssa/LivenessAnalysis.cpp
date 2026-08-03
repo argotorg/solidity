@@ -20,12 +20,14 @@
 
 #include <libsolutil/Visitor.h>
 
-#include <range/v3/algorithm/count_if.hpp>
-#include <range/v3/range/conversion.hpp>
+#include <boost/container/flat_map.hpp>
 
 #include <range/v3/view/enumerate.hpp>
 #include <range/v3/view/filter.hpp>
 #include <range/v3/view/reverse.hpp>
+
+#include <utility>
+#include <vector>
 
 using namespace solidity::yul::ssa;
 
@@ -54,8 +56,7 @@ LivenessAnalysis::LivenessAnalysis(SSACFG const& _cfg):
 	m_topologicalSort(_cfg),
 	m_loopNestingForest(m_topologicalSort),
 	m_liveIns(_cfg.numBlocks()),
-	m_liveOuts(_cfg.numBlocks()),
-	m_operationLiveOuts(_cfg.numBlocks())
+	m_liveOuts(_cfg.numBlocks())
 {
 	runDagDfs();
 	for (auto const loopRootNode: m_loopNestingForest.loopRootNodes())
@@ -170,28 +171,17 @@ void LivenessAnalysis::fillOperationsLiveOut()
 	for (SSACFG::BlockId const blockId: m_cfg.liveBlocks())
 	{
 		auto const& block = m_cfg.block(blockId);
-		auto const opCount = static_cast<std::size_t>(ranges::count_if(
-			block.instructions,
-			[&](InstId const _id) { return m_cfg.isOperation(_id); }
-		));
-		auto& liveOuts = m_operationLiveOuts[blockId.value];
-		liveOuts.resize(opCount);
-		if (opCount > 0)
+		auto live = m_liveOuts[blockId.value];
+		live += blockExitValues(blockId);
+		for (InstId const instId: block.instructions | ranges::views::reverse)
 		{
-			auto live = m_liveOuts[blockId.value];
-			live += blockExitValues(blockId);
-			auto rit = liveOuts.rbegin();
-			for (InstId const instId: block.instructions | ranges::views::reverse)
-			{
-				auto const& inst = m_cfg.inst(instId);
-				if (!inst.isOperation())
-					continue;
-				*rit = live;
-				live.eraseAll(m_cfg.projectionsOf(instId));
-				live.erase(instId);
-				live.insertAll(inst.inputs | ranges::views::filter(excludingLiteralsFilter()));
-				++rit;
-			}
+			auto const& inst = m_cfg.inst(instId);
+			if (!inst.isOperation())
+				continue;
+			m_operationLiveOutByInst.emplace(instId.value, live);
+			live.eraseAll(m_cfg.projectionsOf(instId));
+			live.erase(instId);
+			live.insertAll(inst.inputs | ranges::views::filter(excludingLiteralsFilter()));
 		}
 	}
 }

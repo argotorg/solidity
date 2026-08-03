@@ -29,4 +29,5 @@ contract C {
 // Warning 2072: (332-347): Unused local variable.
 // Warning 2072: (618-633): Unused local variable.
 // Warning 2072: (791-806): Unused local variable.
-// Warning 6328: (280-310): CHC: Assertion violation happens here.
+// Warning 6328: (280-310): CHC: Assertion violation happens here.\nCounterexample:\n\ndata = [15]\nb3 = []\nb4 = []\nx = 0\ny = 0\nb5 = []\n\nTransaction trace:\nC.constructor()\nC.abiEncodeSlice([15])
+// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

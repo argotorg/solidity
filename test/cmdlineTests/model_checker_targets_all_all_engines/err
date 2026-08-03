@@ -96,6 +96,8 @@ test.f(0x0, 1)
 
 Info: CHC: 1 verification condition(s) proved safe! Enable the model checker option "show proved safe" to see all of them.
 
+Warning: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.
+
 Warning: BMC: Condition is always true.
  --> input.sol:6:11:
   |

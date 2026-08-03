@@ -87,10 +87,13 @@ protected:
 		_out << "\\\n";
 		_out << "IN: " << stackToString(blockLayout->stackIn) << "\\l\\\n";
 
+		// Reconstruct the per-operation input layouts and the exit state by replaying the recorded
+		// shuffle traces and operation effects from the block's stackIn.
+		StackData operationStack = blockLayout->stackIn;
 		std::size_t i = 0;
 		m_cfg.forEachOperation(block, [&](InstId const _instId, SSACFG::Inst const& _inst) {
-			yulAssert(i < blockLayout->operationIn.size());
-			auto operationStack = blockLayout->operationIn[i];
+			yulAssert(i < blockLayout->operationShuffles.size());
+			replay(operationStack, blockLayout->operationShuffles[i]);
 
 			_out << "\\l\\\n";
 			_out << stackToString(operationStack) << "\\l\\\n";
@@ -104,6 +107,13 @@ protected:
 			yulAssert(_inst.inputs.size() <= operationStack.size());
 			for (std::size_t j = 0; j < _inst.inputs.size(); ++j)
 				operationStack.pop_back();
+			// A continuing function call's return label is not an SSA input but is consumed by the
+			// callee's return jump, so drop it to reflect the actual post-call stack.
+			if (_inst.opcode == InstOpcode::Call && m_cfg.callPayload(_instId).canContinue)
+			{
+				yulAssert(!operationStack.empty() && operationStack.back().isFunctionCallReturnLabel());
+				operationStack.pop_back();
+			}
 			m_cfg.forEachOutput(_instId, [&](InstId const output) {
 				operationStack.push_back(StackSlot::makeValue(m_cfg, output));
 			});
@@ -111,8 +121,9 @@ protected:
 			++i;
 		});
 
+		replay(operationStack, blockLayout->exitShuffle);
 		_out << "\\l\\\n";
-		_out << "OUT: " << stackToString(blockLayout->exitIn) << "\\l\\\n";
+		_out << "OUT: " << stackToString(operationStack) << "\\l\\\n";
 	}
 
 private:

@@ -1,1 +1,3 @@
 Warning: Requested source "A.sol" does not exist.
+
+Warning: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

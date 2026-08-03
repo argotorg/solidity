@@ -10,3 +10,6 @@
 [submodule "test/ethdebugSchemaTests/ethdebug-format"]
 	path = test/ethdebugSchemaTests/ethdebug-format
 	url = https://github.com/ethdebug/format.git
+[submodule "deps/fuzztest"]
+	path = deps/fuzztest
+	url = https://github.com/google/fuzztest

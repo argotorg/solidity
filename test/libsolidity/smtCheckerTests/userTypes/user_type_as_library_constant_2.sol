@@ -31,3 +31,4 @@ contract C {
 // Warning 6328: (443-460): CHC: Assertion violation happens here.\nCounterexample:\nX = 43\n\nTransaction trace:\nC.constructor()\nState: X = 43\nC.f()
 // Warning 6328: (485-504): CHC: Assertion violation happens here.\nCounterexample:\nX = 43\n\nTransaction trace:\nC.constructor()\nState: X = 43\nC.f()
 // Warning 6328: (529-550): CHC: Assertion violation happens here.\nCounterexample:\nX = 43\n\nTransaction trace:\nC.constructor()\nState: X = 43\nC.f()
+// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

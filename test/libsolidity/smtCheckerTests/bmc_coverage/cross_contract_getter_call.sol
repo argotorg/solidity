@@ -19,4 +19,5 @@ contract D {
 // SMTEngine: bmc
 // ----
 // Warning 8729: (51-58): Contract deployment is only supported in the trusted mode for external calls with the CHC engine.
+// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.
 // Warning 4661: (112-130): BMC: Assertion violation happens here.

@@ -13,5 +13,6 @@ contract C {
 // ====
 // SMTEngine: all
 // ----
-// Warning 6368: (224-231): CHC: Out of bounds access happens here.
+// Warning 6368: (224-231): CHC: Out of bounds access happens here.\nCounterexample:\na = [[]]\ni = 0\nj = 0\n = 0\n\nTransaction trace:\nC.constructor()\nState: a = []\nC.p()\nState: a = [[]]\nC.r(0, 0)
 // Info 1391: CHC: 2 verification condition(s) proved safe! Enable the model checker option "show proved safe" to see all of them.
+// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

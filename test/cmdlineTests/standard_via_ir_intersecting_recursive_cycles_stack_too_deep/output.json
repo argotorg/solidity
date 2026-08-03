@@ -1,0 +1,29 @@
+{
+    "errors": [
+        {
+            "component": "general",
+            "formattedMessage": "YulException: Cannot swap Variable var_m with Variable expr_70: too deep in the stack by 1 slots in [ RET var_m var_m var_m var_m var_m var_m var_m var_m var_m expr_66 var_v15 var_v14 var_v13 var_v12 var_v11 var_v10 var_v9 var_v8 var_v7 var_v6 var_v5 var_v4 var_v3 var_v2 var_v1 expr_70 ]
+memoryguard was present.
+  --> in.sol:46:23:
+   |
+46 |         uint256 v18 = seed[17] ^ m;
+   |                       ^^^^
+
+",
+            "message": "Cannot swap Variable var_m with Variable expr_70: too deep in the stack by 1 slots in [ RET var_m var_m var_m var_m var_m var_m var_m var_m var_m expr_66 var_v15 var_v14 var_v13 var_v12 var_v11 var_v10 var_v9 var_v8 var_v7 var_v6 var_v5 var_v4 var_v3 var_v2 var_v1 expr_70 ]
+memoryguard was present.",
+            "severity": "error",
+            "sourceLocation": {
+                "end": 1488,
+                "file": "in.sol",
+                "start": 1484
+            },
+            "type": "YulException"
+        }
+    ],
+    "sources": {
+        "in.sol": {
+            "id": 0
+        }
+    }
+}

@@ -26,3 +26,4 @@ contract C is B {
 // Warning 8429: (113-136): Virtual modifiers are deprecated and scheduled for removal.
 // Warning 8429: (159-213): Virtual modifiers are deprecated and scheduled for removal.
 // Warning 6328: (66-75): CHC: Assertion violation happens here.\nCounterexample:\ns = false\n\nTransaction trace:\nB.constructor()\nState: s = false\nA.f()
+// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

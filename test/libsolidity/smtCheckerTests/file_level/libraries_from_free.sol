@@ -23,5 +23,6 @@ contract C {
 // SMTIgnoreCex: yes
 // ----
 // Warning 4588: (190-197): Assertion checker does not yet implement this type of function call.
-// Warning 6328: (284-298): CHC: Assertion violation happens here.
-// Warning 6328: (363-377): CHC: Assertion violation happens here.
+// Warning 6328: (284-298): CHC: Assertion violation happens here.\nCounterexample:\n\nx = 8\ny = 8\n\nTransaction trace:\nC.constructor()\nC.f()\n    fu() -- internal call\n        L.inter() -- internal call
+// Warning 6328: (363-377): CHC: Assertion violation happens here.\nCounterexample:\n\nx = 0\ny = 8\n\nTransaction trace:\nC.constructor()\nC.f()\n    fu() -- internal call\n        L.inter() -- internal call
+// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

@@ -96,17 +96,19 @@ add_library(yul
 	backends/evm/ssa/SSACFGDebugInfo.h
 	backends/evm/ssa/SSACFGTypes.cpp
 	backends/evm/ssa/SSACFGTypes.h
-	backends/evm/ssa/Stack.cpp
+	backends/evm/ssa/ShuffleTrace.cpp
+	backends/evm/ssa/ShuffleTrace.h
 	backends/evm/ssa/Stack.h
 	backends/evm/ssa/StackLayout.h
 	backends/evm/ssa/StackLayoutGenerator.cpp
 	backends/evm/ssa/StackLayoutGenerator.h
 	backends/evm/ssa/StackShuffler.cpp
 	backends/evm/ssa/StackShuffler.h
+	backends/evm/ssa/StackSlot.cpp
+	backends/evm/ssa/StackSlot.h
 	backends/evm/ssa/StackSlotLiveness.h
 	backends/evm/ssa/util/UseCountSet.h
 	backends/evm/ssa/util/TLSFFreeList.h
-	backends/evm/ssa/util/TarjanSCC.h
 	backends/evm/ssa/StackUtils.cpp
 	backends/evm/ssa/StackUtils.h
 	backends/evm/ssa/io/DotExporterBase.cpp
@@ -120,8 +122,12 @@ add_library(yul
 	backends/evm/ssa/spill/MemoryAddressing.h
 	backends/evm/ssa/spill/SpillSet.cpp
 	backends/evm/ssa/spill/SpillSet.h
+	backends/evm/ssa/transform/ConstantConditionFolder.cpp
+	backends/evm/ssa/transform/ConstantConditionFolder.h
 	backends/evm/ssa/transform/IdentityAndNopRemover.cpp
 	backends/evm/ssa/transform/IdentityAndNopRemover.h
+	backends/evm/ssa/transform/JumpThreader.cpp
+	backends/evm/ssa/transform/JumpThreader.h
 	backends/evm/ssa/transform/OptimizationPipeline.cpp
 	backends/evm/ssa/transform/OptimizationPipeline.h
 	backends/evm/ssa/transform/Outliner.cpp
@@ -130,6 +136,8 @@ add_library(yul
 	backends/evm/ssa/transform/TrivialPhiEliminator.h
 	backends/evm/ssa/transform/UnreachableBlockCleaner.cpp
 	backends/evm/ssa/transform/UnreachableBlockCleaner.h
+	backends/evm/ssa/transform/UseCounts.cpp
+	backends/evm/ssa/transform/UseCounts.h
 	backends/evm/ssa/traversal/ForwardTopologicalSort.cpp
 	backends/evm/ssa/traversal/ForwardTopologicalSort.h
 	optimiser/ASTCopier.cpp

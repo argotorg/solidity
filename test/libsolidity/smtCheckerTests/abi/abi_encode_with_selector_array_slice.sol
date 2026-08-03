@@ -27,8 +27,9 @@ contract C {
 // SMTIgnoreCex: yes
 // SMTIgnoreOS: macos
 // ----
-// Warning 6328: (325-355): CHC: Assertion violation happens here.
-// Warning 6328: (578-608): CHC: Assertion violation happens here.
+// Warning 6328: (325-355): CHC: Assertion violation happens here.\nCounterexample:\n\nsel = 0x0\ndata = [0x0b]\nb3 = []\nb4 = []\nx = 0\ny = 0\nb5 = []\nb6 = []\n\nTransaction trace:\nC.constructor()\nC.abiEncodeSlice(0x0, [0x0b])
+// Warning 6328: (578-608): CHC: Assertion violation happens here.\nCounterexample:\n\nsel = 0x0\ndata = [0x0d]\nb4 = []\nx = 0\ny = 0\nb5 = []\nb6 = []\n\nTransaction trace:\nC.constructor()\nC.abiEncodeSlice(0x0, [0x0d])
 // Warning 6328: (691-721): CHC: Assertion violation happens here.
 // Warning 6328: (959-989): CHC: Assertion violation happens here.
 // Warning 6328: (1079-1109): CHC: Assertion violation happens here.
+// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

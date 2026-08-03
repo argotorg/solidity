@@ -52,6 +52,7 @@ contract C {
 // Warning 8364: (333-335): Assertion checker does not yet implement type struct C.S storage ref
 // Warning 7650: (347-351): Assertion checker does not yet support this expression.
 // Warning 8364: (347-349): Assertion checker does not yet implement type struct C.S storage ref
-// Warning 6328: (164-200): CHC: Assertion violation happens here.
-// Warning 6328: (204-240): CHC: Assertion violation happens here.
-// Warning 6328: (326-358): CHC: Assertion violation happens here.
+// Warning 6328: (164-200): CHC: Assertion violation happens here.\nCounterexample:\n\nb1 = true\nb2 = true\n\nTransaction trace:\nC.constructor()\nC.f(true, true)
+// Warning 6328: (204-240): CHC: Assertion violation happens here.\nCounterexample:\n\nb1 = true\nb2 = true\n\nTransaction trace:\nC.constructor()\nC.f(true, true)
+// Warning 6328: (326-358): CHC: Assertion violation happens here.\nCounterexample:\n\nb1 = true\nb2 = true\n\nTransaction trace:\nC.constructor()\nC.f(true, true)
+// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

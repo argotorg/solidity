@@ -25,3 +25,4 @@ contract C {
 // Warning 9302: (212-234): Return value of low-level calls not used.
 // Warning 2018: (164-271): Function state mutability can be restricted to view
 // Info 1391: CHC: 1 verification condition(s) proved safe! Enable the model checker option "show proved safe" to see all of them.
+// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

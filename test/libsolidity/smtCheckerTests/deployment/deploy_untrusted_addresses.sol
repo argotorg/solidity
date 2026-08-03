@@ -21,3 +21,4 @@ contract C {
 // Warning 6328: (100-116): CHC: Assertion violation happens here.\nCounterexample:\n\nd1 = 0\nd2 = 0\n\nTransaction trace:\nC.constructor()\nC.f()
 // Warning 6328: (163-199): CHC: Assertion violation happens here.\nCounterexample:\n\nd1 = 11797\nd2 = 11797\n\nTransaction trace:\nC.constructor()\nC.f()
 // Warning 6328: (246-282): CHC: Assertion violation happens here.\nCounterexample:\n\nd1 = 8855\nd2 = 8855\n\nTransaction trace:\nC.constructor()\nC.f()
+// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

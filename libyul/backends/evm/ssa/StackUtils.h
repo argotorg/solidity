@@ -21,6 +21,7 @@
 #include <libyul/backends/evm/ssa/spill/SpillSet.h>
 
 #include <libyul/backends/evm/ssa/PhiInverse.h>
+#include <libyul/backends/evm/ssa/ShuffleTrace.h>
 #include <libyul/backends/evm/ssa/Stack.h>
 #include <libyul/backends/evm/ssa/StackSlotLiveness.h>
 
@@ -41,26 +42,8 @@ private:
 	std::vector<std::string> m_errors;
 };
 
-struct OpsCountingCallbacks
-{
-	std::size_t numOps = 0;
-
-	void swap(StackDepth) {numOps++;}
-	void dup(StackDepth) {numOps++;}
-	void push(StackSlot const&) {numOps++;}
-	void pop() {numOps++;}
-};
-
-struct GasAccumulatingCallbacks
-{
-	SSACFG const& cfg;
-	std::size_t opGas = 0;
-
-	void swap(StackDepth _depth);
-	void dup(StackDepth _depth);
-	void push(StackSlot const& _slot);
-	void pop();
-};
+/// Computes the EVM gas cost of executing `_trace`.
+std::size_t stackOpsGas(SSACFG const& _cfg, ShuffleTrace const& _trace);
 
 /// Transform stack data by replacing all its phi variables with their respective preimages.
 StackData stackPreImage(SSACFG const& _cfg, StackData _stack, PhiInverse const& _phiInverse);

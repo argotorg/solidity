@@ -12,6 +12,16 @@
         },
         {
             "component": "general",
+            "errorCode": "3993",
+            "formattedMessage": "Warning: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.
+
+",
+            "message": "The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.",
+            "severity": "warning",
+            "type": "Warning"
+        },
+        {
+            "component": "general",
             "errorCode": "7710",
             "formattedMessage": "Warning: BMC analysis was not possible since no SMT solver was found and enabled. The accepted solvers for BMC are cvc5 and z3.
 

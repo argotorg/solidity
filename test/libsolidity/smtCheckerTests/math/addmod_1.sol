@@ -12,7 +12,8 @@ contract C {
 // ====
 // SMTEngine: all
 // ----
-// Warning 4281: (108-133): CHC: Division by zero happens here.
-// Warning 6328: (137-151): CHC: Assertion violation happens here.
-// Warning 4281: (230-245): CHC: Division by zero happens here.
+// Warning 4281: (108-133): CHC: Division by zero happens here.\nCounterexample:\n\ny = 0\nx = 0\n\nTransaction trace:\nC.constructor()\nC.f()
+// Warning 6328: (137-151): CHC: Assertion violation happens here.\nCounterexample:\n\ny = 0\nx = 0\n\nTransaction trace:\nC.constructor()\nC.f()
+// Warning 4281: (230-245): CHC: Division by zero happens here.\nCounterexample:\n\nx = 0\ny = 0\nk = 0\n = 0\n\nTransaction trace:\nC.constructor()\nC.g(0, 0, 0)
 // Info 1391: CHC: 2 verification condition(s) proved safe! Enable the model checker option "show proved safe" to see all of them.
+// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

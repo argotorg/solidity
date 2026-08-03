@@ -12,7 +12,8 @@ contract C
 // SMTEngine: all
 // SMTShowProvedSafe: yes
 // ----
-// Warning 6328: (118-133): CHC: Assertion violation happens here.
+// Warning 6328: (118-133): CHC: Assertion violation happens here.\nCounterexample:\n\nx = 0\ny = 200\n\nTransaction trace:\nC.constructor()\nC.f(0)
+// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.
 // Info 9576: (90-95): CHC: Overflow (resulting value larger than 2**256 - 1) check is safe!
 // Info 9576: (85-95): CHC: Overflow (resulting value larger than 2**256 - 1) check is safe!
 // Info 9576: (99-114): CHC: Assertion violation check is safe!

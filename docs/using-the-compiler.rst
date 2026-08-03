@@ -184,6 +184,7 @@ at each version. Backward compatibility is not guaranteed between each version.
 - ``prague``
 - ``osaka`` (**default**)
    - ``clz`` builtin function is available in inline assembly. (`EIP-7939 <https://eips.ethereum.org/EIPS/eip-7939>`_)
+- ``amsterdam`` (**experimental**)
 
 .. index:: ! standard JSON, ! --standard-json
 .. _compiler-api:
@@ -361,7 +362,7 @@ Input Description
         // Affects type checking and code generation. Can be homestead,
         // tangerineWhistle, spuriousDragon, byzantium, constantinople,
         // petersburg, istanbul, berlin, london, paris, shanghai, cancun,
-        // prague, osaka (default), or @future (experimental).
+        // prague, osaka (default), amsterdam (experimental), or @future (experimental).
         "evmVersion": "osaka",
         // Optional: Change compilation pipeline to go through the Yul intermediate representation.
         // This is false by default.

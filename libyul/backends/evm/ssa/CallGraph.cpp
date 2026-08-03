@@ -19,7 +19,8 @@
 #include <libyul/backends/evm/ssa/CallGraph.h>
 
 #include <libyul/backends/evm/ssa/ControlFlowGraphs.h>
-#include <libyul/backends/evm/ssa/util/TarjanSCC.h>
+
+#include <libsolutil/TarjanSCC.h>
 
 #include <libyul/Exceptions.h>
 
@@ -45,7 +46,7 @@ solidity::yul::ssa::CallGraph::CallGraph(ControlFlowGraphs const& _cfgs): m_call
 
 std::vector<std::vector<solidity::yul::ssa::FunctionGraphID>> solidity::yul::ssa::CallGraph::computeSCCs() const
 {
-	return util::computeStronglyConnectedComponents(m_callees);
+	return solidity::util::computeStronglyConnectedComponents(m_callees);
 }
 
 bool solidity::yul::ssa::CallGraph::isRecursive(FunctionGraphID const _function) const

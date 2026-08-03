@@ -17,6 +17,8 @@
 // SPDX-License-Identifier: GPL-3.0
 /**
  * Specific AST walker that generates the call graph.
+ *
+ * Prerequisites: Disambiguator
  */
 
 #pragma once
@@ -38,6 +40,9 @@ struct CallGraph
 	/// @returns the set of functions contained in cycles in the call graph, i.e.
 	/// functions that are part of a (mutual) recursion.
 	/// Note that this does not include functions that merely call recursive functions.
+	/// Postcondition: the result never contains a builtin. At Yul level builtins cannot call other
+	/// functions, so they have no outgoing call-graph edges and can be neither mutually nor directly
+	/// recursive.
 	std::set<FunctionHandle> recursiveFunctions() const;
 };
 
@@ -47,10 +52,14 @@ struct CallGraph
  * It also generates information about which functions contain for loops.
  *
  * The outermost (non-function) context is denoted by the empty string.
+ *
+ * @throws InputNotDisambiguatedException if input is not disambiguated
  */
 class CallGraphGenerator: public ASTWalker
 {
 public:
+	struct InputNotDisambiguatedException: virtual YulException {};
+
 	static CallGraph callGraph(Block const& _ast);
 
 	using ASTWalker::operator();

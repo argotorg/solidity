@@ -64,16 +64,17 @@ contract C {
 // Warning 6328: (2062-2089): CHC: Assertion violation happens here.
 // Warning 6328: (2114-2139): CHC: Assertion violation happens here.
 // Warning 6328: (2164-2184): CHC: Assertion violation happens here.
-// Warning 6328: (2260-2287): CHC: Assertion violation happens here.
-// Warning 6328: (2312-2337): CHC: Assertion violation happens here.
-// Warning 6328: (2362-2382): CHC: Assertion violation happens here.
+// Warning 6328: (2260-2287): CHC: Assertion violation happens here.\nCounterexample:\n\n\nTransaction trace:\nC.constructor()\nC.testArithmetic()\n    add(2, 3) -- internal call\n    eq(5, 4) -- internal call
+// Warning 6328: (2312-2337): CHC: Assertion violation happens here.\nCounterexample:\n\n\nTransaction trace:\nC.constructor()\nC.testArithmetic()\n    add(2, 3) -- internal call\n    eq(5, 4) -- internal call\n    sub(2, 2) -- internal call\n    eq(0, 4) -- internal call
+// Warning 6328: (2362-2382): CHC: Assertion violation happens here.\nCounterexample:\n\n\nTransaction trace:\nC.constructor()\nC.testArithmetic()\n    add(2, 3) -- internal call\n    eq(5, 4) -- internal call\n    sub(2, 2) -- internal call\n    eq(0, 4) -- internal call\n    unsub(2) -- internal call\n    eq((- 2), 4) -- internal call
 // Warning 6328: (2407-2434): CHC: Assertion violation happens here.
 // Warning 6328: (2459-2484): CHC: Assertion violation happens here.
 // Warning 6328: (2509-2534): CHC: Assertion violation happens here.
-// Warning 6328: (2610-2631): CHC: Assertion violation happens here.
-// Warning 6328: (2656-2674): CHC: Assertion violation happens here.
-// Warning 6328: (2699-2716): CHC: Assertion violation happens here.
-// Warning 6328: (2741-2758): CHC: Assertion violation happens here.
-// Warning 6328: (2783-2804): CHC: Assertion violation happens here.
-// Warning 6328: (2829-2850): CHC: Assertion violation happens here.
+// Warning 6328: (2610-2631): CHC: Assertion violation happens here.\nCounterexample:\n\n\nTransaction trace:\nC.constructor()\nC.testComparison()\n    eq(2, 2) -- internal call
+// Warning 6328: (2656-2674): CHC: Assertion violation happens here.\nCounterexample:\n\n\nTransaction trace:\nC.constructor()\nC.testComparison()\n    eq(2, 2) -- internal call\n    noteq(2, 2) -- internal call
+// Warning 6328: (2699-2716): CHC: Assertion violation happens here.\nCounterexample:\n\n\nTransaction trace:\nC.constructor()\nC.testComparison()\n    eq(2, 2) -- internal call\n    noteq(2, 2) -- internal call\n    lt(2, 2) -- internal call
+// Warning 6328: (2741-2758): CHC: Assertion violation happens here.\nCounterexample:\n\n\nTransaction trace:\nC.constructor()\nC.testComparison()\n    eq(2, 2) -- internal call\n    noteq(2, 2) -- internal call\n    lt(2, 2) -- internal call\n    gt(2, 2) -- internal call
+// Warning 6328: (2783-2804): CHC: Assertion violation happens here.\nCounterexample:\n\n\nTransaction trace:\nC.constructor()\nC.testComparison()\n    eq(2, 2) -- internal call\n    noteq(2, 2) -- internal call\n    lt(2, 2) -- internal call\n    gt(2, 2) -- internal call\n    leq(2, 2) -- internal call
+// Warning 6328: (2829-2850): CHC: Assertion violation happens here.\nCounterexample:\n\n\nTransaction trace:\nC.constructor()\nC.testComparison()\n    eq(2, 2) -- internal call\n    noteq(2, 2) -- internal call\n    lt(2, 2) -- internal call\n    gt(2, 2) -- internal call\n    leq(2, 2) -- internal call\n    geq(2, 2) -- internal call
 // Info 1391: CHC: 11 verification condition(s) proved safe! Enable the model checker option "show proved safe" to see all of them.
+// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

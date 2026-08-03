@@ -22,3 +22,4 @@ contract C {
 // SMTContract: C
 // ----
 // Warning 6328: (58-71): CHC: Assertion violation happens here.\nCounterexample:\n\n\nTransaction trace:\nC.constructor()\nC.f()\n    L.f() -- internal call\n        L.f1(0) -- internal call
+// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

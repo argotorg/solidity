@@ -11,6 +11,7 @@ contract C {
 // ====
 // SMTEngine: all
 // ----
-// Warning 4984: (120-125): CHC: Overflow (resulting value larger than 255) happens here.
+// Warning 4984: (120-125): CHC: Overflow (resulting value larger than 255) happens here.\nCounterexample:\n\na = 128\nb = 2\n = 0\nc = 0\n\nTransaction trace:\nC.constructor()\nC.mul(128, 2)
 // Info 1391: CHC: 1 verification condition(s) proved safe! Enable the model checker option "show proved safe" to see all of them.
+// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.
 // Warning 6838: (137-147): BMC: Condition is always true.

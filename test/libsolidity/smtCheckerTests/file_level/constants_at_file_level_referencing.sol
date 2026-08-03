@@ -59,8 +59,10 @@ contract C {
 // SMTEngine: all
 // SMTIgnoreCex: yes
 // ----
-// Warning 6328: (s2.sol:518-539): CHC: Assertion violation happens here.
-// Warning 6328: (s2.sol:704-725): CHC: Assertion violation happens here.
+// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.
+// Warning 6328: (s2.sol:518-539): CHC: Assertion violation happens here.\nCounterexample:\n\nr1 = [0x03, 0x01, 0x02]\nr2 = []\nr3 = []\nz = 0\n\nTransaction trace:\nC.constructor()\nC.p()\n    C.f() -- internal call
+// Warning 6328: (s2.sol:704-725): CHC: Assertion violation happens here.\nCounterexample:\n\nr1 = [0x03, 0x01, 0x02]\nr2 = [0x03, 0x01, 0x02]\nr3 = []\nz = 0\n\nTransaction trace:\nC.constructor()\nC.p()\n    C.f() -- internal call\n    C.g() -- internal call
 // Warning 6328: (s2.sol:890-911): CHC: Assertion violation happens here.
 // Warning 6328: (s2.sol:980-994): CHC: Assertion violation happens here.
 // Info 1391: CHC: 24 verification condition(s) proved safe! Enable the model checker option "show proved safe" to see all of them.
+// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

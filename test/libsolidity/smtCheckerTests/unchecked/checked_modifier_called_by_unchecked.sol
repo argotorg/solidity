@@ -12,3 +12,4 @@ contract C {
 // SMTEngine: all
 // ----
 // Warning 4984: (225-230): CHC: Overflow (resulting value larger than 65535) happens here.\nCounterexample:\n\na = 65535\nb = 1\nc = 65535\n = 0\na = 65535\nb = 1\n\nTransaction trace:\nC.constructor()\nC.f(65535, 1, 65535)
+// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

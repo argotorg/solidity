@@ -20,8 +20,9 @@ contract C {
 // SMTEngine: all
 // SMTIgnoreCex: yes
 // ----
-// Warning 6328: (211-237): CHC: Assertion violation happens here.
-// Warning 6328: (241-267): CHC: Assertion violation happens here.
-// Warning 6328: (271-297): CHC: Assertion violation happens here.
-// Warning 6328: (301-329): CHC: Assertion violation happens here.
+// Warning 6328: (211-237): CHC: Assertion violation happens here.\nCounterexample:\n\n\nTransaction trace:\nC.constructor()\nC.f()\n    C.add(100, 0) -- internal call
+// Warning 6328: (241-267): CHC: Assertion violation happens here.\nCounterexample:\n\n\nTransaction trace:\nC.constructor()\nC.f()\n    C.add(100, 0) -- internal call\n    C.add(100, 1) -- internal call
+// Warning 6328: (271-297): CHC: Assertion violation happens here.\nCounterexample:\n\n\nTransaction trace:\nC.constructor()\nC.f()\n    C.add(100, 0) -- internal call\n    C.add(100, 1) -- internal call\n    C.add(100, 2) -- internal call
+// Warning 6328: (301-329): CHC: Assertion violation happens here.\nCounterexample:\n\n\nTransaction trace:\nC.constructor()\nC.f()\n    C.add(100, 0) -- internal call\n    C.add(100, 1) -- internal call\n    C.add(100, 2) -- internal call\n    C.add(100, 100) -- internal call
 // Info 1391: CHC: 3 verification condition(s) proved safe! Enable the model checker option "show proved safe" to see all of them.
+// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

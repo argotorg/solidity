@@ -1810,7 +1810,7 @@ Json StandardCompiler::compileYul(InputsAndSettings _inputsAndSettings)
 			sourceResult["ast"] = stack.astJson();
 			output["sources"][sourceName] = sourceResult;
 		}
-		stack.optimize();
+		stack.optimize(_inputsAndSettings.viaSSACFG);
 		std::tie(object, deployedObject) = stack.assembleWithDeployed({}, _inputsAndSettings.viaSSACFG);
 		if (object.bytecode)
 			object.bytecode->link(_inputsAndSettings.libraries);

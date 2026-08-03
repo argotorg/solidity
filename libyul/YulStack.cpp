@@ -88,7 +88,7 @@ bool YulStack::parseAndAnalyze(std::string const& _sourceName, std::string const
 	return analyzeParsed();
 }
 
-void YulStack::optimize()
+void YulStack::optimize(bool _viaSSACFG)
 {
 	yulAssert(m_stackState >= AnalysisSuccessful, "Analysis was not successful.");
 	yulAssert(m_parserResult);
@@ -135,7 +135,8 @@ void YulStack::optimize()
 				optimizeStackAllocation,
 				yulOptimiserSteps,
 				yulOptimiserCleanupSteps,
-				m_optimiserSettings.expectedExecutionsPerDeployment
+				m_optimiserSettings.expectedExecutionsPerDeployment,
+				_viaSSACFG
 			}
 		);
 

@@ -787,6 +787,11 @@ option ``--model-checker-engine {all,bmc,chc,none}`` or the JSON option
 Bounded Model Checker (BMC)
 ---------------------------
 
+.. warning::
+    The BMC engine has been deprecated and will be removed in a future release.
+    Selecting it, either explicitly via ``bmc`` or implicitly via ``all``, emits a deprecation warning.
+    Please use the CHC engine instead.
+
 The BMC engine analyzes functions in isolation, that is, it does not take the
 overall behavior of the contract over multiple transactions into account when
 analyzing each function.  Loops are also ignored in this engine at the moment.

@@ -14,3 +14,4 @@ contract C {
 // ----
 // Warning 7229: (146-154): Assertion checker does not yet implement the type function () external for comparisons
 // Warning 6328: (139-155): CHC: Assertion violation happens here.\nCounterexample:\ns = {e: 0}, f = 0\n\nTransaction trace:\nC.constructor()
+// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

@@ -18,4 +18,5 @@ contract C {
 // SMTEngine: all
 // SMTExtCalls: trusted
 // ----
-// Warning 6328: (204-222): CHC: Assertion violation happens here.
+// Warning 6328: (204-222): CHC: Assertion violation happens here.\nCounterexample:\nd = (- 1)\n\nTransaction trace:\nC.constructor()\nState: d = (- 1)\nC.g()\n    D.f() -- trusted external call
+// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

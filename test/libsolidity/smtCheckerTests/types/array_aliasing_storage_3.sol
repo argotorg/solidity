@@ -35,8 +35,9 @@ contract C
 // SMTIgnoreCex: yes
 // ----
 // Warning 2072: (384-399): Unused local variable.
-// Warning 6368: (489-493): CHC: Out of bounds access happens here.
-// Warning 6368: (955-959): CHC: Out of bounds access happens here.
-// Warning 6328: (948-965): CHC: Assertion violation happens here.
-// Warning 6368: (976-980): CHC: Out of bounds access happens here.
+// Warning 6368: (489-493): CHC: Out of bounds access happens here.\nCounterexample:\n\nx = 0\ny = 0\n\nTransaction trace:\nC.constructor()\nState: array2d = []\nC.p()\nState: array2d = [[0]]\nC.g(0, 0, c) -- counterexample incomplete; parameter name used instead of value\n    C.f([0], [0], c) -- counterexample incomplete; parameter name used instead of value -- internal call
+// Warning 6368: (955-959): CHC: Out of bounds access happens here.\nCounterexample:\n\nx = 0\ny = 0\n\nTransaction trace:\nC.constructor()\nState: array2d = []\nC.p()\nState: array2d = [[0]]\nC.g(0, 0, c) -- counterexample incomplete; parameter name used instead of value\n    C.f([0], [0], c) -- counterexample incomplete; parameter name used instead of value -- internal call
+// Warning 6328: (948-965): CHC: Assertion violation happens here.\nCounterexample:\n\nx = 0\ny = 0\n\nTransaction trace:\nC.constructor()\nState: array2d = []\nC.p()\nState: array2d = [[0]]\nC.g(0, 0, c) -- counterexample incomplete; parameter name used instead of value\n    C.f([0], [0], c) -- counterexample incomplete; parameter name used instead of value -- internal call
+// Warning 6368: (976-980): CHC: Out of bounds access happens here.\nCounterexample:\n\nx = 0\ny = 0\n\nTransaction trace:\nC.constructor()\nState: array2d = []\nC.p()\nState: array2d = [[0]]\nC.g(0, 0, c) -- counterexample incomplete; parameter name used instead of value\n    C.f([0], [0], c) -- counterexample incomplete; parameter name used instead of value -- internal call
 // Info 1391: CHC: 5 verification condition(s) proved safe! Enable the model checker option "show proved safe" to see all of them.
+// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

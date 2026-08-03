@@ -1318,10 +1318,11 @@ bool ExpressionCompiler::visit(FunctionCall const& _functionCall)
 				if (magicType && magicType->kind() == MagicType::Kind::Error)
 				{
 					// Make sure that error constructor arguments are evaluated regardless of the require condition
-					auto const& errorConstructorCall = dynamic_cast<FunctionCall const&>(*arguments[1]);
-					errorConstructorCall.expression().accept(*this);
+					auto const errorConstructorCall = dynamic_cast<FunctionCall const*>(resolveOuterUnaryTuples(arguments[1].get()));
+					solAssert(errorConstructorCall);
+					errorConstructorCall->expression().accept(*this);
 					std::vector<Type const*> errorConstructorArgumentTypes{};
-					for (ASTPointer<Expression const> const& errorConstructorArgument: errorConstructorCall.sortedArguments())
+					for (ASTPointer<Expression const> const& errorConstructorArgument: errorConstructorCall->sortedArguments())
 					{
 						errorConstructorArgument->accept(*this);
 						errorConstructorArgumentTypes.push_back(errorConstructorArgument->annotation().type);
@@ -1336,14 +1337,14 @@ bool ExpressionCompiler::visit(FunctionCall const& _functionCall)
 					}
 					catch (StackTooDeepError const& _exception)
 					{
-						_exception << errinfo_sourceLocation(errorConstructorCall.location());
+						_exception << errinfo_sourceLocation(errorConstructorCall->location());
 						throw _exception;
 					}
 					// stack: <arg0> <arg1> ... <argN> <condition>
 					m_context << Instruction::ISZERO << Instruction::ISZERO;
 					AssemblyItem successBranchTag = m_context.appendConditionalJump();
 
-					auto const* errorDefinition = dynamic_cast<ErrorDefinition const*>(ASTNode::referencedDeclaration(errorConstructorCall.expression()));
+					auto const* errorDefinition = dynamic_cast<ErrorDefinition const*>(ASTNode::referencedDeclaration(errorConstructorCall->expression()));
 					solAssert(errorDefinition && errorDefinition->functionType(true));
 					utils().revertWithError(
 						errorDefinition->functionType(true)->externalSignature(),

@@ -5,3 +5,5 @@ Warning: Function state mutability can be restricted to pure
   |     ^ (Relevant source part starts here and spans across multiple lines).
 
 Info: CHC: 2 verification condition(s) proved safe! Enable the model checker option "show proved safe" to see all of them.
+
+Warning: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

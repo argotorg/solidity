@@ -22,6 +22,16 @@
         },
         {
             "component": "general",
+            "errorCode": "3993",
+            "formattedMessage": "Warning: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.
+
+",
+            "message": "The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.",
+            "severity": "warning",
+            "type": "Warning"
+        },
+        {
+            "component": "general",
             "errorCode": "2788",
             "formattedMessage": "Warning: BMC: 1 verification condition(s) could not be proved. Enable the model checker option \"show unproved\" to see all of them. Consider choosing a specific contract to be verified in order to reduce the solving problems. Consider increasing the timeout per query.
 

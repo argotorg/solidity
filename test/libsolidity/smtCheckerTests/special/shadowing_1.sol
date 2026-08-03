@@ -21,5 +21,6 @@ contract C {
 // Warning 2319: (108-120): This declaration shadows a builtin symbol.
 // Warning 2319: (149-160): This declaration shadows a builtin symbol.
 // Warning 2319: (189-203): This declaration shadows a builtin symbol.
-// Warning 6328: (274-297): CHC: Assertion violation happens here.
+// Warning 6328: (274-297): CHC: Assertion violation happens here.\nCounterexample:\n\nmsg = {value: 42, origin: 0x0, number: 666}\ntx = {value: 42, origin: 0x0, number: 666}\nblock = {value: 42, origin: 0x0, number: 666}\n\nTransaction trace:\nC.constructor()\nC.f(){ msg.value: 19 }
 // Info 1391: CHC: 3 verification condition(s) proved safe! Enable the model checker option "show proved safe" to see all of them.
+// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

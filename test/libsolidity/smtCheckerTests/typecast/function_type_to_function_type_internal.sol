@@ -21,3 +21,4 @@ contract C {
 // Warning 5729: (187-191): BMC does not yet implement this type of function call.
 // Warning 6328: (172-192): CHC: Assertion violation happens here.\nCounterexample:\na = 0, b = 0\n\nTransaction trace:\nC.constructor()\nState: a = 0, b = 0\nC.g()\n    C.f(0, 0) -- internal call
 // Warning 6328: (196-210): CHC: Assertion violation happens here.\nCounterexample:\na = 0, b = 0\n\nTransaction trace:\nC.constructor()\nState: a = 0, b = 0\nC.g()\n    C.f(0, 0) -- internal call
+// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

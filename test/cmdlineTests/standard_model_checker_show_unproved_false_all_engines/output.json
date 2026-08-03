@@ -12,6 +12,16 @@
         },
         {
             "component": "general",
+            "errorCode": "3993",
+            "formattedMessage": "Warning: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.
+
+",
+            "message": "The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.",
+            "severity": "warning",
+            "type": "Warning"
+        },
+        {
+            "component": "general",
             "errorCode": "6002",
             "formattedMessage": "Info: BMC: 1 verification condition(s) proved safe! Enable the model checker option \"show proved safe\" to see all of them.
 

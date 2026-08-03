@@ -30,3 +30,4 @@ contract C {
 // ----
 // Warning 8729: (231-245): Contract deployment is only supported in the trusted mode for external calls with the CHC engine.
 // Warning 8729: (492-507): Contract deployment is only supported in the trusted mode for external calls with the CHC engine.
+// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

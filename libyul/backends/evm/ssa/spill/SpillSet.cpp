@@ -30,7 +30,8 @@ using namespace solidity::yul::ssa::spill;
 namespace
 {
 
-/// Build the symbolic stack right after `_value`'s operation completes
+/// Build the symbolic stack right after `_value`'s operation completes by replaying the recorded shuffles
+/// and operation effects from the block's `stackIn`
 StackData computeOperationOut(
 	SSACFG const& _cfg,
 	SSACFGStackLayout const& _layout,
@@ -43,35 +44,33 @@ StackData computeOperationOut(
 	auto const& blockLayout = _layout[block];
 	yulAssert(blockLayout, fmt::format("producer {}'s block has no layout", producer));
 
+	StackData opOutStack = blockLayout->stackIn;
 	std::size_t opIndex = 0;
-	bool found = false;
 	for (InstId const id: _cfg.block(block).instructions)
 	{
 		if (!_cfg.isOperation(id))
 			continue;
-		if (id == producer)
-		{
-			found = true;
-			break;
-		}
+		yulAssert(opIndex < blockLayout->operationShuffles.size());
+		replay(opOutStack, blockLayout->operationShuffles[opIndex]);
 		++opIndex;
-	}
-	yulAssert(found, fmt::format("producer {} not found in its block's instructions", producer));
-	yulAssert(opIndex < blockLayout->operationIn.size());
 
-	StackData opOutStack = blockLayout->operationIn[opIndex];
-	SSACFG::Inst const& inst = _cfg.inst(producer);
-	// a call that can continue also consumes its return label, which sits right below the inputs
-	std::size_t consumedSlots = inst.inputs.size();
-	if (inst.opcode == InstOpcode::Call && _cfg.callPayload(producer).canContinue)
-		++consumedSlots;
-	yulAssert(opOutStack.size() >= consumedSlots, "operationIn smaller than consumed slot count");
-	for (std::size_t i = 0; i < consumedSlots; ++i)
-		opOutStack.pop_back();
-	_cfg.forEachOutput(producer, [&](InstId const id) {
-		opOutStack.push_back(StackSlot::makeValue(_cfg, id));
-	});
-	return opOutStack;
+		SSACFG::Inst const& inst = _cfg.inst(id);
+		// a call that can continue also consumes its return label, which sits right below the inputs
+		std::size_t consumedSlots = inst.inputs.size();
+		if (inst.opcode == InstOpcode::Call && _cfg.callPayload(id).canContinue)
+			++consumedSlots;
+		yulAssert(opOutStack.size() >= consumedSlots, "operation input layout smaller than consumed slot count");
+		for (std::size_t i = 0; i < consumedSlots; ++i)
+			opOutStack.pop_back();
+		_cfg.forEachOutput(id, [&](InstId const output) {
+			opOutStack.push_back(StackSlot::makeValue(_cfg, output));
+		});
+
+		if (id == producer)
+			return opOutStack;
+	}
+	yulAssert(false, fmt::format("producer {} not found in its block's instructions", producer));
+	solidity::util::unreachable();
 }
 
 /// The symbolic stack the Emitter faces at `_value`'s definition, where its `mstore` fires. Three cases:
@@ -103,8 +102,11 @@ StackData defStackFor(
 
 }
 
-void SpillSet::closeUnderReachabilityConstraints(SSACFG const& _cfg, SSACFGStackLayout const& _layout)
+void SpillSet::closeUnderReachabilityConstraints(SSACFG const& _cfg, SSACFGStackLayout const& _layout, SpillStoreTraces* _storeTraces)
 {
+	if (_storeTraces)
+		_storeTraces->clear();
+
 	// work queue over values that are marked for spillage
 	std::deque<InstId> queue;
 	for (InstId const id: spilledValues())
@@ -116,7 +118,7 @@ void SpillSet::closeUnderReachabilityConstraints(SSACFG const& _cfg, SSACFGStack
 		queue.pop_front();
 
 		StackData const defStack = defStackFor(_cfg, _layout, value);
-		ensureDefSiteFeasible(_cfg, value, defStack, queue);
+		ensureDefSiteFeasible(_cfg, value, defStack, queue, _storeTraces);
 	}
 }
 
@@ -124,20 +126,22 @@ void SpillSet::ensureDefSiteFeasible(
 	SSACFG const& _cfg,
 	InstId const _value,
 	StackData const& _defStack,
-	std::deque<InstId>& _workQueue)
+	std::deque<InstId>& _workQueue,
+	SpillStoreTraces* _storeTraces)
 {
 	// predicate = spill set minus the owner; the shuffle accumulates discovered culprits here.
 	SpillSet spillSetWithoutOwner = without(_value);
+	StackSlot const valueSlot = StackSlot::makeValue(_cfg, _value);
 	// [... defStack ..., valueSlot]
 	StackData const target = [&]{
 		StackData result;
 		result.reserve(_defStack.size() + 1);
 		result.insert(result.end(), _defStack.begin(), _defStack.end());
-		result.push_back(StackSlot::makeValue(_cfg, _value));
+		result.push_back(valueSlot);
 		return result;
 	}();
 	StackData workStack = _defStack;
-	StackShufflerResult const result = shuffleWithSpillDiscovery(workStack, target, spillSetWithoutOwner);
+	StackShufflerResult result = shuffleWithSpillDiscovery(workStack, target, spillSetWithoutOwner);
 	yulAssert(
 		result.status == StackShufflerResult::Status::Admissible,
 		fmt::format("def-site store for {} infeasible even after spilling siblings (status={})", _value, static_cast<int>(result.status))
@@ -147,6 +151,13 @@ void SpillSet::ensureDefSiteFeasible(
 	// - if `_value` is unreachable, there are > reachable stack depth distinct slots strictly above it and the
 	//   shuffler heuristics should not pick anything that is already too deep as culprit
 	yulAssert(!spillSetWithoutOwner.isSpilled(_value), "spill-aware shuffle reported the owner as its own blocker");
+
+	if (_storeTraces)
+	{
+		// the `mstore` consuming the value from the top concludes the def-site trace
+		result.trace.push_back(ShuffleOp::store(valueSlot));
+		(*_storeTraces)[_value] = std::move(result.trace);
+	}
 
 	for (InstId const culprit: spillSetWithoutOwner.spilledValues())
 	{

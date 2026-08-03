@@ -26,8 +26,9 @@ contract A {
 // ====
 // SMTEngine: all
 // ----
-// Warning 6368: (318-322): CHC: Out of bounds access happens here.
-// Warning 6328: (311-328): CHC: Assertion violation happens here.
-// Warning 6368: (422-426): CHC: Out of bounds access happens here.
-// Warning 6328: (415-432): CHC: Assertion violation happens here.
+// Warning 6368: (318-322): CHC: Out of bounds access happens here.\nCounterexample:\na = [0, 0]\nu = []\nb = [0, 0]\n\nTransaction trace:\nA.constructor()\nState: a = [1]\nA.f()
+// Warning 6328: (311-328): CHC: Assertion violation happens here.\nCounterexample:\na = [0, 0]\nb = [0, 0]\n\nTransaction trace:\nA.constructor()\nState: a = [1]\nA.f()
+// Warning 6368: (422-426): CHC: Out of bounds access happens here.\nCounterexample:\na = [0, 0]\nu = []\nb = [0, 0]\n\nTransaction trace:\nA.constructor()\nState: a = [1]\nA.f()
+// Warning 6328: (415-432): CHC: Assertion violation happens here.\nCounterexample:\na = [0, 0]\nb = [0, 0]\n\nTransaction trace:\nA.constructor()\nState: a = [1]\nA.f()
 // Info 1391: CHC: 3 verification condition(s) proved safe! Enable the model checker option "show proved safe" to see all of them.
+// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

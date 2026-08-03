@@ -26,4 +26,5 @@ contract C {
 // SMTEngine: all
 // SMTIgnoreCex: yes
 // ----
-// Warning 6328: (279-309): CHC: Assertion violation happens here.
+// Warning 6328: (279-309): CHC: Assertion violation happens here.\nCounterexample:\n\ndata = [0x0b]\n\nTransaction trace:\nC.constructor()\nC.abiEncodeSlice([0x0b])
+// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

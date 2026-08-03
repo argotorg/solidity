@@ -148,7 +148,7 @@ std::optional<std::string> tryFormatPowerOfTwo(bigint const& _value)
 	else
 		return {fmt::format(
 			"{} * 2**{}",
-			toHex(toCompactBigEndian(prefix), HexPrefix::Add, HexCase::Mixed),
+			toHex(toCompactBigEndian(prefix), HexPrefix::Add),
 			i * 8
 		)};
 }
@@ -170,7 +170,7 @@ std::string solidity::util::formatNumberReadable(bigint const& _value, bool _use
 	else if (auto result = tryFormatPowerOfTwo(absValue + 1))
 		return {sign + *result + (isNegative ? " + 1" : " - 1")};
 
-	std::string str = toHex(toCompactBigEndian(absValue), HexPrefix::Add, HexCase::Mixed);
+	std::string str = toHex(toCompactBigEndian(absValue), HexPrefix::Add);
 
 	if (_useTruncation)
 	{

@@ -25,7 +25,7 @@
 // \l\
 // [FunctionCallReturnLabel[0], lit0, lit1]\l\
 // revert_wrapper\l\
-// [FunctionCallReturnLabel[0]]\l\
+// []\l\
 // \l\
 // OUT: []\l\
 // "];

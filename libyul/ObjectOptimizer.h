@@ -53,6 +53,7 @@ public:
 		std::string yulOptimiserSteps;
 		std::string yulOptimiserCleanupSteps;
 		std::uint64_t expectedExecutionsPerDeployment;
+		bool viaSSACFG;
 	};
 
 	/// Recursively optimizes a Yul object with given settings, reusing cached ASTs where possible

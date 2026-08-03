@@ -43,6 +43,7 @@ set(libsolutil_sources
     libsolutil/LEB128.cpp
     libsolutil/StringUtils.cpp
     libsolutil/SwarmHash.cpp
+    libsolutil/TarjanSCC.cpp
     libsolutil/TemporaryDirectoryTest.cpp
     libsolutil/UTF8.cpp
     libsolutil/Whiskers.cpp
@@ -146,6 +147,8 @@ detect_stray_source_files("${libsolidity_util_sources}" "libsolidity/util/")
 set(libyul_sources
     libyul/Common.cpp
     libyul/Common.h
+    libyul/CallGraphTest.cpp
+    libyul/CallGraphTest.h
     libyul/CompilabilityChecker.cpp
     libyul/ControlFlowGraphTest.cpp
     libyul/ControlFlowGraphTest.h
@@ -187,7 +190,6 @@ set(libyul_sources
     libyul/ssa/StackLayoutGeneratorTest.h
     libyul/ssa/StackShufflerTest.cpp
     libyul/ssa/StackShufflerTest.h
-    libyul/ssa/TarjanSCC.cpp
 )
 detect_stray_source_files("${libyul_sources}" "libyul/")
 
@@ -248,3 +250,7 @@ endif()
 
 add_subdirectory(tools)
 add_subdirectory(evmc)
+
+if (PROPERTY_BASED_TESTS)
+    add_subdirectory(fuzztest)
+endif()

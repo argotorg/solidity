@@ -51,10 +51,12 @@ public:
 	using Index = std::uint32_t;
 	using Length = std::uint32_t;
 
-	TLSFFreeList()
+	explicit TLSFFreeList(std::size_t const _initialCapacity = 0)
 	{
 		for (auto& row: m_binHead)
 			row.fill(EMPTY);
+		m_data.reserve(_initialCapacity);
+		m_headers.reserve(_initialCapacity);
 	}
 	TLSFFreeList(TLSFFreeList const&) = delete;
 	TLSFFreeList(TLSFFreeList&&) = default;
@@ -379,7 +381,6 @@ private:
 	Index growStorage(Length const _length)
 	{
 		auto const start = static_cast<Index>(m_data.size());
-		m_data.reserve(m_data.size() + _length);
 		for (Length k = 0; k < _length; ++k)
 			m_data.emplace_back(Tombstone::make());
 		m_headers.resize(m_data.size());

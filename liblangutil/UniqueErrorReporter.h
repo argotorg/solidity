@@ -100,6 +100,8 @@ public:
 
 	void clear() { m_errorReporter.clear(); }
 
+	bool hasError(ErrorId _error) { return m_errorReporter.hasError(_error); }
+
 private:
 	ErrorList m_uniqueErrors;
 	ErrorReporter m_errorReporter;

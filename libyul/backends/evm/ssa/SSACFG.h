@@ -56,8 +56,10 @@ public:
 
 	explicit SSACFG(
 		EVMDialect const& _evmVersion,
-		std::unique_ptr<DebugInfo> _debugInfo = nullptr
+		std::unique_ptr<DebugInfo> _debugInfo = nullptr,
+		std::size_t const _instructionCountHint = 0
 	):
+		m_instructions(_instructionCountHint),
 		evmDialect(_evmVersion),
 		debugInfo(std::move(_debugInfo))
 	{}

@@ -1,0 +1,90 @@
+
+======= <stdin>:A =======
+Contract Storage Layout:
+{
+    "storage": [
+        {
+            "astId": 3,
+            "contract": "<stdin>:A",
+            "label": "x",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint256"
+        }
+    ],
+    "types": {
+        "t_uint256": {
+            "encoding": "inplace",
+            "label": "uint256",
+            "numberOfBytes": "32"
+        }
+    }
+}
+
+======= <stdin>:B =======
+Contract Storage Layout:
+{
+    "storage": [
+        {
+            "astId": 3,
+            "contract": "<stdin>:B",
+            "label": "x",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint256"
+        },
+        {
+            "astId": 8,
+            "contract": "<stdin>:B",
+            "label": "y",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_uint256"
+        }
+    ],
+    "types": {
+        "t_uint256": {
+            "encoding": "inplace",
+            "label": "uint256",
+            "numberOfBytes": "32"
+        }
+    }
+}
+
+======= <stdin>:C =======
+Contract Storage Layout:
+{
+    "storage": [
+        {
+            "astId": 3,
+            "contract": "<stdin>:C",
+            "label": "x",
+            "offset": 0,
+            "slot": "115792089237316195423570985008687907853269984665640564039457584006813618012160",
+            "type": "t_uint256"
+        },
+        {
+            "astId": 8,
+            "contract": "<stdin>:C",
+            "label": "y",
+            "offset": 0,
+            "slot": "115792089237316195423570985008687907853269984665640564039457584006813618012161",
+            "type": "t_uint256"
+        },
+        {
+            "astId": 21,
+            "contract": "<stdin>:C",
+            "label": "z",
+            "offset": 0,
+            "slot": "115792089237316195423570985008687907853269984665640564039457584006813618012162",
+            "type": "t_uint256"
+        }
+    ],
+    "types": {
+        "t_uint256": {
+            "encoding": "inplace",
+            "label": "uint256",
+            "numberOfBytes": "32"
+        }
+    }
+}

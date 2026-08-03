@@ -21,3 +21,4 @@ contract C
 // ----
 // Warning 5667: (51-57): Unused function parameter. Remove or comment out the variable name to silence this warning.
 // Warning 2072: (75-87): Unused local variable.
+// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

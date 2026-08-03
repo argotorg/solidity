@@ -14,6 +14,7 @@ contract C {
 // SMTEngine: all
 // SMTIgnoreCex: yes
 // ----
-// Warning 6328: (132-188): CHC: Assertion violation happens here.
-// Warning 6328: (269-324): CHC: Assertion violation happens here.
+// Warning 6328: (132-188): CHC: Assertion violation happens here.\nCounterexample:\nprevBalance = 0\n\nTransaction trace:\nC.constructor(){ msg.value: 0 }\nState: prevBalance = 0\nC.f(){ msg.value: 1405 }
+// Warning 6328: (269-324): CHC: Assertion violation happens here.\nCounterexample:\nprevBalance = 0\n\nTransaction trace:\nC.constructor(){ msg.value: 0 }\nState: prevBalance = 0\nC.f(){ msg.value: 17 }
 // Info 1391: CHC: 4 verification condition(s) proved safe! Enable the model checker option "show proved safe" to see all of them.
+// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

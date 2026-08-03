@@ -21,3 +21,4 @@ contract C {
 // SMTTargets: outOfBounds
 // ----
 // Warning 6368: (259-263): CHC: Out of bounds access happens here.\nCounterexample:\na = [0], l = 1\n = 0\n\nTransaction trace:\nC.constructor()\nState: a = [], l = 0\nC.p()\nState: a = [0], l = 1\nC.r()
+// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

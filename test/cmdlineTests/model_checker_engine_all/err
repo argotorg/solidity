@@ -10,3 +10,5 @@ test.f(0)
   |
 5 | 		assert(x > 0);
   | 		^^^^^^^^^^^^^
+
+Warning: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

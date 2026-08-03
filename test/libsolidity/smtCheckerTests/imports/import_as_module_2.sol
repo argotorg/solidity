@@ -19,5 +19,7 @@ function f(uint _x) pure {
 // SMTEngine: all
 // SMTIgnoreOS: macos
 // ----
+// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.
 // Warning 6328: (A:50-64): CHC: Assertion violation happens here.\nCounterexample:\n\n_y = 0\n\nTransaction trace:\nD.constructor()\nD.g(0)\n    s1.sol:f(200) -- internal call\n    s1.sol:f(0) -- internal call\n    A:f(10) -- internal call\n    A:f(0) -- internal call
 // Warning 6328: (s1.sol:28-44): CHC: Assertion violation happens here.\nCounterexample:\n\n_y = 0\n\nTransaction trace:\nD.constructor()\nD.g(0)\n    s1.sol:f(200) -- internal call\n    s1.sol:f(0) -- internal call
+// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

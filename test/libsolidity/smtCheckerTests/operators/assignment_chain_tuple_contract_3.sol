@@ -24,3 +24,4 @@ contract D is C {
 // Warning 6328: (95-109): CHC: Assertion violation happens here.\nCounterexample:\ny = 3, x = 3\n\nTransaction trace:\nD.constructor()\nState: y = 3, x = 3\nC.f()
 // Warning 6328: (180-194): CHC: Assertion violation happens here.\nCounterexample:\nx = 2\n\nTransaction trace:\nC.constructor()\nState: x = 2\nC.g()
 // Info 1391: CHC: 1 verification condition(s) proved safe! Enable the model checker option "show proved safe" to see all of them.
+// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

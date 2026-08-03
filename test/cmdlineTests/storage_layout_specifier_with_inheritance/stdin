@@ -1,0 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0
+pragma solidity >=0.0.0;
+
+contract A { uint x; }
+contract B is A { uint y; }
+contract C is B layout at 2**256 - 2**40 { uint z; }

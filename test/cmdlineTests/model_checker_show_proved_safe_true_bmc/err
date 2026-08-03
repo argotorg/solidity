@@ -4,6 +4,8 @@ Warning: Function state mutability can be restricted to pure
 4 |     function f(uint8 x) public {
   |     ^ (Relevant source part starts here and spans across multiple lines).
 
+Warning: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.
+
 Info: BMC: Assertion violation check is safe!
  --> input.sol:5:9:
   |

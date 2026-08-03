@@ -26,5 +26,6 @@ contract C {
 // Warning 8364: (166-175): Assertion checker does not yet implement type struct C.S storage ref
 // Warning 7650: (188-195): Assertion checker does not yet support this expression.
 // Warning 8364: (188-193): Assertion checker does not yet implement type struct C.S storage ref
-// Warning 6328: (159-203): CHC: Assertion violation happens here.
+// Warning 6328: (159-203): CHC: Assertion violation happens here.\nCounterexample:\n\n\nTransaction trace:\nC.constructor()\nC.f()
 // Info 1391: CHC: 6 verification condition(s) proved safe! Enable the model checker option "show proved safe" to see all of them.
+// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

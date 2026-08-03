@@ -65,6 +65,16 @@ A.f(0)",
                 "start": 218
             },
             "type": "Warning"
+        },
+        {
+            "component": "general",
+            "errorCode": "3993",
+            "formattedMessage": "Warning: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.
+
+",
+            "message": "The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.",
+            "severity": "warning",
+            "type": "Warning"
         }
     ],
     "sources": {

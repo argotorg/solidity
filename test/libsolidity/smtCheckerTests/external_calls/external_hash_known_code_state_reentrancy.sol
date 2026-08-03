@@ -32,3 +32,4 @@ contract C {
 // ----
 // Warning 6328: (266-280): CHC: Assertion violation happens here.\nCounterexample:\nowner = 0x0, y = 0, s = 0\nprevOwner = 0x0\nz = 1\n\nTransaction trace:\nC.constructor(){ msg.sender: 0x0 }\nState: owner = 0x0, y = 0, s = 0\nC.f()\n    s.f() -- untrusted external call
 // Info 1391: CHC: 1 verification condition(s) proved safe! Enable the model checker option "show proved safe" to see all of them.
+// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

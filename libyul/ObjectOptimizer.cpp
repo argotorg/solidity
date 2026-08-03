@@ -83,7 +83,8 @@ void ObjectOptimizer::optimize(Object& _object, Settings const& _settings, bool 
 		_settings.yulOptimiserSteps,
 		_settings.yulOptimiserCleanupSteps,
 		_isCreation ? std::nullopt : std::make_optional(_settings.expectedExecutionsPerDeployment),
-		{}
+		{},
+		_settings.viaSSACFG
 	);
 
 	if (cacheKey.has_value())
@@ -147,6 +148,7 @@ std::optional<h256> ObjectOptimizer::calculateCacheKey(
 	rawKey += keccak256(_settings.evmVersion.name()).asBytes();
 	rawKey += keccak256(_settings.yulOptimiserSteps).asBytes();
 	rawKey += keccak256(_settings.yulOptimiserCleanupSteps).asBytes();
+	rawKey += FixedHash<1>(static_cast<uint8_t>(_settings.viaSSACFG)).asBytes();
 
 	return h256(keccak256(rawKey));
 }

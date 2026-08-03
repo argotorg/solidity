@@ -29,5 +29,6 @@ contract A {
 // SMTIgnoreCex: yes
 // SMTIgnoreInv: yes
 // ----
-// Warning 6328: (392-408): CHC: Assertion violation happens here.
+// Warning 6328: (392-408): CHC: Assertion violation happens here.\nCounterexample:\nx = 8, y = (- 2)\n\nTransaction trace:\nA.constructor()\nState: x = 0, y = 0\nA.a()
 // Info 1391: CHC: 26 verification condition(s) proved safe! Enable the model checker option "show proved safe" to see all of them.
+// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

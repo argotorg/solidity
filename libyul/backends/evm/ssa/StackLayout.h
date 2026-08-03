@@ -18,8 +18,9 @@
 
 #pragma once
 
-#include <libyul/backends/evm/ssa/Stack.h>
+#include <libyul/backends/evm/ssa/ShuffleTrace.h>
 
+#include <utility>
 #include <vector>
 
 namespace solidity::yul::ssa
@@ -29,10 +30,40 @@ struct BlockLayout
 {
 	// stack layout required to enter the block
 	StackData stackIn;
-	// stack layout required to execute the i-th operation in the block
-	std::vector<StackData> operationIn;
-	// stack layout required to handle the exit of the block
-	StackData exitIn;
+
+	/// Transforms the stack after the (i-1)-th operation (`stackIn` for i = 0) into the i-th operation's
+	/// input layout
+	std::vector<ShuffleTrace> operationShuffles;
+	/// Transforms the stack after the last operation into the block's exit state (for conditional jumps: condition on top, pre-JUMPI)
+	ShuffleTrace exitShuffle;
+	/// Per predecessor edge: transforms the predecessor's post-exit stack (for conditional jumps: after
+	/// popping the condition) into the phi preimage of `stackIn` under that edge
+	std::vector<std::pair<SSACFG::BlockId, ShuffleTrace>> tracesForStackIn;
+
+	/// The recorded shuffle for the edge from `_predecessor` into this block
+	ShuffleTrace const& traceForStackIn(SSACFG::BlockId const& _predecessor) const
+	{
+		for (auto const& [parent, trace]: tracesForStackIn)
+			if (parent == _predecessor)
+				return trace;
+		yulAssert(false, fmt::format("no recorded shuffle for predecessor edge from block {}", _predecessor));
+		solidity::util::unreachable();
+	}
+
+	/// Records the shuffle for the edge from `_predecessor` into this block
+	void addTraceForStackIn(SSACFG::BlockId const& _predecessor, ShuffleTrace&& _trace)
+	{
+		for (auto const& [parent, trace]: tracesForStackIn)
+			if (parent == _predecessor)
+			{
+				yulAssert(
+					trace == _trace,
+					fmt::format("conflicting shuffles recorded for the predecessor edge from block {}", _predecessor)
+				);
+				return;
+			}
+		tracesForStackIn.emplace_back(_predecessor, std::move(_trace));
+	}
 };
 
 /// For each (reachable) block in the SSACFG one block layout

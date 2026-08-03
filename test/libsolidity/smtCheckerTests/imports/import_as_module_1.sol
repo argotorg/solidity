@@ -17,5 +17,7 @@ contract C {
 // ====
 // SMTEngine: all
 // ----
-// Warning 6328: (A:117-132): CHC: Assertion violation happens here.
+// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.
+// Warning 6328: (A:117-132): CHC: Assertion violation happens here.\nCounterexample:\nx = 0\n_y = 0\n\nTransaction trace:\nD.constructor()\nState: x = 0\nD.f(0)\n    C.g(0) -- internal call
 // Info 1391: CHC: 1 verification condition(s) proved safe! Enable the model checker option "show proved safe" to see all of them.
+// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

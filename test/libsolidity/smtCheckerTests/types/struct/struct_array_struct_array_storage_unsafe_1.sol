@@ -42,9 +42,10 @@ contract C {
 // SMTEngine: all
 // SMTIgnoreCex: yes
 // ----
-// Warning 6328: (148-165): CHC: Assertion violation happens here.
-// Warning 6328: (183-202): CHC: Assertion violation happens here.
-// Warning 6328: (266-286): CHC: Assertion violation happens here.
+// Warning 6328: (148-165): CHC: Assertion violation happens here.\nCounterexample:\ns1 = {x: 2, t: {y: 0, a: []}, a: [], ts: []}\n\nTransaction trace:\nC.constructor()\nState: s1 = {x: 0, t: {y: 0, a: []}, a: [], ts: []}\nC.f()
+// Warning 6328: (183-202): CHC: Assertion violation happens here.\nCounterexample:\ns1 = {x: 2, t: {y: 3, a: []}, a: [], ts: []}\n\nTransaction trace:\nC.constructor()\nState: s1 = {x: 0, t: {y: 0, a: []}, a: [], ts: []}\nC.f()
+// Warning 6328: (266-286): CHC: Assertion violation happens here.\nCounterexample:\ns1 = {x: 2, t: {y: 3, a: []}, a: [0, 0, 4], ts: []}\n\nTransaction trace:\nC.constructor()\nState: s1 = {x: 0, t: {y: 0, a: []}, a: [], ts: []}\nC.f()
 // Warning 6328: (404-427): CHC: Assertion violation happens here.
 // Warning 6328: (578-604): CHC: Assertion violation happens here.
 // Info 1391: CHC: 14 verification condition(s) proved safe! Enable the model checker option "show proved safe" to see all of them.
+// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

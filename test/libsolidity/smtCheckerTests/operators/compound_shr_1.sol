@@ -10,3 +10,4 @@ contract C {
 // SMTEngine: all
 // ----
 // Warning 6328: (84-97): CHC: Assertion violation happens here.
+// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

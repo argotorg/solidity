@@ -102,7 +102,7 @@ public:
 		}
 	};
 
-	InstructionStore() = default;
+	explicit InstructionStore(std::size_t const _instructionCountHint = 0): m_insts(_instructionCountHint) {}
 	InstructionStore(InstructionStore const&) = delete;
 	InstructionStore(InstructionStore&&) = default;
 	InstructionStore& operator=(InstructionStore const&) = delete;

@@ -23,3 +23,5 @@ A.g(0)
    |
 10 | 		assert(y > 0);
    | 		^^^^^^^^^^^^^
+
+Warning: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

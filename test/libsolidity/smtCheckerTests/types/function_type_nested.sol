@@ -19,3 +19,4 @@ contract C {
 // Warning 8364: (223-225): Assertion checker does not yet implement type function (function (uint256))
 // Warning 5729: (91-96): BMC does not yet implement this type of function call.
 // Warning 5729: (180-187): BMC does not yet implement this type of function call.
+// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

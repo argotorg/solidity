@@ -13,3 +13,4 @@ contract C {
 // SMTEngine: all
 // ----
 // Warning 4984: (240-261): CHC: Overflow (resulting value larger than 65535) happens here.\nCounterexample:\n\na = 65024\n = 0\n\nTransaction trace:\nC.constructor()\nC.f(65024)\n    C.add(65024, 256) -- internal call
+// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

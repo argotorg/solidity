@@ -133,7 +133,18 @@ void ModelChecker::analyze(SourceUnit const& _source)
 		solvedTargets[node] += targets | ranges::views::keys;
 
 	if (m_settings.engine.bmc)
+	{
+		if (!m_uniqueErrorReporter.hasError(ErrorId{3993}))
+		{
+			m_uniqueErrorReporter.warning(
+				3993_error,
+				SourceLocation(),
+				"The BMC engine of the SMTChecker is deprecated and will be removed in a future release. "
+				"Please use the CHC engine instead."
+			);
+		}
 		m_bmc.analyze(_source, solvedTargets);
+	}
 
 	if (m_settings.showUnsupported)
 	{

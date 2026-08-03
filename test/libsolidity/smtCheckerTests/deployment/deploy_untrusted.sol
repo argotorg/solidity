@@ -15,3 +15,4 @@ contract C {
 // ----
 // Warning 8729: (124-131): Contract deployment is only supported in the trusted mode for external calls with the CHC engine.
 // Warning 6328: (153-167): CHC: Assertion violation happens here.\nCounterexample:\n\nd = 0\ny = 1\n\nTransaction trace:\nC.constructor()\nC.g()\n    d.f() -- untrusted external call
+// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

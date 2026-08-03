@@ -26,7 +26,8 @@ contract C {
 // SMTIgnoreCex: yes
 // ----
 // Warning 5667: (100-115): Unused function parameter. Remove or comment out the variable name to silence this warning.
-// Warning 6328: (571-601): CHC: Assertion violation happens here.
-// Warning 6328: (691-721): CHC: Assertion violation happens here.
-// Warning 6328: (740-770): CHC: Assertion violation happens here.
+// Warning 6328: (571-601): CHC: Assertion violation happens here.\nCounterexample:\n\nsel = 0x0\nt = false\nx = 0\ny = 0\nz = 0\nb5 = []\nb6 = []\n\nTransaction trace:\nC.constructor()\nC.abiEncodeSimple(0x0, false, 0, 0, 0, a, b) -- counterexample incomplete; parameter name used instead of value
+// Warning 6328: (691-721): CHC: Assertion violation happens here.\nCounterexample:\n\nsel = 0x0\nt = false\nx = 0\ny = 0\nz = 0\nb6 = []\n\nTransaction trace:\nC.constructor()\nC.abiEncodeSimple(0x0, false, 0, 0, 0, a, b) -- counterexample incomplete; parameter name used instead of value
+// Warning 6328: (740-770): CHC: Assertion violation happens here.\nCounterexample:\n\nsel = 0x0\nt = false\nx = 0\ny = 0\nz = 0\nb6 = []\n\nTransaction trace:\nC.constructor()\nC.abiEncodeSimple(0x0, false, 0, 0, 0, a, b) -- counterexample incomplete; parameter name used instead of value
 // Warning 6328: (855-885): CHC: Assertion violation happens here.
+// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

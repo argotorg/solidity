@@ -436,7 +436,6 @@ enum class HexCase
 {
 	Lower = 0,
 	Upper = 1,
-	Mixed = 2,
 };
 
 /// Convert a single byte to a string of hex characters (of length two),

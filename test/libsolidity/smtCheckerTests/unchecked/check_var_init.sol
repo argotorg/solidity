@@ -18,3 +18,4 @@ contract D {
 // ----
 // Warning 3944: (33-47): CHC: Underflow (resulting value less than 0) happens here.\nCounterexample:\nx = 0\n\nTransaction trace:\nC.constructor(){ msg.value: 0 }
 // Warning 3944: (160-174): CHC: Underflow (resulting value less than 0) happens here.\nCounterexample:\n\n\nTransaction trace:\nD.constructor()\nD.f()\n    D.h() -- internal call
+// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

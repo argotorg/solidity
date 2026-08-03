@@ -157,7 +157,7 @@ bool jsonParseStrict(std::string const& _input, Json& _json, std::string* _errs 
 		{
 			std::stringstream escaped;
 			for (char c: removeNlohmannInternalErrorIdentifier(e.what()))
-				if (std::isprint(c))
+				if (std::isprint(static_cast<unsigned char>(c)))
 					escaped << c;
 				else
 					escaped << "\\x" + toHex(static_cast<uint8_t>(c));

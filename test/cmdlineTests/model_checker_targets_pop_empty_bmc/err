@@ -3,3 +3,5 @@ Warning: 'transfer' is deprecated and scheduled for removal. Use 'call{value: <a
    |
 11 | 		a.transfer(x);
    | 		^^^^^^^^^^
+
+Warning: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

@@ -17,6 +17,7 @@ contract C {
 // SMTEngine: all
 // SMTIgnoreCex: yes
 // ----
-// Warning 6328: (143-190): CHC: Assertion violation happens here.
-// Warning 6328: (363-408): CHC: Assertion violation happens here.
+// Warning 6328: (143-190): CHC: Assertion violation happens here.\nCounterexample:\narray2d = [[]]\nlength = 0\nlength2 = 0\n\nTransaction trace:\nC.constructor()\nState: array2d = []\nC.s()
+// Warning 6328: (363-408): CHC: Assertion violation happens here.\nCounterexample:\narray2d = [[], [0]]\nlength = 2\nlength2 = 1\n\nTransaction trace:\nC.constructor()\nState: array2d = []\nC.s()
 // Info 1391: CHC: 16 verification condition(s) proved safe! Enable the model checker option "show proved safe" to see all of them.
+// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

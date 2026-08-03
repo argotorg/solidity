@@ -1,3 +1,5 @@
+Warning: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.
+
 Warning: BMC: Assertion violation happens here.
   --> input.sol:10:3:
    |

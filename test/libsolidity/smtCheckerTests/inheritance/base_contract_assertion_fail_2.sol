@@ -24,3 +24,4 @@ contract C is B {
 // SMTIgnoreCex: no
 // ----
 // Warning 6328: (54-68): CHC: Assertion violation happens here.\nCounterexample:\ny = 0, z = 0, w = 0, a = 0, b = 0, x = 1\n\nTransaction trace:\nC.constructor()\nState: y = 0, z = 0, w = 0, a = 0, b = 0, x = 0\nC.g()\n    A.f() -- internal call
+// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

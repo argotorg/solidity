@@ -22,5 +22,8 @@ contract C is B {
 // ====
 // SMTEngine: all
 // ----
+// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.
 // Warning 6328: (B.sol:71-85): CHC: Assertion violation happens here.\nCounterexample:\nx = 0\n_x = 0\n\nTransaction trace:\nB.constructor()\nState: x = 0\nB.g(0)
+// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.
 // Warning 6328: (C.sol:71-85): CHC: Assertion violation happens here.\nCounterexample:\nx = 0\n_x = 0\n\nTransaction trace:\nC.constructor()\nState: x = 0\nC.h(0)
+// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

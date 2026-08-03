@@ -21,11 +21,11 @@
 // \l\
 // [FunctionCallReturnLabel[0], lit0]\l\
 // pair\l\
-// [FunctionCallReturnLabel[0], v2, v3]\l\
+// [v2, v3]\l\
 // \l\
 // [v2, v3, FunctionCallReturnLabel[1], v2]\l\
 // pair\l\
-// [v2, v3, FunctionCallReturnLabel[1], v5, v6]\l\
+// [v2, v3, v5, v6]\l\
 // \l\
 // [v2, v3, v6, v5]\l\
 // add\l\

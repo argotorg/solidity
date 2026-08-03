@@ -47,7 +47,7 @@ class Object;
  * code generation.
  *
  * Builtins are defined so that their handles stay compatible over different dialect flavors - be it with/without
- * object access, with/without EOF, different versions. It may be, of course, that these builtins are no longer defined.
+ * object access or of different versions. It may be, of course, that these builtins are no longer defined.
  * The ones that _are_ defined, though, remain under the same handle.
  */
 class EVMDialect: public Dialect
