@@ -22,6 +22,7 @@
 #include <libyul/Dialect.h>
 
 #include <liblangutil/DebugData.h>
+#include <liblangutil/EVMVersion.h>
 
 #include <optional>
 #include <span>
@@ -90,6 +91,8 @@ private:
 
 	std::optional<BuiltinHandle> m_gtHandle;
 	size_t m_runs = 0;
+	bool m_isCreation = false;
+	langutil::EVMVersion m_evmVersion;
 };
 
 }

@@ -44,10 +44,15 @@ void SwitchSplitter::run(OptimiserStepContext& _context, Block& _ast)
 }
 
 SwitchSplitter::SwitchSplitter(OptimiserStepContext const& _context):
-	m_runs(_context.expectedExecutionsPerDeployment.value_or(0))
+	// nullopt means creation code
+	m_runs(_context.expectedExecutionsPerDeployment.value_or(1)),
+	m_isCreation(!_context.expectedExecutionsPerDeployment)
 {
 	if (auto const* evmDialect = dynamic_cast<EVMDialect const*>(&_context.dialect))
+	{
 		m_gtHandle = evmDialect->findBuiltin("gt");
+		m_evmVersion = evmDialect->evmVersion();
+	}
 }
 
 void SwitchSplitter::operator()(Block& _block)
@@ -175,6 +180,6 @@ bool SwitchSplitter::shouldSplit(std::span<Case const* const> _cases, Block cons
 	// Overhead scales with the fulcrum's actual encoding size.
 	size_t const pivotIdx = (n - 1) / 2;
 	unsigned const fulcrumSize = numberEncodingSize(_cases[pivotIdx]->value->value.value());
-	size_t const overhead = 13 + fulcrumSize + CodeSize::codeSize(_defaultBody);
-	return m_runs * 6 * (n - 4) > overhead * evmasm::GasCosts::createDataGas;
+	uint64_t const overhead = 13 + fulcrumSize + CodeSize::codeSize(_defaultBody);
+	return m_runs * 6 * (n - 4) > evmasm::GasMeter::dataGas(overhead, m_isCreation, m_evmVersion);
 }
