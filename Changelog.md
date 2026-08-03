@@ -6,6 +6,7 @@ Compiler Features:
 * Commandline Interface: `--optimize-runs` now also accepts values from the interval [INT64_MAX, UINT64_MAX].
 * General: Speed up SHA-256 hashing (`picosha2`).
 * General: Remove support for the experimental EOF (EVM Object Format) backend.
+* Yul Optimizer: Split large switch statements into a binary search tree of smaller switches, reducing dispatch cost from linear to logarithmic.
 
 Bugfixes:
 * NatSpec: Disallow `@return` tag in event documentation.
