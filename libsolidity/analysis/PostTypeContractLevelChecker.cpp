@@ -26,6 +26,7 @@
 #include <libsolidity/analysis/ConstantEvaluator.h>
 #include <libsolidity/ast/AST.h>
 #include <libsolidity/ast/ASTUtils.h>
+#include <libsolidity/ast/ASTVisitor.h>
 #include <libsolidity/ast/TypeProvider.h>
 #include <libsolutil/FunctionSelector.h>
 #include <liblangutil/ErrorReporter.h>
@@ -76,12 +77,94 @@ bool PostTypeContractLevelChecker::check(ContractDefinition const& _contract)
 			errorHashes[hash][signature] = error->location();
 	}
 
+	checkSuperCallsSkippingExternalFunctions(_contract);
+
 	if (_contract.storageLayoutSpecifier())
 		checkStorageLayoutSpecifier(_contract);
 
 	warnStorageLayoutBaseNearStorageEnd(_contract);
 
 	return !Error::containsErrors(m_errorReporter.errors());
+}
+
+namespace
+{
+
+class SuperMemberAccessCollector: public ASTConstVisitor
+{
+public:
+	std::vector<MemberAccess const*> superAccesses;
+
+	bool visit(MemberAccess const& _memberAccess) override
+	{
+		if (
+			_memberAccess.annotation().requiredLookup.set() &&
+			*_memberAccess.annotation().requiredLookup == VirtualLookup::Super
+		)
+			superAccesses.push_back(&_memberAccess);
+		return true;
+	}
+};
+
+}
+
+void PostTypeContractLevelChecker::checkSuperCallsSkippingExternalFunctions(ContractDefinition const& _contract)
+{
+	// Code is only generated for the most derived contract, and only there does the linearization
+	// contain the bases that a `super` call in one of them can be diverted by.
+	if (_contract.abstract() || _contract.isInterface() || _contract.isLibrary())
+		return;
+
+	SuperMemberAccessCollector collector;
+	for (ContractDefinition const* base: _contract.annotation().linearizedBaseContracts)
+		base->accept(collector);
+
+	for (MemberAccess const* memberAccess: collector.superAccesses)
+	{
+		auto const* function = dynamic_cast<FunctionDefinition const*>(memberAccess->annotation().referencedDeclaration);
+		auto const* typeType = dynamic_cast<TypeType const*>(memberAccess->expression().annotation().type);
+		if (!function || !typeType)
+			continue;
+		auto const* contractType = dynamic_cast<ContractType const*>(typeType->actualType());
+		if (!contractType)
+			continue;
+		solAssert(contractType->isSuper());
+
+		ContractDefinition const* searchStart = contractType->contractDefinition().superContract(_contract);
+		if (!searchStart)
+			continue;
+
+		FunctionDefinition const* skipped = nullptr;
+		for (FunctionDefinition const* candidate: function->superLookupCandidates(_contract, *searchStart))
+		{
+			if (candidate->isVisibleInDerivedContracts())
+			{
+				if (skipped)
+					m_errorReporter.typeError(
+						8476_error,
+						memberAccess->location(),
+						SecondarySourceLocation{}
+							.append("This is the skipped external function.", skipped->location())
+							.append("This is the function the call resolves to instead.", candidate->location())
+							.append("This is the contract whose linearization is used.", _contract.nameLocation()),
+						fmt::format(
+							"This `super` call would have to skip external function \"{}.{}\" to reach its target "
+							"in the linearization of contract \"{}\". External functions have no internal entry "
+							"point and can never be reached through `super`. Declare \"{}.{}\" as `public` or "
+							"reorder the inheritance hierarchy.",
+							skipped->annotation().contract->name(),
+							skipped->name(),
+							_contract.name(),
+							skipped->annotation().contract->name(),
+							skipped->name()
+						)
+					);
+				break;
+			}
+			if (!skipped && candidate->visibility() == Visibility::External)
+				skipped = candidate;
+		}
+	}
 }
 
 void PostTypeContractLevelChecker::checkStorageLayoutSpecifier(ContractDefinition const& _contract)

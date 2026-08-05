@@ -237,6 +237,13 @@ not known in the context of the class where it is used,
 although its type is known. This is similar for ordinary
 virtual method lookup.
 
+.. note::
+    Only functions that are visible in derived contracts are members of ``super``.
+    An implemented ``external`` function has no internal entry point and can therefore
+    never be the target of a ``super`` call. It is an error if such a function ends up
+    between a ``super`` call and its target in the linearization of the most derived
+    contract, since the call would have to silently skip it.
+
 .. index:: ! overriding;function
 
 .. _function-overriding:
