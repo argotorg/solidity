@@ -1,0 +1,14 @@
+{
+    "errors": [
+        {
+            "component": "general",
+            "formattedMessage": "JSONError: Invalid nodeType prefix
+
+",
+            "message": "Failed to import AST: Invalid nodeType prefix",
+            "severity": "error",
+            "type": "JSONError"
+        }
+    ],
+    "sources": {}
+}

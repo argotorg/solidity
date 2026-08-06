@@ -50,9 +50,12 @@ private:
 	langutil::SourceLocation const createSourceLocation(Json const& _node);
 	template <class T>
 	T createAsmNode(Json const& _node);
-	/// helper function to access member functions of the JSON
-	/// and throw an error if it does not exist
+	/// helper function to access a member of the JSON node;
+	/// returns a null value if the member does not exist
 	Json member(Json const& _node, std::string const& _name);
+	/// Retrieves the value of the given member of a JSON node.
+	/// Throws AstImportError if the member is missing or not a string.
+	std::string requiredString(Json const& _node, std::string const& _name);
 
 	yul::Block createBlock(Json const& _node);
 	yul::Statement createStatement(Json const& _node);

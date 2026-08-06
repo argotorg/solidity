@@ -1,0 +1,221 @@
+{
+	"language": "SolidityAST",
+	"sources": {
+		"A": {
+			"ast": {
+				"absolutePath": "A",
+				"exportedSymbols": {
+					"AsmTest": [
+						11
+					]
+				},
+				"id": 12,
+				"license": "GPL-3.0",
+				"nodeType": "SourceUnit",
+				"nodes": [
+					{
+						"id": 1,
+						"literals": [
+							"solidity",
+							">=",
+							"0.0"
+						],
+						"nodeType": "PragmaDirective",
+						"src": "36:22:0"
+					},
+					{
+						"abstract": false,
+						"baseContracts": [],
+						"canonicalName": "AsmTest",
+						"contractDependencies": [],
+						"contractKind": "contract",
+						"fullyImplemented": true,
+						"id": 11,
+						"linearizedBaseContracts": [
+							11
+						],
+						"name": "AsmTest",
+						"nameLocation": "68:7:0",
+						"nodeType": "ContractDefinition",
+						"nodes": [
+							{
+								"body": {
+									"id": 9,
+									"nodeType": "Block",
+									"src": "134:31:0",
+									"statements": [
+										{
+											"AST": {
+												"nativeSrc": "145:18:0",
+												"nodeType": "YulBlock",
+												"src": "145:18:0",
+												"statements": [
+													{
+														"nativeSrc": "147:14:0",
+														"nodeType": "YulAssignment",
+														"src": "147:14:0",
+														"value": {
+															"arguments": [
+																{
+																	"nativeSrc": "156:1:0",
+																	"nodeType": "YulIdentifier",
+																	"src": "156:1:0"
+																},
+																{
+																	"kind": "number",
+																	"nativeSrc": "159:1:0",
+																	"nodeType": "YulLiteral",
+																	"src": "159:1:0",
+																	"type": "",
+																	"value": "1"
+																}
+															],
+															"functionName": {
+																"name": "add",
+																"nativeSrc": "152:3:0",
+																"nodeType": "YulIdentifier",
+																"src": "152:3:0"
+															},
+															"nativeSrc": "152:9:0",
+															"nodeType": "YulFunctionCall",
+															"src": "152:9:0"
+														},
+														"variableNames": [
+															{
+																"name": "y",
+																"nativeSrc": "147:1:0",
+																"nodeType": "YulIdentifier",
+																"src": "147:1:0"
+															}
+														]
+													}
+												]
+											},
+											"evmVersion": "cancun",
+											"externalReferences": [
+												{
+													"declaration": 3,
+													"isOffset": false,
+													"isSlot": false,
+													"src": "156:1:0",
+													"valueSize": 1
+												},
+												{
+													"declaration": 6,
+													"isOffset": false,
+													"isSlot": false,
+													"src": "147:1:0",
+													"valueSize": 1
+												}
+											],
+											"id": 8,
+											"nodeType": "InlineAssembly",
+											"src": "136:27:0"
+										}
+									]
+								},
+								"functionSelector": "2fbebd38",
+								"id": 10,
+								"implemented": true,
+								"kind": "function",
+								"modifiers": [],
+								"name": "foo",
+								"nameLocation": "87:3:0",
+								"nodeType": "FunctionDefinition",
+								"parameters": {
+									"id": 4,
+									"nodeType": "ParameterList",
+									"parameters": [
+										{
+											"constant": false,
+											"id": 3,
+											"mutability": "mutable",
+											"name": "x",
+											"nameLocation": "99:1:0",
+											"nodeType": "VariableDeclaration",
+											"scope": 10,
+											"src": "91:9:0",
+											"stateVariable": false,
+											"storageLocation": "default",
+											"typeDescriptions": {
+												"typeIdentifier": "t_uint256",
+												"typeString": "uint256"
+											},
+											"typeName": {
+												"id": 2,
+												"name": "uint256",
+												"nodeType": "ElementaryTypeName",
+												"src": "91:7:0",
+												"typeDescriptions": {
+													"typeIdentifier": "t_uint256",
+													"typeString": "uint256"
+												}
+											},
+											"visibility": "internal"
+										}
+									],
+									"src": "90:11:0"
+								},
+								"returnParameters": {
+									"id": 7,
+									"nodeType": "ParameterList",
+									"parameters": [
+										{
+											"constant": false,
+											"id": 6,
+											"mutability": "mutable",
+											"name": "y",
+											"nameLocation": "131:1:0",
+											"nodeType": "VariableDeclaration",
+											"scope": 10,
+											"src": "123:9:0",
+											"stateVariable": false,
+											"storageLocation": "default",
+											"typeDescriptions": {
+												"typeIdentifier": "t_uint256",
+												"typeString": "uint256"
+											},
+											"typeName": {
+												"id": 5,
+												"name": "uint256",
+												"nodeType": "ElementaryTypeName",
+												"src": "123:7:0",
+												"typeDescriptions": {
+													"typeIdentifier": "t_uint256",
+													"typeString": "uint256"
+												}
+											},
+											"visibility": "internal"
+										}
+									],
+									"src": "122:11:0"
+								},
+								"scope": 11,
+								"src": "78:87:0",
+								"stateMutability": "pure",
+								"virtual": false,
+								"visibility": "public"
+							}
+						],
+						"scope": 12,
+						"src": "59:108:0",
+						"usedErrors": [],
+						"usedEvents": []
+					}
+				],
+				"src": "36:131:0"
+			}
+		}
+	},
+	"settings": {
+		"experimental": true,
+		"evmVersion": "cancun",
+		"outputSelection": {
+			"*": {
+				"*": [
+					"evm.bytecode.object"
+				]
+			}
+		}
+	}
+}
