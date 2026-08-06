@@ -185,6 +185,7 @@ at each version. Backward compatibility is not guaranteed between each version.
 - ``osaka`` (**default**)
    - ``clz`` builtin function is available in inline assembly. (`EIP-7939 <https://eips.ethereum.org/EIPS/eip-7939>`_)
 - ``amsterdam`` (**experimental**)
+   - Makes ``swapn``/``dupn`` available and used to prevent stack too deep errors.
 
 .. index:: ! standard JSON, ! --standard-json
 .. _compiler-api:

@@ -57,6 +57,15 @@ void NoOutputAssembly::appendInstruction(evmasm::Instruction _instr)
 	m_stackHeight += instructionInfo(_instr, m_evmVersion).ret - instructionInfo(_instr, m_evmVersion).args;
 }
 
+void NoOutputAssembly::appendSwap(size_t)
+{
+}
+
+void NoOutputAssembly::appendDup(size_t)
+{
+	m_stackHeight++;
+}
+
 void NoOutputAssembly::appendConstant(u256 const&)
 {
 	appendInstruction(evmasm::pushInstruction(1));

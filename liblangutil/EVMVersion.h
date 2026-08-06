@@ -143,7 +143,8 @@ public:
 	bool hasBlobHash() const { return *this >= cancun(); }
 	bool hasMcopy() const { return *this >= cancun(); }
 	bool supportsTransientStorage() const { return *this >= cancun(); }
-	constexpr size_t reachableStackDepth() const { return 16; }
+	constexpr bool hasDupSwapN() const { return *this >= amsterdam(); }
+	constexpr size_t reachableStackDepth() const { return hasDupSwapN() ? 235 : 16; }
 
 	bool hasOpcode(evmasm::Instruction _opcode) const;
 

@@ -184,6 +184,9 @@ enum class Instruction: uint8_t
 	LOG3,                     ///< Makes a log entry; 3 topics.
 	LOG4,                     ///< Makes a log entry; 4 topics.
 
+	DUPN = 0xe6,              ///< copies a value at the stack depth given as immediate argument to the top of the stack
+	SWAPN = 0xe7,             ///< swaps the highest value with a value at a stack depth given as immediate argument
+
 	CREATE = 0xf0,            ///< create a new account with associated code
 	CALL,                     ///< message-call into an account
 	CALLCODE,                 ///< message-call with another account's code only

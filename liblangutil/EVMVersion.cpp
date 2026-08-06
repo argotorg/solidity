@@ -60,6 +60,9 @@ bool EVMVersion::hasOpcode(Instruction _opcode) const
 	case Instruction::TSTORE:
 	case Instruction::TLOAD:
 		return supportsTransientStorage();
+	case Instruction::DUPN:
+	case Instruction::SWAPN:
+		return hasDupSwapN();
 	default:
 		return true;
 	}

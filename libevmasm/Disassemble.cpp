@@ -26,6 +26,28 @@ using namespace solidity;
 using namespace solidity::util;
 using namespace solidity::evmasm;
 
+namespace
+{
+
+/// @returns true if @a _immediate encodes a valid DUPN/SWAPN stack depth.
+/// The encoded depth is `immediate + 145 (mod 256)`, so immediates in [0x80, 0xff] encode
+/// depths 17-144 and immediates in [0x00, 0x5a] encode depths 145-235. The remaining
+/// immediates in [0x5b, 0x7f] would encode the invalid depths 236-255 and 0-16.
+/// See https://eips.ethereum.org/EIPS/eip-8024
+bool isValidDupSwapNImmediate(uint8_t _immediate)
+{
+	return _immediate <= 0x5a || _immediate >= 0x80;
+}
+
+/// @returns the stack depth encoded by the DUPN/SWAPN immediate argument @a _immediate,
+/// i.e. `immediate + 145 (mod 256)`. See https://eips.ethereum.org/EIPS/eip-8024
+size_t decodeDupSwapNImmediate(uint8_t _immediate)
+{
+	solAssert(isValidDupSwapNImmediate(_immediate));
+	return static_cast<uint8_t>((_immediate + 145) % 256);
+}
+
+}
 
 void solidity::evmasm::eachInstruction(
 	bytes const& _mem,
@@ -63,6 +85,18 @@ std::string solidity::evmasm::disassemble(bytes const& _mem, langutil::EVMVersio
 	eachInstruction(_mem, _evmVersion, [&](Instruction _instr, u256 const& _data) {
 		if (!isValidInstruction(_instr))
 			ret << "0x" << std::uppercase << std::hex << static_cast<int>(_instr) << _delimiter;
+		else if (_instr == Instruction::DUPN || _instr == Instruction::SWAPN)
+		{
+			std::string const& name = instructionInfo(_instr, _evmVersion).name;
+			if (isValidDupSwapNImmediate(static_cast<uint8_t>(_data)))
+				ret << name
+					<< " "
+					<< std::dec
+					<< decodeDupSwapNImmediate(static_cast<uint8_t>(_data))
+					<< _delimiter;
+			else
+				ret << "INVALID_" << name << _delimiter;
+		}
 		else
 		{
 			InstructionInfo info = instructionInfo(_instr, _evmVersion);

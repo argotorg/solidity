@@ -57,6 +57,13 @@ using namespace solidity::util;
 namespace
 {
 
+// https://eips.ethereum.org/EIPS/eip-8024
+uint8_t encodeDupSwapNImmediate(size_t _depth)
+{
+	solAssert(_depth >= 17 && _depth <= 235);
+	return static_cast<uint8_t>((_depth + 111) % 256);
+}
+
 /// Produces instruction location info in RAII style. When an assembly instruction is added to the bytecode,
 /// this class can be instantiated in that scope. It will record the current bytecode size (before addition)
 /// and, at destruction time, record the new bytecode size. This information is then added to an external
@@ -241,7 +248,31 @@ AssemblyItem Assembly::createAssemblyItemFromJSON(Json const& _json, std::vector
 
 	AssemblyItem result(0);
 
-	if (c_instructions.count(name))
+	if (name == "SWAPN" || name == "DUPN")
+	{
+		solRequire(
+			m_evmVersion.hasDupSwapN(),
+			AssemblyImportException,
+			"Instruction '" + name + "' is only available starting from the \"amsterdam\" EVM version."
+		);
+		solRequire(
+			jumpType.empty(),
+			AssemblyImportException,
+			"Member 'jumpType' set on instruction different from JUMP or JUMPI (was set on instruction '" + name + "')"
+		);
+		requireValueDefinedForInstruction(name, value);
+		u256 const depth{value};
+		solRequire(
+			depth >= 17 && depth <= 235,
+			AssemblyImportException,
+			"Invalid depth for instruction '" + name + "'."
+		);
+		if (name == "SWAPN")
+			result = AssemblyItem::swap(static_cast<size_t>(depth));
+		else
+			result = AssemblyItem::dup(static_cast<size_t>(depth));
+	}
+	else if (c_instructions.count(name))
 	{
 		AssemblyItem item{c_instructions.at(name), langutil::DebugData::create(location)};
 		if (!jumpType.empty())
@@ -1097,6 +1128,13 @@ LinkerObject const& Assembly::assembleLegacy() const
 		{
 		case Operation:
 			ret.bytecode += assembleOperation(item);
+			break;
+		case SwapN:
+		case DupN:
+			solAssert(m_evmVersion.hasDupSwapN());
+			ret.bytecode.push_back(static_cast<uint8_t>(item.instruction()));
+			solAssert(item.data() < std::numeric_limits<size_t>::max());
+			ret.bytecode.push_back(encodeDupSwapNImmediate(static_cast<size_t>(item.data())));
 			break;
 		case Push:
 			ret.bytecode += assemblePush(item);
