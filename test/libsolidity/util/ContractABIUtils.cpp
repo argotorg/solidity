@@ -16,8 +16,8 @@
 */
 // SPDX-License-Identifier: GPL-3.0
 
+#include "libsolidity/codegen/ABIFunctions.h"
 #include <test/libsolidity/util/ContractABIUtils.h>
-
 #include <test/libsolidity/util/SoltestErrors.h>
 
 #include <libsolidity/ast/Types.h>
@@ -36,6 +36,7 @@
 #include <numeric>
 #include <regex>
 #include <stdexcept>
+#include <variant>
 
 using namespace solidity;
 using namespace solidity::util;
@@ -140,86 +141,72 @@ std::optional<ABIType> isFixedPoint(std::string const& type)
 	return fixedPointType;
 }
 
-std::string functionSignatureFromABI(Json const& _functionABI)
-{
-	soltestAssert(_functionABI.contains("name"));
-
-	auto inputs = _functionABI["inputs"];
-	std::string signature = {_functionABI["name"].get<std::string>() + "("};
-	size_t parameterCount = 0;
-
-	for (auto const& input: inputs)
-	{
-		parameterCount++;
-		signature += input["type"].get<std::string>();
-		if (parameterCount < inputs.size())
-			signature += ",";
-	}
-
-	return signature + ")";
 }
 
-}
-
-std::optional<solidity::frontend::test::ParameterList> ContractABIUtils::parametersFromJsonOutputs(
+std::optional<solidity::frontend::test::ParameterList> ContractABIUtils::parametersFromABI(
 	ErrorReporter& _errorReporter,
-	Json const& _contractABI,
+	output::ABI const& _contractABI,
 	std::string const& _functionSignature
 )
 {
 	if (_contractABI.empty())
 		return std::nullopt;
 
-	for (auto const& function: _contractABI)
+	for (auto const& entry: _contractABI)
 		// ABI may contain functions without names (constructor, fallback, receive). Since name is
 		// necessary to calculate the signature, these cannot possibly match and can be safely ignored.
-		if (function.contains("name") && _functionSignature == functionSignatureFromABI(function))
+		if (auto* function = std::get_if<output::ABIFunction>(&entry))
 		{
-			ParameterList inplaceTypeParams;
-			ParameterList dynamicTypeParams;
-			ParameterList finalParams;
-
-			for (auto const& output: function["outputs"])
+			if (_functionSignature == formatSignature(*function))
 			{
-				std::string type = output["type"].get<std::string>();
+				ParameterList inplaceTypeParams;
+				ParameterList dynamicTypeParams;
+				ParameterList finalParams;
 
-				ABITypes inplaceTypes;
-				ABITypes dynamicTypes;
-
-				if (appendTypesFromName(output, inplaceTypes, dynamicTypes))
+				for (auto const& output: function->outputs)
 				{
-					for (auto const& type: inplaceTypes)
-						inplaceTypeParams.push_back(Parameter{bytes(), "", type, FormatInfo{}});
-					for (auto const& type: dynamicTypes)
-						dynamicTypeParams.push_back(Parameter{bytes(), "", type, FormatInfo{}});
-				}
-				else
-				{
-					_errorReporter.warning(
-						"Could not convert \"" + type +
-						"\" to internal ABI type representation. Falling back to default encoding."
-					);
-					return std::nullopt;
-				}
+					std::string type = output.type;
 
-				finalParams += inplaceTypeParams;
+					ABITypes inplaceTypes;
+					ABITypes dynamicTypes;
 
-				inplaceTypeParams.clear();
+					if (appendTypesFromName(output, inplaceTypes, dynamicTypes))
+					{
+						for (auto const& type: inplaceTypes)
+							inplaceTypeParams.push_back(Parameter{bytes(), "", type, FormatInfo{}});
+						for (auto const& type: dynamicTypes)
+							dynamicTypeParams.push_back(Parameter{bytes(), "", type, FormatInfo{}});
+					}
+					else
+					{
+						_errorReporter.warning(
+							"Could not convert \"" + type +
+							"\" to internal ABI type representation. Falling back to default encoding."
+						);
+						return std::nullopt;
+					}
+
+					finalParams += inplaceTypeParams;
+
+					inplaceTypeParams.clear();
+				}
+				return std::optional<ParameterList>(finalParams + dynamicTypeParams);
+
 			}
-			return std::optional<ParameterList>(finalParams + dynamicTypeParams);
+
 		}
 
 	return std::nullopt;
 }
 
 bool ContractABIUtils::appendTypesFromName(
-	Json const& _functionOutput,
+	output::ABIParameter const& _functionOutput,
 	ABITypes& _inplaceTypes,
 	ABITypes& _dynamicTypes,
 	bool _isCompoundType
 )
 {
-	std::string type = _functionOutput["type"].get<std::string>();
+	std::string type = _functionOutput.type;
 	if (isBool(type))
 		_inplaceTypes.push_back(ABIType{ABIType::Boolean});
 	else if (isUint(type))
@@ -240,10 +227,12 @@ bool ContractABIUtils::appendTypesFromName(
 	}
 	else if (isTuple(type))
 	{
+		soltestAssert(_functionOutput.components, "Tuple types must define components.");
+
 		ABITypes inplaceTypes;
 		ABITypes dynamicTypes;
 
-		for (auto const& component: _functionOutput["components"])
+		for (auto const& component: *_functionOutput.components)
 			appendTypesFromName(component, inplaceTypes, dynamicTypes, true);
 		_dynamicTypes += inplaceTypes + dynamicTypes;
 	}

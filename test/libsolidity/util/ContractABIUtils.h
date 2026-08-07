@@ -14,17 +14,105 @@
 
 #pragma once
 
+#include <test/libsolidity/util/BytesUtils.h>
+#include <test/libsolidity/util/StandardJSONOutput.h>
 #include <test/libsolidity/util/SoltestTypes.h>
-
 #include <test/libsolidity/util/SoltestErrors.h>
 
 #include <libsolutil/CommonData.h>
 #include <libsolutil/JSON.h>
 
+#include <boost/algorithm/string.hpp>
+
 namespace solidity::frontend::test
 {
 
 using ABITypes = std::vector<ABIType>;
+
+inline std::string formatInputType(output::ABIParameter const& _input)
+{
+	if (_input.type == "tuple")
+	{
+		soltestAssert(_input.components, "key \"components\" is not allowed to be empty for tuples");
+		auto types = _input.components.value() | ranges::views::transform([&](auto const& input) {
+			return formatInputType(input);
+		}) | ranges::to<strings>;
+		return "(" + boost::algorithm::join(types, ",") + ")";
+	}
+	return _input.type;
+}
+
+inline strings formatInputTypes(output::ABIFunction const& _function, bool _indexed)
+{
+	return _function.inputs | ranges::views::filter([&](auto const& input) {
+		return input.indexed == _indexed;
+	}) | ranges::views::transform([&](auto const& input) {
+		return formatInputType(input);
+	}) | ranges::to<strings>();
+}
+
+inline strings formatInputTypes(output::ABIEvent const& _event, bool _indexed)
+{
+	return _event.inputs | ranges::views::filter([&](auto const& input) {
+		return input.indexed == _indexed;
+	}) | ranges::views::transform([&](auto const& input) {
+		return formatInputType(input);
+	}) | ranges::to<strings>();
+}
+
+
+inline std::string formatSignature(output::ABIFunction const& _function)
+{
+	auto signatureTypes = _function.inputs | ranges::views::transform([&](auto const& input) {
+		return formatInputType(input);
+	}) | ranges::to<strings>;
+	return _function.name + "(" + boost::algorithm::join(signatureTypes, ",") + ")";
+}
+
+inline std::string formatSignature(output::ABIEvent const& _event)
+{
+	auto signatureTypes = _event.inputs | ranges::views::transform([&](auto const& input) {
+		return formatInputType(input);
+	}) | ranges::to<strings>;
+	return _event.name + "(" + boost::algorithm::join(signatureTypes, ",") + ")";
+}
+
+inline std::string formatEventParameter(output::ABIEvent const* _event, bool _indexed, size_t _index, bytes const& _data)
+{
+	auto isPrintableASCII = [](bytes const& s)
+	{
+		bool zeroes = true;
+		for (auto c: s)
+		{
+			if (static_cast<unsigned>(c) != 0x00)
+			{
+				zeroes = false;
+				if (static_cast<unsigned>(c) <= 0x1f || static_cast<unsigned>(c) >= 0x7f)
+					return false;
+			} else
+				break;
+		}
+		return !zeroes;
+	};
+
+	ABIType abiType(ABIType::Type::Hex);
+	if (isPrintableASCII(_data))
+		abiType = ABIType(ABIType::Type::String);
+	if (_event)
+	{
+		auto indexedTypes = formatInputTypes(*_event, true);
+		auto nonIndexedTypes = formatInputTypes(*_event, false);
+		auto const& types = _indexed ? indexedTypes : nonIndexedTypes;
+		if (_index < types.size())
+		{
+			if (types.at(_index) == "bool")
+				abiType = ABIType(ABIType::Type::Boolean);
+		}
+	}
+	return BytesUtils::formatBytes(_data, abiType);
+}
+
+
 
 /**
  * Utility class that aids conversions from contract ABI types stored in a
@@ -37,9 +125,9 @@ public:
 	/// a list of internal type representations of isoltest.
 	/// Creates parameters from Contract ABI and is used to generate values for
 	/// auto-correction during interactive update routine.
-	static std::optional<ParameterList> parametersFromJsonOutputs(
+	static std::optional<ParameterList> parametersFromABI(
 		ErrorReporter& _errorReporter,
-		Json const& _contractABI,
+		output::ABI const& _contractABI,
 		std::string const& _functionSignature
 	);
 
@@ -75,7 +163,7 @@ public:
 	static size_t encodingSize(ParameterList const& _parameters);
 
 private:
-	/// Parses and translates a single type and returns a list of
+	/// Translates a single type and returns a list of
 	/// internal type representations of isoltest.
 	/// Types defined by the ABI will translate to ABITypes
 	/// as follows:
@@ -85,7 +173,7 @@ private:
 	/// `bytes` -> [`Unsigned`, `Unsigned`, `HexString`]
 	/// ...
 	static bool appendTypesFromName(
-		Json const& _functionOutput,
+		output::ABIParameter const& _functionOutput,
 		ABITypes& _inplaceTypes,
 		ABITypes& _dynamicTypes,
 		bool _isCompoundType = false

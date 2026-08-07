@@ -65,7 +65,7 @@ public:
 		std::string const& _contractName = "",
 		bytes const& _arguments = {},
 		std::map<std::string, util::h160> const& _libraryAddresses = {},
-		std::optional<std::string> const& _sourceName = std::nullopt
+		std::optional<std::string> const& _mainSourceName = std::nullopt
 	) = 0;
 
 	bytes const& compileAndRun(
