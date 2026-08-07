@@ -118,6 +118,7 @@ set(libsolidity_sources
     libsolidity/ViewPureChecker.cpp
     libsolidity/analysis/FunctionCallGraph.cpp
     libsolidity/interface/FileReader.cpp
+	libsolidity/interface/MetadataSettings.cpp
     libsolidity/ASTPropertyTest.h
     libsolidity/ASTPropertyTest.cpp
 )
