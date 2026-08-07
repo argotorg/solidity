@@ -27,8 +27,6 @@
 
 #include <libsolutil/UnorderedContainers.h>
 
-#include <set>
-
 namespace solidity::yul
 {
 
@@ -51,7 +49,7 @@ public:
 	util::unordered_flat_map<YulName, Expression const*> const& values() const { return m_values; }
 	Expression const* value(YulName _name) const { return m_values.at(_name); }
 
-	static std::set<YulName> ssaVariables(Block const& _ast);
+	static util::unordered_flat_set<YulName> ssaVariables(Block const& _ast);
 
 private:
 	void setValue(YulName _name, Expression const* _value);
