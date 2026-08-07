@@ -47,6 +47,10 @@ contract test {
         return d.toSlice().len();
     }
 }
+// ====
+// compileViaSSACFG: true
+// experimental: true
+// targetContract: test
 // ----
 // constructor()
 // gas irOptimized: 95303

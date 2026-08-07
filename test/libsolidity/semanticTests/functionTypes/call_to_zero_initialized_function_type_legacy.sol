@@ -23,5 +23,6 @@ contract C {
 }
 // ====
 // compileViaYul: false
+// targetContract: C
 // ----
 // t() -> FAILURE

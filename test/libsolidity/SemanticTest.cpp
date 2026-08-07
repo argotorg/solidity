@@ -118,6 +118,9 @@ SemanticTest::SemanticTest(
 		m_compiler.setMetadataFormat(CompilerStack::MetadataFormat::NoMetadata);
 		m_compiler.setMetadataHash(CompilerStack::MetadataHash::None);
 	}
+
+	if (auto targetContract = m_reader.stringSetting("targetContract", ""); !targetContract.empty())
+		m_targetContract = std::move(targetContract);
 }
 
 std::map<std::string, Builtin> SemanticTest::makeBuiltins()
@@ -405,9 +408,9 @@ TestCase::TestResult SemanticTest::runTest(
 		else
 		{
 			if (test.call().kind == FunctionCall::Kind::Constructor)
-				deploy("", test.call().value.value, test.call().arguments.rawBytes(), libraries);
+				deploy(m_targetContract.value_or(""), test.call().value.value, test.call().arguments.rawBytes(), libraries);
 			else
-				soltestAssert(deploy("", 0, bytes(), libraries), "Failed to deploy contract.");
+				soltestAssert(deploy(m_targetContract.value_or(""), 0, bytes(), libraries), "Failed to deploy contract.");
 			constructed = true;
 		}
 
