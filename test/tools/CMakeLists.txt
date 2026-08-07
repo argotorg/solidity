@@ -25,6 +25,7 @@ add_executable(isoltest
 	../libsolidity/util/ContractABIUtils.cpp
 	../libsolidity/util/StandardJSONOutput.h
 	../libsolidity/util/StandardJSONOutputParser.cpp
+	../libsolidity/util/StandardJSONCompilerAdapter.h
 	../libsolidity/util/StandardJSONOutputExt.cpp
 	../libsolidity/util/TestFileParser.cpp
 	../libsolidity/util/TestFunctionCall.cpp

@@ -113,6 +113,7 @@ void CommonOptions::addOptions()
 		("evm-version", po::value(&evmVersionString), "which EVM version to use")
 		("testpath", po::value<fs::path>(&this->testPath)->default_value(solidity::test::testPath()), "path to test files")
 		("vm", po::value<std::vector<fs::path>>(&vmPaths), "path to evmc library, can be supplied multiple times.")
+		("solc-path", po::value<boost::optional<fs::path>>(&solcPath), "path to the solc binary to use (optional).")
 		("batches", po::value<size_t>(&this->batches)->default_value(1), "set number of batches to split the tests into")
 		("selected-batch", po::value<size_t>(&this->selectedBatch)->default_value(0), "zero-based number of batch to execute")
 		("no-semantic-tests", po::bool_switch(&disableSemanticTests)->default_value(disableSemanticTests), "disable semantic tests")
@@ -137,6 +138,21 @@ void CommonOptions::validate() const
 		ConfigException,
 		"Invalid test path specified."
 	);
+	if (solcPath)
+	{
+		solRequire(
+			!(*solcPath).empty(),
+			ConfigException,
+			"No solc path specified. The --solc-path argument must not be empty when given."
+		);
+		solRequire(
+			fs::exists(*solcPath),
+			ConfigException,
+			"Invalid solc path specified."
+		);
+		if (disableSemanticTests)
+			std::cout << std::endl << "WARNING :: Semantic tests are disabled. Setting solc path does not have an effect." << std::endl;
+	}
 	solRequire(
 		batches > 0,
 		ConfigException,
@@ -147,6 +163,7 @@ void CommonOptions::validate() const
 		ConfigException,
 		"Selected batch has to be less than number of batches."
 	);
+
 
 	if (!enforceGasTest)
 		std::cout << std::endl << "WARNING :: Gas cost expectations are not being enforced" << std::endl << std::endl;

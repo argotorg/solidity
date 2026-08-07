@@ -44,7 +44,14 @@ class SolidityExecutionFramework: public ExecutionFramework
 {
 
 public:
-	SolidityExecutionFramework(): m_showMetadata(CommonOptions::get().showMetadata) {}
+	SolidityExecutionFramework():
+		m_showMetadata(CommonOptions::get().showMetadata)
+	{
+		auto solcPath = CommonOptions::get().solcPath;
+		if (solcPath)
+			m_compiler = StandardJSONCompiler<StandardJSONOutputExt>::ipc(*solcPath);
+	}
+
 	explicit SolidityExecutionFramework(
 		langutil::EVMVersion _evmVersion,
 		std::vector<boost::filesystem::path> const& _vmPaths,
@@ -53,7 +60,11 @@ public:
 		ExecutionFramework(_evmVersion, _vmPaths),
 		m_showMetadata(CommonOptions::get().showMetadata),
 		m_appendCBORMetadata(_appendCBORMetadata)
-	{}
+	{
+		auto solcPath = CommonOptions::get().solcPath;
+		if (solcPath)
+			m_compiler = StandardJSONCompiler<StandardJSONOutputExt>::ipc(*solcPath);
+	}
 
 	bytes const& compileAndRunWithoutCheck(
 		std::map<std::string, std::string> const& _sourceCode,
@@ -84,7 +95,7 @@ public:
 
 protected:
 	StandardJSONInput m_compilerInput;
-	StandardJSONCompiler<StandardJSONOutputExt> m_compiler;
+	StandardJSONCompiler<StandardJSONOutputExt> m_compiler = StandardJSONCompiler<StandardJSONOutputExt>::internal();
 	bool m_compileViaYul = false;
 	bool m_compileViaSSACFG = false;
 	bool m_showMetadata = false;
