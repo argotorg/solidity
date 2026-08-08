@@ -44,7 +44,6 @@ function zeppelin_test
     local repo="https://github.com/OpenZeppelin/openzeppelin-contracts.git"
     local ref="<latest-release>"
     local config_file="hardhat.config.js"
-    local extra_optimizer_settings="runs: 175"
 
     local compile_only_presets=(
         #ir-no-optimize           # Compilation fails with "Contract initcode size is 49410 bytes and exceeds 49152 bytes (a limit introduced in Shanghai)."
@@ -130,13 +129,13 @@ EOF
 
     neutralize_package_json_hooks
     force_hardhat_compiler_binary "$config_file" "$BINARY_TYPE" "$BINARY_PATH"
-    force_hardhat_compiler_settings "$config_file" "$(first_word "$SELECTED_PRESETS")" "" "$CURRENT_EVM_VERSION" "" "$extra_optimizer_settings"
+    force_hardhat_compiler_settings "$config_file" "$(first_word "$SELECTED_PRESETS")"
     npm install
     npm install hardhat
 
     replace_version_pragmas
     for preset in $SELECTED_PRESETS; do
-        hardhat_run_test "$config_file" "$preset" "${compile_only_presets[*]}" compile_fn test_fn "" "" "$extra_optimizer_settings"
+        hardhat_run_test "$config_file" "$preset" "${compile_only_presets[*]}" compile_fn test_fn
         store_benchmark_report hardhat zeppelin "$repo" "$preset"
     done
 }
