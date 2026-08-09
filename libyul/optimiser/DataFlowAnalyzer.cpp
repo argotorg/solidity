@@ -348,21 +348,18 @@ void DataFlowAnalyzer::clearValues(VariableSet const& _variablesToClear)
 	});
 
 	// Also clear variables that reference variables to be cleared.
-	std::set<YulName> referencingVariablesToClear;
 	std::vector const sortedVariablesToClear(_variablesToClear.begin(), _variablesToClear.end());
-	for (auto const& [referencingVariable, referencedVariables]: m_state.sortedReferences)
+	boost::unordered::erase_if(m_state.sortedReferences, mapTuple([&](auto&& referencingVariable, auto&& referencedVariables) {
 		// instead of checking each variable in `referencedVariables`, we check if there is any intersection making use of the
 		// sortedness of the vectors, which can increase performance by up to 50% in pathological cases
-		if (hasNonemptyIntersectionSorted(referencedVariables, sortedVariablesToClear))
-			referencingVariablesToClear.emplace(referencingVariable);
+		if (!hasNonemptyIntersectionSorted(referencedVariables, sortedVariablesToClear))
+			return false;
+		m_state.value.erase(referencingVariable);
+		return true;
+	}));
 
 	// Clear the value and update the reference relation.
 	for (auto const& name: _variablesToClear)
-	{
-		m_state.value.erase(name);
-		m_state.sortedReferences.erase(name);
-	}
-	for (auto const& name: referencingVariablesToClear)
 	{
 		m_state.value.erase(name);
 		m_state.sortedReferences.erase(name);
