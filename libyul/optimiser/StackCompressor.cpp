@@ -239,7 +239,8 @@ void eliminateVariablesOptimizedCodegen(
 std::tuple<bool, Block> StackCompressor::run(
 	Object const& _object,
 	bool _optimizeStackAllocation,
-	size_t _maxIterations)
+	size_t _maxIterations,
+	std::optional<std::uint64_t> _expectedExecutionsPerDeployment)
 {
 	yulAssert(_object.hasCode());
 	yulAssert(_object.dialect(), "No dialect");
@@ -265,7 +266,7 @@ std::tuple<bool, Block> StackCompressor::run(
 			astRoot,
 			_object.summarizeStructure()
 		);
-		std::unique_ptr<CFG> cfg = ControlFlowGraphBuilder::build(analysisInfo, *_object.dialect(), astRoot);
+		std::unique_ptr<CFG> cfg = ControlFlowGraphBuilder::build(analysisInfo, *_object.dialect(), astRoot, _expectedExecutionsPerDeployment);
 		yulAssert(evmDialect);
 		eliminateVariablesOptimizedCodegen(
 			*_object.dialect(),

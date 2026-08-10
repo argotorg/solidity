@@ -237,7 +237,8 @@ TestCase::TestResult StackLayoutGeneratorTest::run(std::ostream& _stream, std::s
 	std::unique_ptr<CFG> cfg = ControlFlowGraphBuilder::build(
 		*yulStack.parserResult()->analysisInfo,
 		yulStack.dialect(),
-		yulStack.parserResult()->code()->root()
+		yulStack.parserResult()->code()->root(),
+		frontend::OptimiserSettings::standard().expectedExecutionsPerDeployment
 	);
 
 	auto const* evmDialect = dynamic_cast<EVMDialect const*>(&yulStack.dialect());

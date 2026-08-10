@@ -25,6 +25,12 @@
 
 #include <libsolutil/UnorderedContainers.h>
 
+#include <liblangutil/EVMVersion.h>
+
+#include <cstdint>
+#include <optional>
+#include <span>
+
 namespace solidity::yul
 {
 
@@ -33,7 +39,16 @@ class ControlFlowGraphBuilder
 public:
 	ControlFlowGraphBuilder(ControlFlowGraphBuilder const&) = delete;
 	ControlFlowGraphBuilder& operator=(ControlFlowGraphBuilder const&) = delete;
-	static std::unique_ptr<CFG> build(AsmAnalysisInfo const& _analysisInfo, Dialect const& _dialect, Block const& _block);
+	/// @param _expectedExecutionsPerDeployment Estimated number of times this code executes per
+	/// deployment (nullopt for creation code, where this concept does not apply). Used to decide
+	/// whether large ``switch`` statements are worth lowering as a binary search tree of
+	/// ``gt``-keyed comparisons instead of a linear chain of ``eq`` comparisons.
+	static std::unique_ptr<CFG> build(
+		AsmAnalysisInfo const& _analysisInfo,
+		Dialect const& _dialect,
+		Block const& _block,
+		std::optional<std::uint64_t> _expectedExecutionsPerDeployment
+	);
 
 	StackSlot operator()(Expression const& _expression);
 	StackSlot operator()(Literal const& _literal);
@@ -59,7 +74,8 @@ private:
 		CFG& _graph,
 		AsmAnalysisInfo const& _analysisInfo,
 		util::unordered_flat_map<FunctionDefinition const*, ControlFlowSideEffects> const& _functionSideEffects,
-		Dialect const& _dialect
+		Dialect const& _dialect,
+		std::optional<std::uint64_t> _expectedExecutionsPerDeployment
 	);
 	void registerFunction(FunctionDefinition const& _function);
 	Stack const& visitFunctionCall(FunctionCall const&);
@@ -79,10 +95,54 @@ private:
 		CFG::BasicBlock& _target,
 		bool _backwards = false
 	);
+
+	/// @returns true if splitting @a _cases (sorted by value, non-empty) into a gt(expr, pivot)
+	/// binary search tree at this level is worth the extra code size.
+	bool shouldSplitSwitch(std::span<Case const* const> _cases, Block const* _defaultBody) const;
+
+	/// Builds and returns a block running @a _defaultBody once, so every switch branch that
+	/// falls through to the default case can jump to the same block instead of each
+	/// regenerating its own copy.
+	CFG::BasicBlock& buildDefaultBlock(
+		Block const& _defaultBody,
+		CFG::BasicBlock& _afterSwitch,
+		langutil::DebugData::ConstPtr _switchDebugData
+	);
+
+	/// Recursively lowers a sorted, non-empty slice of literal switch cases into either a
+	/// linear chain (buildLinearSwitchChain) or a gt(expr, pivot) binary search tree.
+	void buildSwitchTree(
+		std::span<Case const* const> _cases,
+		VariableSlot const& _ghostVarSlot,
+		YulName _ghostVariableName,
+		Block const* _defaultBody,
+		CFG::BasicBlock* _defaultBlock,
+		CFG::BasicBlock& _afterSwitch,
+		langutil::DebugData::ConstPtr _switchDebugData
+	);
+
+	/// Builds a linear if-elif chain of eq(literal, expr) comparisons for @a _cases, in the
+	/// given order, falling through to @a _defaultBlock (if non-null) when none match.
+	void buildLinearSwitchChain(
+		std::span<Case const* const> _cases,
+		VariableSlot const& _ghostVarSlot,
+		YulName _ghostVariableName,
+		CFG::BasicBlock* _defaultBlock,
+		CFG::BasicBlock& _afterSwitch,
+		langutil::DebugData::ConstPtr _switchDebugData
+	);
+
 	CFG& m_graph;
 	AsmAnalysisInfo const& m_info;
 	util::unordered_flat_map<FunctionDefinition const*, ControlFlowSideEffects> const& m_functionSideEffects;
 	Dialect const& m_dialect;
+	/// Handle of the EVM ``gt`` builtin, if @a m_dialect is an EVMDialect that provides one.
+	/// Large switches are only split into a binary search tree when this is set; otherwise
+	/// they always fall back to the linear eq-chain (today's behavior).
+	std::optional<BuiltinHandle> m_gtHandle;
+	std::uint64_t m_runs = 1;
+	bool m_isCreation = true;
+	langutil::EVMVersion m_evmVersion;
 	CFG::BasicBlock* m_currentBlock = nullptr;
 	Scope* m_scope = nullptr;
 	struct ForLoopInfo

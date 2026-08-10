@@ -27,6 +27,7 @@
 #include <libyul/Exceptions.h>
 #include <libyul/Scope.h>
 
+#include <cstdint>
 #include <optional>
 #include <stack>
 
@@ -53,7 +54,8 @@ public:
 		Block const& _block,
 		EVMDialect const& _dialect,
 		BuiltinContext& _builtinContext,
-		UseNamedLabels _useNamedLabelsForFunctions
+		UseNamedLabels _useNamedLabelsForFunctions,
+		std::optional<std::uint64_t> _expectedExecutionsPerDeployment
 	);
 
 	/// Generate code for the function call @a _call. Only public for using with std::visit.

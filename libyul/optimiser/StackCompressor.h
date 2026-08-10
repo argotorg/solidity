@@ -24,7 +24,9 @@
 
 #include <libyul/Object.h>
 
+#include <cstdint>
 #include <memory>
+#include <optional>
 
 namespace solidity::yul
 {
@@ -45,11 +47,15 @@ class StackCompressor
 {
 public:
 	/// Try to remove local variables until the AST is compilable.
+	/// @param _expectedExecutionsPerDeployment Forwarded to ControlFlowGraphBuilder so the stack-too-deep
+	/// analysis is performed against the same CFG shape (linear vs. binary-search-tree switch lowering)
+	/// that final codegen will actually emit for this object.
 	/// @returns tuple with true if it was successful as first element, second element is the modified AST.
 	static std::tuple<bool, Block> run(
 		Object const& _object,
 		bool _optimizeStackAllocation,
-		size_t _maxIterations
+		size_t _maxIterations,
+		std::optional<std::uint64_t> _expectedExecutionsPerDeployment
 	);
 };
 

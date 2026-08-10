@@ -219,7 +219,7 @@ public:
 					{
 						Object obj;
 						obj.setCode(std::make_shared<AST>(m_dialect, std::get<yul::Block>(ASTCopier{}(*m_astRoot))));
-						*m_astRoot = std::get<1>(StackCompressor::run(obj, true, 16));
+						*m_astRoot = std::get<1>(StackCompressor::run(obj, true, 16, m_context.expectedExecutionsPerDeployment));
 						break;
 					}
 					default:
