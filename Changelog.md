@@ -11,6 +11,7 @@ Compiler Features:
 * General: Improve performance throughout the compiler using Boost's flat versions of unordered set and map.
 * General: Remove support for the experimental Generic Solidity prototype (`pragma experimental solidity`).
 * SMTChecker: Emit a deprecation warning for the BMC engine.
+* Yul: Warn when the assembled bytecode of a compiled Yul object exceeds the EIP-170 (runtime code) or EIP-3860 (initcode) size limit, matching the existing warnings for Solidity input.
 
 Bugfixes:
 * Code Generator: Fix ICE on parenthesized custom error construction in require statement.
