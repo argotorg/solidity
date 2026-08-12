@@ -46,6 +46,10 @@ contract test {
         assert(z1 == z2);
     }
 }
+// ====
+// compileViaSSACFG: true
+// experimental: true
+// targetContract: test
 // ----
 // constructor()
 // gas irOptimized: 177903

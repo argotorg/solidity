@@ -14,6 +14,7 @@ contract C {
     }
 }
 // ====
+// targetContract: C
 // ----
 // constructor() ->
 // gas irOptimized: 113970

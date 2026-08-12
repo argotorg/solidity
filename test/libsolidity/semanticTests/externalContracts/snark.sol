@@ -287,6 +287,9 @@ contract Test {
 //
 // ====
 // EVMVersion: >=constantinople
+// compileViaSSACFG: true
+// experimental: true
+// targetContract: Test
 // ----
 // library: Pairing
 // f() -> true

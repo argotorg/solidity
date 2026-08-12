@@ -31,6 +31,10 @@ contract test {
         ret = prb_scale(1).div(ret);
     }
 }
+// ====
+// compileViaSSACFG: true
+// experimental: true
+// targetContract: test
 // ----
 // constructor()
 // gas irOptimized: 77816
