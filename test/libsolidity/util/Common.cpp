@@ -64,3 +64,26 @@ std::string test::stripPreReleaseWarning(std::string const& _stderrContent)
 	std::string output = std::regex_replace(_stderrContent, preReleaseWarningRegex, "");
 	return std::regex_replace(std::move(output), noOutputRegex, "");
 }
+
+std::tuple<std::string, std::string, bool> test::decomposeContractName(std::string_view const _name)
+{
+	std::string source;
+	std::string contract;
+	bool isUnqualified;
+
+	auto const pos = _name.find(':');
+	if (pos != std::string::npos)
+	{
+		isUnqualified = false;
+		source = _name.substr(0, pos);
+		contract = _name.substr(pos + 1);
+	}
+	else
+	{
+		isUnqualified = true;
+		contract = _name;
+	}
+
+	return {source, contract, isUnqualified};
+}
+

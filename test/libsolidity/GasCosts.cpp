@@ -19,7 +19,9 @@
  * Tests that check that the cost of certain operations stay within range.
  */
 
+#include <test/libsolidity/util/SoltestErrors.h>
 #include <test/libsolidity/SolidityExecutionFramework.h>
+
 #include <liblangutil/EVMVersion.h>
 #include <libsolutil/IpfsHash.h>
 #include <libevmasm/GasMeter.h>
@@ -38,7 +40,10 @@ namespace solidity::frontend::test
 #define CHECK_DEPLOY_GAS(_gasNoOpt, _gasOpt, _evmVersion) \
 	do \
 	{ \
-		u256 metaCost = GasMeter::dataGas(m_compiler.cborMetadata(m_compiler.lastContractName()), true, _evmVersion); \
+		auto const& output = m_compiler.output(); \
+		auto const* contract = output.contract(); \
+		soltestAssert(contract); \
+		u256 metaCost = GasMeter::dataGas(bytes{}, true, _evmVersion); \
 		u256 gasOpt{_gasOpt}; \
 		u256 gasNoOpt{_gasNoOpt}; \
 		u256 gas = m_optimiserSettings == OptimiserSettings::minimal() ? gasNoOpt : gasOpt; \
@@ -90,7 +95,7 @@ BOOST_AUTO_TEST_CASE(string_storage)
 			}
 		}
 	)";
-	m_compiler.setMetadataFormat(CompilerStack::MetadataFormat::NoMetadata);
+
 	m_appendCBORMetadata = false;
 	compileAndRun(sourceCode);
 
@@ -202,8 +207,15 @@ BOOST_AUTO_TEST_CASE(single_callvaluecheck)
 		}
 	)";
 	compileAndRun(sourceCode, 0, "Payable");
-	size_t bytecodeSizeNonpayable = m_compiler.object("Nonpayable").bytecode.size();
-	size_t bytecodeSizePayable = m_compiler.object("Payable").bytecode.size();
+	auto const& output = m_compiler.output();
+	auto const* nonpayable = output.contract("Nonpayable");
+	auto const* payable = output.contract("Payable");
+	soltestAssert(nonpayable);
+	soltestAssert(payable);
+
+
+	size_t bytecodeSizeNonpayable = nonpayable->evm.bytecode.object.size();
+	size_t bytecodeSizePayable = payable->evm.bytecode.object.size();
 
 	auto evmVersion = solidity::test::CommonOptions::get().evmVersion();
 	if (evmVersion < EVMVersion::shanghai())
