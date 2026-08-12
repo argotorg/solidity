@@ -159,6 +159,7 @@ set(sources
 	interface/SMTSolverCommand.h
 	interface/StandardCompiler.cpp
 	interface/StandardCompiler.h
+	interface/StandardJSONInput.h
 	interface/StorageLayout.cpp
 	interface/StorageLayout.h
 	interface/UniversalCallback.h
