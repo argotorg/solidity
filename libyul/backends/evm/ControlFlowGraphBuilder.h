@@ -97,8 +97,9 @@ private:
 	);
 
 	/// @returns true if splitting @a _cases (sorted by value, non-empty) into a gt(expr, pivot)
-	/// binary search tree at this level is worth the extra code size.
-	bool shouldSplitSwitch(std::span<Case const* const> _cases, Block const* _defaultBody) const;
+	/// binary search tree at this level is worth the extra code size. The default case, if any,
+	/// is shared by every leaf rather than duplicated, so its size does not affect this decision.
+	bool shouldSplitSwitch(std::span<Case const* const> _cases) const;
 
 	/// Builds and returns a block running @a _defaultBody once, so every switch branch that
 	/// falls through to the default case can jump to the same block instead of each
@@ -115,18 +116,20 @@ private:
 		std::span<Case const* const> _cases,
 		VariableSlot const& _ghostVarSlot,
 		YulName _ghostVariableName,
-		Block const* _defaultBody,
 		CFG::BasicBlock* _defaultBlock,
 		CFG::BasicBlock& _afterSwitch,
 		langutil::DebugData::ConstPtr _switchDebugData
 	);
 
 	/// Builds a linear if-elif chain of eq(literal, expr) comparisons for @a _cases, in the
-	/// given order, falling through to @a _defaultBlock (if non-null) when none match.
+	/// given order. On no match: jumps to @a _defaultBlock if given (shared by other chains,
+	/// used when this chain is a split-tree leaf); otherwise inlines @a _defaultBody directly
+	/// (used when this is the only chain that can reach it, to avoid an unnecessary jump).
 	void buildLinearSwitchChain(
 		std::span<Case const* const> _cases,
 		VariableSlot const& _ghostVarSlot,
 		YulName _ghostVariableName,
+		Block const* _defaultBody,
 		CFG::BasicBlock* _defaultBlock,
 		CFG::BasicBlock& _afterSwitch,
 		langutil::DebugData::ConstPtr _switchDebugData

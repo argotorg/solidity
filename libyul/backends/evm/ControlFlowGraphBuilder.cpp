@@ -25,7 +25,6 @@
 #include <libyul/Utilities.h>
 #include <libyul/ControlFlowSideEffectsCollector.h>
 #include <libyul/backends/evm/EVMDialect.h>
-#include <libyul/optimiser/Metrics.h>
 
 #include <libevmasm/GasMeter.h>
 
@@ -396,20 +395,21 @@ void ControlFlowGraphBuilder::operator()(Switch const& _switch)
 		else
 			defaultBody = &c.body;
 
-	// Built once and shared by every branch that falls through to it, rather than
-	// regenerating the default body at each one.
-	CFG::BasicBlock* defaultBlock = defaultBody ? &buildDefaultBlock(*defaultBody, afterSwitch, preSwitchDebugData) : nullptr;
-
 	// Splitting needs cases sorted by value; the no-split path keeps declaration order.
 	std::vector<Case const*> sortedForSplit = literalCasesInOrder;
 	std::sort(sortedForSplit.begin(), sortedForSplit.end(), [](Case const* _a, Case const* _b) {
 		return _a->value->value.value() < _b->value->value.value();
 	});
 
-	if (shouldSplitSwitch(sortedForSplit, defaultBody))
-		buildSwitchTree(sortedForSplit, ghostVarSlot, ghostVariableName, defaultBody, defaultBlock, afterSwitch, preSwitchDebugData);
+	if (shouldSplitSwitch(sortedForSplit))
+	{
+		// Only pre-built here, since only the split tree has multiple leaves that need to
+		// share it; the non-split chain below inlines the default body directly instead.
+		CFG::BasicBlock* defaultBlock = defaultBody ? &buildDefaultBlock(*defaultBody, afterSwitch, preSwitchDebugData) : nullptr;
+		buildSwitchTree(sortedForSplit, ghostVarSlot, ghostVariableName, defaultBlock, afterSwitch, preSwitchDebugData);
+	}
 	else
-		buildLinearSwitchChain(literalCasesInOrder, ghostVarSlot, ghostVariableName, defaultBlock, afterSwitch, preSwitchDebugData);
+		buildLinearSwitchChain(literalCasesInOrder, ghostVarSlot, ghostVariableName, defaultBody, nullptr, afterSwitch, preSwitchDebugData);
 }
 
 CFG::BasicBlock& ControlFlowGraphBuilder::buildDefaultBlock(
@@ -427,7 +427,7 @@ CFG::BasicBlock& ControlFlowGraphBuilder::buildDefaultBlock(
 	return block;
 }
 
-bool ControlFlowGraphBuilder::shouldSplitSwitch(std::span<Case const* const> _cases, Block const* _defaultBody) const
+bool ControlFlowGraphBuilder::shouldSplitSwitch(std::span<Case const* const> _cases) const
 {
 	if (!m_gtHandle)
 		return false;
@@ -436,10 +436,10 @@ bool ControlFlowGraphBuilder::shouldSplitSwitch(std::span<Case const* const> _ca
 	if (n <= 4)
 		return false;
 
-	// 13-byte base overhead, plus the fulcrum literal, plus one duplicated default body.
+	// 13-byte base overhead, plus the fulcrum literal.
 	size_t const pivotIdx = (n - 1) / 2;
 	unsigned const fulcrumSize = numberEncodingSize(_cases[pivotIdx]->value->value.value());
-	uint64_t const overhead = 13 + fulcrumSize + (_defaultBody ? CodeSize::codeSize(*_defaultBody) : 0);
+	uint64_t const overhead = 13 + fulcrumSize;
 	return m_runs * 6 * (n - 4) > evmasm::GasMeter::dataGas(overhead, m_isCreation, m_evmVersion);
 }
 
@@ -447,15 +447,14 @@ void ControlFlowGraphBuilder::buildSwitchTree(
 	std::span<Case const* const> _cases,
 	VariableSlot const& _ghostVarSlot,
 	YulName _ghostVariableName,
-	Block const* _defaultBody,
 	CFG::BasicBlock* _defaultBlock,
 	CFG::BasicBlock& _afterSwitch,
 	langutil::DebugData::ConstPtr _switchDebugData
 )
 {
-	if (!shouldSplitSwitch(_cases, _defaultBody))
+	if (!shouldSplitSwitch(_cases))
 	{
-		buildLinearSwitchChain(_cases, _ghostVarSlot, _ghostVariableName, _defaultBlock, _afterSwitch, _switchDebugData);
+		buildLinearSwitchChain(_cases, _ghostVarSlot, _ghostVariableName, nullptr, _defaultBlock, _afterSwitch, _switchDebugData);
 		return;
 	}
 
@@ -485,16 +484,17 @@ void ControlFlowGraphBuilder::buildSwitchTree(
 	makeConditionalJump(_switchDebugData, std::move(gtResult), upperBranch, lowerBranch);
 
 	m_currentBlock = &lowerBranch;
-	buildSwitchTree(_cases.subspan(0, pivotIdx + 1), _ghostVarSlot, _ghostVariableName, _defaultBody, _defaultBlock, _afterSwitch, _switchDebugData);
+	buildSwitchTree(_cases.subspan(0, pivotIdx + 1), _ghostVarSlot, _ghostVariableName, _defaultBlock, _afterSwitch, _switchDebugData);
 
 	m_currentBlock = &upperBranch;
-	buildSwitchTree(_cases.subspan(pivotIdx + 1), _ghostVarSlot, _ghostVariableName, _defaultBody, _defaultBlock, _afterSwitch, _switchDebugData);
+	buildSwitchTree(_cases.subspan(pivotIdx + 1), _ghostVarSlot, _ghostVariableName, _defaultBlock, _afterSwitch, _switchDebugData);
 }
 
 void ControlFlowGraphBuilder::buildLinearSwitchChain(
 	std::span<Case const* const> _cases,
 	VariableSlot const& _ghostVarSlot,
 	YulName _ghostVariableName,
+	Block const* _defaultBody,
 	CFG::BasicBlock* _defaultBlock,
 	CFG::BasicBlock& _afterSwitch,
 	langutil::DebugData::ConstPtr _switchDebugData
@@ -502,10 +502,25 @@ void ControlFlowGraphBuilder::buildLinearSwitchChain(
 {
 	yulAssert(m_currentBlock, "");
 
+	// Jumps to the shared block if this chain is a split-tree leaf; otherwise inlines the
+	// default body directly into the current (sole) predecessor, avoiding an unshared block
+	// reachable only via jump, which confuses stack layout for the enclosing function's
+	// return label.
+	auto reachDefault = [&]() {
+		if (_defaultBlock)
+			jump(_switchDebugData, *_defaultBlock);
+		else
+		{
+			yulAssert(_defaultBody, "");
+			(*this)(*_defaultBody);
+			jump(debugDataOf(*_defaultBody), _afterSwitch);
+		}
+	};
+
 	if (_cases.empty())
 	{
-		yulAssert(_defaultBlock, "");
-		jump(_switchDebugData, *_defaultBlock);
+		yulAssert(_defaultBlock || _defaultBody, "");
+		reachDefault();
 		return;
 	}
 
@@ -542,7 +557,17 @@ void ControlFlowGraphBuilder::buildLinearSwitchChain(
 
 	Case const& lastCase = *_cases.back();
 	CFG::BasicBlock& caseBranch = m_graph.makeBlock(debugDataOf(lastCase.body));
-	makeConditionalJump(debugDataOf(lastCase), makeValueCompare(lastCase), caseBranch, _defaultBlock ? *_defaultBlock : _afterSwitch);
+	if (_defaultBlock)
+		makeConditionalJump(debugDataOf(lastCase), makeValueCompare(lastCase), caseBranch, *_defaultBlock);
+	else if (_defaultBody)
+	{
+		CFG::BasicBlock& elseBranch = m_graph.makeBlock(_switchDebugData);
+		makeConditionalJump(debugDataOf(lastCase), makeValueCompare(lastCase), caseBranch, elseBranch);
+		m_currentBlock = &elseBranch;
+		reachDefault();
+	}
+	else
+		makeConditionalJump(debugDataOf(lastCase), makeValueCompare(lastCase), caseBranch, _afterSwitch);
 	m_currentBlock = &caseBranch;
 	(*this)(lastCase.body);
 	jump(debugDataOf(lastCase.body), _afterSwitch);
