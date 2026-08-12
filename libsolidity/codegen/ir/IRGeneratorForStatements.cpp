@@ -2341,6 +2341,10 @@ void IRGeneratorForStatements::endVisit(IndexAccess const& _indexAccess)
 			{
 				std::string slot = m_context.newYulVariable();
 				std::string offset = m_context.newYulVariable();
+				std::string const indexExpression = expressionAsType(
+					*_indexAccess.indexExpression(),
+					*TypeProvider::uint256()
+				);
 
 				appendCode() << Whiskers(R"(
 					let <slot>, <offset> := <indexFunc>(<array>, <index>)
@@ -2349,7 +2353,7 @@ void IRGeneratorForStatements::endVisit(IndexAccess const& _indexAccess)
 				("offset", offset)
 				("indexFunc", m_utils.storageArrayIndexAccessFunction(arrayType))
 				("array", IRVariable(_indexAccess.baseExpression()).part("slot").name())
-				("index", IRVariable(*_indexAccess.indexExpression()).name())
+				("index", indexExpression)
 				.render();
 
 				setLValue(_indexAccess, IRLValue{
