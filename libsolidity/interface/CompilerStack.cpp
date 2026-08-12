@@ -21,8 +21,6 @@
  * @date 2014
  * Full-stack compiler that converts a source code string to bytecode.
  */
-
-
 #include <libsolidity/interface/CompilerStack.h>
 #include <libsolidity/interface/ImportRemapper.h>
 
@@ -1737,7 +1735,7 @@ std::string CompilerStack::createMetadata(Contract const& _contract, bool _forIR
 		meta["settings"]["metadata"]["useLiteralContent"] = true;
 
 	static std::vector<std::string> hashes{"ipfs", "bzzr1", "none"};
-	meta["settings"]["metadata"]["bytecodeHash"] = hashes.at(unsigned(m_metadataHash));
+	meta["settings"]["metadata"]["bytecodeHash"] = metadataHashToString(m_metadataHash);
 
 	if (_forIR)
 		meta["settings"]["viaIR"] = _forIR;

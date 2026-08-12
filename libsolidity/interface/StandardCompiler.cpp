@@ -20,7 +20,6 @@
  * @date 2016
  * Standard JSON compiler interface.
  */
-
 #include <libsolidity/interface/StandardCompiler.h>
 #include <libsolidity/interface/ImportRemapper.h>
 
@@ -1050,13 +1049,8 @@ std::variant<StandardCompiler::InputsAndSettings, Json> StandardCompiler::parseI
 	if (metadataSettings.contains("bytecodeHash"))
 	{
 		auto metadataHash = metadataSettings["bytecodeHash"].get<std::string>();
-		ret.metadataHash =
-			metadataHash == "ipfs" ?
-			CompilerStack::MetadataHash::IPFS :
-				metadataHash == "bzzr1" ?
-				CompilerStack::MetadataHash::Bzzr1 :
-				CompilerStack::MetadataHash::None;
-		if (ret.metadataFormat == CompilerStack::MetadataFormat::NoMetadata && ret.metadataHash != CompilerStack::MetadataHash::None)
+		ret.metadataHash = metadataHashFromString(metadataHash);
+		if (ret.metadataFormat == CompilerStack::MetadataFormat::NoMetadata && ret.metadataHash != MetadataHash::None)
 			return formatFatalError(
 				Error::Type::JSONError,
 				"When the parameter \"appendCBOR\" is set to false, the parameter \"bytecodeHash\" cannot be set to \"" +
