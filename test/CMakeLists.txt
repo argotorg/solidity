@@ -76,6 +76,7 @@ set(libsolidity_sources
     libsolidity/AnalysisFramework.cpp
     libsolidity/AnalysisFramework.h
     libsolidity/Assembly.cpp
+	libsolidity/ASTEnums.cpp
     libsolidity/ASTJSONTest.cpp
     libsolidity/ASTJSONTest.h
     libsolidity/ErrorCheck.cpp

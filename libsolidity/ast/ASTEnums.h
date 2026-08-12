@@ -36,11 +36,24 @@ enum class VirtualLookup { Static, Virtual, Super };
 // How a function can mutate the EVM state.
 enum class StateMutability { Pure, View, NonPayable, Payable };
 
-/// Visibility ordered from restricted to unrestricted.
-enum class Visibility { Default, Private, Internal, Public, External };
+/// @param _stateMutability The state mutability string to convert.
+/// @return The corresponding StateMutability enum value.
+inline StateMutability stateMutabilityFromString(std::string const& _stateMutability)
+{
+	if (_stateMutability == "pure")
+		return StateMutability::Pure;
+	else if (_stateMutability == "view")
+		return StateMutability::View;
+	else if (_stateMutability == "nonpayable")
+		return StateMutability::NonPayable;
+	else if (_stateMutability == "payable")
+		return StateMutability::Payable;
+	else
+		solAssert(false, "Unknown state mutability \"" + _stateMutability + "\"");
+}
 
-enum class Arithmetic { Checked, Wrapping };
-
+/// @param _stateMutability The state mutability enum value to convert to string.
+/// @return The string representation of the state mutability.
 inline std::string stateMutabilityToString(StateMutability const& _stateMutability)
 {
 	switch (_stateMutability)
@@ -57,6 +70,11 @@ inline std::string stateMutabilityToString(StateMutability const& _stateMutabili
 		solAssert(false, "Unknown state mutability.");
 	}
 }
+
+/// Visibility ordered from restricted to unrestricted.
+enum class Visibility { Default, Private, Internal, Public, External };
+
+enum class Arithmetic { Checked, Wrapping };
 
 class Type;
 
