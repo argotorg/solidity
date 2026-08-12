@@ -19,9 +19,9 @@
  * Specific AST walker that generates the call graph.
  */
 
-#include <libyul/AST.h>
 #include <libyul/optimiser/CallGraphGenerator.h>
 
+#include <libyul/AST.h>
 #include <libyul/Exceptions.h>
 
 #include <libsolutil/CommonData.h>
@@ -78,7 +78,7 @@ private:
 
 }
 
-std::set<FunctionHandle> CallGraph::recursiveFunctions() const
+CallGraphCycles CallGraph::analyzeCallCycles() const
 {
 	// A function is recursive iff it is part of a non-trivial strongly-connected component of the call graph (a
 	// mutual-recursion cycle of any length) or it directly calls itself. The SCCs are computed with Tarjan's algorithm.
@@ -99,23 +99,30 @@ std::set<FunctionHandle> CallGraph::recursiveFunctions() const
 		callees.erase(ranges::unique(callees), callees.end());
 	}
 
+	std::vector<std::vector<FunctionHandle>> components;
 	std::set<FunctionHandle> recursiveFunctionHandleSet;
 	for (std::vector<std::size_t> const& scc: util::computeStronglyConnectedComponents<std::size_t>(indexBasedAdjacencyList))
 	{
 		yulAssert(!scc.empty());
-		if (scc.size() > 1)
+		std::vector<FunctionHandle>& component = components.emplace_back();
+		for (std::size_t const node: scc)
+			component.emplace_back(functionIndexBimap.indexToFunction(node));
+		if (component.size() > 1)
 			// more than one element in the SCC: everything in it is mutually recursive
-			for (std::size_t const node: scc)
-				recursiveFunctionHandleSet.insert(functionIndexBimap.indexToFunction(node));
+			recursiveFunctionHandleSet.insert(component.begin(), component.end());
 		else if (ranges::binary_search(indexBasedAdjacencyList[scc.front()], scc.front()))
 			// self-recursion f -> f
-			recursiveFunctionHandleSet.insert(functionIndexBimap.indexToFunction(scc.front()));
+			recursiveFunctionHandleSet.insert(component.front());
 	}
 
 	yulAssert(!recursiveFunctionHandleSet.contains(YulName{}), "the top-level block cannot be recursive");
 	for (FunctionHandle const& recursiveFunction: recursiveFunctionHandleSet)
 		yulAssert(std::holds_alternative<YulName>(recursiveFunction), "a builtin cannot be recursive");
-	return recursiveFunctionHandleSet;
+
+	return {
+		.stronglyConnectedComponents = std::move(components),
+		.recursiveFunctions = std::move(recursiveFunctionHandleSet)
+	};
 }
 
 CallGraph CallGraphGenerator::callGraph(Block const& _ast)
@@ -161,4 +168,3 @@ CallGraphGenerator::CallGraphGenerator()
 {
 	m_callGraph.functionCalls[YulName{}] = {};
 }
-

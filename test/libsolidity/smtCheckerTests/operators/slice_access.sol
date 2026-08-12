@@ -10,7 +10,8 @@ function f(int[] calldata b) public pure {
 }
 // ====
 // SMTEngine: chc
+// SMTSolvers: eld
 // SMTIgnoreCex: no
 // ----
-// Warning 6328: (203-225): CHC: Assertion violation happens here.\nCounterexample:\n\nb = [0, 1, 2]\n\nTransaction trace:\nC.constructor()\nC.f([0, 1, 2])
+// Warning 6328: (203-225): CHC: Assertion violation happens here.
 // Info 1391: CHC: 6 verification condition(s) proved safe! Enable the model checker option "show proved safe" to see all of them.

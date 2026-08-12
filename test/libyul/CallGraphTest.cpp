@@ -94,7 +94,7 @@ TestCase::TestResult CallGraphTest::run(std::ostream& _stream, std::string const
 	try
 	{
 		CallGraph const callGraph = CallGraphGenerator::callGraph(root);
-		std::set<FunctionHandle> const recursiveFunctionHandles = callGraph.recursiveFunctions();
+		std::set<FunctionHandle> const recursiveFunctionHandles = callGraph.analyzeCallCycles().recursiveFunctions;
 		Dialect const& dialect = yulStack.dialect();
 
 		auto printNode = [&](YulName const _name) {

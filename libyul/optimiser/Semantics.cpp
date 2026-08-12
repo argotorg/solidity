@@ -137,7 +137,8 @@ std::map<FunctionHandle, SideEffects> SideEffectsPropagator::sideEffects(
 		ret[function].cannotLoop = false;
 	}
 
-	for (auto const& function: _directCallGraph.recursiveFunctions())
+	CallGraphCycles const callCycles = _directCallGraph.analyzeCallCycles();
+	for (auto const& function: callCycles.recursiveFunctions)
 	{
 		ret[function].movable = false;
 		ret[function].canBeRemoved = false;

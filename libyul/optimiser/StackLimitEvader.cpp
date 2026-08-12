@@ -207,9 +207,10 @@ void StackLimitEvader::run(
 			return;
 
 	CallGraph callGraph = CallGraphGenerator::callGraph(_astRoot);
+	CallGraphCycles const callCycles = callGraph.analyzeCallCycles();
 
 	// We cannot move variables in recursive functions to fixed memory offsets.
-	for (FunctionHandle function: callGraph.recursiveFunctions())
+	for (FunctionHandle function: callCycles.recursiveFunctions)
 	{
 		yulAssert(std::holds_alternative<YulName>(function), "Builtins are not recursive.");
 		if (_unreachableVariables.count(std::get<YulName>(function)))

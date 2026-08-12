@@ -21,10 +21,10 @@ contract C {
 	}
 }
 // ====
-// SMTEngine: all
+// SMTEngine: chc
 // SMTIgnoreCex: no
+// SMTSolvers: eld
 // ----
-// Warning 6328: (317-333): CHC: Assertion violation happens here.\nCounterexample:\n\ns = {x: 2, a: [1]}\n\nTransaction trace:\nC.constructor()\nC.f()\n    allocate(2, 1) -- internal call
-// Warning 6328: (352-371): CHC: Assertion violation happens here.\nCounterexample:\n\ns = {x: 2, a: [1]}\n\nTransaction trace:\nC.constructor()\nC.f()\n    allocate(2, 1) -- internal call
+// Warning 6328: (317-333): CHC: Assertion violation happens here.
+// Warning 6328: (352-371): CHC: Assertion violation happens here.
 // Info 1391: CHC: 5 verification condition(s) proved safe! Enable the model checker option "show proved safe" to see all of them.
-// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

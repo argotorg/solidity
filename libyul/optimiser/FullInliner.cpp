@@ -53,7 +53,7 @@ void FullInliner::run(OptimiserStepContext& _context, Block& _ast)
 
 FullInliner::FullInliner(Block& _ast, NameDispenser& _dispenser, Dialect const& _dialect):
 	m_ast(_ast),
-	m_recursiveFunctions(CallGraphGenerator::callGraph(_ast).recursiveFunctions()),
+	m_recursiveFunctions(CallGraphGenerator::callGraph(_ast).analyzeCallCycles().recursiveFunctions),
 	m_nameDispenser(_dispenser),
 	m_dialect(_dialect)
 {

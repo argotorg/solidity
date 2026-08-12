@@ -129,7 +129,7 @@ FunctionDefinition FunctionSpecializer::specialize(
 void FunctionSpecializer::run(OptimiserStepContext& _context, Block& _ast)
 {
 	FunctionSpecializer f{
-		CallGraphGenerator::callGraph(_ast).recursiveFunctions(),
+		CallGraphGenerator::callGraph(_ast).analyzeCallCycles().recursiveFunctions,
 		_context.dispenser
 	};
 	f(_ast);

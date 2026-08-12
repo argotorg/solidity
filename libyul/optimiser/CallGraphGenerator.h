@@ -24,26 +24,37 @@
 #pragma once
 
 #include <libyul/optimiser/ASTWalker.h>
-#include <libyul/AST.h>
+
+#include <libyul/Builtins.h>
 
 #include <map>
 #include <set>
+#include <vector>
 
 namespace solidity::yul
 {
 
+/**
+ * Cycle structure of a call graph, derived from it by CallGraph::analyzeCallCycles
+ */
+struct CallGraphCycles
+{
+	/// The strongly-connected components of the call graph.
+	std::vector<std::vector<FunctionHandle>> stronglyConnectedComponents;
+	/// The set of functions contained in cycles in the call graph, i.e., functions that are part of a
+	/// (mutual) recursion. This does not include functions that merely call recursive functions.
+	/// Never contains a builtin: at Yul level builtins cannot call other functions, so they have no
+	/// outgoing call-graph edges and can be neither mutually nor directly recursive.
+	std::set<FunctionHandle> recursiveFunctions;
+};
+
 struct CallGraph
 {
+	CallGraphCycles analyzeCallCycles() const;
+
 	/// Map function definition name -> function name
 	std::map<FunctionHandle, std::vector<FunctionHandle>> functionCalls;
 	std::set<YulName> functionsWithLoops;
-	/// @returns the set of functions contained in cycles in the call graph, i.e.
-	/// functions that are part of a (mutual) recursion.
-	/// Note that this does not include functions that merely call recursive functions.
-	/// Postcondition: the result never contains a builtin. At Yul level builtins cannot call other
-	/// functions, so they have no outgoing call-graph edges and can be neither mutually nor directly
-	/// recursive.
-	std::set<FunctionHandle> recursiveFunctions() const;
 };
 
 /**

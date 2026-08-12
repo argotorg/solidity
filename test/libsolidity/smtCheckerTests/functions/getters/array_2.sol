@@ -16,9 +16,9 @@ contract C {
 	}
 }
 // ====
-// SMTEngine: all
+// SMTEngine: chc
 // SMTIgnoreCex: no
+// SMTSolvers: eld
 // ----
-// Warning 6328: (242-256): CHC: Assertion violation happens here.\nCounterexample:\na = [[], [], [0, 0, 0, 0]]\ny = 0\n\nTransaction trace:\nC.constructor()\nState: a = [[], [], [0, 0, 0, 0]]\nC.f()
+// Warning 6328: (242-256): CHC: Assertion violation happens here.
 // Info 1391: CHC: 7 verification condition(s) proved safe! Enable the model checker option "show proved safe" to see all of them.
-// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.
