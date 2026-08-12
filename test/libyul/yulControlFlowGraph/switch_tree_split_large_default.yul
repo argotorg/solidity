@@ -118,8 +118,8 @@
 // "];
 // Block12 -> Block12Exit;
 // Block12Exit [label="{ TMP[eq, 0]| { <0> Zero | <1> NonZero }}" shape=Mrecord];
-// Block12Exit:0 -> Block14;
-// Block12Exit:1 -> Block16;
+// Block12Exit:0 -> Block16;
+// Block12Exit:1 -> Block17;
 //
 // Block13 [label="\
 // sstore: [ 0x0101 0x03 ] => [ ]\l\
@@ -129,13 +129,10 @@
 // Block13Exit -> Block9;
 //
 // Block14 [label="\
-// sstore: [ 0x0101 0x08 ] => [ ]\l\
-// sstore: [ 0x0102 0x09 ] => [ ]\l\
-// sstore: [ 0x0103 0x0a ] => [ ]\l\
 // "];
 // Block14 -> Block14Exit [arrowhead=none];
 // Block14Exit [label="Jump" shape=oval];
-// Block14Exit -> Block9;
+// Block14Exit -> Block18;
 //
 // Block15 [label="\
 // sstore: [ 0x0101 0x07 ] => [ ]\l\
@@ -145,10 +142,25 @@
 // Block15Exit -> Block9;
 //
 // Block16 [label="\
-// sstore: [ 0x0101 0x04 ] => [ ]\l\
 // "];
 // Block16 -> Block16Exit [arrowhead=none];
 // Block16Exit [label="Jump" shape=oval];
-// Block16Exit -> Block9;
+// Block16Exit -> Block18;
+//
+// Block17 [label="\
+// sstore: [ 0x0101 0x04 ] => [ ]\l\
+// "];
+// Block17 -> Block17Exit [arrowhead=none];
+// Block17Exit [label="Jump" shape=oval];
+// Block17Exit -> Block9;
+//
+// Block18 [label="\
+// sstore: [ 0x0101 0x08 ] => [ ]\l\
+// sstore: [ 0x0102 0x09 ] => [ ]\l\
+// sstore: [ 0x0103 0x0a ] => [ ]\l\
+// "];
+// Block18 -> Block18Exit [arrowhead=none];
+// Block18Exit [label="Jump" shape=oval];
+// Block18Exit -> Block9;
 //
 // }

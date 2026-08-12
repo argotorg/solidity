@@ -125,6 +125,11 @@ private:
 	/// given order. On no match: jumps to @a _defaultBlock if given (shared by other chains,
 	/// used when this chain is a split-tree leaf); otherwise inlines @a _defaultBody directly
 	/// (used when this is the only chain that can reach it, to avoid an unnecessary jump).
+	/// @a _isSplitLeaf must be true if sibling chains built by other calls can also reach
+	/// @a _defaultBlock or @a _afterSwitch: the final comparison's miss branch is then routed
+	/// through a block private to this chain first, since those siblings may disagree on what
+	/// else is live at that point (e.g. a variable pre-dating the switch that only some of them
+	/// still use), which a directly shared block's entry layout cannot be stitched to satisfy.
 	void buildLinearSwitchChain(
 		std::span<Case const* const> _cases,
 		VariableSlot const& _ghostVarSlot,
@@ -132,7 +137,8 @@ private:
 		Block const* _defaultBody,
 		CFG::BasicBlock* _defaultBlock,
 		CFG::BasicBlock& _afterSwitch,
-		langutil::DebugData::ConstPtr _switchDebugData
+		langutil::DebugData::ConstPtr _switchDebugData,
+		bool _isSplitLeaf
 	);
 
 	CFG& m_graph;

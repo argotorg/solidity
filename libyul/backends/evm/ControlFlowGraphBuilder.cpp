@@ -409,7 +409,7 @@ void ControlFlowGraphBuilder::operator()(Switch const& _switch)
 		buildSwitchTree(sortedForSplit, ghostVarSlot, ghostVariableName, defaultBlock, afterSwitch, preSwitchDebugData);
 	}
 	else
-		buildLinearSwitchChain(literalCasesInOrder, ghostVarSlot, ghostVariableName, defaultBody, nullptr, afterSwitch, preSwitchDebugData);
+		buildLinearSwitchChain(literalCasesInOrder, ghostVarSlot, ghostVariableName, defaultBody, nullptr, afterSwitch, preSwitchDebugData, false);
 }
 
 CFG::BasicBlock& ControlFlowGraphBuilder::buildDefaultBlock(
@@ -454,7 +454,7 @@ void ControlFlowGraphBuilder::buildSwitchTree(
 {
 	if (!shouldSplitSwitch(_cases))
 	{
-		buildLinearSwitchChain(_cases, _ghostVarSlot, _ghostVariableName, nullptr, _defaultBlock, _afterSwitch, _switchDebugData);
+		buildLinearSwitchChain(_cases, _ghostVarSlot, _ghostVariableName, nullptr, _defaultBlock, _afterSwitch, _switchDebugData, true);
 		return;
 	}
 
@@ -497,24 +497,26 @@ void ControlFlowGraphBuilder::buildLinearSwitchChain(
 	Block const* _defaultBody,
 	CFG::BasicBlock* _defaultBlock,
 	CFG::BasicBlock& _afterSwitch,
-	langutil::DebugData::ConstPtr _switchDebugData
+	langutil::DebugData::ConstPtr _switchDebugData,
+	bool _isSplitLeaf
 )
 {
 	yulAssert(m_currentBlock, "");
 
 	// Jumps to the shared block if this chain is a split-tree leaf; otherwise inlines the
-	// default body directly into the current (sole) predecessor, avoiding an unshared block
-	// reachable only via jump, which confuses stack layout for the enclosing function's
+	// default body (if any) directly into the current (sole) predecessor, avoiding an unshared
+	// block reachable only via jump, which confuses stack layout for the enclosing function's
 	// return label.
 	auto reachDefault = [&]() {
 		if (_defaultBlock)
 			jump(_switchDebugData, *_defaultBlock);
-		else
+		else if (_defaultBody)
 		{
-			yulAssert(_defaultBody, "");
 			(*this)(*_defaultBody);
 			jump(debugDataOf(*_defaultBody), _afterSwitch);
 		}
+		else
+			jump(_switchDebugData, _afterSwitch);
 	};
 
 	if (_cases.empty())
@@ -557,10 +559,14 @@ void ControlFlowGraphBuilder::buildLinearSwitchChain(
 
 	Case const& lastCase = *_cases.back();
 	CFG::BasicBlock& caseBranch = m_graph.makeBlock(debugDataOf(lastCase.body));
-	if (_defaultBlock)
-		makeConditionalJump(debugDataOf(lastCase), makeValueCompare(lastCase), caseBranch, *_defaultBlock);
-	else if (_defaultBody)
+	if (_isSplitLeaf || _defaultBody)
 	{
+		// Route through a block private to this chain rather than jumping directly to a block
+		// that other leaves also jump to (_afterSwitch or the shared default block): sibling
+		// leaves may disagree on what else is live at that point (e.g. a variable pre-dating the
+		// switch that only some leaves still use), and a shared block's entry layout can only be
+		// stitched to match one of them. When there is no split and no default, _afterSwitch has
+		// no other predecessor from this switch and can safely be jumped to directly instead.
 		CFG::BasicBlock& elseBranch = m_graph.makeBlock(_switchDebugData);
 		makeConditionalJump(debugDataOf(lastCase), makeValueCompare(lastCase), caseBranch, elseBranch);
 		m_currentBlock = &elseBranch;
