@@ -440,7 +440,7 @@ bool ControlFlowGraphBuilder::shouldSplitSwitch(std::span<Case const* const> _ca
 	size_t const pivotIdx = (n - 1) / 2;
 	unsigned const fulcrumSize = numberEncodingSize(_cases[pivotIdx]->value->value.value());
 	uint64_t const overhead = 13 + fulcrumSize;
-	return m_runs * 6 * (n - 4) > evmasm::GasMeter::dataGas(overhead, m_isCreation, m_evmVersion);
+	return u256(m_runs) * 6 * (n - 4) > evmasm::GasMeter::dataGas(overhead, m_isCreation, m_evmVersion);
 }
 
 void ControlFlowGraphBuilder::buildSwitchTree(
