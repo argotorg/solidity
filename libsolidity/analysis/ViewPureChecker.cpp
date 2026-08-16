@@ -25,6 +25,7 @@
 #include <libevmasm/SemanticInformation.h>
 
 #include <functional>
+#include <set>
 #include <utility>
 #include <variant>
 
@@ -124,10 +125,58 @@ private:
 	std::function<void(StateMutability, SourceLocation const&)> m_reportMutability;
 };
 
+class ImmutableWriteCollector: private ASTConstVisitor
+{
+public:
+	void collect(std::vector<std::shared_ptr<ASTNode>> const& _ast)
+	{
+		for (std::shared_ptr<ASTNode> const& source: _ast)
+			source->accept(*this);
+	}
+
+	std::set<VariableDeclaration const*> const& immutablesWrittenTo() const
+	{
+		return m_immutablesWrittenTo;
+	}
+
+private:
+	void endVisit(Identifier const& _identifier) override
+	{
+		collectReference(
+			_identifier.annotation().referencedDeclaration,
+			_identifier.annotation().willBeWrittenTo
+		);
+	}
+
+	void endVisit(MemberAccess const& _memberAccess) override
+	{
+		collectReference(
+			_memberAccess.annotation().referencedDeclaration,
+			_memberAccess.annotation().willBeWrittenTo
+		);
+	}
+
+	void collectReference(Declaration const* _declaration, bool _willBeWrittenTo)
+	{
+		if (!_willBeWrittenTo)
+			return;
+
+		auto const* variable = dynamic_cast<VariableDeclaration const*>(_declaration);
+		if (variable && variable->immutable())
+			m_immutablesWrittenTo.insert(variable);
+	}
+
+	std::set<VariableDeclaration const*> m_immutablesWrittenTo;
+};
+
 }
 
 bool ViewPureChecker::check()
 {
+	ImmutableWriteCollector immutableWriteCollector;
+	immutableWriteCollector.collect(m_ast);
+	m_immutablesWrittenTo = immutableWriteCollector.immutablesWrittenTo();
+
 	for (auto const& source: m_ast)
 		source->accept(*this);
 
@@ -193,8 +242,7 @@ void ViewPureChecker::endVisit(Identifier const& _identifier)
 	{
 		if (varDecl->immutable())
 		{
-			// Immutables that are assigned literals are pure.
-			if (!(varDecl->value() && varDecl->value()->annotation().type->category() == Type::Category::RationalNumber))
+			if (!isPureImmutable(*varDecl))
 				mutability = StateMutability::View;
 		}
 		else if (varDecl->isStateVariable() && !varDecl->isConstant())
@@ -331,6 +379,15 @@ void ViewPureChecker::reportFunctionCallMutability(StateMutability _mutability, 
 	reportMutability(_mutability, _location);
 }
 
+bool ViewPureChecker::isPureImmutable(VariableDeclaration const& _variable) const
+{
+	solAssert(_variable.immutable(), "");
+	return
+		_variable.value() &&
+		*_variable.value()->annotation().isPure &&
+		!m_immutablesWrittenTo.count(&_variable);
+}
+
 void ViewPureChecker::endVisit(BinaryOperation const& _binaryOperation)
 {
 	if (*_binaryOperation.annotation().userDefinedFunction != nullptr)
@@ -432,8 +489,15 @@ void ViewPureChecker::endVisit(MemberAccess const& _memberAccess)
 		if (VariableDeclaration const* varDecl = dynamic_cast<VariableDeclaration const*>(
 			_memberAccess.annotation().referencedDeclaration
 		))
-			if (varDecl->isStateVariable() && !varDecl->isConstant())
+		{
+			if (varDecl->immutable())
+			{
+				if (!isPureImmutable(*varDecl))
+					mutability = StateMutability::View;
+			}
+			else if (varDecl->isStateVariable() && !varDecl->isConstant())
 				mutability = writes ? StateMutability::NonPayable : StateMutability::View;
+		}
 		break;
 	}
 	}
