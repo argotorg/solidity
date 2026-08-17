@@ -2025,6 +2025,7 @@
     },
     "0.8.26": {
         "bugs": [
+            "MisorderedNamedParametersInRequireWithCustomErrors",
             "UnsoundSpillInMutualRecursion",
             "LostStorageArrayWriteOnSlotOverflow"
         ],
@@ -2032,6 +2033,7 @@
     },
     "0.8.27": {
         "bugs": [
+            "MisorderedNamedParametersInRequireWithCustomErrors",
             "UnsoundSpillInMutualRecursion",
             "LostStorageArrayWriteOnSlotOverflow"
         ],
@@ -2039,6 +2041,7 @@
     },
     "0.8.28": {
         "bugs": [
+            "MisorderedNamedParametersInRequireWithCustomErrors",
             "UnsoundSpillInMutualRecursion",
             "TransientStorageClearingHelperCollision",
             "LostStorageArrayWriteOnSlotOverflow"
@@ -2047,6 +2050,7 @@
     },
     "0.8.29": {
         "bugs": [
+            "MisorderedNamedParametersInRequireWithCustomErrors",
             "InheritanceOrderReversalOnStorageEndWarning",
             "UnsoundSpillInMutualRecursion",
             "TransientStorageClearingHelperCollision",
@@ -2071,6 +2075,7 @@
     },
     "0.8.30": {
         "bugs": [
+            "MisorderedNamedParametersInRequireWithCustomErrors",
             "InheritanceOrderReversalOnStorageEndWarning",
             "UnsoundSpillInMutualRecursion",
             "TransientStorageClearingHelperCollision",
@@ -2080,6 +2085,7 @@
     },
     "0.8.31": {
         "bugs": [
+            "MisorderedNamedParametersInRequireWithCustomErrors",
             "InheritanceOrderReversalOnStorageEndWarning",
             "UnsoundSpillInMutualRecursion",
             "TransientStorageClearingHelperCollision",
@@ -2089,6 +2095,7 @@
     },
     "0.8.32": {
         "bugs": [
+            "MisorderedNamedParametersInRequireWithCustomErrors",
             "InheritanceOrderReversalOnStorageEndWarning",
             "UnsoundSpillInMutualRecursion",
             "TransientStorageClearingHelperCollision"
@@ -2097,6 +2104,7 @@
     },
     "0.8.33": {
         "bugs": [
+            "MisorderedNamedParametersInRequireWithCustomErrors",
             "InheritanceOrderReversalOnStorageEndWarning",
             "UnsoundSpillInMutualRecursion",
             "TransientStorageClearingHelperCollision"
@@ -2105,6 +2113,7 @@
     },
     "0.8.34": {
         "bugs": [
+            "MisorderedNamedParametersInRequireWithCustomErrors",
             "InheritanceOrderReversalOnStorageEndWarning",
             "UnsoundSpillInMutualRecursion"
         ],
@@ -2112,13 +2121,16 @@
     },
     "0.8.35": {
         "bugs": [
+            "MisorderedNamedParametersInRequireWithCustomErrors",
             "InheritanceOrderReversalOnStorageEndWarning",
             "UnsoundSpillInMutualRecursion"
         ],
         "released": "2026-04-29"
     },
     "0.8.36": {
-        "bugs": [],
+        "bugs": [
+            "MisorderedNamedParametersInRequireWithCustomErrors"
+        ],
         "released": "2026-07-09"
     },
     "0.8.4": {

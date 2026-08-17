@@ -16,6 +16,7 @@ Compiler Features:
 Bugfixes:
 * Code Generator: Fix ICE on parenthesized custom error construction in require statement.
 * Commandline Interface: Report proper error instead of ICE on non-hex mixed-case address value given via `--libraries`.
+* Yul IR Code Generation: Encode custom error named parameters in declaration order instead of call-site order when used from a `require` function.
 
 Build System:
 * Update minimum version requirement of Boost to 1.83.0 for Windows build. This matches the minimum version for other systems.

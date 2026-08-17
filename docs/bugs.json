@@ -1,5 +1,18 @@
 [
     {
+        "uid": "SOL-2026-4",
+        "name": "MisorderedNamedParametersInRequireWithCustomErrors",
+        "summary": "Custom error arguments passed to ``require`` using named-parameter syntax are ABI-encoded in call-site order instead of declaration order when compiling via IR.",
+        "description": "When a custom error is passed as the second argument of ``require`` and instantiated using named-parameter syntax (e.g., ``require(cond, MyError({b: 1, a: 2}))``), the IR-based code generator encodes the arguments in the order they appear at the call site rather than reordering them to match the parameter order declared in the error definition. The arguments are still type-checked against their named slots, but the type system does not require the call-site order to match the declaration, so the bug can be triggered even when the supplied values would type-check in either order. When all arguments occupy the same number of stack slots (e.g., all single-slot value types), the resulting payload contains the values in the wrong positions for the error's signature. When the call-site argument types differ in stack-slot width (for example a ``calldata`` reference next to a value type), the misordering also misaligns the helper's parameters slot-by-slot, producing a payload of an entirely different shape than the error's ABI signature — values land in unrelated positions, dynamic-type lengths are read from arbitrary stack values, and string/bytes data may be copied from arbitrary calldata offsets. In the best case this triggers an EVM-level error during encoding; in the worst case a structurally valid payload containing wrong data is encoded successfully. The bug is specific to custom errors passed as the second argument of ``require``. Standalone ``revert ErrorName({...})`` statements, event emissions, function calls, struct constructor invocations and other constructs supporting named parameters are not affected. The evmasm pipeline is also unaffected.",
+        "link": "https://blog.soliditylang.org/2026/04/01/misordered-named-parameters-in-require-with-custom-errors-bug/",
+        "introduced": "0.8.26",
+        "fixed": "0.8.37",
+        "severity": "very low",
+        "conditions": {
+            "viaIR": true
+        }
+    },
+    {
         "uid": "SOL-2026-3",
         "name": "InheritanceOrderReversalOnStorageEndWarning",
         "summary": "Emitting a warning about storage base location being too close to the storage end unintentionally reversed the ``linearizedBaseContracts`` annotation, possibly leading to miscompilation due to reversing the order in which inheritance is resolved.",
