@@ -15,6 +15,7 @@ Compiler Features:
 
 Bugfixes:
 * Code Generator: Fix ICE on parenthesized custom error construction in require statement.
+* Code Generator: Fix ICE when assigning a calldata struct containing a member of external function type to a storage struct.
 * Commandline Interface: Report proper error instead of ICE on non-hex mixed-case address value given via `--libraries`.
 
 Build System:

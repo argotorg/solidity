@@ -3792,6 +3792,11 @@ std::string YulUtilFunctions::copyStructToStorageFunction(StructType const& _fro
 		{
 			Type const& memberType = *structMembers[i].type;
 			solAssert(memberType.memoryHeadSize() == 32, "");
+
+			// Value types cannot be dynamically encoded
+			if (_from.location() == DataLocation::CallData)
+				solAssert(!memberType.isDynamicallyEncoded() || !memberType.isValueType());
+
 			auto const&[slotDiff, offset] = _to.storageOffsetsOfMember(structMembers[i].name);
 
 			Whiskers t(R"(
@@ -3799,16 +3804,15 @@ std::string YulUtilFunctions::copyStructToStorageFunction(StructType const& _fro
 				let memberSrcPtr := add(value, <memberOffset>)
 
 				<?fromCalldata>
-					let <memberValues> :=
-						<?dynamicallyEncodedMember>
-							<accessCalldataTail>(value, memberSrcPtr)
-						<!dynamicallyEncodedMember>
-							memberSrcPtr
-						</dynamicallyEncodedMember>
-
-					<?isValueType>
-						<memberValues> := <read>(<memberValues>)
-					</isValueType>
+					<?dynamicallyEncodedMember>
+						let <memberValues> := <accessCalldataTail>(value, memberSrcPtr)
+					<!dynamicallyEncodedMember>
+						<?isValueType>
+							let <memberValues> := <read>(memberSrcPtr)
+						<!isValueType>
+							let <memberValues> := memberSrcPtr
+						</isValueType>
+					</dynamicallyEncodedMember>
 				</fromCalldata>
 
 				<?fromMemory>

@@ -61,6 +61,6 @@ contract C {
 // gas ssaCFGOptimized: 122611
 // from_calldata((bytes,uint16[],uint16)): 0x20, 0x60, 0xa0, 21, 3, 0x666F6F0000000000000000000000000000000000000000000000000000000000, 2, 13, 14 -> 0x20, 0x60, 0xa0, 21, 3, 0x666f6f0000000000000000000000000000000000000000000000000000000000, 2, 13, 14
 // gas irOptimized: 114824
-// gas legacy: 118207
+// gas legacy: 118199
 // gas legacyOptimized: 115327
 // gas ssaCFGOptimized: 114700
