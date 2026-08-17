@@ -17,13 +17,13 @@ contract C {
 // ----
 // x() -> 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 // assignArray(uint256[10]): 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 ->
-// gas irOptimized: 245236
-// gas legacy: 249351
-// gas legacyOptimized: 245365
-// gas ssaCFGOptimized: 245235
+// gas irOptimized: 245212
+// gas legacy: 249591
+// gas legacyOptimized: 245464
+// gas ssaCFGOptimized: 245211
 // x() -> 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
 // assignArray(uint256[10]): 10, 20, 30, 40, 50, 60, 70, 80, 90, 100 ->
 // x() -> 10, 20, 30, 40, 50, 60, 70, 80, 90, 100
 // gas irOptimized: 44183
-// gas legacy: 46012
-// gas legacyOptimized: 43907
+// gas legacy: 46252
+// gas legacyOptimized: 44011

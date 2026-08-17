@@ -18,6 +18,7 @@ contract C {
 // gas irOptimized: 110009
 // gas legacy: 110395
 // gas legacyOptimized: 110037
+// gas ssaCFGOptimized: 110008
 // get(uint256): 0 -> 1, 2
 // get(uint256): 4 -> 3, 4
 // clear() ->

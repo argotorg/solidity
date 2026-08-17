@@ -45,19 +45,19 @@ contract C {
 // x() -> 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
 // y() -> 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 // copyXToY()
-// gas irOptimized: 264224
-// gas legacy: 265434
-// gas legacyOptimized: 264247
-// gas ssaCFGOptimized: 264182
+// gas irOptimized: 264272
+// gas legacy: 265914
+// gas legacyOptimized: 264423
+// gas ssaCFGOptimized: 264230
 // x() -> 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
 // y() -> 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
 // clearX()
 // x() -> 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 // y() -> 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
 // copyYToX()
-// gas irOptimized: 266243
-// gas legacy: 267456
-// gas legacyOptimized: 266280
-// gas ssaCFGOptimized: 266200
+// gas irOptimized: 266291
+// gas legacy: 267936
+// gas legacyOptimized: 266456
+// gas ssaCFGOptimized: 266248
 // x() -> 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
 // y() -> 1, 2, 3, 4, 5, 6, 7, 8, 9, 10

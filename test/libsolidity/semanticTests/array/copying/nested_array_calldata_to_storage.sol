@@ -47,5 +47,5 @@ contract c {
 // gas irOptimized: 134685
 // gas ssaCFGOptimized: 134831
 // test4(uint256[2][2]): 23, 42, 23, 42 -> 65
-// gas irOptimized: 111177
-// gas ssaCFGOptimized: 111192
+// gas irOptimized: 111283
+// gas ssaCFGOptimized: 111292
