@@ -36,12 +36,12 @@ public:
 	using Slot = StackSlot;
 
 	/// the per-block stack layout plus the set of values the layout generator decided to spill to memory
-	/// and the recorded def-site store trace of each spilled value
+	/// and the availability-safe def-site store plan
 	struct Result
 	{
 		SSACFGStackLayout layout;
 		spill::SpillSet spillSet;
-		spill::SpillStoreTraces spillStoreTraces;
+		spill::SpillStorePlan spillStorePlan;
 	};
 
 	/// Generates the stack layout for the function graph together with the set of values that have to be spilled

@@ -24,16 +24,27 @@
 #include <libyul/Exceptions.h>
 
 #include <cstdint>
-#include <deque>
 #include <map>
 #include <set>
+#include <vector>
 
 namespace solidity::yul::ssa::spill
 {
 
-/// Per spilled value the recorded shuffle realizing its def-site store: brings the value to the stack top and
-/// concludes with the `Store` op consuming it.
-using SpillStoreTraces = std::map<InstId, ShuffleTrace>;
+/// The ordered stores to emit at each semantic definition site. Stores sharing a site must be replayed in this
+/// exact order because a trace may reload a sibling only after that sibling's memory slot has been initialized.
+struct SpillStorePlan
+{
+	struct Store
+	{
+		InstId value;
+		ShuffleTrace trace;
+	};
+
+	std::vector<Store> functionEntry;
+	std::map<BlockId, std::vector<Store>> blockEntries;
+	std::map<InstId, std::vector<Store>> operationOutputs;
+};
 
 /// Per-CFG set of SSA values spilled to memory
 class SpillSet
@@ -52,16 +63,18 @@ public:
 	std::set<InstId> const& spilledValues() const { return m_values; }
 
 	/// Finalizes the spill set by making every spilled value's def-site `mstore` reachable.
-	/// If `_storeTraces` is provided, it is rebuilt to hold each spilled value's recorded def-site store trace.
-	void closeUnderReachabilityConstraints(SSACFG const& _cfg, SSACFGStackLayout const& _layout, SpillStoreTraces* _storeTraces = nullptr);
-
-	/// Yields a copy of this spill set minus `_id`.
-	[[nodiscard]] SpillSet without(InstId _id) const;
+	/// Rebuilds `_storePlan` with availability-safe store orders and traces.
+	void closeUnderReachabilityConstraints(SSACFG const& _cfg, SSACFGStackLayout const& _layout, SpillStorePlan& _storePlan);
 
 private:
-	/// Ensure that the value `_value` can be spilled with respect to `_defStack`, i.e., brought up to the top
-	/// and `mstore`d. Might populate the spill set with more entries if not possible right away.
-	void ensureDefSiteFeasible(SSACFG const& _cfg, InstId _value, StackData const& _defStack, std::deque<InstId>& _workQueue, SpillStoreTraces* _storeTraces);
+	/// Plans all stores sharing `_defStack`. Returns false after adding a newly discovered spill, in which case
+	/// all definition-site groups must be rebuilt against the enlarged spill set.
+	bool planStoreGroup(
+		SSACFG const& _cfg,
+		StackData const& _defStack,
+		std::vector<InstId> const& _pending,
+		std::vector<SpillStorePlan::Store>& _stores
+	);
 
 	std::set<InstId> m_values;
 };
