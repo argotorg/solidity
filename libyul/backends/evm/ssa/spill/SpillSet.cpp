@@ -19,11 +19,8 @@
 #include <libyul/backends/evm/ssa/spill/SpillSet.h>
 
 #include <libyul/backends/evm/ssa/Stack.h>
-#include <libyul/backends/evm/ssa/StackShuffler.h>
 #include <libyul/backends/evm/ssa/StackLayout.h>
 #include <libyul/backends/evm/ssa/stack/Shuffler.h>
-
-#include <deque>
 
 using namespace solidity::yul::ssa;
 using namespace solidity::yul::ssa::spill;
@@ -31,19 +28,18 @@ using namespace solidity::yul::ssa::spill;
 namespace
 {
 
-/// Build the symbolic stack right after `_value`'s operation completes by replaying the recorded shuffles
+/// Build the symbolic stack right after `_producer` completes by replaying the recorded shuffles
 /// and operation effects from the block's `stackIn`
 StackData computeOperationOut(
 	SSACFG const& _cfg,
 	SSACFGStackLayout const& _layout,
-	InstId const _value
+	InstId const _producer
 )
 {
-	InstId const producer = _cfg.isProjection(_value) ? _cfg.inst(_value).inputs.front() : _value;
-
-	SSACFG::BlockId const block = _cfg.inst(producer).block;
+	yulAssert(_cfg.isOperation(_producer), fmt::format("{} is not an operation", _producer));
+	SSACFG::BlockId const block = _cfg.inst(_producer).block;
 	auto const& blockLayout = _layout[block];
-	yulAssert(blockLayout, fmt::format("producer {}'s block has no layout", producer));
+	yulAssert(blockLayout, fmt::format("producer {}'s block has no layout", _producer));
 
 	StackData opOutStack = blockLayout->stackIn;
 	std::size_t opIndex = 0;
@@ -61,117 +57,147 @@ StackData computeOperationOut(
 		if (inst.opcode == InstOpcode::Call && _cfg.callPayload(id).canContinue)
 			++consumedSlots;
 		yulAssert(opOutStack.size() >= consumedSlots, "operation input layout smaller than consumed slot count");
-		for (std::size_t i = 0; i < consumedSlots; ++i)
-			opOutStack.pop_back();
-		_cfg.forEachOutput(id, [&](InstId const output) {
+		opOutStack.resize(opOutStack.size() - consumedSlots);
+		for (InstId const output: _cfg.outputsOf(id))
 			opOutStack.push_back(StackSlot::makeValue(_cfg, output));
-		});
 
-		if (id == producer)
+		if (id == _producer)
 			return opOutStack;
 	}
-	yulAssert(false, fmt::format("producer {} not found in its block's instructions", producer));
+	yulAssert(false, fmt::format("producer {} not found in its block's instructions", _producer));
 	solidity::util::unreachable();
 }
 
-/// The symbolic stack the Emitter faces at `_value`'s definition, where its `mstore` fires. Three cases:
-/// - a phi: the merged value is materialized on its defining block's `stackIn`, so a single store there covers every incoming edge;
-/// - a function argument: it has no producer operation and lives on the function entry stack, where CodeTransform emits `mstore` while the args are still laid out;
-/// - any other value: it sits on its producer's `operationOut`.
-StackData defStackFor(
-	SSACFG const& _cfg,
-	SSACFGStackLayout const& _layout,
-	InstId const _value
-)
-{
-	if (_cfg.isPhi(_value))
-	{
-		SSACFG::BlockId const block = _cfg.inst(_value).block;
-		yulAssert(block.hasValue(), fmt::format("phi {} has no defining block", _value));
-		auto const& blockLayout = _layout[block];
-		yulAssert(blockLayout, fmt::format("phi {}'s defining block has no layout", _value));
-		return blockLayout->stackIn;
-	}
-	if (_cfg.isFunctionArg(_value))
-	{
-		auto const& entryLayout = _layout[_cfg.entry];
-		yulAssert(entryLayout, "entry block has no layout for function-arg def-site");
-		return entryLayout->stackIn;
-	}
-	return computeOperationOut(_cfg, _layout, _value);
 }
 
-}
-
-void SpillSet::closeUnderReachabilityConstraints(SSACFG const& _cfg, SSACFGStackLayout const& _layout, SpillStoreTraces* _storeTraces)
+void SpillSet::closeUnderReachabilityConstraints(SSACFG const& _cfg, SSACFGStackLayout const& _layout, SpillStorePlan& _storePlan)
 {
-	if (_storeTraces)
-		_storeTraces->clear();
-
-	// work queue over values that are marked for spillage
-	std::deque<InstId> queue;
-	for (InstId const id: spilledValues())
-		queue.push_back(id);
-
-	while (!queue.empty())
+	while (true)
 	{
-		InstId const value = queue.front();
-		queue.pop_front();
+		std::vector<InstId> functionArguments;
+		std::map<BlockId, std::vector<InstId>> blockPhis;
+		std::map<InstId, std::vector<InstId>> operationOutputs;
+		for (InstId const value: spilledValues())
+			if (_cfg.isFunctionArg(value))
+				functionArguments.push_back(value);
+			else if (_cfg.isPhi(value))
+				blockPhis[_cfg.inst(value).block].push_back(value);
+			else
+			{
+				InstId const producer = _cfg.isProjection(value) ? _cfg.inst(value).inputs.front() : value;
+				yulAssert(_cfg.isOperation(producer), fmt::format("spilled value {} has no semantic definition site", value));
+				operationOutputs[producer].push_back(value);
+			}
 
-		StackData const defStack = defStackFor(_cfg, _layout, value);
-		ensureDefSiteFeasible(_cfg, value, defStack, queue, _storeTraces);
-	}
-}
+		SpillStorePlan plan;
+		bool complete = true;
+		if (!functionArguments.empty())
+		{
+			auto const& entryLayout = _layout[_cfg.entry];
+			yulAssert(entryLayout, "entry block has no layout for function-argument stores");
+			complete = planStoreGroup(_cfg, entryLayout->stackIn, functionArguments, plan.functionEntry);
+		}
 
-void SpillSet::ensureDefSiteFeasible(
-	SSACFG const& _cfg,
-	InstId const _value,
-	StackData const& _defStack,
-	std::deque<InstId>& _workQueue,
-	SpillStoreTraces* _storeTraces)
-{
-	// predicate = spill set minus the owner; the shuffle accumulates discovered culprits here.
-	SpillSet spillSetWithoutOwner = without(_value);
-	StackSlot const valueSlot = StackSlot::makeValue(_cfg, _value);
-	// [... defStack ..., valueSlot]
-	StackData const target = [&]{
-		StackData result;
-		result.reserve(_defStack.size() + 1);
-		result.insert(result.end(), _defStack.begin(), _defStack.end());
-		result.push_back(valueSlot);
-		return result;
-	}();
-	StackData workStack = _defStack;
-	stack::ShuffleResult result = stack::shuffle(workStack, target, spillSetWithoutOwner);
-	yulAssert(
-		result.status == stack::ShuffleResult::Status::Admissible,
-		fmt::format("def-site store for {} infeasible even after spilling siblings (status={})", _value, static_cast<int>(result.status))
-	);
+		for (auto const& [block, phis]: blockPhis)
+		{
+			if (!complete)
+				break;
+			auto const& blockLayout = _layout[block];
+			yulAssert(blockLayout, fmt::format("block {} has no layout for phi stores", block));
+			complete = planStoreGroup(_cfg, blockLayout->stackIn, phis, plan.blockEntries[block]);
+		}
 
-	// - if `_value` is reachable, it can be just DUPed and there shouldn't have been a stack too deep with it
-	// - if `_value` is unreachable, there are > reachable stack depth distinct slots strictly above it and the
-	//   shuffler heuristics should not pick anything that is already too deep as culprit
-	yulAssert(!spillSetWithoutOwner.isSpilled(_value), "spill-aware shuffle reported the owner as its own blocker");
+		for (auto const& [producer, outputs]: operationOutputs)
+		{
+			if (!complete)
+				break;
+			complete = planStoreGroup(
+				_cfg,
+				computeOperationOut(_cfg, _layout, producer),
+				outputs,
+				plan.operationOutputs[producer]
+			);
+		}
 
-	if (_storeTraces)
-	{
-		// the `mstore` consuming the value from the top concludes the def-site trace
-		result.trace.push_back(ShuffleOp::store(valueSlot));
-		(*_storeTraces)[_value] = std::move(result.trace);
-	}
-
-	for (InstId const culprit: spillSetWithoutOwner.spilledValues())
-	{
-		if (isSpilled(culprit))
+		if (!complete)
 			continue;
-		add(culprit);
-		_workQueue.push_back(culprit);
+		_storePlan = std::move(plan);
+		return;
 	}
 }
 
-SpillSet SpillSet::without(InstId const _id) const
+bool SpillSet::planStoreGroup(
+	SSACFG const& _cfg,
+	StackData const& _defStack,
+	std::vector<InstId> const& _pending,
+	std::vector<SpillStorePlan::Store>& _stores)
 {
-	SpillSet result = *this;
-	result.m_values.erase(_id);
-	return result;
+	SpillSet initializedSpills = *this;
+	// Values spilled at other sites are initialized whenever they can occur on this definition stack. Same-site
+	// values are not initialized until their store has been planned below.
+	for (InstId const value: _pending)
+	{
+		std::size_t const erased = initializedSpills.m_values.erase(value);
+		yulAssert(erased == 1, fmt::format("pending store {} is not spilled", value));
+	}
+
+	// Plan stores from the highest pending value down. Same-site siblings above the current value have therefore
+	// already been initialized, so an unreachable blocker can only require a new global spill.
+	std::set<InstId> uninitializedPending(_pending.begin(), _pending.end());
+	std::set<InstId> unpositionedPending = uninitializedPending;
+	std::vector<InstId> pendingByHeight;
+	pendingByHeight.reserve(_pending.size());
+	for (auto stackIt = _defStack.rbegin(); stackIt != _defStack.rend(); ++stackIt)
+		if (stackIt->isValue() && unpositionedPending.erase(stackIt->value()))
+			pendingByHeight.push_back(stackIt->value());
+	yulAssert(unpositionedPending.empty(), "same-site spill is absent from its definition stack");
+
+	StackData target;
+	target.reserve(_defStack.size() + 1);
+	target.insert(target.end(), _defStack.begin(), _defStack.end());
+	StackData workStack;
+	workStack.reserve(_defStack.size() + 1);
+	for (InstId const value: pendingByHeight)
+	{
+		StackSlot const valueSlot = StackSlot::makeValue(_cfg, value);
+		target.push_back(valueSlot);
+		workStack.assign(_defStack.begin(), _defStack.end());
+		SpillSet planningSpills = std::move(initializedSpills);
+		stack::ShuffleResult result = stack::shuffle(workStack, target, planningSpills);
+		target.pop_back();
+		yulAssert(
+			result.status == stack::ShuffleResult::Status::Admissible,
+			fmt::format("def-site store for {} is infeasible even with spill discovery", value)
+		);
+
+		bool discoveredSpill = false;
+		for (InstId const blocker: planningSpills.spilledValues())
+			if (!isSpilled(blocker))
+			{
+				add(blocker);
+				discoveredSpill = true;
+			}
+		if (discoveredSpill)
+			return false;
+
+		for (InstId const pending: uninitializedPending)
+			yulAssert(
+				!planningSpills.isSpilled(pending),
+				fmt::format("store for {} depends on uninitialized same-site spill {}", value, pending)
+			);
+		for (ShuffleOp const& op: result.trace)
+			if (op.kind == ShuffleOp::Kind::Load)
+				yulAssert(
+					planningSpills.isSpilled(op.slot.value()),
+					fmt::format("store for {} loads unavailable spill {}", value, op.slot.value())
+				);
+
+		result.trace.push_back(ShuffleOp::store(valueSlot));
+		_stores.push_back(SpillStorePlan::Store{value, std::move(result.trace)});
+		std::size_t const erased = uninitializedPending.erase(value);
+		yulAssert(erased == 1, fmt::format("store for {} was already initialized", value));
+		planningSpills.add(value);
+		initializedSpills = std::move(planningSpills);
+	}
+	return true;
 }

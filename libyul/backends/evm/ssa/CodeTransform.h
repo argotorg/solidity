@@ -60,7 +60,7 @@ private:
 		SSACFG const& _cfg,
 		SSACFGStackLayout const& _stackLayout,
 		spill::SpillSet const& _spillSet,
-		spill::SpillStoreTraces const& _spillStoreTraces,
+		spill::SpillStorePlan const& _spillStorePlan,
 		ControlFlowGraphs::FunctionGraphID _graphID,
 		spill::MemoryAddressing const& _addressing
 	);
@@ -80,9 +80,8 @@ private:
 	/// Appends the assembly realizing a single recorded shuffle operation. Does not touch the symbolic stack.
 	void emit(ShuffleOp const& _op);
 
-	/// If `_value` is spilled, plays back its recorded def-site trace, which brings it to the stack top and
-	/// stores it into its memory slot
-	void spillStore(InstId _value);
+	/// Replays an availability-safe group of def-site stores in its recorded order.
+	void spillStores(std::vector<spill::SpillStorePlan::Store> const& _stores);
 
 	/// The return label of the call `_instId`, created on first use
 	AbstractAssembly::LabelID returnLabel(InstId _instId);
@@ -95,7 +94,7 @@ private:
 	SSACFG const& m_cfg;
 	SSACFGStackLayout const& m_stackLayout;
 	spill::SpillSet const& m_spillSet;
-	spill::SpillStoreTraces const& m_spillStoreTraces;
+	spill::SpillStorePlan const& m_spillStorePlan;
 	ControlFlowGraphs::FunctionGraphID const m_graphID;
 
 	std::vector<std::uint8_t> m_blockIsTransformed;

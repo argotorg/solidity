@@ -62,11 +62,11 @@ void CodeTransform::run
 	std::vector<CallSites> callSitesPerCFG;
 	std::vector<SSACFGStackLayout> layouts;
 	std::vector<spill::SpillSet> spillSetsPerCFG;
-	std::vector<spill::SpillStoreTraces> spillStoreTracesPerCFG;
+	std::vector<spill::SpillStorePlan> spillStorePlansPerCFG;
 	callSitesPerCFG.reserve(numCFGs);
 	layouts.reserve(numCFGs);
 	spillSetsPerCFG.reserve(numCFGs);
-	spillStoreTracesPerCFG.reserve(numCFGs);
+	spillStorePlansPerCFG.reserve(numCFGs);
 
 	for (std::size_t functionIndex = 0; functionIndex < numCFGs; ++functionIndex)
 	{
@@ -78,10 +78,10 @@ void CodeTransform::run
 		auto const graphID = static_cast<ControlFlowGraphs::FunctionGraphID>(functionIndex);
 		callSitesPerCFG.push_back(gatherCallSites(cfg));
 		bool const spillingAllowed = !callGraph.isRecursive(graphID);
-		auto [layout, spillSet, spillStoreTraces] = StackLayoutGenerator::generate(*liveness, callSitesPerCFG.back(), graphID, spillingAllowed);
+		auto [layout, spillSet, spillStorePlan] = StackLayoutGenerator::generate(*liveness, callSitesPerCFG.back(), graphID, spillingAllowed);
 		layouts.push_back(std::move(layout));
 		spillSetsPerCFG.push_back(std::move(spillSet));
-		spillStoreTracesPerCFG.push_back(std::move(spillStoreTraces));
+		spillStorePlansPerCFG.push_back(std::move(spillStorePlan));
 	}
 
 	// build up global addressing based on the spill sets
@@ -102,7 +102,7 @@ void CodeTransform::run
 			cfg,
 			layouts[functionIndex],
 			spillSetsPerCFG[functionIndex],
-			spillStoreTracesPerCFG[functionIndex],
+			spillStorePlansPerCFG[functionIndex],
 			graphID,
 			addressing
 		);
@@ -151,7 +151,7 @@ CodeTransform::CodeTransform(
 	SSACFG const& _cfg,
 	SSACFGStackLayout const& _stackLayout,
 	spill::SpillSet const& _spillSet,
-	spill::SpillStoreTraces const& _spillStoreTraces,
+	spill::SpillStorePlan const& _spillStorePlan,
 	ControlFlowGraphs::FunctionGraphID _graphID,
 	spill::MemoryAddressing const& _addressing
 ):
@@ -163,7 +163,7 @@ CodeTransform::CodeTransform(
 	m_cfg(_cfg),
 	m_stackLayout(_stackLayout),
 	m_spillSet(_spillSet),
-	m_spillStoreTraces(_spillStoreTraces),
+	m_spillStorePlan(_spillStorePlan),
 	m_graphID(_graphID),
 	m_blockIsTransformed(_cfg.numBlocks(), false),
 	m_blockLabels([this] {
@@ -202,10 +202,9 @@ CodeTransform::CodeTransform(
 		expectedStackTop.push_back(StackSlot::makeValue(_cfg, arg));
 	assertLayoutCompatibility(m_stack.data(), expectedStackTop);
 
-	// Spilled function args need an `mstore` at function entry so later `mload`s see a populated slot
-	if (m_spillEmitter && isFunctionGraph)
-		for (InstId const argId: m_cfg.arguments)
-			spillStore(argId);
+	// Spilled function args need an `mstore` at function entry so later `mload`s see a populated slot.
+	if (isFunctionGraph)
+		spillStores(m_spillStorePlan.functionEntry);
 }
 
 void CodeTransform::operator()(SSACFG::BlockId const _blockId)
@@ -223,9 +222,8 @@ void CodeTransform::operator()(SSACFG::BlockId const _blockId)
 	auto const& block = m_cfg.block(_blockId);
 	// Phis can appear after operations in the instruction vector,
 	// but phi spills must happen first.
-	m_cfg.forEachPhi(block, [this](InstId const _instId, SSACFG::Inst const&) {
-		spillStore(_instId);
-	});
+	if (auto const stores = m_spillStorePlan.blockEntries.find(_blockId); stores != m_spillStorePlan.blockEntries.end())
+		spillStores(stores->second);
 
 	std::size_t operationIndex = 0;
 
@@ -370,10 +368,9 @@ void CodeTransform::operator()(InstId _instId, ShuffleTrace const& _operationShu
 	for (InstId const id: m_cfg.outputsOf(_instId))
 		m_stack.push(StackSlot::makeValue(m_cfg, id));
 
-	// Each output the layout decided to spill gets its `mstore` here
-	if (m_spillEmitter)
-		for (InstId const outputId: m_cfg.outputsOf(_instId))
-			spillStore(outputId);
+	// Store spilled outputs in the availability-safe order planned for this operation.
+	if (auto const stores = m_spillStorePlan.operationOutputs.find(_instId); stores != m_spillStorePlan.operationOutputs.end())
+		spillStores(stores->second);
 
 	yulAssert(m_stack.size() == baseHeight + numOutputs);
 	for (auto const& [stackEntry, output]: ranges::views::zip(
@@ -387,23 +384,20 @@ void CodeTransform::operator()(InstId _instId, ShuffleTrace const& _operationShu
 	);
 }
 
-void CodeTransform::spillStore(InstId const _value)
+void CodeTransform::spillStores(std::vector<spill::SpillStorePlan::Store> const& _stores)
 {
-	if (!m_spillEmitter || !m_spillSet.isSpilled(_value))
-		return;
-
-	// Play back the recorded def-site trace: it brings `_value` to the stack top and concludes with the
-	// `mstore` consuming it, leaving the rest of the stack in place.
-	auto const it = m_spillStoreTraces.find(_value);
-	yulAssert(it != m_spillStoreTraces.end(), fmt::format("no def-site store trace recorded for spilled value {}", _value));
-	ShuffleTrace const& storeTrace = it->second;
-	yulAssert(
-		!storeTrace.empty() &&
-		storeTrace.back().kind == ShuffleOp::Kind::Store &&
-		storeTrace.back().slot == StackSlot::makeValue(m_cfg, _value),
-		fmt::format("def-site trace for {} must conclude with its store", _value)
-	);
-	playback(storeTrace);
+	yulAssert(_stores.empty() || m_spillEmitter, "spill-store plan exists without memory addressing");
+	for (auto const& store: _stores)
+	{
+		yulAssert(m_spillSet.isSpilled(store.value), fmt::format("store plan contains non-spilled value {}", store.value));
+		yulAssert(
+			!store.trace.empty() &&
+			store.trace.back().kind == ShuffleOp::Kind::Store &&
+			store.trace.back().slot == StackSlot::makeValue(m_cfg, store.value),
+			fmt::format("def-site trace for {} must conclude with its store", store.value)
+		);
+		playback(store.trace);
+	}
 }
 
 void CodeTransform::operator()(SSACFG::BlockId const&, SSACFG::BasicBlock::MainExit const&)

@@ -209,11 +209,15 @@ code {
 //     v59 (value) -> mem 0x0140
 //     v60 (phi) -> mem 0x0160
 //   mstore schedule:
-//     mstore addr(v52) <- v52 (B#1)
-//     mstore addr(v54) <- v54 (B#1)
-//     mstore addr(v55) <- v55 (B#2)
-//     mstore addr(v56) <- v56 (B#1)
-//     mstore addr(v57) <- v57 (B#2)
-//     mstore addr(v58) <- v58 (B#1)
-//     mstore addr(v59) <- v59 (B#2)
-//     mstore addr(v60) <- v60 (B#1)
+//     block entry B#1:
+//       mstore addr(v60) <- v60 via [DUP1, STORE phi60]
+//       mstore addr(v58) <- v58 via [DUP2, STORE phi58]
+//       mstore addr(v56) <- v56 via [DUP3, STORE phi56]
+//       mstore addr(v54) <- v54 via [DUP4, STORE phi54]
+//       mstore addr(v52) <- v52 via [DUP5, STORE phi52]
+//     after v55 (B#2):
+//       mstore addr(v55) <- v55 via [DUP1, STORE v55]
+//     after v57 (B#2):
+//       mstore addr(v57) <- v57 via [DUP1, STORE v57]
+//     after v59 (B#2):
+//       mstore addr(v59) <- v59 via [DUP1, STORE v59]

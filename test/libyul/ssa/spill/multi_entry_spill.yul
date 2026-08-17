@@ -240,6 +240,9 @@
 //     v55 (value) -> mem 0xa0
 //     v74 (value) -> mem 0xc0
 //   mstore schedule:
-//     mstore addr(v34) <- v34 (B#0)
-//     mstore addr(v55) <- v55 (B#2)
-//     mstore addr(v74) <- v74 (B#3)
+//     after v34 (B#0):
+//       mstore addr(v34) <- v34 via [DUP1, STORE v34]
+//     after v55 (B#2):
+//       mstore addr(v55) <- v55 via [DUP1, STORE v55]
+//     after v74 (B#3):
+//       mstore addr(v74) <- v74 via [DUP1, STORE v74]

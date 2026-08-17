@@ -89,16 +89,16 @@ StackLayoutGenerator::Result StackLayoutGenerator::generate(
 )
 {
 	spill::SpillSet spillSet;
-	spill::SpillStoreTraces spillStoreTraces;
+	spill::SpillStorePlan spillStorePlan;
 	while (true)
 	{
 		auto const spillCountBefore = spillSet.numSpilled();
 		StackLayoutGenerator generator(_liveness, _callSites, _graphID, _spillingAllowed, std::move(spillSet));
 		spillSet = std::move(generator.m_spillSet);
-		spillSet.closeUnderReachabilityConstraints(_liveness.cfg(), generator.m_resultLayout, &spillStoreTraces);
-		// only the traces of the final iteration survive; they are recorded against the stable spill set
+		spillSet.closeUnderReachabilityConstraints(_liveness.cfg(), generator.m_resultLayout, spillStorePlan);
+		// only the plan of the final iteration survives; it is recorded against the stable spill set
 		if (spillSet.numSpilled() == spillCountBefore)
-			return Result{std::move(generator.m_resultLayout), std::move(spillSet), std::move(spillStoreTraces)};
+			return Result{std::move(generator.m_resultLayout), std::move(spillSet), std::move(spillStorePlan)};
 
 		// there is an upper bound to how much can be spilled (number of variables). this assert ensures termination.
 		yulAssert(spillSet.numSpilled() > spillCountBefore, "spill set cannot shrink");
