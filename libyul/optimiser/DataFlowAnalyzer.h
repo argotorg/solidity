@@ -178,9 +178,12 @@ private:
 	{
 		/// Current values of variables, always movable.
 		util::unordered_flat_map<YulName, AssignedValue> value;
-		/// m_references[a].contains(b) <=> the current expression assigned to a references b
-		/// The mapped vectors _must always_ be sorted
+		/// sortedReferences[a] contains b iff the current expression assigned to a references b.
+		/// The mapped vectors must be sorted.
 		util::unordered_flat_map<YulName, std::vector<YulName>> sortedReferences;
+		/// referencingVariableCandidates[b] contains every a whose sortedReferences[a] contains b,
+		/// and possibly variables that no longer reference b.
+		util::unordered_flat_map<YulName, std::vector<YulName>> referencingVariableCandidates;
 
 		Environment environment;
 	};
