@@ -1273,6 +1273,10 @@ jobs:
       - run:
           name: Install build dependencies
           command: |
+            # Drop the Fastly-cached mirror: its PoPs hold the package DB for many hours, so we get a
+            # DB referring to package versions that have already been pruned, and downloads can 404.
+            # pacman only fetches the DB from the first mirror, leaving geo.
+            sed -i '/fastly\.mirror\.pkgbuild\.com/d' /etc/pacman.d/mirrorlist
             pacman --noconfirm -Syu --noprogressbar --needed base-devel boost boost-libs cmake ccache git openssh tar
       - checkout
       - run_build
@@ -1439,6 +1443,10 @@ jobs:
       - run:
           name: Install runtime dependencies
           command: |
+            # Drop the Fastly-cached mirror: its PoPs hold the package DB for many hours, so we get a
+            # DB referring to package versions that have already been pruned, and downloads 404.
+            # pacman only fetches the DB from the first mirror, leaving geo.
+            sed -i '/fastly\.mirror\.pkgbuild\.com/d' /etc/pacman.d/mirrorlist
             pacman --noconfirm -Syu --noprogressbar --needed z3 git
       - soltest
 
