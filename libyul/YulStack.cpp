@@ -194,7 +194,13 @@ bool YulStack::analyzeParsed(Object& _object)
 
 void YulStack::compileEVM(AbstractAssembly& _assembly, bool _optimize, bool _viaSSACFG) const
 {
-	EVMObjectCompiler::compile(*m_parserResult, _assembly, _optimize, _viaSSACFG);
+	EVMObjectCompiler::compile(
+		*m_parserResult,
+		_assembly,
+		_optimize,
+		_viaSSACFG,
+		m_optimiserSettings.expectedExecutionsPerDeployment
+	);
 }
 
 void YulStack::reparse()

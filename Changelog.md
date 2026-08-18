@@ -12,6 +12,7 @@ Compiler Features:
 * General: Remove support for the experimental Generic Solidity prototype (`pragma experimental solidity`).
 * SMTChecker: Emit a deprecation warning for the BMC engine.
 * SMTChecker: Support `block.slotnum`.
+* Yul Codegen: Lower large `switch` statements as a binary search tree of `gt`-keyed comparisons instead of a linear chain of equality checks, reducing dispatch cost from linear to logarithmic when the code-size cost is outweighed by the configured number of optimizer runs.
 
 Bugfixes:
 * Code Generator: Fix ICE on parenthesized custom error construction in require statement.

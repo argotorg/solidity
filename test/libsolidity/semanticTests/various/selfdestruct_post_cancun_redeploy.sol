@@ -82,8 +82,8 @@ contract D {
 // EVMVersion: >=cancun
 // ----
 // constructor(), 1 ether ->
-// gas irOptimized: 132974
-// gas irOptimized code: 293800
+// gas irOptimized: 133074
+// gas irOptimized code: 295200
 // gas legacy: 151236
 // gas legacy code: 533800
 // gas legacyOptimized: 131436
@@ -93,7 +93,7 @@ contract D {
 // exists() -> false
 // test_deploy_and_terminate() ->
 // ~ emit Deployed(address,bytes32) from 0x137aa4dfc0911524504fcd4d98501f179bc13b4a: 0x7e6580007e709ac52945fae182c61131d42634e8, 0x1234000000000000000000000000000000000000000000000000000000000000
-// gas irOptimized: 96528
+// gas irOptimized: 96463
 // gas irOptimized code: 20800
 // gas legacy: 97788
 // gas legacy code: 20800
@@ -110,7 +110,7 @@ contract D {
 // test_balance_after_selfdestruct() ->
 // exists() -> true
 // deploy_create2() -> FAILURE
-// gas irOptimized: 96903654
+// gas irOptimized: 96903655
 // gas legacy: 96903658
 // gas legacyOptimized: 96903639
 // gas ssaCFGOptimized: 96903647

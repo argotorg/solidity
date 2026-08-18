@@ -145,7 +145,8 @@ void OptimiserSuite::run(
 		astRoot = std::get<1>(StackCompressor::run(
 			_object,
 			_optimizeStackAllocation,
-			stackCompressorMaxIterations
+			stackCompressorMaxIterations,
+			_expectedExecutionsPerDeployment
 		));
 	}
 
@@ -174,7 +175,8 @@ void OptimiserSuite::run(
 					astRoot = std::get<1>(StackCompressor::run(
 						_object,
 						_optimizeStackAllocation,
-						stackCompressorMaxIterations
+						stackCompressorMaxIterations,
+						_expectedExecutionsPerDeployment
 					));
 				}
 				if (evmDialect->providesObjectAccess())

@@ -32,6 +32,10 @@ public:
 	}
 	explicit ControlFlowGraphTest(std::string const& _filename);
 	TestResult run(std::ostream& _stream, std::string const& _linePrefix = "", bool const _formatted = false) override;
+
+private:
+	size_t m_optimiserRuns = 0;
+	bool m_isCreation = false;
 };
 
 }

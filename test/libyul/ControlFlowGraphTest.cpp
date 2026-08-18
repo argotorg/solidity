@@ -54,6 +54,8 @@ ControlFlowGraphTest::ControlFlowGraphTest(std::string const& _filename):
 	m_source = m_reader.source();
 	auto dialectName = m_reader.stringSetting("dialect", "evm");
 	soltestAssert(dialectName == "evm"); // We only have one dialect now
+	m_optimiserRuns = m_reader.sizetSetting("optimize-runs", frontend::OptimiserSettings::standard().expectedExecutionsPerDeployment);
+	m_isCreation = m_reader.boolSetting("isCreation", false);
 	m_expectation = m_reader.simpleExpectations();
 }
 
@@ -218,7 +220,8 @@ TestCase::TestResult ControlFlowGraphTest::run(std::ostream& _stream, std::strin
 	std::unique_ptr<CFG> cfg = ControlFlowGraphBuilder::build(
 		*yulStack.parserResult()->analysisInfo,
 		yulStack.dialect(),
-		yulStack.parserResult()->code()->root()
+		yulStack.parserResult()->code()->root(),
+		m_isCreation ? std::nullopt : std::make_optional(m_optimiserRuns)
 	);
 
 	output << "digraph CFG {\nnodesep=0.7;\nnode[shape=box];\n\n";

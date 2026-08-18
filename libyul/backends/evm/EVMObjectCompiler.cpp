@@ -44,14 +44,22 @@ void EVMObjectCompiler::compile(
 	Object const& _object,
 	AbstractAssembly& _assembly,
 	bool _optimize,
-	bool _viaSSACFG
+	bool _viaSSACFG,
+	std::uint64_t _expectedExecutionsPerDeployment,
+	bool _isCreation
 )
 {
 	EVMObjectCompiler compiler(_assembly);
-	compiler.run(_object, _optimize, _viaSSACFG);
+	compiler.run(_object, _optimize, _viaSSACFG, _expectedExecutionsPerDeployment, _isCreation);
 }
 
-void EVMObjectCompiler::run(Object const& _object, bool _optimize, bool _viaSSACFG)
+void EVMObjectCompiler::run(
+	Object const& _object,
+	bool _optimize,
+	bool _viaSSACFG,
+	std::uint64_t _expectedExecutionsPerDeployment,
+	bool _isCreation
+)
 {
 	yulAssert(_object.dialect());
 	auto const* evmDialect = dynamic_cast<EVMDialect const*>(_object.dialect());
@@ -68,7 +76,7 @@ void EVMObjectCompiler::run(Object const& _object, bool _optimize, bool _viaSSAC
 			auto subAssemblyAndID = m_assembly.createSubAssembly(isCreation, subObject->name);
 			context.subIDs[subObject->name] = subAssemblyAndID.second;
 			subObject->subId = subAssemblyAndID.second;
-			compile(*subObject, *subAssemblyAndID.first, _optimize, _viaSSACFG);
+			compile(*subObject, *subAssemblyAndID.first, _optimize, _viaSSACFG, _expectedExecutionsPerDeployment, isCreation);
 		}
 		else
 		{
@@ -109,7 +117,8 @@ void EVMObjectCompiler::run(Object const& _object, bool _optimize, bool _viaSSAC
 				_object.code()->root(),
 				*evmDialect,
 				context,
-				OptimizedEVMCodeTransform::UseNamedLabels::ForFirstFunctionOfEachName
+				OptimizedEVMCodeTransform::UseNamedLabels::ForFirstFunctionOfEachName,
+				_isCreation ? std::nullopt : std::make_optional(_expectedExecutionsPerDeployment)
 			);
 			if (!stackErrors.empty())
 			{

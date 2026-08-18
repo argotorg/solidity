@@ -45,10 +45,11 @@ std::vector<StackTooDeepError> OptimizedEVMCodeTransform::run(
 	Block const& _block,
 	EVMDialect const& _dialect,
 	BuiltinContext& _builtinContext,
-	UseNamedLabels _useNamedLabelsForFunctions
+	UseNamedLabels _useNamedLabelsForFunctions,
+	std::optional<std::uint64_t> _expectedExecutionsPerDeployment
 )
 {
-	std::unique_ptr<CFG> dfg = ControlFlowGraphBuilder::build(_analysisInfo, _dialect, _block);
+	std::unique_ptr<CFG> dfg = ControlFlowGraphBuilder::build(_analysisInfo, _dialect, _block, _expectedExecutionsPerDeployment);
 	StackLayout stackLayout = StackLayoutGenerator::run(*dfg, _dialect);
 
 	OptimizedEVMCodeTransform optimizedCodeTransform(

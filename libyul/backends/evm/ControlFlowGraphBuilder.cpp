@@ -26,8 +26,11 @@
 #include <libyul/ControlFlowSideEffectsCollector.h>
 #include <libyul/backends/evm/EVMDialect.h>
 
-#include <libsolutil/Visitor.h>
+#include <libevmasm/GasMeter.h>
+
 #include <libsolutil/Algorithms.h>
+#include <libsolutil/Numeric.h>
+#include <libsolutil/Visitor.h>
 
 #include <range/v3/action/push_back.hpp>
 #include <range/v3/action/erase.hpp>
@@ -42,6 +45,8 @@
 #include <range/v3/view/single.hpp>
 #include <range/v3/view/take_last.hpp>
 #include <range/v3/view/transform.hpp>
+
+#include <algorithm>
 
 using namespace solidity;
 using namespace solidity::yul;
@@ -229,14 +234,15 @@ void markNeedsCleanStack(CFG& _cfg)
 std::unique_ptr<CFG> ControlFlowGraphBuilder::build(
 	AsmAnalysisInfo const& _analysisInfo,
 	Dialect const& _dialect,
-	Block const& _block
+	Block const& _block,
+	std::optional<std::uint64_t> _expectedExecutionsPerDeployment
 )
 {
 	auto result = std::make_unique<CFG>();
 	result->entry = &result->makeBlock(debugDataOf(_block));
 
 	ControlFlowSideEffectsCollector sideEffects(_dialect, _block);
-	ControlFlowGraphBuilder builder(*result, _analysisInfo, sideEffects.functionSideEffects(), _dialect);
+	ControlFlowGraphBuilder builder(*result, _analysisInfo, sideEffects.functionSideEffects(), _dialect, _expectedExecutionsPerDeployment);
 	builder.m_currentBlock = result->entry;
 	builder(_block);
 
@@ -255,13 +261,22 @@ ControlFlowGraphBuilder::ControlFlowGraphBuilder(
 	CFG& _graph,
 	AsmAnalysisInfo const& _analysisInfo,
 	util::unordered_flat_map<FunctionDefinition const*, ControlFlowSideEffects> const& _functionSideEffects,
-	Dialect const& _dialect
+	Dialect const& _dialect,
+	std::optional<std::uint64_t> _expectedExecutionsPerDeployment
 ):
 	m_graph(_graph),
 	m_info(_analysisInfo),
 	m_functionSideEffects(_functionSideEffects),
-	m_dialect(_dialect)
-{}
+	m_dialect(_dialect),
+	m_runs(_expectedExecutionsPerDeployment.value_or(1)),
+	m_isCreation(!_expectedExecutionsPerDeployment)
+{
+	if (auto const* evmDialect = dynamic_cast<EVMDialect const*>(&_dialect))
+	{
+		m_gtHandle = evmDialect->findBuiltin("gt");
+		m_evmVersion = evmDialect->evmVersion();
+	}
+}
 
 StackSlot ControlFlowGraphBuilder::operator()(Literal const& _literal)
 {
@@ -369,8 +384,151 @@ void ControlFlowGraphBuilder::operator()(Switch const& _switch)
 		CFG::Assignment{_switch.debugData, {ghostVarSlot}}
 	});
 
+	CFG::BasicBlock& afterSwitch = m_graph.makeBlock(preSwitchDebugData);
+	yulAssert(!_switch.cases.empty(), "");
+
+	std::vector<Case const*> literalCasesInOrder;
+	Block const* defaultBody = nullptr;
+	for (Case const& c: _switch.cases)
+		if (c.value)
+			literalCasesInOrder.push_back(&c);
+		else
+			defaultBody = &c.body;
+
+	// Splitting needs cases sorted by value; the no-split path keeps declaration order.
+	std::vector<Case const*> sortedForSplit = literalCasesInOrder;
+	std::sort(sortedForSplit.begin(), sortedForSplit.end(), [](Case const* _a, Case const* _b) {
+		return _a->value->value.value() < _b->value->value.value();
+	});
+
+	if (shouldSplitSwitch(sortedForSplit))
+	{
+		// Only pre-built here, since only the split tree has multiple leaves that need to
+		// share it; the non-split chain below inlines the default body directly instead.
+		CFG::BasicBlock* defaultBlock = defaultBody ? &buildDefaultBlock(*defaultBody, afterSwitch, preSwitchDebugData) : nullptr;
+		buildSwitchTree(sortedForSplit, ghostVarSlot, ghostVariableName, defaultBlock, afterSwitch, preSwitchDebugData);
+	}
+	else
+		buildLinearSwitchChain(literalCasesInOrder, ghostVarSlot, ghostVariableName, defaultBody, nullptr, afterSwitch, preSwitchDebugData, false);
+}
+
+CFG::BasicBlock& ControlFlowGraphBuilder::buildDefaultBlock(
+	Block const& _defaultBody,
+	CFG::BasicBlock& _afterSwitch,
+	langutil::DebugData::ConstPtr _switchDebugData
+)
+{
+	CFG::BasicBlock* dispatchBlock = m_currentBlock;
+	CFG::BasicBlock& block = m_graph.makeBlock(_switchDebugData);
+	m_currentBlock = &block;
+	(*this)(_defaultBody);
+	jump(debugDataOf(_defaultBody), _afterSwitch);
+	m_currentBlock = dispatchBlock;
+	return block;
+}
+
+bool ControlFlowGraphBuilder::shouldSplitSwitch(std::span<Case const* const> _cases) const
+{
+	if (!m_gtHandle)
+		return false;
+
+	size_t const n = _cases.size();
+	if (n <= 4)
+		return false;
+
+	// 13-byte base overhead, plus the fulcrum literal.
+	size_t const pivotIdx = (n - 1) / 2;
+	unsigned const fulcrumSize = numberEncodingSize(_cases[pivotIdx]->value->value.value());
+	uint64_t const overhead = 13 + fulcrumSize;
+	return u256(m_runs) * 6 * (n - 4) > evmasm::GasMeter::dataGas(overhead, m_isCreation, m_evmVersion);
+}
+
+void ControlFlowGraphBuilder::buildSwitchTree(
+	std::span<Case const* const> _cases,
+	VariableSlot const& _ghostVarSlot,
+	YulName _ghostVariableName,
+	CFG::BasicBlock* _defaultBlock,
+	CFG::BasicBlock& _afterSwitch,
+	langutil::DebugData::ConstPtr _switchDebugData
+)
+{
+	if (!shouldSplitSwitch(_cases))
+	{
+		buildLinearSwitchChain(_cases, _ghostVarSlot, _ghostVariableName, nullptr, _defaultBlock, _afterSwitch, _switchDebugData, true);
+		return;
+	}
+
+	yulAssert(m_gtHandle, "");
+	yulAssert(m_currentBlock, "");
+
+	// Pivot stays in the lower half: switch gt(expr, pivot) { upper-half } default { lower-half }.
+	size_t const n = _cases.size();
+	size_t const pivotIdx = (n - 1) / 2;
+	Case const& pivot = *_cases[pivotIdx];
+
+	BuiltinFunction const& gtBuiltin = m_dialect.builtin(*m_gtHandle);
+	yul::FunctionCall const& ghostCall = m_graph.ghostCalls.emplace_back(yul::FunctionCall{
+		_switchDebugData,
+		BuiltinName{{}, *m_gtHandle},
+		{Identifier{{}, _ghostVariableName}, *pivot.value}
+	});
+	CFG::Operation& operation = m_currentBlock->operations.emplace_back(CFG::Operation{
+		Stack{LiteralSlot{pivot.value->value.value(), debugDataOf(*pivot.value)}, _ghostVarSlot},
+		Stack{TemporarySlot{ghostCall, 0}},
+		CFG::BuiltinCall{_switchDebugData, gtBuiltin, ghostCall, 2},
+	});
+	StackSlot gtResult = operation.output.front();
+
+	CFG::BasicBlock& upperBranch = m_graph.makeBlock(_switchDebugData);
+	CFG::BasicBlock& lowerBranch = m_graph.makeBlock(_switchDebugData);
+	makeConditionalJump(_switchDebugData, std::move(gtResult), upperBranch, lowerBranch);
+
+	m_currentBlock = &lowerBranch;
+	buildSwitchTree(_cases.subspan(0, pivotIdx + 1), _ghostVarSlot, _ghostVariableName, _defaultBlock, _afterSwitch, _switchDebugData);
+
+	m_currentBlock = &upperBranch;
+	buildSwitchTree(_cases.subspan(pivotIdx + 1), _ghostVarSlot, _ghostVariableName, _defaultBlock, _afterSwitch, _switchDebugData);
+}
+
+void ControlFlowGraphBuilder::buildLinearSwitchChain(
+	std::span<Case const* const> _cases,
+	VariableSlot const& _ghostVarSlot,
+	YulName _ghostVariableName,
+	Block const* _defaultBody,
+	CFG::BasicBlock* _defaultBlock,
+	CFG::BasicBlock& _afterSwitch,
+	langutil::DebugData::ConstPtr _switchDebugData,
+	bool _isSplitLeaf
+)
+{
+	yulAssert(m_currentBlock, "");
+
+	// Jumps to the shared block if this chain is a split-tree leaf; otherwise inlines the
+	// default body (if any) directly into the current (sole) predecessor, avoiding an unshared
+	// block reachable only via jump, which confuses stack layout for the enclosing function's
+	// return label.
+	auto reachDefault = [&]() {
+		if (_defaultBlock)
+			jump(_switchDebugData, *_defaultBlock);
+		else if (_defaultBody)
+		{
+			(*this)(*_defaultBody);
+			jump(debugDataOf(*_defaultBody), _afterSwitch);
+		}
+		else
+			jump(_switchDebugData, _afterSwitch);
+	};
+
+	if (_cases.empty())
+	{
+		yulAssert(_defaultBlock || _defaultBody, "");
+		reachDefault();
+		return;
+	}
+
 	std::optional<BuiltinHandle> const& equalityBuiltinHandle = m_dialect.equalityFunctionHandle();
 	yulAssert(equalityBuiltinHandle);
+	BuiltinFunction const& equalityBuiltin = m_dialect.builtin(*equalityBuiltinHandle);
 
 	// Artificially generate:
 	// eq(<literal>, <ghostVariable>)
@@ -378,38 +536,47 @@ void ControlFlowGraphBuilder::operator()(Switch const& _switch)
 		yul::FunctionCall const& ghostCall = m_graph.ghostCalls.emplace_back(yul::FunctionCall{
 			debugDataOf(_case),
 			BuiltinName{{}, *equalityBuiltinHandle},
-			{*_case.value, Identifier{{}, ghostVariableName}}
+			{*_case.value, Identifier{{}, _ghostVariableName}}
 		});
-		BuiltinFunction const& equalityBuiltin = m_dialect.builtin(*equalityBuiltinHandle);
 		CFG::Operation& operation = m_currentBlock->operations.emplace_back(CFG::Operation{
-			Stack{ghostVarSlot, LiteralSlot{_case.value->value.value(), debugDataOf(*_case.value)}},
+			Stack{_ghostVarSlot, LiteralSlot{_case.value->value.value(), debugDataOf(*_case.value)}},
 			Stack{TemporarySlot{ghostCall, 0}},
 			CFG::BuiltinCall{debugDataOf(_case), equalityBuiltin, ghostCall, 2},
 		});
 		return operation.output.front();
 	};
-	CFG::BasicBlock& afterSwitch = m_graph.makeBlock(preSwitchDebugData);
-	yulAssert(!_switch.cases.empty(), "");
-	for (auto const& switchCase: _switch.cases | ranges::views::drop_last(1))
+
+	for (Case const* switchCase: _cases.subspan(0, _cases.size() - 1))
 	{
-		yulAssert(switchCase.value, "");
-		auto& caseBranch = m_graph.makeBlock(debugDataOf(switchCase.body));
-		auto& elseBranch = m_graph.makeBlock(debugDataOf(_switch));
-		makeConditionalJump(debugDataOf(switchCase), makeValueCompare(switchCase), caseBranch, elseBranch);
+		auto& caseBranch = m_graph.makeBlock(debugDataOf(switchCase->body));
+		auto& elseBranch = m_graph.makeBlock(_switchDebugData);
+		makeConditionalJump(debugDataOf(*switchCase), makeValueCompare(*switchCase), caseBranch, elseBranch);
 		m_currentBlock = &caseBranch;
-		(*this)(switchCase.body);
-		jump(debugDataOf(switchCase.body), afterSwitch);
+		(*this)(switchCase->body);
+		jump(debugDataOf(switchCase->body), _afterSwitch);
 		m_currentBlock = &elseBranch;
 	}
-	Case const& switchCase = _switch.cases.back();
-	if (switchCase.value)
+
+	Case const& lastCase = *_cases.back();
+	CFG::BasicBlock& caseBranch = m_graph.makeBlock(debugDataOf(lastCase.body));
+	if (_isSplitLeaf || _defaultBody)
 	{
-		CFG::BasicBlock& caseBranch = m_graph.makeBlock(debugDataOf(switchCase.body));
-		makeConditionalJump(debugDataOf(switchCase), makeValueCompare(switchCase), caseBranch, afterSwitch);
-		m_currentBlock = &caseBranch;
+		// Route through a block private to this chain rather than jumping directly to a block
+		// that other leaves also jump to (_afterSwitch or the shared default block): sibling
+		// leaves may disagree on what else is live at that point (e.g. a variable pre-dating the
+		// switch that only some leaves still use), and a shared block's entry layout can only be
+		// stitched to match one of them. When there is no split and no default, _afterSwitch has
+		// no other predecessor from this switch and can safely be jumped to directly instead.
+		CFG::BasicBlock& elseBranch = m_graph.makeBlock(_switchDebugData);
+		makeConditionalJump(debugDataOf(lastCase), makeValueCompare(lastCase), caseBranch, elseBranch);
+		m_currentBlock = &elseBranch;
+		reachDefault();
 	}
-	(*this)(switchCase.body);
-	jump(debugDataOf(switchCase.body), afterSwitch);
+	else
+		makeConditionalJump(debugDataOf(lastCase), makeValueCompare(lastCase), caseBranch, _afterSwitch);
+	m_currentBlock = &caseBranch;
+	(*this)(lastCase.body);
+	jump(debugDataOf(lastCase.body), _afterSwitch);
 }
 
 void ControlFlowGraphBuilder::operator()(ForLoop const& _loop)
@@ -489,7 +656,13 @@ void ControlFlowGraphBuilder::operator()(FunctionDefinition const& _function)
 
 	CFG::FunctionInfo& functionInfo = m_graph.functionInfo.at(&function);
 
-	ControlFlowGraphBuilder builder{m_graph, m_info, m_functionSideEffects, m_dialect};
+	ControlFlowGraphBuilder builder{
+		m_graph,
+		m_info,
+		m_functionSideEffects,
+		m_dialect,
+		m_isCreation ? std::nullopt : std::make_optional(m_runs)
+	};
 	builder.m_currentFunction = &functionInfo;
 	builder.m_currentBlock = functionInfo.entry;
 	builder(_function.body);

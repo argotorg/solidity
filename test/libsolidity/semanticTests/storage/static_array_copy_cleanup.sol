@@ -68,14 +68,14 @@ contract C {
 // getSourceAsUint() -> 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 // getDestAsUint() -> 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 // fillSource()
-// gas irOptimized: 135018
+// gas irOptimized: 134953
 // gas legacy: 146851
 // gas legacyOptimized: 137549
 // gas ssaCFGOptimized: 137978
 // canary() -> 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
 // getSourceAsUint() -> 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20
 // fillDest()
-// gas irOptimized: 248706
+// gas irOptimized: 248725
 // gas legacy: 272468
 // gas legacyOptimized: 253871
 // gas ssaCFGOptimized: 254266

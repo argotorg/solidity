@@ -70,7 +70,9 @@ TestCase::TestResult EVMCodeTransformTest::run(std::ostream& _stream, std::strin
 	EVMObjectCompiler::compile(
 		*yulStack.parserResult(),
 		adapter,
-		m_stackOpt
+		m_stackOpt,
+		false,
+		settings.expectedExecutionsPerDeployment
 	);
 
 	m_obtainedResult = toString(assembly);

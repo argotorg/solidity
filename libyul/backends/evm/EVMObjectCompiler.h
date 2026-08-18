@@ -37,12 +37,20 @@ public:
 		Object const& _object,
 		AbstractAssembly& _assembly,
 		bool _optimize,
-		bool _viaSSACFG = false
+		bool _viaSSACFG,
+		std::uint64_t _expectedExecutionsPerDeployment,
+		bool _isCreation = true
 	);
 private:
 	EVMObjectCompiler(AbstractAssembly& _assembly): m_assembly(_assembly) {}
 
-	void run(Object const& _object, bool _optimize, bool _viaSSACFG);
+	void run(
+		Object const& _object,
+		bool _optimize,
+		bool _viaSSACFG,
+		std::uint64_t _expectedExecutionsPerDeployment,
+		bool _isCreation = true
+	);
 
 	AbstractAssembly& m_assembly;
 };

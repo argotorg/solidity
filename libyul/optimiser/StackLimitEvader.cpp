@@ -142,7 +142,7 @@ Block StackLimitEvader::run(
 			astRoot,
 			_object.summarizeStructure()
 		);
-		std::unique_ptr<CFG> cfg = ControlFlowGraphBuilder::build(analysisInfo, *evmDialect, astRoot);
+		std::unique_ptr<CFG> cfg = ControlFlowGraphBuilder::build(analysisInfo, *evmDialect, astRoot, _context.expectedExecutionsPerDeployment);
 		run(_context, astRoot, StackLayoutGenerator::reportStackTooDeep(*cfg, *evmDialect));
 	}
 	else
