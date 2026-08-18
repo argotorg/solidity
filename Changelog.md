@@ -13,6 +13,7 @@ Compiler Features:
 * General: Remove support for the experimental Generic Solidity prototype (`pragma experimental solidity`).
 * SMTChecker: Emit a deprecation warning for the BMC engine.
 * SMTChecker: Support `block.slotnum`.
+* Yul Optimizer: Improve performance of `DataFlowAnalyzer::clearValues()`.
 
 Bugfixes:
 * Code Generator: Fix ICE on parenthesized custom error construction in require statement.
