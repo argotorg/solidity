@@ -37,6 +37,8 @@
 
 #include <test/evmc/loader.h>
 
+#include <evmone/evmone.h>
+
 #include <libevmasm/GasMeter.h>
 
 #include <libsolutil/Exceptions.h>
@@ -55,16 +57,23 @@ evmc::VM& EVMHost::getVM(std::string const& _path)
 	static std::map<std::string, std::unique_ptr<evmc::VM>> vms;
 	if (vms.count(_path) == 0)
 	{
-		evmc_loader_error_code errorCode = {};
-		auto vm = evmc::VM{evmc_load_and_configure(_path.c_str(), &errorCode)};
-		if (vm && errorCode == EVMC_LOADER_SUCCESS)
-			vms[_path] = std::make_unique<evmc::VM>(evmc::VM(std::move(vm)));
+		// No explicit --vm / ETH_EVMONE path (see CommonOptions::parse()): use the statically
+		// linked evmone instead of dynamically loading a shared library.
+		if (_path.empty())
+			vms[_path] = std::make_unique<evmc::VM>(evmc_create_evmone());
 		else
 		{
-			std::cerr << "Error loading VM from " << _path;
-			if (char const* errorMsg = evmc_last_error_msg())
-				std::cerr << ":" << std::endl << errorMsg;
-			std::cerr << std::endl;
+			evmc_loader_error_code errorCode = {};
+			auto vm = evmc::VM{evmc_load_and_configure(_path.c_str(), &errorCode)};
+			if (vm && errorCode == EVMC_LOADER_SUCCESS)
+				vms[_path] = std::make_unique<evmc::VM>(evmc::VM(std::move(vm)));
+			else
+			{
+				std::cerr << "Error loading VM from " << _path;
+				if (char const* errorMsg = evmc_last_error_msg())
+					std::cerr << ":" << std::endl << errorMsg;
+				std::cerr << std::endl;
+			}
 		}
 	}
 
@@ -1331,10 +1340,15 @@ evmc::Result EVMHost::resultWithGas(
 	return result;
 }
 
-StorageMap const& EVMHost::get_address_storage(evmc::address const& _addr)
+StorageMap EVMHost::get_address_storage(evmc::address const& _addr)
 {
 	soltestAssert(account_exists(_addr), "Account does not exist.");
-	return accounts[_addr].storage;
+	// accounts[_addr].storage is an unordered_map (upstream evmc::MockedAccount), so copy it into
+	// a std::map here to give callers (EVMHostPrinter::storage()) deterministic, sorted order.
+	StorageMap sortedStorage;
+	for (auto const& [slot, value]: accounts[_addr].storage)
+		sortedStorage[slot] = value;
+	return sortedStorage;
 }
 
 std::string EVMHostPrinter::state()

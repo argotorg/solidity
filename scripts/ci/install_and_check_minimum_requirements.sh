@@ -8,7 +8,7 @@ BOOST_VERSION=1.83
 
 # minimum cmake version
 CMAKE_MAJOR=3
-CMAKE_MINOR=13
+CMAKE_MINOR=25
 CMAKE_PATCH=0
 CMAKE_FULL_VERSION="${CMAKE_MAJOR}.${CMAKE_MINOR}.${CMAKE_PATCH}"
 
@@ -52,9 +52,11 @@ if [[ $installed_boost_version != ${BOOST_VERSION}* ]]; then
 fi
 
 echo "-- Installing CMake ${CMAKE_FULL_VERSION}"
-wget "https://cmake.org/files/v${CMAKE_MAJOR}.${CMAKE_MINOR}/cmake-${CMAKE_FULL_VERSION}-Linux-x86_64.tar.gz"
-tar --extract --gzip --file "cmake-${CMAKE_FULL_VERSION}-Linux-x86_64.tar.gz"
-sudo mv "cmake-${CMAKE_FULL_VERSION}-Linux-x86_64" "/opt/cmake-${CMAKE_FULL_VERSION}"
+# Note the lowercase "linux": CMake renamed this asset from -Linux-x86_64 to
+# -linux-x86_64 in 3.20, so the old spelling 404s for any newer pin.
+wget "https://cmake.org/files/v${CMAKE_MAJOR}.${CMAKE_MINOR}/cmake-${CMAKE_FULL_VERSION}-linux-x86_64.tar.gz"
+tar --extract --gzip --file "cmake-${CMAKE_FULL_VERSION}-linux-x86_64.tar.gz"
+sudo mv "cmake-${CMAKE_FULL_VERSION}-linux-x86_64" "/opt/cmake-${CMAKE_FULL_VERSION}"
 sudo ln --symbolic "/opt/cmake-${CMAKE_FULL_VERSION}/bin/"* /usr/local/bin/
 echo "-- Installed $(cmake --version)"
 

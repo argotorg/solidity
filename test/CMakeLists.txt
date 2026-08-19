@@ -1,3 +1,18 @@
+# Building the tests needs a newer CMake than building the compiler does: EvmoneDependency
+# below uses CMAKE_FIND_PACKAGE_REDIRECTS_DIR and OVERRIDE_FIND_PACKAGE (3.24) and
+# block(SCOPE_FOR VARIABLES) (3.25). Requiring it here rather than at the top level keeps
+# `cmake -DTESTS=0` buildable with the project's own 3.13 floor -- which matters, because the
+# Emscripten image ships CMake 3.16 and never configures this directory (see the
+# `TESTS AND NOT EMSCRIPTEN` guard around add_subdirectory(test)).
+cmake_minimum_required(VERSION 3.25)
+
+include(EvmoneDependency)
+# evmc_loader (aliased evmc::loader) links against evmc::evmc for header resolution, so this must
+# run after EvmoneDependency; soltest's target_link_libraries() below references evmc::loader by
+# name, so this must also run before that -- hence pulled up here rather than left at the bottom
+# next to the other add_subdirectory() calls.
+add_subdirectory(evmc)
+
 set(sources
     soltest.cpp
     Common.cpp
@@ -232,7 +247,7 @@ add_executable(soltest ${sources}
     ${solcli_sources}
     ${yul_phaser_sources}
 )
-target_link_libraries(soltest PRIVATE solcli libsolc yul solidity smtutil solutil phaser Boost::boost yulInterpreter evmasm Boost::filesystem Boost::program_options Boost::unit_test_framework evmc)
+target_link_libraries(soltest PRIVATE solcli libsolc yul solidity smtutil solutil phaser Boost::boost yulInterpreter evmasm Boost::filesystem Boost::program_options Boost::unit_test_framework evmc::evmc_cpp evmc::loader evmone)
 
 
 # Special compilation flag for Visual Studio (version 2019 at least affected)
@@ -248,7 +263,6 @@ if (NOT Boost_USE_STATIC_LIBS)
 endif()
 
 add_subdirectory(tools)
-add_subdirectory(evmc)
 
 if (PROPERTY_BASED_TESTS)
     add_subdirectory(fuzztest)

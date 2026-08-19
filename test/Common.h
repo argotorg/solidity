@@ -23,7 +23,7 @@
 #include <liblangutil/Exceptions.h>
 #include <libsolutil/Numeric.h>
 
-#include <test/evmc/evmc.h>
+#include <evmc/evmc.h>
 
 #include <boost/filesystem/path.hpp>
 #include <boost/program_options.hpp>

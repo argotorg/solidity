@@ -25,7 +25,7 @@
 
 #include <test/EVMHost.h>
 
-#include <test/evmc/evmc.hpp>
+#include <evmc/evmc.hpp>
 
 #include <test/libsolidity/util/SoltestTypes.h>
 

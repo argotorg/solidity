@@ -1,25 +1,31 @@
-# EVMC
+# EVMC loader
 
-This is an import of [EVMC](https://github.com/ipsilon/evmc) as vendored in
-[evmone 0.23.0](https://github.com/ipsilon/evmone/tree/v0.23.0/evmc) (ABI version 18).
+This directory used to be a full vendored import of [EVMC](https://github.com/ipsilon/evmc) as
+shipped inside [evmone](https://github.com/ipsilon/evmone). As of the `evmone-fetchcontent`
+branch, Solidity instead fetches evmone itself (headers included) via CMake `FetchContent`
+(`cmake/EvmoneDependency.cmake`), so the EVMC headers that used to live here -- `evmc.h`,
+`evmc.hpp`, `helpers.h`, `utils.h`, `mocked_host.hpp`, `bytes.hpp`, `hex.hpp`,
+`filter_iterator.hpp` -- have been deleted. `#include <evmc/...>` now resolves against the fetched
+copy instead. This directory shrinks from 13 files to 5: `loader.c`, `loader.h`,
+`CMakeLists.txt`, `LICENSE` and this README.
 
-The standalone `ipsilon/evmc` repository stopped cutting releases after
-[v12.1.0](https://github.com/ipsilon/evmc/releases/tag/v12.1.0) (ABI 12) and has since been archived.
-EVMC development continues inside the `evmc/` subdirectory of the `evmone` repository instead, so later
-ABI versions (13 onward, including the current ABI 18) are only available from an `evmone` checkout or
-release, not from a versioned `evmc` release.
+What is left, and why:
+- `loader.c` / `loader.h`: the EVMC loader library backing the `--vm` flag and `ETH_EVMONE`
+  (see `test/Common.cpp` and `test/EVMHost.cpp`). evmone 0.23.0's `evmc/lib/` builds only the
+  `evmc`, `evmc_cpp` and `mocked_host` CMake targets -- the loader itself is gone upstream (there
+  is no `loader.c`, no `include/evmc/loader.h`, and no `evmc::loader` target to link). Solidity
+  still needs it to keep `--vm <path>` working against arbitrary EVMC VMs, not just the statically
+  linked evmone. The loader is ABI-agnostic (it only reads `vm->abi_version` and compares it
+  against the compile-time `EVMC_ABI_VERSION`), so it needs no maintenance across EVMC versions
+  and these two files can be left untouched on future upgrades.
+- `LICENSE`: covers the two files above.
+- `CMakeLists.txt`: reduced to build only the `evmc::loader` static library. It no longer defines
+  an `evmc` INTERFACE target -- that name now belongs to the fetched evmone's own `evmc` target,
+  and a second definition of the same target name would collide.
 
-Steps when upgrading:
-- Copy all from [evmc/include/evmc](https://github.com/ipsilon/evmone/tree/v0.23.0/evmc/include/evmc) to [test/evmc](https://github.com/argotorg/solidity/tree/develop/test/evmc)
-    - As of evmone 0.23.0 that directory no longer contains `tooling.hpp` or `instructions.h` (an
-      older instruction to delete/skip them on copy no longer applies — there is nothing there to
-      skip). If a future upstream reintroduces files like these that don't belong in this vendored
-      copy, drop them then.
-- `loader.c` / `loader.h` do **not** need to be refreshed, and in fact can no longer be, from an
-  `evmone` checkout: as of evmone 0.23.0, `evmc/lib/` only builds the `evmc`, `evmc_cpp` and
-  `mocked_host` CMake targets — the EVMC loader is gone. The copies kept in this directory are
-  ABI-agnostic (they only read `vm->abi_version` and compare it against the compile-time
-  `EVMC_ABI_VERSION`), so they need no per-version maintenance and can be left untouched on future
-  upgrades.
-- `MockedAccount.storage` in `mocked_host.hpp` should be changed to a `map` from `unordered_map` as ordering is important for fuzzing. You'll also need to include `<map>`.
-    See [PR #11094](https://github.com/argotorg/solidity/pull/11094) for more details.
+The `MockedAccount::storage` container-ordering tweak (`std::map` instead of `unordered_map`, kept
+for deterministic `EVMHostPrinter` output -- see
+[PR #11094](https://github.com/argotorg/solidity/pull/11094)) could not be preserved this way,
+since `mocked_host.hpp` no longer lives in this directory to patch. Instead,
+`EVMHostPrinter::storage()` (`test/EVMHost.cpp`) now sorts the storage entries at the point of
+output, so upstream's `unordered_map` is safe to consume directly.
