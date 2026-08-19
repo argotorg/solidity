@@ -22,7 +22,11 @@ set(sources
     EVMHost.cpp
     EVMHost.h
     EVMHostTest.cpp
-    EVMStateSmokeTest.cpp
+    EVMState.cpp
+    EVMState.h
+    EVMStateTest.cpp
+    EVMTransactionDriver.cpp
+    EVMTransactionDriver.h
     ExecutionFramework.cpp
     ExecutionFramework.h
     FilesystemUtils.cpp
@@ -99,6 +103,7 @@ set(libsolidity_sources
     libsolidity/ErrorCheck.h
     libsolidity/EthdebugTest.cpp
     libsolidity/EthdebugTest.h
+    libsolidity/EVMTransactionDriverTest.cpp
     libsolidity/GasCosts.cpp
     libsolidity/GasMeter.cpp
     libsolidity/GasTest.cpp
