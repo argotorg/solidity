@@ -372,7 +372,7 @@ The full contract
     // SPDX-License-Identifier: GPL-3.0
     pragma solidity >=0.7.0 <0.9.0;
 
-    contract Frozeable {
+    contract Freezable {
         bool private _frozen = false;
 
         modifier notFrozen() {
@@ -385,7 +385,7 @@ The full contract
         }
     }
 
-    contract SimplePaymentChannel is Frozeable {
+    contract SimplePaymentChannel is Freezable {
         address payable public sender;    // The account sending payments.
         address payable public recipient; // The account receiving the payments.
         uint256 public expiration;        // Timeout in case the recipient never closes.
