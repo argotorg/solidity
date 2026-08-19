@@ -806,7 +806,15 @@ bool TypeChecker::visit(InlineAssembly const& _inlineAssembly)
 				}
 			}
 
-			solAssert(!dynamic_cast<FixedPointType const*>(var->type()), "FixedPointType not implemented.");
+			if (dynamic_cast<FixedPointType const*>(var->type()))
+			{
+				m_errorReporter.unimplementedFeatureError(
+					5016_error,
+					nativeLocationOf(_identifier),
+					"Fixed point types are not implemented."
+				);
+				return false;
+			}
 
 			if (!identifierInfo.suffix.empty())
 			{

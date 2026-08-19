@@ -242,6 +242,8 @@ void GenericStorageItem<IsTransient>::retrieveValue(langutil::SourceLocation con
 		if (type->category() == Type::Category::UserDefinedValueType)
 			type = type->encodingType();
 		bool cleaned = false;
+		// Load the slot value at storage_key and shift it to the right using storage_offset.
+		// Note that storage_offset is in bytes, so we need to shift by 8 * storage_offset bits.
 		m_context
 			<< Instruction::SWAP1 << s_loadInstruction << Instruction::SWAP1
 			<< u256(0x100) << Instruction::EXP << Instruction::SWAP1 << Instruction::DIV;
@@ -257,6 +259,9 @@ void GenericStorageItem<IsTransient>::retrieveValue(langutil::SourceLocation con
 			}
 			else if (fun->kind() == FunctionType::Kind::Internal)
 			{
+				// Mask out the upper bits not belonging to the value of the function pointer.
+				m_context << ((u256(0x1) << (8 * type->storageBytes())) - 1) << Instruction::AND;
+				cleaned = true;
 				m_context << Instruction::DUP1 << Instruction::ISZERO;
 				CompilerUtils(m_context).pushZeroValue(*fun);
 				m_context << Instruction::MUL << Instruction::OR;

@@ -103,6 +103,8 @@ bool SyntaxChecker::visit(PragmaDirective const& _pragma)
 				m_errorReporter.syntaxError(3250_error, _pragma.location(), "Empty experimental feature name is invalid.");
 			else if (literal == "solidity")
 				m_errorReporter.syntaxError(3332_error, _pragma.location(), "The experimental Solidity prototype has been removed from the compiler.");
+			else if (literal == "ABIEncoderV2")
+				m_errorReporter.syntaxError(2044_error, _pragma.location(), "The experimental ABIEncoderV2 pragma has been removed from the compiler.");
 			else if (!ExperimentalFeatureNames.count(literal))
 				m_errorReporter.syntaxError(8491_error, _pragma.location(), "Unsupported experimental feature name.");
 			else if (m_sourceUnit->annotation().experimentalFeatures.count(ExperimentalFeatureNames.at(literal)))
@@ -121,21 +123,6 @@ bool SyntaxChecker::visit(PragmaDirective const& _pragma)
 						);
 					else
 						m_errorReporter.warning(2264_error, _pragma.location(), "Experimental features are turned on. Do not use experimental features on live deployments.");
-				}
-
-				if (feature == ExperimentalFeature::ABIEncoderV2)
-				{
-					if (m_sourceUnit->annotation().useABICoderV2.set())
-					{
-						if (!*m_sourceUnit->annotation().useABICoderV2)
-							m_errorReporter.syntaxError(
-								8273_error,
-								_pragma.location(),
-								"ABI coder v1 has already been selected through \"pragma abicoder v1\"."
-							);
-					}
-					else
-						m_sourceUnit->annotation().useABICoderV2 = true;
 				}
 			}
 		}

@@ -65,6 +65,7 @@ function ens_test
     pnpm install
 
     replace_version_pragmas
+    remove_experimental_abi_encoder_v2_pragmas
     neutralize_packaged_contracts
 
     # In some cases Hardhat does not detect revert reasons properly via IR.

@@ -112,15 +112,20 @@ sub_0: assembly {
         /* "input.sol":295:298  x() */
       tag_19
       swap1
-        /* "input.sol":295:296  x */
-      dup1
-      iszero
-      tag_20
-      mul
-      or
-        /* "input.sol":295:298  x() */
       0xffffffff
+        /* "input.sol":295:296  x */
+      tag_20
+      0xffffffffffffffff
+      dup4
       and
+      iszero
+      mul
+        /* "input.sol":295:298  x() */
+      dup2
+      and
+      swap2
+      and
+      or
       jump	// in
     tag_19:
         /* "input.sol":295:302  x() + 1 */

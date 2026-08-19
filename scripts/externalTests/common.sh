@@ -146,6 +146,13 @@ function replace_version_pragmas
     find . test -name '*.sol' -type f -print0 | xargs -0 sed -i -E -e 's/pragma solidity [^;]+;/pragma solidity >=0.0;/'
 }
 
+function remove_experimental_abi_encoder_v2_pragmas
+{
+    # Remove experimental ABIEncoderV2 pragma. ABI encoder V2 is now the default one.
+    printLog "Removing experimental ABIEncoderV2 pragmas..."
+    find . test -name '*.sol' -type f -print0 | xargs -0 sed -i -E -e '/^pragma experimental "?ABIEncoderV2"?;$/d'
+}
+
 function neutralize_package_lock
 {
     # Remove lock files (if they exist) to prevent them from overriding our changes in package.json

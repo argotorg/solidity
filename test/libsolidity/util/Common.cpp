@@ -32,9 +32,7 @@ std::string test::withPreamble(std::string const& _sourceCode, bool _addAbicoder
 	// NOTE: These checks are intentionally loose to match weird cases.
 	// We can manually adjust a test case where this causes problem.
 	bool licenseMissing = _sourceCode.find("SPDX-License-Identifier:") == std::string::npos;
-	bool abicoderMissing =
-		_sourceCode.find("pragma experimental ABIEncoderV2;") == std::string::npos &&
-		_sourceCode.find("pragma abicoder") == std::string::npos;
+	bool abicoderMissing = _sourceCode.find("pragma abicoder") == std::string::npos;
 
 	return
 		versionPragma +

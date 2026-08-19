@@ -29,7 +29,6 @@ namespace solidity::frontend
 
 enum class ExperimentalFeature
 {
-	ABIEncoderV2, // new ABI encoder that makes use of Yul
 	SMTChecker,
 	Test,
 	TestOnlyAnalysis
@@ -37,14 +36,12 @@ enum class ExperimentalFeature
 
 static std::set<ExperimentalFeature> const ExperimentalFeatureWithoutWarning =
 {
-	ExperimentalFeature::ABIEncoderV2,
 	ExperimentalFeature::SMTChecker,
 	ExperimentalFeature::TestOnlyAnalysis,
 };
 
 static std::map<std::string, ExperimentalFeature> const ExperimentalFeatureNames =
 {
-	{ "ABIEncoderV2", ExperimentalFeature::ABIEncoderV2 },
 	{ "SMTChecker", ExperimentalFeature::SMTChecker },
 	{ "__test", ExperimentalFeature::Test },
 	{ "__testOnlyAnalysis", ExperimentalFeature::TestOnlyAnalysis }

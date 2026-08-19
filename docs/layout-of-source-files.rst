@@ -142,15 +142,6 @@ The second pragma is the experimental pragma. It can be used to enable
 features of the compiler or language that are not yet enabled by default.
 The following experimental pragmas are currently supported:
 
-.. index:: ! pragma; ABIEncoderV2
-
-ABIEncoderV2
-~~~~~~~~~~~~
-
-Because the ABI coder v2 is not considered experimental anymore,
-it can be selected via ``pragma abicoder v2`` (please see above)
-since Solidity 0.7.4.
-
 .. index:: ! pragma; SMTChecker
 .. _smt_checker:
 

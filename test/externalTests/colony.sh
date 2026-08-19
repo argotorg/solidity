@@ -70,6 +70,7 @@ function colony_test
     cd ..
 
     replace_version_pragmas
+    remove_experimental_abi_encoder_v2_pragmas
     [[ $BINARY_TYPE == solcjs ]] && force_solc_modules "${DIR}/solc/dist"
 
     for preset in $SELECTED_PRESETS; do
