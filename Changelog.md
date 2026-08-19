@@ -13,6 +13,7 @@ Compiler Features:
 * General: Remove support for the experimental Generic Solidity prototype (`pragma experimental solidity`).
 * SMTChecker: Emit a deprecation warning for the BMC engine.
 * SMTChecker: Support `block.slotnum`.
+* Yul Optimizer: Use a hash-based container instead of an ordered tree for `DataFlowAnalyzer`'s and `SSAValueTracker`'s per-variable maps, speeding up compilation of code with many variables.
 
 Bugfixes:
 * Code Generator: Fix ICE on parenthesized custom error construction in require statement.
