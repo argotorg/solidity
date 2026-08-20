@@ -1,0 +1,15 @@
+{
+ "language": "Solidity",
+ "sources": {
+  "A": {
+   "content": "// SPDX-License-Identifier: GPL-3.0\npragma solidity >=0.0;\ncontract C {\n    string private eyes = unicode\"€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€\";\n    function f() public pure {\n        string memory eyes;\n        eyes = eyes;\n    }\n}"
+  }
+ },
+ "settings": {
+  "outputSelection": {
+   "*": {
+    "*": []
+   }
+  }
+ }
+}

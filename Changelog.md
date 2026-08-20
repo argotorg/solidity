@@ -14,6 +14,8 @@ Compiler Features:
 * SMTChecker: Emit a deprecation warning for the BMC engine.
 * SMTChecker: Support `block.slotnum`.
 * Yul Optimizer: Improve performance of `DataFlowAnalyzer::clearValues()`.
+* Standard JSON Interface: Fix the entire output being replaced by a `JSONError` ("Error writing output JSON.") when an error message quotes a long source line and truncating it splits a multi-byte character.
+
 
 Bugfixes:
 * Code Generator: Fix ICE on parenthesized custom error construction in require statement.

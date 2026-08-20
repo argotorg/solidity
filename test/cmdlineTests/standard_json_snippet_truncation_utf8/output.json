@@ -1,0 +1,41 @@
+{
+    "errors": [
+        {
+            "component": "general",
+            "errorCode": "2519",
+            "formattedMessage": "Warning: This declaration shadows an existing declaration.
+ --> A:6:9:
+  |
+6 |         string memory eyes;
+  |         ^^^^^^^^^^^^^^^^^^
+Note: The shadowed declaration is here:
+ --> A:4:5:
+  |
+4 |     string private eyes = unicode\"\u20ac ... \u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\";
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+",
+            "message": "This declaration shadows an existing declaration.",
+            "secondarySourceLocations": [
+                {
+                    "end": 287,
+                    "file": "A",
+                    "message": "The shadowed declaration is here:",
+                    "start": 76
+                }
+            ],
+            "severity": "warning",
+            "sourceLocation": {
+                "end": 346,
+                "file": "A",
+                "start": 328
+            },
+            "type": "Warning"
+        }
+    ],
+    "sources": {
+        "A": {
+            "id": 0
+        }
+    }
+}

@@ -22,10 +22,30 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstddef>
+#include <string_view>
 #include <variant>
 
 using namespace solidity;
 using namespace solidity::langutil;
+
+namespace
+{
+
+// If `_position` points into the middle of a multi-byte character, yield the beginning of the character. Otherwise,
+// this is the identity.
+std::string::size_type toUTF8SequenceStart(std::string_view const _text, std::string::size_type _position)
+{
+	while (
+		_position > 0 &&
+		_position < _text.size() &&
+		(static_cast<std::byte>(_text[_position]) & std::byte{0xc0}) == std::byte{0x80}
+	)
+		--_position;
+	return _position;
+}
+
+}
 
 SourceReferenceExtractor::Message SourceReferenceExtractor::extract(
 	CharStreamProvider const& _charStreamProvider,
@@ -86,8 +106,11 @@ SourceReference SourceReferenceExtractor::extract(
 
 	if (locationLength > 150)
 	{
-		auto const lhs = static_cast<size_t>(start.column) + 35;
-		std::string::size_type const rhs = (isMultiline ? line.length() : static_cast<size_t>(end.column)) - 35;
+		std::string::size_type const lhs = toUTF8SequenceStart(line, static_cast<std::string::size_type>(start.column) + 35);
+		std::string::size_type const rhs = toUTF8SequenceStart(
+			line,
+			(isMultiline ? line.length() : static_cast<size_t>(end.column)) - 35
+		);
 		line = line.substr(0, lhs) + " ... " + line.substr(rhs);
 		end.column = start.column + 75;
 		locationLength = 75;
@@ -96,12 +119,13 @@ SourceReference SourceReferenceExtractor::extract(
 	if (line.length() > 150)
 	{
 		int const len = static_cast<int>(line.length());
-		line = line.substr(
-			static_cast<size_t>(std::max(0, start.column - 35)),
-			static_cast<size_t>(std::min(start.column, 35)) + static_cast<size_t>(
-				std::min(locationLength + 35, len - start.column)
-			)
+		std::string::size_type const cutStart = toUTF8SequenceStart(line, static_cast<std::string::size_type>(std::max(0, start.column - 35)));
+		std::string::size_type const cutEnd = toUTF8SequenceStart(
+			line,
+			static_cast<std::string::size_type>(start.column) + static_cast<std::string::size_type>(std::min(locationLength + 35, len - start.column))
 		);
+		solAssert(cutEnd >= cutStart);
+		line = line.substr(cutStart, cutEnd - cutStart);
 		if (start.column + locationLength + 35 < len)
 			line += " ...";
 		if (start.column > 35)
