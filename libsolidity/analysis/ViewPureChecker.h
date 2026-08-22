@@ -50,8 +50,18 @@ private:
 		langutil::SourceLocation location;
 	};
 
+	/// A call of the form ``super.f()``, together with the function whose body contains it
+	/// and the function it resolves to in the linearization of the contract it is defined in.
+	struct SuperCall
+	{
+		FunctionCall const* call;
+		FunctionDefinition const* enclosingFunction;
+		FunctionDefinition const* lexicallyResolvedFunction;
+	};
+
 	bool visit(ImportDirective const&) override;
 
+	bool visit(ContractDefinition const& _contract) override;
 	bool visit(FunctionDefinition const& _funDef) override;
 	void endVisit(FunctionDefinition const& _funDef) override;
 	void endVisit(BinaryOperation const& _binaryOperation) override;
@@ -80,6 +90,12 @@ private:
 	/// Determines the mutability of modifier if not already cached.
 	MutabilityAndLocation const& modifierMutability(ModifierDefinition const& _modifier);
 
+	/// ``super`` calls are type-checked against the linearization of the contract they are
+	/// defined in, but resolved against the linearization of the most derived contract.
+	/// Re-checks every collected ``super`` call against the linearization of each contract
+	/// inheriting from the one that contains it.
+	void checkSuperCallDispatch();
+
 	std::vector<std::shared_ptr<ASTNode>> const& m_ast;
 	langutil::ErrorReporter& m_errorReporter;
 
@@ -87,6 +103,8 @@ private:
 	MutabilityAndLocation m_bestMutabilityAndLocation = MutabilityAndLocation{StateMutability::Payable, langutil::SourceLocation()};
 	FunctionDefinition const* m_currentFunction = nullptr;
 	std::map<ModifierDefinition const*, MutabilityAndLocation> m_inferredMutability;
+	std::vector<ContractDefinition const*> m_contracts;
+	std::map<ContractDefinition const*, std::vector<SuperCall>> m_superCalls;
 };
 
 }

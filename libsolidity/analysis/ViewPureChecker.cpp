@@ -25,6 +25,7 @@
 #include <libevmasm/SemanticInformation.h>
 
 #include <functional>
+#include <set>
 #include <utility>
 #include <variant>
 
@@ -131,12 +132,20 @@ bool ViewPureChecker::check()
 	for (auto const& source: m_ast)
 		source->accept(*this);
 
+	checkSuperCallDispatch();
+
 	return !m_errors;
 }
 
 bool ViewPureChecker::visit(ImportDirective const&)
 {
 	return false;
+}
+
+bool ViewPureChecker::visit(ContractDefinition const& _contract)
+{
+	m_contracts.push_back(&_contract);
+	return true;
 }
 
 bool ViewPureChecker::visit(FunctionDefinition const& _funDef)
@@ -352,6 +361,77 @@ void ViewPureChecker::endVisit(FunctionCall const& _functionCall)
 		dynamic_cast<FunctionType const&>(*_functionCall.expression().annotation().type).stateMutability(),
 		_functionCall.location()
 	);
+
+	// The mutability reported above is the one of the function this call lexically resolves to.
+	// For `super` calls that is not necessarily the function that is actually going to be
+	// executed, so remember the call and re-check it in @a checkSuperCallDispatch.
+	auto const* memberAccess = dynamic_cast<MemberAccess const*>(&_functionCall.expression());
+	if (!m_currentFunction || !memberAccess)
+		return;
+
+	auto const* lexicallyResolvedFunction = dynamic_cast<FunctionDefinition const*>(
+		memberAccess->annotation().referencedDeclaration
+	);
+	if (!lexicallyResolvedFunction || *memberAccess->annotation().requiredLookup != VirtualLookup::Super)
+		return;
+
+	auto const* typeType = dynamic_cast<TypeType const*>(memberAccess->expression().annotation().type);
+	solAssert(typeType);
+	auto const* contractType = dynamic_cast<ContractType const*>(typeType->actualType());
+	solAssert(contractType && contractType->isSuper());
+
+	m_superCalls[&contractType->contractDefinition()].emplace_back(
+		SuperCall{&_functionCall, m_currentFunction, lexicallyResolvedFunction}
+	);
+}
+
+void ViewPureChecker::checkSuperCallDispatch()
+{
+	std::set<std::pair<FunctionCall const*, FunctionDefinition const*>> reportedCalls;
+
+	for (ContractDefinition const* contract: m_contracts)
+		for (ContractDefinition const* base: contract->annotation().linearizedBaseContracts)
+		{
+			auto const superCalls = m_superCalls.find(base);
+			if (superCalls == m_superCalls.end())
+				continue;
+
+			for (SuperCall const& superCall: superCalls->second)
+			{
+				FunctionDefinition const* resolvedFunction = ASTNode::resolveFunctionCall(*superCall.call, contract);
+				solAssert(resolvedFunction);
+
+				// The lexically resolved function has already been checked by the main pass.
+				if (resolvedFunction == superCall.lexicallyResolvedFunction)
+					continue;
+
+				StateMutability mutability = resolvedFunction->stateMutability();
+				// We only require "nonpayable" to call a payable function.
+				if (mutability == StateMutability::Payable)
+					mutability = StateMutability::NonPayable;
+
+				if (mutability <= superCall.enclosingFunction->stateMutability())
+					continue;
+
+				// The same call can be reached through several derived contracts. Report it only once.
+				if (!reportedCalls.insert({superCall.call, resolvedFunction}).second)
+					continue;
+
+				m_errorReporter.typeError(
+					7557_error,
+					superCall.call->location(),
+					SecondarySourceLocation{}
+						.append("This is the linearization that makes the call resolve to it.", contract->location())
+						.append("The function it resolves to is defined here.", resolvedFunction->location()),
+					"Function cannot be declared as " +
+					stateMutabilityToString(superCall.enclosingFunction->stateMutability()) +
+					" because this \"super\" call resolves to a function that (potentially) " +
+					(mutability == StateMutability::NonPayable ? "modifies the state" : "reads from the environment or state") +
+					" in the linearization of a contract inheriting from this one."
+				);
+				m_errors = true;
+			}
+		}
 }
 
 bool ViewPureChecker::visit(MemberAccess const& _memberAccess)
