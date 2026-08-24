@@ -1653,6 +1653,10 @@ jobs:
     environment:
       TERM: xterm
       COMPILE_ONLY: << parameters.compile_only >>
+      # Use a cache dir private to the job instead of the one baked into the image and also written
+      # to by the global pnpm install below (as root). Leftovers in its _cacache/tmp make npm fail
+      # with a random EEXIST, because cacache picks tmp file names from only 4 random bytes.
+      npm_config_cache: /tmp/npm-cache
     steps:
       - checkout
       - attach_workspace:
