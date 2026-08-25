@@ -240,7 +240,7 @@ virtual method lookup.
 .. note::
     ``super.f()`` does not necessarily call the direct parent. It calls whichever ``f``
     comes next in the linearization of the *most derived* contract, which may live in a
-    contract that is not even a base of the one containing the call. ``external``
+    contract that is not a base of the one containing the call. ``external``
     functions cannot be called internally, so they can never be the target; it is an
     error if an implemented ``external`` function is what comes next.
 
