@@ -18,6 +18,7 @@
 
 #pragma once
 
+#include "liblangutil/EVMVersion.h"
 #include <test/libsolidity/AnalysisFramework.h>
 #include <test/TestCase.h>
 #include <test/CommonSyntaxTest.h>
@@ -33,6 +34,7 @@
 namespace solidity::frontend::test
 {
 
+using solidity::test::CompilerInput;
 using solidity::test::SyntaxTestError;
 
 /**

@@ -37,7 +37,7 @@ using namespace solidity::frontend::test;
 
 void SyntaxTest::parseAndAnalyze()
 {
-	auto const& [sourceUnitName, source] = *m_sources.begin();
+	auto const& [sourceUnitName, source] = *m_compilerInput.sources.begin();
 
 	YulStack yulStack = parseYul(source);
 	if (!yulStack.hasErrors())
