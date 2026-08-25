@@ -1095,8 +1095,8 @@ public:
 
 	/// @returns the implemented functions with the same name and parameter types as this one,
 	/// in the linearization of @a _mostDerivedContract starting at @a _searchStart, in
-	/// linearization order. A `super` lookup picks the first of those that is visible in derived
-	/// contracts; PostTypeContractLevelChecker rejects the ones skipped on the way.
+	/// linearization order. A `super` lookup always picks the first one; PostTypeContractLevelChecker
+	/// rejects the call if that one is not visible in derived contracts.
 	std::vector<FunctionDefinition const*> superLookupCandidates(
 		ContractDefinition const& _mostDerivedContract,
 		ContractDefinition const& _searchStart

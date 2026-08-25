@@ -52,9 +52,9 @@ private:
 
 	void checkStorageLayoutSpecifier(ContractDefinition const& _contract);
 
-	/// Rejects `super` calls anywhere in the linearization of @a _contract that would have to skip
-	/// an external function to find their target.
-	void checkSuperCallsSkippingExternalFunctions(ContractDefinition const& _contract);
+	/// Rejects `super` calls anywhere in the linearization of @a _contract that resolve to an
+	/// external function, which cannot be called internally.
+	void checkSuperCallsResolvingToExternalFunctions(ContractDefinition const& _contract);
 
 	void warnStorageLayoutBaseNearStorageEnd(ContractDefinition const& _contract);
 

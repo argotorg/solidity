@@ -98,7 +98,7 @@ bool PostTypeContractLevelChecker::check(ContractDefinition const& _contract)
 			errorHashes[hash][signature] = error->location();
 	}
 
-	checkSuperCallsSkippingExternalFunctions(_contract);
+	checkSuperCallsResolvingToExternalFunctions(_contract);
 
 	if (_contract.storageLayoutSpecifier())
 		checkStorageLayoutSpecifier(_contract);
@@ -108,10 +108,10 @@ bool PostTypeContractLevelChecker::check(ContractDefinition const& _contract)
 	return !Error::containsErrors(m_errorReporter.errors());
 }
 
-void PostTypeContractLevelChecker::checkSuperCallsSkippingExternalFunctions(ContractDefinition const& _contract)
+void PostTypeContractLevelChecker::checkSuperCallsResolvingToExternalFunctions(ContractDefinition const& _contract)
 {
 	// Code is only generated for the most derived contract, and only there does the linearization
-	// contain the bases that a `super` call in one of them can be diverted by.
+	// contain the bases that a `super` call in one of them can be diverted to.
 	if (_contract.abstract() || _contract.isInterface() || _contract.isLibrary())
 		return;
 
@@ -134,36 +134,33 @@ void PostTypeContractLevelChecker::checkSuperCallsSkippingExternalFunctions(Cont
 		if (!searchStart)
 			continue;
 
-		FunctionDefinition const* skipped = nullptr;
-		for (FunctionDefinition const* candidate: function->superLookupCandidates(_contract, *searchStart))
-		{
-			if (candidate->isVisibleInDerivedContracts())
-			{
-				if (skipped)
-					m_errorReporter.typeError(
-						8476_error,
-						memberAccess->location(),
-						SecondarySourceLocation{}
-							.append("The external function is declared here:", skipped->location())
-							.append("Without it the call would reach this function:", candidate->location())
-							.append("The linearization of this contract determines the target:", _contract.nameLocation()),
-						fmt::format(
-							"In contract \"{}\", this \"super\" call resolves to external function \"{}.{}\", "
-							"which cannot be called internally. Make \"{}.{}\" public, or change the order of "
-							"base contracts in \"{}\".",
-							_contract.name(),
-							skipped->annotation().contract->name(),
-							skipped->name(),
-							skipped->annotation().contract->name(),
-							skipped->name(),
-							_contract.name()
-						)
-					);
-				break;
-			}
-			if (!skipped && candidate->visibility() == Visibility::External)
-				skipped = candidate;
-		}
+		// The call resolves to the first candidate, exactly as FunctionDefinition::resolveVirtual()
+		// does. Nothing is ever skipped: if that one cannot be called internally, this is an error.
+		std::vector<FunctionDefinition const*> candidates = function->superLookupCandidates(_contract, *searchStart);
+		solAssert(!candidates.empty(), "Super lookup for function " + function->name() + " found no candidate.");
+		FunctionDefinition const& target = *candidates.front();
+		if (target.isVisibleInDerivedContracts())
+			continue;
+		solAssert(target.visibility() == Visibility::External);
+
+		m_errorReporter.typeError(
+			8476_error,
+			memberAccess->location(),
+			SecondarySourceLocation{}
+				.append("The external function is declared here:", target.location())
+				.append("The linearization of this contract determines the target:", _contract.nameLocation()),
+			fmt::format(
+				"In contract \"{}\", this \"super\" call resolves to external function \"{}.{}\", "
+				"which cannot be called internally. Make \"{}.{}\" public, or change the order of "
+				"base contracts in \"{}\".",
+				_contract.name(),
+				target.annotation().contract->name(),
+				target.name(),
+				target.annotation().contract->name(),
+				target.name(),
+				_contract.name()
+			)
+		);
 	}
 }
 
