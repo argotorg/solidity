@@ -579,13 +579,9 @@ FunctionDefinition const& FunctionDefinition::resolveVirtual(
 
 	if (_searchStart != nullptr)
 	{
-		// No assertion that the target is callable internally: this runs before the checker and also
-		// for abstract contracts, which it skips. Codegen asserts that instead.
 		std::vector<FunctionDefinition const*> candidates = superLookupCandidates(_mostDerivedContract, *_searchStart);
 		solAssert(!candidates.empty(), "Super lookup for function " + name() + " found no candidate.");
 		FunctionDefinition const& target = *candidates.front();
-		// Candidates are matched with calldata normalised to memory, so this stricter comparison
-		// only holds for a target a `super` call can really end up at.
 		if (target.isVisibleInDerivedContracts())
 			solAssert(FunctionType(target).hasEqualParameterTypes(*TypeProvider::function(*this)));
 		return target;
