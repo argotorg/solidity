@@ -19,4 +19,4 @@ contract D is A, X, B {
     function f() public override(A, X) returns (uint256) { return 7; }
 }
 // ----
-// TypeError 8476: (351-358): This "super" call would have to skip external function "X.f" in the linearization of contract "D". External functions have no internal entry point and can never be reached through "super". Declare "X.f" as public or reorder the inheritance hierarchy.
+// TypeError 8476: (351-358): In contract "D", this "super" call resolves to external function "X.f", which cannot be called internally. Make "X.f" public, or change the order of base contracts in "D".

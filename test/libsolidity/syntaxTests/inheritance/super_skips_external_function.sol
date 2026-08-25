@@ -13,10 +13,10 @@ contract X {
 }
 
 
-// C3 linearization of D is [D, B, X, A]. `super.f()` in B would have to skip X.f(),
-// which is external and therefore has no internal entry point.
+// C3 linearization of D is [D, B, X, A], so `super.f()` in B resolves to X.f(),
+// which is external and cannot be called internally.
 contract D is A, X, B {
     function f() public override(A, X, B) returns (uint256) { return super.f(); }
 }
 // ----
-// TypeError 8476: (167-174): This "super" call would have to skip external function "X.f" in the linearization of contract "D". External functions have no internal entry point and can never be reached through "super". Declare "X.f" as public or reorder the inheritance hierarchy.
+// TypeError 8476: (167-174): In contract "D", this "super" call resolves to external function "X.f", which cannot be called internally. Make "X.f" public, or change the order of base contracts in "D".

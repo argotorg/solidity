@@ -579,9 +579,9 @@ FunctionDefinition const& FunctionDefinition::resolveVirtual(
 
 	if (_searchStart != nullptr)
 	{
-		// External functions have no internal entry point, so they are not members of `super` --
-		// same filter as in TypeType::nativeMembers(). Analysis rejects calls that would skip one,
-		// and the statically bound target is always a candidate here, so one always remains.
+		// External functions cannot be called internally, so `super` never offers them as members --
+		// same filter as in TypeType::nativeMembers(). Analysis rejects calls that would resolve to
+		// one, and the statically bound target is always a candidate here, so one always remains.
 		for (FunctionDefinition const* candidate: superLookupCandidates(_mostDerivedContract, *_searchStart))
 			if (candidate->isVisibleInDerivedContracts())
 			{

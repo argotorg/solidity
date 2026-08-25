@@ -20,7 +20,7 @@ Bugfixes:
 * Code Generator: Fix uninitialized internal function pointers being read from a packed storage slot with the wrong value when a subsequent variable in the slot holds a non-zero value.
 * Commandline Interface: Report proper error instead of ICE on non-hex mixed-case address value given via `--libraries`.
 * Type Checker: Report an unimplemented feature error instead of ICE when a variable of a fixed point type is accessed in inline assembly.
-* Type Checker: Disallow `super` calls that would have to skip an implemented external function in the linearization of the most derived contract. External functions have no internal entry point and are therefore not members of `super`. Such calls previously resolved to the external function anyway, causing an ICE via IR and invalid code with the legacy pipeline.
+* Type Checker: Disallow `super` calls that would resolve to an implemented `external` function in the linearization of the most derived contract. Such calls previously caused an ICE via IR and jumped into the external function's body with the legacy pipeline.
 
 Build System:
 * Update minimum version requirement of Boost to 1.83.0 for Windows build. This matches the minimum version for other systems.

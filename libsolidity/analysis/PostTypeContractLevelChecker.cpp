@@ -144,18 +144,19 @@ void PostTypeContractLevelChecker::checkSuperCallsSkippingExternalFunctions(Cont
 						8476_error,
 						memberAccess->location(),
 						SecondarySourceLocation{}
-							.append("The skipped external function is declared here:", skipped->location())
-							.append("The intended target of the call is declared here:", candidate->location())
-							.append("The linearization of this contract is used:", _contract.nameLocation()),
+							.append("The external function is declared here:", skipped->location())
+							.append("Without it the call would reach this function:", candidate->location())
+							.append("The linearization of this contract determines the target:", _contract.nameLocation()),
 						fmt::format(
-							"This \"super\" call would have to skip external function \"{}.{}\" in the linearization "
-							"of contract \"{}\". External functions have no internal entry point and can never be "
-							"reached through \"super\". Declare \"{}.{}\" as public or reorder the inheritance hierarchy.",
-							skipped->annotation().contract->name(),
-							skipped->name(),
+							"In contract \"{}\", this \"super\" call resolves to external function \"{}.{}\", "
+							"which cannot be called internally. Make \"{}.{}\" public, or change the order of "
+							"base contracts in \"{}\".",
 							_contract.name(),
 							skipped->annotation().contract->name(),
-							skipped->name()
+							skipped->name(),
+							skipped->annotation().contract->name(),
+							skipped->name(),
+							_contract.name()
 						)
 					);
 				break;
