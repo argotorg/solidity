@@ -2166,6 +2166,9 @@ void IRGeneratorForStatements::endVisit(MemberAccess const& _memberAccess)
 						*_memberAccess.annotation().referencedDeclaration
 					).resolveVirtual(m_context.mostDerivedContract(), super);
 
+				// An external function has no internal entry point to call, so this must have been
+				// rejected by PostTypeContractLevelChecker.
+				solAssert(resolvedFunctionDef.isVisibleInDerivedContracts(), "Super call resolved to an external function.");
 				solAssert(resolvedFunctionDef.functionType(true));
 				solAssert(resolvedFunctionDef.functionType(true)->kind() == FunctionType::Kind::Internal);
 				assignInternalFunctionIDIfNotCalledDirectly(_memberAccess, resolvedFunctionDef);

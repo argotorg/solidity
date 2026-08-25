@@ -579,17 +579,20 @@ FunctionDefinition const& FunctionDefinition::resolveVirtual(
 
 	if (_searchStart != nullptr)
 	{
-		// External functions cannot be called internally, so `super` never offers them as members --
-		// same filter as in TypeType::nativeMembers(). Analysis rejects calls that would resolve to
-		// one, and the statically bound target is always a candidate here, so one always remains.
-		for (FunctionDefinition const* candidate: superLookupCandidates(_mostDerivedContract, *_searchStart))
-			if (candidate->isVisibleInDerivedContracts())
-			{
-				solAssert(FunctionType(*candidate).hasEqualParameterTypes(*TypeProvider::function(*this)));
-				return *candidate;
-			}
-
-		solAssert(false, "Super lookup for function " + name() + " found no candidate visible in derived contracts.");
+		// Super lookup never skips a candidate: the target is the first one, whatever its visibility.
+		// External functions cannot be called internally, and PostTypeContractLevelChecker rejects
+		// the calls where the first candidate is one -- but only for contracts that code is generated
+		// for, and only after the call graphs have already been built on top of this function. The
+		// assertion that the target really is callable internally therefore lives at the two codegen
+		// entry points, CompilerContext::superFunction() and IRGeneratorForStatements.
+		std::vector<FunctionDefinition const*> candidates = superLookupCandidates(_mostDerivedContract, *_searchStart);
+		solAssert(!candidates.empty(), "Super lookup for function " + name() + " found no candidate.");
+		FunctionDefinition const& target = *candidates.front();
+		// Candidates are matched with calldata normalised to memory, so the strict comparison only
+		// holds once we know the target is one a `super` call may actually end up at.
+		if (target.isVisibleInDerivedContracts())
+			solAssert(FunctionType(target).hasEqualParameterTypes(*TypeProvider::function(*this)));
+		return target;
 	}
 
 	// We actually do not want the externally callable function here.
