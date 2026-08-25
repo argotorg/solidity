@@ -283,8 +283,11 @@ AssemblyItem Assembly::createAssemblyItemFromJSON(Json const& _json, std::vector
 		{
 			requireValueDefinedForInstruction(name, value);
 			result = {AssemblyItemType::PushTag, u256(value)};
-			// The value has the sub-assembly ID packed above the tag ID, so only the latter is range-checked.
-			updateUsedTags(requireTagIDInRange(result.splitForeignPushTag().second));
+			auto const [subID, tagID] = result.splitForeignPushTag();
+			requireTagIDInRange(tagID);
+			// Foreign tag IDs index the tag table of the sub-assembly, not ours.
+			if (subID.empty())
+				updateUsedTags(tagID);
 		}
 		else if (name == "PUSH [$]")
 		{
@@ -704,9 +707,54 @@ std::pair<std::shared_ptr<Assembly>, std::vector<std::string>> Assembly::fromJSO
 	}
 
 	if (_level == 0)
+	{
 		result->encodeAllPossibleSubPathsInAssemblyTree();
+		result->requireValidSubAssemblyReferences();
+	}
 
 	return std::make_pair(result, _level == 0 ? parsedSourceList : std::vector<std::string>{});
+}
+
+void Assembly::requireValidSubAssemblyReferences() const
+{
+	for (auto const& sub: m_subs)
+		sub->requireValidSubAssemblyReferences();
+
+	for (AssemblyItem const& item: m_items)
+		switch (item.type())
+		{
+		case PushTag:
+		{
+			auto const [subID, tagID] = item.splitForeignPushTag();
+			if (subID.empty())
+				break;
+			solRequire(
+				subID.asIndex() < m_subs.size(),
+				AssemblyImportException,
+				"The sub-assembly ID of a tag reference is out of range."
+			);
+			solRequire(
+				tagID < m_subs[subID.asIndex()]->m_usedTags,
+				AssemblyImportException,
+				"Tag reference to a tag that does not exist in the sub-assembly."
+			);
+			break;
+		}
+		case PushSub:
+		case PushSubSize:
+		{
+			bool const known =
+				item.data() <= std::numeric_limits<SubAssemblyID::ValueType>::max() &&
+				(
+					item.data() < m_subs.size() ||
+					ranges::any_of(m_subPaths, [&](auto const& _path) { return _path.second == SubAssemblyID{item.data()}; })
+				);
+			solRequire(known, AssemblyImportException, "The sub-assembly ID of a data reference is out of range.");
+			break;
+		}
+		default:
+			break;
+		}
 }
 
 void Assembly::encodeAllPossibleSubPathsInAssemblyTree(std::vector<SubAssemblyID> _pathFromRoot, std::vector<Assembly*> _assembliesOnPath)

@@ -213,6 +213,10 @@ private:
 
 	void encodeAllPossibleSubPathsInAssemblyTree(std::vector<SubAssemblyID> _pathFromRoot = {}, std::vector<Assembly*> _assembliesOnPath = {});
 
+	/// Throws AssemblyImportException if any item refers to a sub-assembly or foreign tag that does not exist.
+	/// Must be called after sub-assembly paths have been encoded.
+	void requireValidSubAssemblyReferences() const;
+
 	std::shared_ptr<std::string const> sharedSourceName(std::string const& _name) const;
 
 	LinkerObject const& assembleLegacy() const;

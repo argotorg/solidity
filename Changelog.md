@@ -19,6 +19,7 @@ Bugfixes:
 * Code Generator: Fix ICE on parenthesized custom error construction in require statement.
 * Code Generator: Fix uninitialized internal function pointers being read from a packed storage slot with the wrong value when a subsequent variable in the slot holds a non-zero value.
 * Commandline Interface: Report proper error instead of ICE on non-hex mixed-case address value given via `--libraries`.
+* EVM Assembly Import: Report proper error instead of ICE or uncaught exception on out-of-range sub-assembly IDs and tag references into sub-assemblies.
 * Type Checker: Report an unimplemented feature error instead of ICE when a variable of a fixed point type is accessed in inline assembly.
 
 Build System:
