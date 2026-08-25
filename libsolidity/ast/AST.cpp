@@ -589,7 +589,7 @@ FunctionDefinition const& FunctionDefinition::resolveVirtual(
 				return *candidate;
 			}
 
-		solAssert(false, "Virtual function " + name() + " not found.");
+		solAssert(false, "Super lookup for function " + name() + " found no candidate visible in derived contracts.");
 	}
 
 	// We actually do not want the externally callable function here.

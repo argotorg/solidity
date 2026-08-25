@@ -40,6 +40,27 @@ using namespace solidity::langutil;
 using namespace solidity::frontend;
 using namespace solidity::util;
 
+namespace
+{
+
+class SuperMemberAccessCollector: public ASTConstVisitor
+{
+public:
+	std::vector<MemberAccess const*> superAccesses;
+
+	bool visit(MemberAccess const& _memberAccess) override
+	{
+		if (
+			_memberAccess.annotation().requiredLookup.set() &&
+			*_memberAccess.annotation().requiredLookup == VirtualLookup::Super
+		)
+			superAccesses.push_back(&_memberAccess);
+		return true;
+	}
+};
+
+}
+
 bool PostTypeContractLevelChecker::check(SourceUnit const& _sourceUnit)
 {
 	bool noErrors = true;
@@ -87,27 +108,6 @@ bool PostTypeContractLevelChecker::check(ContractDefinition const& _contract)
 	return !Error::containsErrors(m_errorReporter.errors());
 }
 
-namespace
-{
-
-class SuperMemberAccessCollector: public ASTConstVisitor
-{
-public:
-	std::vector<MemberAccess const*> superAccesses;
-
-	bool visit(MemberAccess const& _memberAccess) override
-	{
-		if (
-			_memberAccess.annotation().requiredLookup.set() &&
-			*_memberAccess.annotation().requiredLookup == VirtualLookup::Super
-		)
-			superAccesses.push_back(&_memberAccess);
-		return true;
-	}
-};
-
-}
-
 void PostTypeContractLevelChecker::checkSuperCallsSkippingExternalFunctions(ContractDefinition const& _contract)
 {
 	// Code is only generated for the most derived contract, and only there does the linearization
@@ -144,14 +144,13 @@ void PostTypeContractLevelChecker::checkSuperCallsSkippingExternalFunctions(Cont
 						8476_error,
 						memberAccess->location(),
 						SecondarySourceLocation{}
-							.append("This is the skipped external function.", skipped->location())
-							.append("This is the function the call resolves to instead.", candidate->location())
-							.append("This is the contract whose linearization is used.", _contract.nameLocation()),
+							.append("The skipped external function is declared here:", skipped->location())
+							.append("The intended target of the call is declared here:", candidate->location())
+							.append("The linearization of this contract is used:", _contract.nameLocation()),
 						fmt::format(
-							"This `super` call would have to skip external function \"{}.{}\" to reach its target "
-							"in the linearization of contract \"{}\". External functions have no internal entry "
-							"point and can never be reached through `super`. Declare \"{}.{}\" as `public` or "
-							"reorder the inheritance hierarchy.",
+							"This \"super\" call would have to skip external function \"{}.{}\" in the linearization "
+							"of contract \"{}\". External functions have no internal entry point and can never be "
+							"reached through \"super\". Declare \"{}.{}\" as public or reorder the inheritance hierarchy.",
 							skipped->annotation().contract->name(),
 							skipped->name(),
 							_contract.name(),
