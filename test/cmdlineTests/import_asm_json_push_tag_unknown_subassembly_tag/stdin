@@ -1,0 +1,27 @@
+{
+    ".code": [
+        {
+            "name": "PUSH [tag]",
+            "value": "18446744073709551621"
+        },
+        {
+            "name": "JUMP"
+        }
+    ],
+    ".data": {
+        "0": {
+            ".code": [
+                {
+                    "name": "tag",
+                    "value": "1"
+                },
+                {
+                    "name": "JUMPDEST"
+                },
+                {
+                    "name": "STOP"
+                }
+            ]
+        }
+    }
+}
