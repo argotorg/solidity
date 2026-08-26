@@ -37,6 +37,16 @@ using solidity::test::CompilerInput;
 using solidity::test::SyntaxTestError;
 
 /**
+ * Reflects `compileViaYul` setting, with possible values: `true`, `false` and `also` (default).
+ */
+enum class CompileViaYul
+{
+	True,
+	False,
+	Also
+};
+
+/**
  * Settings that reflect what is configured in each test file.
  *
  * Available settings:
@@ -44,6 +54,9 @@ using solidity::test::SyntaxTestError;
  * - stopAfter: `parsing`, `analysis`, or `compilation` (default: `compilation`).
  * - experimental: `true` or `false`. When not set, experimental mode is enabled
  *   automatically when needed.
+ * - compileViaYul: `true`, `false`, or `also`.
+ *   `true` runs the Yul pipeline only, `false` runs the legacy pipeline only,
+ *   `also` runs both.
  * - optimize-yul: `true` or `false` (default: `true`).
  */
 struct SyntaxTestSettings
@@ -54,7 +67,7 @@ struct SyntaxTestSettings
 	PipelineStage stopAfter = PipelineStage::Compilation;
 	bool experimental = false;
 
-	std::string compileViaYul = "false";
+	CompileViaYul compileViaYul = CompileViaYul::False;
 	bool optimizeYul = false;
 };
 
@@ -79,7 +92,18 @@ public:
 protected:
 	void setupCompiler(CompilerStack& _compiler) override;
 	void parseAndAnalyze() override;
+
+	TestCase::TestResult run(
+		std::ostream& _stream,
+		std::string const& _linePrefix,
+		bool _formatted
+	) override;
+
+	/// Filters out all errors with a severity below `m_minSeverity`.
 	virtual void filterObtainedErrors();
+
+	/// Throws if an internal compiler error was encountered during code generation.
+	void reportUnexpectedErrors();
 
 	langutil::Error::Severity m_minSeverity{};
 	SyntaxTestSettings m_settings;
