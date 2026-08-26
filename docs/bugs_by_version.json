@@ -2224,13 +2224,16 @@
     },
     "0.8.35": {
         "bugs": [
+            "UncheckedArrayStorageSizeOverflow",
             "InheritanceOrderReversalOnStorageEndWarning",
             "UnsoundSpillInMutualRecursion"
         ],
         "released": "2026-04-29"
     },
     "0.8.36": {
-        "bugs": [],
+        "bugs": [
+            "UncheckedArrayStorageSizeOverflow"
+        ],
         "released": "2026-07-09"
     },
     "0.8.4": {
