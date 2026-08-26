@@ -23,14 +23,14 @@ contract C {
 // ----
 // x() -> 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 // fillArray()
-// gas irOptimized: 254227
-// gas legacy: 258712
-// gas legacyOptimized: 257258
+// gas irOptimized: 254464
+// gas legacy: 268072
+// gas legacyOptimized: 260885
 // gas ssaCFGOptimized: 254343
 // x() -> 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39
 // clearArray()
-// gas irOptimized: 57426
+// gas irOptimized: 57407
 // x() -> 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 // gas irOptimized: 48087
-// gas legacy: 64080
-// gas legacyOptimized: 56602
+// gas legacy: 64320
+// gas legacyOptimized: 56704

@@ -29,8 +29,8 @@ contract C {
 // x() -> 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 // fillArray()
 // gas irOptimized: 220727
-// gas legacy: 221456
-// gas legacyOptimized: 220893
+// gas legacy: 223616
+// gas legacyOptimized: 221730
 // gas ssaCFGOptimized: 220726
 // x() -> 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
 // partialAssignArrayCrossStorageBoundary()
@@ -38,5 +38,5 @@ contract C {
 // partialAssignArrayBeforeStorageBoundary()
 // x() -> 21, 22, 23, 0, 0, 0, 0, 0, 0, 0
 // gas irOptimized: 44183
-// gas legacy: 46012
-// gas legacyOptimized: 43907
+// gas legacy: 46252
+// gas legacyOptimized: 44011

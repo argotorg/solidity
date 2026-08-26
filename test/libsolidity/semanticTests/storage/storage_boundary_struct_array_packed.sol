@@ -96,32 +96,32 @@ contract C {
 // boundaryArray() -> 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 // destArray() -> 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 // fillBoundaryArray()
-// gas irOptimized: 248990
-// gas legacy: 272856
-// gas legacyOptimized: 253856
-// gas ssaCFGOptimized: 254545
+// gas irOptimized: 249186
+// gas legacy: 275256
+// gas legacyOptimized: 254786
+// gas ssaCFGOptimized: 255101
 // canaryValue() -> 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
 // boundaryArray() -> 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40
 // destArray() -> 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 // copyFromBoundary()
-// gas irOptimized: 274279
-// gas legacy: 298927
-// gas legacyOptimized: 272256
-// gas ssaCFGOptimized: 275618
+// gas irOptimized: 274207
+// gas legacy: 299407
+// gas legacyOptimized: 272448
+// gas ssaCFGOptimized: 275666
 // canaryValue() -> 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
 // boundaryArray() -> 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40
 // destArray() -> 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40
 // fillDestArray()
-// gas legacy: 101874
+// gas legacy: 104274
 // canaryValue() -> 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
 // boundaryArray() -> 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40
 // destArray() -> 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80
-// gas legacy: 59729
+// gas legacy: 59969
 // copyToBoundary()
-// gas irOptimized: 103323
-// gas legacy: 127882
-// gas legacyOptimized: 101222
-// gas ssaCFGOptimized: 104662
+// gas irOptimized: 103251
+// gas legacy: 128362
+// gas legacyOptimized: 101414
+// gas ssaCFGOptimized: 104710
 // canaryValue() -> 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
 // boundaryArray() -> 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80
 // destArray() -> 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80

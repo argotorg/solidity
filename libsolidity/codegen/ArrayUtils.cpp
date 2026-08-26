@@ -635,13 +635,31 @@ void ArrayUtils::convertLengthToSize(ArrayType const& _arrayType, bool _pad) con
 			else if (baseBytes <= 16)
 			{
 				unsigned itemsPerSlot = 32 / baseBytes;
-				m_context
-					<< u256(itemsPerSlot - 1) << Instruction::ADD
-					<< u256(itemsPerSlot) << Instruction::SWAP1 << Instruction::DIV;
+				// Number of slots rounded up: (length + itemsPerSlot - 1) / itemsPerSlot
+				m_context << u256(itemsPerSlot - 1);
+				m_context.callYulFunction(
+					m_context.utilFunctions().overflowCheckedIntAddFunction(*TypeProvider::uint256()),
+					2,
+					1
+				);
+				m_context << u256(itemsPerSlot) << Instruction::SWAP1 << Instruction::DIV;
 			}
 		}
 		else
-			m_context << _arrayType.baseType()->storageSize() << Instruction::MUL;
+		{
+			if (!_arrayType.isDynamicallySized())
+				// For static arrays, the total size is known at compile time and overflow checked during type validation.
+				m_context << Instruction::POP << _arrayType.storageSize();
+			else
+			{
+				m_context << _arrayType.baseType()->storageSize();
+				m_context.callYulFunction(
+					m_context.utilFunctions().overflowCheckedIntMulFunction(*TypeProvider::uint256()),
+					2,
+					1
+				);
+			}
+		}
 	}
 	else
 	{
@@ -774,7 +792,14 @@ void ArrayUtils::accessIndex(ArrayType const& _arrayType, bool _doBoundsCheck, b
 		else
 		{
 			if (_arrayType.baseType()->storageSize() != 1)
-				m_context << _arrayType.baseType()->storageSize() << Instruction::MUL;
+			{
+				m_context << _arrayType.baseType()->storageSize();
+				m_context.callYulFunction(
+					m_context.utilFunctions().overflowCheckedIntMulFunction(*TypeProvider::uint256()),
+					2,
+					1
+				);
+			}
 			m_context << Instruction::ADD << u256(0);
 		}
 		m_context << endTag;

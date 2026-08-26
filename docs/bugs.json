@@ -1,5 +1,15 @@
 [
     {
+        "uid": "SOL-2026-5",
+        "name": "UncheckedArrayStorageSizeOverflow",
+        "summary": "Operations on storage arrays could silently leave stale data in storage or corrupt storage due to unchecked arithmetic overflow in storage size and slot offset computations.",
+        "description": "When computing storage sizes and slot offsets for array operations, the code generators perform arithmetic on values derived from array lengths and element indices. This arithmetic was performed without an overflow check in several places, so when the result exceeded ``2**256``, it would wrap to a smaller value. This affected three operations: (1) deleting a dynamic storage array with a multi-slot base type (legacy code generator only, the IR code generator already used overflow-checked arithmetic for this), where the length is multiplied by the storage size of the base type and the clearing loop would process fewer slots than necessary, leaving stale data in storage; (2) accessing an element by index on an array with a multi-slot base type (both code generators), where the index is multiplied by the storage size of the base type and the access would silently read from or write to an incorrect storage slot, leading to data corruption; (3) clearing a storage array with a packed base type (both code generators), where the number of occupied slots is rounded up via an addition that overflows for lengths of at least ``2**256 - itemsPerSlot + 1``, making ``delete`` clear nothing while reporting success. Cases (1) and (2) required a dynamic storage array whose base type occupies enough slots for the relevant product to overflow (e.g., ``uint256[2**255][]`` where the base type occupies ``2**255`` slots). Case (3) is reachable with a statically-sized packed array declared with a length in the wrapping range (e.g., ``uint8[2**256 - 1]``, which is accepted by the compiler since its total storage size still fits into ``2**256`` slots), or with a dynamic array whose length slot was set to such a value using inline assembly. With the fix, both code generators now revert with an arithmetic overflow panic in these situations.",
+        "link": "",
+        "introduced": "0.1.0",
+        "fixed": "0.8.37",
+        "severity": "low"
+    },
+    {
         "uid": "SOL-2026-3",
         "name": "InheritanceOrderReversalOnStorageEndWarning",
         "summary": "Emitting a warning about storage base location being too close to the storage end unintentionally reversed the ``linearizedBaseContracts`` annotation, possibly leading to miscompilation due to reversing the order in which inheritance is resolved.",

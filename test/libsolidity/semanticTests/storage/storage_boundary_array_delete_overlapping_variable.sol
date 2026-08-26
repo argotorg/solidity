@@ -28,8 +28,8 @@ contract C {
 // x() -> 0, 0, 0, 0, 0, 42, 0, 0, 0, 0
 // fillArray()
 // gas irOptimized: 203627
-// gas legacy: 204356
-// gas legacyOptimized: 203793
+// gas legacy: 206516
+// gas legacyOptimized: 204630
 // gas ssaCFGOptimized: 203626
 // y() -> 5
 // x() -> 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
@@ -37,5 +37,5 @@ contract C {
 // y() -> 0
 // x() -> 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 // gas irOptimized: 44183
-// gas legacy: 46012
-// gas legacyOptimized: 43907
+// gas legacy: 46252
+// gas legacyOptimized: 44011

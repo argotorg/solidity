@@ -36,15 +36,15 @@ contract C layout at 2**256 - 5 {
 // x() -> 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 // fillArray()
 // gas irOptimized: 220749
-// gas legacy: 221473
-// gas legacyOptimized: 220915
+// gas legacy: 223633
+// gas legacyOptimized: 221752
 // gas ssaCFGOptimized: 220748
 // partialAssignArrayBeforeStorageBoundary()
 // x() -> 11, 12, 13, 0, 0, 0, 0, 0, 0, 0
 // fillArray()
 // gas irOptimized: 186549
-// gas legacy: 187273
-// gas legacyOptimized: 186715
+// gas legacy: 189433
+// gas legacyOptimized: 187552
 // gas ssaCFGOptimized: 186548
 // x() -> 11, 1, 2, 3, 4, 5, 6, 7, 8, 9
 // partialAssignArrayCrossStorageBoundary()
@@ -52,5 +52,5 @@ contract C layout at 2**256 - 5 {
 // clearArray()
 // x() -> 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 // gas irOptimized: 44183
-// gas legacy: 46007
-// gas legacyOptimized: 43907
+// gas legacy: 46247
+// gas legacyOptimized: 44011
