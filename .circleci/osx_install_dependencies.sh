@@ -46,7 +46,17 @@ function validate_checksum {
   fi
 }
 
-if [ ! -f /usr/local/bin/z3 ] # if this file does not exists (cache was not restored), rebuild dependencies
+# The CI job wipes /opt/homebrew before restoring the dependency cache, trusting a
+# separate flag cache to tell it that the cache exists. The two caches expire
+# independently, so we can end up here with no brew at all.
+if ! command -v brew > /dev/null 2>&1
+then
+  NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  eval "$(/opt/homebrew/bin/brew shellenv)"
+fi
+
+# A cache restore can silently drop parts of the tree, so check more than one marker.
+if [[ ! -f /usr/local/bin/z3 || ! -f /usr/local/bin/cvc5 || ! -f /opt/boost/include/boost/version.hpp ]]
 then
   brew update
   brew upgrade
