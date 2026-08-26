@@ -635,9 +635,14 @@ void ArrayUtils::convertLengthToSize(ArrayType const& _arrayType, bool _pad) con
 			else if (baseBytes <= 16)
 			{
 				unsigned itemsPerSlot = 32 / baseBytes;
-				m_context
-					<< u256(itemsPerSlot - 1) << Instruction::ADD
-					<< u256(itemsPerSlot) << Instruction::SWAP1 << Instruction::DIV;
+				// Number of slots rounded up: (length + itemsPerSlot - 1) / itemsPerSlot
+				m_context << u256(itemsPerSlot - 1);
+				m_context.callYulFunction(
+					m_context.utilFunctions().overflowCheckedIntAddFunction(*TypeProvider::uint256()),
+					2,
+					1
+				);
+				m_context << u256(itemsPerSlot) << Instruction::SWAP1 << Instruction::DIV;
 			}
 		}
 		else

@@ -35,14 +35,14 @@ contract c {
 }
 // ----
 // test() -> 0x02000202
-// gas irOptimized: 4560846
+// gas irOptimized: 4578423
 // gas legacy: 4544275
 // gas legacyOptimized: 4459618
-// gas ssaCFGOptimized: 4559146
+// gas ssaCFGOptimized: 4574770
 // storageEmpty -> 1
 // clear() -> 0, 0
-// gas irOptimized: 4490259
+// gas irOptimized: 4507836
 // gas legacy: 4415495
 // gas legacyOptimized: 4388058
-// gas ssaCFGOptimized: 4490285
+// gas ssaCFGOptimized: 4505909
 // storageEmpty -> 1

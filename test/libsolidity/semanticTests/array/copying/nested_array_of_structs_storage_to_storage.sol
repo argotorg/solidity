@@ -63,7 +63,7 @@ contract C {
 // compileViaYul: true
 // ----
 // test1()
-// gas irOptimized: 123195
+// gas irOptimized: 123240
 // gas ssaCFGOptimized: 123221
 // test2()
 // gas irOptimized: 123018

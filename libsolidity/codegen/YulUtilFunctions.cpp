@@ -2328,7 +2328,7 @@ std::string YulUtilFunctions::arrayConvertLengthToSize(ArrayType const& _type)
 							size := <mul>(<storageSize>, length)
 						<!multiSlot>
 							// Number of slots rounded up
-							size := div(add(length, sub(<itemsPerSlot>, 1)), <itemsPerSlot>)
+							size := div(<add>(length, sub(<itemsPerSlot>, 1)), <itemsPerSlot>)
 						</multiSlot>
 					})")
 					("functionName", functionName)
@@ -2336,6 +2336,7 @@ std::string YulUtilFunctions::arrayConvertLengthToSize(ArrayType const& _type)
 					("itemsPerSlot", std::to_string(32 / baseStorageBytes))
 					("storageSize", baseType.storageSize().str())
 					("mul", overflowCheckedIntMulFunction(*TypeProvider::uint256()))
+					("add", overflowCheckedIntAddFunction(*TypeProvider::uint256()))
 					.render();
 			}
 			case DataLocation::CallData: // fallthrough

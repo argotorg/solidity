@@ -22,7 +22,7 @@ contract C {
 // ----
 // setAndClear() ->
 // gas irOptimized: 124683
-// gas legacy: 127807
+// gas legacy: 128084
 // gas legacyOptimized: 124828
 // gas ssaCFGOptimized: 124676
 // getLarge() -> 10, 20, 0, 0

@@ -44,10 +44,10 @@ contract Test {
 // gas ssaCFGOptimized: 226750
 // test1() -> 3
 // test2() -> 6
-// gas irOptimized: 95905
-// gas legacy: 101239
+// gas irOptimized: 95879
+// gas legacy: 101412
 // test3() -> 24
 // gas irOptimized: 141297
-// gas legacy: 146668
-// gas legacyOptimized: 141331
+// gas legacy: 147360
+// gas legacyOptimized: 141399
 // gas ssaCFGOptimized: 141345

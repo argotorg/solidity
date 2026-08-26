@@ -67,8 +67,8 @@ Compiler Features:
 * Yul Optimizer: Improve performance of control flow side effects collector and function references resolver.
 
 Important Bugfixes:
+* Code Generator: Fix unchecked arithmetic overflow when computing the storage size of dynamic arrays during deletion, which could result in `delete` silently leaving stale data in storage.
 * Code Generator: Fix unchecked multiplication overflow when computing storage slot offsets during element access on arrays whose base type is large enough for the product of the index and the storage size to overflow, which could silently read from or write to incorrect storage slots.
-* Evmasm Code Generator: Fix unchecked multiplication overflow when computing the storage size of dynamic arrays during deletion, which could result in `delete` silently leaving stale data in storage.
 
 Bugfixes:
 * Yul: Fix incorrect serialization of Yul object names containing double quotes and escape sequences, producing output that could not be parsed as valid Yul.
