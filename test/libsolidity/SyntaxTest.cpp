@@ -16,6 +16,7 @@
 */
 // SPDX-License-Identifier: GPL-3.0
 
+#include "libsolidity/AnalysisFramework.h"
 #include "libsolidity/interface/CompilerStack.h"
 #include <test/libsolidity/SyntaxTest.h>
 
@@ -45,14 +46,17 @@ SyntaxTestSettings SyntaxTestSettings::fromReader(TestCaseReader& _reader)
 {
 	SyntaxTestSettings settings;
 
-	static std::set<std::string> const compileViaYulAllowedValues{"true", "false"};
-	settings.compileViaYul = _reader.stringSetting("compileViaYul", "false");
-	if (!compileViaYulAllowedValues.contains(settings.compileViaYul))
-		BOOST_THROW_EXCEPTION(std::runtime_error("Invalid compileViaYul value: " + settings.compileViaYul + "."));
-
+	settings.compileViaYul = _reader.enumSetting<CompileViaYul>(
+		"compileViaYul",
+		{
+			{"true", CompileViaYul::On},
+			{"false", CompileViaYul::Off},
+			{"also", CompileViaYul::Also}
+		},
+		"false"
+	);
 	settings.optimizeYul = _reader.boolSetting("optimize-yul", true);
 	settings.experimental = _reader.boolSetting("experimental", false);
-
 	settings.stopAfter = _reader.enumSetting<PipelineStage>(
 		"stopAfter",
 		{
@@ -80,7 +84,6 @@ void SyntaxTest::setupCompiler(CompilerStack& _compiler)
 
 void SyntaxTest::parseAndAnalyze()
 {
-	m_compilerInput.viaYul = m_settings.compileViaYul == "true";
 	m_compilerInput.experimental = m_settings.experimental;
 	m_compilerInput.optimiserSettings = m_settings.optimizeYul ?
 		OptimiserSettings::full() :
@@ -88,28 +91,22 @@ void SyntaxTest::parseAndAnalyze()
 	m_compilerInput.metadataFormat = CompilerStack::MetadataFormat::NoMetadata;
 	m_compilerInput.metadataHash = CompilerStack::MetadataHash::None;
 
-	runFramework(withPreamble(m_compilerInput.sources), m_settings.stopAfter);
-	if (!pipelineSuccessful() && stageSuccessful(PipelineStage::Analysis))
+	auto run = [&]()
 	{
-		ErrorList const& errors = compiler().errors();
-		static auto isInternalError = [](std::shared_ptr<Error const> const& _error) {
-			return
-				Error::isError(_error->type()) &&
-				_error->type() != Error::Type::CodeGenerationError &&
-				_error->type() != Error::Type::UnimplementedFeatureError
-			;
-		};
-		// Most errors are detected during analysis, and should not happen during code generation.
-		// There are some exceptions, e.g. unimplemented features or stack too deep, but anything else at this stage
-		// is an internal error that signals a bug in the compiler (rather than in user's code).
-		if (
-			auto error = ranges::find_if(errors, isInternalError);
-			error != ranges::end(errors)
-		)
-			BOOST_THROW_EXCEPTION(std::runtime_error(
-				"Unexpected " + Error::formatErrorType((*error)->type()) + " at compilation stage."
-				" This error should NOT be encoded as expectation and should be fixed instead."
-			));
+		runFramework(withPreamble(m_compilerInput.sources), m_settings.stopAfter);
+		if (stageSuccessful(PipelineStage::Analysis) && !pipelineSuccessful())
+			reportUnexpectedErrors();
+	};
+
+	if (m_settings.compileViaYul == CompileViaYul::Off || m_settings.compileViaYul == CompileViaYul::Also)
+	{
+		m_compilerInput.viaYul = false;
+		run();
+	}
+	if (m_settings.compileViaYul == CompileViaYul::On || m_settings.compileViaYul == CompileViaYul::Also)
+	{
+		m_compilerInput.viaYul = true;
+		run();
 	}
 
 	filterObtainedErrors();
@@ -160,4 +157,27 @@ void SyntaxTest::filterObtainedErrors()
 			locationEnd
 		});
 	}
+}
+
+void SyntaxTest::reportUnexpectedErrors()
+{
+	ErrorList const& errors = compiler().errors();
+	static auto isInternalError = [](std::shared_ptr<Error const> const& _error) {
+		return
+			Error::isError(_error->type()) &&
+			_error->type() != Error::Type::CodeGenerationError &&
+			_error->type() != Error::Type::UnimplementedFeatureError
+		;
+	};
+	// Most errors are detected during analysis, and should not happen during code generation.
+	// There are some exceptions, e.g. unimplemented features or stack too deep, but anything else at this stage
+	// is an internal error that signals a bug in the compiler (rather than in user's code).
+	if (
+		auto error = ranges::find_if(errors, isInternalError);
+		error != ranges::end(errors)
+	)
+		BOOST_THROW_EXCEPTION(std::runtime_error(
+			"Unexpected " + Error::formatErrorType((*error)->type()) + " at compilation stage."
+			" This error should NOT be encoded as expectation and should be fixed instead."
+		));
 }
