@@ -25,6 +25,7 @@
 
 #include <test/Common.h>
 #include <test/EVMHost.h>
+#include <test/EVMTransactionDriver.h>
 
 #include <libsolidity/interface/OptimiserSettings.h>
 #include <libsolidity/interface/DebugSettings.h>
@@ -271,10 +272,19 @@ private:
 		return encode(_cppFunction(_arguments...));
 	}
 
+	/// Builds an evmone::state::Transaction for the m_stateDriver path: shared by sendMessage()'s
+	/// and sendEther()'s state-driver branches, mirroring how their EVMHost-based counterparts each
+	/// build their own evmc_message.
+	evmone::state::Transaction buildStateTransaction(
+		std::optional<evmc::address> const& _to,
+		bytes const& _data,
+		u256 const& _value
+	) const;
+
 protected:
 	u256 const InitialGas = 100000000;
 
-	void selectVM(evmc_capabilities _cap = evmc_capabilities::EVMC_CAPABILITY_EVM1);
+	void selectVM();
 	void reset();
 
 	void sendMessage(bytes const& _bytecode, bytes const& _argument, bool _isCreation, u256 const& _value = 0);
@@ -296,6 +306,14 @@ protected:
 	solidity::frontend::OptimiserSettings m_optimiserSettings = solidity::frontend::OptimiserSettings::minimal();
 	bool m_showMessages = false;
 	std::unique_ptr<EVMHost> m_evmcHost;
+	/// Set instead of m_evmcHost when CommonOptions::useEvmoneState is on: routes every call this
+	/// framework makes through evmone::state::transition() rather than EVMHost -- see
+	/// CommonOptions::useEvmoneState's own doc comment (test/Common.h) for what this prototype does
+	/// and does not cover.
+	std::unique_ptr<EVMTransactionDriver> m_stateDriver;
+	/// The most recent m_stateDriver->run() result, kept only for numLogs()/logData()/etc. -- the
+	/// EVMHost path reads the equivalent information from m_evmcHost->recorded_logs directly instead.
+	evmone::state::TransactionReceipt m_lastStateReceipt;
 
 	std::vector<boost::filesystem::path> m_vmPaths;
 

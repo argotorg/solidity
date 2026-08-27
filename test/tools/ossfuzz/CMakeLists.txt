@@ -23,6 +23,18 @@ if (OSSFUZZ)
 endif()
 
 if (OSSFUZZ)
+    # stack_reuse_codegen_ossfuzz, abiv2_proto_ossfuzz, abiv2_isabelle_ossfuzz and
+    # sol_proto_ossfuzz below each compile ../../EVMHost.cpp directly, exactly like soltest and
+    # isoltest (test/CMakeLists.txt, test/tools/CMakeLists.txt) do, so they need the same three
+    # targets those link against: evmc::evmc_cpp (headers, mocked_host), evmc::loader (the
+    # evmc_load_and_configure()/evmc_last_error_msg() calls EVMHost.cpp makes for --vm/
+    # ETH_EVMONE) and evmone (the statically linked evmc_create_evmone() fallback). They used to
+    # link a bare `evmc` -- gone since the vendored INTERFACE target of that name was removed --
+    # plus `evmone-standalone`, which even predating that removal was never a real target
+    # anywhere in this tree (cmake/LibraryTools.cmake's add_standalone_library(evmone) is only
+    # ever invoked from evmone's own CMakeLists.txt, which nothing here added_subdirectory()'d
+    # before evmone became a FetchContent dependency). This file cannot be verified by building
+    # it in this environment: OSSFUZZ needs libprotobuf-mutator and clang++, neither present.
     add_executable(solc_ossfuzz
             solc_ossfuzz.cpp
             ../fuzzer_common.cpp
@@ -130,8 +142,9 @@ if (OSSFUZZ)
     )
     target_include_directories(stack_reuse_codegen_ossfuzz PRIVATE /usr/include/libprotobuf-mutator)
     target_link_libraries(stack_reuse_codegen_ossfuzz PRIVATE yul
-            evmc
-            evmone-standalone
+            evmc::evmc_cpp
+            evmc::loader
+            evmone
             protobuf-mutator-libfuzzer.a
             protobuf-mutator.a
             protobuf.a
@@ -153,8 +166,9 @@ if (OSSFUZZ)
             /usr/include/libprotobuf-mutator
     )
     target_link_libraries(abiv2_proto_ossfuzz PRIVATE solidity
-            evmc
-            evmone-standalone
+            evmc::evmc_cpp
+            evmc::loader
+            evmone
             protobuf-mutator-libfuzzer.a
             protobuf-mutator.a
             protobuf.a
@@ -173,8 +187,9 @@ if (OSSFUZZ)
             /usr/include/libprotobuf-mutator
     )
     target_link_libraries(abiv2_isabelle_ossfuzz PRIVATE solidity
-            evmc
-            evmone-standalone
+            evmc::evmc_cpp
+            evmc::loader
+            evmone
             protobuf-mutator-libfuzzer.a
             protobuf-mutator.a
             protobuf.a
@@ -195,8 +210,9 @@ if (OSSFUZZ)
             /usr/include/libprotobuf-mutator
     )
     target_link_libraries(sol_proto_ossfuzz PRIVATE solidity libsolc
-            evmc
-            evmone-standalone
+            evmc::evmc_cpp
+            evmc::loader
+            evmone
             protobuf-mutator-libfuzzer.a
             protobuf-mutator.a
             protobuf.a

@@ -22,9 +22,9 @@
 
 #pragma once
 
-#include <test/evmc/mocked_host.hpp>
-#include <test/evmc/evmc.hpp>
-#include <test/evmc/evmc.h>
+#include <evmc/mocked_host.hpp>
+#include <evmc/evmc.hpp>
+#include <evmc/evmc.h>
 
 #include <liblangutil/EVMVersion.h>
 
@@ -32,7 +32,8 @@
 
 #include <boost/filesystem.hpp>
 
-#include<unordered_set>
+#include <map>
+#include <unordered_set>
 
 namespace solidity::test
 {
@@ -52,6 +53,7 @@ public:
 	using MockedHost::get_storage;
 	using MockedHost::set_storage;
 	using MockedHost::get_balance;
+	using MockedHost::get_nonce;
 	using MockedHost::get_code_size;
 	using MockedHost::get_code_hash;
 	using MockedHost::copy_code;
@@ -67,14 +69,16 @@ public:
 
 	// Solidity testing specific features.
 
-	/// Tries to dynamically load an evmc vm supporting evm1 and caches the loaded VM.
+	/// Tries to dynamically load an evmc vm and caches the loaded VM.
+	/// If @param _path is empty, returns the statically linked evmone instead of loading
+	/// anything dynamically.
 	/// @returns vmc::VM(nullptr) on failure.
 	static evmc::VM& getVM(std::string const& _path = {});
 
 	/// Tries to load all defined evmc vm shared libraries.
 	/// @param _vmPaths paths to multiple evmc shared libraries.
-	/// @throw Exception if multiple evm1 vms where loaded.
-	/// @returns true, if an evmc vm supporting evm1 was loaded properly,
+	/// @throw Exception if multiple evmc vms were loaded.
+	/// @returns true, if an evmc vm was loaded properly,
 	static bool checkVmPaths(std::vector<boost::filesystem::path> const& _vmPaths);
 
 	explicit EVMHost(langutil::EVMVersion _evmVersion, evmc::VM& _vm);
@@ -91,8 +95,10 @@ public:
 		newTransactionFrame();
 	}
 
-	/// @returns contents of storage at @param _addr.
-	StorageMap const& get_address_storage(evmc::address const& _addr);
+	/// @returns contents of storage at @param _addr, sorted by key.
+	/// @note Upstream MockedAccount::storage is an unordered_map, so this builds and returns a
+	/// sorted copy rather than a reference, to keep EVMHostPrinter's output deterministic.
+	StorageMap get_address_storage(evmc::address const& _addr);
 
 	u256 totalCodeDepositGas() const { return m_totalCodeDepositGas; }
 
@@ -100,6 +106,9 @@ public:
 	static evmc::address convertToEVMC(Address const& _addr);
 	static util::h256 convertFromEVMC(evmc::bytes32 const& _data);
 	static evmc::bytes32 convertToEVMC(util::h256 const& _data);
+
+	/// @returns the address a CREATE from @param _sender with @param _nonce would produce.
+	static Address computeCreateAddress(evmc::address const& _sender, uint64_t _nonce);
 private:
 	/// Transfer value between accounts. Checks for sufficient balance.
 	void transfer(evmc::MockedAccount& _sender, evmc::MockedAccount& _recipient, u256 const& _value) noexcept;

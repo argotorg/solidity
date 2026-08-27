@@ -100,10 +100,10 @@ then
   rm -f /tmp/z3.zip
 
   # evmone
-  evmone_version="0.22.0"
+  evmone_version="0.23.0"
   evmone_package="evmone-${evmone_version}-darwin-arm64.tar.gz"
   wget "https://github.com/ipsilon/evmone/releases/download/v${evmone_version}/${evmone_package}"
-  validate_checksum "$evmone_package" 3ff5633e49ae3726dc094c7c9819440c11d04c8036bc27f45a4385120951599c
+  validate_checksum "$evmone_package" 2eb911990006ffece5309714340892a3bab5e64effe83afa8087835d589a9e0a
   sudo tar xzpf "$evmone_package" -C /usr/local
   rm "$evmone_package"
 fi

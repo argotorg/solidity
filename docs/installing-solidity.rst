@@ -323,8 +323,8 @@ The following are dependencies for all builds of Solidity:
 +-----------------------------------+-------------------------------------------------------+
 | Software                          | Notes                                                 |
 +===================================+=======================================================+
-| `CMake`_ (version 3.21.3+ on      | Cross-platform build file generator.                  |
-| Windows, 3.13+ otherwise)         |                                                       |
+| `CMake`_ (version 3.13+; 3.25+    | Cross-platform build file generator.                  |
+| to build the tests)               |                                                       |
 +-----------------------------------+-------------------------------------------------------+
 | `Boost`_ (version 1.83+)          | C++ libraries.                                        |
 +-----------------------------------+-------------------------------------------------------+

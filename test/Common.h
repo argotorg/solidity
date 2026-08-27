@@ -23,7 +23,7 @@
 #include <liblangutil/Exceptions.h>
 #include <libsolutil/Numeric.h>
 
-#include <test/evmc/evmc.h>
+#include <evmc/evmc.h>
 
 #include <boost/filesystem/path.hpp>
 #include <boost/program_options.hpp>
@@ -39,13 +39,13 @@ namespace solidity::test
 
 #ifdef _WIN32
 static constexpr auto evmoneFilename = "evmone.dll";
-static constexpr auto evmoneDownloadLink = "https://github.com/ipsilon/evmone/releases/download/v0.22.0/evmone-0.22.0-windows-amd64.zip";
+static constexpr auto evmoneDownloadLink = "https://github.com/ipsilon/evmone/releases/download/v0.23.0/evmone-0.23.0-windows-amd64.zip";
 #elif defined(__APPLE__)
 static constexpr auto evmoneFilename = "libevmone.dylib";
-static constexpr auto evmoneDownloadLink = "https://github.com/ipsilon/evmone/releases/download/v0.22.0/evmone-0.22.0-darwin-arm64.tar.gz";
+static constexpr auto evmoneDownloadLink = "https://github.com/ipsilon/evmone/releases/download/v0.23.0/evmone-0.23.0-darwin-arm64.tar.gz";
 #else
 static constexpr auto evmoneFilename = "libevmone.so";
-static constexpr auto evmoneDownloadLink = "https://github.com/ipsilon/evmone/releases/download/v0.22.0/evmone-0.22.0-linux-x86_64.tar.gz";
+static constexpr auto evmoneDownloadLink = "https://github.com/ipsilon/evmone/releases/download/v0.23.0/evmone-0.23.0-linux-x86_64.tar.gz";
 #endif
 
 struct ConfigException: public util::Exception {};
@@ -63,6 +63,16 @@ struct CommonOptions
 	u256 enforceGasTestMinValue = 100000;
 	bool disableSemanticTests = false;
 	bool disableSMT = false;
+	/// Routes ExecutionFramework through EVMTransactionDriver (evmone::state::transition()) instead
+	/// of EVMHost. Off by default: the MVP this switches to is a prototype, not a replacement. It
+	/// drives fixtures directly rather than loading JSON state tests or building an MPT, leaves
+	/// Transaction::blob_hashes/access_list/authorization_list unpopulated (no blob-transaction or
+	/// EIP-7702 support), and legitimately diverges from EVMHost's mock semantics in a few ways:
+	/// EIP-7623's calldata-cost floor and EIP-7825's transaction gas cap both apply where EVMHost's
+	/// static gas model doesn't, gas is actually debited in ETH from the sender's balance, and
+	/// EVMHost's fixed synthetic tx.origin has no equivalent (real evmone::state::Transaction has
+	/// no separate origin field -- ORIGIN always reads tx.sender).
+	bool useEvmoneState = false;
 	bool useABIEncoderV1 = false;
 	bool showMessages = false;
 	bool showMetadata = false;

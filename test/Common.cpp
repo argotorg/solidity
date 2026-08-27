@@ -72,30 +72,6 @@ boost::filesystem::path testPath()
 	return {};
 }
 
-std::optional<fs::path> findInDefaultPath(std::string const& lib_name)
-{
-	auto const searchPath =
-	{
-		fs::current_path() / "deps",
-		fs::current_path() / "deps" / "lib",
-		fs::current_path() / ".." / "deps",
-		fs::current_path() / ".." / "deps" / "lib",
-		fs::current_path() / ".." / ".." / "deps",
-		fs::current_path() / ".." / ".." / "deps" / "lib",
-		fs::current_path(),
-#ifdef __APPLE__
-		fs::current_path().root_path() / fs::path("usr") / "local" / "lib",
-#endif
-	};
-	for (auto const& basePath: searchPath)
-	{
-		fs::path p = basePath / lib_name;
-		if (fs::exists(p))
-			return p;
-	}
-	return std::nullopt;
-}
-
 }
 
 CommonOptions::CommonOptions(std::string _caption):
@@ -117,6 +93,7 @@ void CommonOptions::addOptions()
 		("selected-batch", po::value<size_t>(&this->selectedBatch)->default_value(0), "zero-based number of batch to execute")
 		("no-semantic-tests", po::bool_switch(&disableSemanticTests)->default_value(disableSemanticTests), "disable semantic tests")
 		("no-smt", po::bool_switch(&disableSMT)->default_value(disableSMT), "disable SMT checker")
+		("use-evmone-state", po::bool_switch(&useEvmoneState)->default_value(useEvmoneState), "run semantic tests through evmone::state::transition() (EVMTransactionDriver) instead of EVMHost")
 		("optimize", po::bool_switch(&optimize)->default_value(optimize), "enables optimization")
 		("enforce-gas-cost", po::value<bool>(&enforceGasTest)->default_value(enforceGasTest)->implicit_value(true), "Enforce checking gas cost in semantic tests.")
 		("enforce-gas-cost-min-value", po::value(&enforceGasTestMinValue)->default_value(enforceGasTestMinValue), "Threshold value to enforce adding gas checks to a test.")
@@ -198,10 +175,10 @@ bool CommonOptions::parse(int argc, char const* const* argv)
 	{
 		if (auto envPath = getenv("ETH_EVMONE"))
 			vmPaths.emplace_back(envPath);
-		else if (auto repoPath = findInDefaultPath(evmoneFilename))
-			vmPaths.emplace_back(*repoPath);
 		else
-			vmPaths.emplace_back(evmoneFilename);
+			// No explicit --vm and no ETH_EVMONE: fall back to the statically linked evmone.
+			// EVMHost::getVM() treats an empty path as a request for that built-in VM.
+			vmPaths.emplace_back();
 	}
 
 	return true;
@@ -305,9 +282,11 @@ bool loadVMs(CommonOptions const& _options)
 	bool evmSupported = solidity::test::EVMHost::checkVmPaths(_options.vmPaths);
 	if (!_options.disableSemanticTests && !evmSupported)
 	{
-		std::cerr << "Unable to find " << solidity::test::evmoneFilename;
-		std::cerr << ". Please disable semantics tests with --no-semantic-tests or provide a path using --vm <path>." << std::endl;
-		std::cerr << "You can download it at" << std::endl;
+		// Only reachable for an explicitly bad --vm/ETH_EVMONE: with neither given, EVMHost
+		// falls back to the statically linked evmone, which is always available.
+		std::cerr << "Unable to load an EVMC VM (expected: " << solidity::test::evmoneFilename << ").";
+		std::cerr << " Please disable semantics tests with --no-semantic-tests or provide a valid path via --vm <path> or ETH_EVMONE." << std::endl;
+		std::cerr << "You can download evmone at" << std::endl;
 		std::cerr << solidity::test::evmoneDownloadLink << std::endl;
 		return false;
 	}

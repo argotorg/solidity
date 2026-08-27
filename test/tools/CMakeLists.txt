@@ -16,6 +16,8 @@ add_executable(isoltest
 	../Common.cpp
 	../CommonSyntaxTest.cpp
 	../EVMHost.cpp
+	../EVMState.cpp
+	../EVMTransactionDriver.cpp
 	../TestCase.cpp
 	../TestCaseReader.cpp
 	../libevmasm/EVMAssemblyTest.cpp
@@ -68,4 +70,4 @@ add_executable(isoltest
 	../libyul/ssa/StackShufflerTest.h
 )
 target_compile_definitions(isoltest PRIVATE ISOLTEST)
-target_link_libraries(isoltest PRIVATE evmc libsolc solidity yulInterpreter evmasm Boost::boost Boost::program_options Boost::unit_test_framework Threads::Threads)
+target_link_libraries(isoltest PRIVATE evmc::evmc_cpp evmc::loader evmone evmone::state libsolc solidity yulInterpreter evmasm Boost::boost Boost::program_options Boost::unit_test_framework Threads::Threads)
