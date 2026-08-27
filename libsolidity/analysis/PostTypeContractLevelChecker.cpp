@@ -116,7 +116,7 @@ void PostTypeContractLevelChecker::checkSuperCallsResolvingToExternalFunctions(C
 		return;
 
 	SuperMemberAccessCollector collector;
-	// Note: linearizedBaseContracts is this contract's *own* C3 linerization, with it at its head
+	// Note: linearizedBaseContracts is this contract's *own* C3 linearization, with it at its head
 	for (ContractDefinition const* base: _contract.annotation().linearizedBaseContracts)
 		base->accept(collector);
 
@@ -137,7 +137,7 @@ void PostTypeContractLevelChecker::checkSuperCallsResolvingToExternalFunctions(C
 		// contractDefinition() is where `super` was written; the target also depends on the root:
 		// a `super` in B finds A under B's own [B, A], but X under D's [D, B, X, A].
 		ContractDefinition const* searchStart = contractType->contractDefinition().superContract(_contract);
-		solAssert(searchStart, "C3 keeps a contract's own bases after it,"
+		solAssert(searchStart, "C3 keeps a contract's own bases after it, "
 				"so a contract containing a `super` is never last.");
 
 		// build the ordered list of functions a super call could bind to
