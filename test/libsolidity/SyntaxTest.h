@@ -54,7 +54,7 @@ enum class CompileViaYul
  * - stopAfter: `parsing`, `analysis`, or `compilation` (default: `compilation`).
  * - experimental: `true` or `false`. When not set, experimental mode is enabled
  *   automatically when needed.
- * - compileViaYul: `true`, `false`, or `also`.
+ * - compileViaYul: `true`, `false`, or `also` (default: `also`).
  *   `true` runs the Yul pipeline only, `false` runs the legacy pipeline only,
  *   `also` runs both.
  * - optimize-yul: `true` or `false` (default: `true`).
