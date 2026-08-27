@@ -68,8 +68,17 @@ public:
 		m_addBuiltinHandle(_dialect.findBuiltin("add")),
 		m_subBuiltinHandle(_dialect.findBuiltin("sub"))
 	{}
+	/// Tag used to select the constructor for values that are known to be in SSA form.
+	struct ValuesAreSSA {};
 	/// Constructor to use if source code is in SSA form and values are constant.
-	explicit KnowledgeBase(std::map<YulName, AssignedValue> const& _ssaValues, Dialect const& _dialect);
+	/// The callback is expected to return `nullptr` for variables whose value must not
+	/// be resolved, e.g., because it is not in SSA form together with its dependencies.
+	KnowledgeBase(ValuesAreSSA, std::function<AssignedValue const*(YulName)> _variableValues, Dialect const& _dialect):
+		m_valuesAreSSA(true),
+		m_variableValues(std::move(_variableValues)),
+		m_addBuiltinHandle(_dialect.findBuiltin("add")),
+		m_subBuiltinHandle(_dialect.findBuiltin("sub"))
+	{}
 
 	bool knownToBeDifferent(YulName _a, YulName _b);
 	std::optional<u256> differenceIfKnownConstant(YulName _a, YulName _b);

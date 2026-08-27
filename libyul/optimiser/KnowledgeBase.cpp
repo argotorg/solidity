@@ -32,13 +32,6 @@
 using namespace solidity;
 using namespace solidity::yul;
 
-KnowledgeBase::KnowledgeBase(std::map<YulName, AssignedValue> const& _ssaValues, Dialect const& _dialect):
-	m_valuesAreSSA(true),
-	m_variableValues([_ssaValues](YulName _var) { return util::valueOrNullptr(_ssaValues, _var); }),
-	m_addBuiltinHandle(_dialect.findBuiltin("add")),
-	m_subBuiltinHandle(_dialect.findBuiltin("sub"))
-{}
-
 bool KnowledgeBase::knownToBeDifferent(YulName _a, YulName _b)
 {
 	if (std::optional<u256> difference = differenceIfKnownConstant(_a, _b))

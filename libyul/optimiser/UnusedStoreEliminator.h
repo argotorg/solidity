@@ -28,16 +28,18 @@
 #include <libyul/optimiser/Semantics.h>
 #include <libyul/optimiser/UnusedStoreBase.h>
 #include <libyul/optimiser/KnowledgeBase.h>
+#include <libyul/optimiser/SSAValueTracker.h>
+#include <libyul/optimiser/DataFlowAnalyzer.h>
 
 #include <libevmasm/SemanticInformation.h>
 
 #include <map>
+#include <optional>
 #include <vector>
 
 namespace solidity::yul
 {
 class Dialect;
-struct AssignedValue;
 
 /**
  * Optimizer component that removes sstore and memory store statements if conditions are met for their removal.
@@ -64,7 +66,7 @@ public:
 		Dialect const& _dialect,
 		std::map<FunctionHandle, SideEffects> const& _functionSideEffects,
 		std::map<YulName, ControlFlowSideEffects> _controlFlowSideEffects,
-		std::map<YulName, AssignedValue> const& _ssaValues,
+		SSAValueTracker const& _ssaValueTracker,
 		bool _ignoreMemory
 	);
 
@@ -121,10 +123,17 @@ private:
 
 	std::optional<YulName> identifierNameIfSSA(Expression const& _expression) const;
 
+	/// Returns the value of the given variable if it is in SSA form together with all of its
+	/// dependencies, otherwise `nullptr`
+	AssignedValue const* ssaValue(YulName _name) const;
+
 	bool const m_ignoreMemory;
 	std::map<FunctionHandle, SideEffects> const& m_functionSideEffects;
 	std::map<YulName, ControlFlowSideEffects> m_controlFlowSideEffects;
-	std::map<YulName, AssignedValue> const& m_ssaValues;
+	SSAValueTracker const& m_ssaValueTracker;
+	/// Memoized results of `ssaValue`. `std::nullopt` means "not usable", i.e. not in SSA form
+	/// together with its dependencies
+	std::map<YulName, std::optional<AssignedValue>> mutable m_ssaValues;
 
 	std::map<Statement const*, Operation> m_storeOperations;
 

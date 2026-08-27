@@ -53,17 +53,13 @@ void UnusedStoreEliminator::run(OptimiserStepContext& _context, Block& _ast)
 
 	SSAValueTracker ssaValues;
 	ssaValues(_ast);
-	std::map<YulName, AssignedValue> values;
-	for (auto const& [name, expression]: ssaValues.values())
-		if (ssaValues.isSSAWithDependencies(expression))
-			values[name] = AssignedValue{expression, {}};
 
 	bool const ignoreMemory = MSizeFinder::containsMSize(_context.dialect, _ast);
 	UnusedStoreEliminator rse{
 		_context.dialect,
 		functionSideEffects,
 		ControlFlowSideEffectsCollector{_context.dialect, _ast}.functionSideEffectsNamed(),
-		values,
+		ssaValues,
 		ignoreMemory
 	};
 	rse(_ast);
@@ -85,15 +81,15 @@ UnusedStoreEliminator::UnusedStoreEliminator(
 	Dialect const& _dialect,
 	std::map<FunctionHandle, SideEffects> const& _functionSideEffects,
 	std::map<YulName, ControlFlowSideEffects> _controlFlowSideEffects,
-	std::map<YulName, AssignedValue> const& _ssaValues,
+	SSAValueTracker const& _ssaValueTracker,
 	bool _ignoreMemory
 ):
 	UnusedStoreBase(_dialect),
 	m_ignoreMemory(_ignoreMemory),
 	m_functionSideEffects(_functionSideEffects),
 	m_controlFlowSideEffects(std::move(_controlFlowSideEffects)),
-	m_ssaValues(_ssaValues),
-	m_knowledgeBase(_ssaValues, _dialect)
+	m_ssaValueTracker(_ssaValueTracker),
+	m_knowledgeBase(KnowledgeBase::ValuesAreSSA{}, [this](YulName _name) { return ssaValue(_name); }, _dialect)
 {}
 
 void UnusedStoreEliminator::operator()(FunctionCall const& _functionCall)
@@ -190,7 +186,7 @@ void UnusedStoreEliminator::visit(Statement const& _statement)
 			auto length = identifierNameIfSSA(funCall->arguments.at(2));
 			if (length && startOffset)
 			{
-				FunctionCall const* lengthCall = std::get_if<FunctionCall>(m_ssaValues.at(*length).value);
+				FunctionCall const* lengthCall = std::get_if<FunctionCall>(ssaValue(*length)->value);
 				if (
 					m_knowledgeBase.knownToBeZero(*startOffset) &&
 					lengthCall &&
@@ -433,7 +429,19 @@ void UnusedStoreEliminator::clearActive(
 std::optional<YulName> UnusedStoreEliminator::identifierNameIfSSA(Expression const& _expression) const
 {
 	if (Identifier const* identifier = std::get_if<Identifier>(&_expression))
-		if (m_ssaValues.count(identifier->name))
+		if (ssaValue(identifier->name))
 			return {identifier->name};
 	return std::nullopt;
+}
+
+AssignedValue const* UnusedStoreEliminator::ssaValue(YulName _name) const
+{
+	auto const [it, inserted] = m_ssaValues.try_emplace(_name, std::nullopt);
+	if (inserted)
+	{
+		auto const valueIt = m_ssaValueTracker.values().find(_name);
+		if (valueIt != m_ssaValueTracker.values().end() && m_ssaValueTracker.isSSAWithDependencies(valueIt->second))
+			it->second = AssignedValue{valueIt->second, {}};
+	}
+	return it->second ? &it->second.value() : nullptr;
 }
