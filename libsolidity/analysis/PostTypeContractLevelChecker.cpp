@@ -134,13 +134,13 @@ void PostTypeContractLevelChecker::checkSuperCallsResolvingToExternalFunctions(C
 			continue;
 		solAssert(contractType->isSuper());
 
-		//e.g. for _contract == D with [D, B, X, A]: finds B
+		// contractDefinition() is where `super` was written; the target also depends on the root:
+		// a `super` in B finds A under B's own [B, A], but X under D's [D, B, X, A].
 		ContractDefinition const* searchStart = contractType->contractDefinition().superContract(_contract);
 		solAssert(searchStart, "C3 keeps a contract's own bases after it,"
 				"so a contract containing a `super` is never last.");
 
-		// The call resolves to the first candidate, exactly as FunctionDefinition::resolveVirtual()
-		// does. Nothing is ever skipped: if that one cannot be called internally, this is an error.
+		// build the ordered list of functions a super call could bind to
 		std::vector<FunctionDefinition const*> candidates = function->superLookupCandidates(_contract, *searchStart);
 		solAssert(!candidates.empty(), "Super lookup for function " + function->name() + " found no candidate.");
 		FunctionDefinition const& target = *candidates.front();
