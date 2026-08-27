@@ -53,7 +53,7 @@ SyntaxTestSettings SyntaxTestSettings::fromReader(TestCaseReader& _reader)
 			{"false", CompileViaYul::Off},
 			{"also", CompileViaYul::Also}
 		},
-		"false"
+		"also"
 	);
 	settings.optimizeYul = _reader.boolSetting("optimize-yul", true);
 	settings.experimental = _reader.boolSetting("experimental", false);
