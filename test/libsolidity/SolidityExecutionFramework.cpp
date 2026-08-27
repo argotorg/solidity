@@ -79,6 +79,10 @@ bytes SolidityExecutionFramework::multiSourceCompileContract(
 			.printErrorInformation(m_compiler.errors());
 		BOOST_ERROR("Compiling contract failed");
 	}
+
+	if (_contractName.empty())
+		solAssert(m_compiler.contractNames().size() == 1, "Empty contract names only allowed for sources with single contract definitions");
+
 	std::string contractName(_contractName.empty() ? m_compiler.lastContractName(_mainSourceName) : _contractName);
 	evmasm::LinkerObject obj = m_compiler.object(contractName);
 	BOOST_REQUIRE(obj.linkReferences.empty());
