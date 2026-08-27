@@ -116,9 +116,13 @@ void PostTypeContractLevelChecker::checkSuperCallsResolvingToExternalFunctions(C
 		return;
 
 	SuperMemberAccessCollector collector;
+	// Note: linearizedBaseContracts is this contract's *own* C3 linerization, with it at its head
 	for (ContractDefinition const* base: _contract.annotation().linearizedBaseContracts)
 		base->accept(collector);
 
+	// collector.superAccesses is a flat vector<MemberAccess const*> holding every super.<member>
+	// expression written anywhere in the bodies of _contract and all its bases -- ordered
+	// by linearization position of the owning contract, then source order within it
 	for (MemberAccess const* memberAccess: collector.superAccesses)
 	{
 		auto const* function = dynamic_cast<FunctionDefinition const*>(memberAccess->annotation().referencedDeclaration);
@@ -130,9 +134,10 @@ void PostTypeContractLevelChecker::checkSuperCallsResolvingToExternalFunctions(C
 			continue;
 		solAssert(contractType->isSuper());
 
+		//e.g. for _contract == D with [D, B, X, A]: finds B
 		ContractDefinition const* searchStart = contractType->contractDefinition().superContract(_contract);
-		if (!searchStart)
-			continue;
+		solAssert(searchStart, "C3 keeps a contract's own bases after it,"
+				"so a contract containing a `super` is never last.");
 
 		// The call resolves to the first candidate, exactly as FunctionDefinition::resolveVirtual()
 		// does. Nothing is ever skipped: if that one cannot be called internally, this is an error.
