@@ -577,10 +577,9 @@ FunctionDefinition const& FunctionDefinition::resolveVirtual(
 	solAssert(isOrdinary(), "");
 	solAssert(!libraryFunction(), "");
 
-	// Super lookup is not virtual lookup: it starts above the contract where `super` was written,
-	// since starting at the head of the linearization would find the most derived override and
-	// recurse. The helper is shared with PostTypeContractLevelChecker, so the target it rejects
-	// and the target generated here cannot diverge.
+	// The walk lives in superLookupCandidates() rather than inline because
+	// PostTypeContractLevelChecker has to reject calls landing on an external function, and can
+	// only do so soundly if it resolves to the exact target used here.
 	if (_searchStart != nullptr)
 	{
 		std::vector<FunctionDefinition const*> candidates = superLookupCandidates(_mostDerivedContract, *_searchStart);
