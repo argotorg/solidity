@@ -285,7 +285,6 @@ AssemblyItem Assembly::createAssemblyItemFromJSON(Json const& _json, std::vector
 			result = {AssemblyItemType::PushTag, u256(value)};
 			auto const [subID, tagID] = result.splitForeignPushTag();
 			requireTagIDInRange(tagID);
-			// Foreign tag IDs index the tag table of the sub-assembly, not ours.
 			if (subID.empty())
 				updateUsedTags(tagID);
 		}
