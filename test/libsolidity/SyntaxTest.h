@@ -92,6 +92,10 @@ protected:
 	/// Throws if an internal compiler error was encountered during code generation.
 	void reportUnexpectedErrors();
 
+	/// Removes Yul-run errors that duplicate a legacy-run error,
+	/// preserving genuine same-run duplicates (e.g. two identical warnings).
+	void deduplicateYulRunErrors(size_t _legacyRunErrorCount);
+
 	langutil::Error::Severity m_minSeverity{};
 	SyntaxTestSettings m_settings;
 };

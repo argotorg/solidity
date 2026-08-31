@@ -22,6 +22,7 @@
 
 #include <test/libsolidity/util/Common.h>
 #include <test/Common.h>
+#include <algorithm>
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/test/unit_test.hpp>
@@ -98,18 +99,22 @@ void SyntaxTest::parseAndAnalyze()
 			reportUnexpectedErrors();
 	};
 
+	size_t legacyRunErrorCount = 0;
 	if (m_settings.compileViaYul == CompileViaYul::Off || m_settings.compileViaYul == CompileViaYul::Also)
 	{
 		m_compilerInput.viaYul = false;
 		run();
+		filterObtainedErrors();
+		legacyRunErrorCount = m_errorList.size();
 	}
 	if (m_settings.compileViaYul == CompileViaYul::On || m_settings.compileViaYul == CompileViaYul::Also)
 	{
 		m_compilerInput.viaYul = true;
 		run();
+		filterObtainedErrors();
+		if (legacyRunErrorCount > 0)
+			deduplicateYulRunErrors(legacyRunErrorCount);
 	}
-
-	filterObtainedErrors();
 }
 
 void SyntaxTest::filterObtainedErrors()
@@ -181,3 +186,17 @@ void SyntaxTest::reportUnexpectedErrors()
 			" This error should NOT be encoded as expectation and should be fixed instead."
 		));
 }
+
+
+void SyntaxTest::deduplicateYulRunErrors(size_t _legacyRunErrorCount)
+{
+	auto yulRunBegin = m_errorList.begin() + static_cast<ptrdiff_t>(_legacyRunErrorCount);
+	auto yulRunEnd = m_errorList.end();
+	for (size_t j = 0; j < _legacyRunErrorCount; ++j)
+		if (auto it = std::find(yulRunBegin, yulRunEnd, m_errorList[j]); it != yulRunEnd)
+		{
+			m_errorList.erase(it);
+			--yulRunEnd;
+		}
+}
+
