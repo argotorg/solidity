@@ -63,6 +63,8 @@ private:
 	/// YulName does not need to be reset because SSAValueTracker is short-lived.
 	Expression const m_zero{Literal{{}, LiteralKind::Number, LiteralValue(u256{0})}};
 	util::unordered_flat_map<YulName, Expression const*> m_values;
+	/// Cache for isSSAWithDependencies to avoid redundant traversals
+	mutable util::unordered_flat_map<Expression const*, bool> m_isSSACache;
 };
 
 }
