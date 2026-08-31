@@ -165,7 +165,7 @@ reentrancy lock, since failing to do so, will restrict your contract to only one
 within a transaction, preventing its use in complex composed transactions,
 which have been a cornerstone for complex applications on chain.
 
-It is recommend to generally always clear transient storage completely at the end of a call
+It is recommended to always clear transient storage completely at the end of a call
 into your smart contract to avoid these kinds of issues and to simplify
 the analysis of the behaviour of your contract within complex transactions.
 Check the `Security Considerations section of EIP-1153 <https://eips.ethereum.org/EIPS/eip-1153#security-considerations>`_
