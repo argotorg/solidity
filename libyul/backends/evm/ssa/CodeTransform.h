@@ -84,6 +84,9 @@ private:
 	/// stores it into its memory slot
 	void spillStore(InstId _value);
 
+	/// The return label of the call `_instId`, created on first use
+	AbstractAssembly::LabelID returnLabel(InstId _instId);
+
 	AbstractAssembly& m_assembly;
 	BuiltinContext& m_builtinContext;
 	ControlFlowGraphs const& m_controlFlow;

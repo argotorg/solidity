@@ -250,6 +250,15 @@ void CodeTransform::operator()(SSACFG::BlockId const _blockId)
 	std::visit(solidity::util::GenericVisitor{ [this, &_blockId](auto const& exit) { (*this)(_blockId, exit); } }, block.exit);
 }
 
+AbstractAssembly::LabelID CodeTransform::returnLabel(InstId const _instId)
+{
+	yulAssert(m_cfg.callPayload(_instId).canContinue, "Return label requested for a call that cannot continue.");
+	auto const [it, inserted] = m_returnLabels.try_emplace(_instId, 0);
+	if (inserted)
+		it->second = m_assembly.newLabelId();
+	return it->second;
+}
+
 void CodeTransform::operator()(InstId _instId, ShuffleTrace const& _operationShuffle)
 {
 	SSACFG::Inst const& _inst = m_cfg.inst(_instId);
@@ -258,11 +267,7 @@ void CodeTransform::operator()(InstId _instId, ShuffleTrace const& _operationShu
 	bool const hasReturnLabel = isCall && m_cfg.callPayload(_instId).canContinue;
 
 	if (hasReturnLabel)
-	{
-		auto const [it, inserted] = m_returnLabels.try_emplace(_instId, 0);
-		yulAssert(inserted, "Call sites should be unique.");
-		it->second = m_assembly.newLabelId();
-	}
+		returnLabel(_instId);
 
 	// check that the assembly stack height corresponds to the stack size before shuffling
 	yulAssert(static_cast<int>(m_stack.size()) == m_assembly.stackHeight());
@@ -536,12 +541,8 @@ void CodeTransform::emit(ShuffleOp const& _op)
 				m_assembly.appendInstruction(evmasm::Instruction::CODESIZE);
 			return;
 		case StackSlot::Kind::FunctionCallReturnLabel:
-		{
-			auto const instId = m_callSites.instId(_op.slot.functionCallReturnLabel());
-			yulAssert(m_returnLabels.count(instId), "FunctionCallReturnLabel not pre-registered before shuffle.");
-			m_assembly.appendLabelReference(m_returnLabels.at(instId));
+			m_assembly.appendLabelReference(returnLabel(m_callSites.instId(_op.slot.functionCallReturnLabel())));
 			return;
-		}
 		case StackSlot::Kind::FunctionReturnLabel:
 			yulAssert(false, "Cannot produce function return label.");
 		}
