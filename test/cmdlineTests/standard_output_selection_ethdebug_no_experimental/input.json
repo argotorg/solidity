@@ -8,7 +8,7 @@
     "settings": {
         "viaIR": true,
         "debug": {
-            "debugInfo": ["ethdebug"]
+            "debugInfo": ["ast-id", "ethdebug"]
         },
         "outputSelection": {
             "A.sol": {

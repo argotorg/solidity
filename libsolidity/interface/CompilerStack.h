@@ -39,6 +39,7 @@
 #include <liblangutil/DebugInfoSelection.h>
 #include <liblangutil/ErrorReporter.h>
 #include <liblangutil/EVMVersion.h>
+#include <liblangutil/SemanticDebugDataTable.h>
 #include <liblangutil/SourceLocation.h>
 
 #include <libevmasm/AbstractAssemblyStack.h>
@@ -325,6 +326,9 @@ public:
 	/// @returns the IR representation of a contract.
 	std::optional<std::string> const& yulIR(std::string const& _contractName) const;
 
+	/// @returns the semantic debug data sidecar associated with the contract's Yul IR.
+	std::optional<langutil::SemanticDebugDataTable> const& yulSemanticDebugData(std::string const& _contractName) const;
+
 	/// @returns the IR representation of a contract AST in format.
 	std::optional<Json> yulIRAst(std::string const& _contractName) const;
 
@@ -462,6 +466,7 @@ private:
 		evmasm::LinkerObject runtimeObject; ///< Runtime object.
 		std::optional<std::string> yulIR; ///< Yul IR code straight from the code generator.
 		std::optional<std::string> yulIROptimized; ///< Reparsed and possibly optimized Yul IR code.
+		std::optional<langutil::SemanticDebugDataTable> yulSemanticDebugData;
 		util::LazyInit<std::string const> metadata; ///< The metadata json that will be hashed into the chain.
 		util::LazyInit<Json const> abi;
 		util::LazyInit<Json const> storageLayout;
@@ -540,7 +545,10 @@ private:
 	/// Parses and analyzes specified Yul source and returns the YulStack that can be used to manipulate it.
 	/// Assumes that the IR was generated from sources loaded currently into CompilerStack, which
 	/// means that it is error-free and uses the same settings.
-	yul::YulStack loadGeneratedIR(std::string const& _ir) const;
+	yul::YulStack loadGeneratedIR(
+		std::string const& _ir,
+		langutil::SemanticDebugDataTable const* _semanticDebugData = nullptr
+	) const;
 
 	/// @returns the contract object for the given @a _contractName.
 	/// Can only be called after state is CompilationSuccessful.

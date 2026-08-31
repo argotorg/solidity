@@ -82,6 +82,7 @@ private:
 		OptimiserSettings optimiserSettings;
 		std::optional<langutil::DebugInfoSelection> debugInfoSelection;
 		std::map<std::string, util::h160> libraries;
+		std::optional<langutil::SemanticDebugDataTable> semanticDebugData;
 		bool metadataLiteralSources = false;
 		CompilerStack::MetadataFormat metadataFormat = CompilerStack::defaultMetadataFormat();
 		CompilerStack::MetadataHash metadataHash = CompilerStack::MetadataHash::IPFS;

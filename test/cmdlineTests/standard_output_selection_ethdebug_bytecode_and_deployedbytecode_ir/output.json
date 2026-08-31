@@ -13,7 +13,7 @@
                 "ir": "/// ethdebug: enabled
 /// @use-src 0:\"a.sol\"
 object \"A1_14\" {
-    code {
+    code /** @ast-id 14 */ {
         /// @src 0:58:123  \"contract A1 { function a(uint x) public pure { assert(x > 0); } }\"
         mstore(64, memoryguard(128))
         if callvalue() { revert_error_ca66f745a3ce8ff40e2ccaf1ad45db7774001b90d25810abd9040049be7bf4bb() }
@@ -44,7 +44,7 @@ object \"A1_14\" {
     }
     /// @use-src 0:\"a.sol\"
     object \"A1_14_deployed\" {
-        code {
+        code /** @ast-id 14 */ {
             /// @src 0:58:123  \"contract A1 { function a(uint x) public pure { assert(x > 0); } }\"
             mstore(64, memoryguard(128))
 
@@ -193,7 +193,7 @@ object \"A1_14\" {
                 "ir": "/// ethdebug: enabled
 /// @use-src 0:\"a.sol\"
 object \"A2_27\" {
-    code {
+    code /** @ast-id 27 */ {
         /// @src 0:124:189  \"contract A2 { function a(uint x) public pure { assert(x > 0); } }\"
         mstore(64, memoryguard(128))
         if callvalue() { revert_error_ca66f745a3ce8ff40e2ccaf1ad45db7774001b90d25810abd9040049be7bf4bb() }
@@ -224,7 +224,7 @@ object \"A2_27\" {
     }
     /// @use-src 0:\"a.sol\"
     object \"A2_27_deployed\" {
-        code {
+        code /** @ast-id 27 */ {
             /// @src 0:124:189  \"contract A2 { function a(uint x) public pure { assert(x > 0); } }\"
             mstore(64, memoryguard(128))
 
@@ -375,7 +375,7 @@ object \"A2_27\" {
                 "ir": "/// ethdebug: enabled
 /// @use-src 1:\"b.sol\"
 object \"A1_42\" {
-    code {
+    code /** @ast-id 42 */ {
         /// @src 1:58:123  \"contract A1 { function b(uint x) public pure { assert(x > 0); } }\"
         mstore(64, memoryguard(128))
         if callvalue() { revert_error_ca66f745a3ce8ff40e2ccaf1ad45db7774001b90d25810abd9040049be7bf4bb() }
@@ -406,7 +406,7 @@ object \"A1_42\" {
     }
     /// @use-src 1:\"b.sol\"
     object \"A1_42_deployed\" {
-        code {
+        code /** @ast-id 42 */ {
             /// @src 1:58:123  \"contract A1 { function b(uint x) public pure { assert(x > 0); } }\"
             mstore(64, memoryguard(128))
 
@@ -555,7 +555,7 @@ object \"A1_42\" {
                 "ir": "/// ethdebug: enabled
 /// @use-src 1:\"b.sol\"
 object \"B2_55\" {
-    code {
+    code /** @ast-id 55 */ {
         /// @src 1:124:189  \"contract B2 { function b(uint x) public pure { assert(x > 0); } }\"
         mstore(64, memoryguard(128))
         if callvalue() { revert_error_ca66f745a3ce8ff40e2ccaf1ad45db7774001b90d25810abd9040049be7bf4bb() }
@@ -586,7 +586,7 @@ object \"B2_55\" {
     }
     /// @use-src 1:\"b.sol\"
     object \"B2_55_deployed\" {
-        code {
+        code /** @ast-id 55 */ {
             /// @src 1:124:189  \"contract B2 { function b(uint x) public pure { assert(x > 0); } }\"
             mstore(64, memoryguard(128))
 

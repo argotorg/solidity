@@ -33,6 +33,7 @@
 #include <libsolidity/ast/ASTJsonImporter.h>
 #include <libsolidity/analysis/NameAndTypeResolver.h>
 #include <libsolidity/interface/CompilerStack.h>
+#include <libsolidity/interface/Ethdebug.h>
 #include <libsolidity/interface/StandardCompiler.h>
 #include <libsolidity/interface/GasEstimator.h>
 #include <libsolidity/interface/DebugSettings.h>
@@ -45,6 +46,7 @@
 #include <libevmasm/Disassemble.h>
 
 #include <liblangutil/Exceptions.h>
+#include <liblangutil/SemanticDebugDataSerialization.h>
 #include <liblangutil/SourceReferenceFormatter.h>
 
 #include <libsmtutil/Exceptions.h>
@@ -268,6 +270,24 @@ void CommandLineInterface::handleIR(std::string const& _contractName)
 		sout() << "IR:\n";
 		sout() << ir.value_or("") << std::endl;
 	}
+}
+
+void CommandLineInterface::handleIREthdebug(std::string const& _contractName)
+{
+	solAssert(CompilerInputModes.count(m_options.input.mode) == 1);
+
+	if (!m_options.compiler.outputs.irEthdebug)
+		return;
+
+	// The output requires ethdebug in the debug info selection, and the
+	// selection makes IR generation store the table on the contract.
+	auto const& semanticDebugData = m_compiler->yulSemanticDebugData(_contractName);
+	solAssert(semanticDebugData, "Semantic debug info missing for contract " + _contractName + ".");
+	std::string serialized = jsonPrint(semanticDebugDataToJson(*semanticDebugData), m_options.formatting.json);
+	if (!m_options.output.dir.empty())
+		createFile(m_compiler->filesystemFriendlyName(_contractName) + "_ir_ethdebug.json", serialized);
+	else
+		sout() << "IR ethdebug sidecar:" << std::endl << serialized << std::endl;
 }
 
 void CommandLineInterface::handleIRAst(std::string const& _contractName)
@@ -952,6 +972,7 @@ void CommandLineInterface::compile()
 		pipelineConfig.irCodegen =
 			pipelineConfig.irOptimization ||
 			m_options.compiler.outputs.ir ||
+			m_options.compiler.outputs.irEthdebug ||
 			m_options.compiler.outputs.irAstJson;
 		pipelineConfig.bytecode =
 			m_options.compiler.estimateGas ||
@@ -1282,6 +1303,39 @@ std::string CommandLineInterface::objectWithLinkRefsHex(evmasm::LinkerObject con
 void CommandLineInterface::assembleYul(yul::YulStack::Machine _targetMachine)
 {
 	solAssert(m_options.input.mode == InputMode::Assembler);
+	std::optional<SemanticDebugDataTable> semanticDebugData;
+	if (m_options.input.ethdebugInput)
+	{
+		// The sidecar belongs to the one Yul input; no syntax pairs sidecars
+		// with multiple inputs.
+		if (m_fileReader.sourceUnits().size() != 1)
+			solThrow(CommandLineExecutionError, "--ethdebug-input requires exactly one strict assembly input.");
+
+		Json json;
+		std::string parseError;
+		std::string contents;
+		try
+		{
+			contents = readFileAsString(*m_options.input.ethdebugInput);
+		}
+		catch (std::exception const& _exception)
+		{
+			solThrow(CommandLineExecutionError, "Could not read --ethdebug-input: "s + _exception.what());
+		}
+		if (!jsonParseStrict(contents, json, &parseError))
+			solThrow(CommandLineExecutionError, "Could not parse --ethdebug-input: " + parseError);
+		try
+		{
+			semanticDebugData = semanticDebugDataFromJson(json);
+		}
+		catch (SemanticDebugDataSerializationError const& _exception)
+		{
+			solThrow(
+				CommandLineExecutionError,
+				"Invalid --ethdebug-input: " + stringOrDefault(_exception.comment())
+			);
+		}
+	}
 
 	bool successful = true;
 	std::map<std::string, yul::YulStack> yulStacks;
@@ -1301,6 +1355,15 @@ void CommandLineInterface::assembleYul(yul::YulStack::Machine _targetMachine)
 			solAssert(stack.hasErrors(), "No error reported, but parsing/analysis failed.");
 		else
 		{
+			if (semanticDebugData.has_value())
+			{
+				stack.attachSemanticDebugData(*semanticDebugData);
+				stack.setEthdebugProgramContext(
+					semanticDebugData->contractName().value_or(stack.parserResult()->name),
+					ethdebug::programContext(stack.semanticDebugData())
+				);
+			}
+
 			if (
 				m_options.compiler.outputs.asmJson &&
 				stack.parserResult() &&
@@ -1350,11 +1413,16 @@ void CommandLineInterface::assembleYul(yul::YulStack::Machine _targetMachine)
 
 		if (m_options.compiler.outputs.ethdebugResources)
 		{
+			ethdebug::Resources resources;
+			if (semanticDebugData.has_value())
+				resources = ethdebug::resources(stack.semanticDebugData());
 			sout() << "======= Debug Data (ethdebug/format/info/resources) =======" << std::endl;
 			sout() << util::jsonPrint(
 					evmasm::ethdebug::resources(
 						{{.id = 0, .path = sourceUnitName, .contents = yulSource, .language = "Yul"}},
-						VersionString
+						VersionString,
+						std::move(resources.types),
+						std::move(resources.pointers)
 					),
 					m_options.formatting.json
 			) << std::endl;
@@ -1380,6 +1448,14 @@ void CommandLineInterface::assembleYul(yul::YulStack::Machine _targetMachine)
 			// 'ir' output in StandardCompiler works the same way.
 			sout() << std::endl << "Pretty printed source:" << std::endl;
 			sout() << stack.print() << std::endl;
+		}
+		if (m_options.compiler.outputs.irEthdebug)
+		{
+			sout() << std::endl << "IR ethdebug sidecar:" << std::endl;
+			sout() << jsonPrint(
+				semanticDebugDataToJson(stack.semanticDebugData()),
+				m_options.formatting.json
+			) << std::endl;
 		}
 
 		if (m_options.compiler.outputs.binary)
@@ -1462,6 +1538,7 @@ void CommandLineInterface::outputCompilationResults()
 
 			handleBytecode(contract);
 			handleIR(contract);
+			handleIREthdebug(contract);
 			handleIRAst(contract);
 			handleIROptimized(contract);
 			handleIROptimizedAst(contract);

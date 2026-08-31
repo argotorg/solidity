@@ -13,7 +13,7 @@
                 "ir": "/// ethdebug: enabled
 /// @use-src 0:\"a.sol\"
 object \"A1_14\" {
-    code {
+    code /** @ast-id 14 */ {
         /// @src 0:58:123
         mstore(64, memoryguard(128))
         if callvalue() { revert_error_ca66f745a3ce8ff40e2ccaf1ad45db7774001b90d25810abd9040049be7bf4bb() }
@@ -44,7 +44,7 @@ object \"A1_14\" {
     }
     /// @use-src 0:\"a.sol\"
     object \"A1_14_deployed\" {
-        code {
+        code /** @ast-id 14 */ {
             /// @src 0:58:123
             mstore(64, memoryguard(128))
 
@@ -155,6 +155,7 @@ object \"A1_14\" {
                 if iszero(condition) { panic_error_0x01() }
             }
 
+            /// @ast-id 13
             /// @src 0:72:121
             function fun_a_13(var_x_3) {
 
@@ -182,7 +183,8 @@ object \"A1_14\" {
                 "irOptimized": "/// ethdebug: enabled
 /// @use-src 0:\"a.sol\"
 object \"A1_14\" {
-    code {
+    code /// @ast-id 14
+    {
         {
             /// @src 0:58:123
             mstore(64, memoryguard(0x80))
@@ -201,7 +203,8 @@ object \"A1_14\" {
     }
     /// @use-src 0:\"a.sol\"
     object \"A1_14_deployed\" {
-        code {
+        code /// @ast-id 14
+        {
             {
                 /// @src 0:58:123
                 mstore(64, memoryguard(0x80))
@@ -276,7 +279,7 @@ object \"A1_14\" {
             {
                 if iszero(condition) { panic_error_0x01() }
             }
-            /// @src 0:72:121
+            /// @ast-id 13 @src 0:72:121
             function fun_a(var_x)
             {
                 /// @src 0:112:113
@@ -307,7 +310,7 @@ object \"A1_14\" {
                 "ir": "/// ethdebug: enabled
 /// @use-src 0:\"a.sol\"
 object \"A2_27\" {
-    code {
+    code /** @ast-id 27 */ {
         /// @src 0:124:189
         mstore(64, memoryguard(128))
         if callvalue() { revert_error_ca66f745a3ce8ff40e2ccaf1ad45db7774001b90d25810abd9040049be7bf4bb() }
@@ -338,7 +341,7 @@ object \"A2_27\" {
     }
     /// @use-src 0:\"a.sol\"
     object \"A2_27_deployed\" {
-        code {
+        code /** @ast-id 27 */ {
             /// @src 0:124:189
             mstore(64, memoryguard(128))
 
@@ -449,6 +452,7 @@ object \"A2_27\" {
                 if iszero(condition) { panic_error_0x01() }
             }
 
+            /// @ast-id 26
             /// @src 0:138:187
             function fun_a_26(var_x_16) {
 
@@ -476,7 +480,8 @@ object \"A2_27\" {
                 "irOptimized": "/// ethdebug: enabled
 /// @use-src 0:\"a.sol\"
 object \"A2_27\" {
-    code {
+    code /// @ast-id 27
+    {
         {
             /// @src 0:124:189
             mstore(64, memoryguard(0x80))
@@ -495,7 +500,8 @@ object \"A2_27\" {
     }
     /// @use-src 0:\"a.sol\"
     object \"A2_27_deployed\" {
-        code {
+        code /// @ast-id 27
+        {
             {
                 /// @src 0:124:189
                 mstore(64, memoryguard(0x80))
@@ -570,7 +576,7 @@ object \"A2_27\" {
             {
                 if iszero(condition) { panic_error_0x01() }
             }
-            /// @src 0:138:187
+            /// @ast-id 26 @src 0:138:187
             function fun_a(var_x)
             {
                 /// @src 0:178:179
@@ -603,7 +609,7 @@ object \"A2_27\" {
                 "ir": "/// ethdebug: enabled
 /// @use-src 1:\"b.sol\"
 object \"A1_42\" {
-    code {
+    code /** @ast-id 42 */ {
         /// @src 1:58:123
         mstore(64, memoryguard(128))
         if callvalue() { revert_error_ca66f745a3ce8ff40e2ccaf1ad45db7774001b90d25810abd9040049be7bf4bb() }
@@ -634,7 +640,7 @@ object \"A1_42\" {
     }
     /// @use-src 1:\"b.sol\"
     object \"A1_42_deployed\" {
-        code {
+        code /** @ast-id 42 */ {
             /// @src 1:58:123
             mstore(64, memoryguard(128))
 
@@ -745,6 +751,7 @@ object \"A1_42\" {
                 if iszero(condition) { panic_error_0x01() }
             }
 
+            /// @ast-id 41
             /// @src 1:72:121
             function fun_b_41(var_x_31) {
 
@@ -772,7 +779,8 @@ object \"A1_42\" {
                 "irOptimized": "/// ethdebug: enabled
 /// @use-src 1:\"b.sol\"
 object \"A1_42\" {
-    code {
+    code /// @ast-id 42
+    {
         {
             /// @src 1:58:123
             mstore(64, memoryguard(0x80))
@@ -791,7 +799,8 @@ object \"A1_42\" {
     }
     /// @use-src 1:\"b.sol\"
     object \"A1_42_deployed\" {
-        code {
+        code /// @ast-id 42
+        {
             {
                 /// @src 1:58:123
                 mstore(64, memoryguard(0x80))
@@ -866,7 +875,7 @@ object \"A1_42\" {
             {
                 if iszero(condition) { panic_error_0x01() }
             }
-            /// @src 1:72:121
+            /// @ast-id 41 @src 1:72:121
             function fun_b(var_x)
             {
                 /// @src 1:112:113
@@ -897,7 +906,7 @@ object \"A1_42\" {
                 "ir": "/// ethdebug: enabled
 /// @use-src 1:\"b.sol\"
 object \"B2_55\" {
-    code {
+    code /** @ast-id 55 */ {
         /// @src 1:124:189
         mstore(64, memoryguard(128))
         if callvalue() { revert_error_ca66f745a3ce8ff40e2ccaf1ad45db7774001b90d25810abd9040049be7bf4bb() }
@@ -928,7 +937,7 @@ object \"B2_55\" {
     }
     /// @use-src 1:\"b.sol\"
     object \"B2_55_deployed\" {
-        code {
+        code /** @ast-id 55 */ {
             /// @src 1:124:189
             mstore(64, memoryguard(128))
 
@@ -1039,6 +1048,7 @@ object \"B2_55\" {
                 if iszero(condition) { panic_error_0x01() }
             }
 
+            /// @ast-id 54
             /// @src 1:138:187
             function fun_b_54(var_x_44) {
 
@@ -1066,7 +1076,8 @@ object \"B2_55\" {
                 "irOptimized": "/// ethdebug: enabled
 /// @use-src 1:\"b.sol\"
 object \"B2_55\" {
-    code {
+    code /// @ast-id 55
+    {
         {
             /// @src 1:124:189
             mstore(64, memoryguard(0x80))
@@ -1085,7 +1096,8 @@ object \"B2_55\" {
     }
     /// @use-src 1:\"b.sol\"
     object \"B2_55_deployed\" {
-        code {
+        code /// @ast-id 55
+        {
             {
                 /// @src 1:124:189
                 mstore(64, memoryguard(0x80))
@@ -1160,7 +1172,7 @@ object \"B2_55\" {
             {
                 if iszero(condition) { panic_error_0x01() }
             }
-            /// @src 1:138:187
+            /// @ast-id 54 @src 1:138:187
             function fun_b(var_x)
             {
                 /// @src 1:178:179

@@ -101,6 +101,8 @@ set(sources
 	codegen/ir/IRLValue.h
 	codegen/ir/IRVariable.cpp
 	codegen/ir/IRVariable.h
+	codegen/ir/SemanticDebugDataBuilder.cpp
+	codegen/ir/SemanticDebugDataBuilder.h
 	formal/ArraySlicePredicate.cpp
 	formal/ArraySlicePredicate.h
 	formal/BMC.cpp
@@ -144,6 +146,8 @@ set(sources
 	interface/CompilerStack.cpp
 	interface/CompilerStack.h
 	interface/DebugSettings.h
+	interface/Ethdebug.cpp
+	interface/Ethdebug.h
 	interface/FileReader.cpp
 	interface/FileReader.h
 	interface/ImportRemapper.cpp

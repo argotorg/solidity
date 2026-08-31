@@ -1,0 +1,69 @@
+{
+	"language": "Yul",
+	"sources": {
+		"C": {"urls": ["in.yul"]}
+	},
+	"auxiliaryInput": {
+		"ethdebug": {
+			"format": "solidity-ethdebug-semantic-data",
+			"version": 1,
+			"contractName": "C",
+			"resources": {
+				"types": {
+					"t_uint256": {"kind": "uint", "bits": 256}
+				},
+				"pointers": {
+					"storage_12_3": {
+						"expect": [],
+						"for": {"location": "storage", "name": "counter", "slot": "0x0"}
+					}
+				}
+			},
+			"scopes": {
+				"11": {
+					"0": {
+						"variableDefinitions": [
+							{
+								"identifier": "argument",
+								"declarationASTID": 4,
+								"declarationSourceRange": {"source": {"id": 0}, "range": {"offset": 110, "length": 16}},
+								"typeID": "t_uint256",
+								"phase": "materialized",
+								"pointer": {"location": "stack", "name": "argument", "slot": {"$$yulLocal": "var_argument_4"}}
+							},
+							{
+								"identifier": "result",
+								"declarationASTID": 7,
+								"declarationSourceRange": {"source": {"id": 0}, "range": {"offset": 144, "length": 14}},
+								"typeID": "t_uint256",
+								"phase": "materialized",
+								"pointer": {"location": "stack", "name": "result", "slot": {"$$yulLocal": "var_result_7"}}
+							}
+						]
+					}
+				},
+				"12": {
+					"0": {
+						"variableDefinitions": [
+							{
+								"identifier": "counter",
+								"declarationASTID": 3,
+								"declarationSourceRange": {"source": {"id": 0}, "range": {"offset": 77, "length": 15}},
+								"typeID": "t_uint256",
+								"phase": "materialized",
+								"pointer": {"template": "storage_12_3"}
+							}
+						]
+					}
+				}
+			}
+		}
+	},
+	"settings": {
+		"debug": {"debugInfo": ["location", "snippet", "ast-id", "ethdebug"]},
+		"experimental": true,
+		"outputSelection": {
+			"*": {"*": ["irEthdebug", "evm.bytecode.ethdebug", "ethdebug.resources"]}
+		}
+	}
+}

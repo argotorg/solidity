@@ -43,7 +43,7 @@ void FunctionHoister::operator()(Block& _block)
 		if (std::holds_alternative<FunctionDefinition>(statement))
 		{
 			m_functions.emplace_back(std::move(statement));
-			statement = Block{_block.debugData, {}};
+			statement = Block{langutil::DebugData::locationsOnly(_block.debugData), {}};
 		}
 	}
 	removeEmptyBlocks(_block);

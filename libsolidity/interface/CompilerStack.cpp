@@ -50,6 +50,7 @@
 #include <libsolidity/codegen/Compiler.h>
 #include <libsolidity/formal/ModelChecker.h>
 #include <libsolidity/interface/ABI.h>
+#include <libsolidity/interface/Ethdebug.h>
 #include <libsolidity/interface/Natspec.h>
 #include <libsolidity/interface/GasEstimator.h>
 #include <libsolidity/interface/StorageLayout.h>
@@ -59,6 +60,7 @@
 
 #include <libsolidity/codegen/ir/Common.h>
 #include <libsolidity/codegen/ir/IRGenerator.h>
+#include <libsolidity/codegen/ir/SemanticDebugDataBuilder.h>
 
 #include <libyul/YulName.h>
 #include <libyul/AsmPrinter.h>
@@ -79,6 +81,7 @@
 #include <libsolutil/FunctionSelector.h>
 
 #include <libevmasm/Ethdebug.h>
+#include <libevmasm/EthdebugSchema.h>
 
 #include <boost/algorithm/string/replace.hpp>
 
@@ -295,6 +298,10 @@ void CompilerStack::setMetadataHash(MetadataHash _metadataHash)
 void CompilerStack::selectDebugInfo(DebugInfoSelection _debugInfoSelection)
 {
 	solAssert(m_stackState < CompilationSuccessful, "Must select debug info components before compilation.");
+	solAssert(
+		!_debugInfoSelection.ethdebug || _debugInfoSelection.astID,
+		"Ethdebug semantic data requires AST ID debug information."
+	);
 	m_debugInfoSelection = _debugInfoSelection;
 }
 
@@ -802,7 +809,10 @@ void CompilerStack::link()
 	}
 }
 
-YulStack CompilerStack::loadGeneratedIR(std::string const& _ir) const
+YulStack CompilerStack::loadGeneratedIR(
+	std::string const& _ir,
+	SemanticDebugDataTable const* _semanticDebugData
+) const
 {
 	YulStack stack(
 		m_evmVersion,
@@ -823,6 +833,8 @@ YulStack CompilerStack::loadGeneratedIR(std::string const& _ir) const
 			true   // _withErrorIds
 		) + "\n"
 	);
+	if (_semanticDebugData)
+		stack.attachSemanticDebugData(*_semanticDebugData);
 
 	return stack;
 }
@@ -960,6 +972,12 @@ std::optional<std::string> const& CompilerStack::yulIR(std::string const& _contr
 {
 	solAssert(m_stackState == CompilationSuccessful, "Compilation was not successful.");
 	return contract(_contractName).yulIR;
+}
+
+std::optional<SemanticDebugDataTable> const& CompilerStack::yulSemanticDebugData(std::string const& _contractName) const
+{
+	solAssert(m_stackState == CompilationSuccessful, "Compilation was not successful.");
+	return contract(_contractName).yulSemanticDebugData;
 }
 
 std::optional<Json> CompilerStack::yulIRAst(std::string const& _contractName) const
@@ -1161,7 +1179,29 @@ Json CompilerStack::interfaceSymbols(std::string const& _contractName) const
 Json CompilerStack::ethdebug() const
 {
 	solAssert(m_stackState >= AnalysisSuccessful, "Analysis was not successful.");
-	return evmasm::ethdebug::resources(ethdebugSources(), VersionString);
+	ethdebug::Resources resources;
+	std::map<std::string, unsigned> const sourceIndexMap = sourceIndices();
+	for (auto const& contractEntry: m_contracts)
+	{
+		Contract const& compiledContract = contractEntry.second;
+		if (!compiledContract.contract)
+			continue;
+
+		// IR generation stores the side table on the contract. The resources
+		// are derived from analysis results alone, so before that they are
+		// built on demand: ethdebug.resources is available right after analysis.
+		if (compiledContract.yulSemanticDebugData)
+			resources.merge(ethdebug::resources(*compiledContract.yulSemanticDebugData));
+		else
+			resources.merge(ethdebug::resources(buildSemanticDebugDataTable(*compiledContract.contract, sourceIndexMap)));
+	}
+
+	return evmasm::ethdebug::resources(
+		ethdebugSources(),
+		VersionString,
+		std::move(resources.types),
+		std::move(resources.pointers)
+	);
 }
 
 Json CompilerStack::ethdebugCompilation() const
@@ -1204,8 +1244,21 @@ Json CompilerStack::ethdebug(Contract const& _contract, bool _runtime) const
 	if (!assembly)
 		return {};
 
-	solAssert(sourceIndices().contains(_contract.contract->sourceUnitName()));
-	return evmasm::ethdebug::program(_contract.contract->name(), sourceIndices()[_contract.contract->sourceUnitName()], *assembly, object);
+	std::map<std::string, unsigned> const sourceIndexMap = sourceIndices();
+	solAssert(sourceIndexMap.contains(_contract.contract->sourceUnitName()));
+
+	std::optional<evmasm::ethdebug::schema::program::Context> programContext =
+		_contract.yulSemanticDebugData
+			? ethdebug::programContext(*_contract.yulSemanticDebugData)
+			: ethdebug::programContext(buildSemanticDebugDataTable(*_contract.contract, sourceIndexMap));
+
+	return evmasm::ethdebug::program(
+		_contract.contract->name(),
+		sourceIndexMap.at(_contract.contract->sourceUnitName()),
+		*assembly,
+		object,
+		std::move(programContext)
+	);
 }
 
 bytes CompilerStack::cborMetadata(std::string const& _contractName, bool _forIR) const
@@ -1561,7 +1614,20 @@ void CompilerStack::generateIR(ContractDefinition const& _contract, bool _unopti
 	);
 
 	yulAssert(compiledContract.yulIR);
-	YulStack stack = loadGeneratedIR(*compiledContract.yulIR);
+	if (m_debugInfoSelection.ethdebug)
+		compiledContract.yulSemanticDebugData = buildSemanticDebugDataTable(_contract, sourceIndices());
+	else
+		compiledContract.yulSemanticDebugData = std::nullopt;
+
+	YulStack stack = loadGeneratedIR(
+		*compiledContract.yulIR,
+		compiledContract.yulSemanticDebugData ? &*compiledContract.yulSemanticDebugData : nullptr
+	);
+	// The sidecar pairs with the unoptimized IR: attaching checks every pointer
+	// against it, and the table is kept as attached. The optimized IR, whose
+	// variable names differ, is not a supported sidecar input yet.
+	if (compiledContract.yulSemanticDebugData)
+		compiledContract.yulSemanticDebugData = stack.semanticDebugData();
 	if (!_unoptimizedOnly)
 	{
 		stack.optimize(m_viaSSACFG);
@@ -1583,7 +1649,10 @@ void CompilerStack::generateEVMFromIR(ContractDefinition const& _contract)
 		return;
 
 	// Re-parse the Yul IR in EVM dialect
-	YulStack stack = loadGeneratedIR(*compiledContract.yulIROptimized);
+	YulStack stack = loadGeneratedIR(
+		*compiledContract.yulIROptimized,
+		compiledContract.yulSemanticDebugData ? &*compiledContract.yulSemanticDebugData : nullptr
+	);
 
 	std::string deployedName = IRNames::deployedObject(_contract);
 	solAssert(!deployedName.empty(), "");

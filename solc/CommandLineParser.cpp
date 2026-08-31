@@ -55,6 +55,7 @@ static std::string const g_strGas = "gas";
 static std::string const g_strHelp = "help";
 static std::string const g_strImportAst = "import-ast";
 static std::string const g_strImportEvmAssemblerJson = "import-asm-json";
+static std::string const g_strEthdebugInput = "ethdebug-input";
 static std::string const g_strInputFile = "input-file";
 static std::string const g_strYul = "yul";
 static std::string const g_strYulDialect = "yul-dialect";
@@ -162,6 +163,8 @@ std::vector<std::string> const& CommandLineParser::experimentalOptionNames()
 	static std::vector<std::string> const names{
 		g_strImportAst,
 		g_strImportEvmAssemblerJson,
+		g_strEthdebugInput,
+		"ir-ethdebug",
 		"ir-ast-json",
 		"ir-optimized-ast-json",
 		"yul-cfg-json",
@@ -468,6 +471,7 @@ void CommandLineParser::parseOutputSelection()
 		static std::set<std::string> const assemblerModeOutputs = {
 			CompilerOutputs::componentName(&CompilerOutputs::asm_),
 			CompilerOutputs::componentName(&CompilerOutputs::binary),
+			CompilerOutputs::componentName(&CompilerOutputs::irEthdebug),
 			CompilerOutputs::componentName(&CompilerOutputs::irOptimized),
 			CompilerOutputs::componentName(&CompilerOutputs::astCompactJson),
 			CompilerOutputs::componentName(&CompilerOutputs::asmJson),
@@ -642,7 +646,7 @@ General Information)").c_str(),
 			("Debug info components to be included in the produced EVM assembly and Yul code. "
 			"Value can be 'all', 'none' or a comma-separated list containing one or more of the "
 			"following components: " + util::joinHumanReadable(DebugInfoSelection::AllExceptExperimental().selectedNames()) +
-			", or ethdebug (experimental). "
+			", or ethdebug (experimental, requires ast-id). "
 			"Note that 'all' does not include experimental components.").c_str()
 		)
 		(
@@ -700,6 +704,11 @@ General Information)").c_str(),
 			po::value<std::string>()->value_name(util::joinHumanReadable(g_yulDialectArgs, ",")),
 			"Input dialect to use in assembly or yul mode."
 		)
+		(
+			g_strEthdebugInput.c_str(),
+			po::value<std::string>()->value_name("file"),
+			"(experimental) Attach the serialized ethdebug semantic debug info sidecar to the strict assembly input."
+		)
 	;
 	desc.add(assemblyModeOptions);
 
@@ -751,6 +760,7 @@ General Information)").c_str(),
 		(CompilerOutputs::componentName(&CompilerOutputs::binaryRuntime).c_str(), "Binary of the runtime part of the contracts in hex.")
 		(CompilerOutputs::componentName(&CompilerOutputs::abi).c_str(), "ABI specification of the contracts.")
 		(CompilerOutputs::componentName(&CompilerOutputs::ir).c_str(), "Intermediate Representation (IR) of all contracts.")
+		(CompilerOutputs::componentName(&CompilerOutputs::irEthdebug).c_str(), "(experimental) Serialized ethdebug semantic data sidecar for the IR of all contracts.")
 		(CompilerOutputs::componentName(&CompilerOutputs::irAstJson).c_str(), "(experimental) AST of Intermediate Representation (IR) of all contracts in a compact JSON format.")
 		(CompilerOutputs::componentName(&CompilerOutputs::irOptimized).c_str(), "Optimized Intermediate Representation (IR) of all contracts.")
 		(CompilerOutputs::componentName(&CompilerOutputs::irOptimizedAstJson).c_str(), "(experimental) AST of optimized Intermediate Representation (IR) of all contracts in a compact JSON format.")
@@ -1071,7 +1081,8 @@ void CommandLineParser::processArgs()
 		{g_strModelCheckerBMCLoopIterations, {InputMode::Compiler, InputMode::CompilerWithASTImport}},
 		{g_strModelCheckerContracts, {InputMode::Compiler, InputMode::CompilerWithASTImport}},
 		{g_strModelCheckerTargets, {InputMode::Compiler, InputMode::CompilerWithASTImport}},
-		{g_strViaSSACFG, {InputMode::Compiler, InputMode::CompilerWithASTImport, InputMode::Assembler}}
+		{g_strViaSSACFG, {InputMode::Compiler, InputMode::CompilerWithASTImport, InputMode::Assembler}},
+		{g_strEthdebugInput, {InputMode::Assembler}}
 	};
 	std::vector<std::string> invalidOptionsForCurrentInputMode;
 	for (auto const& [optionName, inputModes]: validOptionInputModeCombinations)
@@ -1194,6 +1205,8 @@ void CommandLineParser::processArgs()
 
 		if (m_options.output.debugInfoSelection->snippet && !m_options.output.debugInfoSelection->location)
 			solThrow(CommandLineValidationError, "To use 'snippet' with --" + g_strDebugInfo + " you must select also 'location'.");
+		if (m_options.output.debugInfoSelection->ethdebug && !m_options.output.debugInfoSelection->astID)
+			solThrow(CommandLineValidationError, "To use 'ethdebug' with --" + g_strDebugInfo + " you must select also 'ast-id'.");
 	}
 
 	parseCombinedJsonOption();
@@ -1352,10 +1365,31 @@ void CommandLineParser::processArgs()
 			if (dialect != g_strEVM)
 				solThrow(CommandLineValidationError, "Invalid option for --" + g_strYulDialect + ": " + dialect);
 		}
+		if (m_args.contains(g_strEthdebugInput))
+			m_options.input.ethdebugInput = m_args[g_strEthdebugInput].as<std::string>();
 
 		m_options.output.viaSSACFG = m_args.contains(g_strViaSSACFG);
 
-		if (m_options.compiler.outputs.ethdebugProgram || m_options.compiler.outputs.ethdebugProgramRuntime)
+		// Selecting an ethdebug output does not modify the debug info selection,
+		// just as --ir-optimized does not imply --optimize: the selection must
+		// contain ethdebug explicitly.
+		bool const ethdebugSelected =
+			m_options.output.debugInfoSelection.has_value() && m_options.output.debugInfoSelection->ethdebug;
+		if ((m_options.input.ethdebugInput || m_options.compiler.outputs.irEthdebug) && !ethdebugSelected)
+			solThrow(
+				CommandLineValidationError,
+				fmt::format("--debug-info must contain ethdebug when using --{} or --ir-ethdebug.", g_strEthdebugInput)
+			);
+		if ((m_options.compiler.outputs.ethdebugProgram || m_options.compiler.outputs.ethdebugProgramRuntime) && !ethdebugSelected)
+			solThrow(
+				CommandLineValidationError,
+				fmt::format(
+					"--debug-info must contain ethdebug when using --{} / --{}.",
+					CompilerOutputs::componentName(&CompilerOutputs::ethdebugProgram),
+					CompilerOutputs::componentName(&CompilerOutputs::ethdebugProgramRuntime)
+				)
+			);
+		if (ethdebugSelected)
 		{
 			if (m_options.output.viaSSACFG)
 				solUnimplemented("ethdebug is not yet supported with --" + g_strViaSSACFG + ".");
@@ -1363,12 +1397,6 @@ void CommandLineParser::processArgs()
 				solUnimplemented(
 					"Optimization (using --" + g_strOptimize + ") is not yet supported with ethdebug."
 				);
-
-			if (!m_options.output.debugInfoSelection.has_value())
-			{
-				m_options.output.debugInfoSelection = DebugInfoSelection::Default();
-				m_options.output.debugInfoSelection->enable("ethdebug");
-			}
 		}
 		return;
 	}
@@ -1525,20 +1553,27 @@ void CommandLineParser::processArgs()
 				enableEthdebugProgramMessage + " output can only be selected, if --via-ir was specified."
 			);
 
-		if (!m_options.output.debugInfoSelection.has_value())
-		{
-			m_options.output.debugInfoSelection = DebugInfoSelection::Default();
-			m_options.output.debugInfoSelection->enable("ethdebug");
-		}
-		else
-		{
-			if (!m_options.output.debugInfoSelection->ethdebug)
-				solThrow(
-					CommandLineValidationError,
-					"--debug-info must contain ethdebug, when compiling with " + enableEthdebugProgramMessage + "."
-				);
-		}
+		// Selecting an ethdebug output does not modify the debug info selection,
+		// just as --ir-optimized does not imply --optimize: the selection must
+		// contain ethdebug explicitly.
+		if (!m_options.output.debugInfoSelection.has_value() || !m_options.output.debugInfoSelection->ethdebug)
+			solThrow(
+				CommandLineValidationError,
+				"--debug-info must contain ethdebug when using " + enableEthdebugProgramMessage + "."
+			);
 	}
+
+	if (
+		m_options.compiler.outputs.irEthdebug &&
+		(!m_options.output.debugInfoSelection.has_value() || !m_options.output.debugInfoSelection->ethdebug)
+	)
+		solThrow(
+			CommandLineValidationError,
+			fmt::format(
+				"--debug-info must contain ethdebug when using --{}.",
+				CompilerOutputs::componentName(&CompilerOutputs::irEthdebug)
+			)
+		);
 
 	if (
 		m_options.output.debugInfoSelection.has_value() && m_options.output.debugInfoSelection->ethdebug &&

@@ -1,0 +1,470 @@
+{
+    "contracts": {
+        "C": {
+            "C_12_deployed": {
+                "evm": {
+                    "bytecode": {
+                        "ethdebug": {
+                            "context": {
+                                "variables": [
+                                    {
+                                        "declaration": {
+                                            "range": {
+                                                "length": 15,
+                                                "offset": 77
+                                            },
+                                            "source": {
+                                                "id": 0
+                                            }
+                                        },
+                                        "identifier": "counter",
+                                        "pointer": {
+                                            "location": "storage",
+                                            "slot": "0x0"
+                                        },
+                                        "type": {
+                                            "id": "t_uint256"
+                                        }
+                                    }
+                                ]
+                            },
+                            "contract": {
+                                "definition": {
+                                    "source": {
+                                        "id": 0
+                                    }
+                                },
+                                "name": "C"
+                            },
+                            "environment": "create",
+                            "instructions": [
+                                {
+                                    "context": {
+                                        "code": {
+                                            "range": {
+                                                "length": 100,
+                                                "offset": 60
+                                            },
+                                            "source": {
+                                                "id": 0
+                                            }
+                                        }
+                                    },
+                                    "offset": 0,
+                                    "operation": {
+                                        "arguments": [
+                                            "0x80"
+                                        ],
+                                        "mnemonic": "PUSH1"
+                                    }
+                                },
+                                {
+                                    "context": {
+                                        "code": {
+                                            "range": {
+                                                "length": 100,
+                                                "offset": 60
+                                            },
+                                            "source": {
+                                                "id": 0
+                                            }
+                                        }
+                                    },
+                                    "offset": 2,
+                                    "operation": {
+                                        "arguments": [
+                                            "0x40"
+                                        ],
+                                        "mnemonic": "PUSH1"
+                                    }
+                                },
+                                {
+                                    "context": {
+                                        "code": {
+                                            "range": {
+                                                "length": 100,
+                                                "offset": 60
+                                            },
+                                            "source": {
+                                                "id": 0
+                                            }
+                                        }
+                                    },
+                                    "offset": 4,
+                                    "operation": {
+                                        "mnemonic": "MSTORE"
+                                    }
+                                },
+                                {
+                                    "context": {
+                                        "code": {
+                                            "range": {
+                                                "length": 100,
+                                                "offset": 60
+                                            },
+                                            "source": {
+                                                "id": 0
+                                            }
+                                        }
+                                    },
+                                    "offset": 5,
+                                    "operation": {
+                                        "arguments": [
+                                            "0x0c"
+                                        ],
+                                        "mnemonic": "PUSH1"
+                                    }
+                                },
+                                {
+                                    "context": {
+                                        "code": {
+                                            "range": {
+                                                "length": 100,
+                                                "offset": 60
+                                            },
+                                            "source": {
+                                                "id": 0
+                                            }
+                                        }
+                                    },
+                                    "offset": 7,
+                                    "operation": {
+                                        "arguments": [
+                                            "0x07"
+                                        ],
+                                        "mnemonic": "PUSH1"
+                                    }
+                                },
+                                {
+                                    "context": {
+                                        "code": {
+                                            "range": {
+                                                "length": 100,
+                                                "offset": 60
+                                            },
+                                            "source": {
+                                                "id": 0
+                                            }
+                                        }
+                                    },
+                                    "offset": 9,
+                                    "operation": {
+                                        "arguments": [
+                                            "0x0e"
+                                        ],
+                                        "mnemonic": "PUSH1"
+                                    }
+                                },
+                                {
+                                    "context": {
+                                        "code": {
+                                            "range": {
+                                                "length": 100,
+                                                "offset": 60
+                                            },
+                                            "source": {
+                                                "id": 0
+                                            }
+                                        }
+                                    },
+                                    "offset": 11,
+                                    "operation": {
+                                        "mnemonic": "JUMP"
+                                    }
+                                },
+                                {
+                                    "context": {
+                                        "code": {
+                                            "range": {
+                                                "length": 100,
+                                                "offset": 60
+                                            },
+                                            "source": {
+                                                "id": 0
+                                            }
+                                        }
+                                    },
+                                    "offset": 12,
+                                    "operation": {
+                                        "mnemonic": "JUMPDEST"
+                                    }
+                                },
+                                {
+                                    "context": {
+                                        "code": {
+                                            "range": {
+                                                "length": 100,
+                                                "offset": 60
+                                            },
+                                            "source": {
+                                                "id": 0
+                                            }
+                                        }
+                                    },
+                                    "offset": 13,
+                                    "operation": {
+                                        "mnemonic": "STOP"
+                                    }
+                                },
+                                {
+                                    "context": {
+                                        "code": {
+                                            "range": {
+                                                "length": 59,
+                                                "offset": 99
+                                            },
+                                            "source": {
+                                                "id": 0
+                                            }
+                                        }
+                                    },
+                                    "offset": 14,
+                                    "operation": {
+                                        "mnemonic": "JUMPDEST"
+                                    }
+                                },
+                                {
+                                    "context": {
+                                        "code": {
+                                            "range": {
+                                                "length": 59,
+                                                "offset": 99
+                                            },
+                                            "source": {
+                                                "id": 0
+                                            }
+                                        }
+                                    },
+                                    "offset": 15,
+                                    "operation": {
+                                        "mnemonic": "DUP1"
+                                    }
+                                },
+                                {
+                                    "context": {
+                                        "code": {
+                                            "range": {
+                                                "length": 59,
+                                                "offset": 99
+                                            },
+                                            "source": {
+                                                "id": 0
+                                            }
+                                        }
+                                    },
+                                    "offset": 16,
+                                    "operation": {
+                                        "mnemonic": "PUSH0"
+                                    }
+                                },
+                                {
+                                    "context": {
+                                        "code": {
+                                            "range": {
+                                                "length": 59,
+                                                "offset": 99
+                                            },
+                                            "source": {
+                                                "id": 0
+                                            }
+                                        }
+                                    },
+                                    "offset": 17,
+                                    "operation": {
+                                        "mnemonic": "SSTORE"
+                                    }
+                                },
+                                {
+                                    "context": {
+                                        "code": {
+                                            "range": {
+                                                "length": 59,
+                                                "offset": 99
+                                            },
+                                            "source": {
+                                                "id": 0
+                                            }
+                                        }
+                                    },
+                                    "offset": 18,
+                                    "operation": {
+                                        "mnemonic": "SWAP1"
+                                    }
+                                },
+                                {
+                                    "context": {
+                                        "code": {
+                                            "range": {
+                                                "length": 59,
+                                                "offset": 99
+                                            },
+                                            "source": {
+                                                "id": 0
+                                            }
+                                        }
+                                    },
+                                    "offset": 19,
+                                    "operation": {
+                                        "mnemonic": "JUMP"
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                },
+                "irEthdebug": {
+                    "contractName": "C",
+                    "format": "solidity-ethdebug-semantic-data",
+                    "resources": {
+                        "pointers": {
+                            "storage_12_3": {
+                                "expect": [],
+                                "for": {
+                                    "location": "storage",
+                                    "name": "counter",
+                                    "slot": "0x0"
+                                }
+                            }
+                        },
+                        "types": {
+                            "t_uint256": {
+                                "bits": 256,
+                                "kind": "uint"
+                            }
+                        }
+                    },
+                    "scopes": {
+                        "11": {
+                            "0": {
+                                "variableDefinitions": [
+                                    {
+                                        "declarationASTID": 4,
+                                        "declarationSourceRange": {
+                                            "range": {
+                                                "length": 16,
+                                                "offset": 110
+                                            },
+                                            "source": {
+                                                "id": 0
+                                            }
+                                        },
+                                        "identifier": "argument",
+                                        "phase": "materialized",
+                                        "pointer": {
+                                            "location": "stack",
+                                            "name": "argument",
+                                            "slot": {
+                                                "$$yulLocal": "var_argument_4"
+                                            }
+                                        },
+                                        "typeID": "t_uint256"
+                                    },
+                                    {
+                                        "declarationASTID": 7,
+                                        "declarationSourceRange": {
+                                            "range": {
+                                                "length": 14,
+                                                "offset": 144
+                                            },
+                                            "source": {
+                                                "id": 0
+                                            }
+                                        },
+                                        "identifier": "result",
+                                        "phase": "materialized",
+                                        "pointer": {
+                                            "location": "stack",
+                                            "name": "result",
+                                            "slot": {
+                                                "$$yulLocal": "var_result_7"
+                                            }
+                                        },
+                                        "typeID": "t_uint256"
+                                    }
+                                ]
+                            }
+                        },
+                        "12": {
+                            "0": {
+                                "variableDefinitions": [
+                                    {
+                                        "declarationASTID": 3,
+                                        "declarationSourceRange": {
+                                            "range": {
+                                                "length": 15,
+                                                "offset": 77
+                                            },
+                                            "source": {
+                                                "id": 0
+                                            }
+                                        },
+                                        "identifier": "counter",
+                                        "phase": "materialized",
+                                        "pointer": {
+                                            "template": "storage_12_3"
+                                        },
+                                        "typeID": "t_uint256"
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "version": 1
+                }
+            }
+        }
+    },
+    "ethdebug": {
+        "resources": {
+            "compilation": {
+                "compiler": {
+                    "name": "solc",
+                    "version": "<VERSION REMOVED>"
+                },
+                "id": "solc-5f35992b0837672fa1e5d1bde7633a1c08fa4684fb0656e7a03daf0b66a3b962",
+                "sources": [
+                    {
+                        "contents": "/// @use-src 0:\"input.sol\"
+object \"C_12_deployed\" {
+    /// @ast-id 12
+    code {
+        /// @src 0:60:160  \"contract C {...\"
+        mstore(64, 128)
+
+        pop(fun_f_11(7))
+
+        /// @src 0:99:158  \"function f(uint256 argument) public returns (uint256 result) {...\"
+        /// @ast-id 11
+        function fun_f_11(var_argument_4) -> var_result_7 {
+            sstore(0, var_argument_4)
+            var_result_7 := var_argument_4
+        }
+        /// @src 0:60:160  \"contract C {...\"
+    }
+}
+",
+                        "id": 0,
+                        "language": "Yul",
+                        "path": "C"
+                    }
+                ]
+            },
+            "pointers": {
+                "storage_12_3": {
+                    "expect": [],
+                    "for": {
+                        "location": "storage",
+                        "name": "counter",
+                        "slot": "0x0"
+                    }
+                }
+            },
+            "types": {
+                "t_uint256": {
+                    "bits": 256,
+                    "kind": "uint"
+                }
+            }
+        }
+    }
+}

@@ -6,6 +6,7 @@
     }
   },
   "settings": {
+      "debug": {"debugInfo": ["location", "snippet", "ast-id", "ethdebug"]},
     "experimental": true,
     "stopAfter": "parsing",
     "outputSelection": {

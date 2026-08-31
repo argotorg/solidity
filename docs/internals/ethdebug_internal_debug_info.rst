@@ -78,15 +78,11 @@ Semantic debug-info transfer depends on ``@ast-id`` comments.
 Accordingly, ``ethdebug`` depends on the ``ast-id`` ``--debug-info`` component.
 CLI and Standard JSON input reject a debug-info selection containing ``ethdebug`` without ``ast-id``.
 Selecting an ethdebug output does not modify the debug-info selection, just as ``--ir-optimized`` does not imply ``--optimize``.
-Requesting an ethdebug output without ``ethdebug`` in the debug-info selection is an error.
+Requesting an output that carries the debug info, the program outputs and the sidecar, without ``ethdebug`` in the debug-info selection is an error.
+The resources and compilation outputs are derived from analysis results alone and do not depend on the selection.
 
 Core Structures
 ===============
-
-.. note::
-
-   Of the types named below, only ``langutil::DebugData`` exists in the compiler today.
-   The ``SemanticDebugScope`` family and the ``semanticDebugScope`` field on ``DebugData`` are planned additions and will arrive with the implementation pull requests.
 
 ``langutil::DebugData`` is the debug payload carried by Yul AST nodes.
 The sidecar envelope and variable records are compiler-specific.
@@ -153,8 +149,9 @@ The scope record therefore carries declaration identity, type, and initial recov
      - Identity of the source-language declaration.
        Synthetic bindings may omit it.
    * - ``declarationSourceRange``
-     - optional ``SourceLocation``
-     - Source range of the declaration.
+     - optional ``SemanticDebugSourceRange``
+     - Source range of the declaration: the numeric source ID of the ``ethdebug.compilation`` record with the byte offset and length.
+       ``SourceLocation`` identifies sources by name, which the sidecar never uses as an ID.
    * - ``typeID``
      - optional string
      - Key of the variable's document in ``ethdebug.resources.types``.
@@ -399,7 +396,8 @@ Each source record in ``ethdebug.compilation`` maps its ID to the source path an
        Instance ``0`` is written explicitly.
 
 Readers reject an unknown format, an unsupported version, malformed sidecar fields, and keys that do not parse as decimal integers in the documented ranges.
-Writers emit deterministic output by ordering both key levels in ascending numeric order.
+Writers emit deterministic output: the compiler's JSON writer orders object members lexicographically by key, so the decimal keys of both levels appear in that order rather than in numeric order.
+Readers do not depend on key order.
 
 Compiler Interfaces
 -------------------
@@ -407,7 +405,8 @@ Compiler Interfaces
 Standard JSON uses these fields:
 
 - Solidity output ``contracts[<source>][<contract>].ir`` contains the Yul text.
-- Solidity output ``contracts[<source>][<contract>].irEthdebug`` contains its semantic sidecar.
+- Solidity output ``contracts[<source>][<contract>].irEthdebug`` contains the semantic sidecar of its ``ir`` output.
+  The optimized IR is not a supported sidecar input yet: the Yul pipeline renames generated locals, and optimizer passes do not maintain the records (see the staging note above).
 - Yul input ``auxiliaryInput.ethdebug`` supplies the sidecar for the Yul source.
 - Yul output ``irEthdebug`` emits the updated sidecar again.
 
@@ -421,7 +420,7 @@ The sidecar is both compiler input and compiler output, allowing the same debug 
 
 .. note::
 
-   For implementation testing, ``EthdebugTest`` will add ``Contract.semantic`` as a direct view of the serialized sidecar.
+   For implementation testing, ``EthdebugTest`` exposes ``Contract.semantic`` as a direct view of the serialized sidecar.
 
 Required Variable Coverage
 ==========================

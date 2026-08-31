@@ -1,0 +1,11 @@
+{
+    "errors": [
+        {
+            "component": "general",
+            "formattedMessage": "'ethdebug' needs to be enabled in 'settings.debug.debugInfo', if 'evm.bytecode.ethdebug' or 'evm.deployedBytecode.ethdebug' was selected as output.",
+            "message": "'ethdebug' needs to be enabled in 'settings.debug.debugInfo', if 'evm.bytecode.ethdebug' or 'evm.deployedBytecode.ethdebug' was selected as output.",
+            "severity": "error",
+            "type": "FatalError"
+        }
+    ]
+}

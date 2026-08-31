@@ -21,9 +21,12 @@
 #include <liblangutil/SourceLocation.h>
 #include <optional>
 #include <memory>
+#include <utility>
 
 namespace solidity::langutil
 {
+
+struct SemanticDebugScope;
 
 struct DebugData
 {
@@ -32,23 +35,31 @@ struct DebugData
 	explicit DebugData(
 		langutil::SourceLocation _nativeLocation = {},
 		langutil::SourceLocation _originLocation = {},
-		std::optional<int64_t> _astID = {}
+		std::optional<int64_t> _astID = {},
+		std::optional<int64_t> _astIDInstance = {},
+		std::shared_ptr<SemanticDebugScope const> _semanticDebugScope = {}
 	):
 		nativeLocation(std::move(_nativeLocation)),
 		originLocation(std::move(_originLocation)),
-		astID(_astID)
+		astID(_astID),
+		astIDInstance(_astIDInstance),
+		semanticDebugScope(std::move(_semanticDebugScope))
 	{}
 
 	static DebugData::ConstPtr create(
 		langutil::SourceLocation _nativeLocation,
 		langutil::SourceLocation _originLocation = {},
-		std::optional<int64_t> _astID = {}
+		std::optional<int64_t> _astID = {},
+		std::optional<int64_t> _astIDInstance = {},
+		std::shared_ptr<SemanticDebugScope const> _semanticDebugScope = {}
 	)
 	{
 		return std::make_shared<DebugData>(
 			std::move(_nativeLocation),
 			std::move(_originLocation),
-			_astID
+			_astID,
+			_astIDInstance,
+			std::move(_semanticDebugScope)
 		);
 	}
 
@@ -58,6 +69,16 @@ struct DebugData
 		return emptyDebugData;
 	}
 
+	/// The locations of @a _debugData without its source-language identity:
+	/// for nodes the compiler generates rather than derives from a source node,
+	/// which must not inherit the AST ID, instance or semantic scope.
+	static DebugData::ConstPtr locationsOnly(DebugData::ConstPtr const& _debugData)
+	{
+		if (!_debugData)
+			return create();
+		return create(_debugData->nativeLocation, _debugData->originLocation);
+	}
+
 	/// Location in the Yul code.
 	langutil::SourceLocation nativeLocation;
 	/// Location in the original source that the Yul code was produced from.
@@ -65,6 +86,14 @@ struct DebugData
 	langutil::SourceLocation originLocation;
 	/// ID in the (Solidity) source AST.
 	std::optional<int64_t> astID;
+	/// Discriminator of the generated scope instance among those sharing
+	/// @a astID, carried in Yul text by the `@ast-id-instance` annotation.
+	/// Unset or zero for code that has not been cloned.
+	std::optional<int64_t> astIDInstance;
+	/// Semantic scope record attached to this node. It has no Yul comment
+	/// form and travels in the ethdebug sidecar instead
+	/// (see liblangutil/SemanticDebugData.h).
+	std::shared_ptr<SemanticDebugScope const> semanticDebugScope;
 };
 
 } // namespace solidity::langutil

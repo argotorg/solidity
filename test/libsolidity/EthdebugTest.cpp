@@ -20,6 +20,7 @@
 #include <test/Common.h>
 
 #include <liblangutil/DebugInfoSelection.h>
+#include <liblangutil/SemanticDebugDataSerialization.h>
 
 #include <libsolidity/interface/OptimiserSettings.h>
 
@@ -143,6 +144,13 @@ std::optional<Json> EthdebugTest::fetchOutput(
 			if (creation.is_null() || !creation.contains("contract"))
 				return std::nullopt;
 			return creation["contract"];
+		}
+		if (_outputName == "semantic")
+		{
+			auto const& semanticDebugData = compiler().yulSemanticDebugData(*resolved);
+			if (!semanticDebugData)
+				return std::nullopt;
+			return semanticDebugDataToJson(*semanticDebugData);
 		}
 	}
 	return std::nullopt;

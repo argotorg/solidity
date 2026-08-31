@@ -58,6 +58,18 @@ std::optional<int> toInt(std::string const& _value)
 	}
 }
 
+std::optional<int64_t> toInt64(std::string const& _value)
+{
+	try
+	{
+		return stoll(_value);
+	}
+	catch (std::out_of_range const&)
+	{
+		return std::nullopt;
+	}
+}
+
 }
 
 langutil::DebugData::ConstPtr Parser::createDebugData() const
@@ -69,7 +81,12 @@ langutil::DebugData::ConstPtr Parser::createDebugData() const
 		case UseSourceLocationFrom::LocationOverride:
 			return DebugData::create(m_locationOverride, m_locationOverride);
 		case UseSourceLocationFrom::Comments:
-			return DebugData::create(ParserBase::currentLocation(), m_locationFromComment, m_astIDFromComment);
+			return DebugData::create(
+				ParserBase::currentLocation(),
+				m_locationFromComment,
+				m_astIDFromComment,
+				m_astIDInstanceFromComment
+			);
 	}
 	solAssert(false, "");
 }
@@ -156,6 +173,7 @@ void Parser::fetchDebugDataFromComment()
 	if (commentLiteral.empty())
 	{
 		m_astIDFromComment = std::nullopt;
+		m_astIDInstanceFromComment = std::nullopt;
 		return;
 	}
 	static std::regex const tagRegex = std::regex(
@@ -167,7 +185,8 @@ void Parser::fetchDebugDataFromComment()
 
 	langutil::SourceLocation originLocation = m_locationFromComment;
 	// Empty for each new node.
-	std::optional<int> astID;
+	std::optional<int64_t> astID;
+	std::optional<int64_t> astIDInstance;
 
 	while (regex_search(commentLiteral.cbegin(), commentLiteral.cend(), match, tagRegex))
 	{
@@ -188,6 +207,13 @@ void Parser::fetchDebugDataFromComment()
 			else
 				break;
 		}
+		else if (match[1] == "@ast-id-instance")
+		{
+			if (auto parseResult = parseASTIDInstanceComment(commentLiteral, m_scanner->currentCommentLocation()))
+				tie(commentLiteral, astIDInstance) = *parseResult;
+			else
+				break;
+		}
 		else
 			// Ignore unrecognized tags.
 			continue;
@@ -195,6 +221,9 @@ void Parser::fetchDebugDataFromComment()
 
 	m_locationFromComment = originLocation;
 	m_astIDFromComment = astID;
+	// An instance without an accompanying @ast-id on the same node is
+	// malformed and ignored.
+	m_astIDInstanceFromComment = astID ? astIDInstance : std::nullopt;
 }
 
 std::optional<std::pair<std::string_view, SourceLocation>> Parser::parseSrcComment(
@@ -297,9 +326,27 @@ std::optional<std::pair<std::string_view, SourceLocation>> Parser::parseSrcComme
 	return {{tail, SourceLocation{}}};
 }
 
-std::optional<std::pair<std::string_view, std::optional<int>>> Parser::parseASTIDComment(
+std::optional<std::pair<std::string_view, std::optional<int64_t>>> Parser::parseASTIDComment(
 	std::string_view _arguments,
 	langutil::SourceLocation const& _commentLocation
+)
+{
+	return parseIntegerArgumentComment(_arguments, _commentLocation, "@ast-id", 1749_error);
+}
+
+std::optional<std::pair<std::string_view, std::optional<int64_t>>> Parser::parseASTIDInstanceComment(
+	std::string_view _arguments,
+	langutil::SourceLocation const& _commentLocation
+)
+{
+	return parseIntegerArgumentComment(_arguments, _commentLocation, "@ast-id-instance", 9913_error);
+}
+
+std::optional<std::pair<std::string_view, std::optional<int64_t>>> Parser::parseIntegerArgumentComment(
+	std::string_view _arguments,
+	langutil::SourceLocation const& _commentLocation,
+	std::string_view _tag,
+	langutil::ErrorId _errorID
 )
 {
 	static std::regex const argRegex = std::regex(
@@ -307,26 +354,18 @@ std::optional<std::pair<std::string_view, std::optional<int>>> Parser::parseASTI
 		std::regex_constants::ECMAScript | std::regex_constants::optimize
 	);
 	std::match_results<std::string_view::const_iterator> match;
-	std::optional<int> astID;
-	bool matched = regex_search(_arguments.cbegin(), _arguments.cend(), match, argRegex);
-	std::string_view tail = _arguments;
-	if (matched)
+	if (!regex_search(_arguments.cbegin(), _arguments.cend(), match, argRegex))
 	{
-		solAssert(match.size() == 2, "");
-		tail = _arguments.substr(static_cast<size_t>(match.position() + match.length()));
-
-		astID = toInt(match[1].str());
-	}
-
-	if (!matched || !astID || *astID < 0 || static_cast<int64_t>(*astID) != *astID)
-	{
-		m_errorReporter.syntaxError(1749_error, _commentLocation, "Invalid argument for @ast-id.");
-		astID = std::nullopt;
-	}
-	if (matched)
-		return {{_arguments, astID}};
-	else
+		m_errorReporter.syntaxError(_errorID, _commentLocation, "Invalid argument for " + std::string(_tag) + ".");
 		return std::nullopt;
+	}
+	solAssert(match.size() == 2, "");
+
+	// AST IDs and instances are 64-bit; anything larger is not an ID of this compiler.
+	std::optional<int64_t> const value = toInt64(match[1].str());
+	if (!value)
+		m_errorReporter.syntaxError(_errorID, _commentLocation, "Invalid argument for " + std::string(_tag) + ".");
+	return {{_arguments, value}};
 }
 
 Block Parser::parseBlock()

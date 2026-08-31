@@ -104,6 +104,77 @@ def test_program_sanity(output_selection, environment, solc_output):
         assert all(instruction["operation"]["mnemonic"] for instruction in instructions)
 
 
+def test_program_context_includes_state_variables(solc_output):
+    programs = {
+        (source_name, contract_name): program
+        for source_name, contract_name, program
+        in ethdebug_programs(solc_output, "evm.deployedBytecode.ethdebug")
+    }
+
+    variables = {
+        variable["identifier"]: variable
+        for variable in programs[("a.sol", "A1")]["context"]["variables"]
+    }
+    types = solc_output["ethdebug"]["resources"]["types"]
+
+    def referenced_type(variable):
+        reference = variable["type"]
+        assert set(reference) == {"id"}
+        return types[reference["id"]]
+
+    assert referenced_type(variables["stored"]) == {"kind": "uint", "bits": 128}
+    assert variables["stored"]["pointer"] == {
+        "location": "storage",
+        "slot": "0x00",
+        "length": "0x10",
+    }
+    assert referenced_type(variables["enabled"]) == {"kind": "bool"}
+    assert variables["enabled"]["pointer"] == {
+        "location": "storage",
+        "slot": "0x00",
+        "offset": "0x10",
+        "length": "0x01",
+    }
+
+    # Complex type resources reference their component resources by ID.
+    assert referenced_type(variables["balances"]) == {
+        "kind": "mapping",
+        "contains": {
+            "key": {"type": {"id": "t_address"}},
+            "value": {"type": {"id": "t_uint256"}},
+        },
+    }
+    # A mapping pointer expects the key as a template parameter, so it is not a
+    # closed expression and only appears as a template in the pointer resources.
+    assert "pointer" not in variables["balances"]
+
+    assert referenced_type(variables["values"]) == {
+        "kind": "array",
+        "contains": {"type": {"id": "t_uint256"}},
+    }
+    values_pointer = variables["values"]["pointer"]
+    assert values_pointer["group"][0]["name"] == "values-length"
+    assert values_pointer["group"][0]["location"] == "storage"
+    assert values_pointer["group"][0]["slot"] == "0x02"
+    assert values_pointer["group"][1]["define"] == {
+        "values-data": {"$keccak256": [{"$wordsized": "0x02"}]}
+    }
+    values_list = values_pointer["group"][1]["in"]["list"]
+    assert values_list["count"] == {"$read": "values-length"}
+    assert values_list["each"] == "values-index"
+    assert values_list["is"]["slot"] == {"$sum": ["values-data", "values-index"]}
+
+    assert referenced_type(variables["label"]) == {"kind": "string"}
+    label_pointer = variables["label"]["pointer"]
+    assert label_pointer["group"][0]["name"] == "label-length-flag"
+    assert label_pointer["group"][0]["offset"] == {"$difference": ["$wordsize", "0x01"]}
+    conditional = label_pointer["group"][1]
+    assert "if" in conditional and "then" in conditional and "else" in conditional
+
+    # Contracts without state variables emit no program-level context.
+    assert "context" not in programs[("a.sol", "A2")]
+
+
 def test_resources_match_standard_json_sources(solc_output):
     standard_json_sources = {source_name: source["id"] for source_name, source in solc_output["sources"].items()}
     ethdebug_sources = {
@@ -125,9 +196,53 @@ def test_resources_include_standard_json_source_contents(standard_json_input, so
         assert ethdebug_sources[source_name]["language"] == "Solidity"
 
 
-def test_resources_include_empty_type_and_pointer_tables(solc_output):
-    assert solc_output["ethdebug"]["resources"]["types"] == {}
-    assert solc_output["ethdebug"]["resources"]["pointers"] == {}
+def test_resources_include_type_and_pointer_tables(solc_output):
+    types = solc_output["ethdebug"]["resources"]["types"]
+    assert types["t_uint256"] == {
+        "kind": "uint",
+        "bits": 256,
+    }
+    assert types["t_address"] == {"kind": "address", "payable": False}
+
+    # Composed types reference their component types by ID into this table.
+    mapping_types = [entry for entry in types.values() if entry.get("kind") == "mapping"]
+    assert mapping_types == [{
+        "kind": "mapping",
+        "contains": {
+            "key": {"type": {"id": "t_address"}},
+            "value": {"type": {"id": "t_uint256"}},
+        },
+    }]
+    array_types = [entry for entry in types.values() if entry.get("kind") == "array"]
+    assert {"kind": "array", "contains": {"type": {"id": "t_uint256"}}} in array_types
+    assert {"kind": "string"} in types.values()
+
+    pointers = solc_output["ethdebug"]["resources"]["pointers"]
+    pointer_targets = [pointer["for"] for pointer in pointers.values()]
+    assert {
+        "name": "stored",
+        "location": "storage",
+        "slot": "0x00",
+        "length": "0x10",
+    } in pointer_targets
+    assert {
+        "name": "enabled",
+        "location": "storage",
+        "slot": "0x00",
+        "offset": "0x10",
+        "length": "0x01",
+    } in pointer_targets
+
+    # Mapping pointers are exported as templates over their expected keys.
+    templates_with_parameters = [pointer for pointer in pointers.values() if pointer["expect"]]
+    assert templates_with_parameters == [{
+        "expect": ["key"],
+        "for": {
+            "name": "balances",
+            "location": "storage",
+            "slot": {"$keccak256": [{"$wordsized": "key"}, {"$wordsized": "0x01"}]},
+        },
+    }]
 
 
 def test_resources_and_compilation_share_compilation(solc_output):

@@ -123,7 +123,7 @@ std::string IRGenerator::generate(
 	Whiskers t(R"(<?isEthdebugEnabled>/// ethdebug: enabled</isEthdebugEnabled>
 		/// @use-src <useSrcMapCreation>
 		object "<CreationObject>" {
-			code {
+			code <contractASTIDComment>{
 				<sourceLocationCommentCreation>
 				<memoryInitCreation>
 				<callValueCheck>
@@ -137,7 +137,7 @@ std::string IRGenerator::generate(
 			}
 			/// @use-src <useSrcMapDeployed>
 			object "<DeployedObject>" {
-				code {
+				code <contractASTIDComment>{
 					<sourceLocationCommentDeployed>
 					<memoryInitDeployed>
 					<?library>
@@ -158,6 +158,13 @@ std::string IRGenerator::generate(
 		m_context.registerImmutableVariable(*var);
 
 	t("isEthdebugEnabled", m_context.debugInfoSelection().ethdebug);
+	// The semantic debug info of contract-level variables attaches to the
+	// top-level Yul block of each object, so the block carries the contract's
+	// AST ID whenever that info is transported.
+	t(
+		"contractASTIDComment",
+		m_context.debugInfoSelection().ethdebug ? "/** @ast-id " + std::to_string(_contract.id()) + " */ " : ""
+	);
 	t("CreationObject", IRNames::creationObject(_contract));
 	t("sourceLocationCommentCreation", dispenseLocationComment(_contract));
 	t("library", _contract.isLibrary());
