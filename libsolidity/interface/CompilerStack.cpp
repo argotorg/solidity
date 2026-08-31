@@ -1179,8 +1179,6 @@ Json CompilerStack::interfaceSymbols(std::string const& _contractName) const
 Json CompilerStack::ethdebug() const
 {
 	solAssert(m_stackState >= AnalysisSuccessful, "Analysis was not successful.");
-	// The resource tables are derived from analysis results alone, so
-	// ethdebug.resources is available right after analysis.
 	ethdebug::Resources resources;
 	std::map<std::string, unsigned> const sourceIndexMap = sourceIndices();
 	for (auto const& contractEntry: m_contracts)
@@ -1188,6 +1186,7 @@ Json CompilerStack::ethdebug() const
 		Contract const& compiledContract = contractEntry.second;
 		if (!compiledContract.contract)
 			continue;
+
 		// IR generation stores the side table on the contract. The resources
 		// are derived from analysis results alone, so before that they are
 		// built on demand: ethdebug.resources is available right after analysis.
@@ -1248,14 +1247,17 @@ Json CompilerStack::ethdebug(Contract const& _contract, bool _runtime) const
 	std::map<std::string, unsigned> const sourceIndexMap = sourceIndices();
 	solAssert(sourceIndexMap.contains(_contract.contract->sourceUnitName()));
 
+	std::optional<evmasm::ethdebug::schema::program::Context> programContext =
+		_contract.yulSemanticDebugData
+			? ethdebug::programContext(*_contract.yulSemanticDebugData)
+			: ethdebug::programContext(buildSemanticDebugDataTable(*_contract.contract, sourceIndexMap));
+
 	return evmasm::ethdebug::program(
 		_contract.contract->name(),
 		sourceIndexMap.at(_contract.contract->sourceUnitName()),
 		*assembly,
 		object,
-		_contract.yulSemanticDebugData
-			? ethdebug::programContext(*_contract.yulSemanticDebugData)
-			: ethdebug::programContext(buildSemanticDebugDataTable(*_contract.contract, sourceIndexMap))
+		std::move(programContext)
 	);
 }
 
@@ -1621,9 +1623,9 @@ void CompilerStack::generateIR(ContractDefinition const& _contract, bool _unopti
 		*compiledContract.yulIR,
 		compiledContract.yulSemanticDebugData ? &*compiledContract.yulSemanticDebugData : nullptr
 	);
-	// The side table pairs with the unoptimized IR: attaching checks every
-	// pointer against it, and the table is kept as attached. The optimized IR,
-	// whose variable names differ, is not a supported pairing yet.
+	// The sidecar pairs with the unoptimized IR: attaching checks every pointer
+	// against it, and the table is kept as attached. The optimized IR, whose
+	// variable names differ, is not a supported sidecar input yet.
 	if (compiledContract.yulSemanticDebugData)
 		compiledContract.yulSemanticDebugData = stack.semanticDebugData();
 	if (!_unoptimizedOnly)

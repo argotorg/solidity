@@ -1614,6 +1614,57 @@ BOOST_AUTO_TEST_CASE(cli_ethdebug_ethdebug_output)
 	}
 }
 
+BOOST_AUTO_TEST_CASE(cli_ethdebug_semantic_sidecar_supports_two_stage_compilation)
+{
+	TemporaryDirectory tempDir(TEST_CASE_NAME);
+	boost::filesystem::path inputPath = tempDir.path() / "input.sol";
+	boost::filesystem::path outputDir = tempDir.path() / "output";
+	createFilesWithParentDirs(
+		{inputPath},
+		"contract C { uint256 value; function f(uint256 argument) public { value = argument; } }"
+	);
+	boost::filesystem::create_directories(outputDir);
+
+	OptionsReaderAndMessages firstStage = runCLI({
+		"solc",
+		"--experimental",
+		"--debug-info",
+		"ast-id,ethdebug",
+		"--ir",
+		"--ir-ethdebug",
+		"--output-dir",
+		outputDir.string(),
+		inputPath.string(),
+	});
+	BOOST_REQUIRE(firstStage.success);
+
+	boost::filesystem::path yulPath = outputDir / "C.yul";
+	boost::filesystem::path sidecarPath = outputDir / "C_ir_ethdebug.json";
+	BOOST_REQUIRE(boost::filesystem::is_regular_file(yulPath));
+	BOOST_REQUIRE(boost::filesystem::is_regular_file(sidecarPath));
+	BOOST_CHECK(readFileAsString(sidecarPath).find("argument") != std::string::npos);
+
+	OptionsReaderAndMessages secondStage = runCLI({
+		"solc",
+		"--strict-assembly",
+		"--experimental",
+		"--debug-info",
+		"ast-id,ethdebug",
+		"--ethdebug-input",
+		sidecarPath.string(),
+		"--ir-ethdebug",
+		"--ethdebug-program",
+		yulPath.string(),
+	});
+	BOOST_REQUIRE(secondStage.success);
+	BOOST_CHECK(secondStage.stderrContent.empty());
+	BOOST_CHECK(secondStage.stdoutContent.find("IR ethdebug sidecar:") != std::string::npos);
+	BOOST_CHECK(secondStage.stdoutContent.find("Debug Data (ethdebug/format/program):") != std::string::npos);
+	BOOST_CHECK(secondStage.stdoutContent.find("argument") != std::string::npos);
+	// The program-level context of the state variable is derived from the sidecar again.
+	BOOST_CHECK(secondStage.stdoutContent.find("\"identifier\":\"value\"") != std::string::npos);
+}
+
 BOOST_AUTO_TEST_SUITE_END()
 
 } // namespace solidity::frontend::test

@@ -278,14 +278,14 @@ YulStack::assembleWithDeployed(std::optional<std::string_view> _deployName, bool
 			{{m_charStream->name(), 0}}
 		);
 		if (debugInfoSelection().ethdebug)
-			creationObject.ethdebug = evmasm::ethdebug::program(creationObject.assembly->name(), 0, *creationObject.assembly, *creationObject.bytecode);
+			creationObject.ethdebug = ethdebugProgram(creationObject);
 
 		if (deployedAssembly)
 		{
 			deployedObject.bytecode = std::make_shared<evmasm::LinkerObject>(deployedAssembly->assemble());
 			deployedObject.assembly = deployedAssembly;
 			if (debugInfoSelection().ethdebug)
-				deployedObject.ethdebug = evmasm::ethdebug::program(deployedObject.assembly->name(), 0, *deployedObject.assembly, *deployedObject.bytecode);
+				deployedObject.ethdebug = ethdebugProgram(deployedObject);
 			deployedObject.sourceMappings = std::make_unique<std::string>(
 				evmasm::AssemblyItem::computeSourceMapping(
 					deployedAssembly->items(),
@@ -454,6 +454,28 @@ void YulStack::attachSemanticDebugData(SemanticDebugDataTable const& _table)
 	// local that no longer exists must become optimized-out instead of keeping a stale pointer.
 	if (!m_semanticDebugData.empty())
 		applySemanticDebugData(*m_parserResult, m_semanticDebugData);
+}
+
+void YulStack::setEthdebugProgramContext(
+	std::string _contractName,
+	std::optional<evmasm::ethdebug::schema::program::Context> _context
+)
+{
+	m_ethdebugContractName = std::move(_contractName);
+	m_ethdebugProgramContext = std::move(_context);
+}
+
+Json YulStack::ethdebugProgram(MachineAssemblyObject const& _object) const
+{
+	yulAssert(_object.assembly && _object.bytecode);
+	// Yul input has a single source, with ID 0 in the ethdebug compilation record.
+	return evmasm::ethdebug::program(
+		m_ethdebugContractName.value_or(_object.assembly->name()),
+		0,
+		*_object.assembly,
+		*_object.bytecode,
+		m_ethdebugProgramContext
+	);
 }
 
 Dialect const& YulStack::dialect() const

@@ -198,9 +198,9 @@ BOOST_AUTO_TEST_CASE(cli_mode_options)
 		expectedOptions.formatting.withErrorIds = true;
 		expectedOptions.compiler.outputs = {
 			true, true, true, true, true,
+			true, true, true, false, true,
 			true, true, true, true, true,
-			true, true, true, true, true,
-			true, true, true,
+			true, true, true, true,
 		};
 		expectedOptions.compiler.estimateGas = true;
 		expectedOptions.compiler.combinedJsonRequests = {
@@ -694,6 +694,38 @@ BOOST_AUTO_TEST_CASE(ethdebug)
 	BOOST_CHECK_EQUAL(commandLineOptions.compiler.outputs.ir, true);
 	BOOST_CHECK_EQUAL(commandLineOptions.output.debugInfoSelection.has_value(), true);
 	BOOST_CHECK_EQUAL(commandLineOptions.output.debugInfoSelection->ethdebug, true);
+	// --ir-ethdebug emits the sidecar; it requires --debug-info ethdebug like any other ethdebug output
+	commandLineOptions = parseCommandLine({"solc", "contract.sol", "--experimental", "--debug-info", "ast-id,ethdebug", "--ir-ethdebug"});
+	BOOST_CHECK_EQUAL(commandLineOptions.compiler.outputs.irEthdebug, true);
+	BOOST_REQUIRE(commandLineOptions.output.debugInfoSelection.has_value());
+	BOOST_CHECK_EQUAL(commandLineOptions.output.debugInfoSelection->ethdebug, true);
+	BOOST_CHECK_EXCEPTION(
+		parseCommandLine({"solc", "contract.sol", "--experimental", "--ir-ethdebug"}),
+		CommandLineValidationError,
+		expectsExplicitEthdebug
+	);
+	// --ethdebug-input attaches the sidecar in strict assembly mode
+	commandLineOptions = parseCommandLine({
+		"solc", "contract.yul", "--strict-assembly", "--experimental", "--debug-info", "ast-id,ethdebug",
+		"--ethdebug-input", "debug.json"
+	});
+	BOOST_REQUIRE(commandLineOptions.input.ethdebugInput.has_value());
+	BOOST_CHECK_EQUAL(*commandLineOptions.input.ethdebugInput, "debug.json");
+	BOOST_REQUIRE(commandLineOptions.output.debugInfoSelection.has_value());
+	BOOST_CHECK_EQUAL(commandLineOptions.output.debugInfoSelection->ethdebug, true);
+	BOOST_CHECK_EXCEPTION(
+		parseCommandLine({"solc", "contract.yul", "--strict-assembly", "--experimental", "--ethdebug-input", "debug.json"}),
+		CommandLineValidationError,
+		expectsExplicitEthdebug
+	);
+	// Only one sidecar can be attached: there is no syntax pairing sidecars with multiple inputs.
+	BOOST_CHECK_THROW(
+		parseCommandLine({
+			"solc", "a.yul", "b.yul", "--strict-assembly", "--experimental", "--debug-info", "ast-id,ethdebug",
+			"--ethdebug-input", "a.json", "--ethdebug-input", "b.json"
+		}),
+		CommandLineValidationError
+	);
 	// --ethdebug-resources does not require --via-ir
 	commandLineOptions = parseCommandLine({"solc", "contract.sol", "--experimental", "--ethdebug-resources"});
 	BOOST_CHECK_EQUAL(commandLineOptions.compiler.outputs.ethdebugResources, true);
@@ -713,6 +745,7 @@ BOOST_AUTO_TEST_CASE(experimental_features_without_experimental_flag)
 	std::vector<std::string> const experimentalFeatures {
 		"--import-ast",
 		"--import-asm-json",
+		"--ir-ethdebug",
 		"--ir-ast-json",
 		"--ir-optimized-ast-json",
 		"--yul-cfg-json",
@@ -738,6 +771,15 @@ BOOST_AUTO_TEST_CASE(experimental_features_without_experimental_flag)
 		std::vector<std::string> const commandLineOptions{"solc", experimentalFeature, "contract.sol"};
 		BOOST_CHECK_EXCEPTION(parseCommandLine(commandLineOptions), CommandLineValidationError, hasCorrectMessage);
 	}
+
+	expectedErrorMessage =
+		"The following options are only available in experimental mode: --ethdebug-input. "
+		"To enable experimental mode, use the --experimental flag.";
+	BOOST_CHECK_EXCEPTION(
+		parseCommandLine({"solc", "--strict-assembly", "--ethdebug-input", "debug.json", "contract.yul"}),
+		CommandLineValidationError,
+		hasCorrectMessage
+	);
 }
 
 BOOST_AUTO_TEST_CASE(via_ssa_cfg_smoke)

@@ -2285,6 +2285,147 @@ BOOST_DATA_TEST_CASE(ethdebug_output_instructions_smoketest, boost::unit_test::d
 	}
 }
 
+BOOST_AUTO_TEST_CASE(ethdebug_semantic_sidecar_supports_two_stage_compilation)
+{
+	frontend::StandardCompiler compiler;
+	std::map<std::string, Json> firstSources;
+	firstSources["fileA"] =
+		"contract C { uint256 value; function f(uint256 argument) public { value = argument; } "
+		"function g(uint256 argument) public pure returns (uint256) { return argument; } }";
+	Json firstInput = generateExperimentalStandardJson(
+		true,
+		Json::array({"ast-id", "ethdebug"}),
+		Json::array({
+			"ir",
+			"irEthdebug",
+			"evm.bytecode.object",
+			"evm.bytecode.ethdebug",
+			"evm.deployedBytecode.object",
+			"evm.deployedBytecode.ethdebug"
+		}),
+		SolidityCode(std::move(firstSources))
+	);
+	Json firstResult = compiler.compile(firstInput);
+	BOOST_REQUIRE(containsAtMostWarnings(firstResult));
+	Json const& firstContract = firstResult["contracts"]["fileA"]["C"];
+	BOOST_REQUIRE(firstContract["ir"].is_string());
+	BOOST_REQUIRE(firstContract["irEthdebug"].is_object());
+	BOOST_REQUIRE(firstContract["irEthdebug"].contains("scopes"));
+	BOOST_REQUIRE(!firstContract["irEthdebug"]["scopes"].empty());
+	BOOST_REQUIRE(firstContract["irEthdebug"].contains("resources"));
+	BOOST_CHECK(firstContract["irEthdebug"].dump().find("argument") != std::string::npos);
+	BOOST_CHECK(firstContract["irEthdebug"].dump().find("value") != std::string::npos);
+	// The state variable's closed pointer is published in the program-level context.
+	Json const& firstContext = firstContract["evm"]["deployedBytecode"]["ethdebug"]["context"];
+	BOOST_REQUIRE(firstContext.is_object());
+	BOOST_REQUIRE_EQUAL(firstContext["variables"].size(), 1);
+	BOOST_CHECK_EQUAL(firstContext["variables"][0]["identifier"], "value");
+	BOOST_CHECK_EQUAL(firstContext["variables"][0]["pointer"]["location"], "storage");
+
+	std::map<std::string, Json> secondSources;
+	secondSources["fileA.yul"] = firstContract["ir"];
+	Json secondInput = generateExperimentalStandardJson(
+		false,
+		Json::array({"ast-id", "ethdebug"}),
+		Json::array({
+			"irEthdebug",
+			"evm.bytecode.object",
+			"evm.bytecode.ethdebug",
+			"evm.deployedBytecode.object",
+			"evm.deployedBytecode.ethdebug"
+		}),
+		YulCode(std::move(secondSources))
+	);
+	secondInput["auxiliaryInput"]["ethdebug"] = firstContract["irEthdebug"];
+	Json secondResult = compiler.compile(secondInput);
+	BOOST_REQUIRE(containsAtMostWarnings(secondResult));
+	BOOST_REQUIRE(secondResult["contracts"]["fileA.yul"].is_object());
+	Json const& secondContract = secondResult["contracts"]["fileA.yul"].begin().value();
+	BOOST_REQUIRE(secondContract["evm"]["bytecode"]["ethdebug"].is_object());
+	BOOST_CHECK(secondContract["evm"]["bytecode"]["object"] == firstContract["evm"]["bytecode"]["object"]);
+	BOOST_CHECK_EQUAL(
+		Json::diff(
+			firstContract["evm"]["bytecode"]["ethdebug"],
+			secondContract["evm"]["bytecode"]["ethdebug"]
+		).dump(),
+		"[]"
+	);
+	BOOST_CHECK(
+		secondContract["evm"]["deployedBytecode"]["object"] ==
+		firstContract["evm"]["deployedBytecode"]["object"]
+	);
+	BOOST_CHECK_EQUAL(
+		Json::diff(
+			firstContract["evm"]["deployedBytecode"]["ethdebug"],
+			secondContract["evm"]["deployedBytecode"]["ethdebug"]
+		).dump(),
+		"[]"
+	);
+	BOOST_CHECK(secondContract["irEthdebug"] == firstContract["irEthdebug"]);
+}
+
+BOOST_AUTO_TEST_CASE(ethdebug_ir_ethdebug_output_alone_generates_ir)
+{
+	frontend::StandardCompiler compiler;
+	std::map<std::string, Json> sources;
+	sources["fileA"] = "contract C { uint256 value; function f(uint256 argument) public { value = argument; } }";
+	Json input = generateExperimentalStandardJson(
+		true,
+		Json::array({"ast-id", "ethdebug"}),
+		Json::array({"irEthdebug"}),
+		SolidityCode(std::move(sources))
+	);
+	Json result = compiler.compile(input);
+	BOOST_REQUIRE(containsAtMostWarnings(result));
+	Json const& sidecar = result["contracts"]["fileA"]["C"]["irEthdebug"];
+	BOOST_REQUIRE(sidecar.is_object());
+	BOOST_CHECK_EQUAL(sidecar["contractName"], "C");
+	BOOST_CHECK(!sidecar["scopes"].empty());
+	BOOST_CHECK(sidecar["resources"]["types"].contains("t_uint256"));
+	BOOST_CHECK(!sidecar["resources"]["pointers"].empty());
+}
+
+BOOST_AUTO_TEST_CASE(ethdebug_semantic_sidecar_rejects_malformed_input)
+{
+	frontend::StandardCompiler compiler;
+	std::map<std::string, Json> yulSources;
+	yulSources["fileA.yul"] = "object \"C\" { code { stop() } }";
+	Json input = generateExperimentalStandardJson(
+		false,
+		Json::array({"ast-id", "ethdebug"}),
+		Json::array({"irEthdebug"}),
+		YulCode(std::move(yulSources))
+	);
+	input["auxiliaryInput"]["ethdebug"] = Json{
+		{"format", "solidity-ethdebug-semantic-data"},
+		{"version", 1},
+		{"resources", Json{{"types", Json::object()}, {"pointers", Json::object()}}},
+		{"scopes", Json{{"abc", Json::object()}}}
+	};
+	Json result = compiler.compile(input);
+	bool rejected = false;
+	for (Json const& error: result["errors"])
+		if (
+			error["type"] == "JSONError" &&
+			error["message"].get<std::string>().starts_with("Invalid 'auxiliaryInput.ethdebug': ")
+		)
+			rejected = true;
+	BOOST_CHECK(rejected);
+}
+
+BOOST_AUTO_TEST_CASE(ethdebug_semantic_sidecar_is_rejected_for_non_yul_input)
+{
+	frontend::StandardCompiler compiler;
+	Json input = generateExperimentalStandardJson(false, {}, Json::array({"ir"}));
+	input["auxiliaryInput"]["ethdebug"] = Json{
+		{"format", "solidity-ethdebug-semantic-data"},
+		{"version", 1},
+		{"scopes", Json::object()}
+	};
+	Json result = compiler.compile(input);
+	BOOST_CHECK(containsError(result, "JSONError", "'auxiliaryInput.ethdebug' can only be used for Yul input."));
+}
+
 BOOST_AUTO_TEST_CASE(ethdebug_rejects_yul_optimization)
 {
 	frontend::StandardCompiler compiler;

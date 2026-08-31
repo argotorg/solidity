@@ -1,0 +1,156 @@
+IR ethdebug sidecar:
+{
+    "contractName": "C",
+    "format": "solidity-ethdebug-semantic-data",
+    "resources": {
+        "pointers": {
+            "storage_29_3": {
+                "expect": [],
+                "for": {
+                    "location": "storage",
+                    "name": "counter",
+                    "slot": "0x00"
+                }
+            },
+            "storage_29_7": {
+                "expect": [
+                    "key"
+                ],
+                "for": {
+                    "location": "storage",
+                    "name": "balances",
+                    "slot": {
+                        "$keccak256": [
+                            {
+                                "$wordsized": "key"
+                            },
+                            {
+                                "$wordsized": "0x01"
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        "types": {
+            "t_address": {
+                "kind": "address",
+                "payable": false
+            },
+            "t_mapping$_t_address_$_t_uint256_$": {
+                "contains": {
+                    "key": {
+                        "type": {
+                            "id": "t_address"
+                        }
+                    },
+                    "value": {
+                        "type": {
+                            "id": "t_uint256"
+                        }
+                    }
+                },
+                "kind": "mapping"
+            },
+            "t_uint256": {
+                "bits": 256,
+                "kind": "uint"
+            }
+        }
+    },
+    "scopes": {
+        "28": {
+            "0": {
+                "variableDefinitions": [
+                    {
+                        "declarationASTID": 9,
+                        "declarationSourceRange": {
+                            "range": {
+                                "length": 16,
+                                "offset": 152
+                            },
+                            "source": {
+                                "id": 0
+                            }
+                        },
+                        "identifier": "argument",
+                        "phase": "materialized",
+                        "pointer": {
+                            "location": "stack",
+                            "name": "argument",
+                            "slot": {
+                                "$$yulLocal": "var_argument_9"
+                            }
+                        },
+                        "typeID": "t_uint256"
+                    },
+                    {
+                        "declarationASTID": 12,
+                        "declarationSourceRange": {
+                            "range": {
+                                "length": 14,
+                                "offset": 186
+                            },
+                            "source": {
+                                "id": 0
+                            }
+                        },
+                        "identifier": "result",
+                        "phase": "materialized",
+                        "pointer": {
+                            "location": "stack",
+                            "name": "result",
+                            "slot": {
+                                "$$yulLocal": "var_result_12"
+                            }
+                        },
+                        "typeID": "t_uint256"
+                    }
+                ]
+            }
+        },
+        "29": {
+            "0": {
+                "variableDefinitions": [
+                    {
+                        "declarationASTID": 3,
+                        "declarationSourceRange": {
+                            "range": {
+                                "length": 15,
+                                "offset": 77
+                            },
+                            "source": {
+                                "id": 0
+                            }
+                        },
+                        "identifier": "counter",
+                        "phase": "materialized",
+                        "pointer": {
+                            "template": "storage_29_3"
+                        },
+                        "typeID": "t_uint256"
+                    },
+                    {
+                        "declarationASTID": 7,
+                        "declarationSourceRange": {
+                            "range": {
+                                "length": 36,
+                                "offset": 98
+                            },
+                            "source": {
+                                "id": 0
+                            }
+                        },
+                        "identifier": "balances",
+                        "phase": "materialized",
+                        "pointer": {
+                            "template": "storage_29_7"
+                        },
+                        "typeID": "t_mapping$_t_address_$_t_uint256_$"
+                    }
+                ]
+            }
+        }
+    },
+    "version": 1
+}
