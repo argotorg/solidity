@@ -15,7 +15,11 @@
 	along with solidity.  If not, see <http://www.gnu.org/licenses/>.
 */
 // SPDX-License-Identifier: GPL-3.0
+/**
+ * Unit tests for the semantic debug info data model and its serialization.
+ */
 
+#include <liblangutil/DebugData.h>
 #include <liblangutil/SemanticDebugDataAnalysis.h>
 #include <liblangutil/SemanticDebugDataSerialization.h>
 #include <liblangutil/SemanticDebugDataTable.h>
@@ -45,6 +49,60 @@ SemanticDebugPointer storageRegion(std::string _name, std::string _slot)
 }
 
 BOOST_AUTO_TEST_SUITE(DebugDataTest)
+
+BOOST_AUTO_TEST_CASE(carries_semantic_debug_scope)
+{
+	SemanticDebugPointer pointer;
+	pointer.pointerClass = SemanticDebugPointer::Class::Region;
+	pointer.location = SemanticDebugPointer::Location::Stack;
+	pointer.name = "value";
+	pointer.slot = SemanticDebugPointerExpression::yulLocal("var_value");
+
+	// NOTE: Built imperatively instead of with nested designated initializers,
+	// which crash MSVC with an internal compiler error.
+	SemanticDebugVariable variable;
+	variable.identifier = "value";
+	variable.declarationASTID = 23;
+	variable.declarationSourceRange = SemanticDebugSourceRange{0, 1, 5};
+	variable.typeID = "type:uint256";
+	variable.phase = SemanticDebugVariablePhase::Materialized;
+	variable.pointer = pointer;
+
+	SemanticDebugScope scope;
+	scope.variableDefinitions.emplace_back(std::move(variable));
+	auto semanticDebugScope = std::make_shared<SemanticDebugScope const>(std::move(scope));
+
+	auto debugData = DebugData::create(
+		SourceLocation{},
+		SourceLocation{},
+		23,
+		1,
+		semanticDebugScope
+	);
+
+	BOOST_REQUIRE(debugData->astIDInstance);
+	BOOST_CHECK_EQUAL(*debugData->astIDInstance, 1);
+	BOOST_REQUIRE(debugData->semanticDebugScope);
+	BOOST_REQUIRE_EQUAL(debugData->semanticDebugScope->variableDefinitions.size(), 1);
+	SemanticDebugVariable const& stored = debugData->semanticDebugScope->variableDefinitions.front();
+	BOOST_REQUIRE(stored.identifier);
+	BOOST_CHECK_EQUAL(*stored.identifier, "value");
+	BOOST_REQUIRE(stored.typeID);
+	BOOST_CHECK_EQUAL(*stored.typeID, "type:uint256");
+	BOOST_REQUIRE(stored.declarationSourceRange);
+	BOOST_CHECK(*stored.declarationSourceRange == (SemanticDebugSourceRange{0, 1, 5}));
+	BOOST_CHECK(stored.phase == SemanticDebugVariablePhase::Materialized);
+	BOOST_REQUIRE(stored.pointer);
+	BOOST_CHECK(stored.pointer->pointerClass == SemanticDebugPointer::Class::Region);
+	BOOST_REQUIRE(stored.pointer->location);
+	BOOST_CHECK(*stored.pointer->location == SemanticDebugPointer::Location::Stack);
+	BOOST_REQUIRE(stored.pointer->name);
+	BOOST_CHECK_EQUAL(*stored.pointer->name, "value");
+	BOOST_REQUIRE(stored.pointer->slot);
+	BOOST_CHECK(stored.pointer->slot->kind == SemanticDebugPointerExpression::Kind::YulLocal);
+	BOOST_REQUIRE(stored.pointer->slot->value);
+	BOOST_CHECK_EQUAL(*stored.pointer->slot->value, "var_value");
+}
 
 BOOST_AUTO_TEST_CASE(pointer_expressions_compose)
 {

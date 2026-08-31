@@ -313,7 +313,13 @@ std::string AsmPrinter::formatDebugData(langutil::DebugData::ConstPtr const& _de
 	std::vector<std::string> items;
 	if (auto id = _debugData->astID)
 		if (m_debugInfoSelection.astID)
+		{
 			items.emplace_back("@ast-id " + std::to_string(*id));
+			// The instance discriminator of a cloned scope travels next to the
+			// origin; uncloned code keeps the plain form.
+			if (_debugData->astIDInstance && *_debugData->astIDInstance != 0)
+				items.emplace_back("@ast-id-instance " + std::to_string(*_debugData->astIDInstance));
+		}
 
 	if (
 		m_lastLocation != _debugData->originLocation &&

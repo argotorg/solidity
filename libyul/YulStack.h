@@ -35,6 +35,8 @@
 
 #include <libsolidity/interface/OptimiserSettings.h>
 
+#include <liblangutil/SemanticDebugDataTable.h>
+
 #include <libevmasm/LinkerObject.h>
 
 #include <memory>
@@ -97,7 +99,12 @@ public:
 		m_soliditySourceProvider(_soliditySourceProvider),
 		m_errorReporter(m_errors),
 		m_objectOptimizer(_objectOptimizer ? std::move(_objectOptimizer) : std::make_shared<ObjectOptimizer>())
-	{}
+	{
+		yulAssert(
+			!m_debugInfoSelection.ethdebug || m_debugInfoSelection.astID,
+			"Ethdebug semantic data requires AST ID debug information."
+		);
+	}
 
 	/// @returns the char stream used during parsing
 	langutil::CharStream const& charStream(std::string const& _sourceName) const override;
@@ -147,6 +154,14 @@ public:
 	/// Return the parsed and analyzed object.
 	std::shared_ptr<Object> parserResult() const;
 
+	/// Merges @a _table into the retained side table and attaches its scope
+	/// records to the current Yul AST, checking every pointer against the
+	/// current code (see applySemanticDebugData).
+	void attachSemanticDebugData(langutil::SemanticDebugDataTable const& _table);
+	/// The side table as attached to the current Yul AST: the resource tables
+	/// and every scope record, whether or not a Yul node carries it.
+	langutil::SemanticDebugDataTable const& semanticDebugData() const { return m_semanticDebugData; }
+
 	Dialect const& dialect() const;
 
 	langutil::DebugInfoSelection debugInfoSelection() const { return m_debugInfoSelection; }
@@ -180,6 +195,9 @@ private:
 
 	State m_stackState = Empty;
 	std::shared_ptr<yul::Object> m_parserResult;
+	/// Semantic debug info keyed by (AST ID, instance). Retained across reparses
+	/// so that scope records no Yul node carries survive the Yul text boundary.
+	langutil::SemanticDebugDataTable m_semanticDebugData;
 	langutil::ErrorList m_errors;
 	langutil::ErrorReporter m_errorReporter;
 

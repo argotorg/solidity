@@ -34,7 +34,9 @@ void FunctionGrouper::operator()(Block& _block)
 		return;
 
 	std::vector<Statement> reordered;
-	reordered.emplace_back(Block{_block.debugData, {}});
+	// The grouping block is generated: it keeps the locations but not the
+	// source-node identity of the block it groups.
+	reordered.emplace_back(Block{langutil::DebugData::locationsOnly(_block.debugData), {}});
 
 	for (auto&& statement: _block.statements)
 	{

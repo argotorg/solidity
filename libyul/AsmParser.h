@@ -23,6 +23,7 @@
 
 #pragma once
 
+#include <liblangutil/Exceptions.h>
 #include <libyul/AST.h>
 #include <libyul/ASTForward.h>
 #include <libyul/Dialect.h>
@@ -112,9 +113,23 @@ protected:
 		langutil::SourceLocation const& _commentLocation
 	);
 
-	std::optional<std::pair<std::string_view, std::optional<int>>> parseASTIDComment(
+	std::optional<std::pair<std::string_view, std::optional<int64_t>>> parseASTIDComment(
 		std::string_view _arguments,
 		langutil::SourceLocation const& _commentLocation
+	);
+
+	std::optional<std::pair<std::string_view, std::optional<int64_t>>> parseASTIDInstanceComment(
+		std::string_view _arguments,
+		langutil::SourceLocation const& _commentLocation
+	);
+
+	/// Parses the non-negative 64-bit integer argument of the `@ast-id` and
+	/// `@ast-id-instance` annotations.
+	std::optional<std::pair<std::string_view, std::optional<int64_t>>> parseIntegerArgumentComment(
+		std::string_view _arguments,
+		langutil::SourceLocation const& _commentLocation,
+		std::string_view _tag,
+		langutil::ErrorId _errorID
 	);
 
 	/// Creates a DebugData object with the correct source location set.
@@ -161,6 +176,7 @@ private:
 	langutil::SourceLocation m_locationOverride;
 	langutil::SourceLocation m_locationFromComment;
 	std::optional<int64_t> m_astIDFromComment;
+	std::optional<int64_t> m_astIDInstanceFromComment;
 	UseSourceLocationFrom m_useSourceLocationFrom = UseSourceLocationFrom::Scanner;
 	ForLoopComponent m_currentForLoopComponent = ForLoopComponent::None;
 	bool m_insideFunction = false;

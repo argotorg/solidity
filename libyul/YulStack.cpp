@@ -30,6 +30,7 @@
 #include <libyul/ObjectParser.h>
 #include <libyul/optimiser/Semantics.h>
 #include <libyul/optimiser/Suite.h>
+#include <libyul/SemanticDebugDataTransfer.h>
 #include <libevmasm/Assembly.h>
 #include <libevmasm/Ethdebug.h>
 #include <liblangutil/Scanner.h>
@@ -205,6 +206,11 @@ void YulStack::reparse()
 	// NOTE: it is important for the source printed here to exactly match what the compiler will
 	// eventually output to the user. In particular, debug info must be exactly the same.
 	// Otherwise source locations will be off.
+	// Semantic debug info has no comment form in the printed Yul. Collect it from the AST into the
+	// side table before printing and reattach it by (AST ID, instance) after the reparse; records
+	// no Yul node carries survive in the table.
+	if (m_debugInfoSelection.ethdebug)
+		collectSemanticDebugData(*m_parserResult, m_semanticDebugData);
 	std::string source = print();
 
 	YulStack cleanStack(
@@ -224,6 +230,8 @@ void YulStack::reparse()
 
 	m_stackState = AnalysisSuccessful;
 	m_parserResult = std::move(cleanStack.m_parserResult);
+	if (m_debugInfoSelection.ethdebug && !m_semanticDebugData.empty())
+		applySemanticDebugData(*m_parserResult, m_semanticDebugData);
 
 	// NOTE: We keep the char stream, and errors, even though they no longer match the object,
 	// because it's the original source that matters to the user. Optimized code may have different
@@ -432,6 +440,20 @@ std::shared_ptr<Object> YulStack::parserResult() const
 	yulAssert(m_parserResult, "");
 	yulAssert(m_parserResult->hasCode(), "");
 	return m_parserResult;
+}
+
+void YulStack::attachSemanticDebugData(SemanticDebugDataTable const& _table)
+{
+	yulAssert(m_stackState >= AnalysisSuccessful, "Analysis was not successful.");
+	yulAssert(m_parserResult, "");
+	yulAssert(m_debugInfoSelection.ethdebug, "Semantic debug info was supplied without requesting ethdebug.");
+
+	m_semanticDebugData.merge(_table);
+	// Applying rather than merely reattaching re-checks every pointer against the current code:
+	// when the table is attached to Yul reloaded from text, a variable whose pointer reads a Yul
+	// local that no longer exists must become optimized-out instead of keeping a stale pointer.
+	if (!m_semanticDebugData.empty())
+		applySemanticDebugData(*m_parserResult, m_semanticDebugData);
 }
 
 Dialect const& YulStack::dialect() const

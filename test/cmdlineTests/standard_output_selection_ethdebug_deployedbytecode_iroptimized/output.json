@@ -10,7 +10,8 @@
                 "irOptimized": "/// ethdebug: enabled
 /// @use-src 0:\"a.sol\"
 object \"A1_14\" {
-    code {
+    code /// @ast-id 14
+    {
         {
             /// @src 0:58:123  \"contract A1 { function a(uint x) public pure { assert(x > 0); } }\"
             mstore(64, memoryguard(0x80))
@@ -29,7 +30,8 @@ object \"A1_14\" {
     }
     /// @use-src 0:\"a.sol\"
     object \"A1_14_deployed\" {
-        code {
+        code /// @ast-id 14
+        {
             {
                 /// @src 0:58:123  \"contract A1 { function a(uint x) public pure { assert(x > 0); } }\"
                 mstore(64, memoryguard(0x80))
@@ -132,7 +134,8 @@ object \"A1_14\" {
                 "irOptimized": "/// ethdebug: enabled
 /// @use-src 0:\"a.sol\"
 object \"A2_27\" {
-    code {
+    code /// @ast-id 27
+    {
         {
             /// @src 0:124:189  \"contract A2 { function a(uint x) public pure { assert(x > 0); } }\"
             mstore(64, memoryguard(0x80))
@@ -151,7 +154,8 @@ object \"A2_27\" {
     }
     /// @use-src 0:\"a.sol\"
     object \"A2_27_deployed\" {
-        code {
+        code /// @ast-id 27
+        {
             {
                 /// @src 0:124:189  \"contract A2 { function a(uint x) public pure { assert(x > 0); } }\"
                 mstore(64, memoryguard(0x80))
@@ -256,7 +260,8 @@ object \"A2_27\" {
                 "irOptimized": "/// ethdebug: enabled
 /// @use-src 1:\"b.sol\"
 object \"A1_42\" {
-    code {
+    code /// @ast-id 42
+    {
         {
             /// @src 1:58:123  \"contract A1 { function b(uint x) public pure { assert(x > 0); } }\"
             mstore(64, memoryguard(0x80))
@@ -275,7 +280,8 @@ object \"A1_42\" {
     }
     /// @use-src 1:\"b.sol\"
     object \"A1_42_deployed\" {
-        code {
+        code /// @ast-id 42
+        {
             {
                 /// @src 1:58:123  \"contract A1 { function b(uint x) public pure { assert(x > 0); } }\"
                 mstore(64, memoryguard(0x80))
@@ -378,7 +384,8 @@ object \"A1_42\" {
                 "irOptimized": "/// ethdebug: enabled
 /// @use-src 1:\"b.sol\"
 object \"B2_55\" {
-    code {
+    code /// @ast-id 55
+    {
         {
             /// @src 1:124:189  \"contract B2 { function b(uint x) public pure { assert(x > 0); } }\"
             mstore(64, memoryguard(0x80))
@@ -397,7 +404,8 @@ object \"B2_55\" {
     }
     /// @use-src 1:\"b.sol\"
     object \"B2_55_deployed\" {
-        code {
+        code /// @ast-id 55
+        {
             {
                 /// @src 1:124:189  \"contract B2 { function b(uint x) public pure { assert(x > 0); } }\"
                 mstore(64, memoryguard(0x80))
