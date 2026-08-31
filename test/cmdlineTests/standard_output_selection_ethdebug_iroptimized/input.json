@@ -9,6 +9,7 @@
     }
   },
   "settings": {
+      "debug": {"debugInfo": ["location", "snippet", "ast-id", "ethdebug"]},
     "experimental": true,
     "viaIR": true,
     "outputSelection": {

@@ -962,7 +962,6 @@ std::variant<StandardCompiler::InputsAndSettings, Json> StandardCompiler::parseI
 					Error::Type::JSONError,
 					"To use 'snippet' with settings.debug.debugInfo you must select also 'location'."
 				);
-
 			ret.debugInfoSelection = debugInfoSelection.value();
 		}
 	}
@@ -1257,33 +1256,40 @@ std::variant<StandardCompiler::InputsAndSettings, Json> StandardCompiler::parseI
 			return formatFatalError(Error::Type::FatalError, "'settings.debug.debugInfo' 'ethdebug' is only supported for languages 'Solidity' and 'Yul'.");
 	}
 
+	// Selecting an ethdebug output does not modify the debug info selection, just
+	// as 'irOptimized' does not imply the optimizer: the selection must contain
+	// 'ethdebug' explicitly.
+	bool const ethdebugSelected = ret.debugInfoSelection.has_value() && ret.debugInfoSelection->ethdebug;
+
 	if (isEthdebugProgramRequested(ret.outputSelection))
 	{
 		if (ret.language == "Solidity" && !ret.viaIR)
 			return formatFatalError(Error::Type::FatalError, "'evm.bytecode.ethdebug' or 'evm.deployedBytecode.ethdebug' can only be selected as output, if 'viaIR' was set.");
 
-		if (!ret.debugInfoSelection.has_value())
-		{
-			ret.debugInfoSelection = DebugInfoSelection::Default();
-			ret.debugInfoSelection->enable("ethdebug");
-		}
-		else
-		{
-			if (!ret.debugInfoSelection->ethdebug && ret.language == "Solidity")
-				return formatFatalError(Error::Type::FatalError, "'ethdebug' needs to be enabled in 'settings.debug.debugInfo', if 'evm.bytecode.ethdebug' or 'evm.deployedBytecode.ethdebug' was selected as output.");
-		}
+		if (!ethdebugSelected)
+			return formatFatalError(Error::Type::FatalError, "'ethdebug' needs to be enabled in 'settings.debug.debugInfo', if 'evm.bytecode.ethdebug' or 'evm.deployedBytecode.ethdebug' was selected as output.");
 	}
 
 	if (ret.debugInfoSelection.has_value() && ret.debugInfoSelection->ethdebug)
 	{
 		if (!ret.experimental)
 			return formatFatalError(Error::Type::FatalError, "Ethdebug annotations are experimental and can only be included in 'settings.debug.debugInfo' by enabling the 'settings.experimental' option.");
+		if (!ret.debugInfoSelection->astID)
+			return formatFatalError(
+				Error::Type::JSONError,
+				"To use 'ethdebug' with settings.debug.debugInfo you must select also 'ast-id'."
+			);
 	}
+
+	if (
+		ret.debugInfoSelection.has_value() &&
+		ret.debugInfoSelection->ethdebug &&
+		ret.optimiserSettings.runYulOptimiser
+	)
+		solUnimplemented("Optimization is not yet supported with ethdebug.");
 
 	if (isEthdebugProgramRequested(ret.outputSelection))
 	{
-		if (ret.optimiserSettings.runYulOptimiser)
-			solUnimplemented("Optimization is not yet supported with ethdebug.");
 		if (ret.viaSSACFG)
 			solUnimplemented("SSA CFG codegen does not yet support ethdebug.");
 	}
@@ -1802,7 +1808,6 @@ Json StandardCompiler::compileYul(InputsAndSettings _inputsAndSettings)
 		contractName = stack.parserResult()->name;
 		if (isArtifactRequested(_inputsAndSettings.outputSelection, sourceName, contractName, "ir", wildcardMatchesExperimental))
 			output["contracts"][sourceName][contractName]["ir"] = stack.print();
-
 		if (isArtifactRequested(_inputsAndSettings.outputSelection, sourceName, contractName, "ast", wildcardMatchesExperimental))
 		{
 			Json sourceResult;

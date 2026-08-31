@@ -1,0 +1,1 @@
+Error: --debug-info must contain ethdebug when using --ethdebug-program / --ethdebug-program-runtime.

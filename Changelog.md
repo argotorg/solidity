@@ -8,11 +8,13 @@ Language Features:
 
 Compiler Features:
 * Commandline Interface: Remove support for the experimental Language Server Protocol (LSP) mode.
+* Commandline Interface: Selecting an ethdebug output no longer implicitly enables the `ethdebug` and `ast-id` components of `--debug-info`; they have to be selected explicitly.
 * EVM-ASM Optimizer: Improve performance of block deduplicator.
 * General: Improve performance throughout the compiler using Boost's flat versions of unordered set and map.
 * General: Remove support for the experimental Generic Solidity prototype (`pragma experimental solidity`).
 * SMTChecker: Emit a deprecation warning for the BMC engine.
 * SMTChecker: Support `block.slotnum`.
+* Standard JSON Interface: Selecting an ethdebug output no longer implicitly enables the `ethdebug` and `ast-id` components of `settings.debug.debugInfo`; they have to be selected explicitly.
 * Standard JSON Interface: Fix the entire output being replaced by a `JSONError` ("Error writing output JSON.") when an error message quotes a long source line and truncating it splits a multi-byte character.
 
 Bugfixes:

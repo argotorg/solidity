@@ -650,37 +650,45 @@ BOOST_AUTO_TEST_CASE(invalid_optimizer_sequence_without_optimize)
 BOOST_AUTO_TEST_CASE(ethdebug)
 {
 	// --ethdebug-program with explicit debug-info
-	CommandLineOptions commandLineOptions = parseCommandLine({"solc", "contract.sol", "--experimental", "--debug-info", "ethdebug", "--ethdebug-program", "--via-ir"});
+	CommandLineOptions commandLineOptions = parseCommandLine({"solc", "contract.sol", "--experimental", "--debug-info", "ast-id,ethdebug", "--ethdebug-program", "--via-ir"});
 	BOOST_CHECK_EQUAL(commandLineOptions.compiler.outputs.ethdebugProgram, true);
 	BOOST_CHECK_EQUAL(commandLineOptions.compiler.outputs.ethdebugProgramRuntime, false);
 	BOOST_CHECK_EQUAL(commandLineOptions.output.debugInfoSelection.has_value(), true);
 	BOOST_CHECK_EQUAL(commandLineOptions.output.debugInfoSelection->ethdebug, true);
 	// --ethdebug-program-runtime with explicit debug-info
-	commandLineOptions = parseCommandLine({"solc", "contract.sol", "--experimental", "--debug-info", "ethdebug", "--ethdebug-program-runtime", "--via-ir"});
+	commandLineOptions = parseCommandLine({"solc", "contract.sol", "--experimental", "--debug-info", "ast-id,ethdebug", "--ethdebug-program-runtime", "--via-ir"});
 	BOOST_CHECK_EQUAL(commandLineOptions.compiler.outputs.ethdebugProgram, false);
 	BOOST_CHECK_EQUAL(commandLineOptions.compiler.outputs.ethdebugProgramRuntime, true);
 	BOOST_CHECK_EQUAL(commandLineOptions.output.debugInfoSelection.has_value(), true);
 	BOOST_CHECK_EQUAL(commandLineOptions.output.debugInfoSelection->ethdebug, true);
-	// --ethdebug-program implicitly enables debug-info ethdebug
-	commandLineOptions = parseCommandLine({"solc", "contract.sol", "--experimental", "--ethdebug-program", "--via-ir"});
-	BOOST_CHECK_EQUAL(commandLineOptions.compiler.outputs.ethdebugProgram, true);
-	BOOST_CHECK_EQUAL(commandLineOptions.compiler.outputs.ethdebugProgramRuntime, false);
-	BOOST_CHECK_EQUAL(commandLineOptions.output.debugInfoSelection.has_value(), true);
-	BOOST_CHECK_EQUAL(commandLineOptions.output.debugInfoSelection->ethdebug, true);
-	// --ethdebug-program-runtime implicitly enables debug-info ethdebug
-	commandLineOptions = parseCommandLine({"solc", "contract.sol", "--experimental", "--ethdebug-program-runtime", "--via-ir"});
-	BOOST_CHECK_EQUAL(commandLineOptions.compiler.outputs.ethdebugProgram, false);
-	BOOST_CHECK_EQUAL(commandLineOptions.compiler.outputs.ethdebugProgramRuntime, true);
-	BOOST_CHECK_EQUAL(commandLineOptions.output.debugInfoSelection.has_value(), true);
-	BOOST_CHECK_EQUAL(commandLineOptions.output.debugInfoSelection->ethdebug, true);
+	// Selecting an ethdebug output does not modify the debug-info selection: without
+	// --debug-info ethdebug the program outputs are an error.
+	auto expectsExplicitEthdebug = [](CommandLineValidationError const& _exception) {
+		return std::string(_exception.what()).find("--debug-info must contain ethdebug") != std::string::npos;
+	};
+	BOOST_CHECK_EXCEPTION(
+		parseCommandLine({"solc", "contract.sol", "--experimental", "--ethdebug-program", "--via-ir"}),
+		CommandLineValidationError,
+		expectsExplicitEthdebug
+	);
+	BOOST_CHECK_EXCEPTION(
+		parseCommandLine({"solc", "contract.sol", "--experimental", "--ethdebug-program-runtime", "--via-ir"}),
+		CommandLineValidationError,
+		expectsExplicitEthdebug
+	);
+	BOOST_CHECK_EXCEPTION(
+		parseCommandLine({"solc", "contract.sol", "--experimental", "--debug-info", "location", "--ethdebug-program", "--via-ir"}),
+		CommandLineValidationError,
+		expectsExplicitEthdebug
+	);
 	// both --ethdebug-program and --ethdebug-program-runtime
-	commandLineOptions = parseCommandLine({"solc", "contract.sol", "--experimental", "--ethdebug-program", "--ethdebug-program-runtime", "--via-ir"});
+	commandLineOptions = parseCommandLine({"solc", "contract.sol", "--experimental", "--debug-info", "ast-id,ethdebug", "--ethdebug-program", "--ethdebug-program-runtime", "--via-ir"});
 	BOOST_CHECK_EQUAL(commandLineOptions.compiler.outputs.ethdebugProgram, true);
 	BOOST_CHECK_EQUAL(commandLineOptions.compiler.outputs.ethdebugProgramRuntime, true);
 	BOOST_CHECK_EQUAL(commandLineOptions.output.debugInfoSelection.has_value(), true);
 	BOOST_CHECK_EQUAL(commandLineOptions.output.debugInfoSelection->ethdebug, true);
 	// --debug-info ethdebug with --ir only (no program output)
-	commandLineOptions = parseCommandLine({"solc", "contract.sol", "--experimental", "--debug-info", "ethdebug", "--ir"});
+	commandLineOptions = parseCommandLine({"solc", "contract.sol", "--experimental", "--debug-info", "ast-id,ethdebug", "--ir"});
 	BOOST_CHECK_EQUAL(commandLineOptions.compiler.outputs.ethdebugProgram, false);
 	BOOST_CHECK_EQUAL(commandLineOptions.compiler.outputs.ethdebugProgramRuntime, false);
 	BOOST_CHECK_EQUAL(commandLineOptions.compiler.outputs.ir, true);

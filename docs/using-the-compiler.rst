@@ -392,7 +392,9 @@ Input Description
           //     The snippet is quoted and follows the corresponding `@src` annotation.
           // - `ast-id`: Annotations of the form `@ast-id <id>` over elements that can be mapped back to a definition in the original Solidity file.
           //   `<id>` is a node ID in the Solidity AST ('ast' output).
-          // - `ethdebug`: Ethdebug annotations (experimental). Automatically enabled when any ethdebug output is requested.
+          // - `ethdebug`: Ethdebug annotations (experimental). Depends on `ast-id`; selecting
+          //   `ethdebug` without `ast-id` is an error. Requesting a program ethdebug output
+          //   does not change this selection, which must then contain `ethdebug`.
           // - `*`: Wildcard value that can be used to request all non-experimental components.
           "debugInfo": ["location", "snippet", "ast-id", "ethdebug"]
         },
@@ -770,7 +772,8 @@ The table below details all currently available experimental features.
 +-----------------------+--------------------------+------------------+-----------------------------------------------------------------------------------------------------------------------------------------+
 | Non-mainnet EVMs      | ``evm``                  | yes              | ``--evm-version <version name>``                                                                                                        |
 +-----------------------+--------------------------+------------------+-----------------------------------------------------------------------------------------------------------------------------------------+
-| Ethdebug              | ``ethdebug``             | no               | ``--ethdebug-resources``, ``--ethdebug-compilation``, ``--ethdebug-program``, ``--ethdebug-program-runtime``, ``--debug-info ethdebug`` |
+| Ethdebug              | ``ethdebug``             | no               | ``--ethdebug-resources``, ``--ethdebug-compilation``, ``--ethdebug-program``, ``--ethdebug-program-runtime``,                           |
+|                       |                          |                  | ``--debug-info ast-id,ethdebug``                                                                                                        |
 +-----------------------+--------------------------+------------------+-----------------------------------------------------------------------------------------------------------------------------------------+
 |                       |                          | no               | ``--yul-cfg-json``                                                                                                                      |
 | SSA CFG               + ``ssa-cfg``              +------------------+-----------------------------------------------------------------------------------------------------------------------------------------+
