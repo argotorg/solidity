@@ -50,6 +50,7 @@
 #include <libsolidity/codegen/Compiler.h>
 #include <libsolidity/formal/ModelChecker.h>
 #include <libsolidity/interface/ABI.h>
+#include <libsolidity/interface/Ethdebug.h>
 #include <libsolidity/interface/Natspec.h>
 #include <libsolidity/interface/GasEstimator.h>
 #include <libsolidity/interface/StorageLayout.h>
@@ -59,6 +60,7 @@
 
 #include <libsolidity/codegen/ir/Common.h>
 #include <libsolidity/codegen/ir/IRGenerator.h>
+#include <libsolidity/codegen/ir/SemanticDebugDataBuilder.h>
 
 #include <libyul/YulName.h>
 #include <libyul/AsmPrinter.h>
@@ -79,6 +81,7 @@
 #include <libsolutil/FunctionSelector.h>
 
 #include <libevmasm/Ethdebug.h>
+#include <libevmasm/EthdebugSchema.h>
 
 #include <boost/algorithm/string/replace.hpp>
 
@@ -1165,7 +1168,24 @@ Json CompilerStack::interfaceSymbols(std::string const& _contractName) const
 Json CompilerStack::ethdebug() const
 {
 	solAssert(m_stackState >= AnalysisSuccessful, "Analysis was not successful.");
-	return evmasm::ethdebug::resources(ethdebugSources(), VersionString);
+	// The resource tables are derived from analysis results alone, so
+	// ethdebug.resources is available right after analysis.
+	ethdebug::Resources resources;
+	std::map<std::string, unsigned> const sourceIndexMap = sourceIndices();
+	for (auto const& contractEntry: m_contracts)
+	{
+		Contract const& compiledContract = contractEntry.second;
+		if (!compiledContract.contract)
+			continue;
+		resources.merge(ethdebug::resources(buildSemanticDebugDataTable(*compiledContract.contract, sourceIndexMap)));
+	}
+
+	return evmasm::ethdebug::resources(
+		ethdebugSources(),
+		VersionString,
+		std::move(resources.types),
+		std::move(resources.pointers)
+	);
 }
 
 Json CompilerStack::ethdebugCompilation() const
@@ -1208,8 +1228,16 @@ Json CompilerStack::ethdebug(Contract const& _contract, bool _runtime) const
 	if (!assembly)
 		return {};
 
-	solAssert(sourceIndices().contains(_contract.contract->sourceUnitName()));
-	return evmasm::ethdebug::program(_contract.contract->name(), sourceIndices()[_contract.contract->sourceUnitName()], *assembly, object);
+	std::map<std::string, unsigned> const sourceIndexMap = sourceIndices();
+	solAssert(sourceIndexMap.contains(_contract.contract->sourceUnitName()));
+
+	return evmasm::ethdebug::program(
+		_contract.contract->name(),
+		sourceIndexMap.at(_contract.contract->sourceUnitName()),
+		*assembly,
+		object,
+		ethdebug::programContext(buildSemanticDebugDataTable(*_contract.contract, sourceIndexMap))
+	);
 }
 
 bytes CompilerStack::cborMetadata(std::string const& _contractName, bool _forIR) const

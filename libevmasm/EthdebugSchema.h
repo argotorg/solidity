@@ -123,8 +123,10 @@ struct Context
 	{
 		std::optional<std::string> identifier;
 		std::optional<materials::SourceRange> declaration;
-		// TODO: type
-		// TODO: pointer according to ethdebug/format/spec/pointer
+		// ethdebug/format/type/specifier: a full type representation or an { "id": ... } reference.
+		std::optional<Json> type;
+		// ethdebug/format/pointer: a region or collection describing where the value lives.
+		std::optional<Json> pointer;
 	};
 
 	std::optional<materials::SourceRange> code;

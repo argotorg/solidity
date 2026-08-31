@@ -21,7 +21,10 @@
 #include <libsolutil/JSON.h>
 
 #include <libevmasm/Assembly.h>
+#include <libevmasm/EthdebugSchema.h>
 #include <libevmasm/LinkerObject.h>
+
+#include <optional>
 
 namespace solidity::evmasm::ethdebug
 {
@@ -35,10 +38,21 @@ struct Source
 };
 
 // returns ethdebug/format/program.
-Json program(std::string_view _name, unsigned _sourceID, Assembly const& _assembly, LinkerObject const& _linkerObject);
+Json program(
+	std::string_view _name,
+	unsigned _sourceID,
+	Assembly const& _assembly,
+	LinkerObject const& _linkerObject,
+	std::optional<schema::program::Context> _programContext = std::nullopt
+);
 
 // returns ethdebug/format/info/resources
-Json resources(std::vector<Source> const& _sources, std::string_view _version);
+Json resources(
+	std::vector<Source> const& _sources,
+	std::string_view _version,
+	Json _types = Json::object(),
+	Json _pointers = Json::object()
+);
 
 // returns the 'compilation' object from ethdebug/format/info/resources
 Json compilation(std::vector<Source> const& _sources, std::string_view _version);

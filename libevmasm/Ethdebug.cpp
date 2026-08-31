@@ -171,7 +171,7 @@ schema::materials::Compilation materialCompilation(std::vector<Source> const& _s
 
 } // anonymous namespace
 
-Json ethdebug::program(std::string_view _name, unsigned _sourceID, Assembly const& _assembly, LinkerObject const& _linkerObject)
+Json ethdebug::program(std::string_view _name, unsigned _sourceID, Assembly const& _assembly, LinkerObject const& _linkerObject, std::optional<schema::program::Context> _programContext)
 {
 	return schema::Program{
 		.compilation = std::nullopt,
@@ -186,17 +186,22 @@ Json ethdebug::program(std::string_view _name, unsigned _sourceID, Assembly cons
 			}
 		},
 		.environment = _assembly.isCreation() ? schema::Program::Environment::CREATE : schema::Program::Environment::CALL,
-		.context = std::nullopt,
+		.context = std::move(_programContext),
 		.instructions = programInstructions(_assembly, _linkerObject, _sourceID)
 	};
 }
 
-Json ethdebug::resources(std::vector<Source> const& _sources, std::string_view _version)
+Json ethdebug::resources(
+	std::vector<Source> const& _sources,
+	std::string_view _version,
+	Json _types,
+	Json _pointers
+)
 {
 	schema::info::Resources result;
 	result.compilation = materialCompilation(_sources, _version);
-	result.types = Json::object();
-	result.pointers = Json::object();
+	result.types = std::move(_types);
+	result.pointers = std::move(_pointers);
 	return result;
 }
 

@@ -15,6 +15,7 @@ Compiler Features:
 * SMTChecker: Emit a deprecation warning for the BMC engine.
 * SMTChecker: Support `block.slotnum`.
 * Standard JSON Interface: Selecting an ethdebug output no longer implicitly enables the `ethdebug` and `ast-id` components of `settings.debug.debugInfo`; they have to be selected explicitly.
+* ethdebug: Populate `ethdebug/format/info/resources` with the type documents and the pointer templates of the state variables in storage and transient storage, and publish the state variables in a program-level context (experimental).
 * Standard JSON Interface: Fix the entire output being replaced by a `JSONError` ("Error writing output JSON.") when an error message quotes a long source line and truncating it splits a multi-byte character.
 
 Bugfixes:

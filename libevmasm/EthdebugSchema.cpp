@@ -102,7 +102,9 @@ void schema::program::to_json(Json& _json, Context::Variable const& _contextVari
 {
 	auto const numProperties =
 		_contextVariable.identifier.has_value() +
-		_contextVariable.declaration.has_value();
+		_contextVariable.declaration.has_value() +
+		_contextVariable.type.has_value() +
+		_contextVariable.pointer.has_value();
 	solRequire(numProperties >= 1, EthdebugException, "Context variable has no properties.");
 	if (_contextVariable.identifier)
 	{
@@ -111,6 +113,10 @@ void schema::program::to_json(Json& _json, Context::Variable const& _contextVari
 	}
 	if (_contextVariable.declaration)
 		_json["declaration"] = *_contextVariable.declaration;
+	if (_contextVariable.type)
+		_json["type"] = *_contextVariable.type;
+	if (_contextVariable.pointer)
+		_json["pointer"] = *_contextVariable.pointer;
 }
 
 void schema::program::to_json(Json& _json, Context const& _context)
