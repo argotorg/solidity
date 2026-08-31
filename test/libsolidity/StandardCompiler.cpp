@@ -1934,36 +1934,48 @@ BOOST_AUTO_TEST_CASE(ethdebug_excluded_from_wildcards)
 
 BOOST_AUTO_TEST_CASE(ethdebug_debug_info_ethdebug)
 {
+	frontend::StandardCompiler compiler;
+	Json missingAstID = compiler.compile(generateExperimentalStandardJson(
+		true,
+		Json::array({"ethdebug"}),
+		Json::array({"ir"})
+	));
+	BOOST_CHECK(containsError(
+		missingAstID,
+		"JSONError",
+		"To use 'ethdebug' with settings.debug.debugInfo you must select also 'ast-id'."
+	));
+
 	static std::vector<std::tuple<Json, std::optional<std::function<bool(Json)>>>> tests{
 		{
-			generateExperimentalStandardJson(false, Json::array({"ethdebug"}), Json::array({"*"})),
+			generateExperimentalStandardJson(false, Json::array({"ast-id", "ethdebug"}), Json::array({"*"})),
 			std::nullopt,
 		},
 		{
-			generateExperimentalStandardJson(true, Json::array({"ethdebug"}), Json::array({"*"})),
+			generateExperimentalStandardJson(true, Json::array({"ast-id", "ethdebug"}), Json::array({"*"})),
 			std::nullopt,
 		},
 		{
-			generateExperimentalStandardJson(false, Json::array({"ethdebug"}), Json::array({"evm.bytecode.ethdebug"})),
+			generateExperimentalStandardJson(false, Json::array({"ast-id", "ethdebug"}), Json::array({"evm.bytecode.ethdebug"})),
 			std::nullopt,
 		},
 		{
-			generateExperimentalStandardJson(false, Json::array({"ethdebug"}), Json::array({"evm.deployedBytecode.ethdebug"})),
+			generateExperimentalStandardJson(false, Json::array({"ast-id", "ethdebug"}), Json::array({"evm.deployedBytecode.ethdebug"})),
 			std::nullopt,
 		},
 		{
-			generateExperimentalStandardJson(false, Json::array({"ethdebug"}), Json::array({"evm.bytecode.ethdebug", "evm.deployedBytecode.ethdebug"})),
+			generateExperimentalStandardJson(false, Json::array({"ast-id", "ethdebug"}), Json::array({"evm.bytecode.ethdebug", "evm.deployedBytecode.ethdebug"})),
 			std::nullopt,
 		},
 		{
-			generateExperimentalStandardJson(false, Json::array({"ethdebug"}), Json::array({"irOptimized"})),
+			generateExperimentalStandardJson(false, Json::array({"ast-id", "ethdebug"}), Json::array({"irOptimized"})),
 			[](const Json& result)
 			{
 				return result.dump().find("/// ethdebug: enabled") != std::string::npos;
 			}
 		},
 		{
-			generateExperimentalStandardJson(false, Json::array({"ethdebug"}), Json::array({"irOptimized"})),
+			generateExperimentalStandardJson(false, Json::array({"ast-id", "ethdebug"}), Json::array({"irOptimized"})),
 			[](const Json& result)
 			{
 				return result.dump().find("/// ethdebug: enabled") != std::string::npos;
@@ -1973,53 +1985,101 @@ BOOST_AUTO_TEST_CASE(ethdebug_debug_info_ethdebug)
 			generateExperimentalStandardJson(true, {}, Json::array({"irOptimized", "evm.bytecode.ethdebug"})),
 			[](const Json& result)
 			{
-				return result.dump().find("/// ethdebug: enabled") != std::string::npos;
+				if (!result.contains("contracts"))
+					return false;
+				Json const& evm = result["contracts"]["fileA"]["C"]["evm"];
+				auto const emptyOutput = [&](std::string const& _kind) {
+					return !evm.contains(_kind) || !evm[_kind].contains("ethdebug") || evm[_kind]["ethdebug"].is_null();
+				};
+				return
+					result.dump().find("/// ethdebug: enabled") == std::string::npos &&
+					emptyOutput("bytecode") && emptyOutput("deployedBytecode");
 			}
 		},
 		{
 			generateExperimentalStandardJson(true, {}, Json::array({"irOptimized", "evm.deployedBytecode.ethdebug"})),
 			[](const Json& result)
 			{
-				return result.dump().find("/// ethdebug: enabled") != std::string::npos;
+				if (!result.contains("contracts"))
+					return false;
+				Json const& evm = result["contracts"]["fileA"]["C"]["evm"];
+				auto const emptyOutput = [&](std::string const& _kind) {
+					return !evm.contains(_kind) || !evm[_kind].contains("ethdebug") || evm[_kind]["ethdebug"].is_null();
+				};
+				return
+					result.dump().find("/// ethdebug: enabled") == std::string::npos &&
+					emptyOutput("bytecode") && emptyOutput("deployedBytecode");
 			}
 		},
 		{
 			generateExperimentalStandardJson(true, {}, Json::array({"irOptimized", "evm.bytecode.ethdebug", "evm.deployedBytecode.ethdebug"})),
 			[](const Json& result)
 			{
-				return result.dump().find("/// ethdebug: enabled") != std::string::npos;
+				if (!result.contains("contracts"))
+					return false;
+				Json const& evm = result["contracts"]["fileA"]["C"]["evm"];
+				auto const emptyOutput = [&](std::string const& _kind) {
+					return !evm.contains(_kind) || !evm[_kind].contains("ethdebug") || evm[_kind]["ethdebug"].is_null();
+				};
+				return
+					result.dump().find("/// ethdebug: enabled") == std::string::npos &&
+					emptyOutput("bytecode") && emptyOutput("deployedBytecode");
 			}
 		},
 		{
 			generateExperimentalStandardJson(true, {}, Json::array({"irOptimized", "evm.bytecode.ethdebug"})),
 			[](const Json& result)
 			{
-				return result.dump().find("/// ethdebug: enabled") != std::string::npos;
+				if (!result.contains("contracts"))
+					return false;
+				Json const& evm = result["contracts"]["fileA"]["C"]["evm"];
+				auto const emptyOutput = [&](std::string const& _kind) {
+					return !evm.contains(_kind) || !evm[_kind].contains("ethdebug") || evm[_kind]["ethdebug"].is_null();
+				};
+				return
+					result.dump().find("/// ethdebug: enabled") == std::string::npos &&
+					emptyOutput("bytecode") && emptyOutput("deployedBytecode");
 			}
 		},
 		{
 			generateExperimentalStandardJson(true, {}, Json::array({"irOptimized", "evm.deployedBytecode.ethdebug"})),
 			[](const Json& result)
 			{
-				return result.dump().find("/// ethdebug: enabled") != std::string::npos;
+				if (!result.contains("contracts"))
+					return false;
+				Json const& evm = result["contracts"]["fileA"]["C"]["evm"];
+				auto const emptyOutput = [&](std::string const& _kind) {
+					return !evm.contains(_kind) || !evm[_kind].contains("ethdebug") || evm[_kind]["ethdebug"].is_null();
+				};
+				return
+					result.dump().find("/// ethdebug: enabled") == std::string::npos &&
+					emptyOutput("bytecode") && emptyOutput("deployedBytecode");
 			}
 		},
 		{
 			generateExperimentalStandardJson(true, {}, Json::array({"irOptimized", "evm.bytecode.ethdebug", "evm.deployedBytecode.ethdebug"})),
 			[](const Json& result)
 			{
-				return result.dump().find("/// ethdebug: enabled") != std::string::npos;
+				if (!result.contains("contracts"))
+					return false;
+				Json const& evm = result["contracts"]["fileA"]["C"]["evm"];
+				auto const emptyOutput = [&](std::string const& _kind) {
+					return !evm.contains(_kind) || !evm[_kind].contains("ethdebug") || evm[_kind]["ethdebug"].is_null();
+				};
+				return
+					result.dump().find("/// ethdebug: enabled") == std::string::npos &&
+					emptyOutput("bytecode") && emptyOutput("deployedBytecode");
 			}
 		},
 		{
-			generateExperimentalStandardJson(true, Json::array({"ethdebug"}), Json::array({"irOptimized"}), YulCode()),
+			generateExperimentalStandardJson(true, Json::array({"ast-id", "ethdebug"}), Json::array({"irOptimized"}), YulCode()),
 			[](const Json& result)
 			{
 				return result.dump().find("/// ethdebug: enabled") != std::string::npos;
 			}
 		},
 		{
-			generateExperimentalStandardJson(true, Json::array({"ethdebug"}), Json::array({"irOptimized"}), YulCode()),
+			generateExperimentalStandardJson(true, Json::array({"ast-id", "ethdebug"}), Json::array({"irOptimized"}), YulCode()),
 			{}
 		},
 		{
@@ -2027,7 +2087,7 @@ BOOST_AUTO_TEST_CASE(ethdebug_debug_info_ethdebug)
 		},
 		{
 			generateExperimentalStandardJson(
-				true, Json::array({"ethdebug"}), {
+				true, Json::array({"ast-id", "ethdebug"}), {
 					{"fileA", {{"contractA", Json::array({"evm.deployedBytecode.bin"})}}},
 					{"fileB", {{"contractB", Json::array({"evm.bytecode.bin"})}}}
 				},
@@ -2039,15 +2099,14 @@ BOOST_AUTO_TEST_CASE(ethdebug_debug_info_ethdebug)
 			std::nullopt,
 		},
 		{
-			generateExperimentalStandardJson(true, Json::array({"ethdebug"}), Json::array({"*"}), EvmAssemblyCode()),
+			generateExperimentalStandardJson(true, Json::array({"ast-id", "ethdebug"}), Json::array({"*"}), EvmAssemblyCode()),
 			std::nullopt,
 		},
 		{
-			generateExperimentalStandardJson(true, Json::array({"ethdebug"}), Json::array({"*"}), SolidityAstCode()),
+			generateExperimentalStandardJson(true, Json::array({"ast-id", "ethdebug"}), Json::array({"*"}), SolidityAstCode()),
 			std::nullopt,
 		},
 	};
-	frontend::StandardCompiler compiler;
 	for (auto const& test: tests)
 	{
 		Json result = compiler.compile(std::get<0>(test));
@@ -2060,7 +2119,7 @@ BOOST_AUTO_TEST_CASE(ethdebug_ethdebug_output)
 {
 	static std::vector<std::tuple<Json, std::optional<std::function<bool(Json)>>>> tests{
 		{
-			generateExperimentalStandardJson(false, Json::array({"ethdebug"}), Json::array({"evm.bytecode.ethdebug"})),
+			generateExperimentalStandardJson(false, Json::array({"ast-id", "ethdebug"}), Json::array({"evm.bytecode.ethdebug"})),
 			std::nullopt
 		},
 		{
@@ -2068,7 +2127,7 @@ BOOST_AUTO_TEST_CASE(ethdebug_ethdebug_output)
 			std::nullopt
 		},
 		{
-			generateExperimentalStandardJson(false, Json::array({"ethdebug"}), Json::array({"evm.deployedBytecode.ethdebug"})),
+			generateExperimentalStandardJson(false, Json::array({"ast-id", "ethdebug"}), Json::array({"evm.deployedBytecode.ethdebug"})),
 			std::nullopt
 		},
 		{
@@ -2076,7 +2135,7 @@ BOOST_AUTO_TEST_CASE(ethdebug_ethdebug_output)
 			std::nullopt
 		},
 		{
-			generateExperimentalStandardJson(false, Json::array({"ethdebug"}), Json::array({"evm.bytecode.ethdebug", "evm.deployedBytecode.ethdebug"})),
+			generateExperimentalStandardJson(false, Json::array({"ast-id", "ethdebug"}), Json::array({"evm.bytecode.ethdebug", "evm.deployedBytecode.ethdebug"})),
 			std::nullopt
 		},
 		{
@@ -2096,21 +2155,21 @@ BOOST_AUTO_TEST_CASE(ethdebug_ethdebug_output)
 			std::nullopt
 		},
 		{
-			generateExperimentalStandardJson(true, Json::array({"ethdebug"}), Json::array({"evm.bytecode.ethdebug"})),
+			generateExperimentalStandardJson(true, Json::array({"ast-id", "ethdebug"}), Json::array({"evm.bytecode.ethdebug"})),
 			[](const Json& result)
 			{
 				return result["contracts"]["fileA"]["C"]["evm"]["bytecode"].contains("ethdebug");
 			}
 		},
 		{
-			generateExperimentalStandardJson(true, Json::array({"ethdebug"}), Json::array({"evm.deployedBytecode.ethdebug"})),
+			generateExperimentalStandardJson(true, Json::array({"ast-id", "ethdebug"}), Json::array({"evm.deployedBytecode.ethdebug"})),
 			[](const Json& result)
 			{
 				return result["contracts"]["fileA"]["C"]["evm"]["deployedBytecode"].contains("ethdebug");
 			}
 		},
 		{
-			generateExperimentalStandardJson(true, Json::array({"ethdebug"}), Json::array({"evm.bytecode.ethdebug", "evm.deployedBytecode.ethdebug"})),
+			generateExperimentalStandardJson(true, Json::array({"ast-id", "ethdebug"}), Json::array({"evm.bytecode.ethdebug", "evm.deployedBytecode.ethdebug"})),
 			[](const Json& result)
 			{
 				return result["contracts"]["fileA"]["C"]["evm"]["deployedBytecode"].contains("ethdebug") &&
@@ -2118,21 +2177,21 @@ BOOST_AUTO_TEST_CASE(ethdebug_ethdebug_output)
 			}
 		},
 		{
-			generateExperimentalStandardJson(true, {}, Json::array({"evm.bytecode.ethdebug"})),
+			generateExperimentalStandardJson(true, Json::array({"ast-id", "ethdebug"}), Json::array({"evm.bytecode.ethdebug"})),
 			[](const Json& result)
 			{
 				return result["contracts"]["fileA"]["C"]["evm"]["bytecode"].contains("ethdebug");
 			}
 		},
 		{
-			generateExperimentalStandardJson(true, {}, Json::array({"evm.deployedBytecode.ethdebug"})),
+			generateExperimentalStandardJson(true, Json::array({"ast-id", "ethdebug"}), Json::array({"evm.deployedBytecode.ethdebug"})),
 			[](const Json& result)
 			{
 				return result["contracts"]["fileA"]["C"]["evm"]["deployedBytecode"].contains("ethdebug");
 			}
 		},
 		{
-			generateExperimentalStandardJson(true, {}, Json::array({"evm.bytecode.ethdebug", "evm.deployedBytecode.ethdebug"})),
+			generateExperimentalStandardJson(true, Json::array({"ast-id", "ethdebug"}), Json::array({"evm.bytecode.ethdebug", "evm.deployedBytecode.ethdebug"})),
 			[](const Json& result)
 			{
 				return result["contracts"]["fileA"]["C"]["evm"]["deployedBytecode"].contains("ethdebug") &&
@@ -2140,17 +2199,26 @@ BOOST_AUTO_TEST_CASE(ethdebug_ethdebug_output)
 			}
 		},
 		{
-			generateExperimentalStandardJson(true, {}, Json::array({"evm.bytecode.ethdebug", "ir"})),
+			generateExperimentalStandardJson(true, Json::array({"ast-id", "ethdebug"}), Json::array({"evm.bytecode.ethdebug", "ir"})),
 			[](const Json& result)
 			{
 				return result.dump().find("/// ethdebug: enabled") != std::string::npos && result["contracts"]["fileA"]["C"]["evm"]["bytecode"].contains("ethdebug");
 			}
 		},
 		{
-			generateExperimentalStandardJson(true, {}, Json::array({"evm.deployedBytecode.ethdebug", "ir"})),
+			generateExperimentalStandardJson(true, Json::array({"ast-id", "ethdebug"}), Json::array({"evm.deployedBytecode.ethdebug", "ir"})),
 			[](const Json& result)
 			{
 				return result.dump().find("/// ethdebug: enabled") != std::string::npos && result["contracts"]["fileA"]["C"]["evm"]["deployedBytecode"].contains("ethdebug");
+			}
+		},
+		// Selecting an ethdebug output does not enable 'ethdebug' in the debug
+		// info selection implicitly; the output is empty without it.
+		{
+			generateExperimentalStandardJson(true, {}, Json::array({"evm.bytecode.ethdebug"})),
+			[](const Json& result)
+			{
+				return result["contracts"]["fileA"]["C"]["evm"]["bytecode"]["ethdebug"].is_null();
 			}
 		},
 		{
@@ -2162,7 +2230,7 @@ BOOST_AUTO_TEST_CASE(ethdebug_ethdebug_output)
 			std::nullopt
 		},
 		{
-			generateExperimentalStandardJson(true, {}, Json::array({"evm.bytecode.ethdebug", "evm.deployedBytecode.ethdebug", "ir"})),
+			generateExperimentalStandardJson(true, Json::array({"ast-id", "ethdebug"}), Json::array({"evm.bytecode.ethdebug", "evm.deployedBytecode.ethdebug", "ir"})),
 			[](const Json& result)
 			{
 				return result.dump().find("/// ethdebug: enabled") != std::string::npos && result["contracts"]["fileA"]["C"]["evm"]["deployedBytecode"].contains("ethdebug") &&
@@ -2170,18 +2238,18 @@ BOOST_AUTO_TEST_CASE(ethdebug_ethdebug_output)
 			}
 		},
 		{
-			generateExperimentalStandardJson(true, {}, Json::array({"evm.bytecode.ethdebug", "ir"}), YulCode()),
+			generateExperimentalStandardJson(true, Json::array({"ast-id", "ethdebug"}), Json::array({"evm.bytecode.ethdebug", "ir"}), YulCode()),
 			[](const Json& result)
 			{
 				return result.dump().find("/// ethdebug: enabled") != std::string::npos && result["contracts"]["fileA"]["object"]["evm"]["bytecode"].contains("ethdebug");
 			}
 		},
 		{
-			generateExperimentalStandardJson(true, {}, Json::array({"evm.deployedBytecode.ethdebug", "ir"}), YulCode()),
+			generateExperimentalStandardJson(true, Json::array({"ast-id", "ethdebug"}), Json::array({"evm.deployedBytecode.ethdebug", "ir"}), YulCode()),
 			std::nullopt
 		},
 		{
-			generateExperimentalStandardJson(true, {}, Json::array({"evm.bytecode.ethdebug", "evm.deployedBytecode.ethdebug", "ir"}), YulCode()),
+			generateExperimentalStandardJson(true, Json::array({"ast-id", "ethdebug"}), Json::array({"evm.bytecode.ethdebug", "evm.deployedBytecode.ethdebug", "ir"}), YulCode()),
 			std::nullopt
 		},
 		{
@@ -2200,7 +2268,7 @@ BOOST_AUTO_TEST_CASE(ethdebug_ethdebug_output)
 		},
 		{
 			generateExperimentalStandardJson(
-				true, {}, {
+				true, Json::array({"ast-id", "ethdebug"}), {
 					{"fileA", {{"contractA", Json::array({"evm.deployedBytecode.ethdebug"})}}},
 					{"fileB", {{"contractB", Json::array({"evm.bytecode.ethdebug"})}}}
 				},
@@ -2229,7 +2297,7 @@ BOOST_AUTO_TEST_CASE(ethdebug_ethdebug_output)
 BOOST_DATA_TEST_CASE(ethdebug_output_instructions_smoketest, boost::unit_test::data::make({"deployedBytecode", "bytecode"}), bytecodeType)
 {
 	frontend::StandardCompiler compiler;
-	Json result = compiler.compile(generateExperimentalStandardJson(true, {}, Json::array({std::string("evm.") + bytecodeType + ".ethdebug"})));
+	Json result = compiler.compile(generateExperimentalStandardJson(true, Json::array({"ast-id", "ethdebug"}), Json::array({std::string("evm.") + bytecodeType + ".ethdebug"})));
 	BOOST_REQUIRE(result["contracts"]["fileA"]["C"]["evm"][bytecodeType].contains("ethdebug"));
 	bool creation = std::string(bytecodeType) == "bytecode";
 	Json ethdebugInstructionsToCheck = result["contracts"]["fileA"]["C"]["evm"][bytecodeType]["ethdebug"];
@@ -2267,6 +2335,22 @@ BOOST_DATA_TEST_CASE(ethdebug_output_instructions_smoketest, boost::unit_test::d
 		else
 			BOOST_REQUIRE(!instruction["operation"].contains("arguments"));
 	}
+}
+
+BOOST_AUTO_TEST_CASE(ethdebug_rejects_yul_optimization)
+{
+	frontend::StandardCompiler compiler;
+	std::map<std::string, Json> yulSources;
+	yulSources["fileA.yul"] = "object \"C\" { code { stop() } }";
+	Json input = generateExperimentalStandardJson(
+		false,
+		Json::array({"ast-id", "ethdebug"}),
+		Json::array({"ir"}),
+		YulCode(std::move(yulSources))
+	);
+	input["settings"]["optimizer"] = {{"enabled", true}};
+	Json result = compiler.compile(input);
+	BOOST_CHECK(containsError(result, "UnimplementedFeatureError", "Optimization is not yet supported with ethdebug."));
 }
 
 BOOST_AUTO_TEST_CASE(no_experimental_import_ast_solidity_evmasm)
