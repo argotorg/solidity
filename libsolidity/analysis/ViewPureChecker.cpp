@@ -129,9 +129,21 @@ private:
 bool ViewPureChecker::check()
 {
 	for (auto const& source: m_ast)
+		for (ContractDefinition const* contract: ASTNode::filteredNodes<ContractDefinition>(dynamic_cast<SourceUnit const&>(*source).nodes()))
+			for (ContractDefinition const* base: contract->annotation().linearizedBaseContracts)
+				m_derivedContracts[base].push_back(contract);
+
+	for (auto const& source: m_ast)
 		source->accept(*this);
 
 	return !m_errors;
+}
+
+std::span<ContractDefinition const* const> ViewPureChecker::currentDerivedContracts()
+{
+	if (!m_currentFunction || !m_currentFunction->annotation().contract)
+		return {};
+	return m_derivedContracts[m_currentFunction->annotation().contract];
 }
 
 bool ViewPureChecker::visit(ImportDirective const&)
@@ -352,6 +364,34 @@ void ViewPureChecker::endVisit(FunctionCall const& _functionCall)
 		dynamic_cast<FunctionType const&>(*_functionCall.expression().annotation().type).stateMutability(),
 		_functionCall.location()
 	);
+
+	// Everything below applies only to super calls.
+	auto const* memberAccess = dynamic_cast<MemberAccess const*>(&_functionCall.expression());
+	if (!memberAccess || *memberAccess->annotation().requiredLookup != VirtualLookup::Super)
+		return;
+
+	// The call resolves to a different function in each contract inheriting the current one.
+	for (ContractDefinition const* derived: currentDerivedContracts())
+	{
+		FunctionDefinition const* resolved = ASTNode::resolveFunctionCall(_functionCall, derived);
+		if (
+			!resolved ||
+			resolved == memberAccess->annotation().referencedDeclaration ||
+			resolved->stateMutability() <= m_currentFunction->stateMutability()
+		)
+			continue;
+
+		m_errorReporter.typeError(
+			7898_error,
+			derived->location(),
+			"\"" + m_currentFunction->annotation().contract->name() + "." + m_currentFunction->name() +
+			"\" is declared \"" + stateMutabilityToString(m_currentFunction->stateMutability()) +
+			"\", but in this contract its super call resolves to \"" +
+			resolved->annotation().contract->name() + "." + resolved->name() +
+			"\", which is \"" + stateMutabilityToString(resolved->stateMutability()) + "\"."
+		);
+		m_errors = true;
+	}
 }
 
 bool ViewPureChecker::visit(MemberAccess const& _memberAccess)
@@ -465,6 +505,29 @@ void ViewPureChecker::endVisit(ModifierInvocation const& _modifier)
 	{
 		MutabilityAndLocation const& mutAndLocation = modifierMutability(*mod);
 		reportMutability(mutAndLocation.mutability, _modifier.location(), mutAndLocation.location);
+
+		// The modifier may be overridden in each contract inheriting the current one.
+		for (ContractDefinition const* derived: currentDerivedContracts())
+		{
+			ModifierDefinition const& resolved = mod->resolveVirtual(*derived);
+			if (&resolved == mod)
+				continue;
+
+			StateMutability mutability = modifierMutability(resolved).mutability;
+			if (mutability <= m_currentFunction->stateMutability())
+				continue;
+
+			m_errorReporter.typeError(
+				1614_error,
+				resolved.location(),
+				"This modifier overrides \"" + mod->name() + "\" with state mutability \"" +
+				stateMutabilityToString(mutability) + "\", but \"" +
+				m_currentFunction->annotation().contract->name() + "." + m_currentFunction->name() +
+				"\", which uses it, is declared \"" +
+				stateMutabilityToString(m_currentFunction->stateMutability()) + "\"."
+			);
+			m_errors = true;
+		}
 	}
 	else
 		solAssert(dynamic_cast<ContractDefinition const*>(_modifier.name().annotation().referencedDeclaration), "");

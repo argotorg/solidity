@@ -21,6 +21,7 @@ Bugfixes:
 * Code Generator: Fix uninitialized internal function pointers being read from a packed storage slot with the wrong value when a subsequent variable in the slot holds a non-zero value.
 * Commandline Interface: Report proper error instead of ICE on non-hex mixed-case address value given via `--libraries`.
 * Type Checker: Report an unimplemented feature error instead of ICE when a variable of a fixed point type is accessed in inline assembly.
+* View Pure Checker: Fix state mutability of `super` calls and modifier invocations being checked only against the contract declaring the function. Since both are re-resolved for each most derived contract, a `view` or `pure` function could reach a more mutable target there without being reported.
 
 Build System:
 * Update minimum version requirement of Boost to 1.83.0 for Windows build. This matches the minimum version for other systems.
