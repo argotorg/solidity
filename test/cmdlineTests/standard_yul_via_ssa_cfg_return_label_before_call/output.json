@@ -1,0 +1,21 @@
+{
+    "errors": [
+        {
+            "component": "general",
+            "formattedMessage": "Uncaught exception:
+/solidity/libyul/backends/evm/ssa/CodeTransform.cpp(541): Throw in function void solidity::yul::ssa::CodeTransform::emit(const solidity::yul::ssa::ShuffleOp&)
+Dynamic exception type: boost::wrapexcept<solidity::yul::YulAssertion>
+std::exception::what: FunctionCallReturnLabel not pre-registered before shuffle.
+[solidity::util::tag_comment*] = FunctionCallReturnLabel not pre-registered before shuffle.
+",
+            "message": "Uncaught exception:
+/solidity/libyul/backends/evm/ssa/CodeTransform.cpp(541): Throw in function void solidity::yul::ssa::CodeTransform::emit(const solidity::yul::ssa::ShuffleOp&)
+Dynamic exception type: boost::wrapexcept<solidity::yul::YulAssertion>
+std::exception::what: FunctionCallReturnLabel not pre-registered before shuffle.
+[solidity::util::tag_comment*] = FunctionCallReturnLabel not pre-registered before shuffle.
+",
+            "severity": "error",
+            "type": "InternalCompilerError"
+        }
+    ]
+}

@@ -1,0 +1,19 @@
+{
+    "language": "Yul",
+    "sources": {
+        "A": {
+            "content": "object \"C\" {\n    code {\n        {\n            switch calldataload(0)\n            case 0x12065fe0 {\n                switch returndatasize()\n                default {}\n                entry()\n            }\n        }\n        function getBalan() -> var {}\n        function literal_a() -> memPtr {}\n        function entry()\n        {\n            let _1 := and(resolve(literal_a()), 1)\n            process(_1)\n        }\n        function literal_b() -> memPtr {}\n        function resolve(key) -> var {}\n        function process(target) { pop(distribute(0)) }\n        function checked_add(var_a, var_b) -> var {}\n        function checked_sub(var_a, var_b) -> var {}\n        function distribute(addr) -> var\n        {\n            let _1 := and(0, 0)\n            let _2 := and(resolve(literal_b()), 1)\n            switch 0\n            case 0 {}\n            let _3 := and(resolve(literal_c()), 1)\n            let bal := getBalan()\n            let total := 0\n            pop(staticcall(0, _1, 0, 0, 0, 0))\n            let memPtr := mload(64)\n            let _4 := add(array_size(0), not(31))\n            let i := 0\n            for {} lt(i, _4) { i := add(i, 0) }\n            {}\n            let deposit := 0\n            let count := 0\n            let minimum := 0\n            let i2 := 0\n            for {} lt(i2, 0) { i2 := add(i2, 0) }\n            {\n                if iszero(count)\n                {\n                    count := 0\n                    deposit := 0\n                    pop(staticcall(0, _3, 0, sub(encode(add(0, 0), 0), 0), 0, 32))\n                    minimum := 0\n                }\n                let cond := iszero(0)\n                if iszero(0)\n                {\n                    cond := lt(checked_sub(bal, total), minimum)\n                }\n                if cond {}\n                pop(call(0, _2, 0, 0, sub(encode(add(0, 0), deposit), 0), 0, 32))\n                total := checked_add(total, 0)\n            }\n            for {} lt(0, 0) {}\n            {\n                pop(mload(add(mload(elem_addr(memPtr, 0)), 32)))\n            }\n        }\n        function literal_c() -> memPtr {}\n        function array_size(length) -> size {}\n        function elem_addr(base, index) -> addr { revert(0, 0) }\n        function encode(head, value) -> tail {}\n    }\n}\n"
+        }
+    },
+    "settings": {
+        "experimental": true,
+        "viaSSACFG": true,
+        "outputSelection": {
+            "*": {
+                "*": [
+                    "evm.bytecode.object"
+                ]
+            }
+        }
+    }
+}
