@@ -25,6 +25,7 @@
 #include <map>
 #include <memory>
 #include <optional>
+#include <set>
 
 namespace solidity::langutil
 {
@@ -76,6 +77,7 @@ private:
 	);
 
 	void reportFunctionCallMutability(StateMutability _mutability, langutil::SourceLocation const& _location);
+	bool isPureImmutable(VariableDeclaration const& _variable) const;
 
 	/// Determines the mutability of modifier if not already cached.
 	MutabilityAndLocation const& modifierMutability(ModifierDefinition const& _modifier);
@@ -87,6 +89,7 @@ private:
 	MutabilityAndLocation m_bestMutabilityAndLocation = MutabilityAndLocation{StateMutability::Payable, langutil::SourceLocation()};
 	FunctionDefinition const* m_currentFunction = nullptr;
 	std::map<ModifierDefinition const*, MutabilityAndLocation> m_inferredMutability;
+	std::set<VariableDeclaration const*> m_immutablesWrittenTo;
 };
 
 }

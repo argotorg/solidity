@@ -219,6 +219,8 @@ Functions can be declared ``pure`` in which case they promise not to read from o
 In particular, it should be possible to evaluate a ``pure`` function at compile-time given
 only its inputs and ``msg.data``, but without any knowledge of the current blockchain state.
 This means that reading from ``immutable`` variables can be a non-pure operation.
+An immutable variable can be read in a ``pure`` function only if it is assigned a
+compile-time constant expression when declared and is never assigned again during construction.
 
 .. note::
   If the compiler's EVM target is Byzantium or newer (default) the opcode ``STATICCALL`` is used,
