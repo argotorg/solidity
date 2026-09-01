@@ -577,33 +577,61 @@ FunctionDefinition const& FunctionDefinition::resolveVirtual(
 	solAssert(isOrdinary(), "");
 	solAssert(!libraryFunction(), "");
 
+	// The walk lives in superLookupCandidates() rather than inline because
+	// PostTypeContractLevelChecker has to reject calls landing on an external function, and can
+	// only do so soundly if it resolves to the exact target used here.
+	if (_searchStart != nullptr)
+	{
+		std::vector<FunctionDefinition const*> candidates = superLookupCandidates(_mostDerivedContract, *_searchStart);
+		solAssert(!candidates.empty(), "Super lookup for function " + name() + " found no candidate.");
+		FunctionDefinition const& target = *candidates.front();
+		// An external target is still reachable here: call graphs are built before 8476 is
+		// reported, and it matched only after normalising calldata to memory.
+		if (target.isVisibleInDerivedContracts())
+			solAssert(FunctionType(target).hasEqualParameterTypes(*TypeProvider::function(*this)));
+		return target;
+	}
+
 	// We actually do not want the externally callable function here.
 	// This is just to add an assertion since the comparison used to be less strict.
 	FunctionType const* externalFunctionType = TypeProvider::function(*this)->asExternallyCallableFunction(false);
 
-	bool foundSearchStart = (_searchStart == nullptr);
+	// With virtual lookup there are valid cases where returning an unimplemented function is fine.
 	for (ContractDefinition const* c: _mostDerivedContract.annotation().linearizedBaseContracts)
-	{
-		if (!foundSearchStart && c != _searchStart)
-			continue;
-		else
-			foundSearchStart = true;
-
 		for (FunctionDefinition const* function: c->definedFunctions(name()))
-			if (
-				// With super lookup analysis guarantees that there is an implemented function in the chain.
-				// With virtual lookup there are valid cases where returning an unimplemented one is fine.
-				(function->isImplemented() || _searchStart == nullptr) &&
-				FunctionType(*function).asExternallyCallableFunction(false)->hasEqualParameterTypes(*externalFunctionType)
-			)
+			if (FunctionType(*function).asExternallyCallableFunction(false)->hasEqualParameterTypes(*externalFunctionType))
 			{
 				solAssert(FunctionType(*function).hasEqualParameterTypes(*TypeProvider::function(*this)));
 				return *function;
 			}
-	}
 
 	solAssert(false, "Virtual function " + name() + " not found.");
 	return *this; // not reached
+}
+
+std::vector<FunctionDefinition const*> FunctionDefinition::superLookupCandidates(
+	ContractDefinition const& _mostDerivedContract,
+	ContractDefinition const& _searchStart
+) const
+{
+	FunctionType const* externalFunctionType = TypeProvider::function(*this)->asExternallyCallableFunction(false);
+
+	std::vector<FunctionDefinition const*> candidates;
+	bool foundSearchStart = false;
+	for (ContractDefinition const* c: _mostDerivedContract.annotation().linearizedBaseContracts)
+	{
+		if (!foundSearchStart && c != &_searchStart)
+			continue;
+		foundSearchStart = true;
+
+		for (FunctionDefinition const* function: c->definedFunctions(name()))
+			if (
+				function->isImplemented() &&
+				FunctionType(*function).asExternallyCallableFunction(false)->hasEqualParameterTypes(*externalFunctionType)
+			)
+				candidates.push_back(function);
+	}
+	return candidates;
 }
 
 Type const* ModifierDefinition::type() const
