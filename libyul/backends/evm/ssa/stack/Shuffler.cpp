@@ -66,7 +66,7 @@ class Mapping
 public:
 	/// A copy that sits in a wildcard slot can either be moved to the target offset demanding it or left there,
 	/// serving the demand with a duplicate
-	enum class WildcardSlots { Leave, Take };
+	enum class WildcardSlots : std::uint8_t { Leave, Take };
 
 	Mapping(
 		StackData const& _source,
@@ -403,12 +403,16 @@ private:
 	{
 		if (!produce(_targetOffset))
 			return false;
+		// `produce` left the slot on top; swap it down only if its offset exists strictly below the top:
+		// as the top itself it is in place already, beyond the height it has to wait on top anyway
 		if (_targetOffset.value + 1 < m_data.size() && !isFinal(_targetOffset))
 		{
 			if (m_data[_targetOffset.value] == m_data.back())
+				// an equal slot stands at the offset: retag instead of swapping two equal slots
 				m_destination.swapDestinations(_targetOffset, StackOffset{m_data.size() - 1});
 			else if (isSwapReachable(_targetOffset))
 				swapWith(_targetOffset);
+			// out of swap reach: leave the slot on top; buildBottomUp re-checks reach when filling the offset
 		}
 		return true;
 	}
