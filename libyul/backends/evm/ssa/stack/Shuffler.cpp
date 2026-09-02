@@ -470,13 +470,13 @@ private:
 		for (StackOffset targetOffset{0}; targetOffset < m_target.size(); ++targetOffset.value)
 		{
 			{
-				// todo this can be optimized by not counting from scratch each iteration
-				std::size_t pending = 0;
-				for (std::size_t k = 0; k < m_target.size(); ++k)
+				// todo this can be optimized by not scanning from scratch each iteration
+				bool anyPending = false;
+				for (std::size_t k = 0; k < m_target.size() && !anyPending; ++k)
 					if (!m_mapping.sourceOf(k).has_value() && !m_generated[k])
-						++pending;
+						anyPending = true;
 				// all is generated, the final permutation
-				if (pending == 0)
+				if (!anyPending)
 				{
 					yulAssert(m_data.size() == m_target.size());
 					// every slot goes to the offset it is bound for, so the desired index of each destination
