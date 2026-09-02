@@ -687,20 +687,20 @@ private:
 		{
 			std::size_t const top = m_data.size() - 1;
 			if (
-				StackOffset const desiredAtTop{desiredOf(top)};
-				desiredAtTop != top
+				StackOffset const desiredOfTop{desiredOf(top)};
+				desiredOfTop != top
 			)
 			{
 				// an equal slot standing at the desired index serves the top's destination just as well:
 				// exchange the destinations instead of swapping two indistinguishable slots
-				if (m_data[desiredAtTop.value] == m_data[top])
+				if (m_data[desiredOfTop.value] == m_data[top])
 				{
-					m_destination.swapDestinations(desiredAtTop, StackOffset{top});
+					m_destination.swapDestinations(desiredOfTop, StackOffset{top});
 					continue;
 				}
-				if (!isSwapReachable(desiredAtTop))
-					return blockSwapUnreachable(desiredAtTop);
-				swapWith(desiredAtTop);
+				if (!isSwapReachable(desiredOfTop))
+					return blockSwapUnreachable(desiredOfTop);
+				swapWith(desiredOfTop);
 				continue;
 			}
 			StackOffset misplaced{empty};
