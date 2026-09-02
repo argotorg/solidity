@@ -321,10 +321,9 @@ public:
 
 	[[nodiscard]] Result run() &&
 	{
-		bool const success = emit();
-		yulAssert(success != m_blocked.has_value());
+		std::optional<Blocked> const blocked = emit();
 		return {
-			.blocked = m_blocked,
+			.blocked = blocked,
 			.trace = std::move(m_trace),
 			.data = std::move(m_data),
 			.destinations = std::move(m_destination).release()
@@ -341,7 +340,7 @@ private:
 	}
 
 	// pop all surplus or bail if surplus that is scheduled for pop isn't reachable
-	bool removeSurplus()
+	[[nodiscard]] std::optional<Blocked> removeSurplus()
 	{
 		while (!m_stack.empty())
 		{
@@ -381,11 +380,11 @@ private:
 			}
 			pop();
 		}
-		return true;
+		return std::nullopt;
 	}
 
 	/// Produces the slot for `_targetOffset`
-	bool produce(StackOffset const _targetOffset)
+	[[nodiscard]] std::optional<Blocked> produce(StackOffset const _targetOffset)
 	{
 		StackSlot const& slot = m_target[_targetOffset.value];
 		auto const copy = shallowestCopyPosition(slot);
@@ -402,16 +401,16 @@ private:
 		yulAssert(!m_generated[_targetOffset.value] && !m_mapping.sourceOf(_targetOffset.value).has_value());
 		m_generated[_targetOffset.value] = true;
 		--m_pendingGenerations;
-		return true;
+		return std::nullopt;
 	}
 
 	/// Produces the slot for `_targetOffset` and moves it toward its place right away: if the offset exists
 	/// already and holds a slot that is not final, a single swap places the produced slot and floats the other
 	/// one, which may be its own placement. An equal slot there just takes over the destination.
-	bool generate(StackOffset const _targetOffset)
+	[[nodiscard]] std::optional<Blocked> generate(StackOffset const _targetOffset)
 	{
-		if (!produce(_targetOffset))
-			return false;
+		if (std::optional<Blocked> blocked = produce(_targetOffset))
+			return blocked;
 		// `produce` left the slot on top; swap it down only if its offset exists strictly below the top:
 		// as the top itself it is in place already, beyond the height it has to wait on top anyway
 		if (_targetOffset.value + 1 < m_data.size() && !isFinal(_targetOffset))
@@ -423,7 +422,7 @@ private:
 				swapWith(_targetOffset);
 			// out of swap reach: leave the slot on top; buildBottomUp re-checks reach when filling the offset
 		}
-		return true;
+		return std::nullopt;
 	}
 
 	/// The stack is at its lowest height now, so deep target offsets are at their most reachable.
@@ -433,10 +432,10 @@ private:
 	/// above the current height park in the holes (one already in a hole stays, the others take the holes
 	/// in order of their targets) and float to the top for free when the hole's slot is generated and
 	/// swapped into place.
-	bool permuteAtLowestHeight()
+	[[nodiscard]] std::optional<Blocked> permuteAtLowestHeight()
 	{
 		if (m_stack.empty())
-			return true;
+			return std::nullopt;
 
 		// the desired offset for the slot bound for each destination with `empty` where no slot is bound for
 		// the destination (those slots are generated later, so the entry is never consulted)
@@ -476,7 +475,7 @@ private:
 	/// Builds the target bottom-up. Every offset either holds its slot already, gets a retained slot that is
 	/// floating above it, or gets a freshly generated slot.
 	/// Once everything is generated the rest is one final permutation.
-	bool buildBottomUp()
+	[[nodiscard]] std::optional<Blocked> buildBottomUp()
 	{
 		for (StackOffset targetOffset{0}; targetOffset < m_target.size(); ++targetOffset.value)
 		{
@@ -516,8 +515,8 @@ private:
 			)
 			{
 				// generate it
-				if (!generate(*urgentToDup))
-					return false;
+				if (std::optional<Blocked> blocked = generate(*urgentToDup))
+					return blocked;
 				// and revisit the current target in the next iteration (with unsigned wrapping this is also fine for 0)
 				--targetOffset.value;
 				continue;
@@ -536,8 +535,8 @@ private:
 			)
 			{
 				// we generate the slot demanded at source top
-				if (!generate(sourceTop))
-					return false;
+				if (std::optional<Blocked> blocked = generate(sourceTop))
+					return blocked;
 				// revisit target offset
 				--targetOffset.value;
 				continue;
@@ -593,8 +592,8 @@ private:
 			else
 			{
 				// the slot needs to be DUPed
-				if (!generate(targetOffset))
-					return false;
+				if (std::optional<Blocked> blocked = generate(targetOffset))
+					return blocked;
 
 				// `generate` might have already placed the slot into the target offset, then we're done for this offset
 				if (isFinal(targetOffset))
@@ -611,19 +610,21 @@ private:
 			}
 		}
 		yulAssert(m_data.size() == m_target.size());
-		return true;
+		return std::nullopt;
 	}
 
-	bool emit()
+	[[nodiscard]] std::optional<Blocked> emit()
 	{
-		return
-			removeSurplus() &&  // removes all surplus (slots that have no destination in the target)
-			permuteAtLowestHeight() &&
-			buildBottomUp();
+		// removes all surplus (slots that have no destination in the target)
+		if (std::optional<Blocked> blocked = removeSurplus())
+			return blocked;
+		if (std::optional<Blocked> blocked = permuteAtLowestHeight())
+			return blocked;
+		return buildBottomUp();
 	}
 
 	/// Brings every slot to the offset `_desiredOffsetByDestination` assigns to its destination
-	bool permute(std::vector<std::size_t> _desiredOffsetByDestination)
+	[[nodiscard]] std::optional<Blocked> permute(std::vector<std::size_t> _desiredOffsetByDestination)
 	{
 		// the desired offset of the slot at `_pos`, looked up under the destination it is bound for
 		auto const desiredOf = [&](std::size_t const _pos) -> std::size_t& {
@@ -705,7 +706,7 @@ private:
 				}
 
 			if (misplaced == empty)
-				return true;  // nothing misplaced was found, we're done
+				return std::nullopt;  // nothing misplaced was found, we're done
 
 			// a misplaced slot equal to the top takes over the top's destination, making the top the misplaced
 			// one; it then travels to its destination directly instead of dislodging an in-place slot
@@ -792,22 +793,21 @@ private:
 		m_destination.push(_destination);
 	}
 
-	/// Records that the slot at `_position` is out of reach by `_excess` slots
-	bool block(StackOffset const _position, std::size_t const _excess)
+	/// The slot at `_position` is out of reach by `_excess` slots
+	[[nodiscard]] Blocked block(StackOffset const _position, std::size_t const _excess) const
 	{
 		yulAssert(_excess > 0);
-		m_blocked = Blocked{_position, _excess};
-		return false;
+		return Blocked{_position, _excess};
 	}
 
-	/// Records that a swap cannot reach the slot at `_position`
-	bool blockSwapUnreachable(StackOffset const _position)
+	/// A swap cannot reach the slot at `_position`
+	[[nodiscard]] Blocked blockSwapUnreachable(StackOffset const _position) const
 	{
 		return block(_position, depthOf(_position).value - m_maxSwapDepth);
 	}
 
-	/// Records that a dup cannot reach the slot at `_position`
-	bool blockDupUnreachable(StackOffset const _position)
+	/// A dup cannot reach the slot at `_position`
+	[[nodiscard]] Blocked blockDupUnreachable(StackOffset const _position) const
 	{
 		return block(_position, depthOf(_position).value - m_maxDupDepth);
 	}
@@ -826,7 +826,6 @@ private:
 	/// Number of target offsets whose slot still has to be produced; decremented by `produce`
 	std::size_t m_pendingGenerations = 0;
 	ShuffleTrace m_trace;
-	std::optional<Blocked> m_blocked;
 	Stack m_stack{m_data, &m_trace, m_maxSwapDepth};
 };
 
