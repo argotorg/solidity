@@ -25,7 +25,6 @@
 
 #include <libyul/Exceptions.h>
 
-#include <range/v3/algorithm/all_of.hpp>
 #include <range/v3/algorithm/any_of.hpp>
 #include <range/v3/algorithm/contains.hpp>
 #include <range/v3/algorithm/count_if.hpp>
@@ -448,6 +447,7 @@ private:
 		for (StackOffset const pos: stackOffsets())
 		{
 			// all surplus is gone, so every slot has a destination
+			yulAssert(destinationOf(pos).has_value());
 			StackOffset const destination = *destinationOf(pos);
 			// target offset at offset pos has no source (ie the value has to be generated)
 			bool const isHole = !m_mapping.sourceOf(pos.value).has_value();
@@ -614,20 +614,10 @@ private:
 		return true;
 	}
 
-	[[nodiscard]] bool everySlotHasADestination() const
-	{
-		yulAssert(ranges::all_of(
-			stackOffsets(),
-			[&](StackOffset const _offset) { return destinationOf(_offset).has_value(); }
-		));
-		return true;
-	}
-
 	bool emit()
 	{
 		return
 			removeSurplus() &&  // removes all surplus (slots that have no destination in the target)
-			everySlotHasADestination() &&  // asserts that indeed all surplus is gone
 			permuteAtLowestHeight() &&
 			buildBottomUp();
 	}
@@ -637,12 +627,14 @@ private:
 	{
 		// the desired offset of the slot at `_pos`, looked up under the destination it is bound for
 		auto const desiredOf = [&](std::size_t const _pos) -> std::size_t& {
-			// every slot has a destination at this point
-			return _desiredOffsetByDestination[destinationOf(StackOffset{_pos})->value];
+			Destination const& destination = destinationOf(StackOffset{_pos});
+			// every slot has a destination at this point, surplus is gone before any permutation
+			yulAssert(destination.has_value());
+			return _desiredOffsetByDestination[destination->value];
 		};
 
 		// Equal slots are interchangeable: among them, those already at one of their desired offsets stay, the
-		// others take the remaining indices. Otherwise equal slots would pass each other in cycles.
+		// others take the remaining offsets. Otherwise equal slots would pass each other in cycles.
 		{
 			std::vector<std::size_t> positions = ranges::views::iota(std::size_t{0}, m_data.size()) | ranges::to<std::vector>;
 			// stability needed for reproducibility across platforms (sort doesn't guarantee order for ties)
