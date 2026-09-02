@@ -66,13 +66,13 @@ class Mapping
 public:
 	/// A copy that sits in a wildcard slot can either be moved to the target offset demanding it or left there,
 	/// serving the demand with a duplicate
-	enum class WildcardSlots : std::uint8_t { Leave, Take };
+	enum class WildcardSlotsStrategy : std::uint8_t { Leave, Take };
 
 	Mapping(
 		StackData const& _source,
 		StackData const& _target,
 		std::vector<std::uint8_t> const& _dropped,  // dropped means that the slot is scheduled to be popped
-		WildcardSlots const _wildcardSlots
+		WildcardSlotsStrategy const _wildcardSlotsStrategy
 	):
 		m_source(_source),
 		m_target(_target),
@@ -86,24 +86,20 @@ public:
 
 		// slots already in place get mapped directly
 		for (std::size_t j = 0; j < common; ++j)
-			if (
-				!_target[j].isJunk() &&  // wildcard targets are excluded and behavior depends on wildcard policy
-				_source[j] == _target[j] &&
-				mappable(j)
-			)
+			if (_source[j] == _target[j] && mappable(j))
 				map(j, j);
 
 		// the remaining target offsets take the closest unused copy, deepest first: what is left over is
 		// generated on top, where that is cheapest
 		for (std::size_t j = 0; j < _target.size(); ++j)
-			if (!sourceOf(j).has_value() && !_target[j].isJunk())
-				if (std::optional<std::size_t> const copy = closestCopy(j, false))
+			if (!hasSourceAssigned(j) && !isWildcardTarget(j))
+				if (std::optional<std::size_t> const copy = closestCopy(j, CopyLocation::OutsideWildcardSlots))
 					map(*copy, j);
 
-		// copies sitting in wildcard slots are taken or left according to the policy
+		// copies sitting in wildcard slots are taken or left according to the strategy
 		for (std::size_t j = 0; j < _target.size(); ++j)
-			if (!sourceOf(j).has_value() && !_target[j].isJunk())
-				if (std::optional<std::size_t> const copy = closestCopy(j, true))
+			if (!hasSourceAssigned(j) && !isWildcardTarget(j))
+				if (std::optional<std::size_t> const copy = closestCopy(j, CopyLocation::InWildcardSlots))
 				{
 					// a function return label is always taken, can't be duped or pushed
 					if (_target[j].isFunctionReturnLabel())
@@ -111,19 +107,19 @@ public:
 					else
 					{
 						m_sawWildcardCopy = true;
-						if (_wildcardSlots == WildcardSlots::Take)
+						if (_wildcardSlotsStrategy == WildcardSlotsStrategy::Take)
 							map(*copy, j);
 					}
 				}
 
 		// wildcards keep whatever sits there
 		for (std::size_t j = 0; j < common; ++j)
-			if (_target[j].isJunk() && !sourceOf(j).has_value() && mappable(j))
+			if (isWildcardTarget(j) && !hasSourceAssigned(j) && mappable(j))
 				map(j, j);
 
 		// the remaining wildcards absorb the closest surplus slot instead of having it popped
 		for (std::size_t j = 0; j < _target.size(); ++j)
-			if (_target[j].isJunk() && !sourceOf(j).has_value())
+			if (isWildcardTarget(j) && !hasSourceAssigned(j))
 			{
 				std::optional<std::size_t> best;
 				for (std::size_t o = 0; o < _source.size(); ++o)
@@ -141,7 +137,7 @@ public:
 	/// The source offset serving `_targetOffset`; no value means generated.
 	std::optional<std::size_t> sourceOf(std::size_t const _targetOffset) const { return m_sourceOf[_targetOffset]; }
 	/// Whether any target offset's demand was answered by a copy sitting in a wildcard slot, i.e. whether the
-	/// `WildcardSlots` policy had anything to decide. Identical for both policies on the same inputs.
+	/// `WildcardSlotsStrategy` had anything to decide. Identical for both strategies on the same inputs.
 	bool sawWildcardCopy() const { return m_sawWildcardCopy; }
 	/// Hands out the target-indexed source side, ending the map's life
 	std::vector<std::optional<std::size_t>> release() && { return std::move(m_sourceOf); }
@@ -153,20 +149,30 @@ private:
 		return !m_dropped[_sourceOffset] && !targetOf(_sourceOffset).has_value();
 	}
 
+	/// Whether a source slot already serves `_targetOffset`
+	bool hasSourceAssigned(std::size_t const _targetOffset) const { return sourceOf(_targetOffset).has_value(); }
+
+	/// Whether the target at `_targetOffset` is junk, i.e. accepts whatever ends up there
+	bool isWildcardTarget(std::size_t const _targetOffset) const { return m_target[_targetOffset].isJunk(); }
+
 	/// Whether the source slot at `_sourceOffset` stands at an offset that exists in the target and is junk
 	/// there, i.e. a copy that may stay put
 	bool inWildcardSlot(std::size_t const _sourceOffset) const
 	{
-		return _sourceOffset < m_target.size() && m_target[_sourceOffset].isJunk();
+		return _sourceOffset < m_target.size() && isWildcardTarget(_sourceOffset);
 	}
 
-	/// The closest mappable copy of the slot demanded at `_targetOffset`, considering only copies in
-	/// (`_inWildcardSlot` true) or not in wildcard slots; ties go to the shallower copy
-	std::optional<std::size_t> closestCopy(std::size_t const _targetOffset, bool const _inWildcardSlot) const
+	/// Which copies `closestCopy` considers: only those standing in wildcard slots or only those that do not
+	enum class CopyLocation : std::uint8_t { OutsideWildcardSlots, InWildcardSlots };
+
+	/// The closest mappable copy of the slot demanded at `_targetOffset` among the copies at `_location`;
+	/// ties go to the shallower copy
+	std::optional<std::size_t> closestCopy(std::size_t const _targetOffset, CopyLocation const _location) const
 	{
+		bool const inWildcardSlots = _location == CopyLocation::InWildcardSlots;
 		std::optional<std::size_t> best;
 		for (std::size_t i = 0; i < m_source.size(); ++i)
-			if (m_source[i] == m_target[_targetOffset] && mappable(i) && inWildcardSlot(i) == _inWildcardSlot)
+			if (m_source[i] == m_target[_targetOffset] && mappable(i) && inWildcardSlot(i) == inWildcardSlots)
 				if (!best.has_value() || absDiff(i, _targetOffset) <= absDiff(*best, _targetOffset))
 					best = i;
 		return best;
@@ -179,6 +185,8 @@ private:
 
 	void map(std::size_t const _sourceOffset, std::size_t const _targetOffset)
 	{
+		yulAssert(mappable(_sourceOffset));
+		yulAssert(!hasSourceAssigned(_targetOffset));
 		m_targetOf[_sourceOffset] = _targetOffset;
 		m_sourceOf[_targetOffset] = _sourceOffset;
 	}
@@ -837,7 +845,7 @@ public:
 		StackData const& _target,
 		spill::SpillSet _spills,
 		bool const _spillingAllowed,
-		Mapping::WildcardSlots const _wildcardSlots,
+		Mapping::WildcardSlotsStrategy const _wildcardSlotsStrategy,
 		std::size_t const _reachableStackDepth
 	):
 		m_maxSwapDepth(_reachableStackDepth),
@@ -846,7 +854,7 @@ public:
 		m_target(_target),
 		m_spills(std::move(_spills)),
 		m_spillingAllowed(_spillingAllowed),
-		m_wildcardSlots(_wildcardSlots),
+		m_wildcardSlotsStrategy(_wildcardSlotsStrategy),
 		m_dropped(_source.size(), false)
 	{}
 
@@ -863,7 +871,7 @@ public:
 
 		while (true)
 		{
-			Mapping mapping(m_source, m_target, m_dropped, m_wildcardSlots);
+			Mapping mapping(m_source, m_target, m_dropped, m_wildcardSlotsStrategy);
 			m_sawWildcardCopy |= mapping.sawWildcardCopy();
 			Emission::Result result = Emission{m_source, m_target, mapping, m_spills, m_maxSwapDepth, m_maxDupDepth}.run();
 			if (!result.blocked.has_value())
@@ -1010,7 +1018,7 @@ private:
 	StackData const& m_target;
 	spill::SpillSet m_spills;
 	bool const m_spillingAllowed;
-	Mapping::WildcardSlots const m_wildcardSlots;
+	Mapping::WildcardSlotsStrategy const m_wildcardSlotsStrategy;
 	bool m_sawWildcardCopy = false;
 	std::vector<std::uint8_t> m_dropped;
 
@@ -1048,11 +1056,11 @@ public:
 
 	[[nodiscard]] ShuffleResult run() const&&
 	{
-		Planner leave{m_source, m_target, m_spills, m_spillingAllowed, Mapping::WildcardSlots::Leave, m_reachableStackDepth};
+		Planner leave{m_source, m_target, m_spills, m_spillingAllowed, Mapping::WildcardSlotsStrategy::Leave, m_reachableStackDepth};
 		bool const leaveOk = leave.run();
 		if (!leave.sawWildcardCopy())
 			return leaveOk ? std::move(leave).apply(m_source, m_spills) : stackTooDeep();
-		Planner take{m_source, m_target, m_spills, m_spillingAllowed, Mapping::WildcardSlots::Take, m_reachableStackDepth};
+		Planner take{m_source, m_target, m_spills, m_spillingAllowed, Mapping::WildcardSlotsStrategy::Take, m_reachableStackDepth};
 		bool const takeOk = take.run();
 		if (!leaveOk && !takeOk)
 			return stackTooDeep();
