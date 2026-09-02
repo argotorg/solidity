@@ -28,6 +28,7 @@
 #include <range/v3/algorithm/all_of.hpp>
 #include <range/v3/algorithm/any_of.hpp>
 #include <range/v3/algorithm/contains.hpp>
+#include <range/v3/algorithm/count_if.hpp>
 #include <range/v3/algorithm/set_algorithm.hpp>
 #include <range/v3/algorithm/sort.hpp>
 #include <range/v3/algorithm/stable_sort.hpp>
@@ -305,7 +306,14 @@ public:
 		m_data(_source),
 		m_destination(_mapping, _source.size(), _target.size()),
 		m_generated(_target.size(), false)
-	{}
+	{
+		m_pendingGenerations = static_cast<std::size_t>(ranges::count_if(
+			ranges::views::iota(std::size_t{0}, _target.size()),
+			[&](std::size_t const _offset) {
+				return !_mapping.sourceOf(_offset).has_value();
+			}
+		));
+	}
 
 	Emission(Emission const&) = delete;
 	Emission(Emission&&) = delete;
@@ -392,7 +400,9 @@ private:
 			return blockDupUnreachable(*copy);
 		else
 			yulAssert(false, "generated slot has no copy on the stack and is not spilled");
+		yulAssert(!m_generated[_targetOffset.value] && !m_mapping.sourceOf(_targetOffset.value).has_value());
 		m_generated[_targetOffset.value] = true;
+		--m_pendingGenerations;
 		return true;
 	}
 
@@ -469,20 +479,13 @@ private:
 	{
 		for (StackOffset targetOffset{0}; targetOffset < m_target.size(); ++targetOffset.value)
 		{
+			// all is generated, the final permutation
+			if (m_pendingGenerations == 0)
 			{
-				// todo this can be optimized by not scanning from scratch each iteration
-				bool anyPending = false;
-				for (std::size_t k = 0; k < m_target.size() && !anyPending; ++k)
-					if (!m_mapping.sourceOf(k).has_value() && !m_generated[k])
-						anyPending = true;
-				// all is generated, the final permutation
-				if (!anyPending)
-				{
-					yulAssert(m_data.size() == m_target.size());
-					// every slot goes to the offset it is bound for, so the desired index of each destination
-					// is that destination itself
-					return permute(ranges::views::iota(std::size_t{0}, m_target.size()) | ranges::to<std::vector>);
-				}
+				yulAssert(m_data.size() == m_target.size());
+				// every slot goes to the offset it is bound for, so the desired index of each destination
+				// is that destination itself
+				return permute(ranges::views::iota(std::size_t{0}, m_target.size()) | ranges::to<std::vector>);
 			}
 
 			// a target offset that needs something DUPed urgently before it goes out of dup reach
@@ -827,6 +830,8 @@ private:
 	DestinationMap m_destination;
 	/// Whether the slot for each target offset has been produced already
 	std::vector<std::uint8_t> m_generated;
+	/// Number of target offsets whose slot still has to be produced; decremented by `produce`
+	std::size_t m_pendingGenerations = 0;
 	ShuffleTrace m_trace;
 	std::optional<Blocked> m_blocked;
 	Stack m_stack{m_data, &m_trace, m_maxSwapDepth};
