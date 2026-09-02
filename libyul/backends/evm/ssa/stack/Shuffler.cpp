@@ -439,8 +439,9 @@ private:
 		if (m_stack.empty())
 			return true;
 
-		// vector mapping stack offset -> destination (may contain empty destinations)
-		std::vector desiredByDestination(m_target.size(), empty);
+		// the desired offset for the slot bound for each destination with `empty` where no slot is bound for
+		// the destination (those slots are generated later, so the entry is never consulted)
+		std::vector desiredOffsetByDestination(m_target.size(), empty);
 		// offsets whose target values will be generated later
 		std::vector<std::size_t> holes;
 		std::vector<std::size_t> parked;
@@ -453,9 +454,9 @@ private:
 			// can't serve the destination yet
 			bool const isParked = destination >= m_data.size();
 			if (!isParked)  // the destination can be served
-				desiredByDestination[destination.value] = destination.value;
+				desiredOffsetByDestination[destination.value] = destination.value;
 			if (isParked && isHole)  // parked and already standing in a hole, doesn't need to move (for now)
-				desiredByDestination[destination.value] = pos.value;
+				desiredOffsetByDestination[destination.value] = pos.value;
 			if (isParked && !isHole)  // parked but in the way: needs a free hole to wait in
 				parked.push_back(destination.value);
 			if (!isParked && isHole)  // a free hole; an occupied one is not on offer for the parked slots below
@@ -468,8 +469,8 @@ private:
 		yulAssert(parked.size() == holes.size());
 		ranges::sort(parked);
 		for (std::size_t i = 0; i < holes.size(); ++i)
-			desiredByDestination[parked[i]] = holes[i];
-		return permute(std::move(desiredByDestination));
+			desiredOffsetByDestination[parked[i]] = holes[i];
+		return permute(std::move(desiredOffsetByDestination));
 	}
 
 	/// Builds the target bottom-up. Every offset either holds its slot already, gets a retained slot that is
@@ -483,7 +484,7 @@ private:
 			if (m_pendingGenerations == 0)
 			{
 				yulAssert(m_data.size() == m_target.size());
-				// every slot goes to the offset it is bound for, so the desired index of each destination
+				// every slot goes to the offset it is bound for, so the desired offset of each destination
 				// is that destination itself
 				return permute(ranges::views::iota(std::size_t{0}, m_target.size()) | ranges::to<std::vector>);
 			}
@@ -631,16 +632,16 @@ private:
 			buildBottomUp();
 	}
 
-	/// Brings every slot to the index `_desiredByDestination` assigns to its destination
-	bool permute(std::vector<std::size_t> _desiredByDestination)
+	/// Brings every slot to the offset `_desiredOffsetByDestination` assigns to its destination
+	bool permute(std::vector<std::size_t> _desiredOffsetByDestination)
 	{
-		// the desired index of the slot at `_pos`, looked up under the destination it is bound for
+		// the desired offset of the slot at `_pos`, looked up under the destination it is bound for
 		auto const desiredOf = [&](std::size_t const _pos) -> std::size_t& {
 			// every slot has a destination at this point
-			return _desiredByDestination[destinationOf(StackOffset{_pos})->value];
+			return _desiredOffsetByDestination[destinationOf(StackOffset{_pos})->value];
 		};
 
-		// Equal slots are interchangeable: among them, those already at one of their desired indices stay, the
+		// Equal slots are interchangeable: among them, those already at one of their desired offsets stay, the
 		// others take the remaining indices. Otherwise equal slots would pass each other in cycles.
 		{
 			std::vector<std::size_t> positions = ranges::views::iota(std::size_t{0}, m_data.size()) | ranges::to<std::vector>;
@@ -657,17 +658,17 @@ private:
 				// the group is empty or contains only a single element (ie no second, equal slot exists)
 				if (ranges::distance(group) < 2)
 					continue;
-				// the group's desired indices
+				// the group's desired offsets
 				std::vector<std::size_t> desired = group | ranges::views::transform(desiredOf) | ranges::to<std::vector>;
 				// sorted needed for set operations
 				ranges::sort(desired);
-				// slots already standing on one of the group's desired indices stay put
+				// slots already standing on one of the group's desired offsets stay put
 				// stayers = group \cap desired => desiredOf(pos) = pos
 				std::vector<std::size_t> stayers;
 				ranges::set_intersection(group, desired, std::back_inserter(stayers));
 				for (std::size_t const pos: stayers)
 					desiredOf(pos) = pos;
-				// the others take the vacant indices, both sides ascending, so nothing crosses
+				// the others take the vacant offsets, both sides ascending, so nothing crosses
 				// movers = group ∖ desired
 				std::vector<std::size_t> movers;
 				ranges::set_difference(group, desired, std::back_inserter(movers));
@@ -691,7 +692,7 @@ private:
 				desiredOfTop != top
 			)
 			{
-				// an equal slot standing at the desired index serves the top's destination just as well:
+				// an equal slot standing at the desired offset serves the top's destination just as well:
 				// exchange the destinations instead of swapping two indistinguishable slots
 				if (m_data[desiredOfTop.value] == m_data[top])
 				{
