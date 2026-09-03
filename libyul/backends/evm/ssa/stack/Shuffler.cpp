@@ -626,10 +626,6 @@ private:
 
 	[[nodiscard]] std::optional<Blocked> permute(std::vector<std::size_t> _permutation)
 	{
-		auto const desiredOf = [&](std::size_t const _pos) -> std::size_t& {
-			return _permutation[_pos];
-		};
-
 		// Equal slots are interchangeable: among them, those already at one of their desired offsets stay, the
 		// others take the remaining offsets. Otherwise equal slots would pass each other in cycles.
 		{
@@ -648,20 +644,23 @@ private:
 				if (ranges::distance(group) < 2)
 					continue;
 				// the group's desired offsets
-				std::vector<std::size_t> desired = group | ranges::views::transform(desiredOf) | ranges::to<std::vector>;
+				std::vector<std::size_t> desired =
+					group |
+					ranges::views::transform([&_permutation](std::size_t const _pos) { return _permutation[_pos]; }) |
+					ranges::to<std::vector>;
 				// sorted needed for set operations
 				ranges::sort(desired);
 				// slots already standing on one of the group's desired offsets stay put
-				// stayers = group \cap desired => desiredOf(pos) = pos
+				// stayers = group \cap desired => _permutation[pos] = pos
 				std::vector<std::size_t> stayers;
 				ranges::set_intersection(group, desired, std::back_inserter(stayers));
 				for (std::size_t const pos: stayers)
-					desiredOf(pos) = pos;
+					_permutation[pos] = pos;
 				// the others take the vacant offsets, both sides ascending, so nothing crosses
 				// movers = group ∖ desired
 				std::vector<std::size_t> movers;
 				ranges::set_difference(group, desired, std::back_inserter(movers));
-				// vacant = desired ∖ group => desiredOf(movers[i]) = vacant[i]
+				// vacant = desired ∖ group => _permutation[movers[i]] = vacant[i]
 				std::vector<std::size_t> vacant;
 				ranges::set_difference(desired, group, std::back_inserter(vacant));
 
@@ -669,7 +668,7 @@ private:
 				// |movers| =  |G ∖ D| = |G| − |G \cap D| and |vacant| = |D ∖ G| = |D| − |D \cap G|
 				yulAssert(movers.size() == vacant.size());
 				for (std::size_t i = 0; i < movers.size(); ++i)
-					desiredOf(movers[i]) = vacant[i];
+					_permutation[movers[i]] = vacant[i];
 			}
 		}
 
@@ -690,7 +689,7 @@ private:
 		{
 			std::size_t const top = m_data.size() - 1;
 			if (
-				StackOffset const desiredOfTop{desiredOf(top)};
+				StackOffset const desiredOfTop{_permutation[top]};
 				desiredOfTop != top
 			)
 			{
@@ -701,7 +700,7 @@ private:
 			}
 			StackOffset misplaced{empty};
 			for (std::size_t const pos: ranges::views::iota(std::size_t{0}, top) | ranges::views::reverse)
-				if (desiredOf(pos) != pos)  // not already in place
+				if (_permutation[pos] != pos)  // not already in place
 				{
 					misplaced = StackOffset{pos};  // we found something misplaced
 					break;
