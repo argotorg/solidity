@@ -25,7 +25,6 @@
 
 #include <libyul/Exceptions.h>
 
-#include <range/v3/algorithm/all_of.hpp>
 #include <range/v3/algorithm/any_of.hpp>
 #include <range/v3/algorithm/contains.hpp>
 #include <range/v3/algorithm/count_if.hpp>
@@ -482,13 +481,6 @@ private:
 	{
 		for (StackOffset targetOffset{0}; targetOffset < m_target.size(); ++targetOffset.value)
 		{
-			yulAssert(
-				ranges::all_of(
-					stackOffsets() | ranges::views::take(targetOffset.value),
-					[&](StackOffset const _offset) { return isFinal(_offset); }
-				),
-				"an offset below the one being filled is not final"
-			);
 			// all is generated, the final permutation
 			if (m_pendingGenerations == 0)
 			{
@@ -774,6 +766,7 @@ private:
 	/// Swaps the top with the slot at `_pos`, the destinations traveling along
 	void swapWith(StackOffset const _pos)
 	{
+		yulAssert(!isFinal(_pos), "swapping a final slot out of place");
 		m_stack.swap(_pos);
 		m_mapping.swapDestinations(_pos, StackOffset{m_data.size() - 1});
 	}
