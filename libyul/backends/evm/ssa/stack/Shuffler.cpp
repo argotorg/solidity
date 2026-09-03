@@ -687,16 +687,9 @@ private:
 				desiredOfTop != top
 			)
 			{
-				// an equal slot standing at the desired offset serves the top's destination just as well:
-				// exchange the destinations instead of swapping two indistinguishable slots
-				if (m_data[desiredOfTop.value] == m_data[top])
-				{
-					m_mapping.swapDestinations(desiredOfTop, StackOffset{top});
-					continue;
-				}
-				if (!isSwapReachable(desiredOfTop))
-					return blockSwapUnreachable(desiredOfTop);
-				swapWith(desiredOfTop);
+				// an equal slot standing at the desired offset serves the top's destination just as well
+				if (std::optional<Blocked> blocked = exchangeWithTop(desiredOfTop))
+					return blocked;
 				continue;
 			}
 			StackOffset misplaced{empty};
@@ -712,16 +705,8 @@ private:
 
 			// a misplaced slot equal to the top takes over the top's destination, making the top the misplaced
 			// one; it then travels to its destination directly instead of dislodging an in-place slot
-			if (m_data[misplaced.value] == m_data[top])
-			{
-				m_mapping.swapDestinations(misplaced, StackOffset{top});
-				continue;
-			}
-
-			if (!isSwapReachable(misplaced))
-				return blockSwapUnreachable(misplaced);  // can't reach it, abort
-
-			swapWith(misplaced);
+			if (std::optional<Blocked> blocked = exchangeWithTop(misplaced))
+				return blocked;
 		}
 	}
 
@@ -775,6 +760,19 @@ private:
 	{
 		m_stack.swap(_pos);
 		m_mapping.swapDestinations(_pos, StackOffset{m_data.size() - 1});
+	}
+
+	/// Exchange the top with the slot at `_pos`
+	[[nodiscard]] std::optional<Blocked> exchangeWithTop(StackOffset const _pos)
+	{
+		StackOffset const top{m_data.size() - 1};
+		if (m_data[_pos.value] == m_data[top.value])
+			m_mapping.swapDestinations(_pos, top);
+		else if (!isSwapReachable(_pos))
+			return blockSwapUnreachable(_pos);
+		else
+			swapWith(_pos);
+		return std::nullopt;
 	}
 
 	void pop()
