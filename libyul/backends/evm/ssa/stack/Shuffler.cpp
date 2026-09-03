@@ -25,6 +25,7 @@
 
 #include <libyul/Exceptions.h>
 
+#include <range/v3/algorithm/all_of.hpp>
 #include <range/v3/algorithm/any_of.hpp>
 #include <range/v3/algorithm/contains.hpp>
 #include <range/v3/algorithm/count_if.hpp>
@@ -475,10 +476,19 @@ private:
 	/// Builds the target bottom-up. Every offset either holds its slot already, gets a retained slot that is
 	/// floating above it, or gets a freshly generated slot.
 	/// Once everything is generated the rest is one final permutation.
+	///
+	/// Loop invariant: every offset below `targetOffset` is final, i.e., holds the slot bound for it.
 	[[nodiscard]] std::optional<Blocked> buildBottomUp()
 	{
 		for (StackOffset targetOffset{0}; targetOffset < m_target.size(); ++targetOffset.value)
 		{
+			yulAssert(
+				ranges::all_of(
+					stackOffsets() | ranges::views::take(targetOffset.value),
+					[&](StackOffset const _offset) { return isFinal(_offset); }
+				),
+				"an offset below the one being filled is not final"
+			);
 			// all is generated, the final permutation
 			if (m_pendingGenerations == 0)
 			{
