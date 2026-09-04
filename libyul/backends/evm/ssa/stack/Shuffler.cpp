@@ -305,8 +305,7 @@ public:
 		m_maxSwapDepth(_maxSwapDepth),
 		m_maxDupDepth(_maxDupDepth),
 		m_data(_source),
-		m_mapping(_mapping),
-		m_generated(_target.size(), false)
+		m_mapping(_mapping)
 	{
 		m_pendingGenerations = static_cast<std::size_t>(ranges::count_if(
 			ranges::views::iota(std::size_t{0}, _target.size()),
@@ -400,8 +399,7 @@ private:
 			return blockDupUnreachable(*copy);
 		else
 			yulAssert(false, "generated slot has no copy on the stack and is not spilled");
-		yulAssert(!m_generated[_targetOffset.value] && !m_plannedMapping.positionOf(_targetOffset).has_value());
-		m_generated[_targetOffset.value] = true;
+		yulAssert(m_mapping.positionOf(_targetOffset) == StackOffset{m_data.size() - 1});
 		--m_pendingGenerations;
 		return std::nullopt;
 	}
@@ -499,8 +497,8 @@ private:
 			std::optional<StackOffset> urgentToDup;
 			for (StackOffset offset = targetOffset; offset < m_target.size(); ++offset.value)  // going bottom-up so we can start from targetOffset
 			{
-				// only slots that are not generated and don't have a source assigned (ie need to be duped) can be urgent
-				if (m_plannedMapping.positionOf(offset).has_value() || m_generated[offset.value])
+				// only offsets no slot is bound for yet (ie that need to be duped) can be urgent
+				if (m_mapping.positionOf(offset).has_value())
 					continue;
 				StackSlot const& slot = m_target[offset.value];
 				if (slot.isJunk() || canBeFreelyGenerated(slot) || isSpilled(slot, m_spills))
@@ -536,8 +534,7 @@ private:
 				!urgentToDup &&  // nothing urgent
 				sourceTop > targetOffset &&  // the new top sits above the current targetOffset
 				sourceTop < m_target.size()	&&  // the new top is in the target offset range
-				!m_plannedMapping.positionOf(sourceTop).has_value() &&   // the target at the source top pos needs a dup
-				!m_generated[sourceTop.value] &&  // and it's also not generated
+				!m_mapping.positionOf(sourceTop).has_value() &&  // no slot is bound for the offset at the source top yet
 				sourceTop.value - targetOffset.value < m_maxSwapDepth  // targetOffset stays in swap reach
 			)
 			{
@@ -550,8 +547,7 @@ private:
 			}
 
 			if (
-				m_plannedMapping.positionOf(targetOffset).has_value() ||  // there is a proper source slot for the target
-				m_generated[targetOffset.value]  // or it's generated (pushed/loaded etc)
+				m_mapping.positionOf(targetOffset).has_value()  // a slot is bound for the target: retained or generated already
 			)
 			{
 				// We go bottom-up, so the slot that should go into targetOffset is somewhere above
@@ -822,8 +818,6 @@ private:
 	/// The working stack and its (in sync) mapping
 	StackData m_data;
 	Mapping m_mapping;
-	/// Whether the slot for each target offset has been produced already
-	std::vector<std::uint8_t> m_generated;
 	/// Number of target offsets whose slot still has to be produced; decremented by `produce`
 	std::size_t m_pendingGenerations = 0;
 	ShuffleTrace m_trace;
