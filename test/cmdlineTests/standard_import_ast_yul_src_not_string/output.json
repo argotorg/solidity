@@ -1,0 +1,14 @@
+{
+    "errors": [
+        {
+            "component": "general",
+            "formattedMessage": "JSONError: 'src' must be a string
+
+",
+            "message": "Failed to import AST: 'src' must be a string",
+            "severity": "error",
+            "type": "JSONError"
+        }
+    ],
+    "sources": {}
+}

@@ -1,0 +1,14 @@
+{
+    "errors": [
+        {
+            "component": "general",
+            "formattedMessage": "JSONError: Expected \"name\" to be a string.
+
+",
+            "message": "Failed to import AST: Expected \"name\" to be a string.",
+            "severity": "error",
+            "type": "JSONError"
+        }
+    ],
+    "sources": {}
+}

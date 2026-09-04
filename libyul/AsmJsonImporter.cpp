@@ -32,6 +32,10 @@
 #include <liblangutil/Exceptions.h>
 #include <liblangutil/Scanner.h>
 
+#include <libsolutil/Exceptions.h>
+
+#include <fmt/format.h>
+
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string.hpp>
 
@@ -46,7 +50,7 @@ using SourceLocation = langutil::SourceLocation;
 
 SourceLocation const AsmJsonImporter::createSourceLocation(Json const& _node)
 {
-	yulAssert(member(_node, "src").is_string(), "'src' must be a string");
+	solRequire(member(_node, "src").is_string(), AstImportError, "'src' must be a string");
 
 	return solidity::langutil::parseSourceLocation(_node["src"].get<std::string>(), m_sourceNames);
 }
@@ -61,7 +65,7 @@ T AsmJsonImporter::createAsmNode(Json const& _node)
 {
 	T r;
 	SourceLocation nativeLocation = createSourceLocation(_node);
-	yulAssert(nativeLocation.hasText(), "Invalid source location in Asm AST");
+	solRequire(nativeLocation.hasText(), AstImportError, "Invalid source location in Asm AST");
 	// TODO: We should add originLocation to the AST.
 	// While it's not included, we'll use nativeLocation for it because we only support importing
 	// inline assembly as a part of a Solidity AST and there these locations are always the same.
@@ -76,20 +80,24 @@ Json AsmJsonImporter::member(Json const& _node, std::string const& _name)
 	return _node[_name];
 }
 
+std::string AsmJsonImporter::requiredString(Json const& _node, std::string const& _name)
+{
+	Json const value = member(_node, _name);
+	solRequire(value.is_string(), AstImportError, fmt::format("Expected \"{}\" to be a string.", _name));
+	return value.get<std::string>();
+}
+
 NameWithDebugData AsmJsonImporter::createNameWithDebugData(Json const& _node)
 {
 	auto nameWithDebugData = createAsmNode<NameWithDebugData>(_node);
-	nameWithDebugData.name = YulName{member(_node, "name").get<std::string>()};
+	nameWithDebugData.name = YulName{requiredString(_node, "name")};
 	return nameWithDebugData;
 }
 
 Statement AsmJsonImporter::createStatement(Json const& _node)
 {
-	Json jsonNodeType = member(_node, "nodeType");
-	yulAssert(jsonNodeType.is_string(), "Expected \"nodeType\" to be of type string!");
-	std::string nodeType = jsonNodeType.get<std::string>();
-
-	yulAssert(nodeType.substr(0, 3) == "Yul", "Invalid nodeType prefix");
+	std::string nodeType = requiredString(_node, "nodeType");
+	solRequire(nodeType.substr(0, 3) == "Yul", AstImportError, "Invalid nodeType prefix");
 	nodeType = nodeType.substr(3);
 
 	if (nodeType == "ExpressionStatement")
@@ -115,7 +123,7 @@ Statement AsmJsonImporter::createStatement(Json const& _node)
 	else if (nodeType == "Block")
 		return createBlock(_node);
 	else
-		yulAssert(false, "Invalid nodeType as statement");
+		solThrow(AstImportError, "Invalid nodeType as statement");
 
 	// FIXME: Workaround for spurious GCC 12.1 warning (https://gcc.gnu.org/bugzilla/show_bug.cgi?id=105794)
 	util::unreachable();
@@ -123,11 +131,8 @@ Statement AsmJsonImporter::createStatement(Json const& _node)
 
 Expression AsmJsonImporter::createExpression(Json const& _node)
 {
-	Json jsonNodeType = member(_node, "nodeType");
-	yulAssert(jsonNodeType.is_string(), "Expected \"nodeType\" to be of type string!");
-	std::string nodeType = jsonNodeType.get<std::string>();
-
-	yulAssert(nodeType.substr(0, 3) == "Yul", "Invalid nodeType prefix");
+	std::string nodeType = requiredString(_node, "nodeType");
+	solRequire(nodeType.substr(0, 3) == "Yul", AstImportError, "Invalid nodeType prefix");
 	nodeType = nodeType.substr(3);
 
 	if (nodeType == "FunctionCall")
@@ -137,7 +142,7 @@ Expression AsmJsonImporter::createExpression(Json const& _node)
 	else if (nodeType == "Literal")
 		return createLiteral(_node);
 	else
-		yulAssert(false, "Invalid nodeType as expression");
+		solThrow(AstImportError, "Invalid nodeType as expression");
 
 	// FIXME: Workaround for spurious GCC 12.1 warning (https://gcc.gnu.org/bugzilla/show_bug.cgi?id=105794)
 	util::unreachable();
@@ -169,21 +174,21 @@ Block AsmJsonImporter::createBlock(Json const& _node)
 Literal AsmJsonImporter::createLiteral(Json const& _node)
 {
 	auto lit = createAsmNode<Literal>(_node);
-	std::string kind = member(_node, "kind").get<std::string>();
+	std::string kind = requiredString(_node, "kind");
 
-	solAssert(member(_node, "hexValue").is_string() || member(_node, "value").is_string(), "");
 	std::string value;
 	if (_node.contains("hexValue"))
-		value = util::asString(util::fromHex(member(_node, "hexValue").get<std::string>()));
+		value = util::asString(util::fromHex(requiredString(_node, "hexValue")));
 	else
-		value = member(_node, "value").get<std::string>();
+		value = requiredString(_node, "value");
 	{
 		auto const typeNode = member(_node, "type");
-		yulAssert(
-			typeNode.empty() || typeNode.get<std::string>().empty(),
+		solRequire(
+			typeNode.empty() || (typeNode.is_string() && typeNode.get<std::string>().empty()),
+			AstImportError,
 			fmt::format(
-				"Expected literal types to be either empty or absent in the JSON. Got \"{}\".",
-				typeNode.get<std::string>()
+				"Expected literal types to be either empty or absent in the JSON. Got {}.",
+				typeNode.dump()
 			)
 		);
 	}
@@ -192,8 +197,9 @@ Literal AsmJsonImporter::createLiteral(Json const& _node)
 		langutil::CharStream charStream(value, "");
 		langutil::Scanner scanner{charStream};
 		lit.kind = LiteralKind::Number;
-		yulAssert(
+		solRequire(
 			scanner.currentToken() == Token::Number,
+			AstImportError,
 			"Expected number but got " + langutil::TokenTraits::friendlyName(scanner.currentToken()) + std::string(" while scanning ") + value
 		);
 	}
@@ -202,27 +208,29 @@ Literal AsmJsonImporter::createLiteral(Json const& _node)
 		langutil::CharStream charStream(value, "");
 		langutil::Scanner scanner{charStream};
 		lit.kind = LiteralKind::Boolean;
-		yulAssert(
+		solRequire(
 			scanner.currentToken() == Token::TrueLiteral ||
 			scanner.currentToken() == Token::FalseLiteral,
+			AstImportError,
 			"Expected true/false literal!"
 		);
 	}
 	else if (kind == "string")
 	{
 		lit.kind = LiteralKind::String;
-		yulAssert(
+		solRequire(
 			value.size() <= 32,
+			AstImportError,
 			"String literal too long (" + std::to_string(value.size()) + " > 32)"
 		);
 	}
 	else
-		yulAssert(false, "unknown type of literal");
+		solThrow(AstImportError, "unknown type of literal");
 
 	// import only for inline assembly, no unlimited string literals there
 	lit.value = valueOfLiteral(value, lit.kind, false /* _unlimitedLiteralArgument */);
 
-	yulAssert(validLiteral(lit));
+	solRequire(validLiteral(lit), AstImportError, "Invalid literal value.");
 	return lit;
 }
 
@@ -234,7 +242,7 @@ Leave AsmJsonImporter::createLeave(Json const& _node)
 Identifier AsmJsonImporter::createIdentifier(Json const& _node)
 {
 	auto identifier = createAsmNode<Identifier>(_node);
-	identifier.name = YulName(member(_node, "name").get<std::string>());
+	identifier.name = YulName(requiredString(_node, "name"));
 	return identifier;
 }
 
@@ -258,7 +266,7 @@ FunctionCall AsmJsonImporter::createFunctionCall(Json const& _node)
 		functionCall.arguments.emplace_back(createExpression(var));
 
 	auto const functionNameNode = member(_node, "functionName");
-	auto const name = member(functionNameNode, "name").get<std::string>();
+	auto const name = requiredString(functionNameNode, "name");
 	if (std::optional<BuiltinHandle> builtinHandle = m_dialect.findBuiltin(name))
 	{
 		auto builtin = createAsmNode<BuiltinName>(functionNameNode);
@@ -293,7 +301,7 @@ VariableDeclaration AsmJsonImporter::createVariableDeclaration(Json const& _node
 FunctionDefinition AsmJsonImporter::createFunctionDefinition(Json const& _node)
 {
 	auto funcDef = createAsmNode<FunctionDefinition>(_node);
-	funcDef.name = YulName{member(_node, "name").get<std::string>()};
+	funcDef.name = YulName{requiredString(_node, "name")};
 
 	if (_node.contains("parameters"))
 		for (auto const& var: member(_node, "parameters"))
@@ -320,7 +328,11 @@ Case AsmJsonImporter::createCase(Json const& _node)
 	auto caseStatement = createAsmNode<Case>(_node);
 	auto const& value = member(_node, "value");
 	if (value.is_string())
-		yulAssert(value.get<std::string>() == "default", "Expected default case");
+	{
+		// NOTE: The braces are essential. solRequire() expands to an if statement and would
+		// otherwise steal the else branch below.
+		solRequire(value.get<std::string>() == "default", AstImportError, "Expected default case");
+	}
 	else
 		caseStatement.value = std::make_unique<Literal>(createLiteral(value));
 	caseStatement.body = createBlock(member(_node, "body"));

@@ -1482,6 +1482,11 @@ Json StandardCompiler::compileSolidity(StandardCompiler::InputsAndSettings _inpu
 				if (binariesRequested)
 					compilerStack.compile();
 			}
+			catch (AstImportError const&)
+			{
+				// Rethrow to let the outer handler classify it as a JSONError.
+				throw;
+			}
 			catch (util::Exception const& _exc)
 			{
 				solThrow(util::Exception, "Failed to import AST: "s + _exc.what());
@@ -1524,6 +1529,16 @@ Json StandardCompiler::compileSolidity(StandardCompiler::InputsAndSettings _inpu
 			Error::Type::YulException,
 			"general",
 			"" // No prefix needed. These messages already say it's a "stack too deep" error.
+		));
+	}
+	catch (AstImportError const& _exception)
+	{
+		errors.emplace_back(formatErrorWithException(
+			compilerStack,
+			_exception,
+			Error::Type::JSONError,
+			"general",
+			"Failed to import AST"
 		));
 	}
 	catch (InternalCompilerError const&)

@@ -1,0 +1,14 @@
+{
+    "errors": [
+        {
+            "component": "general",
+            "formattedMessage": "JSONError: Invalid nodeType as statement
+
+",
+            "message": "Failed to import AST: Invalid nodeType as statement",
+            "severity": "error",
+            "type": "JSONError"
+        }
+    ],
+    "sources": {}
+}
