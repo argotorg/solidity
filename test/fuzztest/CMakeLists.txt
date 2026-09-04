@@ -31,11 +31,16 @@ fuzztest_setup_fuzzing_flags()
 
 set(yul_fuzztest_sources
 	libyul/TarjanSCCPropertyTest.cpp
+	libyul/SSACFGInterpreter.cpp
+	libyul/SSACFGInterpreter.h
+	libyul/YulProgramGenerator.cpp
+	libyul/YulProgramGenerator.h
+	libyul/SSACFGDifferentialPropertyTest.cpp
 )
 detect_stray_source_files("${yul_fuzztest_sources}" "libyul/")
 
 add_executable(yul_fuzztest ${yul_fuzztest_sources})
-target_link_libraries(yul_fuzztest PRIVATE yul)
+target_link_libraries(yul_fuzztest PRIVATE yul yulInterpreter)
 link_fuzztest(yul_fuzztest)
 
 set(evmasm_fuzztest_sources
