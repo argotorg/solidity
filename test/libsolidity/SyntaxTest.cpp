@@ -16,17 +16,22 @@
 */
 // SPDX-License-Identifier: GPL-3.0
 
+#include "libsolidity/AnalysisFramework.h"
+#include "libsolidity/interface/CompilerStack.h"
 #include <test/libsolidity/SyntaxTest.h>
 
 #include <test/libsolidity/util/Common.h>
 #include <test/Common.h>
+#include <algorithm>
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/test/unit_test.hpp>
 #include <boost/throw_exception.hpp>
 #include <range/v3/algorithm/find_if.hpp>
 #include <fstream>
+#include <map>
 #include <memory>
+#include <set>
 #include <stdexcept>
 
 using namespace solidity;
@@ -38,77 +43,78 @@ using namespace solidity::frontend::test;
 using namespace boost::unit_test;
 namespace fs = boost::filesystem;
 
-SyntaxTest::SyntaxTest(
-	std::string const& _filename,
-	langutil::EVMVersion _evmVersion,
-	Error::Severity _minSeverity
-):
-	CommonSyntaxTest(_filename, _evmVersion),
-	m_minSeverity(_minSeverity)
+SyntaxTestSettings SyntaxTestSettings::fromReader(TestCaseReader& _reader)
 {
-	static std::set<std::string> const compileViaYulAllowedValues{"true", "false"};
+	SyntaxTestSettings settings;
 
-	m_compileViaYul = m_reader.stringSetting("compileViaYul", "false");
-	if (!compileViaYulAllowedValues.contains(m_compileViaYul))
-		BOOST_THROW_EXCEPTION(std::runtime_error("Invalid compileViaYul value: " + m_compileViaYul + "."));
+	settings.compileViaYul = _reader.enumSetting<CompileViaYul>(
+		"compileViaYul",
+		{
+			{"true", CompileViaYul::On},
+			{"false", CompileViaYul::Off},
+			{"also", CompileViaYul::Also}
+		},
+		"also"
+	);
+	settings.optimizeYul = _reader.boolSetting("optimize-yul", true);
+	settings.experimental = _reader.boolSetting("experimental", false);
+	settings.stopAfter = _reader.enumSetting<PipelineStage>(
+		"stopAfter",
+		{
+			{"parsing", PipelineStage::Parsing},
+			{"analysis", PipelineStage::Analysis},
+			{"compilation", PipelineStage::Compilation}
+		},
+		"compilation"
+	);
 
-	m_optimiseYul = m_reader.boolSetting("optimize-yul", true);
-	m_experimental = m_reader.boolSetting("experimental", false);
-
-	static std::map<std::string, PipelineStage> const pipelineStages = {
-		{"parsing", PipelineStage::Parsing},
-		{"analysis", PipelineStage::Analysis},
-		{"compilation", PipelineStage::Compilation}
-	};
-	std::string stopAfter = m_reader.stringSetting("stopAfter", "compilation");
-	if (!pipelineStages.count(stopAfter))
-		BOOST_THROW_EXCEPTION(std::runtime_error("Invalid stopAfter value: " + stopAfter + "."));
-	m_stopAfter = pipelineStages.at(stopAfter);
+	return settings;
 }
 
 void SyntaxTest::setupCompiler(CompilerStack& _compiler)
 {
 	AnalysisFramework::setupCompiler(_compiler);
 
-	_compiler.setEVMVersion(m_evmVersion);
-	_compiler.setOptimiserSettings(
-		m_optimiseYul ?
-		OptimiserSettings::full() :
-		OptimiserSettings::minimal()
-	);
-	_compiler.setViaIR(m_compileViaYul == "true");
-	_compiler.setExperimental(m_experimental);
-	_compiler.setMetadataFormat(CompilerStack::MetadataFormat::NoMetadata);
-	_compiler.setMetadataHash(CompilerStack::MetadataHash::None);
+	_compiler.setEVMVersion(m_compilerInput.evmVersion);
+	_compiler.setOptimiserSettings(m_compilerInput.optimiserSettings);
+	_compiler.setViaIR(m_compilerInput.viaYul);
+	_compiler.setExperimental(m_compilerInput.experimental);
+	_compiler.setMetadataFormat(m_compilerInput.metadataFormat);
+	_compiler.setMetadataHash(m_compilerInput.metadataHash);
 }
 
 void SyntaxTest::parseAndAnalyze()
 {
-	runFramework(withPreamble(m_sources.sources), m_stopAfter);
-	if (!pipelineSuccessful() && stageSuccessful(PipelineStage::Analysis))
-	{
-		ErrorList const& errors = compiler().errors();
-		static auto isInternalError = [](std::shared_ptr<Error const> const& _error) {
-			return
-				Error::isError(_error->type()) &&
-				_error->type() != Error::Type::CodeGenerationError &&
-				_error->type() != Error::Type::UnimplementedFeatureError
-			;
-		};
-		// Most errors are detected during analysis, and should not happen during code generation.
-		// There are some exceptions, e.g. unimplemented features or stack too deep, but anything else at this stage
-		// is an internal error that signals a bug in the compiler (rather than in user's code).
-		if (
-			auto error = ranges::find_if(errors, isInternalError);
-			error != ranges::end(errors)
-		)
-			BOOST_THROW_EXCEPTION(std::runtime_error(
-				"Unexpected " + Error::formatErrorType((*error)->type()) + " at compilation stage."
-				" This error should NOT be encoded as expectation and should be fixed instead."
-			));
-	}
+	m_compilerInput.experimental = m_settings.experimental;
+	m_compilerInput.optimiserSettings = m_settings.optimizeYul ?
+		OptimiserSettings::full() :
+		OptimiserSettings::minimal();
+	m_compilerInput.metadataFormat = CompilerStack::MetadataFormat::NoMetadata;
+	m_compilerInput.metadataHash = CompilerStack::MetadataHash::None;
 
-	filterObtainedErrors();
+	auto run = [&]()
+	{
+		runFramework(withPreamble(m_compilerInput.sources), m_settings.stopAfter);
+		if (stageSuccessful(PipelineStage::Analysis) && !pipelineSuccessful())
+			reportUnexpectedErrors();
+	};
+
+	size_t legacyRunErrorCount = 0;
+	if (m_settings.compileViaYul == CompileViaYul::Off || m_settings.compileViaYul == CompileViaYul::Also)
+	{
+		m_compilerInput.viaYul = false;
+		run();
+		filterObtainedErrors();
+		legacyRunErrorCount = m_errorList.size();
+	}
+	if (m_settings.compileViaYul == CompileViaYul::On || m_settings.compileViaYul == CompileViaYul::Also)
+	{
+		m_compilerInput.viaYul = true;
+		run();
+		filterObtainedErrors();
+		if (legacyRunErrorCount > 0)
+			deduplicateYulRunErrors(legacyRunErrorCount);
+	}
 }
 
 void SyntaxTest::filterObtainedErrors()
@@ -127,11 +133,11 @@ void SyntaxTest::filterObtainedErrors()
 			locationEnd = location->end;
 			solAssert(location->sourceName, "");
 			sourceName = *location->sourceName;
-			if(m_sources.sources.count(sourceName) == 1)
+			if(m_compilerInput.sources.count(sourceName) == 1)
 			{
 				int preambleSize =
 						static_cast<int>(compiler().charStream(sourceName).size()) -
-						static_cast<int>(m_sources.sources[sourceName].size());
+						static_cast<int>(m_compilerInput.sources[sourceName].size());
 				solAssert(preambleSize >= 0, "");
 
 				// ignore the version & license pragma inserted by the testing tool when calculating locations.
@@ -157,3 +163,40 @@ void SyntaxTest::filterObtainedErrors()
 		});
 	}
 }
+
+void SyntaxTest::reportUnexpectedErrors()
+{
+	ErrorList const& errors = compiler().errors();
+	static auto isInternalError = [](std::shared_ptr<Error const> const& _error) {
+		return
+			Error::isError(_error->type()) &&
+			_error->type() != Error::Type::CodeGenerationError &&
+			_error->type() != Error::Type::UnimplementedFeatureError
+		;
+	};
+	// Most errors are detected during analysis, and should not happen during code generation.
+	// There are some exceptions, e.g. unimplemented features or stack too deep, but anything else at this stage
+	// is an internal error that signals a bug in the compiler (rather than in user's code).
+	if (
+		auto error = ranges::find_if(errors, isInternalError);
+		error != ranges::end(errors)
+	)
+		BOOST_THROW_EXCEPTION(std::runtime_error(
+			"Unexpected " + Error::formatErrorType((*error)->type()) + " at compilation stage."
+			" This error should NOT be encoded as expectation and should be fixed instead."
+		));
+}
+
+
+void SyntaxTest::deduplicateYulRunErrors(size_t _legacyRunErrorCount)
+{
+	auto yulRunBegin = m_errorList.begin() + static_cast<ptrdiff_t>(_legacyRunErrorCount);
+	auto yulRunEnd = m_errorList.end();
+	for (size_t j = 0; j < _legacyRunErrorCount; ++j)
+		if (auto it = std::find(yulRunBegin, yulRunEnd, m_errorList[j]); it != yulRunEnd)
+		{
+			m_errorList.erase(it);
+			--yulRunEnd;
+		}
+}
+

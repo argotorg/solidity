@@ -37,8 +37,7 @@ using namespace solidity::frontend::test;
 
 void SyntaxTest::parseAndAnalyze()
 {
-	solUnimplementedAssert(m_sources.sources.size() == 1, "Multi-source Yul tests are not supported.");
-	auto const& [sourceUnitName, source] = *m_sources.sources.begin();
+	auto const& [sourceUnitName, source] = *m_compilerInput.sources.begin();
 
 	YulStack yulStack = parseYul(source);
 	if (!yulStack.hasErrors())

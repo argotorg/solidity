@@ -93,7 +93,7 @@ void AnalysisFramework::setupCompiler(CompilerStack& _compiler)
 	_compiler.setOptimiserSettings(solidity::test::CommonOptions::get().optimize);
 }
 
-void AnalysisFramework::executeCompilationPipeline()
+	void AnalysisFramework::executeCompilationPipeline()
 {
 	soltestAssert(m_compiler);
 
