@@ -481,6 +481,10 @@ private:
 	{
 		for (StackOffset targetOffset{0}; targetOffset < m_target.size(); ++targetOffset.value)
 		{
+			// the offset exists and already holds the slot bound for it: nothing to do
+			if (targetOffset < m_data.size() && isFinal(targetOffset))
+				continue;
+
 			// all is generated, the final permutation
 			if (m_pendingGenerations == 0)
 			{
