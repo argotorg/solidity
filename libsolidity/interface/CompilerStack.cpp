@@ -295,6 +295,10 @@ void CompilerStack::setMetadataHash(MetadataHash _metadataHash)
 void CompilerStack::selectDebugInfo(DebugInfoSelection _debugInfoSelection)
 {
 	solAssert(m_stackState < CompilationSuccessful, "Must select debug info components before compilation.");
+	solAssert(
+		!_debugInfoSelection.ethdebug || _debugInfoSelection.astID,
+		"Ethdebug semantic data requires AST ID debug information."
+	);
 	m_debugInfoSelection = _debugInfoSelection;
 }
 
@@ -1199,6 +1203,11 @@ Json CompilerStack::ethdebug(Contract const& _contract, bool _runtime) const
 {
 	solAssert(m_stackState >= AnalysisSuccessful, "Analysis was not successful.");
 	solAssert(_contract.contract);
+	// Without the ethdebug debug info component the pipeline does not carry the
+	// info the program output is derived from; the output is empty rather than
+	// an error, like the outputs of a contract that produces no bytecode.
+	if (!m_debugInfoSelection.ethdebug)
+		return {};
 	evmasm::LinkerObject const& object = _runtime ? _contract.runtimeObject : _contract.object;
 	std::shared_ptr<evmasm::Assembly> const& assembly = _runtime ? _contract.evmRuntimeAssembly : _contract.evmAssembly;
 	if (!assembly)

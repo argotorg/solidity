@@ -1,1 +1,1 @@
---metadata --experimental --via-ir --ethdebug-program --ethdebug-compilation --no-cbor-metadata --pretty-json --json-indent 4
+--metadata --experimental --debug-info location,snippet,ast-id,ethdebug --via-ir --ethdebug-program --ethdebug-compilation --no-cbor-metadata --pretty-json --json-indent 4

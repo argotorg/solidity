@@ -1,1 +1,1 @@
---experimental --via-ssa-cfg --ethdebug-program --ethdebug-compilation
+--experimental --debug-info location,snippet,ast-id,ethdebug --via-ssa-cfg --ethdebug-program --ethdebug-compilation

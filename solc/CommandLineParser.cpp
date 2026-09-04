@@ -1194,6 +1194,8 @@ void CommandLineParser::processArgs()
 
 		if (m_options.output.debugInfoSelection->snippet && !m_options.output.debugInfoSelection->location)
 			solThrow(CommandLineValidationError, "To use 'snippet' with --" + g_strDebugInfo + " you must select also 'location'.");
+		if (m_options.output.debugInfoSelection->ethdebug && !m_options.output.debugInfoSelection->astID)
+			solThrow(CommandLineValidationError, "To use 'ethdebug' with --" + g_strDebugInfo + " you must select also 'ast-id'.");
 	}
 
 	parseCombinedJsonOption();
@@ -1355,7 +1357,12 @@ void CommandLineParser::processArgs()
 
 		m_options.output.viaSSACFG = m_args.contains(g_strViaSSACFG);
 
-		if (m_options.compiler.outputs.ethdebugProgram || m_options.compiler.outputs.ethdebugProgramRuntime)
+		// Selecting an ethdebug output does not modify the debug info selection,
+		// just as --ir-optimized does not imply --optimize: the selection must
+		// contain ethdebug explicitly.
+		bool const ethdebugSelected =
+			m_options.output.debugInfoSelection.has_value() && m_options.output.debugInfoSelection->ethdebug;
+		if (ethdebugSelected)
 		{
 			if (m_options.output.viaSSACFG)
 				solUnimplemented("ethdebug is not yet supported with --" + g_strViaSSACFG + ".");
@@ -1363,12 +1370,6 @@ void CommandLineParser::processArgs()
 				solUnimplemented(
 					"Optimization (using --" + g_strOptimize + ") is not yet supported with ethdebug."
 				);
-
-			if (!m_options.output.debugInfoSelection.has_value())
-			{
-				m_options.output.debugInfoSelection = DebugInfoSelection::Default();
-				m_options.output.debugInfoSelection->enable("ethdebug");
-			}
 		}
 		return;
 	}
@@ -1524,20 +1525,10 @@ void CommandLineParser::processArgs()
 				CommandLineValidationError,
 				enableEthdebugProgramMessage + " output can only be selected, if --via-ir was specified."
 			);
-
-		if (!m_options.output.debugInfoSelection.has_value())
-		{
-			m_options.output.debugInfoSelection = DebugInfoSelection::Default();
-			m_options.output.debugInfoSelection->enable("ethdebug");
-		}
-		else
-		{
-			if (!m_options.output.debugInfoSelection->ethdebug)
-				solThrow(
-					CommandLineValidationError,
-					"--debug-info must contain ethdebug, when compiling with " + enableEthdebugProgramMessage + "."
-				);
-		}
+		// Selecting the output does not modify the debug info selection, just as
+		// --ir-optimized does not imply --optimize. Without ethdebug in
+		// --debug-info the output is empty, like the outputs of a contract that
+		// produces no bytecode.
 	}
 
 	if (
