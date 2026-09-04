@@ -196,7 +196,7 @@ AssemblyItem Assembly::createAssemblyItemFromJSON(Json const& _json, std::vector
 		solRequire(
 			_tagID < 0xffffffff,
 			AssemblyImportException,
-			"The 'value' of a tag or tag reference is out of the supported range."
+			fmt::format("Tag ID {} is out of the supported range (0 to {}).", _tagID.str(), 0xfffffffe)
 		);
 		return _tagID;
 	};
@@ -283,8 +283,10 @@ AssemblyItem Assembly::createAssemblyItemFromJSON(Json const& _json, std::vector
 		{
 			requireValueDefinedForInstruction(name, value);
 			result = {AssemblyItemType::PushTag, u256(value)};
-			// The value has the sub-assembly ID packed above the tag ID, so only the latter is range-checked.
-			updateUsedTags(requireTagIDInRange(result.splitForeignPushTag().second));
+			auto const [subID, tagID] = result.splitForeignPushTag();
+			requireTagIDInRange(tagID);
+			if (subID.empty())
+				updateUsedTags(tagID);
 		}
 		else if (name == "PUSH [$]")
 		{
@@ -704,9 +706,109 @@ std::pair<std::shared_ptr<Assembly>, std::vector<std::string>> Assembly::fromJSO
 	}
 
 	if (_level == 0)
+	{
 		result->encodeAllPossibleSubPathsInAssemblyTree();
+		std::vector<SubAssemblyID> pathFromRoot;
+		result->requireValidSubAssemblyReferences(pathFromRoot);
+	}
 
 	return std::make_pair(result, _level == 0 ? parsedSourceList : std::vector<std::string>{});
+}
+
+void Assembly::requireValidSubAssemblyReferences(std::vector<SubAssemblyID>& _pathFromRoot) const
+{
+	for (auto&& [subIndex, sub]: m_subs | ranges::views::enumerate)
+	{
+		_pathFromRoot.emplace_back(static_cast<SubAssemblyID::ValueType>(subIndex));
+		sub->requireValidSubAssemblyReferences(_pathFromRoot);
+		_pathFromRoot.pop_back();
+	}
+
+	// These are only ever called from the message argument of solRequire(), which evaluates it lazily.
+	auto const pathToString = [&](std::optional<SubAssemblyID> _leaf = std::nullopt) {
+		std::vector<std::string> components;
+		for (SubAssemblyID const& subID: _pathFromRoot)
+			components.emplace_back(std::to_string(subID.value));
+		if (_leaf)
+			components.emplace_back(std::to_string(_leaf->value));
+		return util::joinHumanReadable(components, ".");
+	};
+
+	auto const location = [&]() {
+		return _pathFromRoot.empty() ? std::string{} : fmt::format("In sub-assembly {}: ", pathToString());
+	};
+
+	auto const validSubIDs = [&]() {
+		return m_subs.empty() ?
+			std::string{"this assembly has no sub-assemblies"} :
+			fmt::format("valid IDs at this level are 0 to {}", m_subs.size() - 1);
+	};
+
+	for (AssemblyItem const& item: m_items)
+		switch (item.type())
+		{
+		case PushTag:
+		{
+			auto const [subID, tagID] = item.splitForeignPushTag();
+			if (subID.empty())
+				break;
+			solRequire(
+				subID.asIndex() < m_subs.size(),
+				AssemblyImportException,
+				fmt::format(
+					"{}Tag reference to sub-assembly {}, which does not exist: {}.",
+					location(),
+					subID.value,
+					validSubIDs()
+				)
+			);
+			unsigned const usedTags = m_subs[subID.asIndex()]->m_usedTags;
+			solRequire(
+				tagID < usedTags,
+				AssemblyImportException,
+				fmt::format(
+					"{}Reference to tag {} in sub-assembly {}, which only has tags 0 to {}.",
+					location(),
+					tagID,
+					pathToString(subID),
+					usedTags - 1
+				)
+			);
+			break;
+		}
+		case PushSub:
+		case PushSubSize:
+		{
+			bool const known =
+				item.data() <= std::numeric_limits<SubAssemblyID::ValueType>::max() &&
+				(
+					item.data() < m_subs.size() ||
+					ranges::any_of(m_subPaths, [&](auto const& _path) { return _path.second == SubAssemblyID{item.data()}; })
+				);
+			solRequire(
+				known,
+				AssemblyImportException,
+				fmt::format(
+					"{}{} to sub-assembly {}, which does not exist: {}{}.",
+					location(),
+					item.type() == PushSub ? "Data offset reference (PUSH [$])" : "Data size reference (PUSH #[$])",
+					item.data().str(),
+					validSubIDs(),
+					// Nested sub-assemblies are addressed by path-encoded IDs handed out from the top of the range.
+					m_subPaths.empty() ?
+						"" :
+						fmt::format(
+							", plus {} to {} for nested sub-assemblies",
+							std::numeric_limits<SubAssemblyID::ValueType>::max() - (m_subPaths.size() - 1),
+							std::numeric_limits<SubAssemblyID::ValueType>::max()
+						)
+				)
+			);
+			break;
+		}
+		default:
+			break;
+		}
 }
 
 void Assembly::encodeAllPossibleSubPathsInAssemblyTree(std::vector<SubAssemblyID> _pathFromRoot, std::vector<Assembly*> _assembliesOnPath)
