@@ -48,6 +48,16 @@ enum class CompileViaYul
 };
 
 /**
+ * Reflects `compileViaSSACFG` setting, with possible values: `true`, `false` and `also` (default).
+ */
+enum class CompileViaSSACFG
+{
+	True,
+	False,
+	Also
+};
+
+/**
  * Settings that reflect what is configured in each test file.
  */
 struct SyntaxTestSettings
@@ -56,9 +66,10 @@ struct SyntaxTestSettings
 	static SyntaxTestSettings fromReader(TestCaseReader& _reader);
 
 	PipelineStage stopAfter = PipelineStage::Compilation;
-	bool experimental = false;
+	std::optional<bool> experimental = false;
 
 	CompileViaYul compileViaYul = CompileViaYul::False;
+	CompileViaSSACFG compileViaSSACFG = CompileViaSSACFG::False;
 	bool optimizeYul = false;
 };
 
