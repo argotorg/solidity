@@ -28,6 +28,8 @@
 
 #include <libsolutil/AnsiColorized.h>
 
+#include <iosfwd>
+#include <ostream>
 #include <string>
 
 namespace solidity::frontend::test
@@ -46,6 +48,8 @@ enum class CompileViaYul
 	Also
 };
 
+std::ostream& operator<<(std::ostream& _out, CompileViaYul _value);
+
 /**
  * Reflects `compileViaSSACFG` setting, with possible values: `true`, `false` and `also` (default).
  */
@@ -54,6 +58,18 @@ enum class CompileViaSSACFG
 	True,
 	False,
 	Also
+};
+
+std::ostream& operator<<(std::ostream& _out, CompileViaSSACFG _value);
+
+/**
+ * Identifies the test passes.
+ */
+enum class TestPass
+{
+	Legacy,
+	ViaYul,
+	ViaYulWithSSACFG,
 };
 
 /**
@@ -78,7 +94,7 @@ struct SyntaxTestSettings
 	static SyntaxTestSettings fromReader(TestCaseReader& _reader);
 
 	PipelineStage stopAfter = PipelineStage::Compilation;
-	std::optional<bool> experimental = false;
+	std::optional<bool> experimental = std::nullopt;
 
 	CompileViaYul compileViaYul = CompileViaYul::False;
 	CompileViaSSACFG compileViaSSACFG = CompileViaSSACFG::False;
@@ -118,6 +134,13 @@ protected:
 
 	/// Throws if an internal compiler error was encountered during code generation.
 	void reportUnexpectedErrors();
+
+	/// Prints global options and local settings for debugging purposes.
+	void printOptionsAndSettings(
+		std::ostream& _stream,
+		std::string const& _linePrefix,
+		TestPass const& _pass
+	);
 
 	langutil::Error::Severity m_minSeverity{};
 	SyntaxTestSettings m_settings;

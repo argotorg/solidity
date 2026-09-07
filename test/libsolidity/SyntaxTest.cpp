@@ -44,6 +44,28 @@ using namespace solidity::frontend;
 using namespace solidity::frontend::test;
 using namespace boost::unit_test;
 
+std::ostream& solidity::frontend::test::operator<<(std::ostream& _out, CompileViaYul _value)
+{
+	switch (_value)
+	{
+	case CompileViaYul::True: return _out << "true";
+	case CompileViaYul::False: return _out << "false";
+	case CompileViaYul::Also: return _out << "also";
+	default: soltestAssert(false);
+	}
+}
+
+std::ostream& solidity::frontend::test::operator<<(std::ostream& _out, CompileViaSSACFG _value)
+{
+	switch (_value)
+	{
+	case CompileViaSSACFG::True: return _out << "true";
+	case CompileViaSSACFG::False: return _out << "false";
+	case CompileViaSSACFG::Also: return _out << "also";
+	default: soltestAssert(false);
+	}
+}
+
 SyntaxTestSettings SyntaxTestSettings::fromReader(TestCaseReader& _reader)
 {
 	SyntaxTestSettings settings;
@@ -126,37 +148,86 @@ TestCase::TestResult SyntaxTest::run(
 
 	parseCustomExpectations(m_reader.stream());
 
-	auto result = TestResult::Success;
 	if (compileLegacy)
 	{
 		m_compilerInput.viaIR = false;
 		m_compilerInput.viaSSACFG = false;
 
 		parseAndAnalyze();
-		result = conclude(_stream, _linePrefix, _formatted);
+
+		auto result = conclude(_stream, _linePrefix, _formatted);
+		if (result != TestResult::Success)
+		{
+			printOptionsAndSettings(_stream, _linePrefix, TestPass::Legacy);
+			return result;
+		}
 	}
-	if (compileViaYul && result == TestResult::Success)
+	if (compileViaYul)
 	{
-		if (compileWithoutSSACFG && result == TestResult::Success)
+		if (compileWithoutSSACFG)
 		{
 			m_compilerInput.viaIR = true;
 			m_compilerInput.viaSSACFG = false;
 
 			parseAndAnalyze();
-			result = conclude(_stream, _linePrefix, _formatted);
+
+			auto result = conclude(_stream, _linePrefix, _formatted);
+			if (result != TestResult::Success)
+			{
+				printOptionsAndSettings(_stream, _linePrefix, TestPass::ViaYul);
+				return result;
+			}
 		}
-		if (compileWithSSACFG && allowExperimental && result == TestResult::Success)
+		if (compileWithSSACFG && allowExperimental)
 		{
 			m_compilerInput.experimental = true;
 			m_compilerInput.viaIR = true;
 			m_compilerInput.viaSSACFG = true;
 
 			parseAndAnalyze();
-			result = conclude(_stream, _linePrefix, _formatted);
+
+			auto result = conclude(_stream, _linePrefix, _formatted);
+			if (result != TestResult::Success)
+			{
+				printOptionsAndSettings(_stream, _linePrefix, TestPass::ViaYulWithSSACFG);
+				return result;
+			}
 		}
 	}
 
-	return result;
+	return TestResult::Success;
+}
+
+void SyntaxTest::printOptionsAndSettings(
+	std::ostream& _stream,
+	std::string const& _linePrefix,
+	TestPass const& _pass
+)
+{
+	auto testPassToString = [](TestPass const& _pass)
+	{
+		switch (_pass)
+		{
+		case TestPass::Legacy: return "Legacy";
+		case TestPass::ViaYul: return "Yul";
+		case TestPass::ViaYulWithSSACFG: return "Via + SSA CFG";
+		default: soltestAssert(false);
+		}
+	};
+
+	solidity::test::CommonOptions::get().printSelectedOptions(
+		_stream,
+		_linePrefix,
+		{"evmVersion", "optimize", "useABIEncoderV1", "batch"}
+	);
+	_stream << _linePrefix << "Test Settings "
+		<< "(" << testPassToString(_pass) << "): "
+		<< "compileViaYul: " << m_settings.compileViaYul << ", "
+		<< "compileViaSSACFG: " << m_settings.compileViaSSACFG << ", "
+		<< "optimize-yul: " << (m_settings.optimizeYul ? "true" : "false") << ", "
+		<< "experimental: " << (m_settings.experimental.has_value() ? (*m_settings.experimental ? "true" : "false") : "(not set)") << ", "
+		<< "stopAfter: " << m_settings.stopAfter
+		<< std::endl;
 }
 
 void SyntaxTest::filterObtainedErrors()
