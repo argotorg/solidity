@@ -48,7 +48,7 @@ SyntaxTestSettings SyntaxTestSettings::fromReader(TestCaseReader& _reader)
 {
 	SyntaxTestSettings settings;
 
-	settings.experimental = _reader.boolSetting("experimental", false);
+	settings.experimental = _reader.boolSetting("experimental");
 	settings.stopAfter = _reader.enumSetting<PipelineStage>(
 		"stopAfter",
 		{
@@ -67,6 +67,15 @@ SyntaxTestSettings SyntaxTestSettings::fromReader(TestCaseReader& _reader)
 		},
 		"also"
 	);
+	settings.compileViaSSACFG = _reader.enumSetting<CompileViaSSACFG>(
+		"compileViaSSACFG",
+		{
+			{"true", CompileViaSSACFG::True},
+			{"false", CompileViaSSACFG::False},
+			{"also", CompileViaSSACFG::Also}
+		},
+		"also"
+	);
 	settings.optimizeYul = _reader.boolSetting("optimize-yul", true);
 
 	return settings;
@@ -79,6 +88,7 @@ void SyntaxTest::setupCompiler(CompilerStack& _compiler)
 	_compiler.setEVMVersion(m_compilerInput.evmVersion);
 	_compiler.setOptimiserSettings(m_compilerInput.optimiserSettings);
 	_compiler.setViaIR(m_compilerInput.viaIR);
+	_compiler.setViaSSACFG(m_compilerInput.viaSSACFG);
 	_compiler.setExperimental(m_compilerInput.experimental);
 	_compiler.setMetadataFormat(m_compilerInput.metadataFormat);
 	_compiler.setMetadataHash(m_compilerInput.metadataHash);
@@ -87,13 +97,6 @@ void SyntaxTest::setupCompiler(CompilerStack& _compiler)
 void SyntaxTest::parseAndAnalyze()
 {
 	m_errorList.clear();
-
-	m_compilerInput.experimental = m_settings.experimental;
-	m_compilerInput.optimiserSettings = m_settings.optimizeYul ?
-		OptimiserSettings::full() :
-		OptimiserSettings::minimal();
-	m_compilerInput.metadataFormat = CompilerStack::MetadataFormat::NoMetadata;
-	m_compilerInput.metadataHash = CompilerStack::MetadataHash::None;
 
 	runFramework(withPreamble(m_compilerInput.sources), m_settings.stopAfter);
 	if (stageSuccessful(PipelineStage::Analysis) && !pipelineSuccessful())
@@ -107,8 +110,19 @@ TestCase::TestResult SyntaxTest::run(
 	bool _formatted
 )
 {
+	// If not explicitly disabled, allow enabling experimental mode when compiling via SSA CFG.
+	bool allowExperimental = m_settings.experimental.value_or(true);
 	bool compileLegacy = m_settings.compileViaYul != CompileViaYul::True;
 	bool compileViaYul = m_settings.compileViaYul != CompileViaYul::False;
+	bool compileWithoutSSACFG = m_settings.compileViaSSACFG != CompileViaSSACFG::True;
+	bool compileWithSSACFG = m_settings.compileViaSSACFG != CompileViaSSACFG::False;
+
+	m_compilerInput.experimental = m_settings.experimental.value_or(false);
+	m_compilerInput.optimiserSettings = m_settings.optimizeYul ?
+		OptimiserSettings::full() :
+		OptimiserSettings::minimal();
+	m_compilerInput.metadataFormat = CompilerStack::MetadataFormat::NoMetadata;
+	m_compilerInput.metadataHash = CompilerStack::MetadataHash::None;
 
 	parseCustomExpectations(m_reader.stream());
 
@@ -116,14 +130,30 @@ TestCase::TestResult SyntaxTest::run(
 	if (compileLegacy)
 	{
 		m_compilerInput.viaIR = false;
+		m_compilerInput.viaSSACFG = false;
+
 		parseAndAnalyze();
 		result = conclude(_stream, _linePrefix, _formatted);
 	}
 	if (compileViaYul && result == TestResult::Success)
 	{
-		m_compilerInput.viaIR = true;
-		parseAndAnalyze();
-		result = conclude(_stream, _linePrefix, _formatted);
+		if (compileWithoutSSACFG && result == TestResult::Success)
+		{
+			m_compilerInput.viaIR = true;
+			m_compilerInput.viaSSACFG = false;
+
+			parseAndAnalyze();
+			result = conclude(_stream, _linePrefix, _formatted);
+		}
+		if (compileWithSSACFG && allowExperimental && result == TestResult::Success)
+		{
+			m_compilerInput.experimental = true;
+			m_compilerInput.viaIR = true;
+			m_compilerInput.viaSSACFG = true;
+
+			parseAndAnalyze();
+			result = conclude(_stream, _linePrefix, _formatted);
+		}
 	}
 
 	return result;
