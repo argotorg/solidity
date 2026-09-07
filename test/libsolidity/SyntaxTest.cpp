@@ -17,6 +17,7 @@
 // SPDX-License-Identifier: GPL-3.0
 
 #include "libsolidity/interface/CompilerStack.h"
+#include "libsolidity/util/SoltestErrors.h"
 #include <test/TestCase.h>
 #include <test/libsolidity/SyntaxTest.h>
 
@@ -41,6 +42,28 @@ using namespace solidity::frontend;
 using namespace solidity::frontend::test;
 using namespace boost::unit_test;
 namespace fs = boost::filesystem;
+
+std::ostream& solidity::frontend::test::operator<<(std::ostream& _out, CompileViaYul _value)
+{
+	switch (_value)
+	{
+	case CompileViaYul::True: return _out << "true";
+	case CompileViaYul::False: return _out << "false";
+	case CompileViaYul::Also: return _out << "also";
+	default: soltestAssert(false);
+	}
+}
+
+std::ostream& solidity::frontend::test::operator<<(std::ostream& _out, CompileViaSSACFG _value)
+{
+	switch (_value)
+	{
+	case CompileViaSSACFG::True: return _out << "true";
+	case CompileViaSSACFG::False: return _out << "false";
+	case CompileViaSSACFG::Also: return _out << "also";
+	default: soltestAssert(false);
+	}
+}
 
 SyntaxTestSettings SyntaxTestSettings::fromReader(TestCaseReader& _reader)
 {
@@ -124,37 +147,86 @@ TestCase::TestResult SyntaxTest::run(
 
 	parseCustomExpectations(m_reader.stream());
 
-	auto result = TestResult::Success;
 	if (compileLegacy)
 	{
 		m_compilerInput.viaIR = false;
 		m_compilerInput.viaSSACFG = false;
 
 		parseAndAnalyze();
-		result = conclude(_stream, _linePrefix, _formatted);
+
+		auto result = conclude(_stream, _linePrefix, _formatted);
+		if (result != TestResult::Success)
+		{
+			printOptionsAndSettings(_stream, _linePrefix, TestRun::Legacy);
+			return result;
+		}
 	}
-	if (compileViaYul && result == TestResult::Success)
+	if (compileViaYul)
 	{
-		if (compileWithoutSSACFG && result == TestResult::Success)
+		if (compileWithoutSSACFG)
 		{
 			m_compilerInput.viaIR = true;
 			m_compilerInput.viaSSACFG = false;
 
 			parseAndAnalyze();
-			result = conclude(_stream, _linePrefix, _formatted);
+
+			auto result = conclude(_stream, _linePrefix, _formatted);
+			if (result != TestResult::Success)
+			{
+				printOptionsAndSettings(_stream, _linePrefix, TestRun::ViaYul);
+				return result;
+			}
 		}
-		if (compileWithSSACFG && allowExperimental && result == TestResult::Success)
+		if (compileWithSSACFG && allowExperimental)
 		{
 			m_compilerInput.experimental = true;
 			m_compilerInput.viaIR = true;
 			m_compilerInput.viaSSACFG = true;
 
 			parseAndAnalyze();
-			result = conclude(_stream, _linePrefix, _formatted);
+
+			auto result = conclude(_stream, _linePrefix, _formatted);
+			if (result != TestResult::Success)
+			{
+				printOptionsAndSettings(_stream, _linePrefix, TestRun::ViaYulWithSSACFG);
+				return result;
+			}
 		}
 	}
 
-	return result;
+	return TestResult::Success;
+}
+
+void SyntaxTest::printOptionsAndSettings(
+	std::ostream& _stream,
+	std::string const& _linePrefix,
+	TestRun const& _run
+)
+{
+	auto testRunToString = [](TestRun const& _run)
+	{
+		switch (_run)
+		{
+		case TestRun::Legacy: return "Legacy";
+		case TestRun::ViaYul: return "Yul";
+		case TestRun::ViaYulWithSSACFG: return "Via + SSA CFG";
+		default: soltestAssert(false);
+		}
+	};
+
+	solidity::test::CommonOptions::get().printSelectedOptions(
+		_stream,
+		_linePrefix,
+		{"evmVersion", "optimize", "useABIEncoderV1", "batch"}
+	);
+	_stream << _linePrefix << "Test Settings "
+		<< "(" << testRunToString(_run) << "): "
+		<< "compileViaYul: " << m_settings.compileViaYul << ", "
+		<< "compileViaSSACFG: " << m_settings.compileViaSSACFG << ", "
+		<< "optimize-yul: " << (m_settings.optimizeYul ? "true" : "false") << ", "
+		<< "experimental: " << (m_settings.experimental.has_value() ? (*m_settings.experimental ? "true" : "false") : "(not set)") << ", "
+		<< "stopAfter: " << m_settings.stopAfter
+		<< std::endl;
 }
 
 void SyntaxTest::filterObtainedErrors()
