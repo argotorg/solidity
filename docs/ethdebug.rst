@@ -361,7 +361,7 @@ Its ``yields`` maps distinguish ``from-x`` and ``from-y`` from ``to-x`` and ``to
    For a value of *n* bytes contained in a single slot, little-endian offset *o* corresponds to big-endian offset 32 - *o* - *n*.
 
    Solidity's offsets follow the order in which values are packed, starting at the low-order end.
-   Either direction works within a single slot, but ETHDebug's `segment addressing scheme <https://github.com/ethdebug/format/blob/main/schemas/pointer/scheme/segment.schema.yaml>`_ also allows a region to span consecutive slots.
+   Either direction works within a single slot, but ETHDebug's `segment addressing scheme <https://github.com/ethdebug/format/blob/@ethdebug/format@0.1.0-draft.2/schemas/pointer/scheme/segment.schema.yaml>`_ also allows a region to span consecutive slots.
    It treats each slot as a big-endian byte sequence, continuing from the least significant byte of slot ``p`` to the most significant byte of slot ``p + 1``.
 
 The Programs
@@ -370,3 +370,10 @@ The Programs
 A program (schema ``ethdebug/format/program``) describes bytecode of one contract: either its creation bytecode or its deployed bytecode.
 It names the ``contract`` and the source range of its definition, states the ``environment`` the bytecode runs in, ``create`` or ``call``, and lists its ``instructions``.
 Every instruction carries its byte ``offset`` in the bytecode, the ``operation`` with the ``mnemonic`` of the opcode and the ``arguments`` of a push, and, where the compiler knows it, a ``context`` with the source range of the code the instruction was generated from.
+
+The creation and deployed programs list storage and transient state variables under ``context.variables``.
+Each entry gives the variable's ``identifier``, its ``declaration`` source range, a reference to its ``type`` in the type table, and a ``pointer``.
+The pointer for a value type is a single region.
+For a struct, array, ``bytes`` or ``string``, the pointer uses the type's template with ``slot`` bound to the variable's slot.
+A mapping's pointer describes only its base slot.
+To locate an entry, bind a key when using the mapping's template.

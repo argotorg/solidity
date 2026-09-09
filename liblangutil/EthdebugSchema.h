@@ -602,8 +602,11 @@ struct Context
 	{
 		std::optional<std::string> identifier;
 		std::optional<materials::SourceRange> declaration;
-		// TODO: type
-		// TODO: pointer according to ethdebug/format/spec/pointer
+		/// The variable's type, usually a reference into the type resources.
+		std::optional<Type::Specifier> type;
+		/// Where the value lives. Omitted for a variable whose pointer is a
+		/// template expecting parameters, which stays in the pointer resources.
+		std::optional<Pointer> pointer;
 	};
 
 	std::optional<materials::SourceRange> code;
