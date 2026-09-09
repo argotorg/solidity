@@ -25,3 +25,28 @@ def ethdebug_schema_repository(ethdebug_schema_dir):
             else:
                 raise ValueError(f"Schema did not define an $id: {path}")
     return registry
+
+
+def schema_fields(schema, path=""):
+    """
+    Property names at each schema path, including optional and pattern properties.
+    """
+    fields = {}
+    if isinstance(schema, dict):
+        for key, value in schema.items():
+            if key in ("properties", "patternProperties"):
+                fields[f"{path}/{key}"] = sorted(value)
+            if key not in ("examples", "default", "const", "enum"):
+                fields.update(schema_fields(value, f"{path}/{key}"))
+    elif isinstance(schema, list):
+        for index, value in enumerate(schema):
+            fields.update(schema_fields(value, f"{path}/{index}"))
+    return fields
+
+
+def type_and_pointer_schema_fields(repository):
+    return {
+        name.removeprefix("schema:ethdebug/format/"): schema_fields(repository[name].contents)
+        for name in repository
+        if name.removeprefix("schema:ethdebug/format/").split("/")[0] in ("type", "pointer")
+    }

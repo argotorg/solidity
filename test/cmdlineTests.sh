@@ -226,8 +226,11 @@ EOF
             local temporary_file
             temporary_file=$(mktemp -t cmdline-ethdebug-XXXXXX.tmp)
             if [[ -e strip-ethdebug ]]; then
+                # Strip nested schema stamps before the ethdebug output containing them.
                 jq --indent 4 '
-                    (. | .. | objects | select(has("ethdebug"))) |= (.ethdebug = "<ETHDEBUG DEBUG DATA REMOVED>")
+                    walk(if type == "object" and has("ethdebug") then
+                        .ethdebug = "<ETHDEBUG DEBUG DATA REMOVED>"
+                    else . end)
                 ' "$stdout_path" > "$temporary_file"
             else
                 jq --indent 4 '
@@ -269,7 +272,8 @@ EOF
         sed -i.bak -e 's/\(^[ ]*auxdata: \)0x[0-9a-f]*$/\1<AUXDATA REMOVED>/' "$stdout_path"
         sed -i.bak -e 's/ Consider adding "pragma .*$//' "$stderr_path"
         sed -i.bak -e 's/\(Unimplemented feature error.* in \).*$/\1<FILENAME REMOVED>/' "$stderr_path"
-        sed -i.bak -e 's/"version":[ ]*"[^"]*"/"version": "<VERSION REMOVED>"/' "$stdout_path"
+        # Preserve schema versions; compiler versions contain +commit.
+        sed -i.bak -e 's/"version":[ ]*"[^"]*+commit\.[^"]*"/"version": "<VERSION REMOVED>"/' "$stdout_path"
     if [[ $stdout_expectation_file != "" &&  $stderr_expectation_file != "" ]]
     then
         sed -i.bak -e '/^Compiler run successful\. No contracts to compile\.$/d' "$stdout_path"
