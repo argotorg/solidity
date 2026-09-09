@@ -16,7 +16,7 @@
 */
 // SPDX-License-Identifier: GPL-3.0
 
-#include <libevmasm/EthdebugSchema.h>
+#include <liblangutil/EthdebugSchema.h>
 
 #include <liblangutil/Common.h>
 #include <liblangutil/Exceptions.h>
@@ -31,7 +31,7 @@
 using namespace solidity;
 using namespace solidity::util;
 using namespace solidity::langutil;
-using namespace solidity::evmasm::ethdebug;
+using namespace solidity::langutil::ethdebug;
 
 std::map<schema::materials::Reference::Type, std::string> const schema::materials::Reference::typeNames = {
 	{Type::Compilation, "compilation"},

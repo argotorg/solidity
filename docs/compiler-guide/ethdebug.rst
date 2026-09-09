@@ -18,7 +18,7 @@ Resource Collection
 
 ``CompilerStack::ethdebug()`` calls ``frontend::ethdebug::resources()`` in ``libsolidity/interface/Ethdebug.cpp`` for each analyzed contract and merges the returned tables.
 The merged tables are passed to ``evmasm::ethdebug::resources()``, which adds the compilation record and schema stamp.
-``libevmasm/EthdebugSchema.h`` models the public schemas; the ``to_json()`` overloads in ``EthdebugSchema.cpp`` serialize those structures.
+``liblangutil/EthdebugSchema.h`` models the public schemas; the ``to_json()`` overloads in ``EthdebugSchema.cpp`` serialize those structures.
 
 ``CompilerStack::ethdebug()`` registers file-level variable declarations from the analyzed source units.
 ``frontend::ethdebug::resources()`` reads state-variable declarations from ``ContractDefinitionAnnotation::linearizedBaseContracts`` for type collection, including constants and immutables.

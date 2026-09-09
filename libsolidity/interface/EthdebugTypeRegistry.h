@@ -22,8 +22,7 @@
 
 #include <libsolidity/ast/ASTForward.h>
 
-#include <libevmasm/EthdebugSchema.h>
-
+#include <liblangutil/EthdebugSchema.h>
 #include <liblangutil/SourceLocation.h>
 
 #include <map>
@@ -67,20 +66,20 @@ public:
 	/// @a _type must be a nameable type.
 	static Type const& canonicalizeType(Type const& _type);
 
-	std::map<std::string, evmasm::ethdebug::schema::Type> takeDocuments() { return std::move(m_documents); }
+	std::map<std::string, langutil::ethdebug::schema::Type> takeDocuments() { return std::move(m_documents); }
 
 	/// The source range of @a _location, which must have text and refer to a
 	/// source in the compilation.
-	evmasm::ethdebug::schema::materials::SourceRange buildSourceRange(langutil::SourceLocation const& _location) const;
+	langutil::ethdebug::schema::materials::SourceRange buildSourceRange(langutil::SourceLocation const& _location) const;
 
 private:
-	evmasm::ethdebug::schema::Type buildTypeDocument(Type const& _canonicalType);
-	evmasm::ethdebug::schema::Type::Wrapper registerAndWrapType(std::optional<std::string> _name, Type const& _type);
-	std::vector<evmasm::ethdebug::schema::Type::Wrapper> registerAndWrapTypes(std::vector<Type const*> const& _types);
-	evmasm::ethdebug::schema::Type::Definition buildTypeDefinition(Declaration const& _declaration) const;
+	langutil::ethdebug::schema::Type buildTypeDocument(Type const& _canonicalType);
+	langutil::ethdebug::schema::Type::Wrapper registerAndWrapType(std::optional<std::string> _name, Type const& _type);
+	std::vector<langutil::ethdebug::schema::Type::Wrapper> registerAndWrapTypes(std::vector<Type const*> const& _types);
+	langutil::ethdebug::schema::Type::Definition buildTypeDefinition(Declaration const& _declaration) const;
 
 	std::map<std::string, unsigned> const& m_sourceIndices;
-	std::map<std::string, evmasm::ethdebug::schema::Type> m_documents;
+	std::map<std::string, langutil::ethdebug::schema::Type> m_documents;
 };
 
 }

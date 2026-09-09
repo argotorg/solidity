@@ -434,7 +434,7 @@ BOOST_AUTO_TEST_CASE(ethdebug_program_last_instruction_with_immediate_arguments)
 		assembly.append(AssemblyItem{0x11223344});
 		LinkerObject output = assembly.assemble();
 
-		Json const program = ethdebug::program("", 0, assembly, output);
+		Json const program = evmasm::ethdebug::program("", 0, assembly, output);
 		BOOST_REQUIRE(program["instructions"].size() == 1);
 		BOOST_REQUIRE(program["instructions"][0]["operation"]["mnemonic"] == "PUSH4");
 		BOOST_REQUIRE(program["instructions"][0]["operation"]["arguments"][0] == "0x11223344");
@@ -445,7 +445,7 @@ BOOST_AUTO_TEST_CASE(ethdebug_program_last_instruction_with_immediate_arguments)
 		assembly.append(AssemblyItem{0x1122334455});
 		LinkerObject output = assembly.assemble();
 
-		Json const program = ethdebug::program("", 0, assembly, output);
+		Json const program = evmasm::ethdebug::program("", 0, assembly, output);
 		BOOST_REQUIRE(program["instructions"].size() == 2);
 		BOOST_REQUIRE(program["instructions"][0]["operation"]["mnemonic"] == "PUSH0");
 		BOOST_REQUIRE(!program["instructions"][0]["operation"].contains("arguments"));
@@ -465,7 +465,7 @@ BOOST_AUTO_TEST_CASE(ethdebug_source_references)
 		assembly.append(AssemblyItem{Instruction::STOP});
 		LinkerObject const output = assembly.assemble();
 
-		Json const program = ethdebug::program("C", 7, assembly, output);
+		Json const program = evmasm::ethdebug::program("C", 7, assembly, output);
 		BOOST_CHECK(program["contract"]["definition"]["source"] == sourceReference);
 		BOOST_REQUIRE_EQUAL(program["instructions"].size(), 1);
 		BOOST_CHECK(program["instructions"][0]["context"]["code"]["source"] == sourceReference);
@@ -474,7 +474,7 @@ BOOST_AUTO_TEST_CASE(ethdebug_source_references)
 
 BOOST_AUTO_TEST_CASE(ethdebug_resources)
 {
-	Json const resources = ethdebug::resources(
+	Json const resources = evmasm::ethdebug::resources(
 		{
 			{.id = 0, .path = "sourceA", .contents = "contentsA", .language = "Solidity"},
 			{.id = 1, .path = "sourceB", .contents = "contentsB", .language = "Yul"},
@@ -483,7 +483,7 @@ BOOST_AUTO_TEST_CASE(ethdebug_resources)
 	);
 	std::string const compilationID = resources["compilation"]["id"].get<std::string>();
 	BOOST_REQUIRE(compilationID.substr(0, 5) == "solc-");
-	std::string const repeatedCompilationID = ethdebug::resources(
+	std::string const repeatedCompilationID = evmasm::ethdebug::resources(
 		{
 			{.id = 0, .path = "sourceA", .contents = "contentsA", .language = "Solidity"},
 			{.id = 1, .path = "sourceB", .contents = "contentsB", .language = "Yul"},
@@ -491,7 +491,7 @@ BOOST_AUTO_TEST_CASE(ethdebug_resources)
 		"version1"
 	)["compilation"]["id"].get<std::string>();
 	BOOST_REQUIRE(compilationID == repeatedCompilationID);
-	std::string const changedCompilationID = ethdebug::resources(
+	std::string const changedCompilationID = evmasm::ethdebug::resources(
 		{
 			{.id = 0, .path = "sourceA", .contents = "changedContentsA", .language = "Solidity"},
 			{.id = 1, .path = "sourceB", .contents = "contentsB", .language = "Yul"},
@@ -518,7 +518,7 @@ BOOST_AUTO_TEST_CASE(ethdebug_resources)
 
 BOOST_AUTO_TEST_CASE(ethdebug_type_specifier_unique_ownership)
 {
-	using Type = ethdebug::schema::Type;
+	using Type = langutil::ethdebug::schema::Type;
 	static_assert(!std::is_copy_constructible_v<Type>);
 	static_assert(!std::is_copy_constructible_v<Type::Specifier>);
 	static_assert(std::is_move_constructible_v<Type>);
@@ -541,13 +541,13 @@ BOOST_AUTO_TEST_CASE(ethdebug_type_specifier_unique_ownership)
 		Json(movedSpecifier).dump(),
 		R"({"contains":{"type":{"bits":128,"kind":"uint"}},"kind":"array"})"
 	);
-	Type::Specifier const referenceSpecifier{Type::Reference{ethdebug::schema::materials::ID{"t_uint128"}}};
+	Type::Specifier const referenceSpecifier{Type::Reference{langutil::ethdebug::schema::materials::ID{"t_uint128"}}};
 	BOOST_CHECK_EQUAL(Json(referenceSpecifier).dump(), R"({"id":"t_uint128"})");
 }
 
 BOOST_AUTO_TEST_CASE(ethdebug_pointer_unique_ownership)
 {
-	using Pointer = ethdebug::schema::Pointer;
+	using Pointer = langutil::ethdebug::schema::Pointer;
 	static_assert(!std::is_copy_constructible_v<Pointer>);
 	static_assert(!std::is_copy_constructible_v<Pointer::Expression>);
 	static_assert(!std::is_copy_constructible_v<Pointer::Template>);
@@ -576,7 +576,7 @@ BOOST_AUTO_TEST_CASE(ethdebug_pointer_unique_ownership)
 
 BOOST_AUTO_TEST_CASE(ethdebug_pointer_resize_width)
 {
-	using Pointer = ethdebug::schema::Pointer;
+	using Pointer = langutil::ethdebug::schema::Pointer;
 	auto const makeOperand = [] {
 		return std::make_unique<Pointer::Expression const>(Pointer::Expression{Pointer::Variable{"slot"}});
 	};

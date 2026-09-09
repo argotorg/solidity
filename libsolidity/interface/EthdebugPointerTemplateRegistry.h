@@ -20,8 +20,9 @@
 
 #pragma once
 
-#include <libevmasm/EthdebugSchema.h>
 #include <libsolidity/ast/ASTForward.h>
+
+#include <liblangutil/EthdebugSchema.h>
 
 #include <map>
 #include <set>
@@ -74,10 +75,10 @@ public:
 	/// The pointer ID for a layout of the location-independent type document.
 	static std::string identifier(Type const& _type, DataLocation _location);
 
-	std::map<std::string, evmasm::ethdebug::schema::Pointer::Template> takeTemplates();
+	std::map<std::string, langutil::ethdebug::schema::Pointer::Template> takeTemplates();
 
 private:
-	using Pointer = evmasm::ethdebug::schema::Pointer;
+	using Pointer = langutil::ethdebug::schema::Pointer;
 
 	/// Template data and region names retained until takeTemplates().
 	struct TemplateDraft

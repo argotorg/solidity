@@ -32,7 +32,7 @@
 #include <variant>
 #include <vector>
 
-namespace solidity::evmasm::ethdebug::schema
+namespace solidity::langutil::ethdebug::schema
 {
 
 struct EthdebugException: virtual util::Exception {};

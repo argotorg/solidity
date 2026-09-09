@@ -18,7 +18,7 @@
 
 #include <libevmasm/Ethdebug.h>
 
-#include <libevmasm/EthdebugSchema.h>
+#include <liblangutil/EthdebugSchema.h>
 
 #include <libsolutil/Keccak256.h>
 
@@ -31,6 +31,8 @@ using namespace solidity::util;
 using namespace solidity::langutil;
 using namespace solidity::evmasm;
 using namespace solidity::evmasm::ethdebug;
+
+namespace schema = solidity::langutil::ethdebug::schema;
 
 namespace
 {
@@ -173,7 +175,7 @@ schema::materials::Compilation materialCompilation(std::vector<Source> const& _s
 
 } // anonymous namespace
 
-Json ethdebug::program(std::string_view _name, unsigned _sourceID, Assembly const& _assembly, LinkerObject const& _linkerObject)
+Json evmasm::ethdebug::program(std::string_view _name, unsigned _sourceID, Assembly const& _assembly, LinkerObject const& _linkerObject)
 {
 	schema::Program const result{
 		.ethdebug = schema::data::Stamp{"ethdebug/format/program", std::string{SpecificationVersion}},
@@ -192,7 +194,7 @@ Json ethdebug::program(std::string_view _name, unsigned _sourceID, Assembly cons
 	return Json(result);
 }
 
-Json ethdebug::resources(
+Json evmasm::ethdebug::resources(
 	std::vector<Source> const& _sources,
 	std::string_view _version,
 	std::map<std::string, schema::Type> _types,
@@ -208,7 +210,7 @@ Json ethdebug::resources(
 	return Json(result);
 }
 
-Json ethdebug::compilation(std::vector<Source> const& _sources, std::string_view _version)
+Json evmasm::ethdebug::compilation(std::vector<Source> const& _sources, std::string_view _version)
 {
 	return Json(materialCompilation(_sources, _version));
 }
