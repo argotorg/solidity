@@ -42,6 +42,8 @@
 #include <range/v3/view/transform.hpp>
 #include <range/v3/view/zip.hpp>
 
+#include <algorithm>
+
 using namespace solidity;
 using namespace solidity::yul;
 using namespace solidity::yul::ssa;
@@ -94,6 +96,16 @@ std::unique_ptr<ControlFlowGraphs> SSACFGBuilder::build(
 	if (!builder.blockInfo(builder.m_currentBlock).sealed)
 		builder.sealBlock(builder.m_currentBlock);
 	mainGraph.block(builder.m_currentBlock).exit = SSACFG::BasicBlock::MainExit{};
+	// Lazy variable reads can append phis after operations, even in sealed blocks.
+	// Finalize every block's schedule once all function bodies and phi operands are built.
+	for (auto const& cfg: controlFlowGraphs->functionGraphs)
+		for (BlockId const blockId: cfg->liveBlocks())
+		{
+			auto& instructions = cfg->block(blockId).instructions;
+			std::stable_partition(instructions.begin(), instructions.end(), [&](InstId const _id) {
+				return cfg->isPhi(_id);
+			});
+		}
 	return controlFlowGraphs;
 }
 

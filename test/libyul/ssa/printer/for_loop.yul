@@ -14,10 +14,10 @@
 //     upsilon v0 -> ^v4
 //     jump #1
 // #1: preds: #0, #2
-//     v1 = builtin @calldataload v0
 //     v2 = phi
-//     v3 = builtin @lt v2, v1
 //     v4 = phi
+//     v1 = builtin @calldataload v0
+//     v3 = builtin @lt v2, v1
 //     branch v3, #2, #4
 // #2: preds: #1
 //     v5 = builtin @add v4, v2
