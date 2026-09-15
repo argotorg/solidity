@@ -18,18 +18,17 @@
 
 #pragma once
 
-#include <test/libsolidity/AnalysisFramework.h>
-#include <test/TestCase.h>
 #include <test/CommonSyntaxTest.h>
+#include <test/TestCase.h>
 #include <test/TestCaseReader.h>
+#include <test/libsolidity/AnalysisFramework.h>
+
 #include <liblangutil/EVMVersion.h>
 #include <liblangutil/Exceptions.h>
+
 #include <libsolutil/AnsiColorized.h>
 
-#include <iosfwd>
 #include <string>
-#include <vector>
-#include <utility>
 
 namespace solidity::frontend::test
 {

@@ -16,20 +16,24 @@
 */
 // SPDX-License-Identifier: GPL-3.0
 
-#include "libsolidity/interface/CompilerStack.h"
 #include <test/libsolidity/SyntaxTest.h>
 
-#include <test/libsolidity/util/Common.h>
 #include <test/Common.h>
+#include <test/TestCase.h>
+#include <test/libsolidity/util/Common.h>
+
+#include <libsolidity/interface/CompilerStack.h>
+#include <libsolidity/util/SoltestErrors.h>
+
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/test/unit_test.hpp>
 #include <boost/throw_exception.hpp>
+
 #include <range/v3/algorithm/find_if.hpp>
-#include <fstream>
+
 #include <map>
 #include <memory>
-#include <set>
 #include <stdexcept>
 
 using namespace solidity;
@@ -39,7 +43,6 @@ using namespace solidity::langutil;
 using namespace solidity::frontend;
 using namespace solidity::frontend::test;
 using namespace boost::unit_test;
-namespace fs = boost::filesystem;
 
 SyntaxTestSettings SyntaxTestSettings::fromReader(TestCaseReader& _reader)
 {
