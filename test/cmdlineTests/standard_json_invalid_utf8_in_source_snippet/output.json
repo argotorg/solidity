@@ -1,0 +1,24 @@
+{
+    "errors": [
+        {
+            "component": "general",
+            "errorCode": "7407",
+            "formattedMessage": "TypeError: Type literal_string \"a\" is not implicitly convertible to expected type uint256.
+ --> C:6:14:
+  |
+6 |     uint x = \"a\"; // r?sum?
+  |              ^^^
+
+",
+            "message": "Type literal_string \"a\" is not implicitly convertible to expected type uint256.",
+            "severity": "error",
+            "sourceLocation": {
+                "end": 160,
+                "file": "C",
+                "start": 157
+            },
+            "type": "TypeError"
+        }
+    ],
+    "sources": {}
+}

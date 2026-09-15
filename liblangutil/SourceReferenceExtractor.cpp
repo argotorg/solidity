@@ -20,6 +20,8 @@
 #include <liblangutil/CharStreamProvider.h>
 #include <liblangutil/CharStream.h>
 
+#include <libsolutil/UTF8.h>
+
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
@@ -43,6 +45,28 @@ std::string::size_type toUTF8SequenceStart(std::string_view const _text, std::st
 	)
 		--_position;
 	return _position;
+}
+
+// Replace every byte that does not belong to a valid UTF-8 sequence with `?`. Source files are not guaranteed to be
+// valid UTF-8, but the snippet is part of the error message, which e.g. has to be serializable into Standard JSON
+// output. Replacing single bytes with a single byte keeps the column offsets of the snippet intact.
+std::string replaceInvalidUTF8(std::string _text)
+{
+	std::string::size_type position = 0;
+	while (position < _text.size())
+	{
+		auto const leadByte = static_cast<unsigned char>(_text[position]);
+		std::string::size_type const sequenceLength =
+			leadByte < 0x80 ? 1 :
+			leadByte >= 0xf0 ? 4 :
+			leadByte >= 0xe0 ? 3 :
+			2;
+		if (position + sequenceLength <= _text.size() && util::validateUTF8(_text.substr(position, sequenceLength)))
+			position += sequenceLength;
+		else
+			_text[position++] = '?';
+	}
+	return _text;
 }
 
 }
@@ -135,6 +159,8 @@ SourceReference SourceReferenceExtractor::extract(
 		}
 		end.column = start.column + static_cast<int>(locationLength);
 	}
+
+	line = replaceInvalidUTF8(std::move(line));
 
 	return SourceReference{
 		std::move(message),

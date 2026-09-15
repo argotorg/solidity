@@ -1,0 +1,6 @@
+{
+    "language": "Solidity",
+    "sources": {
+        "C": {"urls": ["invalid_utf8_sequence.sol"]}
+    }
+}
