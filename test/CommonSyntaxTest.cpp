@@ -17,6 +17,7 @@
 // SPDX-License-Identifier: GPL-3.0
 
 #include <test/CommonSyntaxTest.h>
+
 #include <test/Common.h>
 #include <test/TestCase.h>
 
@@ -30,8 +31,6 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/throw_exception.hpp>
 
-#include <fstream>
-#include <memory>
 #include <stdexcept>
 
 using namespace solidity;

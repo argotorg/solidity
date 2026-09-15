@@ -19,15 +19,17 @@
 #pragma once
 
 #include <test/TestCase.h>
+
 #include <liblangutil/Exceptions.h>
+
 #include <libsolidity/interface/CompilerStack.h>
 #include <libsolidity/formal/ModelCheckerSettings.h>
+
 #include <libsolutil/AnsiColorized.h>
 
 #include <iosfwd>
 #include <string>
 #include <vector>
-#include <utility>
 
 using solidity::frontend::CompilerStack;
 using solidity::frontend::ModelCheckerSettings;
