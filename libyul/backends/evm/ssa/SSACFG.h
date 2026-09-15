@@ -122,7 +122,7 @@ public:
 		if (!m_freeBlocks.empty())
 		{
 			blockId = m_freeBlocks.back();
-			yulAssert(blockId.value < m_freeBlocks.size());
+			yulAssert(blockId.value < m_blocks.size());
 			std::optional<BasicBlock>& block = m_blocks[blockId.value];
 			yulAssert(!block.has_value());
 			m_freeBlocks.pop_back();
