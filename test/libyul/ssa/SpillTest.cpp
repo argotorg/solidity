@@ -47,10 +47,23 @@ using namespace solidity::yul::test::ssa;
 namespace
 {
 
+std::string describeTrace(ShuffleTrace const& _trace)
+{
+	std::string out;
+	for (ShuffleOp const& op: _trace)
+	{
+		if (!out.empty())
+			out += ", ";
+		out += fmt::format("{}", op);
+	}
+	return out;
+}
+
 std::string describeCFG(
 	SSACFG const& _cfg,
 	ControlFlowGraphs::FunctionGraphID const _graphID,
-	std::vector<std::pair<InstId, u256>> const& _spilled
+	std::vector<std::pair<InstId, u256>> const& _spilled,
+	spill::SpillStorePlan const& _storePlan
 )
 {
 	std::string label = _cfg.isMainGraph() ? "<main>" : _cfg.name;
@@ -72,16 +85,35 @@ std::string describeCFG(
 		);
 
 	out += "  mstore schedule:\n";
-	for (const auto& value: _spilled | std::views::keys)
+	std::set<InstId> plannedStores;
+	auto appendStores = [&](std::string const& _site, std::vector<spill::SpillStorePlan::Store> const& _stores)
 	{
-		SSACFG::BlockId const block = _cfg.inst(value).block;
-		out += fmt::format(
-			"    mstore addr({}) <- {} (B#{})\n",
-			value,
-			value,
-			block.value
-		);
-	}
+		if (_stores.empty())
+			return;
+		out += fmt::format("    {}:\n", _site);
+		for (auto const& store: _stores)
+		{
+			yulAssert(
+				plannedStores.insert(store.value).second,
+				fmt::format("duplicate store planned for {}", store.value)
+			);
+			out += fmt::format(
+				"      mstore addr({}) <- {} via [{}]\n",
+				store.value,
+				store.value,
+				describeTrace(store.trace)
+			);
+		}
+	};
+	appendStores("function entry", _storePlan.functionEntry);
+	for (auto const& [block, stores]: _storePlan.blockEntries)
+		appendStores(fmt::format("block entry B#{}", block.value), stores);
+	for (auto const& [producer, stores]: _storePlan.operationOutputs)
+		appendStores(fmt::format("after {} (B#{})", producer, _cfg.inst(producer).block.value), stores);
+	std::set<InstId> spilledValues;
+	for (auto const& spilled: _spilled)
+		spilledValues.insert(spilled.first);
+	yulAssert(plannedStores == spilledValues, "spill-store plan does not cover the spill set exactly once");
 	return out;
 }
 
@@ -135,11 +167,11 @@ frontend::test::TestCase::TestResult SpillTest::run(std::ostream& _stream, std::
 
 		std::size_t const numCFGs = controlFlowGraphs->functionGraphs.size();
 		std::vector<spill::SpillSet> spillSetsPerCFG;
-		std::vector<SSACFGStackLayout> layouts;
+		std::vector<spill::SpillStorePlan> spillStorePlansPerCFG;
 		spillSetsPerCFG.reserve(numCFGs);
-		layouts.reserve(numCFGs);
+		spillStorePlansPerCFG.reserve(numCFGs);
 
-		// Recompute the spill sets and per-block stack layouts exactly as the code transform would,
+		// Recompute the spill sets and store plans exactly as the code transform would,
 		// but stop at the addressing step instead of generating any bytecode.
 		for (std::size_t functionIndex = 0; functionIndex < numCFGs; ++functionIndex)
 		{
@@ -154,15 +186,9 @@ frontend::test::TestCase::TestResult SpillTest::run(std::ostream& _stream, std::
 				graphID,
 				spillingAllowed
 			);
-			layouts.push_back(std::move(result.layout));
 			spillSetsPerCFG.push_back(std::move(result.spillSet));
+			spillStorePlansPerCFG.push_back(std::move(result.spillStorePlan));
 		}
-
-		for (std::size_t functionIndex = 0; functionIndex < numCFGs; ++functionIndex)
-			spillSetsPerCFG[functionIndex].closeUnderReachabilityConstraints(
-				*controlFlowGraphs->functionGraphs[functionIndex],
-				layouts[functionIndex]
-			);
 
 		// build up global addressing based on the spill sets
 		spill::MemoryAddressing const addressing(*controlFlowGraphs, spillSetsPerCFG);
@@ -180,7 +206,7 @@ frontend::test::TestCase::TestResult SpillTest::run(std::ostream& _stream, std::
 			std::vector<std::pair<InstId, u256>> spilled;
 			for (InstId const value: spillSetsPerCFG[functionIndex].spilledValues())
 				spilled.emplace_back(value, addressing.addressOf(graphID, value));
-			m_obtainedResult += describeCFG(cfg, graphID, spilled);
+			m_obtainedResult += describeCFG(cfg, graphID, spilled, spillStorePlansPerCFG[functionIndex]);
 		}
 
 		for (auto const& subNode: object.subObjects)
