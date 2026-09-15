@@ -121,8 +121,11 @@ std::optional<rational> ConstantEvaluator::evaluateBinaryOperator(Token _operato
 
 		// x ** 0 = 1
 		// for 0, 1 and -1 the size of the exponent doesn't have to be restricted
+		// 0 ** -n = 1 / 0 is a division by zero
 		if (exp == 0)
 			return 1;
+		else if (_left == 0 && exp < 0)
+			return std::nullopt;
 		else if (_left == 0 || _left == 1)
 			return _left;
 		else if (_left == -1)
