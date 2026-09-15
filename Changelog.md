@@ -5,6 +5,7 @@ Language Features:
 Compiler Features:
 
 Bugfixes:
+ * General: Fix ``CompilerStack::reset()`` not restoring experimental mode and debug info selection to their defaults when settings are not kept.
 
 
 ### 0.8.37 (2026-09-10)
