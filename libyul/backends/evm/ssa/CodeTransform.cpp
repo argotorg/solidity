@@ -230,9 +230,11 @@ void CodeTransform::operator()(SSACFG::BlockId const _blockId)
 	{
 		SSACFG::Inst const& inst = m_cfg.inst(instId);
 		if (inst.isPhi())
-			// this is a no-op for not spilled phis
+		{
+			yulAssert(operationIndex == 0, "Phi must precede operations in its block.");
 			spillStore(instId);
-		if (inst.isOperation())
+		}
+		else if (inst.isOperation())
 		{
 			yulAssert(operationIndex < blockLayout->operationShuffles.size());
 			(*this)(instId, blockLayout->operationShuffles[operationIndex]);
