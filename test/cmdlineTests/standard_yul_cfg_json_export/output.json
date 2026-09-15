@@ -1206,7 +1206,7 @@
                                         "exit": {
                                             "cond": "v84",
                                             "targets": [
-                                                "Block21",
+                                                "Block31",
                                                 "Block20"
                                             ],
                                             "type": "ConditionalJump"
@@ -1277,8 +1277,61 @@
                                         "type": "BuiltinCall"
                                     },
                                     {
+                                        "exit": {
+                                            "targets": [
+                                                "Block21"
+                                            ],
+                                            "type": "Jump"
+                                        },
+                                        "id": "Block31",
+                                        "instructions": [],
+                                        "liveness": {
+                                            "in": [],
+                                            "out": []
+                                        }
+                                    },
+                                    {
+                                        "exit": {
+                                            "cond": "v97",
+                                            "targets": [
+                                                "Block30",
+                                                "Block22"
+                                            ],
+                                            "type": "ConditionalJump"
+                                        },
+                                        "id": "Block20",
+                                        "instructions": [
+                                            {
+                                                "in": [],
+                                                "op": "returndatasize",
+                                                "out": [
+                                                    "v96"
+                                                ]
+                                            },
+                                            {
+                                                "in": [
+                                                    "0x20",
+                                                    "v96"
+                                                ],
+                                                "op": "gt",
+                                                "out": [
+                                                    "v97"
+                                                ]
+                                            }
+                                        ],
+                                        "liveness": {
+                                            "in": [
+                                                "v68"
+                                            ],
+                                            "out": [
+                                                "v68"
+                                            ]
+                                        },
+                                        "type": "BuiltinCall"
+                                    },
+                                    {
                                         "entries": [
-                                            "Block18",
+                                            "Block31",
                                             "Block28"
                                         ],
                                         "exit": {
@@ -1332,30 +1385,36 @@
                                     },
                                     {
                                         "exit": {
-                                            "cond": "v97",
                                             "targets": [
-                                                "Block23",
-                                                "Block22"
+                                                "Block23"
                                             ],
-                                            "type": "ConditionalJump"
+                                            "type": "Jump"
                                         },
-                                        "id": "Block20",
+                                        "id": "Block30",
+                                        "instructions": [],
+                                        "liveness": {
+                                            "in": [
+                                                "v68"
+                                            ],
+                                            "out": [
+                                                "v68"
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "exit": {
+                                            "targets": [
+                                                "Block23"
+                                            ],
+                                            "type": "Jump"
+                                        },
+                                        "id": "Block22",
                                         "instructions": [
                                             {
                                                 "in": [],
                                                 "op": "returndatasize",
                                                 "out": [
-                                                    "v96"
-                                                ]
-                                            },
-                                            {
-                                                "in": [
-                                                    "0x20",
-                                                    "v96"
-                                                ],
-                                                "op": "gt",
-                                                "out": [
-                                                    "v97"
+                                                    "v98"
                                                 ]
                                             }
                                         ],
@@ -1364,6 +1423,7 @@
                                                 "v68"
                                             ],
                                             "out": [
+                                                "v98",
                                                 "v68"
                                             ]
                                         },
@@ -1371,7 +1431,7 @@
                                     },
                                     {
                                         "entries": [
-                                            "Block20",
+                                            "Block30",
                                             "Block22"
                                         ],
                                         "exit": {
@@ -1473,34 +1533,6 @@
                                                 "v68",
                                                 "phi101",
                                                 "v113"
-                                            ]
-                                        },
-                                        "type": "BuiltinCall"
-                                    },
-                                    {
-                                        "exit": {
-                                            "targets": [
-                                                "Block23"
-                                            ],
-                                            "type": "Jump"
-                                        },
-                                        "id": "Block22",
-                                        "instructions": [
-                                            {
-                                                "in": [],
-                                                "op": "returndatasize",
-                                                "out": [
-                                                    "v98"
-                                                ]
-                                            }
-                                        ],
-                                        "liveness": {
-                                            "in": [
-                                                "v68"
-                                            ],
-                                            "out": [
-                                                "v98",
-                                                "v68"
                                             ]
                                         },
                                         "type": "BuiltinCall"
