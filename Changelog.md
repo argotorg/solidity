@@ -5,6 +5,7 @@ Language Features:
 Compiler Features:
 
 Bugfixes:
+* Type Checker: Reject `0 ** (-1)` and other literal expressions with base `0` and a negative exponent as a division by zero instead of silently evaluating them to `0`.
 
 
 ### 0.8.37 (2026-09-10)
