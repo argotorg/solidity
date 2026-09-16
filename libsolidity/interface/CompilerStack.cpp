@@ -497,6 +497,8 @@ bool CompilerStack::analyze()
 			if (source->ast && !resolver.resolveNamesAndTypes(*source->ast))
 				return false;
 
+		resolver.warnShadowedInheritedStateVariables();
+
 		if (!analyzeLegacy(noErrors))
 			noErrors = false;
 	}
