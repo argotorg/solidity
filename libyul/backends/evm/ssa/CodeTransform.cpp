@@ -544,6 +544,8 @@ void CodeTransform::emit(ShuffleOp const& _op)
 		}
 		case StackSlot::Kind::FunctionReturnLabel:
 			yulAssert(false, "Cannot produce function return label.");
+		case StackSlot::Kind::Shadow:
+			yulAssert(false, "Shadow slots can't be pushed.");
 		}
 		solidity::util::unreachable();
 	case ShuffleOp::Kind::Load:

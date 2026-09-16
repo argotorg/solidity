@@ -84,7 +84,7 @@ void declareJunk(Stack& _stack, LivenessAnalysis::LivenessData const& _live)
 StackLayoutGenerator::Result StackLayoutGenerator::generate(
 	LivenessAnalysis const& _liveness,
 	CallSites const& _callSites,
-	ControlFlowGraphs::FunctionGraphID const _graphID,
+	FunctionGraphID const _graphID,
 	bool const _spillingAllowed
 )
 {
@@ -108,7 +108,7 @@ StackLayoutGenerator::Result StackLayoutGenerator::generate(
 StackLayoutGenerator::StackLayoutGenerator(
 	LivenessAnalysis const& _liveness,
 	CallSites const& _callSites,
-	ControlFlowGraphs::FunctionGraphID const _graphID,
+	FunctionGraphID const _graphID,
 	bool const _spillingAllowed,
 	spill::SpillSet _initialSpillSet
 ):

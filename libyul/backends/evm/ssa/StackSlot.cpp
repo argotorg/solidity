@@ -36,6 +36,8 @@ std::string slotToString(StackSlot const& _slot)
 		if (_slot.isPhiValue())
 			return fmt::format("phi{}", _slot.value().value);
 		return fmt::format("{}", _slot.value());
+	case StackSlot::Kind::Shadow:
+		return fmt::format("^phi{}", _slot.shadowPhi().value);
 	case StackSlot::Kind::Junk:
 		return "JUNK";
 	case StackSlot::Kind::FunctionCallReturnLabel:

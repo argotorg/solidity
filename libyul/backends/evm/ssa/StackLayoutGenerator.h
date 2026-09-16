@@ -49,7 +49,7 @@ public:
 	static Result generate(
 		LivenessAnalysis const& _liveness,
 		CallSites const& _callSites,
-		ControlFlowGraphs::FunctionGraphID _graphID,
+		FunctionGraphID _graphID,
 		bool _spillingAllowed
 	);
 
@@ -57,7 +57,7 @@ private:
 	explicit StackLayoutGenerator(
 		LivenessAnalysis const& _liveness,
 		CallSites const& _callSites,
-		ControlFlowGraphs::FunctionGraphID _graphID,
+		FunctionGraphID _graphID,
 		bool _spillingAllowed,
 		spill::SpillSet _initialSpillSet
 	);
@@ -68,7 +68,7 @@ private:
 	SSACFG const& m_cfg;
 	LivenessAnalysis const& m_liveness;
 	CallSites const& m_callSites;
-	ControlFlowGraphs::FunctionGraphID m_graphID;
+	FunctionGraphID m_graphID;
 	bool m_hasFunctionReturnLabel;
 	bool m_spillingAllowed;
 

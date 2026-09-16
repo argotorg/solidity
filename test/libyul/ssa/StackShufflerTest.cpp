@@ -113,7 +113,7 @@ Slot parseSlot(ParsedIdentifierTable& _table, std::string_view _token)
 	if (_token.starts_with(returnLabelPrefix) && _token.ends_with(']'))
 	{
 		auto const inner = _token.substr(returnLabelPrefix.size(), _token.size() - returnLabelPrefix.size() - 1);
-		if (auto const num = solidity::util::parseArithmetic<ControlFlowGraphs::FunctionGraphID>(inner))
+		if (auto const num = solidity::util::parseArithmetic<FunctionGraphID>(inner))
 			return Slot::makeFunctionReturnLabel(*num);
 		throw std::runtime_error(fmt::format("Couldn't parse ReturnLabel token: {}", _token));
 	}

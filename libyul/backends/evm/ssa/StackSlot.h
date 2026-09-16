@@ -18,7 +18,6 @@
 
 #pragma once
 
-#include <libyul/backends/evm/ssa/ControlFlowGraphs.h>
 #include <libyul/backends/evm/ssa/SSACFG.h>
 
 #include <range/v3/algorithm/find.hpp>
@@ -66,6 +65,7 @@ private:
 /// A discriminated union corresponding to a single EVM stack slot.
 /// Can represent:
 ///		- ValueID: SSA values (including literals)
+///		- Shadow: the pending (shadow) value of a phi, produced by an upsilon
 ///		- Junk: Placeholder/unused values
 ///     - FunctionCallReturnLabel: Return addresses for function calls
 ///     - FunctionReturnLabel: Identifies the calling function's graph
@@ -77,6 +77,7 @@ public:
 	enum struct Kind: std::uint8_t
 	{
 		Value, // u32 InstId
+		Shadow,  // u32 InstId
 		Junk, // empty
 		FunctionCallReturnLabel, // index into corresponding stack layout's call sites
 		FunctionReturnLabel // identifying the function graph via ControlFlowGraphs
@@ -89,18 +90,25 @@ public:
 	constexpr StackSlot& operator=(StackSlot&&) = default;
 
 	constexpr bool isValue() const noexcept { return kind() == Kind::Value; }
-	constexpr bool isLiteralValue() const noexcept { return m_valueOpcode == InstOpcode::Const; }
-	constexpr bool isPhiValue() const noexcept { return m_valueOpcode == InstOpcode::Phi; }
+	constexpr bool isShadow() const noexcept { return kind() == Kind::Shadow; }
+	constexpr bool isLiteralValue() const noexcept { return isValue() && m_valueOpcode == InstOpcode::Const; }
+	constexpr bool isPhiValue() const noexcept { return isValue() && m_valueOpcode == InstOpcode::Phi; }
 	constexpr bool isFunctionReturnLabel() const noexcept { return kind() == Kind::FunctionReturnLabel; }
 	constexpr bool isFunctionCallReturnLabel() const noexcept { return kind() == Kind::FunctionCallReturnLabel; }
 	constexpr bool isJunk() const noexcept { return kind() == Kind::Junk; }
 	constexpr Kind kind() const noexcept { return m_kind; }
 
-	ControlFlowGraphs::FunctionGraphID functionReturnLabel() const { yulAssert(isFunctionReturnLabel()); return m_payload; }
+	FunctionGraphID functionReturnLabel() const { yulAssert(isFunctionReturnLabel()); return m_payload; }
 	CallSites::CallSiteID functionCallReturnLabel() const { yulAssert(isFunctionCallReturnLabel()); return m_payload; }
 	InstId value() const
 	{
 		yulAssert(isValue());
+		return InstId{m_payload};
+	}
+	/// The phi this slot is the pending value of
+	InstId shadowPhi() const
+	{
+		yulAssert(isShadow());
 		return InstId{m_payload};
 	}
 
@@ -113,7 +121,12 @@ public:
 	{
 		return {_value.value, Kind::Value, _store.kindOf(_value)};
 	}
-	static constexpr StackSlot makeFunctionReturnLabel(ControlFlowGraphs::FunctionGraphID const _graphID) { return {_graphID, Kind::FunctionReturnLabel}; }
+	static StackSlot makeShadow(SSACFG const& _cfg, InstId _phi)
+	{
+		yulAssert(_cfg.isPhi(_phi), "only phis have upsilon slots");
+		return {_phi.value, Kind::Shadow, InstOpcode::Phi};
+	}
+	static constexpr StackSlot makeFunctionReturnLabel(FunctionGraphID const _graphID) { return {_graphID, Kind::FunctionReturnLabel}; }
 	static constexpr StackSlot makeFunctionCallReturnLabel(CallSites::CallSiteID const _callSiteID) { return {_callSiteID, Kind::FunctionCallReturnLabel};	}
 
 	auto operator<=>(StackSlot const&) const = default;
