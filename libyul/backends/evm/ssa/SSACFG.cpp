@@ -575,12 +575,12 @@ void SSACFG::checkPhiEspilons() const
 	{
 		if (isTombstone(phi) || !isPhi(phi))
 			continue;
-		std::vector<BlockId> predecessors = block(inst(phi).block).entries;
-		std::vector<BlockId>& sources = phiToUpsilonSources[phi];
-		std::sort(predecessors.begin(), predecessors.end());
-		std::sort(sources.begin(), sources.end());
+		std::vector<BlockId> blockEntries = block(inst(phi).block).entries;
+		std::vector<BlockId>& upsilonSources = phiToUpsilonSources[phi];
+		std::sort(blockEntries.begin(), blockEntries.end());
+		std::sort(upsilonSources.begin(), upsilonSources.end());
 		yulAssert(
-			sources == predecessors,
+			upsilonSources == blockEntries,
 			fmt::format("Phi {} in block {} is not fed by exactly one Upsilon per predecessor [graph {}]", phi, inst(phi).block, graphName())
 		);
 	}
