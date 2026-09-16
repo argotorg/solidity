@@ -317,6 +317,7 @@ void CompilerStack::reset(bool _keepSettings)
 		m_libraries.clear();
 		m_viaIR = false;
 		m_viaSSACFG = false;
+		m_experimental = false;
 		m_evmVersion = langutil::EVMVersion();
 		m_modelCheckerSettings = ModelCheckerSettings{};
 		m_selectedContracts.clear();
@@ -325,6 +326,7 @@ void CompilerStack::reset(bool _keepSettings)
 		m_metadataLiteralSources = false;
 		m_metadataFormat = defaultMetadataFormat();
 		m_metadataHash = MetadataHash::IPFS;
+		m_debugInfoSelection = langutil::DebugInfoSelection::Default();
 		m_stopAfter = State::CompilationSuccessful;
 		m_compilationSourceType = CompilationSourceType::Solidity;
 	}
