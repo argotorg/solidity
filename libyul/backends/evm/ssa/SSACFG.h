@@ -614,7 +614,7 @@ private:
 	void checkEachInstScheduledOnce(std::vector<std::uint32_t> const& _scheduleCount) const;
 	void checkBlockConstraints() const;
 	void checkEdgeConsistency() const;
-	void checkPhiOperands() const;
+	void checkPhiEspilons() const;
 	void checkExitShapes() const;
 	void checkEntry() const;
 	void checkArguments() const;

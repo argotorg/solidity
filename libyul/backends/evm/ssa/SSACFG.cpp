@@ -206,7 +206,7 @@ void SSACFG::checkInvariants() const
 	checkEachInstScheduledOnce(scheduleCount);
 	checkBlockConstraints();
 	checkEdgeConsistency();
-	checkPhiOperands();
+	checkPhiEspilons();
 	checkExitShapes();
 	checkEntry();
 	checkArguments();
@@ -556,32 +556,32 @@ void SSACFG::checkArguments() const
 	}
 }
 
-void SSACFG::checkPhiOperands() const
+void SSACFG::checkPhiEspilons() const
 {
 	// Collect, per phi, the source blocks of the Upsilons feeding it.
-	std::map<InstId, std::vector<BlockId>> upsilonSources; // phi -> [block of each upsilon feeding it]
-	for (InstId const instId: instructionIds())
+	std::map<InstId, std::vector<BlockId>> phiToUpsilonSources; // phi -> [block of each upsilon feeding it]
+	for (InstId const upsilon: instructionIds())
 	{
-		if (isTombstone(instId) || !isUpsilon(instId))
+		if (isTombstone(upsilon) || !isUpsilon(upsilon))
 			continue;
-		InstId const phi = upsilonPhi(instId);
-		checkBlockRef(inst(instId).block, fmt::format("block of upsilon {}", instId));
-		upsilonSources[phi].push_back(inst(instId).block);
+		InstId const phiTarget = upsilonPhi(upsilon);
+		checkBlockRef(inst(upsilon).block, fmt::format("block of upsilon {}", upsilon));
+		phiToUpsilonSources[phiTarget].push_back(inst(upsilon).block);
 	}
 
 	// A phi must be fed by exactly one Upsilon per predecessor edge of its block, i.e. the
 	// multiset of Upsilon source blocks equals the multiset of the block's predecessors.
-	for (InstId const instId: instructionIds())
+	for (InstId const phi: instructionIds())
 	{
-		if (isTombstone(instId) || !isPhi(instId))
+		if (isTombstone(phi) || !isPhi(phi))
 			continue;
-		std::vector<BlockId> predecessors = block(inst(instId).block).entries;
-		std::vector<BlockId>& sources = upsilonSources[instId];
+		std::vector<BlockId> predecessors = block(inst(phi).block).entries;
+		std::vector<BlockId>& sources = phiToUpsilonSources[phi];
 		std::sort(predecessors.begin(), predecessors.end());
 		std::sort(sources.begin(), sources.end());
 		yulAssert(
 			sources == predecessors,
-			fmt::format("Phi {} in block {} is not fed by exactly one Upsilon per predecessor [graph {}]", instId, inst(instId).block, graphName())
+			fmt::format("Phi {} in block {} is not fed by exactly one Upsilon per predecessor [graph {}]", phi, inst(phi).block, graphName())
 		);
 	}
 }
