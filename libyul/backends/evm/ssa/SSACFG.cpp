@@ -206,7 +206,7 @@ void SSACFG::checkInvariants() const
 	checkEachInstScheduledOnce(scheduleCount);
 	checkBlockConstraints();
 	checkEdgeConsistency();
-	checkPhiEspilons();
+	checkPhiUpsilons();
 	checkExitShapes();
 	checkEntry();
 	checkArguments();
@@ -556,7 +556,7 @@ void SSACFG::checkArguments() const
 	}
 }
 
-void SSACFG::checkPhiEspilons() const
+void SSACFG::checkPhiUpsilons() const
 {
 	// Collect, per phi, the source blocks of the Upsilons feeding it.
 	std::map<InstId, std::vector<BlockId>> phiToUpsilonSources; // phi -> [block of each upsilon feeding it]
