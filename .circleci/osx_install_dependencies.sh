@@ -45,6 +45,7 @@ function validate_checksum {
     fi
 }
 
+brew update
 # Disable automatic `brew cleanup` after every install command. Unnecessary on CI machines.
 export HOMEBREW_NO_INSTALL_CLEANUP=1
 # JRE is required to run eldarica solver
