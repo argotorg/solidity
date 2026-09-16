@@ -555,7 +555,7 @@ defaults:
 
   - base_osx: &base_osx
       macos:
-        xcode: 26.6
+        xcode: 27.0.0
       resource_class: m4pro.medium
       environment: &base_osx_env
         TERM: xterm
