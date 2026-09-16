@@ -569,6 +569,16 @@ void SSACFG::checkPhiUpsilons() const
 		phiToUpsilonSources[phiTarget].push_back(inst(upsilon).block);
 	}
 
+	// TODO: In the future, it's legal to have _in a block_ the following:
+	//
+	// upsilon
+	// upsilon
+	// phi
+	// phi
+	//
+	// So the blockEntries below _may_ need to contain inst(phi).block for
+	// the assert to pass.
+
 	// A phi must be fed by exactly one Upsilon per predecessor edge of its block, i.e. the
 	// multiset of Upsilon source blocks equals the multiset of the block's predecessors.
 	for (InstId const phi: instructionIds())
