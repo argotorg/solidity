@@ -7,4 +7,4 @@ contract Test {
     }
 }
 // ----
-// TypeError 9961: (261-265): Index access for string is not possible.
+// TypeError 6520: (261-265): Cannot assign to a constant variable.

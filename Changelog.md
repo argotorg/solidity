@@ -6,7 +6,7 @@ Compiler Features:
 
 Bugfixes:
 * Parser: Fix inverted version pragma range comparison for components in the range [2**31, 2**32).
-
+* Type Checker: Fix write access to elements or members of constant variables being incorrectly allowed. Previously, assignment was only prevented for specific types that happen to be non-lvalues (e.g. ``bytes32 constant``) rather than based on the constant qualifier itself.
 
 ### 0.8.37 (2026-09-10)
 
