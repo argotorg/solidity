@@ -3306,7 +3306,7 @@ bool TypeChecker::visit(MemberAccess const& _memberAccess)
 	ASTString const& memberName = _memberAccess.memberName();
 
 	// TODO: This should be probably deprecated.
-	_memberAccess.annotation().isConstant = false;
+	_memberAccess.annotation().isConstant = *_memberAccess.expression().annotation().isConstant;
 	MemberList::Member const possibleMember = resolveOverloads(_memberAccess);
 
 	_memberAccess.annotation().referencedDeclaration = possibleMember.declaration;
@@ -3575,8 +3575,8 @@ bool TypeChecker::visit(MemberAccess const& _memberAccess)
 
 bool TypeChecker::visit(IndexAccess const& _access)
 {
-	_access.annotation().isConstant = false;
 	_access.baseExpression().accept(*this);
+	_access.annotation().isConstant = *_access.baseExpression().annotation().isConstant;
 	Type const* baseType = type(_access.baseExpression());
 	Type const* resultType = nullptr;
 	bool isLValue = false;
@@ -3692,8 +3692,8 @@ bool TypeChecker::visit(IndexAccess const& _access)
 
 bool TypeChecker::visit(IndexRangeAccess const& _access)
 {
-	_access.annotation().isConstant = false;
 	_access.baseExpression().accept(*this);
+	_access.annotation().isConstant = *_access.baseExpression().annotation().isConstant;
 
 	bool isLValue = false; // TODO: set this correctly when implementing slices for memory and storage arrays
 	bool isPure = *_access.baseExpression().annotation().isPure;
@@ -4348,7 +4348,7 @@ void TypeChecker::requireLValue(Expression const& _expression)
 	_expression.annotation().willBeWrittenTo = true;
 	_expression.accept(*this);
 
-	if (*_expression.annotation().isLValue)
+	if (*_expression.annotation().isLValue && !*_expression.annotation().isConstant)
 		return;
 
 	auto [errorId, description] = [&]() -> std::tuple<ErrorId, std::string> {
