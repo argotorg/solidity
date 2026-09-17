@@ -9,10 +9,6 @@ on:
     branches: [ develop ]
     paths:
       - 'scripts/docker/buildpack-deps/Dockerfile.emscripten'
-      - 'scripts/docker/buildpack-deps/Dockerfile.ubuntu.clang.ossfuzz'
-      - 'scripts/docker/buildpack-deps/Dockerfile.ubuntu2404'
-      - 'scripts/docker/buildpack-deps/Dockerfile.ubuntu2404.clang'
-      - 'scripts/docker/buildpack-deps/Dockerfile.ubuntu2404.arm'
 
 jobs:
   buildpack-deps:
@@ -20,7 +16,6 @@ jobs:
 
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      DOCKER_REPOSITORY: ghcr.io/argotorg/solidity-buildpack-deps
       IMAGE_NAME: buildpack-deps
 
     strategy:
@@ -29,33 +24,14 @@ jobs:
         include:
           - image_variant: emscripten
             runs-on: ubuntu-latest
-          - image_variant: ubuntu.clang.ossfuzz
-            runs-on: ubuntu-latest
-          - image_variant: ubuntu2404
-            runs-on: ubuntu-latest
-          - image_variant: ubuntu2404.clang
-            runs-on: ubuntu-latest
-          - image_variant: ubuntu2404.arm
-            runs-on: ubuntu-24.04-arm
 
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
           fetch-depth: 0
 
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upgrade ${{ env.IMAGE_NAME }}-${{ matrix.image_variant }}
         run: |
-          scripts/ci/docker_upgrade.sh ${{ env.IMAGE_NAME }} ${{ matrix.image_variant }} ${{ env.DOCKER_REPOSITORY }}
+          scripts/ci/docker_upgrade.sh ${{ env.IMAGE_NAME }} ${{ matrix.image_variant }}
 
-      - name: comment PR
-        if: "env.DOCKER_IMAGE"
-        uses: thollander/actions-comment-pull-request@24bffb9b452ba05a4f3f77933840a6a841d1b32b # v3.0.1
-        with:
-          message: "`${{ env.DOCKER_IMAGE }} ${{ env.DOCKER_REPO_DIGEST }}`."

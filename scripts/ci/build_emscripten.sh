@@ -54,13 +54,6 @@ function build() {
     # TODO: This can be removed if and when all usages of `move()` in our codebase use the `std::` qualifier.
     CMAKE_CXX_FLAGS="-Wno-unqualified-std-cast-call"
 
-    export CCACHE_DIR="${CCACHE_DIR:-$HOME/.ccache}"
-    CCACHE_BASEDIR="$(pwd)"
-    export CCACHE_BASEDIR
-    export CCACHE_NOHASHDIR=1
-    mkdir -p "$CCACHE_DIR"
-    ccache -z
-
     mkdir -p "$build_dir"
     cd "$build_dir"
     emcmake cmake \
@@ -71,7 +64,6 @@ function build() {
         -DTESTS=0 \
     ..
     make soljson
-    ccache -s
 
     cd ..
     mkdir -p upload

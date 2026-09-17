@@ -11,11 +11,10 @@ function warning
   echo >&2 "WARNING: ${1}"
 }
 
-[[ $# == 3 ]] || error "Expected exactly 3 parameters: '${0} <IMAGE_NAME> <IMAGE_VARIANT> <DOCKER_REPOSITORY>'."
+[[ $# == 2 ]] || error "Expected exactly 2 parameters: '${0} <IMAGE_NAME> <IMAGE_VARIANT>'."
 
 IMAGE_NAME="${1}"
 IMAGE_VARIANT="${2}"
-DOCKER_REPOSITORY="${3}"
 DOCKERFILE="scripts/docker/${IMAGE_NAME}/Dockerfile.${IMAGE_VARIANT}"
 
 echo "-- check_dockerfile_was_changed"
@@ -55,19 +54,6 @@ docker run \
   --rm \
   --volume "${PWD}:/project" \
   -u "$(id -u "${USER}"):$(id -g "${USER}")" \
-  -e CCACHE_DIR=/tmp/ccache \
   "${IMAGE_NAME}" \
   bash -c "/project/scripts/ci/${IMAGE_NAME}_test_${IMAGE_VARIANT}.sh"
 
-echo "-- push_docker"
-
-VERSION=$(docker inspect --format='{{.Config.Labels.version}}' "${IMAGE_NAME}")
-DOCKER_IMAGE_ID="${DOCKER_REPOSITORY}:${IMAGE_VARIANT}"
-
-docker tag "${IMAGE_NAME}" "${DOCKER_IMAGE_ID}-${VERSION}"
-docker push "${DOCKER_IMAGE_ID}-${VERSION}"
-
-REPO_DIGEST=$(docker inspect --format='{{.RepoDigests}}' "${DOCKER_IMAGE_ID}-${VERSION}")
-
-echo "DOCKER_IMAGE=${DOCKER_IMAGE_ID}-${VERSION}" >> "$GITHUB_ENV"
-echo "DOCKER_REPO_DIGEST=${REPO_DIGEST}" >> "$GITHUB_ENV"
