@@ -294,7 +294,7 @@ public:
 			return;
 
 		size_t maxStackDepth = 0;
-		for (const auto& [operation, stackAfter]: m_entries)
+		for (auto const& [operation, stackAfter]: m_entries)
 			maxStackDepth = std::max(maxStackDepth, stackAfter.size());
 
 		if (maxStackDepth == 0)
@@ -302,7 +302,7 @@ public:
 
 		std::size_t const numColumns = std::max(maxStackDepth, m_target.size());
 		std::vector columnWidths(numColumns, slotColumnWidth);
-		for (const auto& [operation, stackAfter]: m_entries)
+		for (auto const& [operation, stackAfter]: m_entries)
 			for (std::size_t i = 0; i < stackAfter.size(); ++i)
 				columnWidths[i] = std::max(columnWidths[i], render(stackAfter[i]).size() + 1);
 		for (std::size_t i = 0; i < m_target.size(); ++i)

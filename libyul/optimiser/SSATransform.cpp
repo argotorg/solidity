@@ -79,14 +79,14 @@ void IntroduceSSA::operator()(Block& _block)
 
 				// Replace "let a := v" by "let a_1 := v  let a := a_1"
 				// Replace "let a, b := v" by "let a_1, b_1 := v  let a := a_1 let b := b_2"
-				langutil::DebugData::ConstPtr debugData = varDecl.debugData;
+				langutil::DebugData::ConstPtr const debugData = varDecl.debugData;
 				std::vector<Statement> statements;
 				statements.emplace_back(VariableDeclaration{debugData, {}, std::move(varDecl.value)});
 				NameWithDebugDataList newVariables;
 				for (auto const& var: varDecl.variables)
 				{
-					YulName oldName = var.name;
-					YulName newName = m_nameDispenser.newName(oldName);
+					YulName const oldName = var.name;
+					YulName const newName = m_nameDispenser.newName(oldName);
 					newVariables.emplace_back(NameWithDebugData{debugData, newName});
 					statements.emplace_back(VariableDeclaration{
 						debugData,
@@ -106,14 +106,14 @@ void IntroduceSSA::operator()(Block& _block)
 
 				// Replace "a := v" by "let a_1 := v  a := v"
 				// Replace "a, b := v" by "let a_1, b_1 := v  a := a_1 b := b_2"
-				langutil::DebugData::ConstPtr debugData = assignment.debugData;
+				langutil::DebugData::ConstPtr const debugData = assignment.debugData;
 				std::vector<Statement> statements;
 				statements.emplace_back(VariableDeclaration{debugData, {}, std::move(assignment.value)});
 				NameWithDebugDataList newVariables;
 				for (auto const& var: assignment.variableNames)
 				{
-					YulName oldName = var.name;
-					YulName newName = m_nameDispenser.newName(oldName);
+					YulName const oldName = var.name;
+					YulName const newName = m_nameDispenser.newName(oldName);
 					newVariables.emplace_back(NameWithDebugData{debugData, newName});
 					statements.emplace_back(Assignment{
 						debugData,
@@ -216,9 +216,9 @@ void IntroduceControlFlowSSA::operator()(Block& _block)
 		[&](Statement& _s) -> std::optional<std::vector<Statement>>
 		{
 			std::vector<Statement> toPrepend;
-			for (YulName toReassign: m_variablesToReassign)
+			for (YulName const toReassign: m_variablesToReassign)
 			{
-				YulName newName = m_nameDispenser.newName(toReassign);
+				YulName const newName = m_nameDispenser.newName(toReassign);
 				toPrepend.emplace_back(VariableDeclaration{
 					debugDataOf(_s),
 					{NameWithDebugData{debugDataOf(_s), newName}},
@@ -230,7 +230,7 @@ void IntroduceControlFlowSSA::operator()(Block& _block)
 
 			if (std::holds_alternative<VariableDeclaration>(_s))
 			{
-				VariableDeclaration& varDecl = std::get<VariableDeclaration>(_s);
+				VariableDeclaration const& varDecl = std::get<VariableDeclaration>(_s);
 				for (auto const& var: varDecl.variables)
 					if (m_variablesToReplace.count(var.name))
 					{
@@ -240,7 +240,7 @@ void IntroduceControlFlowSSA::operator()(Block& _block)
 			}
 			else if (std::holds_alternative<Assignment>(_s))
 			{
-				Assignment& assignment = std::get<Assignment>(_s);
+				Assignment const& assignment = std::get<Assignment>(_s);
 				for (auto const& var: assignment.variableNames)
 					if (m_variablesToReplace.count(var.name))
 						assignedVariables.pushBack(var.name);
@@ -301,7 +301,7 @@ void PropagateValues::operator()(VariableDeclaration& _varDecl)
 	if (_varDecl.variables.size() != 1)
 		return;
 
-	YulName variable = _varDecl.variables.front().name;
+	YulName const variable = _varDecl.variables.front().name;
 	if (m_variablesToReplace.count(variable))
 	{
 		// `let a := a_1` - regular declaration of non-SSA variable
@@ -312,7 +312,7 @@ void PropagateValues::operator()(VariableDeclaration& _varDecl)
 	else if (_varDecl.value && std::holds_alternative<Identifier>(*_varDecl.value))
 	{
 		// `let a_1 := a` - assignment to SSA variable after a branch.
-		YulName value = std::get<Identifier>(*_varDecl.value).name;
+		YulName const value = std::get<Identifier>(*_varDecl.value).name;
 		if (m_variablesToReplace.count(value))
 		{
 			// This is safe because `a_1` is not a "variable to replace" and thus
@@ -330,7 +330,7 @@ void PropagateValues::operator()(Assignment& _assignment)
 
 	if (_assignment.variableNames.size() != 1)
 		return;
-	YulName name = _assignment.variableNames.front().name;
+	YulName const name = _assignment.variableNames.front().name;
 	if (!m_variablesToReplace.count(name))
 		return;
 
@@ -368,7 +368,7 @@ void PropagateValues::operator()(Block& _block)
 
 void SSATransform::run(OptimiserStepContext& _context, Block& _ast)
 {
-	std::set<YulName> assignedVariables = assignedVariableNames(_ast);
+	std::set<YulName> const assignedVariables = assignedVariableNames(_ast);
 	IntroduceSSA{_context.dispenser, assignedVariables}(_ast);
 	IntroduceControlFlowSSA{_context.dispenser, assignedVariables}(_ast);
 	PropagateValues{assignedVariables}(_ast);

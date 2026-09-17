@@ -102,7 +102,7 @@ void SMTLib2Interface::declareFunction(std::string const& _name, SortPointer con
 	{
 		auto const& fSort = std::dynamic_pointer_cast<FunctionSort>(_sort);
 		auto domain = toSmtLibSort(fSort->domain);
-		std::string codomain = toSmtLibSort(fSort->codomain);
+		std::string const codomain = toSmtLibSort(fSort->codomain);
 		m_context.declare(_name, _sort);
 		m_commands.declareFunction(_name, domain, codomain);
 	}
@@ -150,7 +150,7 @@ std::vector<std::string> parseValuesFromResponse(std::string const& _response)
 
 std::pair<CheckResult, std::vector<std::string>> SMTLib2Interface::check(std::vector<Expression> const& _expressionsToEvaluate)
 {
-	std::string response = querySolver(dumpQuery(_expressionsToEvaluate));
+	std::string const response = querySolver(dumpQuery(_expressionsToEvaluate));
 
 	CheckResult result;
 	// TODO proper parsing
@@ -215,7 +215,7 @@ std::string SMTLib2Interface::checkSatAndGetValuesCommand(std::vector<Expression
 
 std::string SMTLib2Interface::querySolver(std::string const& _input)
 {
-	h256 inputHash = keccak256(_input);
+	h256 const inputHash = keccak256(_input);
 	if (m_queryResponses.count(inputHash))
 		return m_queryResponses.at(inputHash);
 	if (m_smtCallback)

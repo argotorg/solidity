@@ -86,7 +86,7 @@ std::optional<ModelCheckerTargets> ModelCheckerTargets::fromString(std::string c
 	std::set<TargetType> chosenTargets;
 	if (_targets == "default" || _targets == "all")
 	{
-		bool all = _targets == "all";
+		bool const all = _targets == "all";
 		for (auto&& v: targetStrings | ranges::views::values)
 		{
 			if (!all && (v == TargetType::Underflow || v == TargetType::Overflow))

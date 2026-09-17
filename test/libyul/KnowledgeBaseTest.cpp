@@ -45,14 +45,14 @@ class KnowledgeBaseTest
 protected:
 	KnowledgeBase constructKnowledgeBase(std::string const& _source)
 	{
-		YulStack yulStack = parseYul(_source);
+		YulStack const yulStack = parseYul(_source);
 		solUnimplementedAssert(yulStack.parserResult()->subObjects.empty(), "Tests with subobjects not supported.");
 		soltestAssert(!yulStack.hasErrors());
 		m_object = yulStack.parserResult();
 
 		auto astRoot = std::get<Block>(yul::ASTCopier{}(m_object->code()->root()));
 		NameDispenser dispenser(*m_object->dialect(), astRoot);
-		std::set<YulName> reserved;
+		std::set<YulName> const reserved;
 		OptimiserStepContext context{*m_object->dialect(), dispenser, reserved, 0};
 		CommonSubexpressionEliminator::run(context, astRoot);
 

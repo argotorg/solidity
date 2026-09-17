@@ -73,11 +73,11 @@ void UnusedStoreBase<ActiveStoresKeyType>::operator()(Switch const& _switch)
 template<typename ActiveStoresKeyType>
 void UnusedStoreBase<ActiveStoresKeyType>::operator()(FunctionDefinition const& _functionDefinition)
 {
-	ScopedSaveAndRestore allStores(m_allStores, {});
-	ScopedSaveAndRestore usedStores(m_usedStores, {});
-	ScopedSaveAndRestore outerAssignments(m_activeStores, {});
-	ScopedSaveAndRestore forLoopInfo(m_forLoopInfo, {});
-	ScopedSaveAndRestore forLoopNestingDepth(m_forLoopNestingDepth, 0);
+	ScopedSaveAndRestore const allStores(m_allStores, {});
+	ScopedSaveAndRestore const usedStores(m_usedStores, {});
+	ScopedSaveAndRestore const outerAssignments(m_activeStores, {});
+	ScopedSaveAndRestore const forLoopInfo(m_forLoopInfo, {});
+	ScopedSaveAndRestore const forLoopNestingDepth(m_forLoopNestingDepth, 0);
 
 	(*this)(_functionDefinition.body);
 
@@ -88,8 +88,8 @@ void UnusedStoreBase<ActiveStoresKeyType>::operator()(FunctionDefinition const& 
 template<typename ActiveStoresKeyType>
 void UnusedStoreBase<ActiveStoresKeyType>::operator()(ForLoop const& _forLoop)
 {
-	ScopedSaveAndRestore outerForLoopInfo(m_forLoopInfo, {});
-	ScopedSaveAndRestore forLoopNestingDepth(m_forLoopNestingDepth, m_forLoopNestingDepth + 1);
+	ScopedSaveAndRestore const outerForLoopInfo(m_forLoopInfo, {});
+	ScopedSaveAndRestore const forLoopNestingDepth(m_forLoopNestingDepth, m_forLoopNestingDepth + 1);
 
 	// If the pre block was not empty,
 	// we would have to deal with more complicated scoping rules.

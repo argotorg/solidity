@@ -33,14 +33,14 @@ BOOST_AUTO_TEST_SUITE(WhiskersTest, *boost::unit_test::label("nooptions"))
 
 BOOST_AUTO_TEST_CASE(no_templates)
 {
-	std::string templ = "this text does not contain templates";
+	std::string const templ = "this text does not contain templates";
 	BOOST_CHECK_EQUAL(Whiskers(templ).render(), templ);
 }
 
 BOOST_AUTO_TEST_CASE(basic_replacement)
 {
-	std::string templ = "a <b> x <c> -> <d>.";
-	std::string result = Whiskers(templ)
+	std::string const templ = "a <b> x <c> -> <d>.";
+	std::string const result = Whiskers(templ)
 		("b", "BE")
 		("c", "CE")
 		("d", "DE")
@@ -50,21 +50,21 @@ BOOST_AUTO_TEST_CASE(basic_replacement)
 
 BOOST_AUTO_TEST_CASE(tag_unavailable)
 {
-	std::string templ = "<b>";
-	Whiskers m(templ);
+	std::string const templ = "<b>";
+	Whiskers const m(templ);
 	BOOST_CHECK_THROW(m.render(), WhiskersError);
 }
 
 BOOST_AUTO_TEST_CASE(list_unavailable)
 {
-	std::string templ = "<#b></b>";
-	Whiskers m(templ);
+	std::string const templ = "<#b></b>";
+	Whiskers const m(templ);
 	BOOST_CHECK_THROW(m.render(), WhiskersError);
 }
 
 BOOST_AUTO_TEST_CASE(name_type_collision)
 {
-	std::string templ = "<b><#b></b>";
+	std::string const templ = "<b><#b></b>";
 	Whiskers m(templ);
 	m("b", "x");
 	BOOST_CHECK_THROW(m("b", std::vector<std::map<std::string, std::string>>{}), WhiskersError);
@@ -72,14 +72,14 @@ BOOST_AUTO_TEST_CASE(name_type_collision)
 
 BOOST_AUTO_TEST_CASE(conditional)
 {
-	std::string templ = "<?b>X</b>";
+	std::string const templ = "<?b>X</b>";
 	BOOST_CHECK_EQUAL(Whiskers(templ)("b", true).render(), "X");
 	BOOST_CHECK_EQUAL(Whiskers(templ)("b", false).render(), "");
 }
 
 BOOST_AUTO_TEST_CASE(conditional_with_else)
 {
-	std::string templ = "<?b>X<!b>Y</b>";
+	std::string const templ = "<?b>X<!b>Y</b>";
 	BOOST_CHECK_EQUAL(Whiskers(templ)("b", true).render(), "X");
 	BOOST_CHECK_EQUAL(Whiskers(templ)("b", false).render(), "Y");
 }
@@ -119,7 +119,7 @@ BOOST_AUTO_TEST_CASE(broken_list_parameter)
 
 BOOST_AUTO_TEST_CASE(conditional_plus_params)
 {
-	std::string templ = " - <?b>_<r><!b>^<t></b> - ";
+	std::string const templ = " - <?b>_<r><!b>^<t></b> - ";
 	Whiskers m1(templ);
 	m1("b", true);
 	m1("r", "R");
@@ -135,7 +135,7 @@ BOOST_AUTO_TEST_CASE(conditional_plus_params)
 
 BOOST_AUTO_TEST_CASE(conditional_plus_list)
 {
-	std::string templ = " - <?b>_<#l><x></l><!b><#l><y></l></b> - ";
+	std::string const templ = " - <?b>_<#l><x></l><!b><#l><y></l></b> - ";
 	Whiskers m(templ);
 	m("b", false);
 	std::vector<std::map<std::string, std::string>> list(2);
@@ -149,21 +149,21 @@ BOOST_AUTO_TEST_CASE(conditional_plus_list)
 
 BOOST_AUTO_TEST_CASE(string_as_conditional)
 {
-	std::string templ = "<?+b>+<b><!+b>-</+b>";
+	std::string const templ = "<?+b>+<b><!+b>-</+b>";
 	BOOST_CHECK_EQUAL(Whiskers(templ)("b", "abc").render(), "+abc");
 	BOOST_CHECK_EQUAL(Whiskers(templ)("b", "").render(), "-");
 }
 
 BOOST_AUTO_TEST_CASE(string_as_conditional_wrong)
 {
-	std::string templ = "<?+b>+<b></b>";
+	std::string const templ = "<?+b>+<b></b>";
 	BOOST_CHECK_EQUAL(Whiskers(templ)("b", "abc").render(), "<?+b>+abc</b>");
 }
 
 BOOST_AUTO_TEST_CASE(complicated_replacement)
 {
-	std::string templ = "a <b> x <complicated> \n <nested>>.";
-	std::string result = Whiskers(templ)
+	std::string const templ = "a <b> x <complicated> \n <nested>>.";
+	std::string const result = Whiskers(templ)
 		("b", "BE")
 		("complicated", "CO<M>PL")
 		("nested", "NEST")
@@ -174,7 +174,7 @@ BOOST_AUTO_TEST_CASE(complicated_replacement)
 BOOST_AUTO_TEST_CASE(non_existing_list)
 {
 	std::string templ = "a <#b></b>";
-	Whiskers m(templ);
+	Whiskers const m(templ);
 	BOOST_CHECK_THROW(m.render(), WhiskersError);
 }
 
@@ -211,7 +211,7 @@ BOOST_AUTO_TEST_CASE(list_can_access_upper)
 {
 	std::string templ = "<#b>(<a>)</b>";
 	std::vector<std::map<std::string, std::string>> list(2);
-	Whiskers m(templ);
+	Whiskers const m(templ);
 	std::string result = m("a", "A")("b", list).render();
 	BOOST_CHECK_EQUAL(result, "(A)(A)");
 }
@@ -221,7 +221,7 @@ BOOST_AUTO_TEST_CASE(parameter_collision)
 	std::string templ = "a <#b></b>";
 	std::vector<std::map<std::string, std::string>> list(1);
 	list[0]["a"] = "x";
-	Whiskers m(templ);
+	Whiskers const m(templ);
 	BOOST_CHECK_THROW(m("a", "X")("b", list), WhiskersError);
 	BOOST_CHECK_THROW(m.render(), WhiskersError);
 }
@@ -229,14 +229,14 @@ BOOST_AUTO_TEST_CASE(parameter_collision)
 BOOST_AUTO_TEST_CASE(invalid_param)
 {
 	std::string templ = "a <b >";
-	Whiskers m(templ);
+	Whiskers const m(templ);
 	BOOST_CHECK_THROW(m("b ", "X"), WhiskersError);
 }
 
 BOOST_AUTO_TEST_CASE(invalid_param_rendered)
 {
 	std::string templ = "a <b >";
-	Whiskers m(templ);
+	Whiskers const m(templ);
 	BOOST_CHECK_EQUAL(m.render(), templ);
 }
 

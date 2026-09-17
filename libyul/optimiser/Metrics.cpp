@@ -184,7 +184,7 @@ void CodeCost::visit(Expression const& _expression)
 
 void CodeCost::addInstructionCost(evmasm::Instruction _instruction)
 {
-	evmasm::Tier gasPriceTier = evmasm::instructionInfo(_instruction, evmVersionFromDialect(m_dialect)).gasPriceTier;
+	evmasm::Tier const gasPriceTier = evmasm::instructionInfo(_instruction, evmVersionFromDialect(m_dialect)).gasPriceTier;
 	if (gasPriceTier < evmasm::Tier::VeryLow)
 		m_cost -= 1;
 	else if (gasPriceTier < evmasm::Tier::High)

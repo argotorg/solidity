@@ -157,8 +157,8 @@ void CodeTransform::operator()(VariableDeclaration const& _varDecl)
 	bool atTopOfStack = true;
 	for (size_t varIndex = 0; varIndex < numVariables; ++varIndex)
 	{
-		size_t varIndexReverse = numVariables - 1 - varIndex;
-		YulName varName = _varDecl.variables[varIndexReverse].name;
+		size_t const varIndexReverse = numVariables - 1 - varIndex;
+		YulName const varName = _varDecl.variables[varIndexReverse].name;
 		auto& var = std::get<Scope::Variable>(m_scope->identifiers.at(varName));
 		m_context->variableStackHeights[&var] = heightAtStart + varIndexReverse;
 		if (!m_allowStackOpt)
@@ -185,7 +185,7 @@ void CodeTransform::operator()(VariableDeclaration const& _varDecl)
 				auto slot = static_cast<size_t>(*it);
 				m_unusedStackSlots.erase(it);
 				m_context->variableStackHeights[&var] = slot;
-				if (size_t heightDiff = variableHeightDiff(var, varName, true))
+				if (size_t const heightDiff = variableHeightDiff(var, varName, true))
 					m_assembly.appendInstruction(evmasm::swapInstruction(static_cast<unsigned>(heightDiff - 1)));
 				m_assembly.appendInstruction(evmasm::Instruction::POP);
 				break;
@@ -211,7 +211,7 @@ void CodeTransform::stackError(StackTooDeepError _error, int _targetStackHeight)
 
 void CodeTransform::operator()(Assignment const& _assignment)
 {
-	int height = m_assembly.stackHeight();
+	int const height = m_assembly.stackHeight();
 	std::visit(*this, *_assignment.value);
 	expectDeposit(static_cast<int>(_assignment.variableNames.size()), height);
 
@@ -241,7 +241,7 @@ void CodeTransform::operator()(FunctionCall const& _call)
 	else
 	{
 		yulAssert(std::holds_alternative<Identifier>(_call.functionName));
-		AbstractAssembly::LabelID returnLabel = m_assembly.newLabelId();
+		AbstractAssembly::LabelID const returnLabel = m_assembly.newLabelId();
 		m_assembly.appendLabelReference(returnLabel);
 
 		Scope::Function* function = nullptr;
@@ -273,7 +273,7 @@ void CodeTransform::operator()(Identifier const& _identifier)
 		{
 			// TODO: opportunity for optimization: Do not DUP if this is the last reference
 			// to the top most element of the stack
-			if (size_t heightDiff = variableHeightDiff(_var, _identifier.name, false))
+			if (size_t const heightDiff = variableHeightDiff(_var, _identifier.name, false))
 				m_assembly.appendInstruction(evmasm::dupInstruction(static_cast<unsigned>(heightDiff)));
 			else
 				// Store something to balance the stack
@@ -306,7 +306,7 @@ void CodeTransform::operator()(If const& _if)
 	visitExpression(*_if.condition);
 	m_assembly.setSourceLocation(originLocationOf(_if));
 	m_assembly.appendInstruction(evmasm::Instruction::ISZERO);
-	AbstractAssembly::LabelID end = m_assembly.newLabelId();
+	AbstractAssembly::LabelID const end = m_assembly.newLabelId();
 	m_assembly.appendJumpToIf(end);
 	(*this)(_if.body);
 	m_assembly.setSourceLocation(originLocationOf(_if));
@@ -316,16 +316,16 @@ void CodeTransform::operator()(If const& _if)
 void CodeTransform::operator()(Switch const& _switch)
 {
 	visitExpression(*_switch.expression);
-	int expressionHeight = m_assembly.stackHeight();
+	int const expressionHeight = m_assembly.stackHeight();
 	std::map<Case const*, AbstractAssembly::LabelID> caseBodies;
-	AbstractAssembly::LabelID end = m_assembly.newLabelId();
+	AbstractAssembly::LabelID const end = m_assembly.newLabelId();
 	for (Case const& c: _switch.cases)
 	{
 		if (c.value)
 		{
 			(*this)(*c.value);
 			m_assembly.setSourceLocation(originLocationOf(c));
-			AbstractAssembly::LabelID bodyLabel = m_assembly.newLabelId();
+			AbstractAssembly::LabelID const bodyLabel = m_assembly.newLabelId();
 			caseBodies[&c] = bodyLabel;
 			yulAssert(m_assembly.stackHeight() == expressionHeight + 1, "");
 			m_assembly.appendInstruction(evmasm::dupInstruction(2));
@@ -362,7 +362,7 @@ void CodeTransform::operator()(FunctionDefinition const& _function)
 {
 	yulAssert(m_scope, "");
 	yulAssert(m_scope->identifiers.count(_function.name), "");
-	Scope::Function& function = std::get<Scope::Function>(m_scope->identifiers.at(_function.name));
+	Scope::Function const& function = std::get<Scope::Function>(m_scope->identifiers.at(_function.name));
 
 	size_t height = 1;
 	yulAssert(m_info.scopes.at(&_function.body), "");
@@ -503,7 +503,7 @@ void CodeTransform::operator()(ForLoop const& _forLoop)
 
 	visitStatements(_forLoop.pre.statements);
 
-	AbstractAssembly::LabelID loopStart = m_assembly.newLabelId();
+	AbstractAssembly::LabelID const loopStart = m_assembly.newLabelId();
 	AbstractAssembly::LabelID postPart = m_assembly.newLabelId();
 	AbstractAssembly::LabelID loopEnd = m_assembly.newLabelId();
 
@@ -579,22 +579,22 @@ void CodeTransform::operator()(Block const& _block)
 	int blockStartStackHeight = m_assembly.stackHeight();
 	visitStatements(_block.statements);
 
-	bool isOutermostFunctionBodyBlock = m_scope && m_scope->superScope && m_scope->superScope->functionScope;
-	bool performValidation = !m_allowStackOpt || !isOutermostFunctionBodyBlock;
+	bool const isOutermostFunctionBodyBlock = m_scope && m_scope->superScope && m_scope->superScope->functionScope;
+	bool const performValidation = !m_allowStackOpt || !isOutermostFunctionBodyBlock;
 	finalizeBlock(_block, performValidation ? std::make_optional(blockStartStackHeight) : std::nullopt);
 	m_scope = originalScope;
 }
 
 void CodeTransform::createFunctionEntryID(FunctionDefinition const& _function)
 {
-	Scope::Function& scopeFunction = std::get<Scope::Function>(m_scope->identifiers.at(_function.name));
+	Scope::Function const& scopeFunction = std::get<Scope::Function>(m_scope->identifiers.at(_function.name));
 	yulAssert(!m_context->functionEntryIDs.count(&scopeFunction), "");
 
 	std::optional<size_t> astID;
 	if (_function.debugData)
 		astID = _function.debugData->astID;
 
-	bool nameAlreadySeen = !m_assignedNamedLabels.insert(_function.name).second;
+	bool const nameAlreadySeen = !m_assignedNamedLabels.insert(_function.name).second;
 
 	if (m_useNamedLabelsForFunctions == UseNamedLabels::YesAndForceUnique)
 		yulAssert(!nameAlreadySeen);
@@ -621,7 +621,7 @@ AbstractAssembly::LabelID CodeTransform::functionEntryID(Scope::Function const& 
 
 void CodeTransform::visitExpression(Expression const& _expression)
 {
-	int height = m_assembly.stackHeight();
+	int const height = m_assembly.stackHeight();
 	std::visit(*this, _expression);
 	expectDeposit(1, height);
 }
@@ -632,7 +632,7 @@ void CodeTransform::setupReturnVariablesAndFunctionExit()
 	yulAssert(!returnVariablesAndFunctionExitAreSetup(), "");
 	yulAssert(m_scope, "");
 
-	ScopeGuard scopeGuard([oldScope = m_scope, this] { m_scope = oldScope; });
+	ScopeGuard const scopeGuard([oldScope = m_scope, this] { m_scope = oldScope; });
 	if (!m_scope->functionScope)
 	{
 		yulAssert(m_scope->superScope && m_scope->superScope->functionScope, "");
@@ -741,7 +741,7 @@ void CodeTransform::finalizeBlock(Block const& _block, std::optional<int> blockS
 
 	if (blockStartStackHeight)
 	{
-		int deposit = m_assembly.stackHeight() - *blockStartStackHeight;
+		int const deposit = m_assembly.stackHeight() - *blockStartStackHeight;
 		yulAssert(deposit == 0, "Invalid stack height at end of block: " + std::to_string(deposit));
 	}
 }
@@ -759,7 +759,7 @@ void CodeTransform::generateAssignment(Identifier const& _variableName)
 	if (auto var = m_scope->lookup(_variableName.name))
 	{
 		Scope::Variable const& _var = std::get<Scope::Variable>(*var);
-		if (size_t heightDiff = variableHeightDiff(_var, _variableName.name, true))
+		if (size_t const heightDiff = variableHeightDiff(_var, _variableName.name, true))
 			m_assembly.appendInstruction(evmasm::swapInstruction(static_cast<unsigned>(heightDiff - 1)));
 		m_assembly.appendInstruction(evmasm::Instruction::POP);
 		decreaseReference(_variableName.name, _var);
@@ -777,9 +777,9 @@ void CodeTransform::generateAssignment(Identifier const& _variableName)
 size_t CodeTransform::variableHeightDiff(Scope::Variable const& _var, YulName _varName, bool _forSwap)
 {
 	yulAssert(m_context->variableStackHeights.count(&_var), "");
-	size_t heightDiff = static_cast<size_t>(m_assembly.stackHeight()) - m_context->variableStackHeights[&_var];
+	size_t const heightDiff = static_cast<size_t>(m_assembly.stackHeight()) - m_context->variableStackHeights[&_var];
 	yulAssert(heightDiff > (_forSwap ? 1 : 0), "Negative stack difference for variable.");
-	size_t limit = m_dialect.reachableStackDepth() + (_forSwap ? 1 : 0);
+	size_t const limit = m_dialect.reachableStackDepth() + (_forSwap ? 1 : 0);
 	if (heightDiff > limit)
 	{
 		m_stackErrors.emplace_back(

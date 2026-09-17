@@ -34,25 +34,25 @@ using namespace solidity;
 using namespace solidity::langutil;
 using namespace solidity::util;
 
-DebugInfoSelection const DebugInfoSelection::All(bool _value) noexcept
+DebugInfoSelection DebugInfoSelection::All(bool _value) noexcept
 {
 	DebugInfoSelection result;
-	for (bool DebugInfoSelection::* member: componentMap() | ranges::views::values)
+	for (bool DebugInfoSelection::* const member: componentMap() | ranges::views::values)
 		result.*member = _value;
 	return result;
 }
 
-DebugInfoSelection const DebugInfoSelection::Only(bool DebugInfoSelection::* _member) noexcept
+DebugInfoSelection DebugInfoSelection::Only(bool DebugInfoSelection::* _member) noexcept
 {
 	DebugInfoSelection result{};
 	result.*_member = true;
 	return result;
 }
 
-DebugInfoSelection const DebugInfoSelection::AllExcept(std::vector<bool DebugInfoSelection::*> const& _members) noexcept
+DebugInfoSelection DebugInfoSelection::AllExcept(std::vector<bool DebugInfoSelection::*> const& _members) noexcept
 {
 	DebugInfoSelection result = All();
-	for (bool DebugInfoSelection::* member: _members)
+	for (bool DebugInfoSelection::* const member: _members)
 		result.*member = false;
 	return result;
 }
@@ -103,7 +103,7 @@ bool DebugInfoSelection::enable(std::string const& _component)
 
 bool DebugInfoSelection::any() const noexcept
 {
-	for (bool DebugInfoSelection::* member: componentMap() | ranges::views::values)
+	for (bool DebugInfoSelection::* const member: componentMap() | ranges::views::values)
 		if (this->*member)
 			return true;
 
@@ -112,7 +112,7 @@ bool DebugInfoSelection::any() const noexcept
 
 bool DebugInfoSelection::all() const noexcept
 {
-	for (bool DebugInfoSelection::* member: componentMap() | ranges::views::values)
+	for (bool DebugInfoSelection::* const member: componentMap() | ranges::views::values)
 		if (!(this->*member))
 			return false;
 
@@ -121,14 +121,14 @@ bool DebugInfoSelection::all() const noexcept
 
 DebugInfoSelection& DebugInfoSelection::operator&=(DebugInfoSelection const& _other)
 {
-	for (bool DebugInfoSelection::* member: componentMap() | ranges::views::values)
+	for (bool DebugInfoSelection::* const member: componentMap() | ranges::views::values)
 		this->*member &= _other.*member;
 	return *this;
 }
 
 DebugInfoSelection& DebugInfoSelection::operator|=(DebugInfoSelection const& _other)
 {
-	for (bool DebugInfoSelection::* member: componentMap() | ranges::views::values)
+	for (bool DebugInfoSelection::* const member: componentMap() | ranges::views::values)
 		this->*member |= _other.*member;
 	return *this;
 }
@@ -147,7 +147,7 @@ DebugInfoSelection DebugInfoSelection::operator|(DebugInfoSelection _other) cons
 
 bool DebugInfoSelection::operator==(DebugInfoSelection const& _other) const noexcept
 {
-	for (bool DebugInfoSelection::* member: componentMap() | ranges::views::values)
+	for (bool DebugInfoSelection::* const member: componentMap() | ranges::views::values)
 		if (this->*member != _other.*member)
 			return false;
 	return true;

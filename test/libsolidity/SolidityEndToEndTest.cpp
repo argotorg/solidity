@@ -89,7 +89,7 @@ BOOST_FIXTURE_TEST_SUITE(SolidityEndToEndTest, SolidityEndToEndTestExecutionFram
 
 BOOST_AUTO_TEST_CASE(creation_code_optimizer)
 {
-	std::string codeC = R"(
+	std::string const codeC = R"(
 		contract C {
 			constructor(uint x) {
 			if (x == 0xFFFFFFFFFFFFFFFF42)
@@ -97,7 +97,7 @@ BOOST_AUTO_TEST_CASE(creation_code_optimizer)
 			}
 		}
 	)";
-	std::string codeD = R"(
+	std::string const codeD = R"(
 		contract D {
 			function f() public pure returns (bytes memory) {
 				return type(C).creationCode;
@@ -667,8 +667,8 @@ BOOST_AUTO_TEST_CASE(high_bits_cleaning)
 	compileAndRun(sourceCode);
 	auto high_bits_cleaning_cpp = []() -> u256
 	{
-		uint32_t t = uint32_t(0xffffffff);
-		uint32_t x = t + 10;
+		uint32_t const t = uint32_t(0xffffffff);
+		uint32_t const x = t + 10;
 		if (x >= 0xffffffff)
 			return 0;
 		return x;
@@ -692,7 +692,7 @@ BOOST_AUTO_TEST_CASE(sign_extension)
 	compileAndRun(sourceCode);
 	auto sign_extension_cpp = []() -> u256
 	{
-		int64_t x = -int32_t(0xff);
+		int64_t const x = -int32_t(0xff);
 		if (x >= 0xff)
 			return 0;
 		return u256(x) * -1;
@@ -716,8 +716,8 @@ BOOST_AUTO_TEST_CASE(small_unsigned_types)
 	compileAndRun(sourceCode);
 	auto small_unsigned_types_cpp = []() -> u256
 	{
-		uint32_t t = uint32_t(0xffffff);
-		uint32_t x = t * 0xffffff;
+		uint32_t const t = uint32_t(0xffffff);
+		uint32_t const x = t * 0xffffff;
 		return x / 0x100;
 	};
 	testContractAgainstCpp("run()", small_unsigned_types_cpp);

@@ -39,12 +39,12 @@ namespace solidity::langutil
  */
 struct DebugInfoSelection
 {
-	static DebugInfoSelection const All(bool _value = true) noexcept;
-	static DebugInfoSelection const None() noexcept { return All(false); }
-	static DebugInfoSelection const Only(bool DebugInfoSelection::* _member) noexcept;
-	static DebugInfoSelection const Default() noexcept { return AllExceptExperimental(); }
-	static DebugInfoSelection const AllExcept(std::vector<bool DebugInfoSelection::*> const& _members) noexcept;
-	static DebugInfoSelection const AllExceptExperimental() noexcept { return AllExcept({&DebugInfoSelection::ethdebug}); }
+	static DebugInfoSelection All(bool _value = true) noexcept;
+	static DebugInfoSelection None() noexcept { return All(false); }
+	static DebugInfoSelection Only(bool DebugInfoSelection::* _member) noexcept;
+	static DebugInfoSelection Default() noexcept { return AllExceptExperimental(); }
+	static DebugInfoSelection AllExcept(std::vector<bool DebugInfoSelection::*> const& _members) noexcept;
+	static DebugInfoSelection AllExceptExperimental() noexcept { return AllExcept({&DebugInfoSelection::ethdebug}); }
 
 	static std::optional<DebugInfoSelection> fromString(std::string_view _input);
 	static std::optional<DebugInfoSelection> fromComponents(

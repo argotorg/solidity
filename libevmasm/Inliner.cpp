@@ -114,7 +114,7 @@ std::map<size_t, Inliner::InlinableBlock> Inliner::determineInlinableBlocks(Asse
 		// Using breaksCSEAnalysisBlock will hopefully allow the return jump to be optimized after inlining.
 		if (lastTag && SemanticInformation::breaksCSEAnalysisBlock(item, false))
 		{
-			ranges::span<AssemblyItem const> block = _items | ranges::views::slice(*lastTag + 1, index + 1);
+			ranges::span<AssemblyItem const> const block = _items | ranges::views::slice(*lastTag + 1, index + 1);
 			if (std::optional<size_t> tag = getLocalTag(_items[*lastTag]))
 				if (isInlineCandidate(*tag, block))
 					inlinableBlockItems[*tag] = block;
@@ -139,12 +139,12 @@ std::map<size_t, Inliner::InlinableBlock> Inliner::determineInlinableBlocks(Asse
 bool Inliner::shouldInlineFullFunctionBody(size_t _tag, ranges::span<AssemblyItem const> _block, uint64_t _pushTagCount) const
 {
 	// Accumulate size of the inline candidate block in bytes (without the return jump).
-	uint64_t functionBodySize = codeSize(ranges::views::drop_last(_block, 1), m_evmVersion);
+	uint64_t const functionBodySize = codeSize(ranges::views::drop_last(_block, 1), m_evmVersion);
 
 	// Use the number of push tags as approximation of the average number of calls to the function per run.
-	uint64_t numberOfCalls = _pushTagCount;
+	uint64_t const numberOfCalls = _pushTagCount;
 	// Also use the number of push tags as approximation of the number of call sites to the function.
-	uint64_t numberOfCallSites = _pushTagCount;
+	uint64_t const numberOfCallSites = _pushTagCount;
 
 	static AssemblyItems const uninlinedCallSitePattern = {
 		AssemblyItem{PushTag},
@@ -161,12 +161,12 @@ bool Inliner::shouldInlineFullFunctionBody(size_t _tag, ranges::span<AssemblyIte
 	// Both the call site and jump site pattern is executed for each call.
 	// Since the function body has to be executed equally often both with and without inlining,
 	// it can be ignored.
-	bigint uninlinedExecutionCost = numberOfCalls * (
+	bigint const uninlinedExecutionCost = numberOfCalls * (
 		executionCost(uninlinedCallSitePattern, m_evmVersion) +
 		executionCost(uninlinedFunctionPattern, m_evmVersion)
 	);
 	// Each call site deposits the call site pattern, whereas the jump site pattern and the function itself are deposited once.
-	bigint uninlinedDepositCost = GasMeter::dataGas(
+	bigint const uninlinedDepositCost = GasMeter::dataGas(
 		numberOfCallSites * codeSize(uninlinedCallSitePattern, m_evmVersion) +
 		codeSize(uninlinedFunctionPattern, m_evmVersion) +
 		functionBodySize,

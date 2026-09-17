@@ -160,7 +160,7 @@ bool Scanner::scanHexByte(char& o_scannedByte)
 	char x = 0;
 	for (size_t i = 0; i < 2; i++)
 	{
-		int d = hexValue(m_char);
+		int const d = hexValue(m_char);
 		if (d < 0)
 		{
 			rollback(i);
@@ -178,7 +178,7 @@ std::optional<unsigned> Scanner::scanUnicode()
 	unsigned x = 0;
 	for (size_t i = 0; i < 4; i++)
 	{
-		int d = hexValue(m_char);
+		int const d = hexValue(m_char);
 		if (d < 0)
 		{
 			rollback(i);
@@ -282,7 +282,7 @@ static ScannerError validateBiDiMarkup(CharStream& _stream, size_t _startPositio
 		std::pair<std::string_view, int>{"\xE2\x80\xAC", -1} // U+202C (PDF - Pop Directional Formatting
 	};
 
-	size_t endPosition = _stream.position();
+	size_t const endPosition = _stream.position();
 	_stream.setPosition(_startPosition);
 
 	int directionOverrideDepth = 0;
@@ -310,12 +310,12 @@ Token Scanner::skipSingleLineComment()
 {
 	// Line terminator is not part of the comment. If it is a
 	// non-ascii line terminator, it will result in a parser error.
-	size_t startPosition = m_source.position();
+	size_t const startPosition = m_source.position();
 	while (!isUnicodeLinebreak())
 		if (!advance())
 			break;
 
-	ScannerError unicodeDirectionError = validateBiDiMarkup(m_source, startPosition);
+	ScannerError const unicodeDirectionError = validateBiDiMarkup(m_source, startPosition);
 	if (unicodeDirectionError != ScannerError::NoError)
 		return setError(unicodeDirectionError);
 
@@ -390,10 +390,10 @@ size_t Scanner::scanSingleLineDocComment()
 
 Token Scanner::skipMultiLineComment()
 {
-	size_t startPosition = m_source.position();
+	size_t const startPosition = m_source.position();
 	while (!isSourcePastEndOfInput())
 	{
-		char prevChar = m_char;
+		char const prevChar = m_char;
 		advance();
 
 		// If we have reached the end of the multi-line comment, we
@@ -401,7 +401,7 @@ Token Scanner::skipMultiLineComment()
 		// multi-line comments are treated as whitespace.
 		if (prevChar == '*' && m_char == '/')
 		{
-			ScannerError unicodeDirectionError = validateBiDiMarkup(m_source, startPosition);
+			ScannerError const unicodeDirectionError = validateBiDiMarkup(m_source, startPosition);
 			if (unicodeDirectionError != ScannerError::NoError)
 				return setError(unicodeDirectionError);
 
@@ -470,7 +470,7 @@ Token Scanner::scanMultiLineDocComment()
 
 Token Scanner::scanSlash()
 {
-	int firstSlashPosition = static_cast<int>(sourcePos());
+	int const firstSlashPosition = static_cast<int>(sourcePos());
 	advance();
 	if (m_char == '/')
 	{
@@ -515,7 +515,7 @@ Token Scanner::scanSlash()
 			// we actually have a multiline documentation comment
 			m_skippedComments[NextNext].location.start = firstSlashPosition;
 			m_skippedComments[NextNext].location.sourceName = m_sourceName;
-			Token comment = scanMultiLineDocComment();
+			Token const comment = scanMultiLineDocComment();
 			m_skippedComments[NextNext].location.end = static_cast<int>(sourcePos());
 			m_skippedComments[NextNext].token = comment;
 			if (comment == Token::Illegal)
@@ -822,14 +822,14 @@ bool Scanner::isUnicodeLinebreak()
 
 Token Scanner::scanString(bool const _isUnicode)
 {
-	size_t startPosition = m_source.position();
+	size_t const startPosition = m_source.position();
 	char const quote = m_char;
 	advance();  // consume quote
 	LiteralScope literal(this, LITERAL_TYPE_STRING);
 	// for source location comments we allow multiline string literals
 	while (m_char != quote && !isSourcePastEndOfInput() && (!isUnicodeLinebreak() || m_kind == ScannerKind::SpecialComment))
 	{
-		char c = m_char;
+		char const c = m_char;
 		advance();
 
 		if (m_kind == ScannerKind::SpecialComment)
@@ -874,7 +874,7 @@ Token Scanner::scanString(bool const _isUnicode)
 
 	if (_isUnicode)
 	{
-		ScannerError unicodeDirectionError = validateBiDiMarkup(m_source, startPosition);
+		ScannerError const unicodeDirectionError = validateBiDiMarkup(m_source, startPosition);
 		if (unicodeDirectionError != ScannerError::NoError)
 			return setError(unicodeDirectionError);
 	}

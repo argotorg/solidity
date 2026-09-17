@@ -124,7 +124,7 @@ void Whiskers::checkTemplateContainsTags(std::string const& _parameter, std::vec
 {
 	for (auto const& prefix: _prefixes)
 	{
-		std::string tag{"<" + prefix + _parameter + ">"};
+		std::string const tag{"<" + prefix + _parameter + ">"};
 		assertThrow(
 			m_template.find(tag) != std::string::npos,
 			WhiskersError,
@@ -144,7 +144,7 @@ std::string regex_replace(
 )
 {
 	std::sregex_iterator curMatch(_source.begin(), _source.end(), _pattern, _flags);
-	std::sregex_iterator matchEnd;
+	std::sregex_iterator const matchEnd;
 	std::string::const_iterator lastMatchedPos(_source.cbegin());
 	std::string result;
 	while (curMatch != matchEnd)
@@ -166,7 +166,7 @@ std::string Whiskers::replace(
 	std::map<std::string, std::vector<StringMap>> const& _listParameters
 )
 {
-	static std::regex listOrTag(
+	static std::regex const listOrTag(
 		"<(" + paramRegex() + ")>|"
 		"<#(" + paramRegex() + ")>((?:.|\\r|\\n)*?)</\\2>|"
 		"<\\?(\\+?" + paramRegex() + ")>((?:.|\\r|\\n)*?)(<!\\4>((?:.|\\r|\\n)*?))?</\\4>",
@@ -174,8 +174,8 @@ std::string Whiskers::replace(
 	);
 	return regex_replace(_template, listOrTag, [&](std::match_results<std::string::const_iterator> _match) -> std::string
 	{
-		std::string tagName(_match[1]);
-		std::string listName(_match[2]);
+		std::string const tagName(_match[1]);
+		std::string const listName(_match[2]);
 		std::string conditionName(_match[4]);
 		if (!tagName.empty())
 		{
@@ -190,7 +190,7 @@ std::string Whiskers::replace(
 		}
 		else if (!listName.empty())
 		{
-			std::string templ(_match[3]);
+			std::string const templ(_match[3]);
 			assertThrow(
 				_listParameters.count(listName),
 				WhiskersError, "List parameter " + listName + " not set."
@@ -206,7 +206,7 @@ std::string Whiskers::replace(
 			bool conditionValue = false;
 			if (conditionName[0] == '+')
 			{
-				std::string tag = conditionName.substr(1);
+				std::string const tag = conditionName.substr(1);
 
 				if (_parameters.count(tag))
 					conditionValue = !_parameters.at(tag).empty();

@@ -56,7 +56,7 @@ public:
 		auto state = std::make_shared<KnownState>();
 		PathGasMeter meter(*m_compiler.assemblyItems(m_compiler.lastContractName()), solidity::test::CommonOptions::get().evmVersion());
 		GasMeter::GasConsumption gas = meter.estimateMax(0, state);
-		u256 bytecodeSize(m_compiler.runtimeObject(m_compiler.lastContractName()).bytecode.size());
+		u256 const bytecodeSize(m_compiler.runtimeObject(m_compiler.lastContractName()).bytecode.size());
 		// costs for deployment
 		gas += bytecodeSize * GasCosts::createDataGas;
 		// costs for transaction
@@ -73,7 +73,7 @@ public:
 	{
 		u256 gasUsed = 0;
 		GasMeter::GasConsumption gas;
-		util::FixedHash<4> hash = util::selectorFromSignatureH32(_sig);
+		util::FixedHash<4> const hash = util::selectorFromSignatureH32(_sig);
 		for (bytes const& arguments: _argumentVariants)
 		{
 			sendMessage(hash.asBytes(), arguments, false, 0);

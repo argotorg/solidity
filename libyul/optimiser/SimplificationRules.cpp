@@ -146,7 +146,7 @@ bool Pattern::matches(
 	// Do not do it for "Any" because we can check identity better for variables.
 	if (m_kind != PatternKind::Any && std::holds_alternative<Identifier>(_expr))
 	{
-		YulName varName = std::get<Identifier>(_expr).name;
+		YulName const varName = std::get<Identifier>(_expr).name;
 		if (AssignedValue const* value = _ssaValues(varName))
 			if (Expression const* new_expr = value->value)
 				expr = new_expr;
@@ -251,7 +251,7 @@ Expression Pattern::toExpression(langutil::DebugData::ConstPtr const& _debugData
 
 		if (!m_instructionBuiltinHandle)
 		{
-			std::string name = util::toLower(instructionInfo(m_instruction, _dialect.evmVersion()).name);
+			std::string const name = util::toLower(instructionInfo(m_instruction, _dialect.evmVersion()).name);
 			std::optional<BuiltinHandle> handle = _dialect.findBuiltin(name);
 			yulAssert(handle);
 			m_instructionBuiltinHandle = *handle;

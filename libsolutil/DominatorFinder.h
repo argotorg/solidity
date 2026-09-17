@@ -83,7 +83,7 @@ public:
 		return m_immediateDominators
 			| ranges::views::enumerate
 			| ranges::views::transform([&](auto const& _v) {
-				std::optional<VId> idomId = (_v.second.has_value()) ? std::optional<VId>(m_verticesInDFSOrder[_v.second.value()]) : std::nullopt;
+				std::optional<VId> const idomId = (_v.second.has_value()) ? std::optional<VId>(m_verticesInDFSOrder[_v.second.value()]) : std::nullopt;
 				return std::make_pair(m_verticesInDFSOrder[_v.first], idomId);
 			})
 			| ranges::to<std::map<VId, std::optional<VId>>>;
@@ -105,8 +105,8 @@ public:
 		solAssert(!m_immediateDominators.empty());
 
 		solAssert(m_dfsIndexByVertexId.count(_dominatorId) && m_dfsIndexByVertexId.count(_dominatedId));
-		DfsIndex dominatorIdx = m_dfsIndexByVertexId.at(_dominatorId);
-		DfsIndex dominatedIdx = m_dfsIndexByVertexId.at(_dominatedId);
+		DfsIndex const dominatorIdx = m_dfsIndexByVertexId.at(_dominatorId);
+		DfsIndex const dominatedIdx = m_dfsIndexByVertexId.at(_dominatedId);
 
 		if (dominatorIdx == dominatedIdx)
 			return true;
@@ -219,7 +219,7 @@ private:
 		m_predecessors.emplace_back();
 		dfs(_entry, dfs);
 
-		size_t numVertices = visited.size();
+		size_t const numVertices = visited.size();
 		solAssert(nextUnusedDFSIndex == numVertices);
 		solAssert(m_verticesInDFSOrder.size() == numVertices);
 		solAssert(visited.size() == numVertices);
@@ -288,7 +288,7 @@ private:
 			// Inverting those steps ensures that a bucket is only processed once and
 			// it does not need to be erased.
 			// The optimization proposal is available here: https://jgaa.info/index.php/jgaa/article/view/paper119/2847 pg.77
-			for (DfsIndex vIdx: bucket[wIdx])
+			for (DfsIndex const vIdx: bucket[wIdx])
 			{
 				DfsIndex uIdx = eval(vIdx);
 				solAssert(uIdx <= vIdx);
@@ -296,9 +296,9 @@ private:
 			}
 
 			// step 2
-			for (DfsIndex vIdx: m_predecessors[wIdx])
+			for (DfsIndex const vIdx: m_predecessors[wIdx])
 			{
-				DfsIndex uIdx = eval(vIdx);
+				DfsIndex const uIdx = eval(vIdx);
 				solAssert(uIdx <= vIdx);
 				if (semi[uIdx] < semi[wIdx])
 					semi[wIdx] = semi[uIdx];
@@ -313,7 +313,7 @@ private:
 		// Compute idom in DFS order
 		// The entry vertex does not have an immediate dominator.
 		solAssert(idom[0] == std::nullopt);
-		for (DfsIndex wIdx: m_verticesInDFSOrder | ranges::views::drop(1) | ranges::views::transform(toDfsIndex))
+		for (DfsIndex const wIdx: m_verticesInDFSOrder | ranges::views::drop(1) | ranges::views::transform(toDfsIndex))
 		{
 			// All the other vertices must have an immediate dominator.
 			solAssert(idom[wIdx].has_value());
@@ -359,17 +359,17 @@ private:
 		// Ignoring the entry node since no one dominates it.
 		for (DfsIndex dominatedIdx = 1; dominatedIdx < m_verticesInDFSOrder.size(); ++dominatedIdx)
 		{
-			VId dominatedId = m_verticesInDFSOrder[dominatedIdx];
+			VId const dominatedId = m_verticesInDFSOrder[dominatedIdx];
 			solAssert(m_dfsIndexByVertexId.count(dominatedId));
 			solAssert(dominatedIdx == m_dfsIndexByVertexId.at(dominatedId));
 
 			// If the vertex does not have an immediate dominator, it is the entry vertex (i.e. index 0).
 			// NOTE: `dominatedIdx` will never be 0 since the loop starts from 1.
 			solAssert(m_immediateDominators[dominatedIdx].has_value());
-			DfsIndex dominatorIdx = m_immediateDominators[dominatedIdx].value();
+			DfsIndex const dominatorIdx = m_immediateDominators[dominatedIdx].value();
 
 			solAssert(dominatorIdx < dominatedIdx);
-			VId dominatorId = m_verticesInDFSOrder[dominatorIdx];
+			VId const dominatorId = m_verticesInDFSOrder[dominatorIdx];
 			m_dominatorTree[dominatorId].emplace_back(dominatedId);
 		}
 	}

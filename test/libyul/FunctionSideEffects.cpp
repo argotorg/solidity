@@ -92,7 +92,7 @@ TestCase::TestResult FunctionSideEffects::run(std::ostream& _stream, std::string
 		return TestResult::FatalError;
 	}
 
-	std::map<FunctionHandle, SideEffects> functionSideEffects = SideEffectsPropagator::sideEffects(
+	std::map<FunctionHandle, SideEffects> const functionSideEffects = SideEffectsPropagator::sideEffects(
 		yulStack.dialect(),
 		CallGraphGenerator::callGraph(yulStack.parserResult()->code()->root())
 	);

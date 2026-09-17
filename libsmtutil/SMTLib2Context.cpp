@@ -220,7 +220,7 @@ std::string SMTLib2Context::toSExpr(Expression const& _expr)
 	std::string sexpr = "(";
 	if (_expr.name == "int2bv")
 	{
-		size_t size = std::stoul(_expr.arguments[1].name);
+		size_t const size = std::stoul(_expr.arguments[1].name);
 		auto arg = toSExpr(_expr.arguments.front());
 		auto int2bv = "(_ int2bv " + std::to_string(size) + ")";
 		// Some solvers treat all BVs as unsigned, so we need to manually apply 2's complement if needed.
@@ -265,7 +265,7 @@ std::string SMTLib2Context::toSExpr(Expression const& _expr)
 	{
 		smtAssert(_expr.arguments.size() == 2, "");
 		auto tupleSort = std::dynamic_pointer_cast<TupleSort>(_expr.arguments.at(0).sort);
-		size_t index = std::stoul(_expr.arguments.at(1).name);
+		size_t const index = std::stoul(_expr.arguments.at(1).name);
 		smtAssert(index < tupleSort->members.size(), "");
 		sexpr += "|" + tupleSort->members.at(index) + "| " + toSExpr(_expr.arguments.at(0));
 	}

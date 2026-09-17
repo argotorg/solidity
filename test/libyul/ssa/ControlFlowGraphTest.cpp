@@ -63,7 +63,7 @@ ControlFlowGraphTest::ControlFlowGraphTest(std::string const& _filename): TestCa
 
 TestCase::TestResult ControlFlowGraphTest::run(std::ostream& _stream, std::string const& _linePrefix, bool const _formatted)
 {
-	YulStack yulStack = parseYul(m_source);
+	YulStack const yulStack = parseYul(m_source);
 	solUnimplementedAssert(yulStack.parserResult()->subObjects.empty(), "Tests with subobjects not supported.");
 
 	if (yulStack.hasErrors())
@@ -82,7 +82,7 @@ TestCase::TestResult ControlFlowGraphTest::run(std::ostream& _stream, std::strin
 		true
 	);
 	yul::ssa::transform::optimize(*controlFlowGraphs);
-	yul::ssa::ControlFlowGraphsLiveness liveness(*controlFlowGraphs);
+	yul::ssa::ControlFlowGraphsLiveness const liveness(*controlFlowGraphs);
 	m_obtainedResult = controlFlowGraphs->toDot(&liveness);
 
 	auto result = checkResult(_stream, _linePrefix, _formatted);

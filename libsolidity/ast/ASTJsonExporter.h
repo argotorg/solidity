@@ -181,7 +181,7 @@ private:
 			std::sort(tmp.begin(), tmp.end());
 
 		Json json = Json::array();
-		for (int64_t val: tmp)
+		for (int64_t const val: tmp)
 			json.emplace_back(val);
 		return json;
 	}

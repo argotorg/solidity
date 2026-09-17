@@ -56,7 +56,7 @@ bool containsError(Json const& _compilerResult, std::string const& _type, std::s
 Json compile(std::string const& _input, CStyleReadFileCallback _callback = nullptr)
 {
 	char* output_ptr = solidity_compile(_input.c_str(), _callback, nullptr);
-	std::string output(output_ptr);
+	std::string const output(output_ptr);
 	solidity_free(output_ptr);
 	solidity_reset();
 	Json ret;
@@ -78,13 +78,13 @@ BOOST_AUTO_TEST_SUITE(LibSolc)
 
 BOOST_AUTO_TEST_CASE(read_version)
 {
-	std::string output(solidity_version());
+	std::string const output(solidity_version());
 	BOOST_CHECK(output.find(VersionString) == 0);
 }
 
 BOOST_AUTO_TEST_CASE(read_license)
 {
-	std::string output(solidity_license());
+	std::string const output(solidity_license());
 	BOOST_CHECK(output.find("GNU GENERAL PUBLIC LICENSE") != std::string::npos);
 }
 
@@ -100,7 +100,7 @@ BOOST_AUTO_TEST_CASE(standard_compilation)
 		}
 	}
 	)";
-	Json result = compile(input);
+	Json const result = compile(input);
 	BOOST_REQUIRE(result.is_object());
 
 	// Only tests some assumptions. The StandardCompiler is tested properly in another suite.
@@ -122,7 +122,7 @@ BOOST_AUTO_TEST_CASE(missing_callback)
 		}
 	}
 	)";
-	Json result = compile(input);
+	Json const result = compile(input);
 	BOOST_REQUIRE(result.is_object());
 
 	BOOST_CHECK(containsError(result, "ParserError", "Source \"missing.sol\" not found: File not supplied initially."));
@@ -150,13 +150,13 @@ BOOST_AUTO_TEST_CASE(with_callback)
 			BOOST_REQUIRE(std::string(_kind) == ReadCallback::kindString(ReadCallback::Kind::ReadFile));
 			if (std::string(_path) == "found.sol")
 			{
-				static std::string content{"import \"missing.sol\"; contract B {}"};
+				static std::string const content{"import \"missing.sol\"; contract B {}"};
 				*o_contents = stringToSolidity(content);
 				*o_error = nullptr;
 			}
 			else if (std::string(_path) == "missing.sol")
 			{
-				static std::string errorMsg{"Missing file."};
+				static std::string const errorMsg{"Missing file."};
 				*o_error = stringToSolidity(errorMsg);
 				*o_contents = nullptr;
 			}
@@ -168,7 +168,7 @@ BOOST_AUTO_TEST_CASE(with_callback)
 		}
 	};
 
-	Json result = compile(input, callback);
+	Json const result = compile(input, callback);
 	BOOST_REQUIRE(result.is_object());
 
 	// This ensures that "found.sol" was properly loaded which triggered the second import statement.

@@ -194,7 +194,7 @@ bool ReferencesResolver::visit(UsingForDirective const& _usingFor)
 		std::vector<Declaration const*> declarations = m_resolver.pathFromCurrentScopeWithAllDeclarations(path->path(), true /* _includeInvisibles */);
 		if (declarations.empty())
 		{
-			std::string libraryOrFunctionNameErrorMessage =
+			std::string const libraryOrFunctionNameErrorMessage =
 				_usingFor.usesBraces() ?
 				"Identifier is not a function name or not unique." :
 				"Identifier is not a library name.";
@@ -243,7 +243,7 @@ void ReferencesResolver::operator()(yul::FunctionDefinition const& _function)
 		validateYulIdentifierName(varName.name, nativeLocationOf(varName));
 	}
 
-	bool wasInsideFunction = m_yulInsideFunction;
+	bool const wasInsideFunction = m_yulInsideFunction;
 	m_yulInsideFunction = true;
 	this->operator()(_function.body);
 	m_yulInsideFunction = wasInsideFunction;
@@ -253,7 +253,7 @@ void ReferencesResolver::operator()(yul::Identifier const& _identifier)
 {
 	solAssert(nativeLocationOf(_identifier) == originLocationOf(_identifier), "");
 
-	static std::set<std::string> suffixes{"slot", "offset", "length", "address", "selector"};
+	static std::set<std::string> const suffixes{"slot", "offset", "length", "address", "selector"};
 	std::string suffix;
 	for (std::string const& s: suffixes)
 		if (boost::algorithm::ends_with(_identifier.name.str(), "." + s))
@@ -269,7 +269,7 @@ void ReferencesResolver::operator()(yul::Identifier const& _identifier)
 		if (!declarations.empty())
 			// the special identifier exists itself, we should not allow that.
 			return;
-		std::string realName = _identifier.name.str().substr(0, _identifier.name.str().size() - suffix.size() - 1);
+		std::string const realName = _identifier.name.str().substr(0, _identifier.name.str().size() - suffix.size() - 1);
 		solAssert(!realName.empty(), "Empty name.");
 		declarations = m_resolver.nameFromCurrentScope(realName);
 		if (!declarations.empty())

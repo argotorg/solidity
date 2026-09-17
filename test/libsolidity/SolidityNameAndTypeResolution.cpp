@@ -52,7 +52,7 @@ BOOST_AUTO_TEST_CASE(function_no_implementation)
 	soltestAssert(errors.empty(), "Unexpected error: " + formatErrors(errors));
 
 	std::vector<ASTPointer<ASTNode>> nodes = sourceUnit->nodes();
-	ContractDefinition* contract = dynamic_cast<ContractDefinition*>(nodes[1].get());
+	ContractDefinition const* contract = dynamic_cast<ContractDefinition*>(nodes[1].get());
 	BOOST_REQUIRE(contract);
 	BOOST_CHECK(!contract->annotation().unimplementedDeclarations->empty());
 	BOOST_CHECK(!contract->definedFunctions()[0]->isImplemented());
@@ -69,8 +69,8 @@ BOOST_AUTO_TEST_CASE(abstract_contract)
 	soltestAssert(errors.empty(), "Unexpected error: " + formatErrors(errors));
 
 	std::vector<ASTPointer<ASTNode>> nodes = sourceUnit->nodes();
-	ContractDefinition* base = dynamic_cast<ContractDefinition*>(nodes[1].get());
-	ContractDefinition* derived = dynamic_cast<ContractDefinition*>(nodes[2].get());
+	ContractDefinition const* base = dynamic_cast<ContractDefinition*>(nodes[1].get());
+	ContractDefinition const* derived = dynamic_cast<ContractDefinition*>(nodes[2].get());
 	BOOST_REQUIRE(base);
 	BOOST_CHECK(!base->annotation().unimplementedDeclarations->empty());
 	BOOST_CHECK(!base->definedFunctions()[0]->isImplemented());
@@ -90,8 +90,8 @@ BOOST_AUTO_TEST_CASE(abstract_contract_with_overload)
 	soltestAssert(errors.empty(), "Unexpected error: " + formatErrors(errors));
 
 	std::vector<ASTPointer<ASTNode>> nodes = sourceUnit->nodes();
-	ContractDefinition* base = dynamic_cast<ContractDefinition*>(nodes[1].get());
-	ContractDefinition* derived = dynamic_cast<ContractDefinition*>(nodes[2].get());
+	ContractDefinition const* base = dynamic_cast<ContractDefinition*>(nodes[1].get());
+	ContractDefinition const* derived = dynamic_cast<ContractDefinition*>(nodes[2].get());
 	BOOST_REQUIRE(base);
 	BOOST_CHECK(!base->annotation().unimplementedDeclarations->empty());
 	BOOST_REQUIRE(derived);
@@ -110,7 +110,7 @@ BOOST_AUTO_TEST_CASE(implement_abstract_via_constructor)
 
 	std::vector<ASTPointer<ASTNode>> nodes = sourceUnit->nodes();
 	BOOST_CHECK_EQUAL(nodes.size(), 3);
-	ContractDefinition* derived = dynamic_cast<ContractDefinition*>(nodes[2].get());
+	ContractDefinition const* derived = dynamic_cast<ContractDefinition*>(nodes[2].get());
 	BOOST_REQUIRE(derived);
 	BOOST_CHECK(!derived->annotation().unimplementedDeclarations->empty());
 }
@@ -129,7 +129,7 @@ BOOST_AUTO_TEST_CASE(function_canonical_signature)
 	soltestAssert(errors.empty(), "Unexpected error: " + formatErrors(errors));
 
 	for (ASTPointer<ASTNode> const& node: sourceUnit->nodes())
-		if (ContractDefinition* contract = dynamic_cast<ContractDefinition*>(node.get()))
+		if (ContractDefinition const* contract = dynamic_cast<ContractDefinition*>(node.get()))
 		{
 			auto functions = contract->definedFunctions();
 			BOOST_CHECK_EQUAL("foo(uint256,uint64,bool)", functions[0]->externalSignature());
@@ -150,7 +150,7 @@ BOOST_AUTO_TEST_CASE(function_canonical_signature_type_aliases)
 	soltestAssert(errors.empty(), "Unexpected error: " + formatErrors(errors));
 
 	for (ASTPointer<ASTNode> const& node: sourceUnit->nodes())
-		if (ContractDefinition* contract = dynamic_cast<ContractDefinition*>(node.get()))
+		if (ContractDefinition const* contract = dynamic_cast<ContractDefinition*>(node.get()))
 		{
 			auto functions = contract->definedFunctions();
 			if (functions.empty())
@@ -176,7 +176,7 @@ BOOST_AUTO_TEST_CASE(function_external_types)
 	soltestAssert(errors.empty(), "Unexpected error: " + formatErrors(errors));
 
 	for (ASTPointer<ASTNode> const& node: sourceUnit->nodes())
-		if (ContractDefinition* contract = dynamic_cast<ContractDefinition*>(node.get()))
+		if (ContractDefinition const* contract = dynamic_cast<ContractDefinition*>(node.get()))
 		{
 			auto functions = contract->definedFunctions();
 			if (functions.empty())
@@ -201,7 +201,7 @@ BOOST_AUTO_TEST_CASE(enum_external_type)
 	soltestAssert(errors.empty(), "Unexpected error: " + formatErrors(errors));
 
 	for (ASTPointer<ASTNode> const& node: sourceUnit->nodes())
-		if (ContractDefinition* contract = dynamic_cast<ContractDefinition*>(node.get()))
+		if (ContractDefinition const* contract = dynamic_cast<ContractDefinition*>(node.get()))
 		{
 			auto functions = contract->definedFunctions();
 			if (functions.empty())
@@ -230,7 +230,7 @@ BOOST_AUTO_TEST_CASE(external_struct_signatures)
 	// in code generation and therefore cause an error in the TypeChecker.
 	SourceUnit const* sourceUnit = runAnalysisAndExpectNoParsingErrors(text, false, true, true).first;
 	for (ASTPointer<ASTNode> const& node: sourceUnit->nodes())
-		if (ContractDefinition* contract = dynamic_cast<ContractDefinition*>(node.get()))
+		if (ContractDefinition const* contract = dynamic_cast<ContractDefinition*>(node.get()))
 		{
 			auto functions = contract->definedFunctions();
 			BOOST_REQUIRE(!functions.empty());
@@ -261,7 +261,7 @@ BOOST_AUTO_TEST_CASE(external_struct_signatures_in_libraries)
 	// in code generation and therefore cause an error in the TypeChecker.
 	SourceUnit const* sourceUnit = runAnalysisAndExpectNoParsingErrors(text, false, true, true).first;
 	for (ASTPointer<ASTNode> const& node: sourceUnit->nodes())
-		if (ContractDefinition* contract = dynamic_cast<ContractDefinition*>(node.get()))
+		if (ContractDefinition const* contract = dynamic_cast<ContractDefinition*>(node.get()))
 		{
 			auto functions = contract->definedFunctions();
 			BOOST_REQUIRE(!functions.empty());
@@ -286,7 +286,7 @@ BOOST_AUTO_TEST_CASE(struct_with_mapping_in_library)
 	soltestAssert(errors.empty(), "Unexpected error: " + formatErrors(errors));
 
 	for (ASTPointer<ASTNode> const& node: sourceUnit->nodes())
-		if (ContractDefinition* contract = dynamic_cast<ContractDefinition*>(node.get()))
+		if (ContractDefinition const* contract = dynamic_cast<ContractDefinition*>(node.get()))
 		{
 			auto functions = contract->definedFunctions();
 			BOOST_REQUIRE(!functions.empty());

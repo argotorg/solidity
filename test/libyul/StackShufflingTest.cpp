@@ -53,14 +53,14 @@ bool StackShufflingTest::parse(std::string const& _source)
 		while (scanner.currentToken() != Token::RBrack &&
 			   scanner.currentToken() != Token::EOS)
 		{
-			std::string literal = scanner.currentLiteral();
+			std::string const literal = scanner.currentLiteral();
 			if (literal == "RET")
 			{
 				scanner.next();
 				if (scanner.currentToken() == Token::LBrack)
 				{
 					scanner.next();
-					std::string functionName = scanner.currentLiteral();
+					std::string const functionName = scanner.currentLiteral();
 					auto call = yul::FunctionCall{
 						{}, yul::Identifier{{}, YulName(functionName)}, {}
 					};
@@ -73,7 +73,7 @@ bool StackShufflingTest::parse(std::string const& _source)
 				}
 				else
 				{
-					static Scope::Function function;
+					static Scope::Function const function;
 					stack.emplace_back(FunctionReturnLabelSlot{function});
 					continue;
 				}
@@ -82,13 +82,13 @@ bool StackShufflingTest::parse(std::string const& _source)
 			{
 				expectToken(Token::LBrack);
 				scanner.next();
-				std::string functionName = scanner.currentLiteral();
+				std::string const functionName = scanner.currentLiteral();
 				auto call = yul::FunctionCall{
 					{}, yul::Identifier{{}, YulName(functionName)}, {}
 				};
 				expectToken(Token::Comma);
 				scanner.next();
-				size_t index = size_t(atoi(scanner.currentLiteral().c_str()));
+				size_t const index = size_t(atoi(scanner.currentLiteral().c_str()));
 				stack.emplace_back(TemporarySlot{
 					m_functions.insert(make_pair(functionName, call)).first->second,
 					index
@@ -107,8 +107,8 @@ bool StackShufflingTest::parse(std::string const& _source)
 			{
 				expectToken(Token::LBrack);
 				scanner.next(); // read number of ghost variables as ghostVariableId
-				std::string ghostVariableId = scanner.currentLiteral();
-				Scope::Variable ghostVar = Scope::Variable{YulName(literal + "[" + ghostVariableId + "]")};
+				std::string const ghostVariableId = scanner.currentLiteral();
+				Scope::Variable const ghostVar = Scope::Variable{YulName(literal + "[" + ghostVariableId + "]")};
 				stack.emplace_back(VariableSlot{
 					m_variables.insert(std::make_pair(ghostVar.name, ghostVar)).first->second
 				});
@@ -116,7 +116,7 @@ bool StackShufflingTest::parse(std::string const& _source)
 			}
 			else
 			{
-				Scope::Variable var = Scope::Variable{YulName(literal)};
+				Scope::Variable const var = Scope::Variable{YulName(literal)};
 				stack.emplace_back(VariableSlot{
 					m_variables.insert(
 						make_pair(literal, var)
@@ -144,7 +144,7 @@ StackShufflingTest::StackShufflingTest(std::string const& _filename):
 
 void StackShufflingTest::processSettings()
 {
-	std::string depthString = m_reader.stringSetting("maximumStackDepth", "16");
+	std::string const depthString = m_reader.stringSetting("maximumStackDepth", "16");
 	std::optional<unsigned> depth = toUnsignedInt(depthString);
 	if (!depth.has_value())
 		BOOST_THROW_EXCEPTION(std::runtime_error{"Invalid maximum stack depth: \"" + depthString + "\""});

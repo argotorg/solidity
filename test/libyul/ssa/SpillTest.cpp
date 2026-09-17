@@ -72,7 +72,7 @@ std::string describeCFG(
 		);
 
 	out += "  mstore schedule:\n";
-	for (const auto& value: _spilled | std::views::keys)
+	for (auto const& value: _spilled | std::views::keys)
 	{
 		SSACFG::BlockId const block = _cfg.inst(value).block;
 		out += fmt::format(

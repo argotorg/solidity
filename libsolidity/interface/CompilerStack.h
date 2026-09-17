@@ -317,7 +317,7 @@ public:
 	virtual std::vector<std::string> contractNames() const override;
 
 	/// @returns the name of the last contract. If _sourceName is defined the last contract of that source will be returned.
-	std::string const lastContractName(std::optional<std::string> const& _sourceName = std::nullopt) const;
+	std::string lastContractName(std::optional<std::string> const& _sourceName = std::nullopt) const;
 
 	/// @returns either the contract's name or a mixture of its name and source file, sanitized for filesystem use
 	virtual std::string const filesystemFriendlyName(std::string const& _contractName) const override;

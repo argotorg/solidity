@@ -44,7 +44,7 @@ BOOST_AUTO_TEST_SUITE(FileReaderTest)
 
 BOOST_AUTO_TEST_CASE(normalizeCLIPathForVFS_absolute_path)
 {
-	for (SymlinkResolution resolveSymlinks: {SymlinkResolution::Enabled, SymlinkResolution::Disabled})
+	for (SymlinkResolution const resolveSymlinks: {SymlinkResolution::Enabled, SymlinkResolution::Disabled})
 	{
 		BOOST_CHECK_EQUAL(FileReader::normalizeCLIPathForVFS("/", resolveSymlinks), "/");
 		BOOST_CHECK_EQUAL(FileReader::normalizeCLIPathForVFS("/.", resolveSymlinks), "/");
@@ -72,8 +72,8 @@ BOOST_AUTO_TEST_CASE(normalizeCLIPathForVFS_absolute_path)
 
 BOOST_AUTO_TEST_CASE(normalizeCLIPathForVFS_relative_path)
 {
-	TemporaryDirectory tempDir({"x/y/z"}, TEST_CASE_NAME);
-	TemporaryWorkingDirectory tempWorkDir(tempDir.path() / "x/y/z");
+	TemporaryDirectory const tempDir({"x/y/z"}, TEST_CASE_NAME);
+	TemporaryWorkingDirectory const tempWorkDir(tempDir.path() / "x/y/z");
 
 	// NOTE: If path to work dir contains symlinks (often the case on macOS), boost might resolve
 	// them, making the path different from tempDirPath.
@@ -82,7 +82,7 @@ BOOST_AUTO_TEST_CASE(normalizeCLIPathForVFS_relative_path)
 	expectedPrefix = "/" / expectedPrefix.relative_path();
 	soltestAssert(expectedPrefix.is_absolute() || expectedPrefix.root_path() == "/", "");
 
-	for (SymlinkResolution resolveSymlinks: {SymlinkResolution::Enabled, SymlinkResolution::Disabled})
+	for (SymlinkResolution const resolveSymlinks: {SymlinkResolution::Enabled, SymlinkResolution::Disabled})
 	{
 		BOOST_CHECK_EQUAL(FileReader::normalizeCLIPathForVFS(".", resolveSymlinks), expectedPrefix / "x/y/z/");
 		BOOST_CHECK_EQUAL(FileReader::normalizeCLIPathForVFS("./", resolveSymlinks), expectedPrefix / "x/y/z/");
@@ -125,7 +125,7 @@ BOOST_AUTO_TEST_CASE(normalizeCLIPathForVFS_relative_path)
 
 BOOST_AUTO_TEST_CASE(normalizeCLIPathForVFS_redundant_slashes)
 {
-	for (SymlinkResolution resolveSymlinks: {SymlinkResolution::Enabled, SymlinkResolution::Disabled})
+	for (SymlinkResolution const resolveSymlinks: {SymlinkResolution::Enabled, SymlinkResolution::Disabled})
 	{
 		BOOST_CHECK_EQUAL(FileReader::normalizeCLIPathForVFS("///", resolveSymlinks), "/");
 		BOOST_CHECK_EQUAL(FileReader::normalizeCLIPathForVFS("////", resolveSymlinks), "/");
@@ -140,14 +140,14 @@ BOOST_AUTO_TEST_CASE(normalizeCLIPathForVFS_redundant_slashes)
 
 BOOST_AUTO_TEST_CASE(normalizeCLIPathForVFS_unc_path)
 {
-	TemporaryDirectory tempDir(TEST_CASE_NAME);
-	TemporaryWorkingDirectory tempWorkDir(tempDir);
+	TemporaryDirectory const tempDir(TEST_CASE_NAME);
+	TemporaryWorkingDirectory const tempWorkDir(tempDir);
 
 	// On Windows tempDir.path() normally contains the drive letter while the normalized path should not.
-	boost::filesystem::path expectedWorkDir = "/" / boost::filesystem::current_path().relative_path();
+	boost::filesystem::path const expectedWorkDir = "/" / boost::filesystem::current_path().relative_path();
 	soltestAssert(expectedWorkDir.is_absolute() || expectedWorkDir.root_path() == "/", "");
 
-	for (SymlinkResolution resolveSymlinks: {SymlinkResolution::Enabled, SymlinkResolution::Disabled})
+	for (SymlinkResolution const resolveSymlinks: {SymlinkResolution::Enabled, SymlinkResolution::Disabled})
 	{
 		// UNC paths start with // or \\ followed by a name. They are used for network shares on Windows.
 		// On UNIX systems they are not supported but still treated in a special way.
@@ -173,10 +173,10 @@ BOOST_AUTO_TEST_CASE(normalizeCLIPathForVFS_unc_path)
 
 BOOST_AUTO_TEST_CASE(normalizeCLIPathForVFS_root_name_only)
 {
-	TemporaryDirectory tempDir(TEST_CASE_NAME);
-	TemporaryWorkingDirectory tempWorkDir(tempDir);
+	TemporaryDirectory const tempDir(TEST_CASE_NAME);
+	TemporaryWorkingDirectory const tempWorkDir(tempDir);
 
-	boost::filesystem::path expectedWorkDir = "/" / boost::filesystem::current_path().relative_path();
+	boost::filesystem::path const expectedWorkDir = "/" / boost::filesystem::current_path().relative_path();
 	soltestAssert(expectedWorkDir.is_absolute() || expectedWorkDir.root_path() == "/", "");
 
 	// A root **path** consists of a directory name (typically / or \) and the root name (drive
@@ -185,7 +185,7 @@ BOOST_AUTO_TEST_CASE(normalizeCLIPathForVFS_root_name_only)
 	// C:\ represents the root directory of drive C: but C: on its own refers to the current working
 	// directory.
 
-	for (SymlinkResolution resolveSymlinks: {SymlinkResolution::Enabled, SymlinkResolution::Disabled})
+	for (SymlinkResolution const resolveSymlinks: {SymlinkResolution::Enabled, SymlinkResolution::Disabled})
 	{
 		// UNC paths
 		BOOST_CHECK_EQUAL(FileReader::normalizeCLIPathForVFS("//", resolveSymlinks), "//" / expectedWorkDir);
@@ -208,19 +208,19 @@ BOOST_AUTO_TEST_CASE(normalizeCLIPathForVFS_root_name_only)
 
 BOOST_AUTO_TEST_CASE(normalizeCLIPathForVFS_stripping_root_name)
 {
-	TemporaryDirectory tempDir(TEST_CASE_NAME);
-	TemporaryWorkingDirectory tempWorkDir(tempDir);
+	TemporaryDirectory const tempDir(TEST_CASE_NAME);
+	TemporaryWorkingDirectory const tempWorkDir(tempDir);
 
 	soltestAssert(boost::filesystem::current_path().is_absolute(), "");
 #if defined(_WIN32)
 	soltestAssert(!boost::filesystem::current_path().root_name().empty(), "");
 #endif
 
-	for (SymlinkResolution resolveSymlinks: {SymlinkResolution::Enabled, SymlinkResolution::Disabled})
+	for (SymlinkResolution const resolveSymlinks: {SymlinkResolution::Enabled, SymlinkResolution::Disabled})
 	{
-		boost::filesystem::path workDir = boost::filesystem::current_path();
+		boost::filesystem::path const workDir = boost::filesystem::current_path();
 
-		boost::filesystem::path normalizedPath = FileReader::normalizeCLIPathForVFS(
+		boost::filesystem::path const normalizedPath = FileReader::normalizeCLIPathForVFS(
 			workDir,
 			resolveSymlinks
 		);
@@ -249,9 +249,9 @@ BOOST_AUTO_TEST_CASE(normalizeCLIPathForVFS_stripping_root_name)
 
 BOOST_AUTO_TEST_CASE(normalizeCLIPathForVFS_path_beyond_root)
 {
-	TemporaryWorkingDirectory tempWorkDir("/");
+	TemporaryWorkingDirectory const tempWorkDir("/");
 
-	for (SymlinkResolution resolveSymlinks: {SymlinkResolution::Enabled, SymlinkResolution::Disabled})
+	for (SymlinkResolution const resolveSymlinks: {SymlinkResolution::Enabled, SymlinkResolution::Disabled})
 	{
 		BOOST_CHECK_EQUAL(FileReader::normalizeCLIPathForVFS("/..", resolveSymlinks), "/");
 		BOOST_CHECK_EQUAL(FileReader::normalizeCLIPathForVFS("/../", resolveSymlinks), "/");
@@ -283,13 +283,13 @@ BOOST_AUTO_TEST_CASE(normalizeCLIPathForVFS_path_beyond_root)
 
 BOOST_AUTO_TEST_CASE(normalizeCLIPathForVFS_case_sensitivity)
 {
-	TemporaryDirectory tempDir(TEST_CASE_NAME);
-	TemporaryWorkingDirectory tempWorkDir(tempDir);
+	TemporaryDirectory const tempDir(TEST_CASE_NAME);
+	TemporaryWorkingDirectory const tempWorkDir(tempDir);
 
-	boost::filesystem::path workDirNoSymlinks = boost::filesystem::weakly_canonical(tempDir);
-	boost::filesystem::path expectedPrefix = "/" / workDirNoSymlinks.relative_path();
+	boost::filesystem::path const workDirNoSymlinks = boost::filesystem::weakly_canonical(tempDir);
+	boost::filesystem::path const expectedPrefix = "/" / workDirNoSymlinks.relative_path();
 
-	for (SymlinkResolution resolveSymlinks: {SymlinkResolution::Enabled, SymlinkResolution::Disabled})
+	for (SymlinkResolution const resolveSymlinks: {SymlinkResolution::Enabled, SymlinkResolution::Disabled})
 	{
 		BOOST_TEST(FileReader::normalizeCLIPathForVFS(workDirNoSymlinks / "abc", resolveSymlinks) == expectedPrefix / "abc");
 		BOOST_TEST(FileReader::normalizeCLIPathForVFS(workDirNoSymlinks / "abc", resolveSymlinks) != expectedPrefix / "ABC");
@@ -300,7 +300,7 @@ BOOST_AUTO_TEST_CASE(normalizeCLIPathForVFS_case_sensitivity)
 
 BOOST_AUTO_TEST_CASE(normalizeCLIPathForVFS_path_separators)
 {
-	for (SymlinkResolution resolveSymlinks: {SymlinkResolution::Enabled, SymlinkResolution::Disabled})
+	for (SymlinkResolution const resolveSymlinks: {SymlinkResolution::Enabled, SymlinkResolution::Disabled})
 	{
 		// Even on Windows we want / as a separator.
 		BOOST_TEST((
@@ -312,15 +312,15 @@ BOOST_AUTO_TEST_CASE(normalizeCLIPathForVFS_path_separators)
 
 BOOST_AUTO_TEST_CASE(normalizeCLIPathForVFS_should_not_resolve_symlinks_unless_requested)
 {
-	TemporaryDirectory tempDir({"abc/"}, TEST_CASE_NAME);
+	TemporaryDirectory const tempDir({"abc/"}, TEST_CASE_NAME);
 	soltestAssert(tempDir.path().is_absolute(), "");
 
 	if (!createSymlinkIfSupportedByFilesystem(tempDir.path() / "abc", tempDir.path() / "sym", true))
 		return;
 
-	boost::filesystem::path expectedRootPath = FileReader::normalizeCLIRootPathForVFS(tempDir);
-	boost::filesystem::path expectedPrefixWithSymlinks = expectedRootPath / tempDir.path().relative_path();
-	boost::filesystem::path expectedPrefixWithoutSymlinks = expectedRootPath / boost::filesystem::weakly_canonical(tempDir).relative_path();
+	boost::filesystem::path const expectedRootPath = FileReader::normalizeCLIRootPathForVFS(tempDir);
+	boost::filesystem::path const expectedPrefixWithSymlinks = expectedRootPath / tempDir.path().relative_path();
+	boost::filesystem::path const expectedPrefixWithoutSymlinks = expectedRootPath / boost::filesystem::weakly_canonical(tempDir).relative_path();
 
 	BOOST_CHECK_EQUAL(
 		FileReader::normalizeCLIPathForVFS(tempDir.path() / "sym/contract.sol", SymlinkResolution::Disabled),
@@ -343,20 +343,20 @@ BOOST_AUTO_TEST_CASE(normalizeCLIPathForVFS_should_not_resolve_symlinks_unless_r
 
 BOOST_AUTO_TEST_CASE(normalizeCLIPathForVFS_should_resolve_symlinks_in_workdir_when_path_is_relative)
 {
-	TemporaryDirectory tempDir({"abc/"}, TEST_CASE_NAME);
+	TemporaryDirectory const tempDir({"abc/"}, TEST_CASE_NAME);
 	soltestAssert(tempDir.path().is_absolute(), "");
 
 	if (!createSymlinkIfSupportedByFilesystem(tempDir.path() / "abc", tempDir.path() / "sym", true))
 		return;
 
-	TemporaryWorkingDirectory tempWorkDir(tempDir.path() / "sym");
-	boost::filesystem::path expectedWorkDir = "/" / boost::filesystem::weakly_canonical(boost::filesystem::current_path()).relative_path();
+	TemporaryWorkingDirectory const tempWorkDir(tempDir.path() / "sym");
+	boost::filesystem::path const expectedWorkDir = "/" / boost::filesystem::weakly_canonical(boost::filesystem::current_path()).relative_path();
 	soltestAssert(expectedWorkDir.is_absolute() || expectedWorkDir.root_path() == "/", "");
 
-	boost::filesystem::path expectedPrefix = "/" / tempDir.path().relative_path();
+	boost::filesystem::path const expectedPrefix = "/" / tempDir.path().relative_path();
 	soltestAssert(expectedPrefix.is_absolute() || expectedPrefix.root_path() == "/", "");
 
-	for (SymlinkResolution resolveSymlinks: {SymlinkResolution::Enabled, SymlinkResolution::Disabled})
+	for (SymlinkResolution const resolveSymlinks: {SymlinkResolution::Enabled, SymlinkResolution::Disabled})
 	{
 		BOOST_CHECK_EQUAL(
 			FileReader::normalizeCLIPathForVFS("contract.sol", resolveSymlinks),

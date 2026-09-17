@@ -42,7 +42,7 @@ BOOST_AUTO_TEST_SUITE(CommonIOTest)
 
 BOOST_AUTO_TEST_CASE(readFileAsString_regular_file)
 {
-	TemporaryDirectory tempDir(TEST_CASE_NAME);
+	TemporaryDirectory const tempDir(TEST_CASE_NAME);
 	createFileWithContent(tempDir.path() / "test.txt", "ABC\ndef\n");
 
 	BOOST_TEST(readFileAsString(tempDir.path() / "test.txt") == "ABC\ndef\n");
@@ -50,13 +50,13 @@ BOOST_AUTO_TEST_CASE(readFileAsString_regular_file)
 
 BOOST_AUTO_TEST_CASE(readFileAsString_directory)
 {
-	TemporaryDirectory tempDir(TEST_CASE_NAME);
+	TemporaryDirectory const tempDir(TEST_CASE_NAME);
 	BOOST_CHECK_THROW(readFileAsString(tempDir), NotAFile);
 }
 
 BOOST_AUTO_TEST_CASE(readFileAsString_symlink)
 {
-	TemporaryDirectory tempDir(TEST_CASE_NAME);
+	TemporaryDirectory const tempDir(TEST_CASE_NAME);
 	createFileWithContent(tempDir.path() / "test.txt", "ABC\ndef\n");
 
 	if (!createSymlinkIfSupportedByFilesystem("test.txt", tempDir.path() / "symlink.txt", false))

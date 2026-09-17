@@ -58,7 +58,7 @@ private:
 	template <typename T, typename... Args>
 	ASTPointer<T> createASTNode(Json const& _node, Args&&... _args);
 	/// @returns the sourceLocation-object created from the string in the JSON node
-	langutil::SourceLocation const createSourceLocation(Json const& _node);
+	langutil::SourceLocation createSourceLocation(Json const& _node);
 	std::optional<std::vector<langutil::SourceLocation>> createSourceLocations(Json const& _node) const;
 	/// Creates an ASTNode for a given JSON-ast of unknown type
 	/// @returns Pointer to a new created ASTNode

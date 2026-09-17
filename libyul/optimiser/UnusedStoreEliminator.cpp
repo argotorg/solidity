@@ -46,7 +46,7 @@ using namespace solidity::yul;
 
 void UnusedStoreEliminator::run(OptimiserStepContext& _context, Block& _ast)
 {
-	std::map<FunctionHandle, SideEffects> functionSideEffects = SideEffectsPropagator::sideEffects(
+	std::map<FunctionHandle, SideEffects> const functionSideEffects = SideEffectsPropagator::sideEffects(
 		_context.dialect,
 		CallGraphGenerator::callGraph(_ast)
 	);
@@ -75,7 +75,7 @@ void UnusedStoreEliminator::run(OptimiserStepContext& _context, Block& _ast)
 	rse.markActiveAsUsed(Location::Storage);
 	rse.m_storesToRemove += rse.m_allStores - rse.m_usedStores;
 
-	std::set<Statement const*> toRemove{rse.m_storesToRemove.begin(), rse.m_storesToRemove.end()};
+	std::set<Statement const*> const toRemove{rse.m_storesToRemove.begin(), rse.m_storesToRemove.end()};
 	StatementRemover remover{toRemove};
 	remover(_ast);
 }
@@ -123,7 +123,7 @@ void UnusedStoreEliminator::operator()(FunctionCall const& _functionCall)
 
 void UnusedStoreEliminator::operator()(FunctionDefinition const& _functionDefinition)
 {
-	ScopedSaveAndRestore storeOperations(m_storeOperations, {});
+	ScopedSaveAndRestore const storeOperations(m_storeOperations, {});
 	UnusedStoreBase::operator()(_functionDefinition);
 }
 

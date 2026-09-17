@@ -54,7 +54,7 @@ struct DebugData
 
 	static DebugData::ConstPtr create()
 	{
-		static DebugData::ConstPtr emptyDebugData = create({});
+		static DebugData::ConstPtr const emptyDebugData = create({});
 		return emptyDebugData;
 	}
 

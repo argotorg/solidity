@@ -72,6 +72,6 @@ void SyntaxTest::parseAndAnalyze()
 SyntaxTest::SyntaxTest(std::string const& _filename, langutil::EVMVersion _evmVersion):
 	CommonSyntaxTest(_filename, _evmVersion)
 {
-	std::string dialectName = m_reader.stringSetting("dialect", "evm");
+	std::string const dialectName = m_reader.stringSetting("dialect", "evm");
 	soltestAssert(dialectName == "evm"); // We only have one dialect now
 }

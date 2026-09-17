@@ -136,11 +136,11 @@ BOOST_AUTO_TEST_CASE(test_format_number_readable)
 		b <<= 8;
 		b |= 0x55;
 	}
-	u256 c = (u256)FixedHash<32>(
+	u256 const c = (u256)FixedHash<32>(
 		fromHex("0xabcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789")
 	);
-	u256 d = u256(0xAAAAaaaaAAAAaaaa) << 192;
-	u256 e = u256(0xAAAAaaaaAAAAaaaa) << 192 |
+	u256 const d = u256(0xAAAAaaaaAAAAaaaa) << 192;
+	u256 const e = u256(0xAAAAaaaaAAAAaaaa) << 192 |
 		u256(0xFFFFffffFFFFffff) << 128 |
 		u256(0xFFFFffffFFFFffff) << 64 |
 		u256(0xFFFFffffFFFFffff);
@@ -248,11 +248,11 @@ BOOST_AUTO_TEST_CASE(test_format_number_readable_signed)
 	}
 	b = b * (-1);
 
-	s256 c = (-1) * u2s((u256)FixedHash<32>(
+	s256 const c = (-1) * u2s((u256)FixedHash<32>(
 		fromHex("0x0bcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789")
 	));
 
-	s256 d = (-1) * u2s(
+	s256 const d = (-1) * u2s(
 		u256(0x5555555555555555) << 192 |
 		u256(0xFFFFffffFFFFffff) << 128 |
 		u256(0xFFFFffffFFFFffff) << 64 |

@@ -64,7 +64,7 @@ std::string formatDatatypeAccessor(smtutil::Expression const& _expr, std::vector
 	if (op == "dt_accessor_ecrecover")
 		return "ecrecover";
 
-	std::string accessorStr = "accessor_";
+	std::string const accessorStr = "accessor_";
 	// Struct members have suffix "accessor_<memberName>".
 	std::string type = op.substr(op.rfind(accessorStr) + accessorStr.size());
 	solAssert(_expr.arguments.size() == 1, "");

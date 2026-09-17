@@ -38,7 +38,7 @@ void FunctionReferenceResolver::operator()(FunctionCall const& _functionCall)
 		for (auto&& scope: m_scopes | ranges::views::reverse)
 		{
 			yulAssert(std::holds_alternative<Identifier>(_functionCall.functionName));
-			if (FunctionDefinition const** function = util::valueOrNullptr(scope, std::get<Identifier>(_functionCall.functionName).name))
+			if (FunctionDefinition const* const* function = util::valueOrNullptr(scope, std::get<Identifier>(_functionCall.functionName).name))
 			{
 				m_functionReferences[&_functionCall] = *function;
 				break;

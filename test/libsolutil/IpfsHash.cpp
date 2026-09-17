@@ -44,7 +44,7 @@ BOOST_AUTO_TEST_CASE(test_small)
 
 BOOST_AUTO_TEST_CASE(test_medium)
 {
-	size_t length = 131071;
+	size_t const length = 131071;
 	std::string data;
 	data.resize(length, 0);
 	BOOST_REQUIRE_EQUAL(data.size(), length);
@@ -53,7 +53,7 @@ BOOST_AUTO_TEST_CASE(test_medium)
 
 BOOST_AUTO_TEST_CASE(test_largest_unchunked)
 {
-	size_t length = 1024 * 256 - 1;
+	size_t const length = 1024 * 256 - 1;
 	std::string data;
 	data.resize(length, 0);
 	BOOST_REQUIRE_EQUAL(data.size(), length);
@@ -62,7 +62,7 @@ BOOST_AUTO_TEST_CASE(test_largest_unchunked)
 
 BOOST_AUTO_TEST_CASE(test_smallest_chunked)
 {
-	size_t length = 1024 * 256 + 1;
+	size_t const length = 1024 * 256 + 1;
 	std::string data;
 	data.resize(length, 0);
 	BOOST_REQUIRE_EQUAL(data.size(), length);
@@ -71,7 +71,7 @@ BOOST_AUTO_TEST_CASE(test_smallest_chunked)
 
 BOOST_AUTO_TEST_CASE(test_large)
 {
-	size_t length = 1310710;
+	size_t const length = 1310710;
 	std::string data;
 	data.resize(length, 0);
 	BOOST_REQUIRE_EQUAL(data.size(), length);
@@ -80,7 +80,7 @@ BOOST_AUTO_TEST_CASE(test_large)
 
 BOOST_AUTO_TEST_CASE(test_largest_one_level)
 {
-	size_t length = 45613056; // 1024 * 256 * 174;
+	size_t const length = 45613056; // 1024 * 256 * 174;
 	std::string data;
 	data.resize(length, 0);
 	BOOST_REQUIRE_EQUAL(data.size(), length);
@@ -89,7 +89,7 @@ BOOST_AUTO_TEST_CASE(test_largest_one_level)
 
 BOOST_AUTO_TEST_CASE(test_smallest_multi_level)
 {
-	size_t length = 45613057; // 1024 * 256 * 174 + 1;
+	size_t const length = 45613057; // 1024 * 256 * 174 + 1;
 	std::string data;
 	data.resize(length, 0);
 	BOOST_REQUIRE_EQUAL(data.size(), length);
@@ -98,7 +98,7 @@ BOOST_AUTO_TEST_CASE(test_smallest_multi_level)
 
 BOOST_AUTO_TEST_CASE(test_multi_level_tree)
 {
-	size_t length = 46661632;
+	size_t const length = 46661632;
 	std::string data;
 	data.resize(length, 0);
 	BOOST_REQUIRE_EQUAL(data.size(), length);
