@@ -1,11 +1,102 @@
 #!/usr/bin/env python3
+"""
+Validates the compiler's ethdebug output against the schemas of ethdebug/format
+and checks the properties that hold for the output of any input.
 
+Anything specific to one input belongs in the isoltest cases under
+test/libsolidity/ethdebugTests/ instead.
+
+Usage: test_ethdebug_schema_conformity.py --solc-binary-path <solc> [unittest options]
+"""
+
+import argparse
 import json
+import re
 import subprocess
+import sys
+import unittest
+from functools import cache
 from pathlib import Path
 
 import jsonschema
-import pytest
+import referencing
+import yaml
+from referencing.jsonschema import DRAFT202012
+
+TEST_DIR = Path(__file__).parent
+SCHEMA_DIR = TEST_DIR / "ethdebug-format" / "schemas"
+STANDARD_JSON_INPUT = TEST_DIR / "input_file.json"
+# The isoltest cases in this directory pin down the resources of specific inputs;
+# their output is checked against the schema here as well.
+RESOURCES_TEST_SOURCES = sorted((TEST_DIR.parent / "libsolidity" / "ethdebugTests" / "resources").glob("*.sol"))
+
+PROGRAM_OUTPUTS = {"evm.bytecode.ethdebug": "create", "evm.deployedBytecode.ethdebug": "call"}
+
+# Set by main() from the command line.
+SOLC_PATH = None
+
+
+def solc_path():
+    assert SOLC_PATH is not None, "Run with --solc-binary-path."
+    assert SOLC_PATH.is_file(), f"Not a file: {SOLC_PATH}"
+    return SOLC_PATH
+
+
+@cache
+def schema_registry():
+    assert SCHEMA_DIR.is_dir(), (
+        "ethdebug/format schemas are missing. "
+        "Run `git submodule update --init test/ethdebugSchemaTests/ethdebug-format`."
+    )
+    registry = referencing.Registry()
+    for path in SCHEMA_DIR.rglob("*.yaml"):
+        with open(path, "r", encoding="utf8") as f:
+            schema = yaml.safe_load(f)
+        if "$id" not in schema:
+            raise ValueError(f"Schema did not define an $id: {path}")
+        registry = referencing.Resource.from_contents(schema, DRAFT202012) @ registry
+    return registry
+
+
+def validate(schema_id, instance):
+    jsonschema.Draft202012Validator(schema={"$ref": schema_id}, registry=schema_registry()).validate(instance)
+
+
+def load_standard_json_input(path):
+    with open(path, "r", encoding="utf8") as f:
+        standard_json_input = json.load(f)
+    for source in standard_json_input["sources"].values():
+        if "contentFile" in source:
+            source["content"] = (path.parent / source.pop("contentFile")).read_text(encoding="utf8")
+    return standard_json_input
+
+
+@cache
+def standard_json_output(input_path):
+    standard_json_input = load_standard_json_input(input_path)
+    process = subprocess.run(
+        [solc_path(), "--standard-json"],
+        input=json.dumps(standard_json_input),
+        encoding="utf8",
+        capture_output=True,
+        check=True,
+    )
+    output = json.loads(process.stdout)
+    errors = [error for error in output.get("errors", []) if error["severity"] == "error"]
+    assert not errors, f"Compilation of {input_path} failed: {errors}"
+    return standard_json_input, output
+
+
+@cache
+def resources_of_source(source_path):
+    process = subprocess.run(
+        [solc_path(), "--experimental", "--ethdebug-resources", str(source_path)],
+        encoding="utf8",
+        capture_output=True,
+        check=True,
+    )
+    resources, _ = json.JSONDecoder().raw_decode(process.stdout[process.stdout.index("{"):])
+    return resources
 
 
 def get_nested_value(dictionary, *keys):
@@ -14,122 +105,21 @@ def get_nested_value(dictionary, *keys):
     return dictionary
 
 
-def validator(schema_id, ethdebug_schema_repository):
-    return jsonschema.Draft202012Validator(
-        schema={"$ref": schema_id},
-        registry=ethdebug_schema_repository
-    )
+def contract_outputs(solc_output):
+    for source_name, source_contracts in solc_output["contracts"].items():
+        for contract_name, contract_output in source_contracts.items():
+            yield source_name, contract_name, contract_output
 
 
 def ethdebug_programs(solc_output, output_selection):
-    assert "contracts" in solc_output
-    for source_name, source_contracts in solc_output["contracts"].items():
-        assert len(source_contracts) > 0
-        for contract_name, contract_output in source_contracts.items():
-            # Interfaces and libraries without bytecode have no program output.
-            try:
-                program = get_nested_value(contract_output, *(output_selection.split(".")))
-            except KeyError:
-                continue
-            if program is None:
-                continue
+    for source_name, contract_name, contract_output in contract_outputs(solc_output):
+        # Interfaces and abstract contracts have no bytecode and therefore no program.
+        try:
+            program = get_nested_value(contract_output, *output_selection.split("."))
+        except KeyError:
+            continue
+        if program is not None:
             yield source_name, contract_name, program
-
-
-def load_standard_json_input(path):
-    with open(path, "r", encoding="utf8") as f:
-        standard_json_input = json.load(f)
-
-    for source in standard_json_input["sources"].values():
-        if "contentFile" in source:
-            source["content"] = (path.parent / source.pop("contentFile")).read_text(encoding="utf8")
-
-    return standard_json_input
-
-
-@pytest.fixture(params=["input_file.json"])
-def standard_json_input(request):
-    testfile_dir = Path(__file__).parent
-    return load_standard_json_input(testfile_dir / request.param)
-
-
-@pytest.fixture
-def solc_output(standard_json_input, solc_path):
-    process = subprocess.run(
-        [solc_path, "--standard-json"],
-        input=json.dumps(standard_json_input),
-        encoding="utf8",
-        capture_output=True,
-        check=True,
-    )
-    assert process.returncode == 0
-    return json.loads(process.stdout)
-
-
-@pytest.mark.parametrize("output_selection", ["evm.bytecode.ethdebug", "evm.deployedBytecode.ethdebug"], ids=str)
-def test_program_schema(
-    output_selection,
-    ethdebug_schema_repository,
-    solc_output
-):
-    program_validator = validator("schema:ethdebug/format/program", ethdebug_schema_repository)
-    for _, _, ethdebug_data in ethdebug_programs(solc_output, output_selection):
-        program_validator.validate(ethdebug_data)
-
-
-def test_resources_schema(ethdebug_schema_repository, solc_output):
-    resources_validator = validator("schema:ethdebug/format/info/resources", ethdebug_schema_repository)
-    resources_validator.validate(solc_output["ethdebug"]["resources"])
-
-
-def test_compilation_schema(ethdebug_schema_repository, solc_output):
-    compilation_validator = validator("schema:ethdebug/format/materials/compilation", ethdebug_schema_repository)
-    compilation_validator.validate(solc_output["ethdebug"]["compilation"])
-
-
-@pytest.mark.parametrize(
-    ("output_selection", "environment"),
-    [
-        ("evm.bytecode.ethdebug", "create"),
-        ("evm.deployedBytecode.ethdebug", "call"),
-    ],
-    ids=str
-)
-def test_program_sanity(output_selection, environment, solc_output):
-    source_ids = {source_name: source["id"] for source_name, source in solc_output["sources"].items()}
-
-    for source_name, contract_name, ethdebug_data in ethdebug_programs(solc_output, output_selection):
-        assert ethdebug_data["environment"] == environment
-        assert ethdebug_data["contract"]["name"] == contract_name
-        assert ethdebug_data["contract"]["definition"]["source"]["id"] == source_ids[source_name]
-
-        instructions = ethdebug_data["instructions"]
-        assert len(instructions) > 0
-        assert [instruction["offset"] for instruction in instructions] == sorted(
-            instruction["offset"] for instruction in instructions
-        )
-        assert all(instruction["operation"]["mnemonic"] for instruction in instructions)
-
-
-def test_resources_match_standard_json_sources(solc_output):
-    standard_json_sources = {source_name: source["id"] for source_name, source in solc_output["sources"].items()}
-    ethdebug_sources = {
-        source["path"]: source["id"]
-        for source in solc_output["ethdebug"]["resources"]["compilation"]["sources"]
-    }
-    assert ethdebug_sources == standard_json_sources
-
-
-def test_resources_include_standard_json_source_contents(standard_json_input, solc_output):
-    ethdebug_sources = {
-        source["path"]: source
-        for source in solc_output["ethdebug"]["resources"]["compilation"]["sources"]
-    }
-
-    assert set(ethdebug_sources) == set(standard_json_input["sources"])
-    for source_name, source_input in standard_json_input["sources"].items():
-        assert ethdebug_sources[source_name]["contents"] == source_input["content"]
-        assert ethdebug_sources[source_name]["language"] == "Solidity"
 
 
 def referenced_type_ids(document):
@@ -145,153 +135,292 @@ def referenced_type_ids(document):
             yield from referenced_type_ids(value)
 
 
-def test_resources_type_table_is_closed(solc_output):
-    types = solc_output["ethdebug"]["resources"]["types"]
-    assert len(types) > 0
-    # Composed types reference their component types by ID into this table.
-    for type_id, document in types.items():
+# The compiler's type identifiers (Type::richIdentifier()) determine the document.
+TYPE_ID_PATTERNS = {
+    "uint": re.compile(r"^t_uint(\d+)$"),
+    "int": re.compile(r"^t_int(\d+)$"),
+    "bool": re.compile(r"^t_bool$"),
+    "address": re.compile(r"^t_address(_payable)?$"),
+    "fixed_bytes": re.compile(r"^t_bytes(\d+)$"),
+    "bytes": re.compile(r"^t_bytes_(storage|memory|calldata)(_ptr)?$"),
+    "string": re.compile(r"^t_string_(storage|memory|calldata)(_ptr)?$"),
+    "fixed": re.compile(r"^t_(u?fixed)(\d+)x(\d+)$"),
+    "array": re.compile(r"^t_array\$_(.+)_\$(dyn|\d+)_(storage|memory|calldata)(_ptr)?$"),
+    "mapping": re.compile(r"^t_mapping\$_(.+?)_\$_(.+)_\$$"),
+    "struct": re.compile(r"^t_struct\$_(\w+)_\$\d+_(storage|memory|calldata)(_ptr)?$"),
+    "enum": re.compile(r"^t_enum\$_(\w+)_\$\d+$"),
+    "contract": re.compile(r"^t_contract\$_(\w+)_\$\d+$"),
+    "alias": re.compile(r"^t_userDefinedValueType\$_(\w+)_\$\d+$"),
+    "function": re.compile(r"^t_function_(internal|external)_\w+\$_.*$"),
+}
+
+
+def classify_type_id(type_id):
+    for kind, pattern in TYPE_ID_PATTERNS.items():
+        match = pattern.match(type_id)
+        if match:
+            return kind, match
+    return None, None
+
+
+def pointer_expression_names(expression):
+    """The variable and region names an expression refers to: (variables, regions)."""
+    variables, regions = set(), set()
+    if isinstance(expression, str):
+        if not expression.startswith("0x") and not expression.isdigit() and expression != "$wordsize":
+            variables.add(expression)
+    elif isinstance(expression, dict):
+        for key, operand in expression.items():
+            if key in (".slot", ".offset", ".length", "$read"):
+                regions.add(operand)
+            elif isinstance(operand, list):
+                for element in operand:
+                    element_variables, element_regions = pointer_expression_names(element)
+                    variables |= element_variables
+                    regions |= element_regions
+            else:
+                operand_variables, operand_regions = pointer_expression_names(operand)
+                variables |= operand_variables
+                regions |= operand_regions
+    return variables, regions
+
+
+def region_names(pointer):
+    names = set()
+    if isinstance(pointer, dict):
+        if "location" in pointer and "name" in pointer:
+            names.add(pointer["name"])
+        for value in pointer.values():
+            names |= region_names(value)
+    elif isinstance(pointer, list):
+        for value in pointer:
+            names |= region_names(value)
+    return names
+
+
+class EthdebugTestCase(unittest.TestCase):
+    def assertPointerIsClosed(self, pointer, bound_variables, regions):
+        """Every variable in the pointer is bound by a template parameter, a `define` or a
+        `list`, and every region a lookup or `$read` refers to is named in the pointer."""
+
+        def check_expression(expression):
+            variables, referenced_regions = pointer_expression_names(expression)
+            self.assertLessEqual(variables, bound_variables, f"Unbound variable in {expression}")
+            self.assertLessEqual(referenced_regions, regions | {"$this"}, f"Unknown region in {expression}")
+
+        if "location" in pointer:
+            for key in ("slot", "offset", "length"):
+                if key in pointer:
+                    check_expression(pointer[key])
+        elif "group" in pointer:
+            for member in pointer["group"]:
+                self.assertPointerIsClosed(member, bound_variables, regions)
+        elif "list" in pointer:
+            check_expression(pointer["list"]["count"])
+            self.assertPointerIsClosed(pointer["list"]["is"], bound_variables | {pointer["list"]["each"]}, regions)
+        elif "if" in pointer:
+            check_expression(pointer["if"])
+            self.assertPointerIsClosed(pointer["then"], bound_variables, regions)
+            if "else" in pointer:
+                self.assertPointerIsClosed(pointer["else"], bound_variables, regions)
+        elif "define" in pointer:
+            for expression in pointer["define"].values():
+                check_expression(expression)
+            self.assertPointerIsClosed(pointer["in"], bound_variables | set(pointer["define"]), regions)
+        elif "templates" in pointer:
+            self.assertPointerIsClosed(pointer["in"], bound_variables, regions)
+        else:
+            self.assertIn("template", pointer, f"Unknown pointer shape: {pointer}")
+
+    def assertTemplateIsClosed(self, template):
+        self.assertEqual(len(template["expect"]), len(set(template["expect"])))
+        self.assertPointerIsClosed(template["for"], set(template["expect"]), region_names(template["for"]))
+
+    def assertTypeDocumentMatchesID(self, type_id, document, types):
+        kind, match = classify_type_id(type_id)
+        self.assertIsNotNone(kind, f"Type identifier of unknown form: {type_id}")
+        if kind in ("uint", "int"):
+            self.assertEqual(document, {"kind": kind, "bits": int(match.group(1))})
+        elif kind == "bool":
+            self.assertEqual(document, {"kind": "bool"})
+        elif kind == "address":
+            self.assertEqual(document, {"kind": "address", "payable": match.group(1) is not None})
+        elif kind == "fixed_bytes":
+            self.assertEqual(document, {"kind": "bytes", "size": int(match.group(1))})
+        elif kind in ("bytes", "string"):
+            self.assertEqual(document, {"kind": kind})
+        elif kind == "fixed":
+            self.assertEqual(document, {"kind": match.group(1), "bits": int(match.group(2)), "places": int(match.group(3))})
+        elif kind == "array":
+            self.assertEqual(document["kind"], "array")
+            self.assertEqual(document["contains"], {"type": {"id": match.group(1)}})
+            if match.group(2) == "dyn":
+                self.assertNotIn("count", document)
+            else:
+                self.assertEqual(int(document["count"], 16), int(match.group(2)))
+        elif kind == "mapping":
+            self.assertEqual(document["kind"], "mapping")
+            self.assertEqual(document["contains"]["key"], {"type": {"id": match.group(1)}})
+            self.assertEqual(document["contains"]["value"], {"type": {"id": match.group(2)}})
+        elif kind == "struct":
+            self.assertEqual(document["kind"], "struct")
+            self.assertEqual(document["definition"]["name"], match.group(1))
+            for member in document["contains"]:
+                self.assertIn("name", member)
+        elif kind == "enum":
+            self.assertEqual(document["kind"], "enum")
+            self.assertEqual(document["definition"]["name"], match.group(1))
+            self.assertGreater(len(document["values"]), 0)
+        elif kind in ("contract", "alias"):
+            self.assertEqual(document["kind"], kind)
+            self.assertEqual(document["definition"]["name"], match.group(1))
+        elif kind == "function":
+            self.assertEqual(document["kind"], "function")
+            self.assertIs(document.get(match.group(1)), True)
+            self.assertEqual(document["contains"]["parameters"]["type"]["kind"], "tuple")
         for referenced_id in referenced_type_ids(document):
-            assert referenced_id in types, f"{type_id} references unknown type {referenced_id}"
+            self.assertIn(referenced_id, types, f"{type_id} references unknown type {referenced_id}")
 
 
-def test_resources_include_every_type_kind(solc_output):
-    types = solc_output["ethdebug"]["resources"]["types"]
-    kinds = {document["kind"] for document in types.values()}
-    # Tuples only occur inline, as the parameter lists of function types.
-    assert kinds >= {
-        "uint", "int", "bool", "bytes", "string", "address", "contract", "enum",
-        "alias", "array", "mapping", "struct", "function",
-    }
+class StandardJSONOutputTest(EthdebugTestCase):
+    """The ethdebug outputs of a Standard JSON compilation."""
 
-    assert types["t_uint128"] == {"kind": "uint", "bits": 128}
-    assert types["t_int256"] == {"kind": "int", "bits": 256}
-    assert types["t_bool"] == {"kind": "bool"}
-    assert types["t_bytes32"] == {"kind": "bytes", "size": 32}
-    assert types["t_bytes_storage"] == {"kind": "bytes"}
-    assert types["t_string_storage"] == {"kind": "string"}
-    assert types["t_address"] == {"kind": "address", "payable": False}
-    assert types["t_address_payable"] == {"kind": "address", "payable": True}
-    assert types["t_array$_t_uint16_$8_storage"] == {
-        "kind": "array",
-        "contains": {"type": {"id": "t_uint16"}},
-        "count": "0x08",
-    }
-    assert types["t_array$_t_uint256_$dyn_storage"] == {
-        "kind": "array",
-        "contains": {"type": {"id": "t_uint256"}},
-    }
-    assert types["t_mapping$_t_address_$_t_uint256_$"] == {
-        "kind": "mapping",
-        "contains": {
-            "key": {"type": {"id": "t_address"}},
-            "value": {"type": {"id": "t_uint256"}},
-        },
-    }
+    @classmethod
+    def setUpClass(cls):
+        cls.standard_json_input, cls.solc_output = standard_json_output(STANDARD_JSON_INPUT)
+        cls.resources = cls.solc_output["ethdebug"]["resources"]
 
-    enums = [document for document in types.values() if document["kind"] == "enum"]
-    assert [document["values"] for document in enums] == [["Red", "Green", "Blue"]]
-    assert enums[0]["definition"]["name"] == "Color"
+    def test_programs_conform_to_schema(self):
+        for output_selection in PROGRAM_OUTPUTS:
+            for _, contract_name, program in ethdebug_programs(self.solc_output, output_selection):
+                with self.subTest(output=output_selection, contract=contract_name):
+                    validate("schema:ethdebug/format/program", program)
 
-    structs = {document["definition"]["name"]: document for document in types.values() if document["kind"] == "struct"}
-    assert [member["name"] for member in structs["Point"]["contains"]] == ["x", "y", "salt"]
-    assert structs["Point"]["contains"][2]["type"] == {"id": "t_bytes4"}
-    assert [member["name"] for member in structs["Line"]["contains"]] == ["from", "to", "label"]
+    def test_resources_conform_to_schema(self):
+        validate("schema:ethdebug/format/info/resources", self.resources)
 
-    aliases = [document for document in types.values() if document["kind"] == "alias"]
-    assert [document["definition"]["name"] for document in aliases] == ["Price"]
-    assert aliases[0]["contains"] == {"type": {"id": "t_uint128"}}
+    def test_compilation_conforms_to_schema(self):
+        validate("schema:ethdebug/format/materials/compilation", self.solc_output["ethdebug"]["compilation"])
 
-    contracts = {document["definition"]["name"]: document for document in types.values() if document["kind"] == "contract"}
-    assert contracts["I"]["interface"] is True and "library" not in contracts["I"]
-    assert "interface" not in contracts["A1"] and "library" not in contracts["A1"]
+    def test_programs_describe_their_contracts(self):
+        source_ids = {source_name: source["id"] for source_name, source in self.solc_output["sources"].items()}
+        for output_selection, environment in PROGRAM_OUTPUTS.items():
+            for source_name, contract_name, program in ethdebug_programs(self.solc_output, output_selection):
+                with self.subTest(output=output_selection, contract=contract_name):
+                    self.assertEqual(program["environment"], environment)
+                    self.assertEqual(program["contract"]["name"], contract_name)
+                    self.assertEqual(program["contract"]["definition"]["source"]["id"], source_ids[source_name])
 
-    functions = {
-        "internal" if document.get("internal") else "external": document
-        for document in types.values() if document["kind"] == "function"
-    }
-    assert functions["internal"]["contains"]["parameters"]["type"] == {
-        "kind": "tuple",
-        "contains": [{"type": {"id": "t_uint256"}}],
-    }
-    assert functions["external"]["contains"]["returns"]["type"]["contains"] == [{"type": {"id": "t_bool"}}]
+                    instructions = program["instructions"]
+                    self.assertGreater(len(instructions), 0)
+                    offsets = [instruction["offset"] for instruction in instructions]
+                    self.assertEqual(offsets, sorted(offsets))
+                    for instruction in instructions:
+                        self.assertTrue(instruction["operation"]["mnemonic"])
 
+    def test_resources_list_the_standard_json_sources(self):
+        standard_json_sources = {source_name: source["id"] for source_name, source in self.solc_output["sources"].items()}
+        ethdebug_sources = {source["path"]: source["id"] for source in self.resources["compilation"]["sources"]}
+        self.assertEqual(ethdebug_sources, standard_json_sources)
 
-def test_resources_include_state_variable_pointer_templates(solc_output):
-    pointers = solc_output["ethdebug"]["resources"]["pointers"]
-    by_name = {}
-    for template in pointers.values():
-        target = template["for"]
-        names = [target["name"]] if "name" in target else [member.get("name") for member in target.get("group", [])]
-        for name in names:
-            if name:
-                by_name.setdefault(name, template)
+    def test_resources_include_the_source_contents(self):
+        ethdebug_sources = {source["path"]: source for source in self.resources["compilation"]["sources"]}
+        self.assertEqual(set(ethdebug_sources), set(self.standard_json_input["sources"]))
+        for source_name, source_input in self.standard_json_input["sources"].items():
+            self.assertEqual(ethdebug_sources[source_name]["contents"], source_input["content"])
+            self.assertEqual(ethdebug_sources[source_name]["language"], "Solidity")
 
-    # Value types are single regions; packed members carry offset and length.
-    assert by_name["stored"] == {
-        "expect": [],
-        "for": {"name": "stored", "location": "storage", "slot": "0x00", "length": "0x10"},
-    }
-    assert by_name["enabled"] == {
-        "expect": [],
-        "for": {"name": "enabled", "location": "storage", "slot": "0x00", "offset": "0x10", "length": "0x01"},
-    }
-    # Transient storage variables are addressed the same way in their own location.
-    assert by_name["temporary"]["for"] == {"name": "temporary", "location": "transient", "slot": "0x00"}
-    # Constants have no storage and therefore no pointer.
-    assert "CONSTANT" not in by_name
+    def test_resources_and_compilation_output_share_the_compilation(self):
+        self.assertEqual(self.resources["compilation"], self.solc_output["ethdebug"]["compilation"])
 
-    # Mapping pointers are templates over their expected keys; nested mappings expect one key per level.
-    balances = [template for template in pointers.values() if template["for"].get("name") == "balances"][0]
-    assert balances == {
-        "expect": ["key"],
-        "for": {
-            "name": "balances",
-            "location": "storage",
-            "slot": {"$keccak256": [{"$wordsized": "key"}, {"$wordsized": "0x0f"}]},
-        },
-    }
-    lines = [template for template in pointers.values() if template["expect"] == ["key", "key1"]]
-    assert len(lines) == 1 and lines[0]["for"]["group"][0]["group"][0]["name"] == "lines-from-x"
+    def test_type_documents_match_their_identifiers(self):
+        types = self.resources["types"]
+        self.assertGreater(len(types), 0)
+        for type_id, document in types.items():
+            with self.subTest(type=type_id):
+                self.assertTypeDocumentMatchesID(type_id, document, types)
 
-    def template_whose_first_region_is(name):
-        return [
-            template for template in pointers.values()
-            if template["for"].get("group", [{}])[0].get("name") == name
-        ][0]
+    def test_definition_locations_refer_to_the_compilation_sources(self):
+        source_ids = {source["id"] for source in self.resources["compilation"]["sources"]}
+        for type_id, document in self.resources["types"].items():
+            location = document.get("definition", {}).get("location")
+            if location is not None:
+                with self.subTest(type=type_id):
+                    self.assertIn(location["source"]["id"], source_ids)
 
-    # Dynamic arrays: the length in the base slot, the data at keccak256(slot).
-    values_pointer = template_whose_first_region_is("values-length")["for"]
-    assert values_pointer["group"][0]["slot"] == "0x0d"
-    assert values_pointer["group"][1]["define"] == {"values-data": {"$keccak256": [{"$wordsized": "0x0d"}]}}
-    values_list = values_pointer["group"][1]["in"]["list"]
-    assert values_list["count"] == {"$read": "values-length"}
-    assert values_list["each"] == "values-index"
-    assert values_list["is"]["slot"] == {"$sum": ["values-data", "values-index"]}
+    def test_pointer_templates_are_closed(self):
+        for name, template in self.resources["pointers"].items():
+            with self.subTest(pointer=name):
+                self.assertTemplateIsClosed(template)
 
-    # Strings and bytes use the compact encoding, selected by the length flag.
-    label_pointer = template_whose_first_region_is("label-length-flag")["for"]
-    assert label_pointer["group"][0]["offset"] == {"$difference": ["$wordsize", "0x01"]}
-    conditional = label_pointer["group"][1]
-    assert "if" in conditional and "then" in conditional and "else" in conditional
+    def test_every_storage_variable_has_a_pointer_template(self):
+        """The templates are named `<location>_<contract AST ID>_<variable AST ID>` and
+        describe the variables the storage layouts list, at their slots."""
+        contract_ids = {}
+        for source_name, source_output in self.solc_output["sources"].items():
+            for node in source_output["ast"]["nodes"]:
+                if node["nodeType"] == "ContractDefinition":
+                    contract_ids[f"{source_name}:{node['name']}"] = node["id"]
+
+        layouts = {"storage": "storageLayout", "transient": "transientStorageLayout"}
+        for _, contract_name, contract_output in contract_outputs(self.solc_output):
+            for location, layout_output in layouts.items():
+                for variable in contract_output[layout_output]["storage"]:
+                    template_name = f"{location}_{contract_ids[variable['contract']]}_{variable['astId']}"
+                    with self.subTest(contract=contract_name, variable=variable["label"]):
+                        self.assertIn(template_name, self.resources["pointers"])
+                        template = self.resources["pointers"][template_name]
+                        # A mapping's keys are the template's parameters; everything else is closed.
+                        self.assertEqual(len(template["expect"]) > 0, variable["type"].startswith("t_mapping"))
+                        pointer = template["for"]
+                        if "location" in pointer:
+                            self.assertEqual(pointer["name"], variable["label"])
+                            self.assertEqual(pointer["location"], location)
+                            # A mapping value's slot is computed from the keys; anything else is at the layout's slot.
+                            if not template["expect"]:
+                                self.assertEqual(int(pointer["slot"], 16), int(variable["slot"]))
+                                self.assertEqual(int(pointer.get("offset", "0x00"), 16), variable["offset"])
+                        else:
+                            self.assertTrue(
+                                any(name.startswith(variable["label"]) for name in region_names(pointer)),
+                                f"No region of {template_name} is named after {variable['label']}",
+                            )
 
 
-def test_resources_and_compilation_share_compilation(solc_output):
-    assert solc_output["ethdebug"]["resources"]["compilation"] == solc_output["ethdebug"]["compilation"]
+class ResourcesTestSourcesTest(EthdebugTestCase):
+    """The resources of the isoltest cases under ethdebugTests/resources/."""
+
+    def test_resources_conform_to_schema(self):
+        assert RESOURCES_TEST_SOURCES, "No test sources found."
+        for source_path in RESOURCES_TEST_SOURCES:
+            with self.subTest(source=source_path.name):
+                resources = resources_of_source(source_path)
+                validate("schema:ethdebug/format/info/resources", resources)
+                self.assertGreater(len(resources["types"]), 0)
+
+    def test_type_documents_match_their_identifiers(self):
+        for source_path in RESOURCES_TEST_SOURCES:
+            types = resources_of_source(source_path)["types"]
+            for type_id, document in types.items():
+                with self.subTest(source=source_path.name, type=type_id):
+                    self.assertTypeDocumentMatchesID(type_id, document, types)
+
+    def test_pointer_templates_are_closed(self):
+        for source_path in RESOURCES_TEST_SOURCES:
+            for name, template in resources_of_source(source_path)["pointers"].items():
+                with self.subTest(source=source_path.name, pointer=name):
+                    self.assertTemplateIsClosed(template)
 
 
-# The isoltest cases in this directory pin down the resources of specific inputs; their
-# output is checked against the schema here as well.
-RESOURCES_TEST_SOURCES = sorted((Path(__file__).parent.parent / "libsolidity" / "ethdebugTests" / "resources").glob("*.sol"))
+def main():
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("--solc-binary-path", type=Path, required=True, help="Path to the solidity compiler binary.")
+    options, unittest_args = parser.parse_known_args()
+
+    global SOLC_PATH  # pylint: disable=global-statement
+    SOLC_PATH = options.solc_binary_path
+    unittest.main(argv=[sys.argv[0]] + unittest_args)
 
 
-@pytest.mark.parametrize("source_path", RESOURCES_TEST_SOURCES, ids=lambda path: path.name)
-def test_resources_of_isoltest_cases_conform_to_schema(solc_path, ethdebug_schema_repository, source_path):
-    process = subprocess.run(
-        [solc_path, "--experimental", "--ethdebug-resources", str(source_path)],
-        encoding="utf8",
-        capture_output=True,
-        check=True,
-    )
-    resources, _ = json.JSONDecoder().raw_decode(process.stdout[process.stdout.index("{"):])
-    validator("schema:ethdebug/format/info/resources", ethdebug_schema_repository).validate(resources)
-    assert len(resources["types"]) > 0
+if __name__ == "__main__":
+    main()
