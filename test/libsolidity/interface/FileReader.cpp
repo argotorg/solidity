@@ -220,7 +220,7 @@ BOOST_AUTO_TEST_CASE(normalizeCLIPathForVFS_stripping_root_name)
 	{
 		boost::filesystem::path const workDir = boost::filesystem::current_path();
 
-		boost::filesystem::path const normalizedPath = FileReader::normalizeCLIPathForVFS(
+		boost::filesystem::path normalizedPath = FileReader::normalizeCLIPathForVFS(
 			workDir,
 			resolveSymlinks
 		);
