@@ -279,12 +279,13 @@ def test_resources_and_compilation_share_compilation(solc_output):
     assert solc_output["ethdebug"]["resources"]["compilation"] == solc_output["ethdebug"]["compilation"]
 
 
-ETHDEBUG_GOLDEN_TESTS = sorted((Path(__file__).parent.parent / "libsolidity" / "ethdebugTests").glob("resources_*.sol"))
+# The isoltest cases in this directory pin down the resources of specific inputs; their
+# output is checked against the schema here as well.
+RESOURCES_TEST_SOURCES = sorted((Path(__file__).parent.parent / "libsolidity" / "ethdebugTests" / "resources").glob("*.sol"))
 
 
-@pytest.mark.parametrize("source_path", ETHDEBUG_GOLDEN_TESTS, ids=lambda path: path.name)
-def test_resources_of_golden_tests_conform_to_schema(solc_path, ethdebug_schema_repository, source_path):
-    """The resources emitted for the golden tests' inputs are schema-compliant, whatever they contain."""
+@pytest.mark.parametrize("source_path", RESOURCES_TEST_SOURCES, ids=lambda path: path.name)
+def test_resources_of_isoltest_cases_conform_to_schema(solc_path, ethdebug_schema_repository, source_path):
     process = subprocess.run(
         [solc_path, "--experimental", "--ethdebug-resources", str(source_path)],
         encoding="utf8",
