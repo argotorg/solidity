@@ -164,7 +164,7 @@ private:
 				))
 					continue;
 				// Bring up the target slot that would otherwise become unreachable.
-				for (size_t targetOffset: ranges::views::iota(0u, _ops.targetSize()))
+				for (size_t const targetOffset: ranges::views::iota(0u, _ops.targetSize()))
 					if (!_ops.targetIsArbitrary(targetOffset) && _ops.isCompatible(sourceOffset, targetOffset))
 					{
 						_ops.pushOrDupTarget(targetOffset);
@@ -232,7 +232,7 @@ private:
 			return false;
 		}
 
-		size_t sourceTop = ops.sourceSize() - 1;
+		size_t const sourceTop = ops.sourceSize() - 1;
 		// If we no longer need the current stack top, we pop it, unless we need an arbitrary slot at this position
 		// in the target.
 		if (
@@ -248,7 +248,7 @@ private:
 
 		// If the top is not supposed to be exactly what is on top right now, try to find a lower position to swap it to.
 		if (!ops.isCompatible(sourceTop, sourceTop) || ops.targetIsArbitrary(sourceTop))
-			for (size_t offset: ranges::views::iota(0u, std::min(ops.sourceSize(), ops.targetSize())))
+			for (size_t const offset: ranges::views::iota(0u, std::min(ops.sourceSize(), ops.targetSize())))
 				// It makes sense to swap to a lower position, if
 				if (
 					!ops.isCompatible(offset, offset) && // The lower slot is not already in position.
@@ -260,7 +260,7 @@ private:
 					if (ops.sourceSize() - offset - 1 > ops.reachableStackDepth)
 					{
 						// If there is a reachable slot to be removed, park the current top there.
-						for (size_t swapDepth: ranges::views::iota(1u, ops.reachableStackDepth + 1u) | ranges::views::reverse)
+						for (size_t const swapDepth: ranges::views::iota(1u, ops.reachableStackDepth + 1u) | ranges::views::reverse)
 							if (ops.sourceMultiplicity(ops.sourceSize() - 1 - swapDepth) < 0)
 							{
 								ops.swap(swapDepth);
@@ -283,7 +283,7 @@ private:
 
 		// If a lower slot should be removed, try to bring up the slot that should end up there and bring it up.
 		// Note that after the cases above, there will always be a target slot to duplicate in this case.
-		for (size_t offset: ranges::views::iota(0u, ops.sourceSize()))
+		for (size_t const offset: ranges::views::iota(0u, ops.sourceSize()))
 			if (
 				!ops.isCompatible(offset, offset) && // The lower slot is not already in position.
 				ops.sourceMultiplicity(offset) < 0 && // We have too many copies of this slot.
@@ -303,7 +303,7 @@ private:
 
 		// If the top is not in position, try to find a slot that wants to be at the top and swap it up.
 		if (!ops.isCompatible(sourceTop, sourceTop))
-			for (size_t sourceOffset: ranges::views::iota(0u, ops.sourceSize()))
+			for (size_t const sourceOffset: ranges::views::iota(0u, ops.sourceSize()))
 				if (
 					!ops.isCompatible(sourceOffset, sourceOffset) &&
 					ops.isCompatible(sourceOffset, sourceTop)
@@ -323,7 +323,7 @@ private:
 
 		// The stack has the correct size, each slot has the correct number of copies and the top is in position.
 		yulAssert(ops.sourceSize() == ops.targetSize(), "");
-		size_t size = ops.sourceSize();
+		size_t const size = ops.sourceSize();
 		for (size_t i = 0; i < ops.sourceSize(); ++i)
 			yulAssert(ops.sourceMultiplicity(i) == 0 && (ops.targetIsArbitrary(i) || ops.targetMultiplicity(i) == 0), "");
 		yulAssert(ops.isCompatible(sourceTop, sourceTop), "");
@@ -331,14 +331,14 @@ private:
 		auto swappableOffsets = ranges::views::iota(size > ops.reachableStackDepth + 1u ? size - (ops.reachableStackDepth + 1u) : 0u, size);
 
 		// If we find a lower slot that is out of position, but also compatible with the top, swap that up.
-		for (size_t offset: swappableOffsets)
+		for (size_t const offset: swappableOffsets)
 			if (!ops.isCompatible(offset, offset) && ops.isCompatible(sourceTop, offset))
 			{
 				ops.swap(size - offset - 1);
 				return true;
 			}
 		// Swap up any reachable slot that is still out of position.
-		for (size_t offset: swappableOffsets)
+		for (size_t const offset: swappableOffsets)
 			if (!ops.isCompatible(offset, offset) && !ops.sourceIsSame(offset, sourceTop))
 			{
 				ops.swap(size - offset - 1);
@@ -352,7 +352,7 @@ private:
 			return true;
 		}
 		// If any reachable slot is merely kept, since the target slot is arbitrary, swap it up and pop it.
-		for (size_t offset: swappableOffsets)
+		for (size_t const offset: swappableOffsets)
 			if (ops.targetIsArbitrary(offset) && ops.sourceMultiplicity(offset) <= 0)
 			{
 				ops.swap(size - offset - 1);
@@ -360,13 +360,13 @@ private:
 				return true;
 			}
 		// We cannot avoid a stack-too-deep error. Repeat the above without restricting to reachable slots.
-		for (size_t offset: ranges::views::iota(0u, size))
+		for (size_t const offset: ranges::views::iota(0u, size))
 			if (!ops.isCompatible(offset, offset) && ops.isCompatible(sourceTop, offset))
 			{
 				ops.swap(size - offset - 1);
 				return true;
 			}
-		for (size_t offset: ranges::views::iota(0u, size))
+		for (size_t const offset: ranges::views::iota(0u, size))
 			if (!ops.isCompatible(offset, offset) && !ops.sourceIsSame(offset, sourceTop))
 			{
 				ops.swap(size - offset - 1);

@@ -36,7 +36,7 @@ namespace
 {
 std::string check(std::string const& _input)
 {
-	YulStack yulStack = parseYul(_input);
+	YulStack const yulStack = parseYul(_input);
 	solUnimplementedAssert(yulStack.parserResult()->subObjects.empty(), "Tests with subobjects not supported.");
 	soltestAssert(!yulStack.hasErrorsWarningsOrInfos());
 
@@ -52,19 +52,19 @@ BOOST_AUTO_TEST_SUITE(CompilabilityChecker)
 
 BOOST_AUTO_TEST_CASE(smoke_test)
 {
-	std::string out = check("{}");
+	std::string const out = check("{}");
 	BOOST_CHECK_EQUAL(out, "");
 }
 
 BOOST_AUTO_TEST_CASE(simple_function)
 {
-	std::string out = check("{ function f(a, b) -> x, y { x := a y := b } }");
+	std::string const out = check("{ function f(a, b) -> x, y { x := a y := b } }");
 	BOOST_CHECK_EQUAL(out, "");
 }
 
 BOOST_AUTO_TEST_CASE(many_variables_few_uses)
 {
-	std::string out = check(R"({
+	std::string const out = check(R"({
 		function f(a, b) -> x, y {
 			let r1 := 0
 			let r2 := 0
@@ -92,7 +92,7 @@ BOOST_AUTO_TEST_CASE(many_variables_few_uses)
 
 BOOST_AUTO_TEST_CASE(many_variables_many_uses)
 {
-	std::string out = check(R"({
+	std::string const out = check(R"({
 		function f(a, b) -> x, y {
 			let r1 := 0
 			let r2 := 0
@@ -120,7 +120,7 @@ BOOST_AUTO_TEST_CASE(many_variables_many_uses)
 
 BOOST_AUTO_TEST_CASE(many_return_variables_unused_arguments)
 {
-	std::string out = check(R"({
+	std::string const out = check(R"({
 		function f(a, b) -> r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15, r16, r17, r18, r19 {
 		}
 	})");
@@ -129,7 +129,7 @@ BOOST_AUTO_TEST_CASE(many_return_variables_unused_arguments)
 
 BOOST_AUTO_TEST_CASE(many_return_variables_used_arguments)
 {
-	std::string out = check(R"({
+	std::string const out = check(R"({
 		function f(a, b) -> r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15, r16, r17, r18, r19 {
 			r1 := 0
 			sstore(a, b)
@@ -140,7 +140,7 @@ BOOST_AUTO_TEST_CASE(many_return_variables_used_arguments)
 
 BOOST_AUTO_TEST_CASE(multiple_functions_used_arguments)
 {
-	std::string out = check(R"({
+	std::string const out = check(R"({
 		function f(a, b) -> r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15, r16, r17, r18, r19 {
 			r1 := 0
 			sstore(a, b)
@@ -176,7 +176,7 @@ BOOST_AUTO_TEST_CASE(multiple_functions_used_arguments)
 
 BOOST_AUTO_TEST_CASE(multiple_functions_unused_arguments)
 {
-	std::string out = check(R"({
+	std::string const out = check(R"({
 		function f(a, b) -> r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15, r16, r17, r18, r19 {
 		}
 		function g(r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15, r16, r17, r18, r19) -> x, y {
@@ -208,7 +208,7 @@ BOOST_AUTO_TEST_CASE(multiple_functions_unused_arguments)
 
 BOOST_AUTO_TEST_CASE(nested_used_arguments)
 {
-	std::string out = check(R"({
+	std::string const out = check(R"({
 		function h(x) {
 			let r1 := 0
 			let r2 := 0
@@ -245,7 +245,7 @@ BOOST_AUTO_TEST_CASE(nested_used_arguments)
 
 BOOST_AUTO_TEST_CASE(nested_unused_arguments)
 {
-	std::string out = check(R"({
+	std::string const out = check(R"({
 		function h(x) {
 			let r1 := 0
 			let r2 := 0
@@ -278,7 +278,7 @@ BOOST_AUTO_TEST_CASE(nested_unused_arguments)
 
 BOOST_AUTO_TEST_CASE(also_in_outer_block_used_arguments)
 {
-	std::string out = check(R"({
+	std::string const out = check(R"({
 			let x := 0
 			let r1 := 0
 			let r2 := 0
@@ -309,7 +309,7 @@ BOOST_AUTO_TEST_CASE(also_in_outer_block_used_arguments)
 
 BOOST_AUTO_TEST_CASE(also_in_outer_block_unused_arguments)
 {
-	std::string out = check(R"({
+	std::string const out = check(R"({
 			let x := 0
 			let r1 := 0
 			let r2 := 0

@@ -100,7 +100,7 @@ public:
 		yulAssert(_length >= 1);
 		yulAssert(static_cast<std::size_t>(_start) + _length <= m_data.size());
 		yulAssert(hasHeader(_start), "deallocate: no header at start index");
-		BlockHeader& self = m_headers[_start];
+		BlockHeader const& self = m_headers[_start];
 		yulAssert(!self.isFree, "deallocate: block is already free");
 		yulAssert(self.length == _length, "deallocate: length mismatch with recorded block length");
 

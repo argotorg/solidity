@@ -39,7 +39,7 @@ void ForLoopConditionIntoBody::operator()(ForLoop& _forLoop)
 		!std::holds_alternative<Identifier>(*_forLoop.condition)
 	)
 	{
-		langutil::DebugData::ConstPtr debugData = debugDataOf(*_forLoop.condition);
+		langutil::DebugData::ConstPtr const debugData = debugDataOf(*_forLoop.condition);
 
 		_forLoop.body.statements.emplace(
 			begin(_forLoop.body.statements),

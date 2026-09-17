@@ -314,7 +314,7 @@ void transform::runOutliner(ControlFlowGraphs& _cfgs)
 							if (sourceCfg.isLiteral(originalInput))
 							{
 								auto const& literalPayload = sourceCfg.literalPayload(originalInput);
-								InstId newId = newCFG->newLiteral({}, literalPayload);
+								InstId const newId = newCFG->newLiteral({}, literalPayload);
 								instMapping.insert({originalInput.value, newId.value});
 							}
 							auto const it = instMapping.find(originalInput.value);

@@ -48,7 +48,7 @@ void UnusedAssignEliminator::run(OptimiserStepContext& _context, Block& _ast)
 
 	uae.m_storesToRemove += uae.m_allStores - uae.m_usedStores;
 
-	std::set<Statement const*> toRemove{uae.m_storesToRemove.begin(), uae.m_storesToRemove.end()};
+	std::set<Statement const*> const toRemove{uae.m_storesToRemove.begin(), uae.m_storesToRemove.end()};
 	StatementRemover remover{toRemove};
 	remover(_ast);
 }
@@ -67,7 +67,7 @@ void UnusedAssignEliminator::operator()(Assignment const& _assignment)
 
 void UnusedAssignEliminator::operator()(FunctionDefinition const& _functionDefinition)
 {
-	ScopedSaveAndRestore outerReturnVariables(m_returnVariables, {});
+	ScopedSaveAndRestore const outerReturnVariables(m_returnVariables, {});
 
 	for (auto const& retParam: _functionDefinition.returnVariables)
 		m_returnVariables.insert(retParam.name);
@@ -96,7 +96,7 @@ void UnusedAssignEliminator::operator()(FunctionCall const& _functionCall)
 
 void UnusedAssignEliminator::operator()(Leave const&)
 {
-	for (YulName name: m_returnVariables)
+	for (YulName const name: m_returnVariables)
 		markUsed(name);
 	m_activeStores.clear();
 }

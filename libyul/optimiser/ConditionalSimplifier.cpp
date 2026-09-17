@@ -42,7 +42,7 @@ void ConditionalSimplifier::operator()(Switch& _switch)
 		ASTModifier::operator()(_switch);
 		return;
 	}
-	YulName expr = std::get<Identifier>(*_switch.expression).name;
+	YulName const expr = std::get<Identifier>(*_switch.expression).name;
 	for (auto& _case: _switch.cases)
 	{
 		if (_case.value)
@@ -76,8 +76,8 @@ void ConditionalSimplifier::operator()(Block& _block)
 						TerminationFinder::ControlFlow::FlowOut
 				)
 				{
-					YulName condition = std::get<Identifier>(*_if.condition).name;
-					langutil::DebugData::ConstPtr debugData = _if.debugData;
+					YulName const condition = std::get<Identifier>(*_if.condition).name;
+					langutil::DebugData::ConstPtr const debugData = _if.debugData;
 					return make_vector<Statement>(
 						std::move(_s),
 						Assignment{

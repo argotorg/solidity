@@ -142,7 +142,7 @@ std::set<std::string, std::less<>> createReservedIdentifiers(langutil::EVMVersio
 	std::set<std::string, std::less<>> reserved;
 	for (auto const& instr: evmasm::c_instructions)
 	{
-		std::string name = toLower(instr.first);
+		std::string const name = toLower(instr.first);
 		if (
 			!baseFeeException(instr.second) &&
 			!prevRandaoException(name) &&
@@ -253,7 +253,7 @@ std::optional<BuiltinHandle> EVMDialect::findBuiltin(std::string_view _name) con
 	if (m_objectAccess && _name.substr(0, "verbatim_"s.size()) == "verbatim_")
 	{
 		std::smatch match;
-		std::string name(_name.substr("verbatim_"s.size()));
+		std::string const name(_name.substr("verbatim_"s.size()));
 		if (regex_match(name, match, verbatimPattern()))
 			return verbatimFunction(stoul(match[1]), stoul(match[2]));
 	}
@@ -294,7 +294,7 @@ bool EVMDialect::reservedIdentifier(std::string_view _name) const
 EVMDialect const& EVMDialect::strictAssemblyForEVM(langutil::EVMVersion _evmVersion)
 {
 	static std::map<langutil::EVMVersion, std::unique_ptr<EVMDialect const>> dialects;
-	static YulStringRepository::ResetCallback callback{[&] { dialects.clear(); }};
+	static YulStringRepository::ResetCallback const callback{[&] { dialects.clear(); }};
 	if (!dialects[_evmVersion])
 		dialects[_evmVersion] = std::make_unique<EVMDialect>(_evmVersion, false);
 	return *dialects[_evmVersion];
@@ -303,7 +303,7 @@ EVMDialect const& EVMDialect::strictAssemblyForEVM(langutil::EVMVersion _evmVers
 EVMDialect const& EVMDialect::strictAssemblyForEVMObjects(langutil::EVMVersion _evmVersion)
 {
 	static std::map<langutil::EVMVersion, std::unique_ptr<EVMDialect const>> dialects;
-	static YulStringRepository::ResetCallback callback{[&] { dialects.clear(); }};
+	static YulStringRepository::ResetCallback const callback{[&] { dialects.clear(); }};
 	if (!dialects[_evmVersion])
 		dialects[_evmVersion] = std::make_unique<EVMDialect>(_evmVersion, true);
 	return *dialects[_evmVersion];

@@ -45,8 +45,8 @@ SourceUnitName ImportRemapper::apply(ImportPath const& _path, std::string const&
 
 	for (auto const& redir: m_remappings)
 	{
-		std::string context = util::sanitizePath(redir.context);
-		std::string prefix = util::sanitizePath(redir.prefix);
+		std::string const context = util::sanitizePath(redir.context);
+		std::string const prefix = util::sanitizePath(redir.prefix);
 
 		// Skip if current context is closer
 		if (context.length() < longestContext)

@@ -65,7 +65,7 @@ std::string solidity::evmasm::disassemble(bytes const& _mem, langutil::EVMVersio
 			ret << "0x" << std::uppercase << std::hex << static_cast<int>(_instr) << _delimiter;
 		else
 		{
-			InstructionInfo info = instructionInfo(_instr, _evmVersion);
+			InstructionInfo const info = instructionInfo(_instr, _evmVersion);
 			ret << info.name;
 			if (info.additional)
 				ret << " 0x" << std::uppercase << std::hex << _data;

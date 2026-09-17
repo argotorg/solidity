@@ -150,7 +150,7 @@ void expectLinkReferences(Json const& _contractResult, std::map<std::string, std
 Json compile(std::string _input)
 {
 	StandardCompiler compiler;
-	std::string output = compiler.compile(std::move(_input));
+	std::string const output = compiler.compile(std::move(_input));
 	Json ret;
 	BOOST_REQUIRE(util::jsonParseStrict(output, ret));
 	return ret;
@@ -339,7 +339,7 @@ BOOST_AUTO_TEST_CASE(invalid_language)
 		"sources": { "name": { "content": "abc" } }
 	}
 	)";
-	Json result = compile(input);
+	Json const result = compile(input);
 	BOOST_CHECK(containsError(result, "JSONError", "Only \"Solidity\", \"Yul\", \"SolidityAST\" or \"EVMAssembly\" is supported as a language."));
 }
 
@@ -350,7 +350,7 @@ BOOST_AUTO_TEST_CASE(valid_language)
 		"language": "Solidity"
 	}
 	)";
-	Json result = compile(input);
+	Json const result = compile(input);
 	BOOST_CHECK(!containsError(result, "JSONError", "Only \"Solidity\" or \"Yul\" is supported as a language."));
 }
 
@@ -361,7 +361,7 @@ BOOST_AUTO_TEST_CASE(no_sources)
 		"language": "Solidity"
 	}
 	)";
-	Json result = compile(input);
+	Json const result = compile(input);
 	BOOST_CHECK(containsError(result, "JSONError", "No input sources specified."));
 }
 
@@ -373,7 +373,7 @@ BOOST_AUTO_TEST_CASE(no_sources_empty_object)
 		"sources": {}
 	}
 	)";
-	Json result = compile(input);
+	Json const result = compile(input);
 	BOOST_CHECK(containsError(result, "JSONError", "No input sources specified."));
 }
 
@@ -385,7 +385,7 @@ BOOST_AUTO_TEST_CASE(no_sources_empty_array)
 		"sources": []
 	}
 	)";
-	Json result = compile(input);
+	Json const result = compile(input);
 	BOOST_CHECK(containsError(result, "JSONError", "\"sources\" is not a JSON object."));
 }
 
@@ -397,7 +397,7 @@ BOOST_AUTO_TEST_CASE(sources_is_array)
 		"sources": ["aa", "bb"]
 	}
 	)";
-	Json result = compile(input);
+	Json const result = compile(input);
 	BOOST_CHECK(containsError(result, "JSONError", "\"sources\" is not a JSON object."));
 }
 
@@ -415,7 +415,7 @@ BOOST_AUTO_TEST_CASE(unexpected_trailing_test)
 	}
 	}
 	)";
-	Json result = compile(input);
+	Json const result = compile(input);
 	BOOST_CHECK(containsError(result, "JSONError", "parse error at line 10, column 2: syntax error while parsing value - unexpected '}'; expected end of input"));
 }
 
@@ -431,7 +431,7 @@ BOOST_AUTO_TEST_CASE(smoke_test)
 		}
 	}
 	)";
-	Json result = compile(input);
+	Json const result = compile(input);
 	BOOST_CHECK(containsAtMostWarnings(result));
 }
 
@@ -452,7 +452,7 @@ BOOST_AUTO_TEST_CASE(optimizer_enabled_not_boolean)
 		}
 	}
 	)";
-	Json result = compile(input);
+	Json const result = compile(input);
 	BOOST_CHECK(containsError(result, "JSONError", "The \"enabled\" setting must be a Boolean."));
 }
 
@@ -474,7 +474,7 @@ BOOST_AUTO_TEST_CASE(optimizer_runs_not_a_number)
 		}
 	}
 	)";
-	Json result = compile(input);
+	Json const result = compile(input);
 	BOOST_CHECK(containsError(result, "JSONError", "The \"runs\" setting must be an unsigned number."));
 }
 
@@ -496,7 +496,7 @@ BOOST_AUTO_TEST_CASE(optimizer_runs_not_an_unsigned_number)
 		}
 	}
 	)";
-	Json result = compile(input);
+	Json const result = compile(input);
 	BOOST_CHECK(containsError(result, "JSONError", "The \"runs\" setting must be an unsigned number."));
 }
 
@@ -667,7 +667,7 @@ BOOST_AUTO_TEST_CASE(output_selection_explicit)
 		}
 	}
 	)";
-	Json result = compile(input);
+	Json const result = compile(input);
 	BOOST_CHECK(containsAtMostWarnings(result));
 	Json contract = getContractResult(result, "fileA", "A");
 	BOOST_CHECK(contract.is_object());
@@ -1217,7 +1217,7 @@ BOOST_AUTO_TEST_CASE(optimizer_settings_default_disabled)
 	Json contract = getContractResult(result, "fileA", "A");
 	BOOST_CHECK(contract.is_object());
 	BOOST_CHECK(contract["metadata"].is_string());
-	Json metadata;
+	Json const metadata;
 	BOOST_CHECK(util::jsonParseStrict(contract["metadata"].get<std::string>(), metadata));
 
 	Json const& optimizer = metadata["settings"]["optimizer"];
@@ -1250,7 +1250,7 @@ BOOST_AUTO_TEST_CASE(optimizer_settings_default_enabled)
 	Json contract = getContractResult(result, "fileA", "A");
 	BOOST_CHECK(contract.is_object());
 	BOOST_CHECK(contract["metadata"].is_string());
-	Json metadata;
+	Json const metadata;
 	BOOST_CHECK(util::jsonParseStrict(contract["metadata"].get<std::string>(), metadata));
 
 	Json const& optimizer = metadata["settings"]["optimizer"];
@@ -1290,7 +1290,7 @@ BOOST_AUTO_TEST_CASE(optimizer_settings_details_exactly_as_default_disabled)
 	Json contract = getContractResult(result, "fileA", "A");
 	BOOST_CHECK(contract.is_object());
 	BOOST_CHECK(contract["metadata"].is_string());
-	Json metadata;
+	Json const metadata;
 	BOOST_CHECK(util::jsonParseStrict(contract["metadata"].get<std::string>(), metadata));
 
 	Json const& optimizer = metadata["settings"]["optimizer"];
@@ -1333,7 +1333,7 @@ BOOST_AUTO_TEST_CASE(optimizer_settings_details_different)
 	Json contract = getContractResult(result, "fileA", "A");
 	BOOST_CHECK(contract.is_object());
 	BOOST_CHECK(contract["metadata"].is_string());
-	Json metadata;
+	Json const metadata;
 	BOOST_CHECK(util::jsonParseStrict(contract["metadata"].get<std::string>(), metadata));
 
 	Json const& optimizer = metadata["settings"]["optimizer"];
@@ -1416,12 +1416,12 @@ BOOST_AUTO_TEST_CASE(license_in_metadata)
 				}
 			}
 		)";
-	Json result = compile(input);
+	Json const result = compile(input);
 	BOOST_CHECK(containsAtMostWarnings(result));
 	Json contract = getContractResult(result, "fileA", "A");
 	BOOST_CHECK(contract.is_object());
 	BOOST_CHECK(contract["metadata"].is_string());
-	Json metadata;
+	Json const metadata;
 	BOOST_REQUIRE(util::jsonParseStrict(contract["metadata"].get<std::string>(), metadata));
 	BOOST_CHECK_EQUAL(metadata["sources"]["fileA"]["license"], "GPL-3.0");
 	BOOST_CHECK_EQUAL(metadata["sources"]["fileB"]["license"], "MIT");
@@ -1510,7 +1510,7 @@ BOOST_AUTO_TEST_CASE(use_stack_optimization)
 	}
 	)";
 
-	Json parsedInput;
+	Json const parsedInput;
 	BOOST_REQUIRE(util::jsonParseStrict(input, parsedInput));
 
 	solidity::frontend::StandardCompiler compiler;
@@ -1562,11 +1562,11 @@ BOOST_AUTO_TEST_CASE(standard_output_selection_wildcard)
 	}
 	)";
 
-	Json parsedInput;
+	Json const parsedInput;
 	BOOST_REQUIRE(util::jsonParseStrict(input, parsedInput));
 
 	solidity::frontend::StandardCompiler compiler;
-	Json result = compiler.compile(parsedInput);
+	Json const result = compiler.compile(parsedInput);
 
 	BOOST_REQUIRE(result["contracts"].is_object());
 	BOOST_REQUIRE(result["contracts"].size() == 1);
@@ -1603,11 +1603,11 @@ BOOST_AUTO_TEST_CASE(standard_output_selection_wildcard_colon_source)
 	}
 	)";
 
-	Json parsedInput;
+	Json const parsedInput;
 	BOOST_REQUIRE(util::jsonParseStrict(input, parsedInput));
 
 	solidity::frontend::StandardCompiler compiler;
-	Json result = compiler.compile(parsedInput);
+	Json const result = compiler.compile(parsedInput);
 
 	BOOST_REQUIRE(result["contracts"].is_object());
 	BOOST_REQUIRE(result["contracts"].size() == 1);
@@ -1643,11 +1643,11 @@ BOOST_AUTO_TEST_CASE(standard_output_selection_wildcard_empty_source)
 	}
 	)";
 
-	Json parsedInput;
+	Json const parsedInput;
 	BOOST_REQUIRE(util::jsonParseStrict(input, parsedInput));
 
 	solidity::frontend::StandardCompiler compiler;
-	Json result = compiler.compile(parsedInput);
+	Json const result = compiler.compile(parsedInput);
 
 	BOOST_REQUIRE(result["contracts"].is_object());
 	BOOST_REQUIRE(result["contracts"].size() == 1);
@@ -1687,11 +1687,11 @@ BOOST_AUTO_TEST_CASE(standard_output_selection_wildcard_multiple_sources)
 	}
 	)";
 
-	Json parsedInput;
+	Json const parsedInput;
 	BOOST_REQUIRE(util::jsonParseStrict(input, parsedInput));
 
 	solidity::frontend::StandardCompiler compiler;
-	Json result = compiler.compile(parsedInput);
+	Json const result = compiler.compile(parsedInput);
 
 	BOOST_REQUIRE(result["contracts"].is_object());
 	BOOST_REQUIRE(result["contracts"].size() == 1);
@@ -1814,11 +1814,11 @@ BOOST_AUTO_TEST_CASE(dependency_tracking_of_abstract_contract)
 	}
 	)";
 
-	Json parsedInput;
+	Json const parsedInput;
 	BOOST_REQUIRE(util::jsonParseStrict(input, parsedInput));
 
 	solidity::frontend::StandardCompiler compiler;
-	Json result = compiler.compile(parsedInput);
+	Json const result = compiler.compile(parsedInput);
 
 	BOOST_REQUIRE(result["contracts"].is_object());
 	BOOST_REQUIRE(result["contracts"].size() == 1);
@@ -1852,11 +1852,11 @@ BOOST_AUTO_TEST_CASE(dependency_tracking_of_abstract_contract_yul)
 	}
 	)";
 
-	Json parsedInput;
+	Json const parsedInput;
 	BOOST_REQUIRE(util::jsonParseStrict(input, parsedInput));
 
 	solidity::frontend::StandardCompiler compiler;
-	Json result = compiler.compile(parsedInput);
+	Json const result = compiler.compile(parsedInput);
 
 	BOOST_REQUIRE(result["contracts"].is_object());
 	BOOST_REQUIRE(result["contracts"].size() == 1);
@@ -1901,11 +1901,11 @@ BOOST_AUTO_TEST_CASE(source_location_of_bare_block)
 	}
 	)";
 
-	Json parsedInput;
+	Json const parsedInput;
 	BOOST_REQUIRE(util::jsonParseStrict(input, parsedInput));
 
 	solidity::frontend::StandardCompiler compiler;
-	Json result = compiler.compile(parsedInput);
+	Json const result = compiler.compile(parsedInput);
 
 	std::string sourceMap = result["contracts"]["A.sol"]["A"]["evm"]["bytecode"]["sourceMap"].get<std::string>();
 
@@ -2047,7 +2047,7 @@ BOOST_AUTO_TEST_CASE(ethdebug_debug_info_ethdebug)
 			std::nullopt,
 		},
 	};
-	frontend::StandardCompiler compiler;
+	frontend::StandardCompiler const compiler;
 	for (auto const& test: tests)
 	{
 		Json result = compiler.compile(std::get<0>(test));
@@ -2216,7 +2216,7 @@ BOOST_AUTO_TEST_CASE(ethdebug_ethdebug_output)
 			}
 		}
 	};
-	frontend::StandardCompiler compiler;
+	frontend::StandardCompiler const compiler;
 	for (auto const& [standardJsonToCompile, optionalCheck]: tests)
 	{
 		Json result = compiler.compile(standardJsonToCompile);
@@ -2288,9 +2288,9 @@ BOOST_AUTO_TEST_CASE(no_experimental_import_ast_solidity_evmasm)
 		}
 		)";
 
-		Json parsedInput;
+		Json const parsedInput;
 		BOOST_REQUIRE(util::jsonParseStrict(input, parsedInput));
-		Json result = compiler.compile(parsedInput);
+		Json const result = compiler.compile(parsedInput);
 		BOOST_CHECK(containsError(result, "FatalError", "'SolidityAST' and 'EVMAssembly' inputs are experimental and can only be used with the 'settings.experimental' option enabled."));
 	}
 }
@@ -2316,9 +2316,9 @@ BOOST_AUTO_TEST_CASE(no_experimental_invalid_output_selection)
 	}
 	)";
 
-	Json parsedInput;
+	Json const parsedInput;
 	BOOST_REQUIRE(util::jsonParseStrict(input, parsedInput));
-	Json result = compiler.compile(parsedInput);
+	Json const result = compiler.compile(parsedInput);
 	BOOST_CHECK(
 		containsError(
 			result,
@@ -2344,9 +2344,9 @@ BOOST_AUTO_TEST_CASE(experimental_non_boolean)
 	}
 	)";
 
-	Json parsedInput;
+	Json const parsedInput;
 	BOOST_REQUIRE(util::jsonParseStrict(input, parsedInput));
-	Json result = compiler.compile(parsedInput);
+	Json const result = compiler.compile(parsedInput);
 	BOOST_CHECK(containsError(result, "JSONError", "'settings.experimental' must be a Boolean."));
 }
 
@@ -2369,9 +2369,9 @@ BOOST_AUTO_TEST_CASE(via_ssa_cfg_with_experimental)
 	}
 	)";
 
-	Json parsedInput;
+	Json const parsedInput;
 	BOOST_REQUIRE(util::jsonParseStrict(input, parsedInput));
-	Json result = compiler.compile(parsedInput);
+	Json const result = compiler.compile(parsedInput);
 	// Should compile without fatal errors (warnings are acceptable)
 	BOOST_CHECK(!containsError(result, "FatalError", ""));
 }

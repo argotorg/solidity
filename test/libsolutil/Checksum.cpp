@@ -102,10 +102,10 @@ BOOST_AUTO_TEST_CASE(homocaps_valid)
 
 BOOST_AUTO_TEST_CASE(homocaps_invalid)
 {
-	std::string upper = "0x00AA0000000012400000000DDEEFF000000000BB";
+	std::string const upper = "0x00AA0000000012400000000DDEEFF000000000BB";
 	BOOST_CHECK(passesAddressChecksum(upper, false));
 	BOOST_CHECK(!passesAddressChecksum(upper, true));
-	std::string lower = "0x11aa000000000000000d00cc00000000000000bb";
+	std::string const lower = "0x11aa000000000000000d00cc00000000000000bb";
 	BOOST_CHECK(passesAddressChecksum(lower, false));
 	BOOST_CHECK(!passesAddressChecksum(lower, true));
 }

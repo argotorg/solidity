@@ -58,7 +58,7 @@ void ObjectOptimizer::optimize(Object& _object, Settings const& _settings, bool 
 	for (auto& subNode: _object.subObjects)
 		if (auto subObject = dynamic_cast<Object*>(subNode.get()))
 		{
-			bool isCreation = !boost::ends_with(subObject->name, "_deployed");
+			bool const isCreation = !boost::ends_with(subObject->name, "_deployed");
 			optimize(
 				*subObject,
 				_settings,

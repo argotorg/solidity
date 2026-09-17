@@ -106,7 +106,7 @@ Chunk combineLinks(Chunks& _links)
 		lengths += bytes{0x20} + varintEncoding(link.size);
 	}
 
-	bytes blockData = data + encodeByteArray(bytes{0x08, 0x02, 0x18} + varintEncoding(chunk.size) + lengths);
+	bytes const blockData = data + encodeByteArray(bytes{0x08, 0x02, 0x18} + varintEncoding(chunk.size) + lengths);
 
 	chunk.blockSize += blockData.size();
 	chunk.hash = encodeHash(blockData);
@@ -183,7 +183,7 @@ bytes solidity::util::ipfsHash(std::string _data)
 
 		// PBDag:
 		// Data: (length delimited bytes)
-		bytes blockData = encodeByteArray(protobufEncodedData);
+		bytes const blockData = encodeByteArray(protobufEncodedData);
 
 		// Multihash: sha2-256, 256 bits
 		allChunks.emplace_back(

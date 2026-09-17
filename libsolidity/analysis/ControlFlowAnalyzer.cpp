@@ -73,8 +73,8 @@ void ControlFlowAnalyzer::checkUninitializedAccess(CFGNode const* _entry, CFGNod
 		/// to be traversed again.
 		bool propagateFrom(NodeInfo const& _entryNode)
 		{
-			size_t previousUnassignedVariablesAtEntry = unassignedVariablesAtEntry.size();
-			size_t previousUninitializedVariableAccesses = uninitializedVariableAccesses.size();
+			size_t const previousUnassignedVariablesAtEntry = unassignedVariablesAtEntry.size();
+			size_t const previousUninitializedVariableAccesses = uninitializedVariableAccesses.size();
 			unassignedVariablesAtEntry += _entryNode.unassignedVariablesAtExit;
 			uninitializedVariableAccesses += _entryNode.uninitializedVariableAccesses;
 			return
@@ -157,8 +157,8 @@ void ControlFlowAnalyzer::checkUninitializedAccess(CFGNode const* _entry, CFGNod
 			if (variableOccurrence->occurrence())
 				ssl.append("The variable was declared here.", varDecl.location());
 
-			bool isStorage = varDecl.type()->dataStoredIn(DataLocation::Storage);
-			bool isCalldata = varDecl.type()->dataStoredIn(DataLocation::CallData);
+			bool const isStorage = varDecl.type()->dataStoredIn(DataLocation::Storage);
+			bool const isCalldata = varDecl.type()->dataStoredIn(DataLocation::CallData);
 			if (isStorage || isCalldata)
 				m_errorReporter.typeError(
 					3464_error,

@@ -102,7 +102,7 @@ ExpressionClasses::Id ExpressionClasses::find(
 	if (_copyItem)
 		exp.item = storeItem(_item);
 
-	ExpressionClasses::Id id = tryToSimplify(exp);
+	ExpressionClasses::Id const id = tryToSimplify(exp);
 	if (id < m_representatives.size())
 		exp.id = id;
 	else
@@ -193,7 +193,7 @@ std::string ExpressionClasses::fullDAGToString(ExpressionClasses::Id _id) const
 	if (expr.item)
 	{
 		str << *expr.item << "(";
-		for (Id arg: expr.arguments)
+		for (Id const arg: expr.arguments)
 			str << fullDAGToString(arg) << ",";
 		str << ")";
 	}
@@ -220,7 +220,7 @@ ExpressionClasses::Id ExpressionClasses::tryToSimplify(Expression const& _expr)
 		if (false)
 		{
 			std::cout << "Simplifying " << *_expr.item << "(";
-			for (Id arg: _expr.arguments)
+			for (Id const arg: _expr.arguments)
 				std::cout << fullDAGToString(arg) << ", ";
 			std::cout << ")" << std::endl;
 			std::cout << "with rule " << match->pattern.toString() << std::endl;

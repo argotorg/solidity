@@ -86,7 +86,7 @@ std::string ObjectDebugData::formatUseSrcComment() const
 		return std::to_string(_pair.first) + ":" + util::escapeAndQuoteString(*_pair.second);
 	};
 
-	std::string serializedSourceNames = joinHumanReadable(
+	std::string const serializedSourceNames = joinHumanReadable(
 		ranges::views::transform(*sourceNames, formatIdNamePair)
 	);
 	return "/// @use-src " + serializedSourceNames + "\n";

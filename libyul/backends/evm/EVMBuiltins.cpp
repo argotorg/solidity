@@ -135,7 +135,7 @@ BuiltinFunctionForEVM datasizeBuiltin()
 				_assembly.appendAssemblySize();
 			else
 			{
-				std::vector<AbstractAssembly::SubID> subIdPath =
+				std::vector<AbstractAssembly::SubID> const subIdPath =
 					_context.subIDs.count(dataName.str()) == 0 ?
 						_context.currentObject->pathToSubObject(dataName.str()) :
 						std::vector{_context.subIDs.at(dataName.str())};
@@ -161,7 +161,7 @@ BuiltinFunctionForEVM dataoffsetBuiltin()
 			_assembly.appendConstant(0);
 		else
 		{
-			std::vector<AbstractAssembly::SubID> subIdPath =
+			std::vector<AbstractAssembly::SubID> const subIdPath =
 				_context.subIDs.count(dataName.str()) == 0 ?
 					_context.currentObject->pathToSubObject(dataName.str()) :
 					std::vector{_context.subIDs.at(dataName.str())};

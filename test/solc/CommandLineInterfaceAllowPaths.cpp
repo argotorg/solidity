@@ -91,12 +91,12 @@ ImportCheck checkImport(
 	};
 	commandLine += _cliOptions;
 
-	std::string standardInputContent =
+	std::string const standardInputContent =
 		"// SPDX-License-Identifier: GPL-3.0\n"
 		"pragma solidity >=0.0;\n" +
 		_import + ";";
 
-	test::OptionsReaderAndMessages cliResult = test::runCLI(commandLine, standardInputContent);
+	test::OptionsReaderAndMessages const cliResult = test::runCLI(commandLine, standardInputContent);
 	if (cliResult.success)
 		return ImportCheck::OK();
 
@@ -215,7 +215,7 @@ BOOST_AUTO_TEST_SUITE(CommandLineInterfaceAllowPathsTest)
 
 BOOST_FIXTURE_TEST_CASE(allow_path_multiple_paths, AllowPathsFixture)
 {
-	std::string allowedPaths =
+	std::string const allowedPaths =
 		m_codeDir.generic_string() + "/a/b/X.sol," +
 		m_codeDir.generic_string() + "/X/," +
 		m_codeDir.generic_string() + "/z," +
@@ -229,7 +229,7 @@ BOOST_FIXTURE_TEST_CASE(allow_path_multiple_paths, AllowPathsFixture)
 
 BOOST_FIXTURE_TEST_CASE(allow_path_should_work_with_various_path_forms, AllowPathsFixture)
 {
-	std::string import = "import '" + m_portablePrefix + "/a/b/c.sol'";
+	std::string const import = "import '" + m_portablePrefix + "/a/b/c.sol'";
 
 	// Without --allow-path
 	BOOST_TEST(checkImport(import, {}) == ImportCheck::PathDisallowed());
@@ -342,7 +342,7 @@ BOOST_FIXTURE_TEST_CASE(allow_path_should_work_with_various_import_forms, AllowP
 	// UNC paths in imports.
 	// Unfortunately can't test it on Windows without having an existing UNC path. On Linux we can
 	// at least rely on the fact that `//` works like `/`.
-	std::string uncImportPath = "/" + m_portablePrefix + "/a/b/c.sol";
+	std::string const uncImportPath = "/" + m_portablePrefix + "/a/b/c.sol";
 	soltestAssert(FileReader::isUNCPath(uncImportPath), "");
 	BOOST_TEST(checkImport("import '" + uncImportPath + "'", {"--allow-paths", "../code/a/b/c.sol"}) == ImportCheck::PathDisallowed());
 #endif

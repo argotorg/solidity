@@ -77,7 +77,7 @@ std::shared_ptr<Object> ObjectParser::parse(std::shared_ptr<Scanner> const& _sca
 
 std::shared_ptr<Object> ObjectParser::parseObject(Object* _containingObject)
 {
-	RecursionGuard guard(*this);
+	RecursionGuard const guard(*this);
 
 	std::shared_ptr<Object> ret = std::make_shared<Object>();
 

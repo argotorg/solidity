@@ -58,7 +58,7 @@ Json PlainAssemblyParser::parseAssembly(size_t _nestingLevel)
 			continue;
 		}
 
-		size_t newLevel = parseNestingLevel();
+		size_t const newLevel = parseNestingLevel();
 		if (newLevel > _nestingLevel)
 			BOOST_THROW_EXCEPTION(std::runtime_error(formatError("Indentation does not match the current subassembly nesting level.")));
 
@@ -69,7 +69,7 @@ Json PlainAssemblyParser::parseAssembly(size_t _nestingLevel)
 		{
 			advanceLine();
 
-			std::string nextDataIndex = std::to_string(assemblyJSON[".data"].size());
+			std::string const nextDataIndex = std::to_string(assemblyJSON[".data"].size());
 			assemblyJSON[".data"][nextDataIndex] = parseAssembly(_nestingLevel + 1);
 			continue;
 		}
@@ -92,7 +92,7 @@ Json PlainAssemblyParser::parseAssembly(size_t _nestingLevel)
 			}
 			else if (hasMoreTokens() && (nextToken().value == "[$]" || nextToken().value == "#[$]"))
 			{
-				std::string pushType = std::string(nextToken().value);
+				std::string const pushType = std::string(nextToken().value);
 				advanceToken();
 				std::string_view subassemblyID = expectArgument();
 				expectNoMoreArguments();
@@ -134,7 +134,7 @@ Json PlainAssemblyParser::parseAssembly(size_t _nestingLevel)
 
 size_t PlainAssemblyParser::parseNestingLevel() const
 {
-	std::string_view indentationString = indentation();
+	std::string_view const indentationString = indentation();
 
 	if (indentationString != std::string(indentationString.size(), ' '))
 		BOOST_THROW_EXCEPTION(std::runtime_error(formatError("Non-space characters used for indentation.")));
@@ -178,7 +178,7 @@ bool PlainAssemblyParser::advanceToken()
 
 std::string_view PlainAssemblyParser::expectArgument()
 {
-	bool hasArgument = advanceToken();
+	bool const hasArgument = advanceToken();
 	if (!hasArgument)
 		BOOST_THROW_EXCEPTION(std::runtime_error(formatError("Missing argument(s).")));
 
@@ -187,7 +187,7 @@ std::string_view PlainAssemblyParser::expectArgument()
 
 void PlainAssemblyParser::expectNoMoreArguments()
 {
-	bool hasArgument = advanceToken();
+	bool const hasArgument = advanceToken();
 	if (hasArgument)
 		BOOST_THROW_EXCEPTION(std::runtime_error(formatError("Too many arguments.")));
 }
@@ -216,7 +216,7 @@ std::vector<PlainAssemblyParser::Token> PlainAssemblyParser::tokenizeLine(std::s
 	auto tokenLocation = boost::find_token(_line, notWhiteSpace, boost::token_compress_on);
 	while (!tokenLocation.empty())
 	{
-		std::string_view value{tokenLocation.begin(), tokenLocation.end()};
+		std::string_view const value{tokenLocation.begin(), tokenLocation.end()};
 		if (value.starts_with("//"))
 			break;
 
@@ -240,7 +240,7 @@ std::string PlainAssemblyParser::formatError(std::string_view _message) const
 	soltestAssert(m_line.has_value());
 	soltestAssert(!m_lineTokens.empty());
 
-	std::string lineNumberString = std::to_string(m_lineNumber);
+	std::string const lineNumberString = std::to_string(m_lineNumber);
 	std::string padding(lineNumberString.size(), ' ');
 	std::string underline = std::string(currentToken().position, ' ') + std::string(currentToken().value.size(), '^');
 	return fmt::format(

@@ -72,7 +72,7 @@ std::string joinHumanReadable
 	for (auto it = begin(_list); it != itEnd; )
 	{
 		auto const& element = *it;
-		bool first = (it == begin(_list));
+		bool const first = (it == begin(_list));
 		++it;
 		if (!first)
 		{

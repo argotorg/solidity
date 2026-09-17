@@ -53,13 +53,13 @@ void Rematerialiser::visit(Expression& _e)
 {
 	if (std::holds_alternative<Identifier>(_e))
 	{
-		Identifier& identifier = std::get<Identifier>(_e);
-		YulName name = identifier.name;
+		Identifier const& identifier = std::get<Identifier>(_e);
+		YulName const name = identifier.name;
 		if (AssignedValue const* value = variableValue(name))
 		{
 			assertThrow(value->value, OptimizerException, "");
-			size_t refs = m_referenceCounts[name];
-			size_t cost = CodeCost::codeCost(m_dialect, *value->value);
+			size_t const refs = m_referenceCounts[name];
+			size_t const cost = CodeCost::codeCost(m_dialect, *value->value);
 			if (
 				(
 					!m_onlySelectedVariables && (
@@ -92,8 +92,8 @@ void LiteralRematerialiser::visit(Expression& _e)
 {
 	if (std::holds_alternative<Identifier>(_e))
 	{
-		Identifier& identifier = std::get<Identifier>(_e);
-		YulName name = identifier.name;
+		Identifier const& identifier = std::get<Identifier>(_e);
+		YulName const name = identifier.name;
 		if (AssignedValue const* value = variableValue(name))
 		{
 			assertThrow(value->value, OptimizerException, "");

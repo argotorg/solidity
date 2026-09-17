@@ -63,7 +63,7 @@ std::string ParserBase::tokenName(Token _token)
 		return "reserved keyword '" + TokenTraits::friendlyName(_token) + "'";
 	else if (TokenTraits::isElementaryTypeName(_token)) //for the sake of accuracy in reporting
 	{
-		ElementaryTypeNameToken elemTypeName = m_scanner->currentElementaryTypeNameToken();
+		ElementaryTypeNameToken const elemTypeName = m_scanner->currentElementaryTypeNameToken();
 		return "'" + elemTypeName.toString() + "'";
 	}
 	else
@@ -72,7 +72,7 @@ std::string ParserBase::tokenName(Token _token)
 
 void ParserBase::expectToken(Token _value, bool _advance)
 {
-	Token tok = m_scanner->currentToken();
+	Token const tok = m_scanner->currentToken();
 	if (tok != _value)
 		fatalParserError(
 			2314_error,

@@ -55,7 +55,7 @@ YulInterpreterTest::YulInterpreterTest(std::string const& _filename):
 
 TestCase::TestResult YulInterpreterTest::run(std::ostream& _stream, std::string const& _linePrefix, bool const _formatted)
 {
-	YulStack yulStack = parseYul(m_source, "", solidity::frontend::OptimiserSettings::none());
+	YulStack const yulStack = parseYul(m_source, "", solidity::frontend::OptimiserSettings::none());
 
 	if (yulStack.hasErrors())
 	{

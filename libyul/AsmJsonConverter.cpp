@@ -199,7 +199,7 @@ Json AsmJsonConverter::createAstNode(langutil::SourceLocation const& _originLoca
 	ret["nodeType"] = std::move(_nodeType);
 	auto srcLocation = [&](int start, int end) -> std::string
 	{
-		int length = (start >= 0 && end >= 0 && end >= start) ? end - start : -1;
+		int const length = (start >= 0 && end >= 0 && end >= start) ? end - start : -1;
 		return std::to_string(start) + ":" + std::to_string(length) + ":" + (m_sourceIndex.has_value() ? std::to_string(m_sourceIndex.value()) : "-1");
 	};
 	ret["src"] = srcLocation(_originLocation.start, _originLocation.end);

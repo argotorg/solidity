@@ -323,8 +323,8 @@ BOOST_AUTO_TEST_CASE(validation_function_type)
 		}
 	)";
 	bool newDecoder = false;
-	std::string validFun{"01234567890123456789abcd"};
-	std::string invalidFun{"01234567890123456789abcdX"};
+	std::string const validFun{"01234567890123456789abcd"};
+	std::string const invalidFun{"01234567890123456789abcdX"};
 	BOTH_ENCODERS(
 		compileAndRun(sourceCode);
 		ABI_CHECK(callContractFunction("f(function)", validFun), encodeArgs(1));

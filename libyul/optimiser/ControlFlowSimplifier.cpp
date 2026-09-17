@@ -93,8 +93,8 @@ void ControlFlowSimplifier::visit(Statement& _st)
 		ForLoop& forLoop = std::get<ForLoop>(_st);
 		yulAssert(forLoop.pre.statements.empty(), "");
 
-		size_t outerBreak = m_numBreakStatements;
-		size_t outerContinue = m_numContinueStatements;
+		size_t const outerBreak = m_numBreakStatements;
+		size_t const outerContinue = m_numContinueStatements;
 		m_numBreakStatements = 0;
 		m_numContinueStatements = 0;
 
@@ -103,7 +103,7 @@ void ControlFlowSimplifier::visit(Statement& _st)
 		if (!forLoop.body.statements.empty())
 		{
 			bool isTerminating = false;
-			TerminationFinder::ControlFlow controlFlow = TerminationFinder{m_dialect}.controlFlowKind(forLoop.body.statements.back());
+			TerminationFinder::ControlFlow const controlFlow = TerminationFinder{m_dialect}.controlFlowKind(forLoop.body.statements.back());
 			if (controlFlow == TerminationFinder::ControlFlow::Break)
 			{
 				isTerminating = true;
@@ -194,7 +194,7 @@ OptionalStatements ControlFlowSimplifier::reduceSingleCaseSwitch(Switch& _switch
 	yulAssert(_switchStmt.cases.size() == 1, "Expected only one case!");
 
 	auto& switchCase = _switchStmt.cases.front();
-	langutil::DebugData::ConstPtr debugData = debugDataOf(*_switchStmt.expression);
+	langutil::DebugData::ConstPtr const debugData = debugDataOf(*_switchStmt.expression);
 	if (switchCase.value)
 	{
 		if (!m_dialect.equalityFunctionHandle())

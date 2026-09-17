@@ -43,7 +43,7 @@ void InlinableExpressionFunctionFinder::operator()(FunctionDefinition const& _fu
 {
 	if (_function.returnVariables.size() == 1 && _function.body.statements.size() == 1)
 	{
-		YulName retVariable = _function.returnVariables.front().name;
+		YulName const retVariable = _function.returnVariables.front().name;
 		Statement const& bodyStatement = _function.body.statements.front();
 		if (std::holds_alternative<Assignment>(bodyStatement))
 		{

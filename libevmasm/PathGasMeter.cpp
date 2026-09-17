@@ -69,7 +69,7 @@ GasMeter::GasConsumption PathGasMeter::handleQueueItem()
 	std::unique_ptr<GasPath> path = std::move(m_queue.rbegin()->second);
 	m_queue.erase(--m_queue.end());
 
-	std::shared_ptr<KnownState> state = path->state;
+	std::shared_ptr<KnownState> const state = path->state;
 	GasMeter meter(state, m_evmVersion, path->largestMemoryAccess);
 	ExpressionClasses& classes = state->expressionClasses();
 	GasMeter::GasConsumption gas = path->gas;
@@ -104,7 +104,7 @@ GasMeter::GasConsumption PathGasMeter::handleQueueItem()
 		}
 		else if (item == AssemblyItem(Instruction::JUMPI))
 		{
-			ExpressionClasses::Id condition = state->relativeStackElement(-1);
+			ExpressionClasses::Id const condition = state->relativeStackElement(-1);
 			if (classes.knownNonZero(condition) || !classes.knownZero(condition))
 			{
 				jumpTags = state->tagsInExpression(state->relativeStackElement(0));
