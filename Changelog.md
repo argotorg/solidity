@@ -6,7 +6,6 @@ Compiler Features:
 
 Bugfixes:
 * EVM Assembly Import: Report proper error instead of ICE or uncaught exception on out-of-range sub-assembly IDs and tag references into sub-assemblies.
-* EVM Assembly Import: Report proper error instead of ICE or uncaught exception on out-of-range sub-assembly IDs and tag references into sub-assemblies.
 
 
 ### 0.8.37 (2026-09-10)
