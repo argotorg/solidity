@@ -7,6 +7,7 @@ Compiler Features:
 Bugfixes:
 * Parser: Fix inverted version pragma range comparison for components in the range [2**31, 2**32).
 * View Pure Checker: Fix state mutability of `super` calls being checked only against the contract declaring the function. Since `super` calls are re-resolved for each most derived contract, a `view` or `pure` function could reach a more mutable target there without being reported.
+* View Pure Checker: Fix state mutability of modifiers being inferred and checked only against the contract declaring the function using them. A derived contract could override a virtual modifier, or a `super` call in a modifier body could resolve, to something more mutable without being reported.
 
 
 ### 0.8.37 (2026-09-10)
