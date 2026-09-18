@@ -1,0 +1,140 @@
+
+======= input.sol:Calls =======
+EVM assembly:
+    /* "input.sol":133:646  contract Calls {... */
+  0x80
+  dup1
+  0x40
+  mstore
+  jumpi(tag_1, callvalue)
+  dataSize(sub_0)
+  swap1
+  dup2
+  dataOffset(sub_0)
+  dup3
+  codecopy
+  return
+tag_1:
+  0x00
+  dup1
+  revert
+stop
+
+sub_0: assembly {
+        /* "input.sol":133:646  contract Calls {... */
+      mstore(0x40, 0x80)
+      jumpi(tag_4, iszero(lt(calldatasize, 0x04)))
+      0x00
+      dup1
+      revert
+    tag_4:
+      jumpi(tag_6, eq(0x7a85644b, shr(0xe0, calldataload(0x00))))
+      0x00
+      dup1
+      revert
+    tag_6:
+      jumpi(tag_10, callvalue)
+      jumpi(tag_10, slt(add(not(0x03), calldatasize), 0x40))
+      0x20
+      calldataload(0x24)
+      calldataload(0x04)
+      dup1
+        /* "input.sol":230:235  x * x */
+      callsub(tag_2)
+      dup2
+      dup1
+      callsub(tag_2)
+        /* "input.sol":341:362  square(a) + square(b) */
+      swap1
+      callsub(tag_1)
+        /* "input.sol":625:637  factorial(b) */
+      swap1
+      callsub(tag_3)
+        /* "input.sol":604:637  sumOfSquares(a, b) + factorial(b) */
+      swap1
+      callsub(tag_1)
+        /* "input.sol":133:646  contract Calls {... */
+      mload(0x40)
+      swap1
+      dup2
+      mstore
+      return
+    tag_10: (calldest)
+      0x00
+      dup1
+      revert
+    tag_1: (calldest)
+      swap1
+      dup2
+      add
+      dup1
+      swap2
+      gt
+      tag_12
+      jumpi
+      returnsub
+    tag_12: (calldest)
+      mstore(0x00, shl(0xe0, 0x4e487b71))
+      mstore(0x04, 0x11)
+      revert(0x00, 0x24)
+    tag_2: (calldest)
+      dup2
+      dup2
+      mul
+      swap2
+      dup2
+      dup4
+      div
+      eq
+      swap1
+      iszero
+      or
+      iszero
+      tag_12
+      jumpi
+      returnsub
+      mstore(0x00, shl(0xe0, 0x4e487b71))
+      mstore(0x04, 0x11)
+      revert(0x00, 0x24)
+        /* "input.sol":375:510  function factorial(uint256 n) internal pure returns (uint256) {... */
+    tag_3: (calldest)
+        /* "input.sol":455:456  2 */
+      0x02
+        /* "input.sol":451:456  n < 2 */
+      dup2
+      lt
+        /* "input.sol":447:466  if (n < 2) return 1 */
+      tag_16
+      jumpi
+      not(0x00)
+        /* "input.sol":133:646  contract Calls {... */
+      dup2
+      add
+      dup2
+      dup2
+      gt
+      tag_12
+      jumpi
+        /* "input.sol":487:503  factorial(n - 1) */
+      callsub(tag_3)
+        /* "input.sol":483:503  n * factorial(n - 1) */
+      swap1
+      callsub(tag_2)
+        /* "input.sol":375:510  function factorial(uint256 n) internal pure returns (uint256) {... */
+      returnsub
+        /* "input.sol":133:646  contract Calls {... */
+      mstore(0x00, shl(0xe0, 0x4e487b71))
+      mstore(0x04, 0x11)
+      revert(0x00, 0x24)
+        /* "input.sol":447:466  if (n < 2) return 1 */
+    tag_16:
+        /* "input.sol":458:466  return 1 */
+      pop
+        /* "input.sol":465:466  1 */
+      0x01
+        /* "input.sol":458:466  return 1 */
+      returnsub
+
+    auxdata: <AUXDATA REMOVED>
+}
+

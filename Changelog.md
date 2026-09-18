@@ -3,6 +3,7 @@
 Language Features:
 
 Compiler Features:
+ * Code Generator: Experimental support for EIP-7979 subroutines (``CALLSUB``, ``CALLDEST``, ``RETURNSUB``) for internal function calls in the IR-based pipeline with the optimizer, enabled with ``--evm-version @future``.
 
 Bugfixes:
 * Parser: Fix inverted version pragma range comparison for components in the range [2**31, 2**32).
