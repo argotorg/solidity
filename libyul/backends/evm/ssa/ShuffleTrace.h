@@ -34,17 +34,18 @@ struct ShuffleOp
 {
 	enum class Kind: std::uint8_t
 	{
-		Swap,  ///< swap the top slot with the slot at depth `depth` (SWAP)
-		Dup,   ///< duplicate the slot at depth `depth - 1` onto the top (DUP)
-		Pop,   ///< remove the top slot (POP)
-		Push,  ///< produce the freely generatable `slot` (literal, junk or function call return label) on the top
-		Load,  ///< reload the spilled value `slot` from its memory slot onto the top
-		Store  ///< store the spilled value `slot` into its memory slot, consuming it from the top
+		Swap,	///< swap the top slot with the slot at depth `depth` (SWAP)
+		Dup,	///< duplicate the slot at depth `depth - 1` onto the top (DUP)
+		Pop,	///< remove the top slot (POP)
+		Push,	///< produce the freely generatable `slot` (literal, junk or function call return label) on the top
+		Load,	///< reload the spilled value `slot` from its memory slot onto the top
+		Store,	///< store the spilled value `slot` into its memory slot, consuming it from the top
+		Rename, ///< symbolically rename the slot at depth `depth` to `slot`
 	};
 
 	Kind kind = Kind::Pop;
 	/// EVM instruction operand # of SWAP# / DUP#
-	std::uint8_t depth = 0;
+	std::uint16_t depth = 0;
 	/// Slot produced by Push / Load or consumed by Store. Junk for all other kinds.
 	StackSlot slot = StackSlot::makeJunk();
 
@@ -66,13 +67,25 @@ struct ShuffleOp
 	}
 	static ShuffleOp load(StackSlot const& _slot)
 	{
-		yulAssert(_slot.isValue() && !_slot.isLiteralValue(), "only spilled (non-literal) values can be loaded");
+		yulAssert(isSpillable(_slot), "only spilled (non-literal) values can be loaded");
 		return {Kind::Load, 0, _slot};
 	}
 	static ShuffleOp store(StackSlot const& _slot)
 	{
-		yulAssert(_slot.isValue() && !_slot.isLiteralValue(), "only spilled (non-literal) values can be stored");
+		yulAssert(isSpillable(_slot), "only spilled (non-literal) values can be stored");
 		return {Kind::Store, 0, _slot};
+	}
+	static ShuffleOp rename(StackDepth const _depth, StackSlot const& _slot)
+	{
+		yulAssert(_depth.value <= std::numeric_limits<std::uint16_t>::max());
+		yulAssert(_slot.isShadow(), "only shadow variable slots are rename targets");
+		return {Kind::Rename, static_cast<std::uint16_t>(_depth.value), _slot};
+	}
+
+	/// Whether the slot can live in a spill memory slot: a non-literal value or a phi's upsilon slot
+	static constexpr bool isSpillable(StackSlot const& _slot)
+	{
+		return (_slot.isValue() && !_slot.isLiteralValue()) || _slot.isShadow();
 	}
 
 	bool operator==(ShuffleOp const&) const = default;

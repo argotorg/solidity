@@ -568,6 +568,8 @@ void CodeTransform::emit(ShuffleOp const& _op)
 		m_spillEmitter->emitStore(id);
 		return;
 	}
+	case ShuffleOp::Kind::Rename:
+		return;  // symbolic only
 	}
 	solidity::util::unreachable();
 }
