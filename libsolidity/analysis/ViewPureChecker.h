@@ -25,6 +25,8 @@
 #include <map>
 #include <memory>
 #include <optional>
+#include <span>
+#include <vector>
 
 namespace solidity::langutil
 {
@@ -80,6 +82,9 @@ private:
 	/// Determines the mutability of modifier if not already cached.
 	MutabilityAndLocation const& modifierMutability(ModifierDefinition const& _modifier);
 
+	/// @returns the contracts @a m_currentFunction can be inherited into, empty if it is not a member of a contract.
+	std::span<ContractDefinition const* const> currentDerivedContracts();
+
 	std::vector<std::shared_ptr<ASTNode>> const& m_ast;
 	langutil::ErrorReporter& m_errorReporter;
 
@@ -87,6 +92,8 @@ private:
 	MutabilityAndLocation m_bestMutabilityAndLocation = MutabilityAndLocation{StateMutability::Payable, langutil::SourceLocation()};
 	FunctionDefinition const* m_currentFunction = nullptr;
 	std::map<ModifierDefinition const*, MutabilityAndLocation> m_inferredMutability;
+	/// Reverse of the linearizations: every contract mapped to the contracts that inherit from it.
+	std::map<ContractDefinition const*, std::vector<ContractDefinition const*>> m_derivedContracts;
 };
 
 }
