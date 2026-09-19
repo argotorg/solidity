@@ -48,6 +48,7 @@ At least a day before the release:
     Verify that every bug list entry added in this release has a sequential `uid`, uses the new version in the `fixed` field and has a blog `link` matching the release date.
 - [ ] Sort the changelog entries alphabetically and correct any errors you notice. Commit it.
 - [ ] Update the changelog to include a release date.
+- [ ] Update `docs/bugs.yaml` with any new known bugs, then run `scripts/update_bugs_json.py` to regenerate `bugs.json`.
 - [ ] Run `scripts/update_bugs_by_version.py` to regenerate `bugs_by_version.json` from the changelog and `bugs.json`.
       Make sure that the resulting `bugs_by_version.json` has a new, empty entry for the new version.
 - [ ] Commit changes, create a pull request and wait for the tests. Then merge it.
