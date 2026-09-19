@@ -80,14 +80,17 @@ std::string dispenseLocationComment(ASTNode const& _node, IRGenerationContext& _
 
 }
 
-// Overloading std::less() makes it possible to use YulArity as a map key. We could define operator<
+// A named comparator makes it possible to use YulArity as a map key. We could define operator<
 // instead but such an operator would be a bit ambiguous (e.g. YulArity{2, 2} would be greater than
 // YulArity{1, 10} in lexicographical order but the latter has greater total number of inputs and outputs).
-template<>
-struct std::less<solidity::frontend::YulArity>
+// Specializing std::less instead is not allowed without a matching operator< and breaks with libc++ 22.
+namespace solidity::frontend
 {
-	bool operator() (solidity::frontend::YulArity const& _lhs, solidity::frontend::YulArity const& _rhs) const
+struct YulArityLess
+{
+	bool operator() (YulArity const& _lhs, YulArity const& _rhs) const
 	{
 		return _lhs.in < _rhs.in || (_lhs.in == _rhs.in && _lhs.out < _rhs.out);
 	}
 };
+}

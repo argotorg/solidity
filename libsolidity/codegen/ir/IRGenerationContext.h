@@ -46,7 +46,7 @@ class YulUtilFunctions;
 class ABIFunctions;
 
 using DispatchQueue = std::deque<FunctionDefinition const*>;
-using InternalDispatchMap = std::map<YulArity, DispatchQueue>;
+using InternalDispatchMap = std::map<YulArity, DispatchQueue, YulArityLess>;
 
 /**
  * Class that contains contextual information during IR generation.
