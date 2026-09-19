@@ -164,11 +164,14 @@ object "C" {
 //   spilled:
 //     v33 (value) -> mem 0x80
 //   mstore schedule:
-//     mstore addr(v33) <- v33 (B#0)
+//     after v33 (B#0):
+//       mstore addr(v33) <- v33 via [DUP1, STORE v33]
 // CFG[1] f
 //   spilled:
 //     v0 (value) -> mem 0xa0
 //     v19 (phi) -> mem 0xc0
 //   mstore schedule:
-//     mstore addr(v0) <- v0 (B#0)
-//     mstore addr(v19) <- v19 (B#1)
+//     function entry:
+//       mstore addr(v0) <- v0 via [DUP1, STORE v0]
+//     block entry B#1:
+//       mstore addr(v19) <- v19 via [DUP1, STORE phi19]
