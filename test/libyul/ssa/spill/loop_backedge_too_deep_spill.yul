@@ -110,7 +110,6 @@ code {
 //     jump #1
 // #1: preds: #0, #2
 //     v22 = phi
-//     v23 = builtin @lt v22, v0
 //     v24 = phi
 //     v26 = phi
 //     v28 = phi
@@ -130,6 +129,7 @@ code {
 //     v56 = phi
 //     v58 = phi
 //     v60 = phi
+//     v23 = builtin @lt v22, v0
 //     branch v23, #2, #4
 // #2: preds: #1
 //     v25 = builtin @add v24, v22
