@@ -9,6 +9,8 @@ output="$3"
 
 (( $# == 3 )) || { >&2 echo "Usage: $0 soljson.js soljson.wasm packed_soljson.js"; exit 1; }
 
+cat "${soljson_js}"
+
 # If this changes in an emscripten update, it's probably nothing to worry about,
 # but we should double-check when it happens and adjust the tail command below.
 [[ $(head -c 5 "${soljson_js}") == "null;" ]] || { >&2 echo 'Expected soljson.js to start with "null;"'; exit 1; }
