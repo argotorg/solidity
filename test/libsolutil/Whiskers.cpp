@@ -211,7 +211,7 @@ BOOST_AUTO_TEST_CASE(list_can_access_upper)
 {
 	std::string templ = "<#b>(<a>)</b>";
 	std::vector<std::map<std::string, std::string>> list(2);
-	Whiskers const m(templ);
+	Whiskers m(templ);
 	std::string result = m("a", "A")("b", list).render();
 	BOOST_CHECK_EQUAL(result, "(A)(A)");
 }
@@ -221,7 +221,7 @@ BOOST_AUTO_TEST_CASE(parameter_collision)
 	std::string templ = "a <#b></b>";
 	std::vector<std::map<std::string, std::string>> list(1);
 	list[0]["a"] = "x";
-	Whiskers const m(templ);
+	Whiskers m(templ);
 	BOOST_CHECK_THROW(m("a", "X")("b", list), WhiskersError);
 	BOOST_CHECK_THROW(m.render(), WhiskersError);
 }
@@ -229,7 +229,7 @@ BOOST_AUTO_TEST_CASE(parameter_collision)
 BOOST_AUTO_TEST_CASE(invalid_param)
 {
 	std::string templ = "a <b >";
-	Whiskers const m(templ);
+	Whiskers m(templ);
 	BOOST_CHECK_THROW(m("b ", "X"), WhiskersError);
 }
 

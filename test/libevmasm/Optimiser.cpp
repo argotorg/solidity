@@ -1322,7 +1322,7 @@ BOOST_AUTO_TEST_CASE(jumpdest_removal)
 		AssemblyItem(Tag, 1),
 		Instruction::JUMP
 	};
-	JumpdestRemover const jdr(items);
+	JumpdestRemover jdr(items);
 	BOOST_REQUIRE(jdr.optimise({}));
 	BOOST_CHECK_EQUAL_COLLECTIONS(
 		items.begin(), items.end(),

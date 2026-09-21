@@ -73,7 +73,7 @@ bool StackShufflingTest::parse(std::string const& _source)
 				}
 				else
 				{
-					static Scope::Function const function;
+					static Scope::Function function;
 					stack.emplace_back(FunctionReturnLabelSlot{function});
 					continue;
 				}

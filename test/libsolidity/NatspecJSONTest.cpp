@@ -191,7 +191,7 @@ NatspecMap NatspecJSONTest::obtainedNatspec() const
 		return {};
 
 	NatspecMap result;
-	for (std::string const contractName: compiler().contractNames())
+	for (std::string const& contractName: compiler().contractNames())
 	{
 		result[contractName][NatspecJSONKind::Devdoc]  = compiler().natspecDev(contractName);
 		result[contractName][NatspecJSONKind::Userdoc] = compiler().natspecUser(contractName);

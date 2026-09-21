@@ -331,7 +331,7 @@ bool ASTJsonExporter::visit(IdentifierPath const& _node)
 {
 	Json nameLocations = Json::array();
 
-	for (SourceLocation const location: _node.pathLocations())
+	for (const SourceLocation& location: _node.pathLocations())
 		nameLocations.emplace_back(sourceLocationToString(location));
 
 	setJsonNode(_node, "IdentifierPath", {

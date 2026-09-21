@@ -372,7 +372,7 @@ ASTPointer<IdentifierPath> ASTJsonImporter::createIdentifierPath(Json const& _no
 	std::string nameString = member(_node, "name").get<std::string>();
 	boost::algorithm::split(strs, nameString, boost::is_any_of("."));
 	astAssert(!strs.empty(), "Expected at least one element in IdentifierPath.");
-	for (std::string const s: strs)
+	for (std::string const& s: strs)
 	{
 		astAssert(!s.empty(), "Expected non-empty string for IdentifierPath element.");
 		namePath.emplace_back(s);

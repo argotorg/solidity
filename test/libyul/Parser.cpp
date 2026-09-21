@@ -499,7 +499,7 @@ BOOST_AUTO_TEST_CASE(customSourceLocations_invalid_prefix)
 BOOST_AUTO_TEST_CASE(customSourceLocations_unspecified)
 {
 	ErrorList errorList;
-	ErrorReporter const reporter(errorList);
+	ErrorReporter reporter(errorList);
 	auto const sourceText = R"(
 		/// @src -1:-1:-1
 		{}
@@ -513,7 +513,7 @@ BOOST_AUTO_TEST_CASE(customSourceLocations_unspecified)
 BOOST_AUTO_TEST_CASE(customSourceLocations_non_integer)
 {
 	ErrorList errorList;
-	ErrorReporter const reporter(errorList);
+	ErrorReporter reporter(errorList);
 	auto const sourceText = R"(
 		/// @src a:b:c
 		{}
@@ -530,7 +530,7 @@ BOOST_AUTO_TEST_CASE(customSourceLocations_non_integer)
 BOOST_AUTO_TEST_CASE(customSourceLocations_bad_integer)
 {
 	ErrorList errorList;
-	ErrorReporter const reporter(errorList);
+	ErrorReporter reporter(errorList);
 	auto const sourceText = R"(
 		/// @src 111111111111111111111:222222222222222222222:333333333333333333333
 		{}
@@ -547,7 +547,7 @@ BOOST_AUTO_TEST_CASE(customSourceLocations_bad_integer)
 BOOST_AUTO_TEST_CASE(customSourceLocations_ensure_last_match)
 {
 	ErrorList errorList;
-	ErrorReporter const reporter(errorList);
+	ErrorReporter reporter(errorList);
 	auto const sourceText = R"(
 		/// @src 0:123:432
 		{
@@ -569,7 +569,7 @@ BOOST_AUTO_TEST_CASE(customSourceLocations_ensure_last_match)
 BOOST_AUTO_TEST_CASE(customSourceLocations_two_locations_no_whitespace)
 {
 	ErrorList errorList;
-	ErrorReporter const reporter(errorList);
+	ErrorReporter reporter(errorList);
 	auto const sourceText = R"(
 		/// @src 0:111:222@src 1:333:444
 		{}
@@ -586,7 +586,7 @@ BOOST_AUTO_TEST_CASE(customSourceLocations_two_locations_no_whitespace)
 BOOST_AUTO_TEST_CASE(customSourceLocations_two_locations_separated_with_single_space)
 {
 	ErrorList errorList;
-	ErrorReporter const reporter(errorList);
+	ErrorReporter reporter(errorList);
 	auto const sourceText = R"(
 		/// @src 0:111:222 @src 1:333:444
 		{}
@@ -600,7 +600,7 @@ BOOST_AUTO_TEST_CASE(customSourceLocations_two_locations_separated_with_single_s
 BOOST_AUTO_TEST_CASE(customSourceLocations_leading_trailing_whitespace)
 {
 	ErrorList errorList;
-	ErrorReporter const reporter(errorList);
+	ErrorReporter reporter(errorList);
 	auto const sourceText = "///     @src 0:111:222    \n{}";
 	auto const& dialect = EVMDialect::strictAssemblyForEVM(solidity::test::CommonOptions::get().evmVersion());
 	std::shared_ptr<AST> result = parse(sourceText, dialect, reporter);
@@ -611,7 +611,7 @@ BOOST_AUTO_TEST_CASE(customSourceLocations_leading_trailing_whitespace)
 BOOST_AUTO_TEST_CASE(customSourceLocations_reference_original_sloc)
 {
 	ErrorList errorList;
-	ErrorReporter const reporter(errorList);
+	ErrorReporter reporter(errorList);
 	auto const sourceText = R"(
 		/// @src 1:2:3
 		{
@@ -632,7 +632,7 @@ BOOST_AUTO_TEST_CASE(customSourceLocations_reference_original_sloc)
 BOOST_AUTO_TEST_CASE(customSourceLocations_with_code_snippets)
 {
 	ErrorList errorList;
-	ErrorReporter const reporter(errorList);
+	ErrorReporter reporter(errorList);
 	auto const sourceText = R"~~~(
 		{
 			/// @src 0:149:156  "new C(\"123\")"
@@ -661,7 +661,7 @@ BOOST_AUTO_TEST_CASE(customSourceLocations_with_code_snippets)
 BOOST_AUTO_TEST_CASE(customSourceLocations_with_code_snippets_empty_snippet)
 {
 	ErrorList errorList;
-	ErrorReporter const reporter(errorList);
+	ErrorReporter reporter(errorList);
 	auto const sourceText = R"(
 		/// @src 0:111:222 ""
 		{}
@@ -675,7 +675,7 @@ BOOST_AUTO_TEST_CASE(customSourceLocations_with_code_snippets_empty_snippet)
 BOOST_AUTO_TEST_CASE(customSourceLocations_with_code_snippets_no_whitespace_before_snippet)
 {
 	ErrorList errorList;
-	ErrorReporter const reporter(errorList);
+	ErrorReporter reporter(errorList);
 	auto const sourceText = R"(
 		/// @src 0:111:222"abc" def
 		{}
@@ -692,7 +692,7 @@ BOOST_AUTO_TEST_CASE(customSourceLocations_with_code_snippets_no_whitespace_befo
 BOOST_AUTO_TEST_CASE(customSourceLocations_with_code_snippets_no_whitespace_after_snippet)
 {
 	ErrorList errorList;
-	ErrorReporter const reporter(errorList);
+	ErrorReporter reporter(errorList);
 	auto const sourceText = R"(
 		/// @src 0:111:222 "abc"def
 		{}
@@ -706,7 +706,7 @@ BOOST_AUTO_TEST_CASE(customSourceLocations_with_code_snippets_no_whitespace_afte
 BOOST_AUTO_TEST_CASE(customSourceLocations_two_locations_with_snippets_no_whitespace)
 {
 	ErrorList errorList;
-	ErrorReporter const reporter(errorList);
+	ErrorReporter reporter(errorList);
 	auto const sourceText = R"(
 		/// @src 0:111:222 "abc"@src 1:333:444 "abc"
 		{}
@@ -720,7 +720,7 @@ BOOST_AUTO_TEST_CASE(customSourceLocations_two_locations_with_snippets_no_whites
 BOOST_AUTO_TEST_CASE(customSourceLocations_two_locations_with_snippets_unterminated_quote)
 {
 	ErrorList errorList;
-	ErrorReporter const reporter(errorList);
+	ErrorReporter reporter(errorList);
 	auto const sourceText = R"(
 		/// @src 0:111:222 " abc @src 1:333:444
 		{}
@@ -737,7 +737,7 @@ BOOST_AUTO_TEST_CASE(customSourceLocations_two_locations_with_snippets_untermina
 BOOST_AUTO_TEST_CASE(customSourceLocations_single_quote)
 {
 	ErrorList errorList;
-	ErrorReporter const reporter(errorList);
+	ErrorReporter reporter(errorList);
 	auto const sourceText = R"(
 		/// @src 0:111:222 "
 		///
@@ -755,7 +755,7 @@ BOOST_AUTO_TEST_CASE(customSourceLocations_single_quote)
 BOOST_AUTO_TEST_CASE(customSourceLocations_two_snippets_with_hex_comment)
 {
 	ErrorList errorList;
-	ErrorReporter const reporter(errorList);
+	ErrorReporter reporter(errorList);
 	auto const sourceText = R"(
 		/// @src 0:111:222 hex"abc"@src 1:333:444 "abc"
 		{}
@@ -771,7 +771,7 @@ BOOST_AUTO_TEST_CASE(customSourceLocations_two_snippets_with_hex_comment)
 BOOST_AUTO_TEST_CASE(customSourceLocations_invalid_escapes)
 {
 	ErrorList errorList;
-	ErrorReporter const reporter(errorList);
+	ErrorReporter reporter(errorList);
 	auto const sourceText = R"(
 		/// @src 0:111:222 "\n\\x\x\w\uö\xy\z\y\fq"
 		{}
@@ -785,7 +785,7 @@ BOOST_AUTO_TEST_CASE(customSourceLocations_invalid_escapes)
 BOOST_AUTO_TEST_CASE(customSourceLocations_single_quote_snippet_with_whitespaces_and_escapes)
 {
 	ErrorList errorList;
-	ErrorReporter const reporter(errorList);
+	ErrorReporter reporter(errorList);
 	auto const sourceText = R"(
 		/// @src 0:111:222 '\n\\x\x\w\uö\xy\z\y\fq'
 		/// @src 1 :		222 : 333 '\x33\u1234\t\n'
@@ -815,7 +815,7 @@ BOOST_DATA_TEST_CASE(customSourceLocations_scanner_errors_outside_string_lits_ar
 BOOST_AUTO_TEST_CASE(customSourceLocations_multi_line_source_loc)
 {
 	ErrorList errorList;
-	ErrorReporter const reporter(errorList);
+	ErrorReporter reporter(errorList);
 	auto const sourceText = R"(
 		/// @src 1	: 111:
 		/// 222 "
@@ -833,7 +833,7 @@ BOOST_AUTO_TEST_CASE(customSourceLocations_multi_line_source_loc)
 BOOST_AUTO_TEST_CASE(customSourceLocations_with_code_snippets_with_nested_locations)
 {
 	ErrorList errorList;
-	ErrorReporter const reporter(errorList);
+	ErrorReporter reporter(errorList);
 	auto const sourceText = R"~~~(
 		{
 			/// @src 0:149:156  "new C(\"123\") /// @src 1:3:4 "
@@ -862,7 +862,7 @@ BOOST_AUTO_TEST_CASE(customSourceLocations_with_code_snippets_with_nested_locati
 BOOST_AUTO_TEST_CASE(astid)
 {
 	ErrorList errorList;
-	ErrorReporter const reporter(errorList);
+	ErrorReporter reporter(errorList);
 	auto const sourceText = R"(
 		/// @src -1:-1:-1 @ast-id 7
 		{
@@ -884,7 +884,7 @@ BOOST_AUTO_TEST_CASE(astid)
 BOOST_AUTO_TEST_CASE(astid_reset)
 {
 	ErrorList errorList;
-	ErrorReporter const reporter(errorList);
+	ErrorReporter reporter(errorList);
 	auto const sourceText = R"(
 		/// @src -1:-1:-1 @ast-id 7 @src 1:1:1
 		{
@@ -906,7 +906,7 @@ BOOST_AUTO_TEST_CASE(astid_reset)
 BOOST_AUTO_TEST_CASE(astid_multi)
 {
 	ErrorList errorList;
-	ErrorReporter const reporter(errorList);
+	ErrorReporter reporter(errorList);
 	auto const sourceText = R"(
 		/// @src -1:-1:-1 @ast-id 7 @src 1:1:1 @ast-id 8
 		{}
@@ -920,7 +920,7 @@ BOOST_AUTO_TEST_CASE(astid_multi)
 BOOST_AUTO_TEST_CASE(astid_invalid)
 {
 	ErrorList errorList;
-	ErrorReporter const reporter(errorList);
+	ErrorReporter reporter(errorList);
 	auto const sourceText = R"(
 		/// @src -1:-1:-1 @ast-id abc @src 1:1:1
 		{}
@@ -937,7 +937,7 @@ BOOST_AUTO_TEST_CASE(astid_invalid)
 BOOST_AUTO_TEST_CASE(astid_too_large)
 {
 	ErrorList errorList;
-	ErrorReporter const reporter(errorList);
+	ErrorReporter reporter(errorList);
 	auto const sourceText = R"(
 		/// @ast-id 9223372036854775808
 		{}
@@ -953,7 +953,7 @@ BOOST_AUTO_TEST_CASE(astid_too_large)
 BOOST_AUTO_TEST_CASE(astid_way_too_large)
 {
 	ErrorList errorList;
-	ErrorReporter const reporter(errorList);
+	ErrorReporter reporter(errorList);
 	auto const sourceText = R"(
 		/// @ast-id 999999999999999999999999999999999999999
 		{}
@@ -969,7 +969,7 @@ BOOST_AUTO_TEST_CASE(astid_way_too_large)
 BOOST_AUTO_TEST_CASE(astid_not_fully_numeric)
 {
 	ErrorList errorList;
-	ErrorReporter const reporter(errorList);
+	ErrorReporter reporter(errorList);
 	auto const sourceText = R"(
 		/// @ast-id 9x
 		{}
@@ -985,7 +985,7 @@ BOOST_AUTO_TEST_CASE(astid_not_fully_numeric)
 BOOST_AUTO_TEST_CASE(customSourceLocations_multiple_src_tags_on_one_line)
 {
 	ErrorList errorList;
-	ErrorReporter const reporter(errorList);
+	ErrorReporter reporter(errorList);
 	auto const sourceText =
 		"{\n"
 		"    /// "
