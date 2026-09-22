@@ -37,34 +37,46 @@
 // Block1_0 [label="\
 // IN: [ReturnLabel[1], v0]\l\
 // \l\
-// OUT: [ReturnLabel[1], v0, v0]\l\
+// [ReturnLabel[1], v0]\l\
+// ^phi6 := lit1\l\
+// [ReturnLabel[1], v0, ^phi6]\l\
+// \l\
+// OUT: [ReturnLabel[1], v0, ^phi6, v0]\l\
 // "];
 // Block1_0 -> Block1_0Exit;
 // Block1_0Exit [label="{ If v0 | { <0> Zero | <1> NonZero }}" shape=Mrecord];
 // Block1_0Exit:0 -> Block1_2 [style="solid"];
 // Block1_0Exit:1 -> Block1_1 [style="solid"];
 // Block1_1 [label="\
-// IN: [ReturnLabel[1], v0]\l\
+// IN: [ReturnLabel[1], v0, JUNK]\l\
 // \l\
-// [ReturnLabel[1], v0, lit2, v0]\l\
+// [ReturnLabel[1], v0, JUNK, lit2, v0]\l\
 // sub\l\
-// [ReturnLabel[1], v0, v3]\l\
+// [ReturnLabel[1], v0, JUNK, v3]\l\
 // \l\
-// [ReturnLabel[1], v0, FunctionCallReturnLabel[0], v3]\l\
+// [ReturnLabel[1], v0, JUNK, FunctionCallReturnLabel[0], v3]\l\
 // sum\l\
-// [ReturnLabel[1], v0, v4]\l\
+// [ReturnLabel[1], v0, JUNK, v4]\l\
 // \l\
-// [ReturnLabel[1], v4, v0]\l\
+// [ReturnLabel[1], JUNK, v4, v0]\l\
 // add\l\
-// [ReturnLabel[1], v5]\l\
+// [ReturnLabel[1], JUNK, v5]\l\
 // \l\
-// OUT: [ReturnLabel[1], v5]\l\
+// [ReturnLabel[1], JUNK, v5]\l\
+// ^phi6 := v5\l\
+// [ReturnLabel[1], JUNK, ^phi6]\l\
+// \l\
+// OUT: [ReturnLabel[1], JUNK, ^phi6]\l\
 // "];
 // Block1_1 -> Block1_1Exit [arrowhead=none];
 // Block1_1Exit [label="Jump" shape=oval];
 // Block1_1Exit -> Block1_2 [style="solid"];
 // Block1_2 [label="\
-// IN: [ReturnLabel[1], phi6]\l\
+// IN: [ReturnLabel[1], JUNK, ^phi6]\l\
+// \l\
+// [ReturnLabel[1], JUNK, ^phi6]\l\
+// phi6 := ^phi6\l\
+// [ReturnLabel[1], JUNK, phi6]\l\
 // \l\
 // OUT: [phi6, ReturnLabel[1]]\l\
 // "];

@@ -24,5 +24,5 @@ contract C {
 // gas irOptimized: 124683
 // gas legacy: 127807
 // gas legacyOptimized: 124828
-// gas ssaCFGOptimized: 124676
+// gas ssaCFGOptimized: 124675
 // getLarge() -> 10, 20, 0, 0

@@ -20,8 +20,10 @@
 
 #include <libyul/backends/evm/ssa/stack/Shuffler.h>
 
-#include <libyul/backends/evm/ssa/Stack.h>
 #include <libyul/backends/evm/ssa/StackLayout.h>
+
+#include <range/v3/algorithm/contains.hpp>
+#include <range/v3/view/zip.hpp>
 
 #include <deque>
 
@@ -31,74 +33,66 @@ using namespace solidity::yul::ssa::spill;
 namespace
 {
 
-/// Build the symbolic stack right after `_value`'s operation completes by replaying the recorded shuffles
-/// and operation effects from the block's `stackIn`
-StackData computeOperationOut(
+/// Build the symbolic stack right after `_inst` (an operation, phi, upsilon or identity) by replaying the
+/// recorded shuffles and operation effects from the block's `stackIn`
+StackData computeStackAfter(
 	SSACFG const& _cfg,
 	SSACFGStackLayout const& _layout,
-	InstId const _value
+	InstId const _instId
 )
 {
-	InstId const producer = _cfg.isProjection(_value) ? _cfg.inst(_value).inputs.front() : _value;
-
-	SSACFG::BlockId const block = _cfg.inst(producer).block;
+	SSACFG::BlockId const block = _cfg.inst(_instId).block;
 	auto const& blockLayout = _layout[block];
-	yulAssert(blockLayout, fmt::format("producer {}'s block has no layout", producer));
+	yulAssert(blockLayout, fmt::format("{}'s block has no layout", _instId));
 
-	StackData opOutStack = blockLayout->stackIn;
-	std::size_t opIndex = 0;
-	for (InstId const id: _cfg.block(block).instructions)
+	auto const& instructions = _cfg.block(block).instructions;
+	yulAssert(blockLayout->operationShuffles.size() == instructions.size());
+	StackData stack = blockLayout->stackIn;
+	for (auto const& [id, shuffle]: ranges::views::zip(instructions, blockLayout->operationShuffles))
 	{
-		if (!_cfg.isOperation(id))
-			continue;
-		yulAssert(opIndex < blockLayout->operationShuffles.size());
-		replay(opOutStack, blockLayout->operationShuffles[opIndex]);
-		++opIndex;
+		replay(stack, shuffle);
 
-		SSACFG::Inst const& inst = _cfg.inst(id);
-		// a call that can continue also consumes its return label, which sits right below the inputs
-		std::size_t consumedSlots = inst.inputs.size();
-		if (inst.opcode == InstOpcode::Call && _cfg.callPayload(id).canContinue)
-			++consumedSlots;
-		yulAssert(opOutStack.size() >= consumedSlots, "operation input layout smaller than consumed slot count");
-		for (std::size_t i = 0; i < consumedSlots; ++i)
-			opOutStack.pop_back();
-		_cfg.forEachOutput(id, [&](InstId const output) {
-			opOutStack.push_back(StackSlot::makeValue(_cfg, output));
-		});
+		if (
+			SSACFG::Inst const& inst = _cfg.inst(id);
+			inst.isOperation()
+		)
+		{
+			// a call that can continue also consumes its return label, which sits right below the inputs
+			std::size_t consumedSlots = inst.inputs.size();
+			if (inst.opcode == InstOpcode::Call && _cfg.callPayload(id).canContinue)
+				++consumedSlots;
+			yulAssert(stack.size() >= consumedSlots, "operation input layout smaller than consumed slot count");
+			for (std::size_t i = 0; i < consumedSlots; ++i)
+				stack.pop_back();
+			_cfg.forEachOutput(id, [&](InstId const output) {
+				stack.push_back(StackSlot::makeValue(_cfg, output));
+			});
+		}
 
-		if (id == producer)
-			return opOutStack;
+		if (id == _instId)
+			return stack;
 	}
-	yulAssert(false, fmt::format("producer {} not found in its block's instructions", producer));
+	yulAssert(false, fmt::format("{} not found in its block's instructions", _instId));
 	solidity::util::unreachable();
 }
 
-/// The symbolic stack the Emitter faces at `_value`'s definition, where its `mstore` fires. Three cases:
-/// - a phi: the merged value is materialized on its defining block's `stackIn`, so a single store there covers every incoming edge;
+/// The symbolic stack the Emitter faces at `_value`'s definition, where its `mstore` fires. Two cases:
 /// - a function argument: it has no producer operation and lives on the function entry stack, where CodeTransform emits `mstore` while the args are still laid out;
-/// - any other value: it sits on its producer's `operationOut`.
+/// - any other value: it sits on the stack after its producer
 StackData defStackFor(
 	SSACFG const& _cfg,
 	SSACFGStackLayout const& _layout,
 	InstId const _value
 )
 {
-	if (_cfg.isPhi(_value))
-	{
-		SSACFG::BlockId const block = _cfg.inst(_value).block;
-		yulAssert(block.hasValue(), fmt::format("phi {} has no defining block", _value));
-		auto const& blockLayout = _layout[block];
-		yulAssert(blockLayout, fmt::format("phi {}'s defining block has no layout", _value));
-		return blockLayout->stackIn;
-	}
 	if (_cfg.isFunctionArg(_value))
 	{
 		auto const& entryLayout = _layout[_cfg.entry];
 		yulAssert(entryLayout, "entry block has no layout for function-arg def-site");
 		return entryLayout->stackIn;
 	}
-	return computeOperationOut(_cfg, _layout, _value);
+	InstId const producer = _cfg.isProjection(_value) ? _cfg.inst(_value).inputs.front() : _value;
+	return computeStackAfter(_cfg, _layout, producer);
 }
 
 }
@@ -118,10 +112,25 @@ void SpillSet::closeUnderReachabilityConstraints(SSACFG const& _cfg, SSACFGStack
 		SpillKey const key = queue.front();
 		queue.pop_front();
 
-		yulAssert(!key.isShadow(), "spilling phi shadows is not supported yet");
-		InstId const value = key.value();
-		StackData const defStack = defStackFor(_cfg, _layout, value);
-		ensureDefSiteFeasible(key, value, defStack, queue, _storeTraces);
+		if (key.isShadow())
+		{
+			// a shadow is defined at each upsilon of its phi; a dead write (the layout left no shadow on the
+			// stack) needs no store
+			for (SSACFG::BlockId const blockId: _cfg.liveBlocks())
+				_cfg.forEachUpsilon(_cfg.block(blockId), [&](InstId const upsilonId, SSACFG::Inst const&) {
+					if (_cfg.upsilonPhi(upsilonId) != key.shadowPhi())
+						return;
+					StackData const defStack = computeStackAfter(_cfg, _layout, upsilonId);
+					if (ranges::contains(defStack, key))
+						ensureDefSiteFeasible(key, upsilonId, defStack, queue, _storeTraces);
+				});
+		}
+		else
+		{
+			InstId const value = key.value();
+			StackData const defStack = defStackFor(_cfg, _layout, value);
+			ensureDefSiteFeasible(key, value, defStack, queue, _storeTraces);
+		}
 	}
 }
 

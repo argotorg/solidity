@@ -52,7 +52,7 @@ code {
 // ----
 // object "C"
 // ===== SSA CFG =====
-// memoryguard = 0x0180
+// memoryguard = 0x03e0
 //
 // #0:
 //     v0 = memoryguard
@@ -200,20 +200,63 @@ code {
 //   spilled: none
 // CFG[1] f
 //   spilled:
-//     phi52 (phi) -> mem 0x80
-//     phi54 (phi) -> mem 0xa0
-//     v55 (value) -> mem 0xc0
-//     phi56 (phi) -> mem 0xe0
-//     v57 (value) -> mem 0x0100
-//     phi58 (phi) -> mem 0x0120
-//     v59 (value) -> mem 0x0140
-//     phi60 (phi) -> mem 0x0160
+//     phi24 (phi) -> mem 0x80
+//     phi26 (phi) -> mem 0xa0
+//     phi28 (phi) -> mem 0xc0
+//     phi30 (phi) -> mem 0xe0
+//     phi32 (phi) -> mem 0x0100
+//     phi34 (phi) -> mem 0x0120
+//     phi36 (phi) -> mem 0x0140
+//     phi38 (phi) -> mem 0x0160
+//     phi40 (phi) -> mem 0x0180
+//     phi42 (phi) -> mem 0x01a0
+//     phi44 (phi) -> mem 0x01c0
+//     phi46 (phi) -> mem 0x01e0
+//     phi48 (phi) -> mem 0x0200
+//     phi50 (phi) -> mem 0x0220
+//     phi52 (phi) -> mem 0x0240
+//     ^phi52 (shadow) -> mem 0x0260
+//     v53 (value) -> mem 0x0280
+//     phi54 (phi) -> mem 0x02a0
+//     ^phi54 (shadow) -> mem 0x02c0
+//     v55 (value) -> mem 0x02e0
+//     phi56 (phi) -> mem 0x0300
+//     ^phi56 (shadow) -> mem 0x0320
+//     v57 (value) -> mem 0x0340
+//     phi58 (phi) -> mem 0x0360
+//     ^phi58 (shadow) -> mem 0x0380
+//     phi60 (phi) -> mem 0x03a0
+//     ^phi60 (shadow) -> mem 0x03c0
 //   mstore schedule:
+//     mstore addr(phi24) <- phi24 (B#1)
+//     mstore addr(phi26) <- phi26 (B#1)
+//     mstore addr(phi28) <- phi28 (B#1)
+//     mstore addr(phi30) <- phi30 (B#1)
+//     mstore addr(phi32) <- phi32 (B#1)
+//     mstore addr(phi34) <- phi34 (B#1)
+//     mstore addr(phi36) <- phi36 (B#1)
+//     mstore addr(phi38) <- phi38 (B#1)
+//     mstore addr(phi40) <- phi40 (B#1)
+//     mstore addr(phi42) <- phi42 (B#1)
+//     mstore addr(phi44) <- phi44 (B#1)
+//     mstore addr(phi46) <- phi46 (B#1)
+//     mstore addr(phi48) <- phi48 (B#1)
+//     mstore addr(phi50) <- phi50 (B#1)
 //     mstore addr(phi52) <- phi52 (B#1)
+//     mstore addr(^phi52) <- v16 (B#0)
+//     mstore addr(^phi52) <- v53 (B#2)
+//     mstore addr(v53) <- v53 (B#2)
 //     mstore addr(phi54) <- phi54 (B#1)
+//     mstore addr(^phi54) <- v17 (B#0)
+//     mstore addr(^phi54) <- v55 (B#2)
 //     mstore addr(v55) <- v55 (B#2)
 //     mstore addr(phi56) <- phi56 (B#1)
+//     mstore addr(^phi56) <- v18 (B#0)
+//     mstore addr(^phi56) <- v57 (B#2)
 //     mstore addr(v57) <- v57 (B#2)
 //     mstore addr(phi58) <- phi58 (B#1)
-//     mstore addr(v59) <- v59 (B#2)
+//     mstore addr(^phi58) <- v19 (B#0)
+//     mstore addr(^phi58) <- v59 (B#2)
 //     mstore addr(phi60) <- phi60 (B#1)
+//     mstore addr(^phi60) <- v20 (B#0)
+//     mstore addr(^phi60) <- v61 (B#2)

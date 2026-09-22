@@ -31,8 +31,8 @@ contract C {
 // ----
 // test(uint8[][][]): 0x20, 2, 0x40, 0x60, 0, 2, 0x40, 0x80, 1, 7, 2, 8, 9
 // gas irOptimized: 137891
-// gas ssaCFGOptimized: 137856
+// gas ssaCFGOptimized: 137854
 // test2(uint8[][]): 0x20, 2, 0x40, 0x80, 1, 7, 2, 8, 9
 // gas irOptimized: 164249
 // gas legacyOptimized: 120228
-// gas ssaCFGOptimized: 164170
+// gas ssaCFGOptimized: 164168

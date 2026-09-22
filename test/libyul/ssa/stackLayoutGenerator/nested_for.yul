@@ -19,16 +19,32 @@
 // Block0_0 [label="\
 // IN: []\l\
 // \l\
-// OUT: []\l\
+// []\l\
+// ^phi2 := lit0\l\
+// [^phi2]\l\
+// \l\
+// [^phi2]\l\
+// ^phi16 := lit0\l\
+// [^phi2, ^phi16]\l\
+// \l\
+// OUT: [^phi2, ^phi16]\l\
 // "];
 // Block0_0 -> Block0_0Exit [arrowhead=none];
 // Block0_0Exit [label="Jump" shape=oval];
 // Block0_0Exit -> Block0_1 [style="solid"];
 // Block0_1 [label="\
-// IN: [phi2, phi16]\l\
+// IN: [^phi2, ^phi16]\l\
 // \l\
-// [phi2, phi16, lit1, phi2]\l\
+// [^phi2, ^phi16]\l\
+// phi2 := ^phi2\l\
+// [phi2, ^phi16]\l\
+// \l\
+// [phi2, ^phi16, lit1, phi2]\l\
 // lt\l\
+// [phi2, ^phi16, v3]\l\
+// \l\
+// [phi2, ^phi16, v3]\l\
+// phi16 := ^phi16\l\
 // [phi2, phi16, v3]\l\
 // \l\
 // OUT: [phi2, phi16, v3]\l\
@@ -40,7 +56,15 @@
 // Block0_2 [label="\
 // IN: [phi2, phi16]\l\
 // \l\
-// OUT: [phi2, phi16]\l\
+// [phi2, phi16]\l\
+// ^phi4 := lit0\l\
+// [phi2, phi16, ^phi4]\l\
+// \l\
+// [phi2, phi16, ^phi4]\l\
+// ^phi8 := phi16\l\
+// [phi2, ^phi8, ^phi4]\l\
+// \l\
+// OUT: [phi2, ^phi8, ^phi4]\l\
 // "];
 // Block0_2 -> Block0_2Exit [arrowhead=none];
 // Block0_2Exit [label="Jump" shape=oval];
@@ -57,10 +81,18 @@
 // Block0_4Exit [label="MainExit"];
 // Block0_4 -> Block0_4Exit;
 // Block0_5 [label="\
-// IN: [phi2, phi8, phi4]\l\
+// IN: [phi2, ^phi8, ^phi4]\l\
 // \l\
-// [phi2, phi8, phi4, lit1, phi4]\l\
+// [phi2, ^phi8, ^phi4]\l\
+// phi4 := ^phi4\l\
+// [phi2, ^phi8, phi4]\l\
+// \l\
+// [phi2, ^phi8, phi4, lit1, phi4]\l\
 // lt\l\
+// [phi2, ^phi8, phi4, v5]\l\
+// \l\
+// [phi2, ^phi8, phi4, v5]\l\
+// phi8 := ^phi8\l\
 // [phi2, phi8, phi4, v5]\l\
 // \l\
 // OUT: [phi2, phi8, phi4, v5]\l\
@@ -84,7 +116,15 @@
 // add\l\
 // [phi2, v9, v11]\l\
 // \l\
-// OUT: [phi2, v9, v11]\l\
+// [phi2, v9, v11]\l\
+// ^phi4 := v11\l\
+// [phi2, v9, ^phi4]\l\
+// \l\
+// [phi2, v9, ^phi4]\l\
+// ^phi8 := v9\l\
+// [phi2, ^phi8, ^phi4]\l\
+// \l\
+// OUT: [phi2, ^phi8, ^phi4]\l\
 // "];
 // Block0_6 -> Block0_6Exit [arrowhead=none];
 // Block0_6Exit [label="Jump" shape=oval];
@@ -96,7 +136,15 @@
 // add\l\
 // [phi2, phi8, v19]\l\
 // \l\
-// OUT: [phi2, phi8, v19]\l\
+// [phi2, phi8, v19]\l\
+// ^phi2 := v19\l\
+// [phi2, phi8, ^phi2]\l\
+// \l\
+// [phi2, phi8, ^phi2]\l\
+// ^phi16 := phi8\l\
+// [phi2, ^phi16, ^phi2]\l\
+// \l\
+// OUT: [phi2, ^phi16, ^phi2]\l\
 // "];
 // Block0_8 -> Block0_8Exit [arrowhead=none];
 // Block0_8Exit [label="Jump" shape=oval];

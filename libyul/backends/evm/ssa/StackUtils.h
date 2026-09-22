@@ -18,7 +18,6 @@
 
 #pragma once
 
-#include <libyul/backends/evm/ssa/PhiInverse.h>
 #include <libyul/backends/evm/ssa/ShuffleTrace.h>
 #include <libyul/backends/evm/ssa/Stack.h>
 
@@ -43,7 +42,6 @@ private:
 std::size_t stackOpsGas(SSACFG const& _cfg, ShuffleTrace const& _trace);
 
 /// Transform stack data by replacing all its phi variables with their respective preimages.
-StackData stackPreImage(SSACFG const& _cfg, StackData _stack, PhiInverse const& _phiInverse);
 
 CallSites gatherCallSites(SSACFG const& _cfg);
 

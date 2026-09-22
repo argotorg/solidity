@@ -71,18 +71,6 @@ std::size_t solidity::yul::ssa::stackOpsGas(SSACFG const& _cfg, ShuffleTrace con
 	return gas;
 }
 
-StackData solidity::yul::ssa::stackPreImage(SSACFG const& _cfg, StackData _stack, PhiInverse const& _phiInverse)
-{
-	if (!_phiInverse.noOp())
-		for (auto& slot: _stack)
-			if (slot.isValue())
-			{
-				auto const preImage = _phiInverse(slot.value());
-				slot = StackSlot::makeValue(_cfg, preImage);
-			}
-	return _stack;
-}
-
 CallSites solidity::yul::ssa::gatherCallSites(SSACFG const& _cfg)
 {
 	CallSites result;

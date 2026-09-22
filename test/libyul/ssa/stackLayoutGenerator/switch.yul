@@ -44,7 +44,11 @@
 // Block0_2 [label="\
 // IN: [JUNK]\l\
 // \l\
-// OUT: [JUNK]\l\
+// [JUNK]\l\
+// ^phi10 := lit1\l\
+// [JUNK, ^phi10]\l\
+// \l\
+// OUT: [JUNK, ^phi10]\l\
 // "];
 // Block0_2 -> Block0_2Exit [arrowhead=none];
 // Block0_2Exit [label="Jump" shape=oval];
@@ -63,7 +67,11 @@
 // Block0_3Exit:0 -> Block0_5 [style="solid"];
 // Block0_3Exit:1 -> Block0_4 [style="solid"];
 // Block0_1 [label="\
-// IN: [phi10]\l\
+// IN: [^phi10]\l\
+// \l\
+// [^phi10]\l\
+// phi10 := ^phi10\l\
+// [phi10]\l\
 // \l\
 // [phi10, lit14]\l\
 // sstore\l\
@@ -76,7 +84,11 @@
 // Block0_4 [label="\
 // IN: []\l\
 // \l\
-// OUT: []\l\
+// []\l\
+// ^phi10 := lit6\l\
+// [^phi10]\l\
+// \l\
+// OUT: [^phi10]\l\
 // "];
 // Block0_4 -> Block0_4Exit [arrowhead=none];
 // Block0_4Exit [label="Jump" shape=oval];
@@ -88,7 +100,11 @@
 // sstore\l\
 // []\l\
 // \l\
-// OUT: []\l\
+// []\l\
+// ^phi10 := lit1\l\
+// [^phi10]\l\
+// \l\
+// OUT: [^phi10]\l\
 // "];
 // Block0_5 -> Block0_5Exit [arrowhead=none];
 // Block0_5Exit [label="Jump" shape=oval];

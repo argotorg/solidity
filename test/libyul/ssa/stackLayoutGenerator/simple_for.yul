@@ -20,13 +20,29 @@
 // Block0_0 [label="\
 // IN: []\l\
 // \l\
-// OUT: []\l\
+// []\l\
+// ^phi1 := lit0\l\
+// [^phi1]\l\
+// \l\
+// [^phi1]\l\
+// ^phi2 := lit0\l\
+// [^phi1, ^phi2]\l\
+// \l\
+// OUT: [^phi1, ^phi2]\l\
 // "];
 // Block0_0 -> Block0_0Exit [arrowhead=none];
 // Block0_0Exit [label="Jump" shape=oval];
 // Block0_0Exit -> Block0_1 [style="solid"];
 // Block0_1 [label="\
-// IN: [phi1, phi2]\l\
+// IN: [^phi1, ^phi2]\l\
+// \l\
+// [^phi1, ^phi2]\l\
+// phi1 := ^phi1\l\
+// [phi1, ^phi2]\l\
+// \l\
+// [phi1, ^phi2]\l\
+// phi2 := ^phi2\l\
+// [phi1, phi2]\l\
 // \l\
 // OUT: [phi1, phi2, phi1]\l\
 // "];
@@ -41,7 +57,11 @@
 // mload\l\
 // [phi1, phi2, v3]\l\
 // \l\
-// OUT: [phi1, phi2, v3]\l\
+// [phi1, phi2, v3]\l\
+// ^phi14 := phi1\l\
+// [phi1, phi2, v3, ^phi14]\l\
+// \l\
+// OUT: [phi1, phi2, ^phi14, v3]\l\
 // "];
 // Block0_2 -> Block0_2Exit;
 // Block0_2Exit [label="{ If v3 | { <0> Zero | <1> NonZero }}" shape=Mrecord];
@@ -59,33 +79,49 @@
 // Block0_4Exit [label="MainExit"];
 // Block0_4 -> Block0_4Exit;
 // Block0_5 [label="\
-// IN: [phi1, phi2]\l\
+// IN: [phi1, phi2, JUNK]\l\
 // \l\
-// [phi2, phi2, phi1]\l\
+// [phi1, phi2, phi2, phi1]\l\
 // add\l\
-// [phi2, v4]\l\
+// [phi1, phi2, v4]\l\
 // \l\
-// [phi2, v4, lit5]\l\
+// [phi1, phi2, v4, lit5]\l\
 // mload\l\
-// [phi2, v4, v6]\l\
+// [phi1, phi2, v4, v6]\l\
 // \l\
-// [phi2, v6, v4]\l\
+// [phi1, phi2, v6, v4]\l\
 // add\l\
-// [phi2, v7]\l\
+// [phi1, phi2, v7]\l\
 // \l\
-// OUT: [phi2, v7]\l\
+// [phi1, phi2, v7]\l\
+// ^phi14 := v7\l\
+// [phi1, phi2, ^phi14]\l\
+// \l\
+// OUT: [phi1, phi2, ^phi14]\l\
 // "];
 // Block0_5 -> Block0_5Exit [arrowhead=none];
 // Block0_5Exit [label="Jump" shape=oval];
 // Block0_5Exit -> Block0_6 [style="solid"];
 // Block0_6 [label="\
-// IN: [phi14, phi2]\l\
+// IN: [JUNK, phi2, ^phi14]\l\
 // \l\
-// [phi14, lit8, phi2]\l\
+// [JUNK, phi2, ^phi14]\l\
+// phi14 := ^phi14\l\
+// [JUNK, phi2, phi14]\l\
+// \l\
+// [JUNK, phi14, lit8, phi2]\l\
 // add\l\
-// [phi14, v12]\l\
+// [JUNK, phi14, v12]\l\
 // \l\
-// OUT: [phi14, v12]\l\
+// [JUNK, phi14, v12]\l\
+// ^phi1 := phi14\l\
+// [JUNK, ^phi1, v12]\l\
+// \l\
+// [JUNK, ^phi1, v12]\l\
+// ^phi2 := v12\l\
+// [JUNK, ^phi1, ^phi2]\l\
+// \l\
+// OUT: [JUNK, ^phi1, ^phi2]\l\
 // "];
 // Block0_6 -> Block0_6Exit [arrowhead=none];
 // Block0_6Exit [label="Jump" shape=oval];
