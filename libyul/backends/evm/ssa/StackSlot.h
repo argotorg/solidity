@@ -129,6 +129,10 @@ public:
 		return {_value.value, Kind::Value, _store.kindOf(_value)};
 	}
 	static constexpr StackSlot makeShadow(InstId const _phi) { return {_phi.value, Kind::Shadow}; }
+	static StackSlot makeVariable(SSACFG const& _cfg, Variable const _variable)
+	{
+		return _variable.isShadow() ? makeShadow(_variable.inst) : makeValue(_cfg, _variable.inst);
+	}
 	static constexpr StackSlot makeFunctionReturnLabel(ControlFlowGraphs::FunctionGraphID const _graphID) { return {_graphID, Kind::FunctionReturnLabel}; }
 	static constexpr StackSlot makeFunctionCallReturnLabel(CallSites::CallSiteID const _callSiteID) { return {_callSiteID, Kind::FunctionCallReturnLabel};	}
 

@@ -62,6 +62,10 @@ LivenessAnalysis::LivenessAnalysis(SSACFG const& _cfg):
 	for (auto const loopRootNode: m_loopNestingForest.loopRootNodes())
 		runLoopTreeDfs(loopRootNode);
 
+	// Whatever is live-in at the entry is a read without a write which is only allowed for function arguments
+	for (auto const& variable: m_liveIns[m_cfg.entry.value] | std::views::keys)
+		yulAssert(m_cfg.isFunctionArg(variable.inst), fmt::format("{} is read on a path from the entry that never defines it", variable));
+
 	fillOperationsLiveOut();
 }
 
@@ -73,6 +77,55 @@ LivenessAnalysis::LivenessData LivenessAnalysis::used(SSACFG::BlockId const _blo
 	return used;
 }
 
+bool LivenessAnalysis::transferBackwards(InstId const _instId, SSACFG::Inst const& _inst, LivenessData& _live) const
+{
+	switch (_inst.opcode)
+	{
+	case InstOpcode::Call:
+	case InstOpcode::BuiltinCall:
+	case InstOpcode::MemoryGuard:
+		// remove variables defined at p from live
+		_live.eraseAll(m_cfg.projectionsOf(_instId));
+		_live.erase(_instId);
+		_live.insertAll(_inst.inputs | ranges::views::filter(excludingLiteralsFilter()));
+		return true;
+	case InstOpcode::Phi:
+	{
+		// the phi defines its value by reading its shadow; a dead phi does not keep its shadow alive
+		bool const phiIsLive = _live.contains(_instId);
+		_live.erase(_instId);
+		if (phiIsLive)
+			_live.insert(Variable::shadow(_instId));
+		return true;
+	}
+	case InstOpcode::Upsilon:
+	{
+		// the upsilon overwrites the shadow of its phi with its input
+		_live.erase(Variable::shadow(m_cfg.upsilonPhi(_instId)));
+		InstId const v = _inst.inputs.at(0);
+		yulAssert(!m_cfg.isUnreachable(v));
+		if (!m_cfg.isLiteral(v))
+			_live.insert(v);
+		return true;
+	}
+	case InstOpcode::Identity:
+		// defines its value by reading its input
+		_live.erase(_instId);
+		_live.insertAll(_inst.inputs | ranges::views::filter(excludingLiteralsFilter()));
+		return true;
+	case InstOpcode::Const:
+	case InstOpcode::FunctionArg:
+	case InstOpcode::Projection:
+	case InstOpcode::Nop:
+		// no program point: definitions that are not executed, or nothing at all
+		return false;
+	case InstOpcode::Unreachable:
+	case InstOpcode::Tombstone:
+		yulAssert(false, fmt::format("unexpected Inst {} in a block", _instId));
+	}
+	solidity::util::unreachable();
+}
+
 void LivenessAnalysis::runDagDfs()
 {
 	// SSA Book, Algorithm 9.2
@@ -82,34 +135,26 @@ void LivenessAnalysis::runDagDfs()
 		SSACFG::BlockId blockId{blockIdValue};
 		auto const& block = m_cfg.block(blockId);
 
-		// live <- PhiUses(B)
+		// Phis and upsilons are positioned reads and writes of the phi shadows, handled by the backwards walk
+		// below in place of PhiUses(B) / PhiDefs(B) at the block boundaries.
 		LivenessData live{};
-		m_cfg.forEachUpsilon(block, [&](InstId, SSACFG::Inst const& inst) {
-			InstId const v = inst.inputs.at(0);
-			yulAssert(!m_cfg.isUnreachable(v));
-			if (!m_cfg.isLiteral(v))
-				live.insert(v);
-		});
-
-		// for each S \in succs(B) s.t. (B, S) not a back edge: live <- live \cup (LiveIn(S) - PhiDefs(S))
 		block.forEachExit(
 			[&](SSACFG::BlockId const& _successor) {
 				if (!m_topologicalSort.backEdge(blockId, _successor))
-				{
-					// LiveIn(S) - PhiDefs(S)
-					auto liveInWithoutPhiDefs = m_liveIns[_successor.value];
-					m_cfg.forEachPhi(m_cfg.block(_successor), [&](InstId const succInstId, SSACFG::Inst const&) {
-						liveInWithoutPhiDefs.erase(succInstId);
+					// for each S \in succs(B) s.t. (B, S) not a back edge: live <- live \cup LiveIn(S)
+					live.maxUnion(m_liveIns[_successor.value]);
+				else
+					// the shadows of the loop header's phis are live across the back edge
+					m_cfg.forEachPhi(m_cfg.block(_successor), [&](InstId const phiId, SSACFG::Inst const&) {
+						live.insert(Variable::shadow(phiId));
 					});
-					live.maxUnion(liveInWithoutPhiDefs);
-				}
 			});
 
 		if (std::holds_alternative<SSACFG::BasicBlock::FunctionReturn>(block.exit))
 			live.insertAll(std::get<SSACFG::BasicBlock::FunctionReturn>(block.exit).returnValues | ranges::views::filter(excludingLiteralsFilter()));
 
 		// clean out unreachables
-		live.eraseIf([&](auto const& _entry) { return m_cfg.isUnreachable(_entry.first); });
+		live.eraseIf([&](auto const& _entry) { return _entry.first.isValue() && m_cfg.isUnreachable(_entry.first.inst); });
 
 		// LiveOut(B) <- live
 		m_liveOuts[blockId.value] = live;
@@ -120,21 +165,10 @@ void LivenessAnalysis::runDagDfs()
 			live += blockExitValues(blockId);
 
 			for (InstId const instId: block.instructions | ranges::views::reverse)
-			{
-				auto const& inst = m_cfg.inst(instId);
-				if (!inst.isOperation())
-					continue;
-				// remove variables defined at p from live
-				live.eraseAll(m_cfg.projectionsOf(instId));
-				live.erase(instId);
-				live.insertAll(inst.inputs | ranges::views::filter(excludingLiteralsFilter()));
-			}
+				transferBackwards(instId, m_cfg.inst(instId), live);
 		}
 
-		// livein(b) <- live \cup PhiDefs(B)
-		m_cfg.forEachPhi(block, [&](InstId const instId, SSACFG::Inst const&) {
-			live.insert(instId);
-		});
+		// livein(b) <- live
 		m_liveIns[blockId.value] = live;
 	}
 }
@@ -147,9 +181,10 @@ void LivenessAnalysis::runLoopTreeDfs(SSACFG::BlockId::ValueType const _loopHead
 		// the loop header block id
 		auto const& block = m_cfg.block(SSACFG::BlockId{_loopHeader});
 		// LiveLoop <- LiveIn(B_N) - PhiDefs(B_N)
+		// the header phis' shadows are live-in at the header but redefined inside the loop
 		auto liveLoop = m_liveIns[_loopHeader];
 		m_cfg.forEachPhi(block, [&](InstId const instId, SSACFG::Inst const&) {
-			liveLoop.erase(instId);
+			liveLoop.erase(Variable::shadow(instId));
 		});
 		// must be live out of header if live in of children
 		m_liveOuts[_loopHeader].maxUnion(liveLoop);
@@ -175,13 +210,9 @@ void LivenessAnalysis::fillOperationsLiveOut()
 		live += blockExitValues(blockId);
 		for (InstId const instId: block.instructions | ranges::views::reverse)
 		{
-			auto const& inst = m_cfg.inst(instId);
-			if (!inst.isOperation())
-				continue;
-			m_operationLiveOutByInst.emplace(instId.value, live);
-			live.eraseAll(m_cfg.projectionsOf(instId));
-			live.erase(instId);
-			live.insertAll(inst.inputs | ranges::views::filter(excludingLiteralsFilter()));
+			LivenessData const liveOut = live;
+			if (transferBackwards(instId, m_cfg.inst(instId), live))
+				m_operationLiveOutByInst.emplace(instId.value, liveOut);
 		}
 	}
 }

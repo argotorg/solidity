@@ -22,6 +22,11 @@
 
 using namespace solidity::yul::ssa;
 
+std::string Variable::str(SSACFG const& _cfg) const
+{
+	return (isShadow() ? "^" : "") + inst.str(_cfg);
+}
+
 std::string InstId::str(SSACFG const& _cfg) const
 {
 	if (!hasValue())

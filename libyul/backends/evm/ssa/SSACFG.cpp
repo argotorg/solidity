@@ -73,7 +73,7 @@ protected:
 	void writeBlockLabel(std::ostream& _out, BlockId _blockId) override
 	{
 		auto const& block = m_cfg.block(_blockId);
-		auto const valueToString = [&](InstId const& valueId) { return valueId.str(m_cfg); };
+		auto const valueToString = [&](auto const& _variable) { return _variable.str(m_cfg); };
 
 		if (m_liveness)
 		{

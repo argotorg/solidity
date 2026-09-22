@@ -64,6 +64,32 @@ struct InstId
 	std::string str(SSACFG const& _cfg) const;
 };
 
+/// A variable of the IR's runtime state (inst value or shadow variable of a phi)
+struct Variable
+{
+	enum class Kind: std::uint8_t { Value, Shadow };
+
+	constexpr Variable() = default;
+	/// The value defined by `_inst`
+	constexpr Variable(InstId const _inst): inst(_inst) {}
+	static constexpr Variable shadow(InstId const _phi) { return {_phi, Kind::Shadow}; }
+
+	constexpr bool isValue() const noexcept { return kind == Kind::Value; }
+	constexpr bool isShadow() const noexcept { return kind == Kind::Shadow; }
+
+	/// The defining Inst of a value or the phi of a shadow
+	InstId inst{};
+	Kind kind = Kind::Value;
+
+	auto operator<=>(Variable const&) const = default;
+
+	/// Returns a human-readable string representation
+	std::string str(SSACFG const& _cfg) const;
+
+private:
+	constexpr Variable(InstId const _inst, Kind const _kind): inst(_inst), kind(_kind) {}
+};
+
 enum class InstOpcode : std::uint8_t
 {
 	Const,  // literal u256
@@ -107,5 +133,17 @@ struct fmt::formatter<solidity::yul::ssa::InstId>
 		if (!_instId.hasValue())
 			return fmt::format_to(_ctx.out(), "empty");
 		return fmt::format_to(_ctx.out(), "v{}", _instId.value);
+	}
+};
+
+template<>
+struct fmt::formatter<solidity::yul::ssa::Variable>
+{
+	static auto constexpr parse(format_parse_context& ctx) -> decltype(ctx.begin()) { return ctx.begin(); }
+
+	template<typename FormatContext>
+	auto format(solidity::yul::ssa::Variable const& _variable, FormatContext& _ctx) const -> decltype(_ctx.out())
+	{
+		return fmt::format_to(_ctx.out(), "{}{}", _variable.isShadow() ? "^" : "", _variable.inst);
 	}
 };

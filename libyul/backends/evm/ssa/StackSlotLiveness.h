@@ -33,8 +33,8 @@ inline StackSlotLiveness toStackSlotLiveness(SSACFG const& _cfg, LivenessAnalysi
 {
 	StackSlotLiveness::Entries entries;
 	entries.reserve(_liveness.size());
-	for (auto const& [valueId, count]: _liveness)
-		entries.emplace_back(StackSlot::makeValue(_cfg, valueId), count);
+	for (auto const& [variable, count]: _liveness)
+		entries.emplace_back(StackSlot::makeVariable(_cfg, variable), count);
 	return StackSlotLiveness{std::move(entries)};
 }
 
