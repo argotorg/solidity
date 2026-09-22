@@ -91,6 +91,8 @@ std::string render(ParsedIdentifierTable const& _table, ShuffleOp const& _op)
 		return fmt::format("PUSH {}", _table.render(_op.slot));
 	case ShuffleOp::Kind::Store:
 		return fmt::format("STORE {}", _table.render(_op.slot));
+	case ShuffleOp::Kind::Rename:
+		return fmt::format("RENAME{} {}", _op.depth, _table.render(_op.slot));
 	}
 	solidity::util::unreachable();
 }

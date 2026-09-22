@@ -79,9 +79,18 @@ public:
 		m_data->emplace_back(_slot);
 		if (m_trace)
 			m_trace->push_back(
-				// a pushed non-literal value can only be a spill reload
-				_slot.isValue() && !_slot.isLiteralValue() ? ShuffleOp::load(_slot) : ShuffleOp::push(_slot)
+				// a pushed variable can only be a spill reload
+				_slot.isVariable() ? ShuffleOp::load(_slot) : ShuffleOp::push(_slot)
 			);
+	}
+
+	/// Symbolically renames the slot at `_depth` to `_slot`
+	void rename(Depth const& _depth, Slot const& _slot)
+	{
+		yulAssert(_depth < size(), "Depth out of range");
+		(*m_data)[depthToOffset(_depth).value] = _slot;
+		if (m_trace)
+			m_trace->push_back(ShuffleOp::rename(_depth, _slot));
 	}
 
 	void dup(Depth const& _depth) { dup(depthToOffset(_depth)); }

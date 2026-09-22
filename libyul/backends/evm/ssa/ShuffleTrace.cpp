@@ -47,6 +47,9 @@ void apply(StackData& _data, ShuffleOp const& _op)
 		yulAssert(!_data.empty() && _data.back() == _op.slot, "store must consume its value from the stack top");
 		stack.pop();
 		return;
+	case ShuffleOp::Kind::Rename:
+		stack.rename(StackDepth{_op.depth}, _op.slot);
+		return;
 	}
 	solidity::util::unreachable();
 }

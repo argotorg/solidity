@@ -544,6 +544,8 @@ void CodeTransform::emit(ShuffleOp const& _op)
 		}
 		case StackSlot::Kind::FunctionReturnLabel:
 			yulAssert(false, "Cannot produce function return label.");
+		case StackSlot::Kind::Shadow:
+			yulAssert(false, "Shadow slots are not freely generatable.");
 		}
 		solidity::util::unreachable();
 	case ShuffleOp::Kind::Load:
@@ -566,6 +568,9 @@ void CodeTransform::emit(ShuffleOp const& _op)
 		m_spillEmitter->emitStore(id);
 		return;
 	}
+	case ShuffleOp::Kind::Rename:
+		// rename is purely symbolic and emits no code
+		return;
 	}
 	solidity::util::unreachable();
 }

@@ -65,6 +65,8 @@ std::size_t solidity::yul::ssa::stackOpsGas(SSACFG const& _cfg, ShuffleTrace con
 		case ShuffleOp::Kind::Store:
 			gas += runGas(evmasm::Instruction::PUSH32) + runGas(evmasm::Instruction::MSTORE);
 			break;
+		case ShuffleOp::Kind::Rename:
+			break;
 		}
 	return gas;
 }

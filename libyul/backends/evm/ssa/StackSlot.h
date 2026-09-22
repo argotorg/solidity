@@ -66,6 +66,7 @@ private:
 /// A discriminated union corresponding to a single EVM stack slot.
 /// Can represent:
 ///		- ValueID: SSA values (including literals)
+///		- Shadow: the shadow variable of a phi
 ///		- Junk: Placeholder/unused values
 ///     - FunctionCallReturnLabel: Return addresses for function calls
 ///     - FunctionReturnLabel: Identifies the calling function's graph
@@ -77,6 +78,7 @@ public:
 	enum struct Kind: std::uint8_t
 	{
 		Value, // u32 InstId
+		Shadow, // u32 InstId of the phi whose shadow variable this is
 		Junk, // empty
 		FunctionCallReturnLabel, // index into corresponding stack layout's call sites
 		FunctionReturnLabel // identifying the function graph via ControlFlowGraphs
@@ -91,6 +93,11 @@ public:
 	constexpr bool isValue() const noexcept { return kind() == Kind::Value; }
 	constexpr bool isLiteralValue() const noexcept { return m_valueOpcode == InstOpcode::Const; }
 	constexpr bool isPhiValue() const noexcept { return m_valueOpcode == InstOpcode::Phi; }
+	constexpr bool isShadow() const noexcept { return kind() == Kind::Shadow; }
+
+	// a spilling and liveness relevant slot
+	constexpr bool isVariable() const noexcept { return (isValue() && !isLiteralValue()) || isShadow(); }
+
 	constexpr bool isFunctionReturnLabel() const noexcept { return kind() == Kind::FunctionReturnLabel; }
 	constexpr bool isFunctionCallReturnLabel() const noexcept { return kind() == Kind::FunctionCallReturnLabel; }
 	constexpr bool isJunk() const noexcept { return kind() == Kind::Junk; }
@@ -103,6 +110,12 @@ public:
 		yulAssert(isValue());
 		return InstId{m_payload};
 	}
+	/// The phi whose shadow variable this slot holds
+	InstId shadowPhi() const
+	{
+		yulAssert(isShadow());
+		return InstId{m_payload};
+	}
 
 	static constexpr StackSlot makeJunk() { return {0, Kind::Junk}; }
 	static StackSlot makeValue(SSACFG const& _cfg, InstId _value)
@@ -113,6 +126,7 @@ public:
 	{
 		return {_value.value, Kind::Value, _store.kindOf(_value)};
 	}
+	static constexpr StackSlot makeShadow(InstId const _phi) { return {_phi.value, Kind::Shadow}; }
 	static constexpr StackSlot makeFunctionReturnLabel(ControlFlowGraphs::FunctionGraphID const _graphID) { return {_graphID, Kind::FunctionReturnLabel}; }
 	static constexpr StackSlot makeFunctionCallReturnLabel(CallSites::CallSiteID const _callSiteID) { return {_callSiteID, Kind::FunctionCallReturnLabel};	}
 
