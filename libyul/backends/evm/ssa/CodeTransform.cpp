@@ -383,7 +383,7 @@ void CodeTransform::operator()(InstId _instId, ShuffleTrace const& _operationShu
 
 void CodeTransform::spillStore(InstId const _value)
 {
-	if (!m_spillEmitter || !m_spillSet.isSpilled(_value))
+	if (!m_spillEmitter || !m_spillSet.isSpilled(StackSlot::makeValue(m_cfg, _value)))
 		return;
 
 	// Play back the recorded def-site trace: it brings `_value` to the stack top and concludes with the
@@ -549,25 +549,19 @@ void CodeTransform::emit(ShuffleOp const& _op)
 		}
 		solidity::util::unreachable();
 	case ShuffleOp::Kind::Load:
-	{
-		InstId const id = _op.slot.value();
 		yulAssert(
-			m_spillEmitter && m_spillEmitter->hasAddress(id),
-			fmt::format("Tried bringing up non-spilled non-const {}", id)
+			m_spillEmitter && m_spillEmitter->hasAddress(_op.slot),
+			fmt::format("Tried bringing up non-spilled non-const {}", _op.slot)
 		);
-		m_spillEmitter->emitLoad(id);
+		m_spillEmitter->emitLoad(_op.slot);
 		return;
-	}
 	case ShuffleOp::Kind::Store:
-	{
-		InstId const id = _op.slot.value();
 		yulAssert(
-			m_spillEmitter && m_spillEmitter->hasAddress(id),
-			fmt::format("Tried storing value {} without a spill slot", id)
+			m_spillEmitter && m_spillEmitter->hasAddress(_op.slot),
+			fmt::format("Tried storing variable {} without a spill slot", _op.slot)
 		);
-		m_spillEmitter->emitStore(id);
+		m_spillEmitter->emitStore(_op.slot);
 		return;
-	}
 	case ShuffleOp::Kind::Rename:
 		// rename is purely symbolic and emits no code
 		return;

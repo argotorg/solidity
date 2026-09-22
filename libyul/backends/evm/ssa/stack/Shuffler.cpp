@@ -55,7 +55,7 @@ namespace
 
 bool isSpilled(StackSlot const& _slot, spill::SpillSet const& _spills)
 {
-	return _slot.isValue() && !_slot.isLiteralValue() && _spills.isSpilled(_slot.value());
+	return _slot.isVariable() && _spills.isSpilled(_slot);
 }
 
 /// Where a slot on a stack is headed: the target offset it is bound for, or no offset at all for a surplus slot,
@@ -952,7 +952,7 @@ private:
 				return 2;
 			if (hasOtherRetainedCopy(_offset))
 				return 3;
-			if (m_spillingAllowed && slot.isValue() && !slot.isLiteralValue())
+			if (m_spillingAllowed && slot.isVariable())
 				return 4;
 			return std::nullopt;
 		};
@@ -990,7 +990,7 @@ private:
 			if (!best.has_value())
 				return false;  // couldn't drop anything
 			if (bestClass == 4)
-				m_spills.add(m_source[best->value].value());
+				m_spills.add(m_source[best->value]);
 			droppedNow[best->value] = true;
 			m_dropped[best->value] = true;
 		}

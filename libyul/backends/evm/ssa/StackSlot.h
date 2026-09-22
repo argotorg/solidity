@@ -23,6 +23,8 @@
 
 #include <range/v3/algorithm/find.hpp>
 
+#include <fmt/format.h>
+
 #include <cstdint>
 #include <type_traits>
 
@@ -158,6 +160,9 @@ constexpr bool canBeFreelyGenerated(StackSlot const& _slot)
 std::string slotToString(StackSlot const& _slot);
 std::string stackToString(StackData const& _stackData);
 
+/// A slot as spill key: a non-literal SSA value or a phi shadow, each addressing its own memory slot
+using SpillKey = StackSlot;
+
 /// Array index into stack from the bottom (offset 0 = bottom).
 /// Natural for array-like access and iteration; used when treating the stack as a data structure.
 struct StackOffset
@@ -186,3 +191,15 @@ constexpr auto operator<=>(size_t const lhs, StackDepth const rhs) noexcept { re
 constexpr bool operator==(StackDepth const lhs, size_t const rhs) noexcept { return lhs.value == rhs; }
 
 }
+
+template<>
+struct fmt::formatter<solidity::yul::ssa::StackSlot>
+{
+	static auto constexpr parse(format_parse_context& ctx) -> decltype(ctx.begin()) { return ctx.begin(); }
+
+	template<typename FormatContext>
+	auto format(solidity::yul::ssa::StackSlot const& _slot, FormatContext& _ctx) const -> decltype(_ctx.out())
+	{
+		return fmt::format_to(_ctx.out(), "{}", solidity::yul::ssa::slotToString(_slot));
+	}
+};
