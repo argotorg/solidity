@@ -118,6 +118,12 @@ public:
 		yulAssert(isShadow());
 		return InstId{m_payload};
 	}
+	/// The variable this slot contains
+	Variable variable() const
+	{
+		yulAssert(isValue() || isShadow());
+		return isShadow() ? Variable::shadow(InstId{m_payload}) : Variable{InstId{m_payload}};
+	}
 
 	static constexpr StackSlot makeJunk() { return {0, Kind::Junk}; }
 	static StackSlot makeValue(SSACFG const& _cfg, InstId _value)
