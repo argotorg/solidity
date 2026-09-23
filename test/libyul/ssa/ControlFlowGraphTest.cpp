@@ -29,6 +29,8 @@
 #include <libyul/Object.h>
 #include <libyul/YulStack.h>
 
+#include <algorithm>
+
 #ifdef ISOLTEST
 #include <boost/version.hpp>
 #if (BOOST_VERSION < 108800)
@@ -81,7 +83,20 @@ TestCase::TestResult ControlFlowGraphTest::run(std::ostream& _stream, std::strin
 		yulStack.parserResult()->code()->root(),
 		true
 	);
+	// DOT output already groups phis first, so check the actual instruction schedules.
+	auto const assertPhiPrefixes = [&] {
+		for (auto const& cfg: controlFlowGraphs->functionGraphs)
+			for (auto const blockId: cfg->liveBlocks())
+			{
+				auto const& instructions = cfg->block(blockId).instructions;
+				soltestAssert(std::is_partitioned(instructions.begin(), instructions.end(), [&](auto const _id) {
+					return cfg->isPhi(_id);
+				}));
+			}
+	};
+	assertPhiPrefixes();
 	yul::ssa::transform::optimize(*controlFlowGraphs);
+	assertPhiPrefixes();
 	yul::ssa::ControlFlowGraphsLiveness liveness(*controlFlowGraphs);
 	m_obtainedResult = controlFlowGraphs->toDot(&liveness);
 
