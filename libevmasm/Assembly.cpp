@@ -28,6 +28,7 @@
 #include <libevmasm/Inliner.h>
 #include <libevmasm/JumpdestRemover.h>
 #include <libevmasm/BlockDeduplicator.h>
+#include <libevmasm/SubroutineEntryMarker.h>
 #include <libevmasm/ConstantOptimiser.h>
 
 #include <liblangutil/CharStream.h>
@@ -916,6 +917,11 @@ std::map<u256, u256> const& Assembly::optimiseInternal(
 			m_evmVersion,
 			*this
 		);
+
+	// EIP-7979: code shared by several subroutines must be entered as a
+	// subroutine; the optimisations above may have created such sharing.
+	if (m_evmVersion.hasSubroutines())
+		SubroutineEntryMarker::markSharedBlocks(m_items);
 
 	m_tagReplacements = std::move(tagReplacements);
 	return *m_tagReplacements;

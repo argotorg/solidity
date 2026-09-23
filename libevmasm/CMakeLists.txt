@@ -3,6 +3,8 @@ set(sources
 	Assembly.cpp
 	Assembly.h
 	AssemblyItem.cpp
+	SubroutineEntryMarker.cpp
+	SubroutineEntryMarker.h
 	AssemblyItem.h
 	Ethdebug.cpp
 	Ethdebug.h
