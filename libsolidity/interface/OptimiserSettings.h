@@ -50,13 +50,13 @@ struct OptimiserSettings
 
 		"Trpeul"                       // Run functional expression inliner
 		"xa[r]cL"                      // Turn into SSA again and simplify
-		"vifM"                         // Run full inliner
+		"viufM"                         // Run full inliner
 		"CTUca[r]LSsTFOtfDnca[r]Iulc"  // SSA plus simplify
 
 		"scCTUt"
-		"vifM"                         // Run full inliner
+		"viufM"                         // Run full inliner
 		"x[scCTUt] TOntnfDIul"         // Perform structural simplification
-		"vifM"                         // Run full inliner
+		"viufM"                         // Run full inliner
 
 		"jmul[jul] VcTOcul jmul";      // Make source short and pretty
 
