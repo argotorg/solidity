@@ -69,7 +69,7 @@ namespace
 	{
 		AssemblyItems input = addDummyLocations(_input);
 
-		bool usesMsize = ranges::any_of(_input, [](AssemblyItem const& _i) {
+		bool const usesMsize = ranges::any_of(_input, [](AssemblyItem const& _i) {
 			return _i == AssemblyItem{Instruction::MSIZE} || _i.type() == VerbatimBytecode;
 		});
 		evmasm::CommonSubexpressionEliminator cse(_state, CommonOptions::get().evmVersion());
@@ -99,14 +99,14 @@ namespace
 	{
 		AssemblyItems optimisedItems;
 
-		bool usesMSize = ranges::any_of(_input, [](AssemblyItem const& _i) {
+		bool const usesMSize = ranges::any_of(_input, [](AssemblyItem const& _i) {
 			return _i == AssemblyItem{Instruction::MSIZE} || _i.type() == VerbatimBytecode;
 		});
 
 		auto iter = _input.begin();
 		while (iter != _input.end())
 		{
-			KnownState emptyState;
+			KnownState const emptyState;
 			CommonSubexpressionEliminator eliminator{emptyState, CommonOptions::get().evmVersion()};
 			auto orig = iter;
 			iter = eliminator.feedItems(iter, _input.end(), usesMSize);
@@ -159,24 +159,24 @@ BOOST_AUTO_TEST_SUITE(Optimiser)
 
 BOOST_AUTO_TEST_CASE(cse_push_immutable_same)
 {
-	AssemblyItem pushImmutable{PushImmutable, 0x1234};
+	AssemblyItem const pushImmutable{PushImmutable, 0x1234};
 	checkCSE({pushImmutable, pushImmutable}, {pushImmutable, Instruction::DUP1});
 }
 
 BOOST_AUTO_TEST_CASE(cse_push_immutable_different)
 {
-	AssemblyItems input{{PushImmutable, 0x1234},{PushImmutable, 0xABCD}};
+	AssemblyItems const input{{PushImmutable, 0x1234},{PushImmutable, 0xABCD}};
 	checkCSE(input, input);
 }
 
 BOOST_AUTO_TEST_CASE(cse_assign_immutable)
 {
 	{
-		AssemblyItems input{u256(0x42), {AssignImmutable, 0x1234}};
+		AssemblyItems const input{u256(0x42), {AssignImmutable, 0x1234}};
 		checkCSE(input, input);
 	}
 	{
-		AssemblyItems input{{AssignImmutable, 0x1234}};
+		AssemblyItems const input{{AssignImmutable, 0x1234}};
 		checkCSE(input, input);
 	}
 }
@@ -197,7 +197,7 @@ BOOST_AUTO_TEST_CASE(cse_assign_immutable_breaks)
 
 BOOST_AUTO_TEST_CASE(cse_intermediate_swap)
 {
-	evmasm::KnownState state;
+	evmasm::KnownState const state;
 	evmasm::CommonSubexpressionEliminator cse(state, CommonOptions::get().evmVersion());
 	AssemblyItems input{
 		Instruction::SWAP1, Instruction::POP, Instruction::ADD, u256(0), Instruction::SWAP1,
@@ -205,25 +205,25 @@ BOOST_AUTO_TEST_CASE(cse_intermediate_swap)
 		Instruction::DIV, u256(0xff), Instruction::AND
 	};
 	BOOST_REQUIRE(cse.feedItems(input.begin(), input.end(), false) == input.end());
-	AssemblyItems output = cse.getOptimizedItems();
+	AssemblyItems const output = cse.getOptimizedItems();
 	BOOST_CHECK(!output.empty());
 }
 
 BOOST_AUTO_TEST_CASE(cse_negative_stack_access)
 {
-	AssemblyItems input{Instruction::DUP2, u256(0)};
+	AssemblyItems const input{Instruction::DUP2, u256(0)};
 	checkCSE(input, input);
 }
 
 BOOST_AUTO_TEST_CASE(cse_negative_stack_end)
 {
-	AssemblyItems input{Instruction::ADD};
+	AssemblyItems const input{Instruction::ADD};
 	checkCSE(input, input);
 }
 
 BOOST_AUTO_TEST_CASE(cse_intermediate_negative_stack)
 {
-	AssemblyItems input{Instruction::ADD, u256(1), Instruction::DUP1};
+	AssemblyItems const input{Instruction::ADD, u256(1), Instruction::DUP1};
 	checkCSE(input, input);
 }
 
@@ -234,7 +234,7 @@ BOOST_AUTO_TEST_CASE(cse_pop)
 
 BOOST_AUTO_TEST_CASE(cse_unneeded_items)
 {
-	AssemblyItems input{
+	AssemblyItems const input{
 		Instruction::ADD,
 		Instruction::SWAP1,
 		Instruction::POP,
@@ -246,13 +246,13 @@ BOOST_AUTO_TEST_CASE(cse_unneeded_items)
 
 BOOST_AUTO_TEST_CASE(cse_constant_addition)
 {
-	AssemblyItems input{u256(7), u256(8), Instruction::ADD};
+	AssemblyItems const input{u256(7), u256(8), Instruction::ADD};
 	checkCSE(input, {u256(7 + 8)});
 }
 
 BOOST_AUTO_TEST_CASE(cse_invariants)
 {
-	AssemblyItems input{
+	AssemblyItems const input{
 		Instruction::DUP1,
 		Instruction::DUP1,
 		u256(0),
@@ -510,7 +510,7 @@ BOOST_AUTO_TEST_CASE(cse_interleaved_storage_at_known_location_offset)
 
 BOOST_AUTO_TEST_CASE(cse_deep_stack)
 {
-	AssemblyItems input{
+	AssemblyItems const input{
 		Instruction::ADD,
 		Instruction::SWAP1,
 		Instruction::POP,
@@ -743,8 +743,8 @@ BOOST_AUTO_TEST_CASE(cse_with_initially_known_stack)
 
 BOOST_AUTO_TEST_CASE(cse_equality_on_initially_known_stack)
 {
-	evmasm::KnownState state = createInitialState(AssemblyItems{Instruction::DUP1});
-	AssemblyItems input{
+	evmasm::KnownState const state = createInitialState(AssemblyItems{Instruction::DUP1});
+	AssemblyItems const input{
 		Instruction::EQ
 	};
 	AssemblyItems output = CSE(input, state);
@@ -1434,7 +1434,7 @@ BOOST_AUTO_TEST_CASE(cse_mload_pop)
 		Instruction::POP,
 	};
 
-	AssemblyItems output{
+	AssemblyItems const output{
 	};
 
 	checkCSE(input, output);
@@ -1744,7 +1744,7 @@ BOOST_AUTO_TEST_CASE(cse_dup)
 		Instruction::DUP1,
 		Instruction::REVERT
 	};
-	AssemblyItems output = input;
+	AssemblyItems const output = input;
 
 	checkCSE(input, output);
 	checkFullCSE(input, output);

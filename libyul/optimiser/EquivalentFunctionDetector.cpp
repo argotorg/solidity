@@ -30,7 +30,7 @@ using namespace solidity::yul;
 
 void EquivalentFunctionDetector::operator()(FunctionDefinition const& _fun)
 {
-	uint64_t bodyHash = m_blockHashes[&_fun.body];
+	uint64_t const bodyHash = m_blockHashes[&_fun.body];
 	auto& candidates = m_candidates[bodyHash];
 	for (auto const& candidate: candidates)
 		if (SyntacticallyEqual{}.statementEqual(_fun, *candidate))

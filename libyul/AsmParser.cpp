@@ -118,7 +118,7 @@ std::unique_ptr<AST> Parser::parseInline(std::shared_ptr<Scanner> const& _scanne
 
 	auto previousScannerKind = _scanner->scannerKind();
 	_scanner->setScannerMode(ScannerKind::Yul);
-	ScopeGuard resetScanner([&]{ _scanner->setScannerMode(previousScannerKind); });
+	ScopeGuard const resetScanner([&]{ _scanner->setScannerMode(previousScannerKind); });
 
 	try
 	{
@@ -308,7 +308,7 @@ std::optional<std::pair<std::string_view, std::optional<int>>> Parser::parseASTI
 	);
 	std::match_results<std::string_view::const_iterator> match;
 	std::optional<int> astID;
-	bool matched = regex_search(_arguments.cbegin(), _arguments.cend(), match, argRegex);
+	bool const matched = regex_search(_arguments.cbegin(), _arguments.cend(), match, argRegex);
 	std::string_view tail = _arguments;
 	if (matched)
 	{
@@ -331,7 +331,7 @@ std::optional<std::pair<std::string_view, std::optional<int>>> Parser::parseASTI
 
 Block Parser::parseBlock()
 {
-	RecursionGuard recursionGuard(*this);
+	RecursionGuard const recursionGuard(*this);
 	Block block = createWithDebugData<Block>();
 	expectToken(Token::LBrace);
 	while (currentToken() != Token::RBrace)
@@ -343,7 +343,7 @@ Block Parser::parseBlock()
 
 Statement Parser::parseStatement()
 {
-	RecursionGuard recursionGuard(*this);
+	RecursionGuard const recursionGuard(*this);
 	switch (currentToken())
 	{
 	case Token::Let:
@@ -485,7 +485,7 @@ Statement Parser::parseStatement()
 
 Case Parser::parseCase()
 {
-	RecursionGuard recursionGuard(*this);
+	RecursionGuard const recursionGuard(*this);
 	Case _case = createWithDebugData<Case>();
 	if (currentToken() == Token::Default)
 		advance();
@@ -506,9 +506,9 @@ Case Parser::parseCase()
 
 ForLoop Parser::parseForLoop()
 {
-	RecursionGuard recursionGuard(*this);
+	RecursionGuard const recursionGuard(*this);
 
-	ForLoopComponent outerForLoopComponent = m_currentForLoopComponent;
+	ForLoopComponent const outerForLoopComponent = m_currentForLoopComponent;
 
 	ForLoop forLoop = createWithDebugData<ForLoop>();
 	expectToken(Token::For);
@@ -529,7 +529,7 @@ ForLoop Parser::parseForLoop()
 
 Expression Parser::parseExpression(bool _unlimitedLiteralArgument)
 {
-	RecursionGuard recursionGuard(*this);
+	RecursionGuard const recursionGuard(*this);
 
 	std::variant<Literal, Identifier, BuiltinName> operation = parseLiteralOrIdentifier(_unlimitedLiteralArgument);
 	return visit(GenericVisitor{
@@ -559,7 +559,7 @@ Expression Parser::parseExpression(bool _unlimitedLiteralArgument)
 
 std::variant<Literal, Identifier, BuiltinName> Parser::parseLiteralOrIdentifier(bool _unlimitedLiteralArgument)
 {
-	RecursionGuard recursionGuard(*this);
+	RecursionGuard const recursionGuard(*this);
 	switch (currentToken())
 	{
 	case Token::Identifier:
@@ -627,7 +627,7 @@ std::variant<Literal, Identifier, BuiltinName> Parser::parseLiteralOrIdentifier(
 
 VariableDeclaration Parser::parseVariableDeclaration()
 {
-	RecursionGuard recursionGuard(*this);
+	RecursionGuard const recursionGuard(*this);
 	VariableDeclaration varDecl = createWithDebugData<VariableDeclaration>();
 	expectToken(Token::Let);
 	while (true)
@@ -652,7 +652,7 @@ VariableDeclaration Parser::parseVariableDeclaration()
 
 FunctionDefinition Parser::parseFunctionDefinition()
 {
-	RecursionGuard recursionGuard(*this);
+	RecursionGuard const recursionGuard(*this);
 
 	if (m_currentForLoopComponent == ForLoopComponent::ForLoopPre)
 		m_errorReporter.syntaxError(
@@ -661,7 +661,7 @@ FunctionDefinition Parser::parseFunctionDefinition()
 			"Functions cannot be defined inside a for-loop init block."
 		);
 
-	ForLoopComponent outerForLoopComponent = m_currentForLoopComponent;
+	ForLoopComponent const outerForLoopComponent = m_currentForLoopComponent;
 	m_currentForLoopComponent = ForLoopComponent::None;
 
 	FunctionDefinition funDef = createWithDebugData<FunctionDefinition>();
@@ -687,7 +687,7 @@ FunctionDefinition Parser::parseFunctionDefinition()
 			expectToken(Token::Comma);
 		}
 	}
-	bool preInsideFunction = m_insideFunction;
+	bool const preInsideFunction = m_insideFunction;
 	m_insideFunction = true;
 	funDef.body = parseBlock();
 	m_insideFunction = preInsideFunction;
@@ -699,7 +699,7 @@ FunctionDefinition Parser::parseFunctionDefinition()
 
 FunctionCall Parser::parseCall(std::variant<Literal, Identifier, BuiltinName>&& _initialOp)
 {
-	RecursionGuard recursionGuard(*this);
+	RecursionGuard const recursionGuard(*this);
 
 	std::function isUnlimitedLiteralArgument = [](size_t) -> bool { return false; };
 	FunctionCall functionCall;
@@ -740,7 +740,7 @@ FunctionCall Parser::parseCall(std::variant<Literal, Identifier, BuiltinName>&& 
 
 NameWithDebugData Parser::parseNameWithDebugData()
 {
-	RecursionGuard recursionGuard(*this);
+	RecursionGuard const recursionGuard(*this);
 	NameWithDebugData typedName = createWithDebugData<NameWithDebugData>();
 	auto const nameLocation = currentLocation();
 	typedName.name = expectAsmIdentifier();

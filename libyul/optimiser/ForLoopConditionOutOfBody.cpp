@@ -56,7 +56,7 @@ void ForLoopConditionOutOfBody::operator()(ForLoop& _forLoop)
 	std::optional<BuiltinHandle> iszero = m_dialect.booleanNegationFunctionHandle();
 	yulAssert(iszero.has_value());
 	auto const& isZeroHandle = *iszero;
-	langutil::DebugData::ConstPtr debugData = debugDataOf(*firstStatement.condition);
+	langutil::DebugData::ConstPtr const debugData = debugDataOf(*firstStatement.condition);
 
 	if (
 		std::holds_alternative<FunctionCall>(*firstStatement.condition) &&

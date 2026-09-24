@@ -66,7 +66,7 @@ void copyMissingTags(std::set<CallableDeclaration const*> const& _baseFunctions,
 			// Update the parameter name for @return tags
 			if (_functionType && tag == "return")
 			{
-				size_t docParaNameEndPos = content.content.find_first_of(" \t");
+				size_t const docParaNameEndPos = content.content.find_first_of(" \t");
 				std::string const docParameterName = content.content.substr(0, docParaNameEndPos);
 
 				if (
@@ -74,7 +74,7 @@ void copyMissingTags(std::set<CallableDeclaration const*> const& _baseFunctions,
 					docParameterName != _functionType->returnParameterNames().at(n)
 				)
 				{
-					bool baseHasNoName =
+					bool const baseHasNoName =
 						baseFunction.returnParameterList() &&
 						baseFunction.returnParameters().size() > n &&
 						baseFunction.returnParameters().at(n)->name().empty();

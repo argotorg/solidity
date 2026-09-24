@@ -66,7 +66,7 @@ void FunctionSpecializer::operator()(FunctionCall& _f)
 
 	if (ranges::any_of(arguments, [](auto& _a) { return _a.has_value(); }))
 	{
-		YulName oldName = std::move(identifier.name);
+		YulName const oldName = std::move(identifier.name);
 		auto newName = m_nameDispenser.newName(oldName);
 
 		m_oldToNewMap[oldName].emplace_back(std::make_pair(newName, arguments));
@@ -87,7 +87,7 @@ FunctionDefinition FunctionSpecializer::specialize(
 {
 	yulAssert(_arguments.size() == _f.parameters.size(), "");
 
-	std::map<YulName, YulName> translatedNames = applyMap(
+	std::map<YulName, YulName> const translatedNames = applyMap(
 		NameCollector{_f, NameCollector::OnlyVariables}.names(),
 		[&](auto& _name) -> std::pair<YulName, YulName>
 		{

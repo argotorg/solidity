@@ -29,14 +29,14 @@ namespace solidity::frontend::smt
 smtutil::Expression interfacePre(Predicate const& _pred, ContractDefinition const& _contract, EncodingContext& _context)
 {
 	auto& state = _context.state();
-	std::vector<smtutil::Expression> stateExprs = getStateExpressionsForInterfacePre(state);
+	std::vector<smtutil::Expression> const stateExprs = getStateExpressionsForInterfacePre(state);
 	return _pred(stateExprs + initialStateVariables(_contract, _context));
 }
 
 smtutil::Expression interface(Predicate const& _pred, ContractDefinition const& _contract, EncodingContext& _context)
 {
 	auto const& state = _context.state();
-	std::vector<smtutil::Expression> stateExprs = getStateExpressionsForInterface(state);
+	std::vector<smtutil::Expression> const stateExprs = getStateExpressionsForInterface(state);
 	return _pred(stateExprs + currentStateVariables(_contract, _context));
 }
 
@@ -48,7 +48,7 @@ smtutil::Expression nondetInterface(
 	unsigned _postIdx)
 {
 	auto const& state = _context.state();
-	std::vector<smtutil::Expression> stateExprs = getStateExpressionsForNondetInterface(state);
+	std::vector<smtutil::Expression> const stateExprs = getStateExpressionsForNondetInterface(state);
 	return _pred(
 		stateExprs +
 		std::vector<smtutil::Expression>{_context.state().state(_preIdx)} +
@@ -65,7 +65,7 @@ smtutil::Expression constructor(Predicate const& _pred, EncodingContext& _contex
 		return _pred(currentFunctionVariablesForDefinition(*constructor, &contract, _context));
 
 	auto& state = _context.state();
-	std::vector<smtutil::Expression> stateExprs = getStateExpressionsForConstructor(state);
+	std::vector<smtutil::Expression> const stateExprs = getStateExpressionsForConstructor(state);
 	return _pred(stateExprs + initialStateVariables(contract, _context) + currentStateVariables(contract, _context));
 }
 

@@ -84,19 +84,19 @@ std::multimap<std::string, DocTag> DocStringParser::parse()
 
 	solAssert(m_node.text(), "");
 	iter currPos = m_node.text()->begin();
-	iter end = m_node.text()->end();
+	iter const end = m_node.text()->end();
 
 	while (currPos != end)
 	{
-		iter tagPos = find(currPos, end, '@');
-		iter nlPos = find(currPos, end, '\n');
+		iter const tagPos = find(currPos, end, '@');
+		iter const nlPos = find(currPos, end, '\n');
 
 		if (tagPos != end && tagPos < nlPos)
 		{
 			// we found a tag
-			iter tagNameEndPos = firstWhitespaceOrNewline(tagPos, end);
-			std::string tagName{tagPos + 1, tagNameEndPos};
-			iter tagDataPos = (tagNameEndPos != end) ? tagNameEndPos + 1 : tagNameEndPos;
+			iter const tagNameEndPos = firstWhitespaceOrNewline(tagPos, end);
+			std::string const tagName{tagPos + 1, tagNameEndPos};
+			iter const tagDataPos = (tagNameEndPos != end) ? tagNameEndPos + 1 : tagNameEndPos;
 			currPos = parseDocTag(tagDataPos, end, tagName);
 		}
 		else if (!!m_lastTag) // continuation of the previous tag

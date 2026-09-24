@@ -191,7 +191,7 @@ SMTSolverChoice ModelChecker::availableSolvers()
 
 SMTSolverChoice ModelChecker::checkRequestedSolvers(SMTSolverChoice _enabled, ErrorReporter& _errorReporter)
 {
-	SMTSolverChoice availableSolvers{ModelChecker::availableSolvers()};
+	SMTSolverChoice const availableSolvers{ModelChecker::availableSolvers()};
 
 	if (_enabled.cvc5 && !availableSolvers.cvc5)
 	{

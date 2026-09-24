@@ -194,7 +194,7 @@ nlohmann::json::json_pointer pathToPointer(std::string_view _path)
 		return nlohmann::json::json_pointer{};
 
 	std::string ptr = "/";
-	for (char c: _path)
+	for (char const c: _path)
 	{
 		if (c == '.' || c == '[')
 			ptr += '/';

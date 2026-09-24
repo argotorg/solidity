@@ -41,7 +41,7 @@ SortPointer interfaceSort(ContractDefinition const& _contract, SymbolicState& _s
 SortPointer nondetInterfaceSort(ContractDefinition const& _contract, SymbolicState& _state)
 {
 	auto varSorts = stateSorts(_contract);
-	std::vector<SortPointer> stateSort{_state.stateSort()};
+	std::vector<SortPointer> const stateSort{_state.stateSort()};
 	return std::make_shared<FunctionSort>(
 		std::vector<SortPointer>{_state.errorFlagSort(), _state.thisAddressSort()} +
 			getBuiltInFunctionsSorts(_state) +
@@ -59,7 +59,7 @@ SortPointer constructorSort(ContractDefinition const& _contract, SymbolicState& 
 		return functionSort(*constructor, &_contract, _state);
 
 	auto varSorts = stateSorts(_contract);
-	std::vector<SortPointer> stateSort{_state.stateSort()};
+	std::vector<SortPointer> const stateSort{_state.stateSort()};
 	return std::make_shared<FunctionSort>(
 		std::vector<SortPointer>{_state.errorFlagSort(), _state.thisAddressSort()} +
 			getBuiltInFunctionsSorts(_state) +

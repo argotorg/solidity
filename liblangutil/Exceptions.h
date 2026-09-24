@@ -134,7 +134,7 @@ public:
 	/// error message.
 	void limitSize(std::string& _message)
 	{
-		size_t occurrences = infos.size();
+		size_t const occurrences = infos.size();
 		if (occurrences > 32)
 		{
 			infos.resize(32);

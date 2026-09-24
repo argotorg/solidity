@@ -59,7 +59,7 @@ ControlFlowSideEffectsTest::ControlFlowSideEffectsTest(std::string const& _filen
 
 TestCase::TestResult ControlFlowSideEffectsTest::run(std::ostream& _stream, std::string const& _linePrefix, bool _formatted)
 {
-	YulStack yulStack = parseYul(m_source);
+	YulStack const yulStack = parseYul(m_source);
 	solUnimplementedAssert(yulStack.parserResult()->subObjects.empty(), "Tests with subobjects not supported.");
 
 	if (yulStack.hasErrors())
@@ -74,7 +74,7 @@ TestCase::TestResult ControlFlowSideEffectsTest::run(std::ostream& _stream, std:
 	);
 	m_obtainedResult.clear();
 	forEach<FunctionDefinition const>(yulStack.parserResult()->code()->root(), [&](FunctionDefinition const& _fun) {
-		std::string effectStr = toString(sideEffects.functionSideEffects().at(&_fun));
+		std::string const effectStr = toString(sideEffects.functionSideEffects().at(&_fun));
 		m_obtainedResult += _fun.name.str() + (effectStr.empty() ? ":" : ": " + effectStr) + "\n";
 	});
 

@@ -181,7 +181,7 @@ bool ControlFlowBuilder::visit(ForStatement const& _forStatement)
 	m_currentNode = nodes[0];
 
 	{
-		BreakContinueScope scope(*this, afterFor, postPart);
+		BreakContinueScope const scope(*this, afterFor, postPart);
 		appendControlFlow(_forStatement.body());
 	}
 
@@ -208,7 +208,7 @@ bool ControlFlowBuilder::visit(WhileStatement const& _whileStatement)
 		auto condition = newLabel();
 
 		{
-			BreakContinueScope scope(*this, afterWhile, condition);
+			BreakContinueScope const scope(*this, afterWhile, condition);
 			appendControlFlow(_whileStatement.body());
 		}
 
@@ -231,7 +231,7 @@ bool ControlFlowBuilder::visit(WhileStatement const& _whileStatement)
 
 		m_currentNode = whileBody;
 		{
-			BreakContinueScope scope(*this, afterWhile, whileCondition);
+			BreakContinueScope const scope(*this, afterWhile, whileCondition);
 			appendControlFlow(_whileStatement.body());
 		}
 
@@ -515,7 +515,7 @@ void ControlFlowBuilder::operator()(yul::ForLoop const& _forLoop)
 	m_currentNode = nodes[0];
 
 	{
-		BreakContinueScope scope(*this, afterFor, loopExpression);
+		BreakContinueScope const scope(*this, afterFor, loopExpression);
 		(*this)(_forLoop.body);
 	}
 

@@ -41,7 +41,7 @@ void modifyBuiltinToNoOutput(BuiltinFunctionForEVM& _builtin)
 {
 	_builtin.generateCode = [_builtin](FunctionCall const& _call, AbstractAssembly& _assembly, BuiltinContext&)
 	{
-		for (size_t i: ranges::views::iota(0u, _call.arguments.size()))
+		for (size_t const i: ranges::views::iota(0u, _call.arguments.size()))
 			if (!_builtin.literalArgument(i))
 				_assembly.appendInstruction(evmasm::Instruction::POP);
 

@@ -64,7 +64,7 @@ TestCase::TestResult MemoryGuardTest::run(std::ostream& _stream, std::string con
 	m_obtainedResult.clear();
 	for (std::string contractName: compiler().contractNames())
 	{
-		ErrorList errors;
+		ErrorList const errors;
 		std::optional<std::string> const& ir = compiler().yulIR(contractName);
 		soltestAssert(ir);
 
@@ -87,7 +87,7 @@ TestCase::TestResult MemoryGuardTest::run(std::ostream& _stream, std::string con
 				m_obtainedResult += "false\n";
 		};
 		handleObject("creation", *yulStack.parserResult());
-		size_t deployedIndex = yulStack.parserResult()->subIndexByName.at(
+		size_t const deployedIndex = yulStack.parserResult()->subIndexByName.at(
 			IRNames::deployedObject(compiler().contractDefinition(contractName))
 		);
 		handleObject("runtime", dynamic_cast<Object const&>(*yulStack.parserResult()->subObjects[deployedIndex]));

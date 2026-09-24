@@ -195,8 +195,8 @@ void markStartsOfSubGraphs(CFG& _cfg)
 					if (low[v] > disc[_u])
 					{
 						// _u <-> v is a cut edge in the undirected graph
-						bool edgeVtoU = util::contains(_u->entries, v);
-						bool edgeUtoV = util::contains(v->entries, _u);
+						bool const edgeVtoU = util::contains(_u->entries, v);
+						bool const edgeUtoV = util::contains(v->entries, _u);
 						if (edgeVtoU && !edgeUtoV)
 							// Cut edge v -> _u
 							_u->isStartOfSubGraph = true;
@@ -235,7 +235,7 @@ std::unique_ptr<CFG> ControlFlowGraphBuilder::build(
 	auto result = std::make_unique<CFG>();
 	result->entry = &result->makeBlock(debugDataOf(_block));
 
-	ControlFlowSideEffectsCollector sideEffects(_dialect, _block);
+	ControlFlowSideEffectsCollector const sideEffects(_dialect, _block);
 	ControlFlowGraphBuilder builder(*result, _analysisInfo, sideEffects.functionSideEffects(), _dialect);
 	builder.m_currentBlock = result->entry;
 	builder(_block);
@@ -331,7 +331,7 @@ void ControlFlowGraphBuilder::operator()(ExpressionStatement const& _exprStmt)
 
 void ControlFlowGraphBuilder::operator()(Block const& _block)
 {
-	ScopedSaveAndRestore saveScope(m_scope, m_info.scopes.at(&_block).get());
+	ScopedSaveAndRestore const saveScope(m_scope, m_info.scopes.at(&_block).get());
 	for (auto const& statement: _block.statements)
 		if (auto const* function = std::get_if<FunctionDefinition>(&statement))
 			registerFunction(*function);
@@ -353,7 +353,7 @@ void ControlFlowGraphBuilder::operator()(If const& _if)
 void ControlFlowGraphBuilder::operator()(Switch const& _switch)
 {
 	yulAssert(m_currentBlock, "");
-	langutil::DebugData::ConstPtr preSwitchDebugData = debugDataOf(_switch);
+	langutil::DebugData::ConstPtr const preSwitchDebugData = debugDataOf(_switch);
 
 	auto ghostVariableId = m_graph.ghostVariables.size();
 	YulName ghostVariableName("GHOST[" + std::to_string(ghostVariableId) + "]");
@@ -414,8 +414,8 @@ void ControlFlowGraphBuilder::operator()(Switch const& _switch)
 
 void ControlFlowGraphBuilder::operator()(ForLoop const& _loop)
 {
-	langutil::DebugData::ConstPtr preLoopDebugData = debugDataOf(_loop);
-	ScopedSaveAndRestore scopeRestore(m_scope, m_info.scopes.at(&_loop.pre).get());
+	langutil::DebugData::ConstPtr const preLoopDebugData = debugDataOf(_loop);
+	ScopedSaveAndRestore const scopeRestore(m_scope, m_info.scopes.at(&_loop.pre).get());
 	(*this)(_loop.pre);
 
 	std::optional<bool> constantCondition;
@@ -427,7 +427,7 @@ void ControlFlowGraphBuilder::operator()(ForLoop const& _loop)
 	CFG::BasicBlock& post = m_graph.makeBlock(debugDataOf(_loop.post));
 	CFG::BasicBlock& afterLoop = m_graph.makeBlock(preLoopDebugData);
 
-	ScopedSaveAndRestore scopedSaveAndRestore(m_forLoopInfo, ForLoopInfo{afterLoop, post});
+	ScopedSaveAndRestore const scopedSaveAndRestore(m_forLoopInfo, ForLoopInfo{afterLoop, post});
 
 	if (constantCondition.has_value())
 	{
@@ -507,7 +507,7 @@ void ControlFlowGraphBuilder::registerFunction(FunctionDefinition const& _functi
 	Scope* virtualFunctionScope = m_info.scopes.at(m_info.virtualBlocks.at(&_functionDefinition).get()).get();
 	yulAssert(virtualFunctionScope, "");
 
-	bool inserted = m_graph.functionInfo.emplace(std::make_pair(&function, CFG::FunctionInfo{
+	bool const inserted = m_graph.functionInfo.emplace(std::make_pair(&function, CFG::FunctionInfo{
 		_functionDefinition.debugData,
 		function,
 		_functionDefinition,

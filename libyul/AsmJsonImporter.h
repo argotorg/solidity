@@ -47,7 +47,7 @@ public:
 
 	yul::AST createAST(Json const& node);
 private:
-	langutil::SourceLocation const createSourceLocation(Json const& _node);
+	langutil::SourceLocation createSourceLocation(Json const& _node);
 	template <class T>
 	T createAsmNode(Json const& _node);
 	/// helper function to access member functions of the JSON

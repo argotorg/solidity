@@ -43,7 +43,7 @@ using namespace solidity::yul;
 
 void LoadResolver::run(OptimiserStepContext& _context, Block& _ast)
 {
-	bool containsMSize = MSizeFinder::containsMSize(_context.dialect, _ast);
+	bool const containsMSize = MSizeFinder::containsMSize(_context.dialect, _ast);
 	LoadResolver{
 		_context.dialect,
 		SideEffectsPropagator::sideEffects(_context.dialect, CallGraphGenerator::callGraph(_ast)),
@@ -91,7 +91,7 @@ void LoadResolver::tryResolve(
 	if (_arguments.empty() || !std::holds_alternative<Identifier>(_arguments.at(0)))
 		return;
 
-	YulName key = std::get<Identifier>(_arguments.at(0)).name;
+	YulName const key = std::get<Identifier>(_arguments.at(0)).name;
 	if (_location == StoreLoadLocation::Storage)
 	{
 		if (auto value = storageValue(key))
@@ -117,14 +117,14 @@ void LoadResolver::tryEvaluateKeccak(
 		return;
 
 	// The costs are only correct for hashes of 32 bytes or 1 word (when rounded up).
-	GasMeter gasMeter{
+	GasMeter const gasMeter{
 		dynamic_cast<EVMDialect const&>(m_dialect),
 		!m_expectedExecutionsPerDeployment,
 		m_expectedExecutionsPerDeployment ? *m_expectedExecutionsPerDeployment : 1
 	};
 
-	bigint costOfKeccak = gasMeter.costs(_e);
-	bigint costOfLiteral = gasMeter.costs(
+	bigint const costOfKeccak = gasMeter.costs(_e);
+	bigint const costOfLiteral = gasMeter.costs(
 		Literal{
 			{},
 			LiteralKind::Number,

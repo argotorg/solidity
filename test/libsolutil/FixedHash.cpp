@@ -72,21 +72,21 @@ BOOST_AUTO_TEST_CASE(default_constructor)
 
 BOOST_AUTO_TEST_CASE(bytes_constructor)
 {
-	FixedHash<8> a(bytes{});
+	FixedHash<8> const a(bytes{});
 	BOOST_CHECK_EQUAL(a.size, 8);
 	BOOST_CHECK_EQUAL(a.hex(), "0000000000000000");
 
-	FixedHash<8> b(bytes{0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88});
+	FixedHash<8> const b(bytes{0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88});
 	BOOST_CHECK_EQUAL(b.size, 8);
 	BOOST_CHECK_EQUAL(b.hex(), "1122334455667788");
 
 	// TODO: short input, this should fail
-	FixedHash<8> c(bytes{0x11, 0x22, 0x33, 0x44, 0x55, 0x66});
+	FixedHash<8> const c(bytes{0x11, 0x22, 0x33, 0x44, 0x55, 0x66});
 	BOOST_CHECK_EQUAL(c.size, 8);
 	BOOST_CHECK_EQUAL(c.hex(), "0000000000000000");
 
 	// TODO: oversized input, this should fail
-	FixedHash<8> d(bytes{0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99});
+	FixedHash<8> const d(bytes{0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99});
 	BOOST_CHECK_EQUAL(d.size, 8);
 	BOOST_CHECK_EQUAL(d.hex(), "0000000000000000");
 }
@@ -98,25 +98,25 @@ BOOST_AUTO_TEST_CASE(string_constructor_fromhex)
 	// TODO: this tests the default settings ConstructFromStringType::fromHex, ConstructFromHashType::FailIfDifferent
 	//       should test other options too
 
-	FixedHash<8> a("");
+	FixedHash<8> const a("");
 	BOOST_CHECK_EQUAL(a.size, 8);
 	BOOST_CHECK_EQUAL(a.hex(), "0000000000000000");
 
-	FixedHash<8> b("1122334455667788");
+	FixedHash<8> const b("1122334455667788");
 	BOOST_CHECK_EQUAL(b.size, 8);
 	BOOST_CHECK_EQUAL(b.hex(), "1122334455667788");
 
-	FixedHash<8> c("0x1122334455667788");
+	FixedHash<8> const c("0x1122334455667788");
 	BOOST_CHECK_EQUAL(c.size, 8);
 	BOOST_CHECK_EQUAL(c.hex(), "1122334455667788");
 
 	// TODO: short input, this should fail
-	FixedHash<8> d("112233445566");
+	FixedHash<8> const d("112233445566");
 	BOOST_CHECK_EQUAL(d.size, 8);
 	BOOST_CHECK_EQUAL(d.hex(), "0000000000000000");
 
 	// TODO: oversized input, this should fail
-	FixedHash<8> e("112233445566778899");
+	FixedHash<8> const e("112233445566778899");
 	BOOST_CHECK_EQUAL(e.size, 8);
 	BOOST_CHECK_EQUAL(e.hex(), "0000000000000000");
 }
@@ -124,21 +124,21 @@ BOOST_AUTO_TEST_CASE(string_constructor_fromhex)
 BOOST_AUTO_TEST_CASE(string_constructor_frombytes)
 {
 
-	FixedHash<8> b("", FixedHash<8>::FromBinary);
+	FixedHash<8> const b("", FixedHash<8>::FromBinary);
 	BOOST_CHECK_EQUAL(b.size, 8);
 	BOOST_CHECK_EQUAL(b.hex(), "0000000000000000");
 
-	FixedHash<8> c("abcdefgh", FixedHash<8>::FromBinary);
+	FixedHash<8> const c("abcdefgh", FixedHash<8>::FromBinary);
 	BOOST_CHECK_EQUAL(c.size, 8);
 	BOOST_CHECK_EQUAL(c.hex(), "6162636465666768");
 
 	// TODO: short input, this should fail
-	FixedHash<8> d("abcdefg", FixedHash<8>::FromBinary);
+	FixedHash<8> const d("abcdefg", FixedHash<8>::FromBinary);
 	BOOST_CHECK_EQUAL(d.size, 8);
 	BOOST_CHECK_EQUAL(d.hex(), "0000000000000000");
 
 	// TODO: oversized input, this should fail
-	FixedHash<8> e("abcdefghi", FixedHash<8>::FromBinary);
+	FixedHash<8> const e("abcdefghi", FixedHash<8>::FromBinary);
 	BOOST_CHECK_EQUAL(e.size, 8);
 	BOOST_CHECK_EQUAL(e.hex(), "0000000000000000");
 }
@@ -146,34 +146,34 @@ BOOST_AUTO_TEST_CASE(string_constructor_frombytes)
 BOOST_AUTO_TEST_CASE(converting_constructor)
 {
 	// Left-aligned truncation
-	FixedHash<8> a = FixedHash<8>(FixedHash<12>("112233445566778899001122"), FixedHash<8>::AlignLeft);
+	FixedHash<8> const a = FixedHash<8>(FixedHash<12>("112233445566778899001122"), FixedHash<8>::AlignLeft);
 	BOOST_CHECK_EQUAL(a.size, 8);
 	BOOST_CHECK_EQUAL(a.hex(), "1122334455667788");
 
 	// Right-aligned truncation
-	FixedHash<8> b = FixedHash<8>(FixedHash<12>("112233445566778899001122"), FixedHash<8>::AlignRight);
+	FixedHash<8> const b = FixedHash<8>(FixedHash<12>("112233445566778899001122"), FixedHash<8>::AlignRight);
 	BOOST_CHECK_EQUAL(b.size, 8);
 	BOOST_CHECK_EQUAL(b.hex(), "5566778899001122");
 
 	// Left-aligned extension
-	FixedHash<12> c = FixedHash<12>(FixedHash<8>("1122334455667788"), FixedHash<12>::AlignLeft);
+	FixedHash<12> const c = FixedHash<12>(FixedHash<8>("1122334455667788"), FixedHash<12>::AlignLeft);
 	BOOST_CHECK_EQUAL(c.size, 12);
 	BOOST_CHECK_EQUAL(c.hex(), "112233445566778800000000");
 
 	// Right-aligned extension
-	FixedHash<12> d = FixedHash<12>(FixedHash<8>("1122334455667788"), FixedHash<12>::AlignRight);
+	FixedHash<12> const d = FixedHash<12>(FixedHash<8>("1122334455667788"), FixedHash<12>::AlignRight);
 	BOOST_CHECK_EQUAL(d.size, 12);
 	BOOST_CHECK_EQUAL(d.hex(), "000000001122334455667788");
 
 	// FailIfDifferent setting
 	// TODO: Shouldn't this throw?
-	FixedHash<12> e = FixedHash<12>(FixedHash<8>("1122334455667788"), FixedHash<12>::FailIfDifferent);
+	FixedHash<12> const e = FixedHash<12>(FixedHash<8>("1122334455667788"), FixedHash<12>::FailIfDifferent);
 	BOOST_CHECK_EQUAL(e, c);
 }
 
 BOOST_AUTO_TEST_CASE(arith_constructor)
 {
-	FixedHash<32> b(u256(0x12340000));
+	FixedHash<32> const b(u256(0x12340000));
 	BOOST_CHECK_EQUAL(
 		b.hex(),
 		"0000000000000000000000000000000000000000000000000000000012340000"
@@ -184,16 +184,16 @@ BOOST_AUTO_TEST_CASE(arith_constructor)
 
 BOOST_AUTO_TEST_CASE(to_arith)
 {
-	FixedHash<32> b("c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470");
+	FixedHash<32> const b("c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470");
 	BOOST_CHECK_EQUAL(u256(b), u256("0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"));
 }
 
 BOOST_AUTO_TEST_CASE(comparison)
 {
-	FixedHash<32> a("c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470");
-	FixedHash<32> b("c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470");
-	FixedHash<32> c("c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a471");
-	FixedHash<32> d("233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470c5d2460186f7");
+	FixedHash<32> const a("c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470");
+	FixedHash<32> const b("c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470");
+	FixedHash<32> const c("c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a471");
+	FixedHash<32> const d("233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470c5d2460186f7");
 
 	BOOST_CHECK(a == a);
 	BOOST_CHECK(b == b);
@@ -233,14 +233,14 @@ BOOST_AUTO_TEST_CASE(misc)
 {
 	FixedHash<32> a("c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470");
 
-	uint8_t* mut_a = a.data();
+	uint8_t const* mut_a = a.data();
 	uint8_t const* const_a = a.data();
 	BOOST_CHECK_EQUAL(mut_a, const_a);
 	BOOST_CHECK_EQUAL(memcmp(mut_a, const_a, a.size), 0);
 
-	bytes bytes_a = a.asBytes();
-	bytesRef bytesref_a = a.ref();
-	bytesConstRef bytesconstref_a = a.ref();
+	bytes const bytes_a = a.asBytes();
+	bytesRef const bytesref_a = a.ref();
+	bytesConstRef const bytesconstref_a = a.ref();
 
 	// There's no printing for bytesRef/bytesConstRef
 	BOOST_CHECK(bytes(a.data(), a.data() + a.size) == bytes_a);

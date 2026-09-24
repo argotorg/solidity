@@ -141,7 +141,7 @@ CallGraph CallGraphGenerator::callGraph(Block const& _ast)
 void CallGraphGenerator::operator()(FunctionCall const& _functionCall)
 {
 	auto& functionCalls = m_callGraph.functionCalls[m_currentFunction];
-	FunctionHandle identifier = std::visit(GenericVisitor{
+	FunctionHandle const identifier = std::visit(GenericVisitor{
 		[](BuiltinName const& _builtin) -> FunctionHandle { return _builtin.handle; },
 		[](Identifier const& _identifier) -> FunctionHandle { return _identifier.name; },
 	}, _functionCall.functionName);
@@ -163,7 +163,7 @@ void CallGraphGenerator::operator()(FunctionDefinition const& _functionDefinitio
 		InputNotDisambiguatedException,
 		"CallGraphGenerator requires a disambiguated AST: duplicate function name " + _functionDefinition.name.str() + "."
 	);
-	YulName previousFunction = m_currentFunction;
+	YulName const previousFunction = m_currentFunction;
 	m_currentFunction = _functionDefinition.name;
 	m_callGraph.functionCalls[m_currentFunction] = {};
 	ASTWalker::operator()(_functionDefinition);

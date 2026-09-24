@@ -97,7 +97,7 @@ private:
 	template <class T>
 	std::string formatDebugData(T const& _node)
 	{
-		bool isExpression = std::is_constructible<Expression, T>::value;
+		bool const isExpression = std::is_constructible<Expression, T>::value;
 		return formatDebugData(_node.debugData, !isExpression);
 	}
 

@@ -53,7 +53,7 @@ static_assert(CompilerUtils::generalPurposeMemoryStart >= CompilerUtils::zeroPoi
 
 void CompilerUtils::initialiseFreeMemoryPointer()
 {
-	size_t reservedMemory = m_context.reservedMemory();
+	size_t const reservedMemory = m_context.reservedMemory();
 	solAssert(bigint(generalPurposeMemoryStart) + bigint(reservedMemory) < bigint(1) << 63);
 	m_context << (u256(generalPurposeMemoryStart) + reservedMemory);
 	storeFreeMemoryPointer();
@@ -181,7 +181,7 @@ void CompilerUtils::loadFromMemoryDynamic(
 	}
 	else
 	{
-		unsigned numBytes = loadFromMemoryHelper(_type, _fromCalldata, _padToWordBoundaries);
+		unsigned const numBytes = loadFromMemoryHelper(_type, _fromCalldata, _padToWordBoundaries);
 		if (_keepUpdatedMemoryOffset)
 		{
 			// update memory counter
@@ -193,7 +193,7 @@ void CompilerUtils::loadFromMemoryDynamic(
 
 void CompilerUtils::storeInMemory(unsigned _offset)
 {
-	unsigned numBytes = prepareMemoryStore(*TypeProvider::uint256(), true);
+	unsigned const numBytes = prepareMemoryStore(*TypeProvider::uint256(), true);
 	if (numBytes > 0)
 		m_context << u256(_offset) << Instruction::MSTORE;
 }
@@ -230,7 +230,7 @@ void CompilerUtils::storeInMemoryDynamic(Type const& _type, bool _padToWordBound
 	}
 	else if (_type.isValueType())
 	{
-		unsigned numBytes = prepareMemoryStore(_type, _padToWordBoundaries, _cleanup);
+		unsigned const numBytes = prepareMemoryStore(_type, _padToWordBoundaries, _cleanup);
 		m_context << Instruction::DUP2 << Instruction::MSTORE;
 		m_context << u256(numBytes) << Instruction::ADD;
 	}
@@ -461,7 +461,7 @@ void CompilerUtils::encodeToMemory(
 	// store memory start pointer
 	m_context << Instruction::DUP1;
 
-	unsigned argSize = CompilerUtils::sizeOnStack(_givenTypes);
+	unsigned const argSize = CompilerUtils::sizeOnStack(_givenTypes);
 	unsigned stackPos = 0; // advances through the argument values
 	unsigned dynPointers = 0; // number of dynamic head pointers on the stack
 	for (size_t i = 0; i < _givenTypes.size(); ++i)
@@ -617,7 +617,7 @@ void CompilerUtils::abiEncodeV2(
 
 	// stack: <$value0> <$value1> ... <$value(n-1)> <$headStart>
 
-	std::string encoderName =
+	std::string const encoderName =
 		_padToWordBoundaries ?
 		m_context.abiFunctions().tupleEncoderReversed(_givenTypes, _targetTypes, _encodeAsLibraryTypes) :
 		m_context.abiFunctions().tupleEncoderPackedReversed(_givenTypes, _targetTypes);
@@ -630,7 +630,7 @@ void CompilerUtils::abiDecodeV2(TypePointers const& _parameterTypes, bool _fromM
 	m_context << Instruction::DUP2 << Instruction::ADD;
 	m_context << Instruction::SWAP1;
 	// stack: <end> <start>
-	std::string decoderName = m_context.abiFunctions().tupleDecoder(_parameterTypes, _fromMemory);
+	std::string const decoderName = m_context.abiFunctions().tupleDecoder(_parameterTypes, _fromMemory);
 	m_context.callYulFunction(decoderName, 2, sizeOnStack(_parameterTypes));
 }
 
@@ -769,8 +769,8 @@ void CompilerUtils::convertType(
 
 	if (_typeOnStack == _targetType && !_cleanupNeeded)
 		return;
-	Type::Category stackTypeCategory = _typeOnStack.category();
-	Type::Category targetTypeCategory = _targetType.category();
+	Type::Category const stackTypeCategory = _typeOnStack.category();
+	Type::Category const targetTypeCategory = _targetType.category();
 
 	if (stackTypeCategory == Type::Category::UserDefinedValueType)
 	{
@@ -841,7 +841,7 @@ void CompilerUtils::convertType(
 				m_context << Instruction::POP << u256(0);
 			else if (targetType.numBytes() > typeOnStack.numBytes() || _cleanupNeeded)
 			{
-				unsigned bytes = std::min(typeOnStack.numBytes(), targetType.numBytes());
+				unsigned const bytes = std::min(typeOnStack.numBytes(), targetType.numBytes());
 				m_context << ((u256(1) << (256 - bytes * 8)) - 1);
 				m_context << Instruction::NOT << Instruction::AND;
 			}
@@ -923,7 +923,7 @@ void CompilerUtils::convertType(
 				targetTypeCategory == Type::Category::Address,
 				""
 			);
-			IntegerType addressType(160);
+			IntegerType const addressType(160);
 			IntegerType const& targetType = targetTypeCategory == Type::Category::Integer
 				? dynamic_cast<IntegerType const&>(_targetType) : addressType;
 			if (stackTypeCategory == Type::Category::RationalNumber)
@@ -960,7 +960,7 @@ void CompilerUtils::convertType(
 	{
 		auto const& literalType = dynamic_cast<StringLiteralType const&>(_typeOnStack);
 		std::string const& value = literalType.value();
-		bytesConstRef data(value);
+		bytesConstRef const data(value);
 		if (targetTypeCategory == Type::Category::FixedBytes)
 		{
 			unsigned const numBytes = dynamic_cast<FixedBytesType const&>(_targetType).numBytes();
@@ -971,7 +971,7 @@ void CompilerUtils::convertType(
 		{
 			auto const& arrayType = dynamic_cast<ArrayType const&>(_targetType);
 			solAssert(arrayType.isByteArrayOrString());
-			size_t storageSize = 32 + ((data.size() + 31) / 32) * 32;
+			size_t const storageSize = 32 + ((data.size() + 31) / 32) * 32;
 			allocateMemory(storageSize);
 			// stack: mempos
 			m_context << Instruction::DUP1 << u256(data.size());
@@ -997,7 +997,7 @@ void CompilerUtils::convertType(
 			);
 			solAssert(typeOnStack.isDynamicallySized());
 
-			bool fromCalldata = typeOnStack.dataStoredIn(DataLocation::CallData);
+			bool const fromCalldata = typeOnStack.dataStoredIn(DataLocation::CallData);
 			solAssert(typeOnStack.sizeOnStack() == (fromCalldata ? 2 : 1));
 			if (fromCalldata)
 				m_context << Instruction::SWAP1;
@@ -1052,7 +1052,7 @@ void CompilerUtils::convertType(
 				else
 				{
 					// stack: <source ref> (variably sized)
-					unsigned stackSize = typeOnStack.sizeOnStack();
+					unsigned const stackSize = typeOnStack.sizeOnStack();
 					ArrayUtils(m_context).retrieveLength(typeOnStack);
 
 					// allocate memory
@@ -1263,8 +1263,8 @@ void CompilerUtils::convertType(
 				solAssert(!targetType);
 				continue;
 			}
-			unsigned sourceSize = sourceType->sizeOnStack();
-			unsigned targetSize = targetType ? targetType->sizeOnStack() : 0;
+			unsigned const sourceSize = sourceType->sizeOnStack();
+			unsigned const targetSize = targetType ? targetType->sizeOnStack() : 0;
 			if (!targetType || *sourceType != *targetType || _cleanupNeeded)
 			{
 				if (targetType)
@@ -1495,7 +1495,7 @@ void CompilerUtils::popStackSlots(size_t _amount)
 void CompilerUtils::popAndJump(unsigned _toHeight, evmasm::AssemblyItem const& _jumpTo)
 {
 	solAssert(m_context.stackHeight() >= _toHeight);
-	unsigned amount = m_context.stackHeight() - _toHeight;
+	unsigned const amount = m_context.stackHeight() - _toHeight;
 	popStackSlots(amount);
 	m_context.appendJumpTo(_jumpTo);
 	m_context.adjustStackOffset(static_cast<int>(amount));
@@ -1517,7 +1517,7 @@ void CompilerUtils::computeHashStatic()
 
 void CompilerUtils::copyContractCodeToMemory(ContractDefinition const& contract, bool _creation)
 {
-	std::string which = _creation ? "Creation" : "Runtime";
+	std::string const which = _creation ? "Creation" : "Runtime";
 	m_context.callLowLevelFunction(
 		"$copyContract" + which + "CodeToMemory_" + contract.type()->identifier(),
 		1,
@@ -1525,7 +1525,7 @@ void CompilerUtils::copyContractCodeToMemory(ContractDefinition const& contract,
 		[&contract, _creation](CompilerContext& _context)
 		{
 			// copy the contract's code into memory
-			std::shared_ptr<evmasm::Assembly> assembly =
+			std::shared_ptr<evmasm::Assembly> const assembly =
 				_creation ?
 				_context.compiledContract(contract) :
 				_context.compiledContractRuntime(contract);
@@ -1567,7 +1567,7 @@ unsigned CompilerUtils::loadFromMemoryHelper(Type const& _type, bool _fromCallda
 	if (auto const* userDefined = dynamic_cast<UserDefinedValueType const*>(type))
 		type = &userDefined->underlyingType();
 
-	unsigned numBytes = type->calldataEncodedSize(_padToWords);
+	unsigned const numBytes = type->calldataEncodedSize(_padToWords);
 	bool isExternalFunctionType = false;
 	if (auto const* funType = dynamic_cast<FunctionType const*>(type))
 		if (funType->kind() == FunctionType::Kind::External)
@@ -1585,7 +1585,7 @@ unsigned CompilerUtils::loadFromMemoryHelper(Type const& _type, bool _fromCallda
 	else if (numBytes != 32)
 	{
 		// add leading or trailing zeros by dividing/multiplying depending on alignment
-		unsigned shiftFactor = (32 - numBytes) * 8;
+		unsigned const shiftFactor = (32 - numBytes) * 8;
 		rightShiftNumberOnStack(shiftFactor);
 		if (type->leftAligned())
 		{
@@ -1640,7 +1640,7 @@ unsigned CompilerUtils::prepareMemoryStore(Type const& _type, bool _padToWords, 
 
 	solAssert(!_type.isDynamicallyEncoded());
 
-	unsigned numBytes = _type.calldataEncodedSize(_padToWords);
+	unsigned const numBytes = _type.calldataEncodedSize(_padToWords);
 
 	solAssert(
 		numBytes > 0,

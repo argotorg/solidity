@@ -83,8 +83,8 @@ std::string ABIFunctions::tupleEncoder(
 		{
 			solAssert(_givenTypes[i], "");
 			solAssert(_targetTypes[i], "");
-			size_t sizeOnStack = _givenTypes[i]->sizeOnStack();
-			bool dynamic = _targetTypes[i]->isDynamicallyEncoded();
+			size_t const sizeOnStack = _givenTypes[i]->sizeOnStack();
+			bool const dynamic = _targetTypes[i]->isDynamicallyEncoded();
 			Whiskers elementTempl(
 				dynamic ?
 				std::string(R"(
@@ -95,7 +95,7 @@ std::string ABIFunctions::tupleEncoder(
 					<abiEncode>(<values> add(headStart, <pos>))
 				)")
 			);
-			std::string values = suffixedVariableNameList("value", stackPos, stackPos + sizeOnStack);
+			std::string const values = suffixedVariableNameList("value", stackPos, stackPos + sizeOnStack);
 			elementTempl("values", values.empty() ? "" : values + ", ");
 			elementTempl("pos", std::to_string(headPos));
 			elementTempl("abiEncode", abiEncodingFunction(*_givenTypes[i], *_targetTypes[i], options));
@@ -104,7 +104,7 @@ std::string ABIFunctions::tupleEncoder(
 			stackPos += sizeOnStack;
 		}
 		solAssert(headPos == headSize_, "");
-		std::string valueParams =
+		std::string const valueParams =
 			_reversed ?
 			suffixedVariableNameList("value", stackPos, 0) :
 			suffixedVariableNameList("value", 0, stackPos);
@@ -159,8 +159,8 @@ std::string ABIFunctions::tupleEncoderPacked(
 		{
 			solAssert(_givenTypes[i], "");
 			solAssert(_targetTypes[i], "");
-			size_t sizeOnStack = _givenTypes[i]->sizeOnStack();
-			bool dynamic = _targetTypes[i]->isDynamicallyEncoded();
+			size_t const sizeOnStack = _givenTypes[i]->sizeOnStack();
+			bool const dynamic = _targetTypes[i]->isDynamicallyEncoded();
 			Whiskers elementTempl(
 				dynamic ?
 				std::string(R"(
@@ -171,7 +171,7 @@ std::string ABIFunctions::tupleEncoderPacked(
 					pos := add(pos, <calldataEncodedSize>)
 				)")
 			);
-			std::string values = suffixedVariableNameList("value", stackPos, stackPos + sizeOnStack);
+			std::string const values = suffixedVariableNameList("value", stackPos, stackPos + sizeOnStack);
 			elementTempl("values", values.empty() ? "" : values + ", ");
 			if (!dynamic)
 				elementTempl("calldataEncodedSize", std::to_string(_targetTypes[i]->calldataEncodedSize(false)));
@@ -179,7 +179,7 @@ std::string ABIFunctions::tupleEncoderPacked(
 			encodeElements += elementTempl.render();
 			stackPos += sizeOnStack;
 		}
-		std::string valueParams =
+		std::string const valueParams =
 			_reversed ?
 			suffixedVariableNameList("value", stackPos, 0) :
 			suffixedVariableNameList("value", 0, stackPos);
@@ -220,7 +220,7 @@ std::string ABIFunctions::tupleDecoder(TypePointers const& _types, bool _fromMem
 		{
 			solAssert(_types[i], "");
 			solAssert(decodingTypes[i], "");
-			size_t sizeOnStack = _types[i]->sizeOnStack();
+			size_t const sizeOnStack = _types[i]->sizeOnStack();
 			solAssert(sizeOnStack == decodingTypes[i]->sizeOnStack(), "");
 			solAssert(sizeOnStack > 0, "");
 			std::vector<std::string> valueNamesLocal;
@@ -401,8 +401,8 @@ std::string ABIFunctions::abiEncodeAndReturnUpdatedPosFunction(
 		_targetType.identifier() +
 		_options.toFunctionNameSuffix();
 	return createFunction(functionName, [&]() {
-		std::string values = suffixedVariableNameList("value", 0, numVariablesForType(_givenType, _options));
-		std::string encoder = abiEncodingFunction(_givenType, _targetType, _options);
+		std::string const values = suffixedVariableNameList("value", 0, numVariablesForType(_givenType, _options));
+		std::string const encoder = abiEncodingFunction(_givenType, _targetType, _options);
 		Type const* targetEncoding = _targetType.fullEncodingType(_options.encodeAsLibraryTypes, true, false);
 		solAssert(targetEncoding, "");
 		if (targetEncoding->isDynamicallyEncoded())
@@ -417,7 +417,7 @@ std::string ABIFunctions::abiEncodeAndReturnUpdatedPosFunction(
 			.render();
 		else
 		{
-			unsigned encodedSize = targetEncoding->calldataEncodedSize(_options.padded);
+			unsigned const encodedSize = targetEncoding->calldataEncodedSize(_options.padded);
 			solAssert(encodedSize != 0, "Invalid encoded size.");
 			return Whiskers(R"(
 				function <functionName>(<values>, pos) -> updatedPos {
@@ -467,8 +467,8 @@ std::string ABIFunctions::abiEncodingFunctionCalldataArrayWithoutCleanup(
 		_to.identifier() +
 		_options.toFunctionNameSuffix();
 	return createFunction(functionName, [&]() {
-		bool bytesOrString = fromArrayType.isByteArrayOrString();
-		bool needsPadding = _options.padded && bytesOrString;
+		bool const bytesOrString = fromArrayType.isByteArrayOrString();
+		bool const needsPadding = _options.padded && bytesOrString;
 		if (fromArrayType.isDynamicallySized())
 		{
 			Whiskers templ(R"(
@@ -541,13 +541,13 @@ std::string ABIFunctions::abiEncodingFunctionSimpleArray(
 		solAssert(_from.baseType()->storageBytes() > 16, "");
 
 	return createFunction(functionName, [&]() {
-		bool dynamic = _to.isDynamicallyEncoded();
-		bool dynamicBase = _to.baseType()->isDynamicallyEncoded();
+		bool const dynamic = _to.isDynamicallyEncoded();
+		bool const dynamicBase = _to.baseType()->isDynamicallyEncoded();
 		bool const usesTail = dynamicBase && !_options.dynamicInplace;
 		EncodingOptions subOptions(_options);
 		subOptions.encodeFunctionFromStack = false;
 		subOptions.padded = true;
-		std::string elementValues = suffixedVariableNameList("elementValue", 0, numVariablesForType(*_from.baseType(), subOptions));
+		std::string const elementValues = suffixedVariableNameList("elementValue", 0, numVariablesForType(*_from.baseType(), subOptions));
 		Whiskers templ(
 			usesTail ?
 			R"(
@@ -590,7 +590,7 @@ std::string ABIFunctions::abiEncodingFunctionSimpleArray(
 		);
 		templ("functionName", functionName);
 		templ("elementValues", elementValues);
-		bool lengthAsArgument = _from.dataStoredIn(DataLocation::CallData) && _from.isDynamicallySized();
+		bool const lengthAsArgument = _from.dataStoredIn(DataLocation::CallData) && _from.isDynamicallySized();
 		if (lengthAsArgument)
 		{
 			templ("maybeLength", " length,");
@@ -730,12 +730,12 @@ std::string ABIFunctions::abiEncodingFunctionCompactStorageArray(
 			solAssert(!_from.baseType()->isDynamicallyEncoded(), "");
 			solAssert(!_to.baseType()->isDynamicallyEncoded(), "");
 			solAssert(_from.baseType()->isValueType(), "");
-			bool dynamic = _to.isDynamicallyEncoded();
-			size_t storageBytes = _from.baseType()->storageBytes();
-			size_t itemsPerSlot = 32 / storageBytes;
+			bool const dynamic = _to.isDynamicallyEncoded();
+			size_t const storageBytes = _from.baseType()->storageBytes();
+			size_t const itemsPerSlot = 32 / storageBytes;
 			solAssert(itemsPerSlot > 0, "");
 			// The number of elements we need to handle manually after the loop.
-			size_t spill = static_cast<size_t>(_from.length() % itemsPerSlot);
+			size_t const spill = static_cast<size_t>(_from.length() % itemsPerSlot);
 			Whiskers templ(
 				R"(
 					// <readableTypeNameFrom> -> <readableTypeNameTo>
@@ -796,7 +796,7 @@ std::string ABIFunctions::abiEncodingFunctionCompactStorageArray(
 			EncodingOptions subOptions(_options);
 			subOptions.encodeFunctionFromStack = false;
 			subOptions.padded = true;
-			std::string encodeToMemoryFun = abiEncodingFunction(
+			std::string const encodeToMemoryFun = abiEncodingFunction(
 				*_from.baseType(),
 				*_to.baseType(),
 				subOptions
@@ -835,7 +835,7 @@ std::string ABIFunctions::abiEncodingFunctionStruct(
 	solAssert(&_from.structDefinition() == &_to.structDefinition(), "");
 
 	return createFunction(functionName, [&]() {
-		bool dynamic = _to.isDynamicallyEncoded();
+		bool const dynamic = _to.isDynamicallyEncoded();
 		Whiskers templ(R"(
 			// <readableTypeNameFrom> -> <readableTypeNameTo>
 			function <functionName>(value, pos) <return> {
@@ -875,7 +875,7 @@ std::string ABIFunctions::abiEncodingFunctionStruct(
 			solUnimplementedAssert(memberTypeTo, "Encoding type \"" + member.type->toString() + "\" not yet implemented.");
 			auto memberTypeFrom = _from.memberType(member.name);
 			solAssert(memberTypeFrom, "");
-			bool dynamicMember = memberTypeTo->isDynamicallyEncoded();
+			bool const dynamicMember = memberTypeTo->isDynamicallyEncoded();
 			if (dynamicMember)
 				solAssert(dynamic, "");
 
@@ -909,13 +909,13 @@ std::string ABIFunctions::abiEncodingFunctionStruct(
 				}
 				case DataLocation::Memory:
 				{
-					std::string sourceOffset = toCompactHexWithPrefix(_from.memoryOffsetOfMember(member.name));
+					std::string const sourceOffset = toCompactHexWithPrefix(_from.memoryOffsetOfMember(member.name));
 					members.back()["retrieveValue"] = "mload(add(value, " + sourceOffset + "))";
 					break;
 				}
 				case DataLocation::CallData:
 				{
-					std::string sourceOffset = toCompactHexWithPrefix(_from.calldataOffsetOfMember(member.name));
+					std::string const sourceOffset = toCompactHexWithPrefix(_from.calldataOffsetOfMember(member.name));
 					members.back()["retrieveValue"] = calldataAccessFunction(*memberTypeFrom) + "(value, add(value, " + sourceOffset + "))";
 					break;
 				}
@@ -928,7 +928,7 @@ std::string ABIFunctions::abiEncodingFunctionStruct(
 			// Like with arrays, struct members are always padded.
 			subOptions.padded = true;
 
-			std::string memberValues = suffixedVariableNameList("memberValue", 0, numVariablesForType(*memberTypeFrom, subOptions));
+			std::string const memberValues = suffixedVariableNameList("memberValue", 0, numVariablesForType(*memberTypeFrom, subOptions));
 			members.back()["memberValues"] = memberValues;
 
 			std::string encode;
@@ -1143,7 +1143,7 @@ std::string ABIFunctions::abiDecodingFunctionArray(ArrayType const& _type, bool 
 		(_fromMemory ? "_fromMemory" : "");
 
 	return createFunction(functionName, [&]() {
-		std::string load = _fromMemory ? "mload" : "calldataload";
+		std::string const load = _fromMemory ? "mload" : "calldataload";
 		Whiskers templ(
 			R"(
 				// <readableTypeName>
@@ -1436,7 +1436,7 @@ std::string ABIFunctions::calldataAccessFunction(Type const& _type)
 	return createFunction(functionName, [&]() {
 		if (_type.isDynamicallyEncoded())
 		{
-			unsigned int tailSize = _type.calldataEncodedTailSize();
+			unsigned int const tailSize = _type.calldataEncodedTailSize();
 			solAssert(tailSize > 1, "");
 			Whiskers w(R"(
 				function <functionName>(base_ref, ptr) -> <return> {

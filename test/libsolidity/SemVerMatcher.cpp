@@ -99,7 +99,7 @@ BOOST_AUTO_TEST_CASE(exception_on_invalid_version_in_semverversion_constructor)
 BOOST_AUTO_TEST_CASE(positive_range)
 {
 	// Positive range tests
-	std::vector<std::pair<std::string, std::string>> tests = {
+	std::vector<std::pair<std::string, std::string>> const tests = {
 		{"*", "1.2.3-foo"},
 		{"1.0.0 - 2.0.0", "1.2.3"},
 		{"1.0.0", "1.0.0"},
@@ -185,8 +185,8 @@ BOOST_AUTO_TEST_CASE(positive_range)
 	};
 	for (auto const& t: tests)
 	{
-		SemVerVersion version(t.second);
-		SemVerMatchExpression matchExpression = parseExpression(t.first);
+		SemVerVersion const version(t.second);
+		SemVerMatchExpression const matchExpression = parseExpression(t.first);
 		BOOST_CHECK_MESSAGE(
 			matchExpression.matches(version),
 			"Version \"" + t.second + "\" did not satisfy expression \"" + t.first + "\""
@@ -197,7 +197,7 @@ BOOST_AUTO_TEST_CASE(positive_range)
 BOOST_AUTO_TEST_CASE(negative_range)
 {
 	// Negative range tests
-	std::vector<std::pair<std::string, std::string>> tests = {
+	std::vector<std::pair<std::string, std::string>> const tests = {
 		{"^0^1", "0.0.0"},
 		{"^0^1", "1.0.0"},
 		{"1.0.0 - 2.0.0", "2.2.3"},
@@ -261,7 +261,7 @@ BOOST_AUTO_TEST_CASE(negative_range)
 	};
 	for (auto const& t: tests)
 	{
-		SemVerVersion version(t.second);
+		SemVerVersion const version(t.second);
 		auto matchExpression = parseExpression(t.first);
 		BOOST_CHECK_MESSAGE(
 			!matchExpression.matches(version),
@@ -275,7 +275,7 @@ BOOST_AUTO_TEST_CASE(unsigned_components_above_signed_int_max)
 {
 	// Version components in [2^31, 2^32) must compare as unsigned.
 	// Casting them to signed int overflows and used to invert the range check.
-	std::vector<std::pair<std::string, std::string>> matching = {
+	std::vector<std::pair<std::string, std::string>> const matching = {
 		{"<3000000000.0.0", "0.8.35"},
 		{"<=3000000000.0.0", "0.8.35"},
 		{"<=3000000000.0.0", "3000000000.0.0"},
@@ -292,15 +292,15 @@ BOOST_AUTO_TEST_CASE(unsigned_components_above_signed_int_max)
 	};
 	for (auto const& t: matching)
 	{
-		SemVerVersion version(t.second);
-		SemVerMatchExpression matchExpression = parseExpression(t.first);
+		SemVerVersion const version(t.second);
+		SemVerMatchExpression const matchExpression = parseExpression(t.first);
 		BOOST_CHECK_MESSAGE(
 			matchExpression.matches(version),
 			"Version \"" + t.second + "\" did not satisfy expression \"" + t.first + "\""
 		);
 	}
 
-	std::vector<std::pair<std::string, std::string>> notMatching = {
+	std::vector<std::pair<std::string, std::string>> const notMatching = {
 		{">3000000000.0.0", "0.8.35"},
 		{">=3000000000.0.0", "0.8.35"},
 		{"<3000000000.0.0", "3000000001.0.0"},
@@ -312,8 +312,8 @@ BOOST_AUTO_TEST_CASE(unsigned_components_above_signed_int_max)
 	};
 	for (auto const& t: notMatching)
 	{
-		SemVerVersion version(t.second);
-		SemVerMatchExpression matchExpression = parseExpression(t.first);
+		SemVerVersion const version(t.second);
+		SemVerMatchExpression const matchExpression = parseExpression(t.first);
 		BOOST_CHECK_MESSAGE(
 			!matchExpression.matches(version),
 			"Version \"" + t.second + "\" did satisfy expression \"" + t.first + "\" " +

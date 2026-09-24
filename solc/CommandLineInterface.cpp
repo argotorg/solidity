@@ -239,7 +239,7 @@ void CommandLineInterface::handleOpcode(std::string const& _contract)
 		m_options.input.mode == frontend::InputMode::EVMAssemblerJSON
 	);
 
-	std::string opcodes{evmasm::disassemble(m_assemblyStack->object(_contract).bytecode, m_options.output.evmVersion)};
+	std::string const opcodes{evmasm::disassemble(m_assemblyStack->object(_contract).bytecode, m_options.output.evmVersion)};
 
 	if (!m_options.output.dir.empty())
 		createFile(m_assemblyStack->filesystemFriendlyName(_contract) + ".opcode", opcodes);
@@ -418,7 +418,7 @@ void CommandLineInterface::handleMetadata(std::string const& _contract)
 	if (!m_options.compiler.outputs.metadata)
 		return;
 
-	std::string data = m_compiler->metadata(_contract);
+	std::string const data = m_compiler->metadata(_contract);
 	if (!m_options.output.dir.empty())
 		createFile(m_compiler->filesystemFriendlyName(_contract) + "_meta.json", data);
 	else
@@ -432,7 +432,7 @@ void CommandLineInterface::handleABI(std::string const& _contract)
 	if (!m_options.compiler.outputs.abi)
 		return;
 
-	std::string data = jsonPrint(removeNullMembers(m_compiler->contractABI(_contract)), m_options.formatting.json);
+	std::string const data = jsonPrint(removeNullMembers(m_compiler->contractABI(_contract)), m_options.formatting.json);
 	if (!m_options.output.dir.empty())
 		createFile(m_compiler->filesystemFriendlyName(_contract) + ".abi", data);
 	else
@@ -446,7 +446,7 @@ void CommandLineInterface::handleStorageLayout(std::string const& _contract)
 	if (!m_options.compiler.outputs.storageLayout)
 		return;
 
-	std::string data = jsonPrint(removeNullMembers(m_compiler->storageLayout(_contract)), m_options.formatting.json);
+	std::string const data = jsonPrint(removeNullMembers(m_compiler->storageLayout(_contract)), m_options.formatting.json);
 	if (!m_options.output.dir.empty())
 		createFile(m_compiler->filesystemFriendlyName(_contract) + "_storage.json", data);
 	else
@@ -459,7 +459,7 @@ void CommandLineInterface::handleTransientStorageLayout(std::string const& _cont
 
 	if (!m_options.compiler.outputs.transientStorageLayout)
 		return;
-	std::string data = jsonPrint(removeNullMembers(m_compiler->transientStorageLayout(_contract)), m_options.formatting.json);
+	std::string const data = jsonPrint(removeNullMembers(m_compiler->transientStorageLayout(_contract)), m_options.formatting.json);
 	if (!m_options.output.dir.empty())
 		createFile(m_compiler->filesystemFriendlyName(_contract) + "_transient_storage.json", data);
 	else
@@ -489,7 +489,7 @@ void CommandLineInterface::handleNatspec(bool _natspecDev, std::string const& _c
 
 	if (enabled)
 	{
-		std::string output = jsonPrint(
+		std::string const output = jsonPrint(
 			removeNullMembers(
 				_natspecDev ?
 				m_compiler->natspecDev(_contract) :
@@ -581,7 +581,7 @@ void CommandLineInterface::handleEthdebug(std::string const& _contract)
 
 	if (m_options.compiler.outputs.ethdebugProgram)
 	{
-		std::string ethdebug{jsonPrint(removeNullMembers(m_compiler->ethdebug(_contract)), m_options.formatting.json)};
+		std::string const ethdebug{jsonPrint(removeNullMembers(m_compiler->ethdebug(_contract)), m_options.formatting.json)};
 		if (!m_options.output.dir.empty())
 			createFile(m_compiler->filesystemFriendlyName(_contract) + "_ethdebug.json", ethdebug);
 		else
@@ -590,7 +590,7 @@ void CommandLineInterface::handleEthdebug(std::string const& _contract)
 
 	if (m_options.compiler.outputs.ethdebugProgramRuntime)
 	{
-		std::string ethdebugRuntime{jsonPrint(removeNullMembers(m_compiler->ethdebugRuntime(_contract)), m_options.formatting.json)};
+		std::string const ethdebugRuntime{jsonPrint(removeNullMembers(m_compiler->ethdebugRuntime(_contract)), m_options.formatting.json)};
 		if (!m_options.output.dir.empty())
 			createFile(m_compiler->filesystemFriendlyName(_contract) + "_ethdebug-runtime.json", ethdebugRuntime);
 		else
@@ -631,7 +631,7 @@ void CommandLineInterface::readInputFiles()
 	for (boost::filesystem::path const& allowedDirectory: m_options.input.allowedDirectories)
 		m_fileReader.allowDirectory(allowedDirectory);
 
-	std::map<std::string, std::set<boost::filesystem::path>> collisions =
+	std::map<std::string, std::set<boost::filesystem::path>> const collisions =
 		m_fileReader.detectSourceUnitNameCollisions(m_options.input.paths);
 	if (!collisions.empty())
 	{
@@ -717,7 +717,7 @@ std::map<std::string, Json> CommandLineInterface::parseAstFromInput()
 
 		for (auto const& [src, value]: ast["sources"].items())
 		{
-			std::string astKey = value.contains("ast") ? "ast" : "AST";
+			std::string const astKey = value.contains("ast") ? "ast" : "AST";
 
 			astAssert(ast["sources"][src].contains(astKey), "astkey is not member");
 			astAssert(ast["sources"][src][astKey]["nodeType"].get<std::string>() == "SourceUnit",  "Top-level node should be a 'SourceUnit'");
@@ -743,7 +743,7 @@ void CommandLineInterface::createFile(std::string const& _fileName, std::string 
 	// The simplest workaround is to use an absolute path.
 	fs::create_directories(fs::absolute(m_options.output.dir));
 
-	std::string pathName = (m_options.output.dir / _fileName).string();
+	std::string const pathName = (m_options.output.dir / _fileName).string();
 	if (fs::exists(pathName) && !m_options.output.overwriteFiles)
 		solThrow(CommandLineOutputError, "Refusing to overwrite existing file \"" + pathName + "\" (use --overwrite to force).");
 
@@ -999,7 +999,7 @@ void CommandLineInterface::compile()
 		else
 			m_compiler->setSources(m_fileReader.sourceUnits());
 
-		bool successful = m_compiler->compile(m_options.output.stopAfter);
+		bool const successful = m_compiler->compile(m_options.output.stopAfter);
 
 		for (auto const& error: m_compiler->errors())
 		{
@@ -1045,7 +1045,7 @@ void CommandLineInterface::handleCombinedJSON()
 	Json output;
 
 	output[g_strVersion] = frontend::VersionString;
-	std::vector<std::string> contracts = m_assemblyStack->contractNames();
+	std::vector<std::string> const contracts = m_assemblyStack->contractNames();
 
 	if (!contracts.empty())
 		output[g_strContracts] = Json::object();
@@ -1108,7 +1108,7 @@ void CommandLineInterface::handleCombinedJSON()
 		}
 	}
 
-	bool needsSourceList =
+	bool const needsSourceList =
 		m_options.compiler.combinedJsonRequests->ast ||
 		m_options.compiler.combinedJsonRequests->srcMap ||
 		m_options.compiler.combinedJsonRequests->srcMapRuntime;
@@ -1136,7 +1136,7 @@ void CommandLineInterface::handleCombinedJSON()
 		}
 	}
 
-	std::string json = jsonPrint(removeNullMembers(std::move(output)), m_options.formatting.json);
+	std::string const json = jsonPrint(removeNullMembers(std::move(output)), m_options.formatting.json);
 	if (!m_options.output.dir.empty())
 		createJson("combined", json);
 	else
@@ -1162,7 +1162,7 @@ void CommandLineInterface::handleAst()
 			std::string postfix = "";
 			ASTJsonExporter(m_compiler->state(), m_compiler->sourceIndices()).print(data, m_compiler->ast(sourceCode.first), m_options.formatting.json);
 			postfix += "_json";
-			boost::filesystem::path path(sourceCode.first);
+			boost::filesystem::path const path(sourceCode.first);
 			createFile(path.filename().string() + postfix + ".ast", data.str());
 		}
 	}
@@ -1369,7 +1369,7 @@ void CommandLineInterface::assembleYul(yul::YulStack::Machine _targetMachine)
 			) << std::endl;
 		}
 
-		std::string machine = "EVM";
+		std::string const machine = "EVM";
 		sout() << std::endl << "======= " << sourceUnitName << " (" << machine << ") =======" << std::endl;
 
 		if (m_options.compiler.outputs.irOptimized)
@@ -1402,7 +1402,7 @@ void CommandLineInterface::assembleYul(yul::YulStack::Machine _targetMachine)
 		if (m_options.compiler.outputs.asm_)
 		{
 			sout() << std::endl << "Text representation:" << std::endl;
-			std::string assemblyText{object.assembly->assemblyString(stack.debugInfoSelection())};
+			std::string const assemblyText{object.assembly->assemblyString(stack.debugInfoSelection())};
 			if (!assemblyText.empty())
 				sout() << assemblyText << std::endl;
 			else

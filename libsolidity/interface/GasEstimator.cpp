@@ -54,8 +54,8 @@ GasEstimator::GasConsumption GasEstimator::functionalEstimation(
 		ExpressionClasses& classes = state->expressionClasses();
 		using Id = ExpressionClasses::Id;
 		using Ids = std::vector<Id>;
-		Id hashValue = classes.find(u256(util::selectorFromSignatureU32(_signature)));
-		Id calldata = classes.find(Instruction::CALLDATALOAD, Ids{classes.find(u256(0))});
+		Id const hashValue = classes.find(u256(util::selectorFromSignatureU32(_signature)));
+		Id const calldata = classes.find(Instruction::CALLDATALOAD, Ids{classes.find(u256(0))});
 		if (!m_evmVersion.hasBitwiseShifting())
 			// div(calldataload(0), 1 << 224) equals to hashValue
 			classes.forceEqual(
@@ -89,13 +89,13 @@ GasEstimator::GasConsumption GasEstimator::functionalEstimation(
 {
 	auto state = std::make_shared<KnownState>();
 
-	unsigned parametersSize = CompilerUtils::sizeOnStack(_function.parameters());
+	unsigned const parametersSize = CompilerUtils::sizeOnStack(_function.parameters());
 	if (parametersSize > m_evmVersion.reachableStackDepth())
 		return GasConsumption::infinite();
 
 	// Store an invalid return value on the stack, so that the path estimator breaks upon reaching
 	// the return jump.
-	AssemblyItem invalidTag(PushTag, u256(-0x10));
+	AssemblyItem const invalidTag(PushTag, u256(-0x10));
 	state->feedItem(invalidTag, true);
 	if (parametersSize > 0)
 		state->feedItem(swapInstruction(parametersSize));

@@ -93,7 +93,7 @@ BOOST_AUTO_TEST_CASE(invalid)
 
 BOOST_AUTO_TEST_CASE(corpus)
 {
-	std::string source = R"(
+	std::string const source = R"(
 κόσμε
 
 hélló

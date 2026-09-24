@@ -54,7 +54,7 @@ inline T readFile(boost::filesystem::path const& _file)
 
 	// get length of file:
 	is.seekg(0, is.end);
-	std::streamoff length = is.tellg();
+	std::streamoff const length = is.tellg();
 	if (length == 0)
 		return ret; // do not read empty file (MSVC does not like it)
 	is.seekg(0, is.beg);
@@ -133,13 +133,13 @@ private:
 
 int solidity::util::readStandardInputChar()
 {
-	DisableConsoleBuffering disableConsoleBuffering;
+	DisableConsoleBuffering const disableConsoleBuffering;
 	return std::cin.get();
 }
 
 std::string solidity::util::absolutePath(std::string const& _path, std::string const& _reference)
 {
-	boost::filesystem::path p(_path);
+	boost::filesystem::path const p(_path);
 	// Anything that does not start with `.` is an absolute path.
 	if (p.begin() == p.end() || (*p.begin() != "." && *p.begin() != ".."))
 		return _path;

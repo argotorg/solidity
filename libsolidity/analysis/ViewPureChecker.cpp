@@ -188,7 +188,7 @@ void ViewPureChecker::endVisit(Identifier const& _identifier)
 
 	StateMutability mutability = StateMutability::Pure;
 
-	bool writes = _identifier.annotation().willBeWrittenTo;
+	bool const writes = _identifier.annotation().willBeWrittenTo;
 	if (VariableDeclaration const* varDecl = dynamic_cast<VariableDeclaration const*>(declaration))
 	{
 		if (varDecl->immutable())
@@ -373,7 +373,7 @@ bool ViewPureChecker::visit(MemberAccess const& _memberAccess)
 void ViewPureChecker::endVisit(MemberAccess const& _memberAccess)
 {
 	StateMutability mutability = StateMutability::Pure;
-	bool writes = _memberAccess.annotation().willBeWrittenTo;
+	bool const writes = _memberAccess.annotation().willBeWrittenTo;
 
 	ASTString const& member = _memberAccess.memberName();
 	switch (_memberAccess.expression().annotation().type->category())
@@ -406,7 +406,7 @@ void ViewPureChecker::endVisit(MemberAccess const& _memberAccess)
 		};
 
 		auto const& type = dynamic_cast<MagicType const&>(*_memberAccess.expression().annotation().type);
-		MagicMember magicMember(type.kind(), member);
+		MagicMember const magicMember(type.kind(), member);
 
 		if (!pureMembers.count(magicMember))
 			mutability = StateMutability::View;
@@ -446,7 +446,7 @@ void ViewPureChecker::endVisit(IndexAccess const& _indexAccess)
 		solAssert(_indexAccess.annotation().type->category() == Type::Category::TypeType, "");
 	else
 	{
-		bool writes = _indexAccess.annotation().willBeWrittenTo;
+		bool const writes = _indexAccess.annotation().willBeWrittenTo;
 		if (_indexAccess.baseExpression().annotation().type->dataStoredIn(DataLocation::Storage))
 			reportMutability(writes ? StateMutability::NonPayable : StateMutability::View, _indexAccess.location());
 	}
@@ -454,7 +454,7 @@ void ViewPureChecker::endVisit(IndexAccess const& _indexAccess)
 
 void ViewPureChecker::endVisit(IndexRangeAccess const& _indexRangeAccess)
 {
-	bool writes = _indexRangeAccess.annotation().willBeWrittenTo;
+	bool const writes = _indexRangeAccess.annotation().willBeWrittenTo;
 	if (_indexRangeAccess.baseExpression().annotation().type->dataStoredIn(DataLocation::Storage))
 		reportMutability(writes ? StateMutability::NonPayable : StateMutability::View, _indexRangeAccess.location());
 }

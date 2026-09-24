@@ -72,7 +72,7 @@ void UnusedFunctionParameterPruner::run(OptimiserStepContext& _context, Block& _
 			};
 		}
 
-	std::set<YulName> functionNamesToFree = util::keys(usedParametersAndReturnVariables);
+	std::set<YulName> const functionNamesToFree = util::keys(usedParametersAndReturnVariables);
 
 	// Step 2 of UnusedFunctionParameterPruner: Renames the function and replaces all references to
 	// the function, say `f`, by its new name, say `f_1`.
@@ -98,9 +98,9 @@ void UnusedFunctionParameterPruner::run(OptimiserStepContext& _context, Block& _
 			if (newToOriginalNames.count(originalFunction.name))
 			{
 
-				YulName linkingFunctionName = originalFunction.name;
-				YulName originalFunctionName = newToOriginalNames.at(linkingFunctionName);
-				std::pair<std::vector<bool>, std::vector<bool>> used =
+				YulName const linkingFunctionName = originalFunction.name;
+				YulName const originalFunctionName = newToOriginalNames.at(linkingFunctionName);
+				std::pair<std::vector<bool>, std::vector<bool>> const used =
 					usedParametersAndReturnVariables.at(originalFunctionName);
 
 				FunctionDefinition linkingFunction = createLinkingFunction(
