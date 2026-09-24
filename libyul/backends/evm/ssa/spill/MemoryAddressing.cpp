@@ -37,10 +37,16 @@ MemoryAddressing::MemoryAddressing(ControlFlowGraphs& _cfgs, std::span<SpillSet 
 	if (totalSlots == 0)
 		return;
 
-	yulAssert(
-		_cfgs.memoryGuard.has_value(),
-		"Spilling requires a memoryguard boundary, but none is set for this subobject."
-	);
+	if (!_cfgs.memoryGuard.has_value())
+		BOOST_THROW_EXCEPTION(StackTooDeepError(
+			YulName{},
+			YulName{},
+			0,
+			"Stack too deep."
+			"\nNo memoryguard was present. "
+			"Consider using memory-safe assembly only and annotating it via "
+			"'assembly (\"memory-safe\") { ... }'."
+		));
 	u256 const originalGuard = *_cfgs.memoryGuard;
 	*_cfgs.memoryGuard += u256(totalSlots) * 32;
 

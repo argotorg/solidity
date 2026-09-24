@@ -273,8 +273,7 @@ void StackLayoutGenerator::visitBlock(SSACFG::BlockId const& _blockId)
 	StackData currentStackData = blockLayout.stackIn;
 	Stack stack(currentStackData);
 
-	blockLayout.operationShuffles.reserve(block.instructions.size());
-	m_cfg.forEachOperation(block, [&](InstId const _instId, SSACFG::Inst const& _inst) {
+	auto const layoutOperation = [&](InstId const _instId, SSACFG::Inst const& _inst) {
 		auto opLiveOutWithoutOutputs = m_liveness.operationLiveOut(_instId);
 		m_cfg.forEachOutput(_instId, [&](InstId const id) { opLiveOutWithoutOutputs.erase(id); });
 
@@ -310,7 +309,17 @@ void StackLayoutGenerator::visitBlock(SSACFG::BlockId const& _blockId)
 		m_cfg.forEachOutput(_instId, [&](InstId const id) {
 			stack.push(Slot::makeValue(m_cfg, id));
 		});
-	});
+	};
+
+	blockLayout.operationShuffles.reserve(block.instructions.size());
+	for (InstId const instId: block.instructions)
+	{
+		SSACFG::Inst const& inst = m_cfg.inst(instId);
+		if (inst.isOperation())
+			layoutOperation(instId, inst);
+		else
+			blockLayout.operationShuffles.emplace_back();
+	}
 
 	// we don't explicitly visit backedges and might have to spill here, too
 	auto const validateBackEdge = [&](SSACFG::BlockId const& _target) {

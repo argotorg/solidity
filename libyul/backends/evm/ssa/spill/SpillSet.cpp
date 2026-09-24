@@ -23,6 +23,8 @@
 #include <libyul/backends/evm/ssa/Stack.h>
 #include <libyul/backends/evm/ssa/StackLayout.h>
 
+#include <range/v3/view/zip.hpp>
+
 #include <deque>
 
 using namespace solidity::yul::ssa;
@@ -45,15 +47,14 @@ StackData computeOperationOut(
 	auto const& blockLayout = _layout[block];
 	yulAssert(blockLayout, fmt::format("producer {}'s block has no layout", producer));
 
+	auto const& instructions = _cfg.block(block).instructions;
+	yulAssert(blockLayout->operationShuffles.size() == instructions.size());
 	StackData opOutStack = blockLayout->stackIn;
-	std::size_t opIndex = 0;
-	for (InstId const id: _cfg.block(block).instructions)
+	for (auto const& [id, shuffle]: ranges::views::zip(instructions, blockLayout->operationShuffles))
 	{
 		if (!_cfg.isOperation(id))
 			continue;
-		yulAssert(opIndex < blockLayout->operationShuffles.size());
-		replay(opOutStack, blockLayout->operationShuffles[opIndex]);
-		++opIndex;
+		replay(opOutStack, shuffle);
 
 		SSACFG::Inst const& inst = _cfg.inst(id);
 		// a call that can continue also consumes its return label, which sits right below the inputs
