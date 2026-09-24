@@ -5,6 +5,7 @@ Language Features:
 Compiler Features:
  * Code Generator: Experimental support for EIP-7979 subroutines (``CALLSUB``, ``CALLDEST``, ``RETURNSUB``) for internal function calls in the IR-based pipeline with the optimizer, enabled with ``--evm-version @future``.
  * Optimizer: With EIP-7979 subroutines enabled, code shared by several subroutines is made a subroutine entry, so that the output has static control flow in the sense of EIP-8337.
+ * Optimizer: The assembly-level control-flow graph and block deduplicator treat ``CALLSUB`` as control flow that falls through to its return point.
 
 Bugfixes:
 

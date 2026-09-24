@@ -78,7 +78,10 @@ struct BasicBlock
 	/// ID of the block that has to precede this one (because control flows into it).
 	BlockId prev = BlockId::invalid();
 
-	enum class EndType { JUMP, JUMPI, STOP, HANDOVER };
+	/// CALLSUB (EIP-7979): the block ends with a subroutine call whose return point is the
+	/// block that physically follows, like JUMPI's fall-through, but with no knowledge
+	/// carried across the call.
+	enum class EndType { JUMP, JUMPI, STOP, HANDOVER, CALLSUB };
 	EndType endType = EndType::HANDOVER;
 
 	/// Knowledge about the state when this block is entered. Intersection of all possible ways

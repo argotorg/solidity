@@ -148,7 +148,13 @@ BlockDeduplicator::BlockIterator& BlockDeduplicator::BlockIterator::operator++()
 {
 	if (it == end)
 		return *this;
-	if (SemanticInformation::altersControlFlow(*it) && *it != AssemblyItem{Instruction::JUMPI})
+	// A block continues through a JUMPI, into its fall-through, and (EIP-7979) through a
+	// CALLSUB, into its return point: what follows either is part of the block.
+	if (
+		SemanticInformation::altersControlFlow(*it) &&
+		*it != AssemblyItem{Instruction::JUMPI} &&
+		*it != AssemblyItem{Instruction::CALLSUB}
+	)
 		it = end;
 	else
 	{

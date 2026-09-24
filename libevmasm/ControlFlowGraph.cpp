@@ -95,6 +95,8 @@ void ControlFlowGraph::splitBlocks()
 				m_blocks[id].endType = BasicBlock::EndType::JUMP;
 			else if (item == Instruction::JUMPI)
 				m_blocks[id].endType = BasicBlock::EndType::JUMPI;
+			else if (item == Instruction::CALLSUB)
+				m_blocks[id].endType = BasicBlock::EndType::CALLSUB;
 			else
 				m_blocks[id].endType = BasicBlock::EndType::STOP;
 			id = BlockId::invalid();
@@ -122,6 +124,7 @@ void ControlFlowGraph::resolveNextLinks()
 		{
 		case BasicBlock::EndType::JUMPI:
 		case BasicBlock::EndType::HANDOVER:
+		case BasicBlock::EndType::CALLSUB:
 			assertThrow(
 				blockByBeginPos.count(block.end),
 				OptimizerException,
@@ -171,6 +174,7 @@ void ControlFlowGraph::setPrevLinks()
 		{
 		case BasicBlock::EndType::JUMPI:
 		case BasicBlock::EndType::HANDOVER:
+		case BasicBlock::EndType::CALLSUB:
 			assertThrow(
 				!m_blocks.at(block.next).prev,
 				OptimizerException,
@@ -295,6 +299,19 @@ void ControlFlowGraph::gatherKnowledge()
 				for (auto tag: tags)
 					addWorkQueueItem(item, BlockId(tag), state);
 		}
+		else if (block.endType == BasicBlock::EndType::CALLSUB)
+		{
+			// EIP-7979: the callee is entered from every one of its call sites and may
+			// change storage, memory and the stack, so no knowledge is carried into it
+			// or out of it into the return point.
+			assertThrow(block.begin <= pc && pc == block.end - 1, OptimizerException, "");
+			std::set<u256> tags = state->tagsInExpression(
+				state->stackElement(state->stackHeight(), langutil::DebugData::create())
+			);
+			state->feedItem(m_items.at(pc++));
+			for (auto tag: tags)
+				addWorkQueueItem(item, BlockId(tag), emptyState->copy());
+		}
 		else if (block.begin <= pc && pc < block.end)
 			state->feedItem(m_items.at(pc++));
 		assertThrow(block.end <= block.begin || pc == block.end, OptimizerException, "");
@@ -306,6 +323,8 @@ void ControlFlowGraph::gatherKnowledge()
 			block.endType == BasicBlock::EndType::JUMPI
 		)
 			addWorkQueueItem(item, block.next, state);
+		else if (block.endType == BasicBlock::EndType::CALLSUB)
+			addWorkQueueItem(item, block.next, emptyState->copy());
 	}
 
 	// Remove all blocks we never visited here. This might happen because a tag is pushed but
