@@ -882,6 +882,26 @@ std::map<u256, u256> const& Assembly::optimiseInternal(
 				{
 					optimisedChunk = eliminator.getOptimizedItems();
 					shouldReplace = (optimisedChunk.size() < static_cast<size_t>(iter - orig));
+					// EIP-7979 code keeps a jump's or call's pushed destination immediately
+					// before it (EIP-8337, constraints 2 and 3); the regenerated chunk may
+					// have moved the push, in which case the original stays.
+					if (shouldReplace && m_evmVersion.hasSubroutines() && iter - orig >= 2)
+					{
+						AssemblyItem const& last = *(iter - 1);
+						bool const controlTransfer =
+							last.type() == Operation &&
+							(
+								last.instruction() == Instruction::JUMP ||
+								last.instruction() == Instruction::JUMPI ||
+								last.instruction() == Instruction::CALLSUB
+							);
+						if (
+							controlTransfer &&
+							(iter - 2)->type() == PushTag &&
+							(optimisedChunk.size() < 2 || optimisedChunk[optimisedChunk.size() - 2].type() != PushTag)
+						)
+							shouldReplace = false;
+					}
 				}
 				catch (StackTooDeepException const&)
 				{
