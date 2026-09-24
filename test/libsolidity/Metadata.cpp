@@ -22,10 +22,12 @@
 #include <test/Metadata.h>
 #include <test/Common.h>
 #include <libsolidity/interface/CompilerStack.h>
+#include <libsolidity/interface/MetadataSettings.h>
 #include <libsolidity/interface/Version.h>
 #include <libsolutil/SwarmHash.h>
 #include <libsolutil/IpfsHash.h>
 #include <libsolutil/JSON.h>
+#include <ranges>
 
 #include <boost/test/unit_test.hpp>
 
@@ -92,11 +94,7 @@ BOOST_AUTO_TEST_CASE(metadata_stamp)
 		CompilerStack::MetadataFormat::WithReleaseVersionTag,
 		CompilerStack::MetadataFormat::WithPrereleaseVersionTag
 	})
-		for (auto metadataHash: std::set<CompilerStack::MetadataHash>{
-			CompilerStack::MetadataHash::IPFS,
-			CompilerStack::MetadataHash::Bzzr1,
-			CompilerStack::MetadataHash::None
-		})
+	for (auto metadataHash: std::views::keys(metadataHashes))
 		{
 			CompilerStack compilerStack;
 			compilerStack.setMetadataFormat(metadataFormat);
@@ -110,13 +108,13 @@ BOOST_AUTO_TEST_CASE(metadata_stamp)
 			BOOST_CHECK(solidity::test::isValidMetadata(metadata));
 
 			auto const cborMetadata = requireParsedCBORMetadata(bytecode, metadataFormat);
-			if (metadataHash == CompilerStack::MetadataHash::None)
+			if (metadataHash == MetadataHash::None)
 				BOOST_CHECK(cborMetadata.size() == (metadataFormat == CompilerStack::MetadataFormat::NoMetadata ? 0 : 1));
 			else
 			{
 				bytes hash;
 				std::string hashMethod;
-				if (metadataHash == CompilerStack::MetadataHash::IPFS)
+				if (metadataHash == MetadataHash::IPFS)
 				{
 					hash = util::ipfsHash(metadata);
 					BOOST_REQUIRE(hash.size() == 34);
@@ -166,11 +164,7 @@ BOOST_AUTO_TEST_CASE(metadata_stamp_experimental)
 			CompilerStack::MetadataFormat::WithReleaseVersionTag,
 			CompilerStack::MetadataFormat::WithPrereleaseVersionTag
 	})
-		for (auto metadataHash: std::set<CompilerStack::MetadataHash>{
-			CompilerStack::MetadataHash::IPFS,
-			CompilerStack::MetadataHash::Bzzr1,
-			CompilerStack::MetadataHash::None
-		})
+	for (auto metadataHash: std::views::keys(metadataHashes))
 		{
 			CompilerStack compilerStack;
 			compilerStack.setMetadataFormat(metadataFormat);
@@ -185,13 +179,13 @@ BOOST_AUTO_TEST_CASE(metadata_stamp_experimental)
 			BOOST_CHECK(solidity::test::isValidMetadata(metadata));
 
 			auto const cborMetadata = requireParsedCBORMetadata(bytecode, metadataFormat);
-			if (metadataHash == CompilerStack::MetadataHash::None)
+			if (metadataHash == MetadataHash::None)
 				BOOST_CHECK(cborMetadata.size() == (metadataFormat == CompilerStack::MetadataFormat::NoMetadata ? 0 : 2));
 			else
 			{
 				bytes hash;
 				std::string hashMethod;
-				if (metadataHash == CompilerStack::MetadataHash::IPFS)
+				if (metadataHash == MetadataHash::IPFS)
 				{
 					hash = util::ipfsHash(metadata);
 					BOOST_REQUIRE(hash.size() == 34);
