@@ -126,6 +126,8 @@ add_library(yul
 	backends/evm/ssa/stack/Shuffler.h
 	backends/evm/ssa/transform/ConstantConditionFolder.cpp
 	backends/evm/ssa/transform/ConstantConditionFolder.h
+	backends/evm/ssa/transform/CriticalEdgeBreaker.cpp
+	backends/evm/ssa/transform/CriticalEdgeBreaker.h
 	backends/evm/ssa/transform/IdentityAndNopRemover.cpp
 	backends/evm/ssa/transform/IdentityAndNopRemover.h
 	backends/evm/ssa/transform/JumpThreader.cpp
