@@ -114,7 +114,7 @@ object "C_59" {
                         mstore(add(memPos, 64), length_1)
                         mcopy(add(memPos, 96), _3, length_1)
                         mstore(add(add(memPos, length_1), 96), 0)
-                        return(memPos, add(sub(add(memPos, and(add(length_1, 0x1f), not(31))), memPos), 96))
+                        return(memPos, add(sub(add(memPos, and(add(length_1, 31), not(31))), memPos), 96))
                     }
                 }
                 revert(0, 0)
