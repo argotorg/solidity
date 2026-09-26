@@ -8,6 +8,7 @@ Compiler Features:
 * Yul Optimizer: Improve performance of `DataFlowAnalyzer` using flat hash containers.
 
 Bugfixes:
+* Code Generator: Fix ICE when assigning a calldata struct containing a member of external function type to a storage struct.
 * Parser: Fix inverted version pragma range comparison for components in the range [2**31, 2**32).
 
 Build System:
