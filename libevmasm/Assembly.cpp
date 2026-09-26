@@ -28,6 +28,7 @@
 #include <libevmasm/Inliner.h>
 #include <libevmasm/JumpdestRemover.h>
 #include <libevmasm/BlockDeduplicator.h>
+#include <libevmasm/SubroutineEntryMarker.h>
 #include <libevmasm/ConstantOptimiser.h>
 
 #include <liblangutil/CharStream.h>
@@ -325,6 +326,12 @@ AssemblyItem Assembly::createAssemblyItemFromJSON(Json const& _json, std::vector
 		{
 			requireValueDefinedForInstruction(name, value);
 			result = {AssemblyItemType::Tag, updateUsedTags(requireTagIDInRange(u256(value)))};
+		}
+		else if (name == "calldest")
+		{
+			requireValueDefinedForInstruction(name, value);
+			result = {AssemblyItemType::Tag, updateUsedTags(requireTagIDInRange(u256(value)))};
+			result.setSubroutineEntry();
 		}
 		else if (name == "PUSH data")
 		{
@@ -828,7 +835,7 @@ std::map<u256, u256> const& Assembly::optimiseInternal(
 		// This only modifies PushTags, we have to run again to actually remove code.
 		if (_settings.runDeduplicate)
 		{
-			BlockDeduplicator deduplicator{m_items};
+			BlockDeduplicator deduplicator{m_items, m_evmVersion.hasSubroutines()};
 			if (deduplicator.deduplicate())
 			{
 				for (auto const& replacement: deduplicator.replacedTags())
@@ -875,6 +882,26 @@ std::map<u256, u256> const& Assembly::optimiseInternal(
 				{
 					optimisedChunk = eliminator.getOptimizedItems();
 					shouldReplace = (optimisedChunk.size() < static_cast<size_t>(iter - orig));
+					// EIP-7979 code keeps a jump's or call's pushed destination immediately
+					// before it (EIP-8337, constraints 2 and 3); the regenerated chunk may
+					// have moved the push, in which case the original stays.
+					if (shouldReplace && m_evmVersion.hasSubroutines() && iter - orig >= 2)
+					{
+						AssemblyItem const& last = *(iter - 1);
+						bool const controlTransfer =
+							last.type() == Operation &&
+							(
+								last.instruction() == Instruction::JUMP ||
+								last.instruction() == Instruction::JUMPI ||
+								last.instruction() == Instruction::CALLSUB
+							);
+						if (
+							controlTransfer &&
+							(iter - 2)->type() == PushTag &&
+							(optimisedChunk.size() < 2 || optimisedChunk[optimisedChunk.size() - 2].type() != PushTag)
+						)
+							shouldReplace = false;
+					}
 				}
 				catch (StackTooDeepException const&)
 				{
@@ -910,6 +937,11 @@ std::map<u256, u256> const& Assembly::optimiseInternal(
 			m_evmVersion,
 			*this
 		);
+
+	// EIP-7979: code shared by several subroutines must be entered as a
+	// subroutine; the optimisations above may have created such sharing.
+	if (m_evmVersion.hasSubroutines())
+		SubroutineEntryMarker::markSharedBlocks(m_items);
 
 	m_tagReplacements = std::move(tagReplacements);
 	return *m_tagReplacements;
@@ -1001,7 +1033,11 @@ LinkerObject const& Assembly::assemble() const
 
 	// solidity::evmasm::Instructions underlying type is uint8_t
 	// TODO: Change to std::to_underlying since C++23
-	return _addJumpDest ? bytes(1, static_cast<uint8_t>(Instruction::JUMPDEST)) : bytes();
+	if (!_addJumpDest)
+		return bytes();
+	// EIP-7979: a subroutine entry is a CALLDEST, which is also a valid jump destination.
+	Instruction const label = _item.isSubroutineEntry() ? Instruction::CALLDEST : Instruction::JUMPDEST;
+	return bytes(1, static_cast<uint8_t>(label));
 }
 
 LinkerObject const& Assembly::assembleLegacy() const

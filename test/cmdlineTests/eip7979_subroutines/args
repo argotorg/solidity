@@ -1,0 +1,1 @@
+--experimental --evm-version @future --via-ir --optimize --asm
