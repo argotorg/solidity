@@ -267,6 +267,8 @@ void DataFlowAnalyzer::handleAssignment(std::set<YulName> const& _variables, Exp
 	for (auto const& name: _variables)
 	{
 		m_state.sortedReferences[name] = referencedVariablesSorted;
+		for (YulName const& referencedVariable: referencedVariablesSorted)
+			m_state.referencingVariableCandidates[referencedVariable].emplace_back(name);
 		if (!_isDeclaration)
 		{
 			// assignment to slot denoted by "name"
@@ -346,20 +348,26 @@ void DataFlowAnalyzer::clearValues(std::set<YulName> const& _variablesToClear)
 			_variablesToClear.count(_item.second);
 	});
 
-	// Also clear variables that reference variables to be cleared.
-	std::set<YulName> referencingVariablesToClear;
-	std::vector const sortedVariablesToClear(_variablesToClear.begin(), _variablesToClear.end());
-	for (auto const& [referencingVariable, referencedVariables]: m_state.sortedReferences)
-		// instead of checking each variable in `referencedVariables`, we check if there is any intersection making use of the
-		// sortedness of the vectors, which can increase performance by up to 50% in pathological cases
-		if (hasNonemptyIntersectionSorted(referencedVariables, sortedVariablesToClear))
-			referencingVariablesToClear.emplace(referencingVariable);
-
-	// Clear the value and update the reference relation.
-	for (auto const& name: _variablesToClear + referencingVariablesToClear)
+	for (YulName const& name: _variablesToClear)
 	{
 		m_state.value.erase(name);
 		m_state.sortedReferences.erase(name);
+
+		// Also clear variables that reference variables to be cleared.
+		auto candidates = m_state.referencingVariableCandidates.find(name);
+		if (candidates == m_state.referencingVariableCandidates.end())
+			continue;
+		for (YulName const& candidate: candidates->second)
+			if (
+				auto references = m_state.sortedReferences.find(candidate);
+				references != m_state.sortedReferences.end() &&
+				std::binary_search(references->second.begin(), references->second.end(), name)
+			)
+			{
+				m_state.value.erase(candidate);
+				m_state.sortedReferences.erase(references);
+			}
+		m_state.referencingVariableCandidates.erase(candidates);
 	}
 }
 
