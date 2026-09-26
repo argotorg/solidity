@@ -9,6 +9,7 @@ Compiler Features:
 
 Bugfixes:
 * Parser: Fix inverted version pragma range comparison for components in the range [2**31, 2**32).
+* View Pure Checker: Fix state mutability of `super` calls being checked only against the contract declaring the function. Since `super` calls are re-resolved for each most derived contract, a `view` or `pure` function could reach a more mutable target there without being reported.
 
 Build System:
 * Update emscripten to version 3.1.24.
