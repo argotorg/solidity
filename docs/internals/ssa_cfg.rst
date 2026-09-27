@@ -125,12 +125,98 @@ IR listings use the syntax of the IR printer, as seen in the tests under ``test/
 Pipeline as Data Flow
 =====================
 
-.. note::
+This chapter follows the data from Yul to EVM assembly:
+which stage produces what, and at which granularity.
 
-   Not yet written. Planned content:
+Enabling the Backend
+--------------------
 
-   - How the backend is enabled.
-   - The stages, what each produces, and at which granularity each runs.
+On the command line, the backend is enabled by ``--via-ssa-cfg``, which requires ``--experimental`` and implies ``--via-ir``.
+The option applies to Solidity input and to Yul input in assembler mode.
+In Standard JSON, it is enabled by ``settings.viaSSACFG``, which requires ``settings.experimental``.
+It sets ``settings.viaIR`` and is rejected if ``settings.viaIR`` is explicitly ``false``.
+The contract metadata records ``settings.viaSSACFG``.
+
+Stages and Artifacts
+--------------------
+
+.. graphviz::
+   :caption: Data flow for one Yul object. Boxes are stages, edge labels name the artifacts handed over.
+             The dashed frame groups the stages that ``CodeTransform::run`` performs.
+   :align: center
+
+   digraph ssa_cfg_pipeline {
+       graph [fontname="Helvetica", fontsize=10, nodesep=0.5, ranksep=0.4];
+       node [shape=box, style=rounded, fontname="Helvetica", fontsize=10];
+       edge [fontname="Helvetica", fontsize=9];
+
+       yul [label="Yul object\n(syntax tree, AsmAnalysisInfo)", shape=note, style=""];
+       build [label="Construction\nSSACFGBuilder::build\nper object"];
+       transforms [label="Transforms\ntransform::optimize\nper function graph"];
+       liveness [label="Liveness\nLivenessAnalysis\nper function graph"];
+       evmasm [label="evmasm\noptimize and assemble", style="rounded,dashed"];
+
+       subgraph cluster_run {
+           label="CodeTransform::run";
+           style=dashed;
+           calls [label="Call structure\nCallGraph, gatherCallSites"];
+           layout [label="Stack layout and spilling\nStackLayoutGenerator::generate\nper function graph"];
+           addressing [label="Memory addressing\nspill::MemoryAddressing\nper object"];
+           emission [label="Emission\nCodeTransform\nper function graph"];
+       }
+
+       yul -> build;
+       build -> transforms [label=" graphs (built)"];
+       transforms -> liveness [label=" graphs (transformed)"];
+       transforms -> calls [label=" graphs"];
+       liveness -> layout [label=" liveness,\n traversal order"];
+       calls -> layout [label=" call sites,\n may spill"];
+       layout -> addressing [label=" spill sets"];
+       layout -> emission [label=" layouts,\n store traces"];
+       addressing -> emission [label=" addresses,\n memoryguard value"];
+       emission -> evmasm [label=" assembly"];
+   }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 25 12 43
+
+   * - Stage
+     - Code
+     - Runs per
+     - Produces
+   * - Construction
+     - ``SSACFGBuilder::build``
+     - object
+     - ``ControlFlowGraphs``: the main graph, one function graph per Yul function definition,
+       and the ``memoryguard`` value of the object, if any.
+   * - Transforms
+     - ``transform::optimize``
+     - function graph
+     - The same graphs, changed in place.
+   * - Liveness
+     - ``ControlFlowGraphsLiveness``
+     - function graph
+     - A ``LivenessAnalysis``: the forward topological order with its back edges, the loop nesting forest,
+       live-in and live-out sets with use counts per block, and live-out sets per operation.
+   * - Call structure
+     - ``CallGraph``, ``gatherCallSites``
+     - object, function graph
+     - Whether a function graph lies on a cycle of the call graph,
+       and a numbering of the call sites of each function graph, used for return labels.
+   * - Stack layout and spilling
+     - ``StackLayoutGenerator::generate``
+     - function graph
+     - An ``SSACFGStackLayout`` (per block: the stack-in, one trace per Inst, the exit trace, and one trace per incoming edge),
+       the ``SpillSet``, and the ``SpillStoreTraces``.
+   * - Memory addressing
+     - ``spill::MemoryAddressing``
+     - object
+     - A memory address for every spilled value, and the increased ``memoryguard`` value.
+   * - Emission
+     - ``CodeTransform``
+     - function graph
+     - Assembly items, appended through ``AbstractAssembly`` to an ``evmasm::Assembly``.
 
 .. _ssa-cfg-ir:
 
