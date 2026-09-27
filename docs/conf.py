@@ -96,7 +96,14 @@ extensions = [
     'html_extra_template_renderer',
     'remix_code_links',
     'sphinx.ext.imgconverter',
+    'sphinx.ext.mathjax',
+    'sphinx.ext.graphviz',
 ]
+
+# Rendering graphs requires the `dot` binary of Graphviz at build time.
+graphviz_output_format = 'svg'
+# An explicit background keeps graphs legible in the dark color scheme.
+graphviz_dot_args = ['-Gbgcolor=white']
 
 syntax_base_path = 'grammar'
 # generate link anchors compatible with Sphinx-A4Doc’s naming

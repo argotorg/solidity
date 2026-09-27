@@ -1323,7 +1323,7 @@ jobs:
           name: Install build system dependencies
           command: |
             apt-get update
-            apt-get install --quiet=2 --no-install-recommends python3-dev libcairo2-dev pkg-config
+            apt-get install --quiet=2 --no-install-recommends python3-dev libcairo2-dev pkg-config graphviz
       - run:
           name: Build documentation
           command: docs/docs.sh
