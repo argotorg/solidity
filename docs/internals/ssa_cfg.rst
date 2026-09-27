@@ -531,15 +531,112 @@ Since phis often follow operations, spilling such a phi currently ends in an int
 Construction from Yul
 =====================
 
-.. note::
+``SSACFGBuilder::build`` turns the code of one Yul object into its ``ControlFlowGraphs``.
+It builds the main graph itself and a function graph for every Yul function definition,
+each with a builder of its own.
 
-   Not yet written. Planned content:
+Input
+-----
 
-   - Input requirements and the relation to the Yul optimizer.
-   - SSA construction after Braun et al., block sealing, and the documented deviation in Algorithms 2 and 4.
-   - Lowering of ``if``, ``switch``, ``for``, ``break``, ``continue``, ``leave``, and function definitions.
-   - Builtins with literal arguments, multi-return operations, ``memoryguard``.
-   - Continuation: which functions can return to their caller.
+The builder takes the syntax tree of the code, its ``AsmAnalysisInfo``, and an EVM dialect,
+and asserts that the dialect provides ``memoryguard``.
+It needs no Yul optimizer step to have run, so it works on Yul as the parser and the analysis leave it.
+It identifies variables by their entries in the scopes of the analysis rather than by their names,
+so names need not be disambiguated.
+It registers the function definitions of a Yul block before it visits the statements of the block,
+so functions need not be hoisted, and calls may precede the definitions they refer to.
+It resolves the names in a ``for`` loop through the scope of the loop's initialization block,
+so the initialization need not be moved in front of the loop.
+
+SSA Construction
+----------------
+
+The builder follows Braun et al. [Braun13]_.
+For every variable and block, it records the value the variable currently has in that block.
+Assignments create no Insts: after ``x := y``, the variable ``x`` simply names the value of ``y``.
+A read looks up the value recorded for the current block.
+If there is none, the builder continues as follows:
+
+- In a block that is not sealed yet, it creates a phi and remembers it as incomplete.
+  A block is sealed once it cannot gain further predecessors.
+- In a sealed block with exactly one predecessor, it continues the read in the predecessor.
+- In any other block, it creates a phi, records it as the value of the variable first, which breaks cycles,
+  and then reads the variable in every predecessor.
+
+Where the paper appends an operand to the phi for each predecessor,
+the builder appends an upsilon for the phi to each predecessor.
+Sealing a block completes its incomplete phis the same way.
+The builder seals every block as soon as all its predecessors are known.
+The head of a loop is sealed only after the jump back from its post statements.
+Where phis and upsilons end up as a result is described in :ref:`ssa-cfg-ir`.
+
+The builder is a simplified form of the paper's algorithm, which keeps it easy to review.
+It does not remove trivial phis while it constructs them, as the paper's Algorithm 3 does,
+and it applies none of the paper's other simplifications during construction.
+Trivial phi elimination, constant condition folding, and jump threading are passes of their own
+(see :ref:`ssa-cfg-transforms`).
+The graphs that the builder returns therefore still contain trivial phis,
+for example at the head of a loop for every variable that the loop reads but does not change.
+
+Lowering Control Flow
+---------------------
+
+``if``
+   The condition is evaluated in the current block, which then branches to a new block for the body (nonZero)
+   and to the block after the ``if`` (zero). The body jumps to the block after the ``if``.
+
+``switch``
+   The expression is evaluated once.
+   The cases are tested one after the other, each by an ``eq`` of the expression and the case value,
+   and each test branches to the body of the case (nonZero) or to the next test (zero).
+   If the last case has a value, its test branches to the block after the ``switch`` when it fails.
+   A ``default`` case, which comes last, runs in the block reached when every test has failed.
+   Every body jumps to the block after the ``switch``.
+
+``for``
+   The initialization runs in the current block, which jumps to a new block for the condition.
+   The condition branches to the body (nonZero) or to the block after the loop (zero).
+   The body jumps to the block for the post statements, which jumps back to the condition.
+   The condition block is sealed after that jump back, the post block after the body, since ``continue`` jumps there,
+   and the block after the loop last, since ``break`` jumps there.
+
+``break``, ``continue``, ``leave``
+   ``break`` and ``continue`` jump to the block after the loop and to the post block of the innermost loop.
+   ``leave`` ends the block with a function return of the current values of the return variables.
+   Code after any of them in the same Yul block goes into a new block without predecessors,
+   which the transforms remove.
+
+Function definitions
+   A function graph starts with a ``FunctionArg`` Inst for each parameter, and with every return variable set to zero.
+   The end of the body is followed by an implicit ``leave``.
+
+The code of the main graph ends with ``MainExit``.
+Every nonZero target that the builder creates is a new block with no other predecessor.
+
+Operations
+----------
+
+Arguments of calls are evaluated from right to left, as Yul requires, and stored as inputs in source order.
+Arguments that a builtin requires to be literals, such as the name in ``datasize``, become part of the payload instead.
+A call with two or more results gets its projections,
+and an assignment of the call to several variables binds each variable to its projection.
+A variable declared without a value starts as the literal zero.
+
+A call of ``memoryguard`` becomes a ``MemoryGuard`` Inst,
+and its argument is recorded for the object (see :ref:`ssa-cfg-ir`).
+
+A call that cannot continue, of a Yul function or of a builtin such as ``revert``,
+ends its block, which becomes ``Terminated``.
+Construction continues in a new block without predecessors,
+and the result of the call, as well as any variable assigned from it, is an ``Unreachable`` value.
+
+Continuation
+------------
+
+Whether a Yul function can continue, that is, whether some path returns to its caller,
+comes from the control flow side effects of the syntax tree, which the builder collects before it starts.
+The builder records it in the function graph and in every call of the function.
+A call of a function that cannot continue ends its block as described above, and it needs no return label.
 
 .. _ssa-cfg-transforms:
 
@@ -757,6 +854,11 @@ Appendix: References
 .. note::
 
    References are added as the chapters citing them are written.
+
+.. [Braun13] Matthias Braun, Sebastian Buchwald, Sebastian Hack, Roland Leißa, Christoph Mallon, and Andreas Zwinkau.
+   *Simple and Efficient Construction of Static Single Assignment Form.*
+   Compiler Construction (CC 2013), Lecture Notes in Computer Science, pages 102-122. Springer, 2013.
+   https://doi.org/10.1007/978-3-642-37051-9_6
 
 .. [B3IR] WebKit, *B3 Intermediate Representation*, section "Control flow", entries ``Upsilon`` and ``Phi``.
    https://webkit.org/docs/b3/intermediate-representation.html
