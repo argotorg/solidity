@@ -27,12 +27,98 @@ SSA CFG Backend
 Status and Scope
 ================
 
-.. note::
+This page specifies the SSA CFG backend.
 
-   Not yet written. Planned content:
+Terminology
+-----------
 
-   - What this page covers.
-   - Terminology and notation.
+Several terms mean different things in the compiler at large, in the code of this backend, and on this page.
+
+Block
+   A basic block of the SSA CFG.
+   A braced block of Yul code is a *Yul block*.
+
+Function graph
+   One SSA CFG, ``SSACFG`` in the code.
+   The code of a Yul object is represented by one *main graph* for its top-level statements
+   and one function graph per Yul function definition.
+
+Value
+   An SSA value, the result of an ``Inst``.
+   Every Inst has an ``InstId``, but not every Inst has exactly one result:
+
+   - An Inst with one result is identified with it, and its ``InstId`` names both.
+   - An operation with two or more results is not a value itself.
+     Each of its results is a ``Projection`` Inst that directly follows it.
+   - Operations without results, such as ``sstore`` or a call of a function without return variables,
+     as well as upsilons and ``Nop`` placeholders, produce no value.
+
+   Nothing in the types tells an ``InstId`` that names a value from one that does not.
+   Apart from a projection, which refers to its operation, every input of an Inst is an Inst with one result.
+   The builder relies on the Yul analysis for this, which admits only calls with exactly one result as arguments.
+
+   Yul variables do not exist in the IR; they exist only during construction.
+
+Inst and operation
+   An *Inst* is an instruction of the IR.
+   An *operation* is an Inst that emits code:
+   a call of a Yul function, a call of a builtin, or ``memoryguard`` (``Inst::isOperation``).
+   An instruction of the EVM is an *opcode*.
+
+Exit
+   The terminator of a block (``BasicBlock::exit``):
+   an unconditional jump, a conditional jump, a function return, the end of the main graph, or termination.
+
+Edge
+   A pair of blocks :math:`(P, S)` such that the exit of :math:`P` can transfer control to :math:`S`.
+   A conditional jump has a *nonZero edge* and a *zero edge*, named after the condition values that select them.
+
+Stack
+   The *EVM stack* exists at runtime.
+   The *symbolic stack* (``StackData``) is its model at compile time, a sequence of symbolic stack slots.
+
+Layout
+   Always a stack layout on this page, never a storage, memory, or calldata layout as in other internals pages.
+
+Spill
+   Moving a value from the stack into a memory slot and reloading it from there when needed.
+   The backend spills on its own; it does not use the ``StackLimitEvader`` of the Yul optimizer.
+
+Shadow
+   In Pizlo form, the location that the upsilons of a phi write and that the phi reads (see :ref:`ssa-cfg-ir`).
+   On ``develop``, shadows are a device of the semantics only; the stack layout gives them no slot of their own.
+
+Trace
+   A recorded sequence of stack operations (``ShuffleTrace``).
+
+Junk
+   A stack slot whose contents do not matter. Sometimes also referred to as *wildcard slot*. (TODO: unify)
+
+Notation
+--------
+
+IR listings use the syntax of the IR printer, as seen in the tests under ``test/libyul/ssa/printer``:
+
+.. code-block:: none
+
+   #1: preds: #0, #2
+       v2 = phi
+       v3 = builtin @lt v2, v1
+       branch v3, #2, #4
+   #2: preds: #1
+       v7 = builtin @add v2, v6
+       upsilon v7 -> ^v2
+       jump #1
+
+- ``vN`` is the Inst with ``InstId`` N, and also its value if it has exactly one result.
+  ``#N`` is the block with ``BlockId`` N.
+- The printer writes ``vN =`` in front of every Inst with results,
+  including an operation whose results are projections (``v0 = call @pair`` followed by ``v1 = proj v0, 0``).
+  It leaves it out for operations without results and for upsilons.
+- ``^vN`` is the shadow of the phi ``vN``, so ``upsilon v7 -> ^v2`` writes ``v7`` into the shadow of ``v2``.
+- ``branch c, #a, #b`` is a conditional jump on ``c`` with nonZero target ``#a`` and zero target ``#b``.
+- Stacks are written from bottom to top, with the top at the right.
+  In stacks, a literal value prints as ``litN`` and a phi as ``phiN``, where N is the ``InstId``.
 
 .. _ssa-cfg-pipeline:
 
