@@ -274,6 +274,8 @@ A block has a list of predecessors (``entries``), a list of Insts in execution o
 Successors follow from the exit, while predecessors are stored separately.
 The two have to agree, and every piece of code that changes an exit updates the predecessor lists of the affected
 blocks by hand. Nothing checks that they agree.
+There is one exception: a predecessor list may name a block that can no longer be reached from the entry,
+until :ref:`unreachable block cleanup <ssa-cfg-unreachable-block-cleanup>` removes that block.
 
 Insts
 ~~~~~
@@ -561,11 +563,19 @@ or ``eq`` of two literals, into an unconditional jump to the target that is take
 and removes the block from the predecessors of the other target.
 The upsilons in the block for the phis of the dropped target become nops.
 
+.. _ssa-cfg-unreachable-block-cleanup:
+
 Unreachable Block Cleanup
 -------------------------
 
 ``transform::cleanUnreachableBlocks`` removes the blocks that cannot be reached from the entry, together with their Insts.
 Afterwards, predecessor lists name reachable blocks only.
+
+This lets other passes cut a block off without cleaning up after it.
+A pass that makes a block unreachable may leave the block's exit as it is,
+so that the predecessor lists of its successors still name it.
+Such stale entries are fine as long as they name blocks that cannot be reached from the entry;
+the next cleanup drops them.
 
 Trivial Phi Elimination
 -----------------------
