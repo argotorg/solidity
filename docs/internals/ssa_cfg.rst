@@ -505,43 +505,6 @@ there is exactly one upsilon per predecessor and phi,
 and no upsilon is in the same block as its phi.
 They follow from how the builder proceeds; nothing states or checks them.
 
-What the Transforms Change
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The transforms keep the first two properties and relax the third,
-so that an upsilon may share a block with its phi, but only after it.
-They also establish the following, as :ref:`ssa-cfg-transforms` describes pass by pass.
-
-- No trivial phi remains: every phi receives at least two different values other than itself.
-  In particular, a block with a single predecessor has no phis.
-- A phi that is left without upsilons is replaced by an ``Unreachable`` value,
-  and upsilons whose input is ``Unreachable`` are gone.
-- No ``Identity`` or ``Nop`` remains in a block, and no input refers to one.
-- Unreachable blocks are gone, and predecessor lists name reachable blocks only.
-- When constant condition folding drops an edge, the upsilons for the phis of the dropped target become nops.
-- A block that ends in a jump to a block without other predecessors has absorbed that block,
-  unless the target is the entry block or the block itself.
-
-The last point is where the third property is relaxed.
-It can turn a loop into a single block that jumps to itself, with its phis at the top and its upsilons at the end.
-For example, ``for {} 1 { y := add(y, x) } { x := add(x, 1) sstore(x, y) }`` becomes:
-
-.. code-block:: none
-
-   #1: preds: #0, #1
-       v5 = phi
-       v7 = phi
-       v6 = builtin @add v5, v4
-       builtin @sstore v6, v7
-       v9 = builtin @add v7, v6
-       upsilon v6 -> ^v5
-       upsilon v9 -> ^v7
-       jump #1
-
-Absorbing a block that has phis would put the upsilons of the absorbing block ahead of those phis.
-The jump threader asserts that an absorbed block has no phis,
-which holds because a block with a single predecessor has none after trivial phi elimination.
-
 What the Backend Assumes
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -553,7 +516,8 @@ Layout generation and emission take the value of a phi on an edge from the upsil
 (``PhiInverse``).
 
 This is correct as long as every predecessor of a phi's block holds an upsilon for the phi
-and no upsilon precedes its own phi in the same block, which is what construction and the transforms produce.
+and no upsilon precedes its own phi in the same block,
+which is what construction produces and the transforms preserve (see :ref:`ssa-cfg-transforms`).
 
 One place does not follow edge form:
 emission stores a spilled phi at the phi's position, while its store trace was recorded against the block's stack-in.
@@ -582,14 +546,73 @@ Transforms
 
 .. note::
 
-   Not yet written. Planned content:
+   Partly written. Planned content:
 
    - The pass contract: what a pass may assume, what it must preserve, and the effects model for phis and upsilons.
    - The current pipeline and what it guarantees for its output.
-   - Per pass, including its obligations towards phis and upsilons:
-     constant condition folding, unreachable block cleanup, trivial phi elimination, identity and nop removal,
-     jump threading, and the inactive outliner.
+   - For each pass below, how it works and its obligations towards phis and upsilons; the inactive outliner.
    - Planned passes and what they would do to phis and upsilons.
+
+Constant Condition Folding
+--------------------------
+
+``transform::foldConstantConditions`` rewrites a conditional jump whose condition is a literal,
+or ``eq`` of two literals, into an unconditional jump to the target that is taken,
+and removes the block from the predecessors of the other target.
+The upsilons in the block for the phis of the dropped target become nops.
+
+Unreachable Block Cleanup
+-------------------------
+
+``transform::cleanUnreachableBlocks`` removes the blocks that cannot be reached from the entry, together with their Insts.
+Afterwards, predecessor lists name reachable blocks only.
+
+Trivial Phi Elimination
+-----------------------
+
+A phi is trivial if all its upsilons provide the same value, not counting the phi itself.
+``transform::eliminateTrivialPhis`` replaces every trivial phi by that value and turns its upsilons into nops,
+until no trivial phi remains, since eliminating one phi can make others trivial.
+Afterwards, every phi receives at least two different values other than itself.
+In particular, a block with a single predecessor has no phis.
+The pass also removes upsilons whose input is ``Unreachable``,
+and replaces a phi that is left without upsilons by an ``Unreachable`` value.
+
+Identity and Nop Removal
+------------------------
+
+``transform::removeIdentitiesAndNops`` redirects every input and every exit through chains of identities,
+then drops identities and nops from their blocks and frees their slots.
+Afterwards, no ``Identity`` or ``Nop`` remains in a block, and no input refers to one.
+
+Jump Threading
+--------------
+
+``transform::threadJumps`` lets a block that ends in a jump to a block without other predecessors absorb that block,
+unless the target is the entry block or the block itself:
+the Insts of the target are appended to the block, and the block takes over the target's exit.
+The block thereby becomes the predecessor of the target's successors,
+so every upsilon that moves along stays in an immediate predecessor of its phi's block.
+
+Absorbing can turn a loop into a single block that jumps to itself, with its phis at the top and its upsilons at the end.
+For example, ``for {} 1 { y := add(y, x) } { x := add(x, 1) sstore(x, y) }`` becomes:
+
+.. code-block:: none
+
+   #1: preds: #0, #1
+       v5 = phi
+       v7 = phi
+       v6 = builtin @add v5, v4
+       builtin @sstore v6, v7
+       v9 = builtin @add v7, v6
+       upsilon v6 -> ^v5
+       upsilon v9 -> ^v7
+       jump #1
+
+This is how an upsilon can come to share a block with its phi, though only after it.
+Absorbing a block that has phis would put the upsilons of the absorbing block ahead of those phis.
+The jump threader asserts that an absorbed block has no phis,
+which holds because trivial phi elimination runs first and leaves no phis in blocks with a single predecessor.
 
 .. _ssa-cfg-backend-contract:
 
