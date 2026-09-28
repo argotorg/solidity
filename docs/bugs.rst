@@ -16,6 +16,13 @@ There is another file called `bugs_by_version.json
 <https://github.com/argotorg/solidity/blob/develop/docs/bugs_by_version.json>`_,
 which can be used to check which bugs affect a specific version of the compiler.
 
+Both files are generated from the hand-edited `bugs.yaml
+<https://github.com/argotorg/solidity/blob/develop/docs/bugs.yaml>`_ by
+``scripts/update_bugs_by_version.py``.
+A bug whose fix has not been released yet is marked with ``next`` as its fixed
+version there and appears in the generated files only once the fixing release
+is made.
+
 Contract source verification tools and also other tools interacting with
 contracts should consult this list according to the following criteria:
 
