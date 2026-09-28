@@ -23,6 +23,7 @@
 #include <libsolidity/ast/ASTJsonExporter.h>
 
 #include <libsolidity/ast/AST.h>
+#include <libsolidity/ast/ASTUtils.h>
 #include <libsolidity/ast/TypeProvider.h>
 
 #include <libyul/AsmJsonConverter.h>
@@ -175,7 +176,8 @@ void ASTJsonExporter::appendExpressionAttributes(
 
 	addIfSet(exprAttributes, "isLValue", _annotation.isLValue);
 	addIfSet(exprAttributes, "isPure", _annotation.isPure);
-	addIfSet(exprAttributes, "isConstant", _annotation.isConstant);
+	if (_annotation.isPure.set())
+		exprAttributes.emplace_back("isConstant", isConstantVariableIdentifier(_annotation));
 
 	if (m_stackState > CompilerStack::State::ParsedAndImported)
 		exprAttributes.emplace_back("lValueRequested", _annotation.willBeWrittenTo);
