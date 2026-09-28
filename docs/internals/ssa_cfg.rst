@@ -643,14 +643,82 @@ A call of a function that cannot continue ends its block as described above, and
 Transforms
 ==========
 
-.. note::
+The transforms change the graphs of an object in place, between construction and the backend.
+There are currently five passes, run once per function graph in a fixed order,
+and an outliner that is not part of the pipeline.
 
-   Partly written. Planned content:
+Rules for Passes
+----------------
 
-   - The pass contract: what a pass may assume, what it must preserve, and the effects model for phis and upsilons.
-   - The current pipeline and what it guarantees for its output.
-   - For each pass below, how it works and its obligations towards phis and upsilons; the inactive outliner.
-   - Planned passes and what they would do to phis and upsilons.
+A pass receives a valid graph and has to leave one behind:
+every use is dominated by its definition, and every path to a phi passes an upsilon for it (see :ref:`ssa-cfg-ir`).
+As long as the backend does not realize more of Pizlo form,
+a pass also has to keep phis and upsilons in the shape the backend expects:
+an upsilon for a phi in every predecessor of the phi's block, and none ahead of its own phi in the same block.
+A pass that changes edges therefore has to keep the upsilons in step with them.
+This is why constant condition folding removes the upsilons of an edge it drops,
+and why jump threading refuses blocks that have phis.
+
+Beyond that, a pass has to observe the following.
+
+- Predecessor lists agree with the exits, except that they may name blocks that can no longer be reached from the entry,
+  until the next cleanup.
+- Insts are created through the functions of the graph,
+  which keep projections directly after their operation and literals unique.
+- An Inst is removed by turning it into an ``Identity`` or a ``Nop``, which identity and nop removal clears later.
+  Only the Insts of unreachable blocks are freed directly.
+- No identifier is kept across a pass that frees slots or blocks, since freed identifiers are reused.
+
+Nothing checks these rules; the IR has no validator yet.
+
+The IR has no model of effects yet either.
+The current passes need none, since none of them moves an Inst relative to others;
+jump threading appends a whole block, in order.
+Before passes arrive that move values, such as common subexpression elimination or loop-invariant code motion,
+the IR needs to tell which Insts may be reordered.
+The EVM dialect describes the side effects of builtins.
+Phis and upsilons need an effect on their shadow,
+so that no pass reorders an upsilon with its phi or with another upsilon for the same phi.
+
+The Pipeline
+------------
+
+``transform::optimize`` runs the passes on each function graph in turn:
+
+#. constant condition folding, then unreachable block cleanup;
+#. trivial phi elimination, then identity and nop removal;
+#. jump threading, then unreachable block cleanup.
+
+The order follows what each pass leaves behind.
+Folding cuts blocks off, and the cleanup removes them together with their upsilons, which can make phis trivial.
+Trivial phi elimination leaves identities and nops, which the remover clears.
+Jump threading needs blocks with a single predecessor to have no phis, which trivial phi elimination ensures,
+and it leaves the absorbed blocks unreachable for the last cleanup.
+
+Each pass runs once, so what a later pass exposes is not taken up by an earlier one.
+In ``let x := 0 if calldataload(0) { x := 0 } if x { sstore(0, 1) }``,
+the second condition becomes the literal zero only when trivial phi elimination replaces the phi for ``x``,
+and it stays a conditional jump:
+
+.. code-block:: none
+
+   #0:
+       v0 = const 0x00
+       v1 = builtin @calldataload v0
+       v5 = const 0x01
+       branch v1, #1, #2
+   #1: preds: #0
+       jump #2
+   #2: preds: #0, #1
+       branch v0, #3, #4
+   #3: preds: #2
+       builtin @sstore v0, v5
+       jump #4
+   #4: preds: #2, #3
+       main_exit
+
+What the pipeline leaves behind is stated with each pass below,
+and what the backend requires of it in :ref:`ssa-cfg-backend-contract`.
 
 Constant Condition Folding
 --------------------------
@@ -660,6 +728,13 @@ or ``eq`` of two literals, into an unconditional jump to the target that is take
 and removes the block from the predecessors of the other target.
 The upsilons in the block for the phis of the dropped target become nops.
 
+These are the forms that construction produces for an ``if`` or a ``for`` loop on a literal,
+and for the case tests of a ``switch`` on a literal.
+If the condition is an operation in the same block and the exit was its only use, the operation becomes a nop as well.
+Turning the upsilons of the dropped edge into nops is not a matter of tidiness:
+trivial phi elimination would otherwise still count them as incoming values,
+and a target left with a single predecessor could keep a phi, which jump threading asserts against.
+
 .. _ssa-cfg-unreachable-block-cleanup:
 
 Unreachable Block Cleanup
@@ -667,6 +742,7 @@ Unreachable Block Cleanup
 
 ``transform::cleanUnreachableBlocks`` removes the blocks that cannot be reached from the entry, together with their Insts.
 Afterwards, predecessor lists name reachable blocks only.
+Since a removed block takes its upsilons along, phis of the blocks it used to precede may become trivial.
 
 This lets other passes cut a block off without cleaning up after it.
 A pass that makes a block unreachable may leave the block's exit as it is,
@@ -685,12 +761,20 @@ In particular, a block with a single predecessor has no phis.
 The pass also removes upsilons whose input is ``Unreachable``,
 and replaces a phi that is left without upsilons by an ``Unreachable`` value.
 
+Since the IR keeps no use lists, the pass first walks all Insts to collect the upsilons of every phi,
+and for every phi the phis that receive it through an upsilon.
+It reads the inputs of upsilons through chains of identities and skips nops.
+When it replaces a phi, it checks the phis that received it again.
+
 Identity and Nop Removal
 ------------------------
 
 ``transform::removeIdentitiesAndNops`` redirects every input and every exit through chains of identities,
 then drops identities and nops from their blocks and frees their slots.
 Afterwards, no ``Identity`` or ``Nop`` remains in a block, and no input refers to one.
+
+The pass asserts that the phi of every remaining upsilon is still a phi.
+This holds because trivial phi elimination turns the upsilons of a phi into nops when it replaces the phi.
 
 Jump Threading
 --------------
@@ -700,6 +784,7 @@ unless the target is the entry block or the block itself:
 the Insts of the target are appended to the block, and the block takes over the target's exit.
 The block thereby becomes the predecessor of the target's successors,
 so every upsilon that moves along stays in an immediate predecessor of its phi's block.
+The entry block is excluded because control also enters it from outside the graph.
 
 Absorbing can turn a loop into a single block that jumps to itself, with its phis at the top and its upsilons at the end.
 For example, ``for {} 1 { y := add(y, x) } { x := add(x, 1) sstore(x, y) }`` becomes:
@@ -720,6 +805,29 @@ This is how an upsilon can come to share a block with its phi, though only after
 Absorbing a block that has phis would put the upsilons of the absorbing block ahead of those phis.
 The jump threader asserts that an absorbed block has no phis,
 which holds because trivial phi elimination runs first and leaves no phis in blocks with a single predecessor.
+
+The Outliner
+------------
+
+``transform::runOutliner`` is not part of the pipeline; its call is commented out.
+It works across all graphs of an object.
+It looks for blocks that end in ``revert`` and compute their values only from literals and from each other,
+in graphs with more than one block, and groups the blocks that do the same.
+For every group of two or more, it creates a function graph that cannot continue, with the code of the block,
+and replaces the Insts of every block of the group by a call of it.
+
+Planned Passes
+--------------
+
+Under the current rules for phis and upsilons, the passes discussed so far would have to do the following.
+
+- Critical-edge splitting puts a new block on an edge from a block with several successors
+  to a block with several predecessors.
+  The new block becomes the predecessor of the target, so the upsilons for the target's phis have to move into it.
+- Jump threading through phis would let a block absorb a successor that has phis.
+  The upsilons of the absorbing block would then precede those phis, which the backend cannot realize yet.
+- Loop-invariant code motion must not move phis or upsilons, which needs the effects described above.
+  A preheader that it inserts is a new block on the edges into the loop, like the one of critical-edge splitting.
 
 .. _ssa-cfg-backend-contract:
 
