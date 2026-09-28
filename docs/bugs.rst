@@ -56,8 +56,6 @@ introduced
     The first published compiler version that contained the bug, optional
 fixed
     The first published compiler version that did not contain the bug anymore
-publish
-    The date at which the bug became known publicly, optional
 severity
     Severity of the bug: very low, low, medium, high. Takes into account
     discoverability in contract tests, likelihood of occurrence and
