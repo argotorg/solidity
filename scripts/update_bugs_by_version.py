@@ -55,8 +55,9 @@ def version_being_released(changelog_path, cmake_path):
     """
     dated_versions = released_versions(changelog_path)
     project_version_match = re.search(
-        r'set\(PROJECT_VERSION "(\d+\.\d+\.\d+)"\)',
+        r'^\s*set\(PROJECT_VERSION "(\d+\.\d+\.\d+)"\)\s*$',
         cmake_path.read_text(encoding="utf8"),
+        re.MULTILINE,
     )
     if project_version_match is None:
         sys.exit(f"Could not find PROJECT_VERSION in {cmake_path}.")
