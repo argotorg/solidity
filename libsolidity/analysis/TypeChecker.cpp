@@ -1673,7 +1673,7 @@ bool TypeChecker::visit(UnaryOperation const& _operation)
 	_operation.annotation().isRuntimeConstant =
 		!modifying &&
 		*_operation.subExpression().annotation().isRuntimeConstant &&
-		(!_operation.userDefinedFunctionType() || _operation.userDefinedFunctionType()->isPure());
+		(!_operation.userDefinedFunctionType() || _operation.userDefinedFunctionType()->isRuntimeConstant());
 	_operation.annotation().isLValue = false;
 
 	return false;
@@ -1771,7 +1771,7 @@ void TypeChecker::endVisit(BinaryOperation const& _operation)
 	_operation.annotation().isRuntimeConstant =
 		*_operation.leftExpression().annotation().isRuntimeConstant &&
 		*_operation.rightExpression().annotation().isRuntimeConstant &&
-		(!userDefinedFunctionType || userDefinedFunctionType->isPure());
+		(!userDefinedFunctionType || userDefinedFunctionType->isRuntimeConstant());
 	_operation.annotation().isLValue = false;
 
 	if (_operation.getOperator() == Token::Equal || _operation.getOperator() == Token::NotEqual)
@@ -2694,14 +2694,14 @@ void TypeChecker::typeCheckFunctionGeneralChecks(
 bool TypeChecker::visit(FunctionCall const& _functionCall)
 {
 	std::vector<ASTPointer<Expression const>> const& arguments = _functionCall.arguments();
-	bool argumentsArePure = true;
+	bool argumentsAreRuntimeConstant = true;
 
 	// We need to check arguments' type first as they will be needed for overload resolution.
 	for (ASTPointer<Expression const> const& argument: arguments)
 	{
 		argument->accept(*this);
 		if (!*argument->annotation().isRuntimeConstant)
-			argumentsArePure = false;
+			argumentsAreRuntimeConstant = false;
 	}
 
 	// Store argument types - and names if given - for overload resolution
@@ -2726,7 +2726,7 @@ bool TypeChecker::visit(FunctionCall const& _functionCall)
 
 	bool isLValue = false;
 
-	// Determine and assign function call kind, lvalue, purity and function type for this FunctionCall node
+	// Determine and assign function call kind, lvalue, runtime constness and function type for this FunctionCall node
 	switch (expressionType->category())
 	{
 	case Type::Category::Function:
@@ -2742,11 +2742,11 @@ bool TypeChecker::visit(FunctionCall const& _functionCall)
 			if (dynamic_cast<FunctionDefinition const*>(identifier->annotation().referencedDeclaration))
 				_functionCall.expression().annotation().calledDirectly = true;
 
-		// Purity for function calls also depends upon the callee and its FunctionType
+		// Runtime constness of function calls also depends upon the callee and its FunctionType
 		funcCallAnno.isRuntimeConstant =
-			argumentsArePure &&
+			argumentsAreRuntimeConstant &&
 			*_functionCall.expression().annotation().isRuntimeConstant &&
-			functionType->isPure();
+			functionType->isRuntimeConstant();
 
 		if (functionType->kind() == FunctionType::Kind::ArrayPush)
 			isLValue = functionType->parameterTypes().empty();
@@ -2782,7 +2782,7 @@ bool TypeChecker::visit(FunctionCall const& _functionCall)
 			funcCallAnno.kind = FunctionCallKind::TypeConversion;
 		}
 
-		funcCallAnno.isRuntimeConstant = argumentsArePure;
+		funcCallAnno.isRuntimeConstant = argumentsAreRuntimeConstant;
 
 		break;
 	}
@@ -2791,7 +2791,7 @@ bool TypeChecker::visit(FunctionCall const& _functionCall)
 		m_errorReporter.fatalTypeError(5704_error, _functionCall.location(), "This expression is not callable.");
 		// Unreachable, because fatalTypeError throws. We don't set kind, but that's okay because the switch below
 		// is never reached. And, even if it was, SetOnce would trigger an assertion violation and not UB.
-		funcCallAnno.isRuntimeConstant = argumentsArePure;
+		funcCallAnno.isRuntimeConstant = argumentsAreRuntimeConstant;
 		break;
 	}
 
@@ -3376,7 +3376,7 @@ bool TypeChecker::visit(MemberAccess const& _memberAccess)
 		{
 		case Type::Category::Array:
 		{
-			// `concat` purity depends also on its arguments, but this is checked later, in visit(FunctionCall...)
+			// `concat` runtime constness depends also on its arguments, but this is checked later, in visit(FunctionCall...)
 			// This covers `bytes.concat` and `string.concat`.
 			auto const* accessedMemberFunctionType = dynamic_cast<FunctionType const*>(type(_memberAccess));
 			solAssert(accessedMemberFunctionType && (

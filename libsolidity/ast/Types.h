@@ -1479,10 +1479,10 @@ public:
 		return *m_declaration;
 	}
 	bool hasDeclaration() const { return !!m_declaration; }
-	/// @returns true if the result of this function only depends on its arguments,
-	/// does not modify the state and is a compile-time constant.
-	/// Currently, this will only return true for internal functions like keccak and ecrecover.
-	bool isPure() const;
+	/// @returns true if calling this function with runtime constant arguments is a runtime constant,
+	/// i.e. can be used to initialize a constant variable.
+	/// Only true for some builtins like keccak256 and abi.encode, never for user-defined functions.
+	bool isRuntimeConstant() const;
 	bool isPayable() const { return m_stateMutability == StateMutability::Payable; }
 	/// @return A shared pointer of StructuredDocumentation.
 	/// Can contain a nullptr in which case indicates absence of documentation.

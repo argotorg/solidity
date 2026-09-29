@@ -3691,10 +3691,8 @@ std::string FunctionType::externalIdentifierHex() const
 	return util::selectorFromSignatureH32(externalSignature()).hex();
 }
 
-bool FunctionType::isPure() const
+bool FunctionType::isRuntimeConstant() const
 {
-	// TODO: replace this with m_stateMutability == StateMutability::Pure once
-	//       the callgraph analyzer is in place
 	return
 		m_kind == Kind::KECCAK256 ||
 		m_kind == Kind::ECRecover ||
