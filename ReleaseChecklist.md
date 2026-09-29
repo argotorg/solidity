@@ -46,7 +46,6 @@ At least a day before the release:
 - [ ] Ensure that all changelog entries are correctly classified as language or compiler features.
 - [ ] Ensure that every important bug has a `bugs.yaml` entry **and** a changelog entry under "Important Bugfixes" (not "Bugfixes").
     Verify that every bug list entry added in this release has a blog `link` matching the release date.
-    New entries are added to `bugs.yaml` with an empty `uid:` and `next` in the `fixed` field, both filled in automatically by `update_bugs_by_version.py`.
 - [ ] Sort the changelog entries alphabetically and correct any errors you notice. Commit it.
 - [ ] Update the changelog to include a release date.
 - [ ] Run `scripts/update_bugs_by_version.py` to resolve `next` entries in `bugs.yaml` and regenerate `bugs.json` and `bugs_by_version.json`.
