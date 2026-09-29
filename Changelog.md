@@ -12,6 +12,7 @@ Compiler Features:
 
 Bugfixes:
 * Parser: Fix inverted version pragma range comparison for components in the range [2**31, 2**32).
+* Type Checker: Disallow assigning to elements or members of constants and other compile-time constant expressions (e.g. ``B[0] = "x"`` or ``[X][0] = 1``), which previously compiled but had no effect.
 
 Build System:
 * Update emscripten to version 3.1.24.

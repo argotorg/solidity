@@ -3328,7 +3328,9 @@ bool TypeChecker::visit(MemberAccess const& _memberAccess)
 	{
 		auto const* owningObjectStructType = dynamic_cast<StructType const*>(owningObjectType);
 		solAssert(owningObjectStructType);
-		_memberAccess.annotation().isLValue = !owningObjectStructType->dataStoredIn(DataLocation::CallData);
+		_memberAccess.annotation().isLValue =
+			!owningObjectStructType->dataStoredIn(DataLocation::CallData) &&
+			!*_memberAccess.expression().annotation().isPure;
 		break;
 	}
 	case Type::Category::Function:
@@ -3604,7 +3606,8 @@ bool TypeChecker::visit(IndexAccess const& _access)
 				}
 		}
 		resultType = actualType.baseType();
-		isLValue = actualType.location() != DataLocation::CallData;
+		// A pure base is a fresh copy (e.g. a constant), so writing into it would have no effect.
+		isLValue = actualType.location() != DataLocation::CallData && !isPure;
 		break;
 	}
 	case Type::Category::Mapping:
@@ -4332,13 +4335,11 @@ void TypeChecker::requireLValue(Expression const& _expression)
 	_expression.annotation().willBeWrittenTo = true;
 	_expression.accept(*this);
 
+	solAssert(!(*_expression.annotation().isLValue && *_expression.annotation().isPure));
 	if (*_expression.annotation().isLValue)
 		return;
 
 	auto [errorId, description] = [&]() -> std::tuple<ErrorId, std::string> {
-		if (isConstantVariableIdentifier(_expression.annotation()))
-			return { 6520_error, "Cannot assign to a constant variable." };
-
 		if (auto indexAccess = dynamic_cast<IndexAccess const*>(&_expression))
 		{
 			if (type(indexAccess->baseExpression())->category() == Type::Category::FixedBytes)
@@ -4359,6 +4360,28 @@ void TypeChecker::requireLValue(Expression const& _expression)
 				if (memberAccess->memberName() == "length")
 					return { 7567_error, "Member \"length\" is read-only and cannot be used to resize arrays." };
 		}
+
+		Expression const* base = nullptr;
+		if (auto indexAccess = dynamic_cast<IndexAccess const*>(&_expression))
+		{
+			if (dynamic_cast<ArrayType const*>(type(indexAccess->baseExpression())))
+				base = &indexAccess->baseExpression();
+		}
+		else if (auto memberAccess = dynamic_cast<MemberAccess const*>(&_expression))
+			if (dynamic_cast<StructType const*>(type(memberAccess->expression())))
+				base = &memberAccess->expression();
+		while (auto const* tuple = dynamic_cast<TupleExpression const*>(base))
+			if (!tuple->isInlineArray() && tuple->components().size() == 1)
+				base = tuple->components().front().get();
+			else
+				break;
+		if (
+			isConstantVariableIdentifier(_expression.annotation()) ||
+			(base && isConstantVariableIdentifier(base->annotation()))
+		)
+			return { 6520_error, "Cannot assign to a constant variable." };
+		if (base && *base->annotation().isPure)
+			return { 5986_error, "Cannot modify part of a constant expression." };
 
 		if (auto identifier = dynamic_cast<Identifier const*>(&_expression))
 			if (auto varDecl = dynamic_cast<VariableDeclaration const*>(identifier->annotation().referencedDeclaration))
