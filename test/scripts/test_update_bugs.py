@@ -51,14 +51,14 @@ class UpdateBugsTest(unittest.TestCase):
     """Test generation of the bug lists from the YAML source."""
 
     @staticmethod
-    def _update(temp_dir, changelog, bugs_yaml=BUGS_YAML):
+    def _update(temp_dir, changelog, bugs_yaml=BUGS_YAML, cmake_lists=CMAKE_LISTS):
         yaml_path = Path(temp_dir) / "bugs.yaml"
         json_path = Path(temp_dir) / "bugs.json"
         changelog_path = Path(temp_dir) / "Changelog.md"
         cmake_path = Path(temp_dir) / "CMakeLists.txt"
         yaml_path.write_text(bugs_yaml, encoding="utf8")
         changelog_path.write_text(changelog, encoding="utf8")
-        cmake_path.write_text(CMAKE_LISTS, encoding="utf8")
+        cmake_path.write_text(cmake_lists, encoding="utf8")
         stderr = io.StringIO()
         with contextlib.redirect_stderr(stderr):
             bugs = update_bugs_by_version.update_bugs(yaml_path, json_path, changelog_path, cmake_path)
@@ -144,6 +144,17 @@ class UpdateBugsTest(unittest.TestCase):
             self.assertIn(f"- uid: SOL-{YEAR}-3", yaml_text)
             self.assertIn("fixed: 0.9.2", yaml_text)
             self.assertEqual(generated[0]["fixed"], "0.9.2")
+
+    def test_resolves_next_to_the_actually_released_version(self):
+        # The planned 0.9.2 release was superseded by a breaking 0.10.0 release.
+        changelog = CHANGELOG_MID_CYCLE.replace("0.9.2 (unreleased)", "0.10.0 (2026-06-01)")
+        with tempfile.TemporaryDirectory() as temp_dir:
+            yaml_text, generated, _, _ = self._update(
+                temp_dir, changelog, cmake_lists=CMAKE_LISTS.replace("0.9.2", "0.10.0"))
+
+            self.assertNotIn("fixed: next", yaml_text)
+            self.assertIn("fixed: 0.10.0", yaml_text)
+            self.assertEqual(generated[0]["fixed"], "0.10.0")
 
     def test_missing_fixed_is_an_error(self):
         with tempfile.TemporaryDirectory() as temp_dir:

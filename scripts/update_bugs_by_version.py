@@ -17,6 +17,8 @@ version.
 Such entries are omitted from the generated files until the release.
 During the release, when the version from CMakeLists.txt receives its
 release date in the Changelog, "next" is replaced with that version.
+Pre-releases never resolve "next", only a dated Changelog heading for the
+version from CMakeLists.txt does.
 """
 
 import argparse
