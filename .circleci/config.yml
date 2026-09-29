@@ -1037,6 +1037,9 @@ jobs:
           name: Python unit tests
           command: python3 test/pyscriptTests.py
       - run:
+          name: Check that the bug lists are up to date
+          command: scripts/update_bugs_by_version.py --check
+      - run:
           name: Smoke test for gas_diff_stats.py
           command: scripts/gas_diff_stats.py
       - matrix_notify_failure_unless_pr

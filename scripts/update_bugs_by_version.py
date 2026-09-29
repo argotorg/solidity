@@ -5,8 +5,10 @@
 docs/bugs.yaml is the only file meant to be edited by hand.
 This script generates docs/bugs.json from it and docs/bugs_by_version.json
 from the result and the release dates in the Changelog.
-It updates the files in place and signals failure in CI if that results in
-changes, which makes sure that the generated files stay up to date.
+It updates the files in place.
+Running with --check instead verifies that regenerating would not change any
+of the files, without modifying them. CI uses this to make sure that the
+generated files stay up to date.
 
 A new entry in bugs.yaml may leave the "uid" field empty, in which case the
 next free uid of the current year is assigned.
@@ -17,10 +19,13 @@ During the release, when the version from CMakeLists.txt receives its
 release date in the Changelog, "next" is replaced with that version.
 """
 
+import argparse
+import difflib
 import itertools
 import json
 import re
 import sys
+import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -169,5 +174,62 @@ def update_bugs_by_version(
     ), encoding="utf8")
 
 
+def check_up_to_date(
+    yaml_path=BUGS_YAML,
+    json_path=BUGS_JSON,
+    by_version_path=BUGS_BY_VERSION,
+    changelog_path=CHANGELOG,
+    cmake_path=CMAKE_LISTS,
+):
+    """
+    Regenerate the bug lists in a temporary directory and fail if the result
+    differs from the existing files.
+    """
+    with tempfile.TemporaryDirectory() as temp_dir:
+        yaml_copy = Path(temp_dir) / "bugs.yaml"
+        yaml_copy.write_text(yaml_path.read_text(encoding="utf8"), encoding="utf8")
+        json_output = Path(temp_dir) / "bugs.json"
+        by_version_output = Path(temp_dir) / "bugs_by_version.json"
+
+        bugs = update_bugs(yaml_copy, json_output, changelog_path, cmake_path)
+        update_bugs_by_version(bugs, by_version_output, changelog_path)
+
+        stale_files = []
+        for regenerated_file, current_file in (
+            (yaml_copy, yaml_path),
+            (json_output, json_path),
+            (by_version_output, by_version_path),
+        ):
+            regenerated_text = regenerated_file.read_text(encoding="utf8")
+            current_text = current_file.read_text(encoding="utf8")
+            if regenerated_text == current_text:
+                continue
+            if current_file.is_relative_to(ROOT_PATH):
+                display_name = str(current_file.relative_to(ROOT_PATH))
+            else:
+                display_name = str(current_file)
+            stale_files.append(display_name)
+            sys.stderr.writelines(difflib.unified_diff(
+                current_text.splitlines(keepends=True),
+                regenerated_text.splitlines(keepends=True),
+                fromfile=display_name,
+                tofile=f"{display_name} (regenerated)",
+            ))
+    if len(stale_files) != 0:
+        sys.exit(
+            "Out of date: " + ", ".join(stale_files) + ". "
+            "Run scripts/update_bugs_by_version.py and commit the changes."
+        )
+
+
 if __name__ == "__main__":
-    update_bugs_by_version(update_bugs())
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="Only verify that the generated files are up to date, without modifying them.",
+    )
+    if parser.parse_args().check:
+        check_up_to_date()
+    else:
+        update_bugs_by_version(update_bugs())

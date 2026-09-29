@@ -69,31 +69,40 @@ class UpdateBugsTest(unittest.TestCase):
             stderr.getvalue(),
         )
 
-    def test_repo_files_are_up_to_date(self):
-        """Verify that regenerating the bug lists from the committed files does not change them."""
-        docs_path = Path(__file__).parent.parent.parent / "docs"
+    def _generate_consistent_files(self, temp_dir):
+        """Produce a bugs.yaml with matching generated files, as after a normal script run."""
+        _, _, bugs, _ = self._update(temp_dir, CHANGELOG_MID_CYCLE)
+        update_bugs_by_version.update_bugs_by_version(
+            bugs,
+            Path(temp_dir) / "bugs_by_version.json",
+            Path(temp_dir) / "Changelog.md",
+        )
 
+    def _check(self, temp_dir):
+        with contextlib.redirect_stderr(io.StringIO()):
+            update_bugs_by_version.check_up_to_date(
+                Path(temp_dir) / "bugs.yaml",
+                Path(temp_dir) / "bugs.json",
+                Path(temp_dir) / "bugs_by_version.json",
+                Path(temp_dir) / "Changelog.md",
+                Path(temp_dir) / "CMakeLists.txt",
+            )
+
+    def test_check_passes_on_fresh_files(self):
         with tempfile.TemporaryDirectory() as temp_dir:
-            # Use a copy of the source so that the test can never modify it.
-            yaml_copy = Path(temp_dir) / "bugs.yaml"
-            yaml_copy.write_text((docs_path / "bugs.yaml").read_text(encoding="utf8"), encoding="utf8")
-            json_output = Path(temp_dir) / "bugs.json"
-            by_version_output = Path(temp_dir) / "bugs_by_version.json"
+            self._generate_consistent_files(temp_dir)
 
-            with contextlib.redirect_stderr(io.StringIO()):
-                bugs = update_bugs_by_version.update_bugs(yaml_copy, json_output)
-                update_bugs_by_version.update_bugs_by_version(bugs, by_version_output)
+            self._check(temp_dir)
 
-            for generated, committed in [
-                (yaml_copy, docs_path / "bugs.yaml"),
-                (json_output, docs_path / "bugs.json"),
-                (by_version_output, docs_path / "bugs_by_version.json"),
-            ]:
-                self.assertEqual(
-                    generated.read_text(encoding="utf8"),
-                    committed.read_text(encoding="utf8"),
-                    f"{committed.name} is out of date. Regenerate it with scripts/update_bugs_by_version.py.",
-                )
+    def test_check_detects_stale_files(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            self._generate_consistent_files(temp_dir)
+            stale_json = Path(temp_dir) / "bugs.json"
+            stale_json.write_text("[]", encoding="utf8")
+
+            with self.assertRaises(SystemExit) as context:
+                self._check(temp_dir)
+            self.assertIn("bugs.json", str(context.exception))
 
     def test_assigns_next_free_uid(self):
         with tempfile.TemporaryDirectory() as temp_dir:
