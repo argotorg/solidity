@@ -49,8 +49,10 @@ def released_versions(changelog_path):
 
 
 def version_being_released(changelog_path, cmake_path):
-    """The version from CMakeLists.txt if it already has a release date in the
-    Changelog, i.e. if a release is being made, and None otherwise."""
+    """
+    The version from CMakeLists.txt if it already has a release date in the
+    Changelog, i.e. if a release is being made, and None otherwise.
+    """
     dated_versions = released_versions(changelog_path)
     project_version_match = re.search(
         r'set\(PROJECT_VERSION "(\d+\.\d+\.\d+)"\)',
@@ -65,8 +67,10 @@ def version_being_released(changelog_path, cmake_path):
 
 
 def assign_uids(yaml_text, bugs):
-    """Fill in the next free uid of the current year for every entry with an
-    empty "uid" field."""
+    """
+    Fill in the next free uid of the current year for every entry with an
+    empty "uid" field.
+    """
     year = datetime.now(timezone.utc).year
     last_sequence = max((
         int(match.group(1))
@@ -88,8 +92,10 @@ def update_bugs(
     changelog_path=CHANGELOG,
     cmake_path=CMAKE_LISTS,
 ):
-    """Assign uids and resolve released fixes in the YAML source, then
-    generate the JSON bug list from it and return the generated list."""
+    """
+    Assign uids and resolve released fixes in the YAML source, then
+    generate the JSON bug list from it and return the generated list.
+    """
     yaml_text = input_path.read_text(encoding="utf8")
     bugs = yaml.safe_load(yaml_text)
 
