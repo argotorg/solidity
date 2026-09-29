@@ -35,7 +35,6 @@
                 ],
                 "declarations": [
                   {
-                    "constant": false,
                     "id": 4,
                     "mutability": "mutable",
                     "name": "a",
@@ -70,13 +69,13 @@
                   },
                   "id": 7,
                   "isLValue": false,
-                  "isPure": true,
+                  "isRuntimeConstant": true,
                   "lValueRequested": false,
                   "leftExpression": {
                     "hexValue": "32",
                     "id": 5,
                     "isLValue": false,
-                    "isPure": true,
+                    "isRuntimeConstant": true,
                     "kind": "number",
                     "lValueRequested": false,
                     "nodeType": "Literal",
@@ -93,7 +92,7 @@
                     "hexValue": "33",
                     "id": 6,
                     "isLValue": false,
-                    "isPure": true,
+                    "isRuntimeConstant": true,
                     "kind": "number",
                     "lValueRequested": false,
                     "nodeType": "Literal",

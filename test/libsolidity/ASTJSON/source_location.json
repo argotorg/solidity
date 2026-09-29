@@ -35,7 +35,6 @@
                 ],
                 "declarations": [
                   {
-                    "constant": false,
                     "id": 4,
                     "mutability": "mutable",
                     "name": "x",
@@ -67,7 +66,7 @@
                   "hexValue": "32",
                   "id": 5,
                   "isLValue": false,
-                  "isPure": true,
+                  "isRuntimeConstant": true,
                   "kind": "number",
                   "lValueRequested": false,
                   "nodeType": "Literal",
@@ -85,7 +84,7 @@
                 "expression": {
                   "id": 8,
                   "isLValue": false,
-                  "isPure": false,
+                  "isRuntimeConstant": false,
                   "lValueRequested": false,
                   "nodeType": "UnaryOperation",
                   "operator": "++",

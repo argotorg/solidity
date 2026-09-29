@@ -8,4 +8,4 @@ contract A {
     bytes constant fCallA = abi.encodeCall(A.f, (getA()));
 }
 // ----
-// TypeError 8349: (151-180): Initial value for constant variable has to be compile-time constant.
+// TypeError 8349: (151-180): Initial value for constant variable has to be a constant expression.

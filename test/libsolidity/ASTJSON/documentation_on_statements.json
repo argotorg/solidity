@@ -24,7 +24,6 @@
       "nodeType": "ContractDefinition",
       "nodes": [
         {
-          "constant": false,
           "id": 2,
           "mutability": "mutable",
           "name": "a",
@@ -66,7 +65,7 @@
                       "expression": {
                         "id": 19,
                         "isLValue": false,
-                        "isPure": false,
+                        "isRuntimeConstant": false,
                         "lValueRequested": false,
                         "leftHandSide": {
                           "id": 17,
@@ -86,7 +85,7 @@
                           "hexValue": "32",
                           "id": 18,
                           "isLValue": false,
-                          "isPure": true,
+                          "isRuntimeConstant": true,
                           "kind": "number",
                           "lValueRequested": false,
                           "nodeType": "Literal",
@@ -116,7 +115,7 @@
                   },
                   "id": 13,
                   "isLValue": false,
-                  "isPure": false,
+                  "isRuntimeConstant": false,
                   "lValueRequested": false,
                   "leftExpression": {
                     "id": 11,
@@ -136,7 +135,7 @@
                     "hexValue": "3230",
                     "id": 12,
                     "isLValue": false,
-                    "isPure": true,
+                    "isRuntimeConstant": true,
                     "kind": "number",
                     "lValueRequested": false,
                     "nodeType": "Literal",
@@ -160,7 +159,6 @@
                   ],
                   "declarations": [
                     {
-                      "constant": false,
                       "id": 8,
                       "mutability": "mutable",
                       "name": "i",
@@ -192,7 +190,7 @@
                     "hexValue": "30",
                     "id": 9,
                     "isLValue": false,
-                    "isPure": true,
+                    "isRuntimeConstant": true,
                     "kind": "number",
                     "lValueRequested": false,
                     "nodeType": "Literal",
@@ -211,7 +209,7 @@
                   "expression": {
                     "id": 15,
                     "isLValue": false,
-                    "isPure": false,
+                    "isRuntimeConstant": false,
                     "lValueRequested": false,
                     "nodeType": "UnaryOperation",
                     "operator": "++",
@@ -280,7 +278,6 @@
             "nodeType": "ParameterList",
             "parameters": [
               {
-                "constant": false,
                 "id": 5,
                 "mutability": "mutable",
                 "name": "x",

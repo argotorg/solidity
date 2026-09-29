@@ -66,7 +66,6 @@
             ],
             "declarations": [
               {
-                "constant": false,
                 "id": 9,
                 "mutability": "mutable",
                 "name": "a",
@@ -113,7 +112,6 @@
             ],
             "declarations": [
               {
-                "constant": false,
                 "id": 13,
                 "mutability": "mutable",
                 "name": "b",
@@ -234,7 +232,6 @@
           }
         },
         {
-          "constant": false,
           "functionSelector": "97682884",
           "id": 26,
           "mutability": "mutable",

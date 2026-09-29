@@ -48,7 +48,6 @@
             {
               "attributes":
               {
-                "constant": false,
                 "mutability": "mutable",
                 "name": "x",
                 "scope": 3,
@@ -82,7 +81,6 @@
         {
           "attributes":
           {
-            "constant": false,
             "mutability": "mutable",
             "name": "s",
             "scope": 12,

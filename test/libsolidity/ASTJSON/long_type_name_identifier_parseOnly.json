@@ -14,7 +14,6 @@
       "nodeType": "ContractDefinition",
       "nodes": [
         {
-          "constant": false,
           "id": 3,
           "mutability": "mutable",
           "name": "a",
@@ -51,7 +50,6 @@
                 ],
                 "declarations": [
                   {
-                    "constant": false,
                     "id": 10,
                     "mutability": "mutable",
                     "name": "b",

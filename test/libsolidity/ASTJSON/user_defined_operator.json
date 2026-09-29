@@ -108,7 +108,6 @@
         "nodeType": "ParameterList",
         "parameters": [
           {
-            "constant": false,
             "id": 10,
             "mutability": "mutable",
             "name": "",
@@ -145,7 +144,6 @@
             "visibility": "internal"
           },
           {
-            "constant": false,
             "id": 13,
             "mutability": "mutable",
             "name": "",
@@ -189,7 +187,6 @@
         "nodeType": "ParameterList",
         "parameters": [
           {
-            "constant": false,
             "id": 17,
             "mutability": "mutable",
             "name": "",
@@ -253,7 +250,6 @@
         "nodeType": "ParameterList",
         "parameters": [
           {
-            "constant": false,
             "id": 23,
             "mutability": "mutable",
             "name": "",
@@ -297,7 +293,6 @@
         "nodeType": "ParameterList",
         "parameters": [
           {
-            "constant": false,
             "id": 27,
             "mutability": "mutable",
             "name": "",
@@ -372,13 +367,13 @@
                   "function": 20,
                   "id": 45,
                   "isLValue": false,
-                  "isPure": false,
+                  "isRuntimeConstant": false,
                   "lValueRequested": false,
                   "leftExpression": {
                     "function": 30,
                     "id": 43,
                     "isLValue": false,
-                    "isPure": false,
+                    "isRuntimeConstant": false,
                     "lValueRequested": false,
                     "nodeType": "UnaryOperation",
                     "operator": "-",
@@ -441,7 +436,6 @@
             "nodeType": "ParameterList",
             "parameters": [
               {
-                "constant": false,
                 "id": 33,
                 "mutability": "mutable",
                 "name": "a",
@@ -478,7 +472,6 @@
                 "visibility": "internal"
               },
               {
-                "constant": false,
                 "id": 36,
                 "mutability": "mutable",
                 "name": "b",
@@ -522,7 +515,6 @@
             "nodeType": "ParameterList",
             "parameters": [
               {
-                "constant": false,
                 "id": 40,
                 "mutability": "mutable",
                 "name": "",

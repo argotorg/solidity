@@ -19,7 +19,6 @@
       "id": 8,
       "members": [
         {
-          "constant": false,
           "id": 3,
           "mutability": "mutable",
           "name": "text",
@@ -46,7 +45,6 @@
           "visibility": "internal"
         },
         {
-          "constant": false,
           "id": 5,
           "mutability": "mutable",
           "name": "valid",
@@ -73,7 +71,6 @@
           "visibility": "internal"
         },
         {
-          "constant": false,
           "id": 7,
           "mutability": "mutable",
           "name": "value",

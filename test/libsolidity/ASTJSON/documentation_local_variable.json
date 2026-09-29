@@ -35,7 +35,6 @@
                 ],
                 "declarations": [
                   {
-                    "constant": false,
                     "id": 5,
                     "mutability": "mutable",
                     "name": "x",
@@ -68,7 +67,7 @@
                   "hexValue": "31",
                   "id": 6,
                   "isLValue": false,
-                  "isPure": true,
+                  "isRuntimeConstant": true,
                   "kind": "number",
                   "lValueRequested": false,
                   "nodeType": "Literal",
@@ -94,7 +93,6 @@
                       ],
                       "declarations": [
                         {
-                          "constant": false,
                           "id": 21,
                           "mutability": "mutable",
                           "name": "j",
@@ -127,7 +125,7 @@
                         "hexValue": "30",
                         "id": 22,
                         "isLValue": false,
-                        "isPure": true,
+                        "isRuntimeConstant": true,
                         "kind": "number",
                         "lValueRequested": false,
                         "nodeType": "Literal",
@@ -150,7 +148,7 @@
                   },
                   "id": 15,
                   "isLValue": false,
-                  "isPure": false,
+                  "isRuntimeConstant": false,
                   "lValueRequested": false,
                   "leftExpression": {
                     "id": 13,
@@ -170,7 +168,7 @@
                     "hexValue": "3130",
                     "id": 14,
                     "isLValue": false,
-                    "isPure": true,
+                    "isRuntimeConstant": true,
                     "kind": "number",
                     "lValueRequested": false,
                     "nodeType": "Literal",
@@ -194,7 +192,6 @@
                   ],
                   "declarations": [
                     {
-                      "constant": false,
                       "id": 10,
                       "mutability": "mutable",
                       "name": "i",
@@ -226,7 +223,7 @@
                     "hexValue": "30",
                     "id": 11,
                     "isLValue": false,
-                    "isPure": true,
+                    "isRuntimeConstant": true,
                     "kind": "number",
                     "lValueRequested": false,
                     "nodeType": "Literal",
@@ -245,7 +242,7 @@
                   "expression": {
                     "id": 17,
                     "isLValue": false,
-                    "isPure": false,
+                    "isRuntimeConstant": false,
                     "lValueRequested": false,
                     "nodeType": "UnaryOperation",
                     "operator": "++",
@@ -323,7 +320,6 @@
             "nodeType": "ParameterList",
             "parameters": [
               {
-                "constant": false,
                 "id": 30,
                 "mutability": "mutable",
                 "name": "param1",
@@ -350,7 +346,6 @@
                 "visibility": "internal"
               },
               {
-                "constant": false,
                 "id": 33,
                 "mutability": "mutable",
                 "name": "param2",
@@ -377,7 +372,6 @@
                 "visibility": "internal"
               },
               {
-                "constant": false,
                 "id": 36,
                 "mutability": "mutable",
                 "name": "param3",

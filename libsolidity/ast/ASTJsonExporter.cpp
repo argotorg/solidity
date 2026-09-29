@@ -174,7 +174,7 @@ void ASTJsonExporter::appendExpressionAttributes(
 	};
 
 	addIfSet(exprAttributes, "isLValue", _annotation.isLValue);
-	addIfSet(exprAttributes, "isPure", _annotation.isPure);
+	addIfSet(exprAttributes, "isRuntimeConstant", _annotation.isRuntimeConstant);
 
 	if (m_stackState > CompilerStack::State::ParsedAndImported)
 		exprAttributes.emplace_back("lValueRequested", _annotation.willBeWrittenTo);
@@ -507,7 +507,6 @@ bool ASTJsonExporter::visit(VariableDeclaration const& _node)
 		std::make_pair("name", _node.name()),
 		std::make_pair("nameLocation", sourceLocationToString(_node.nameLocation())),
 		std::make_pair("typeName", toJson(_node.typeName())),
-		std::make_pair("constant", _node.isConstant()),
 		std::make_pair("mutability", VariableDeclaration::mutabilityToString(_node.mutability())),
 		std::make_pair("stateVariable", _node.isStateVariable()),
 		std::make_pair("storageLocation", location(_node.referenceLocation())),

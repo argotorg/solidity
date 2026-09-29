@@ -45,7 +45,6 @@
             "nodeType": "ParameterList",
             "parameters": [
               {
-                "constant": false,
                 "id": 2,
                 "mutability": "mutable",
                 "name": "",
@@ -141,7 +140,7 @@
                   "hexValue": "32",
                   "id": 12,
                   "isLValue": false,
-                  "isPure": true,
+                  "isRuntimeConstant": true,
                   "kind": "number",
                   "lValueRequested": false,
                   "nodeType": "Literal",

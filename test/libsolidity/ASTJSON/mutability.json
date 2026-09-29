@@ -24,7 +24,6 @@
       "nodeType": "ContractDefinition",
       "nodes": [
         {
-          "constant": false,
           "functionSelector": "0dbe671f",
           "id": 3,
           "mutability": "immutable",
@@ -53,7 +52,7 @@
             "hexValue": "34",
             "id": 2,
             "isLValue": false,
-            "isPure": true,
+            "isRuntimeConstant": true,
             "kind": "number",
             "lValueRequested": false,
             "nodeType": "Literal",
@@ -67,7 +66,6 @@
           "visibility": "public"
         },
         {
-          "constant": true,
           "functionSelector": "4df7e3d0",
           "id": 6,
           "mutability": "constant",
@@ -96,7 +94,7 @@
             "hexValue": "32",
             "id": 5,
             "isLValue": false,
-            "isPure": true,
+            "isRuntimeConstant": true,
             "kind": "number",
             "lValueRequested": false,
             "nodeType": "Literal",
@@ -110,7 +108,6 @@
           "visibility": "public"
         },
         {
-          "constant": false,
           "functionSelector": "c3da42b8",
           "id": 9,
           "mutability": "mutable",
@@ -139,7 +136,7 @@
             "hexValue": "33",
             "id": 8,
             "isLValue": false,
-            "isPure": true,
+            "isRuntimeConstant": true,
             "kind": "number",
             "lValueRequested": false,
             "nodeType": "Literal",

@@ -17,7 +17,6 @@
           "id": 3,
           "members": [
             {
-              "constant": false,
               "id": 2,
               "mutability": "mutable",
               "name": "x",
@@ -44,7 +43,6 @@
           "visibility": "public"
         },
         {
-          "constant": false,
           "id": 6,
           "mutability": "mutable",
           "name": "s",

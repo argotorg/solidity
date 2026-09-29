@@ -24,7 +24,6 @@
       "nodeType": "ContractDefinition",
       "nodes": [
         {
-          "constant": false,
           "functionSelector": "97682884",
           "id": 4,
           "mutability": "mutable",
@@ -87,7 +86,6 @@
                 ],
                 "declarations": [
                   {
-                    "constant": false,
                     "id": 12,
                     "mutability": "mutable",
                     "name": "a",
@@ -143,7 +141,7 @@
                     }
                   },
                   "isLValue": true,
-                  "isPure": false,
+                  "isRuntimeConstant": false,
                   "lValueRequested": false,
                   "nodeType": "IndexAccess",
                   "src": "164:6:1",
@@ -159,7 +157,7 @@
                 "expression": {
                   "id": 19,
                   "isLValue": false,
-                  "isPure": false,
+                  "isRuntimeConstant": false,
                   "lValueRequested": false,
                   "leftHandSide": {
                     "id": 17,
@@ -203,7 +201,6 @@
                 ],
                 "declarations": [
                   {
-                    "constant": false,
                     "id": 22,
                     "mutability": "mutable",
                     "name": "c",
@@ -256,7 +253,7 @@
                     ],
                     "id": 24,
                     "isLValue": false,
-                    "isPure": true,
+                    "isRuntimeConstant": true,
                     "lValueRequested": false,
                     "nodeType": "ElementaryTypeNameExpression",
                     "src": "209:7:1",
@@ -274,7 +271,7 @@
                   },
                   "id": 26,
                   "isLValue": false,
-                  "isPure": false,
+                  "isRuntimeConstant": false,
                   "kind": "typeConversion",
                   "lValueRequested": false,
                   "nameLocations": [],
@@ -294,7 +291,7 @@
                 "expression": {
                   "id": 35,
                   "isLValue": false,
-                  "isPure": false,
+                  "isRuntimeConstant": false,
                   "lValueRequested": false,
                   "leftHandSide": {
                     "baseExpression": {
@@ -323,7 +320,7 @@
                       }
                     },
                     "isLValue": true,
-                    "isPure": false,
+                    "isRuntimeConstant": false,
                     "lValueRequested": true,
                     "nodeType": "IndexAccess",
                     "src": "232:4:1",
@@ -340,7 +337,7 @@
                         "hexValue": "30",
                         "id": 33,
                         "isLValue": false,
-                        "isPure": true,
+                        "isRuntimeConstant": true,
                         "kind": "number",
                         "lValueRequested": false,
                         "nodeType": "Literal",
@@ -361,7 +358,7 @@
                       ],
                       "id": 32,
                       "isLValue": false,
-                      "isPure": true,
+                      "isRuntimeConstant": true,
                       "lValueRequested": false,
                       "nodeType": "ElementaryTypeNameExpression",
                       "src": "239:8:1",
@@ -380,7 +377,7 @@
                     },
                     "id": 34,
                     "isLValue": false,
-                    "isPure": true,
+                    "isRuntimeConstant": true,
                     "kind": "typeConversion",
                     "lValueRequested": false,
                     "nameLocations": [],
@@ -418,7 +415,6 @@
             "nodeType": "ParameterList",
             "parameters": [
               {
-                "constant": false,
                 "id": 6,
                 "mutability": "mutable",
                 "name": "arg",
@@ -453,7 +449,6 @@
             "nodeType": "ParameterList",
             "parameters": [
               {
-                "constant": false,
                 "id": 9,
                 "mutability": "mutable",
                 "name": "r",

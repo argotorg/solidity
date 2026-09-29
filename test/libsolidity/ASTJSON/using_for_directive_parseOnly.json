@@ -62,7 +62,6 @@
         "nodeType": "ParameterList",
         "parameters": [
           {
-            "constant": false,
             "id": 6,
             "mutability": "mutable",
             "name": "",

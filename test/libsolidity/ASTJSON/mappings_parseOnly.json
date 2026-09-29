@@ -44,7 +44,6 @@
           "src": "17:18:1"
         },
         {
-          "constant": false,
           "id": 9,
           "mutability": "mutable",
           "name": "a",
@@ -89,7 +88,6 @@
           "visibility": "internal"
         },
         {
-          "constant": false,
           "id": 13,
           "mutability": "mutable",
           "name": "b",
@@ -126,7 +124,6 @@
           "visibility": "internal"
         },
         {
-          "constant": false,
           "id": 18,
           "mutability": "mutable",
           "name": "c",
@@ -171,7 +168,6 @@
           "visibility": "internal"
         },
         {
-          "constant": false,
           "id": 22,
           "mutability": "mutable",
           "name": "d",

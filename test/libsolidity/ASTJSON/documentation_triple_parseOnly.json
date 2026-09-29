@@ -14,7 +14,6 @@
       "nodeType": "ContractDefinition",
       "nodes": [
         {
-          "constant": false,
           "id": 3,
           "mutability": "mutable",
           "name": "a",
@@ -110,7 +109,6 @@
                   ],
                   "declarations": [
                     {
-                      "constant": false,
                       "id": 9,
                       "mutability": "mutable",
                       "name": "i",
@@ -201,7 +199,6 @@
             "nodeType": "ParameterList",
             "parameters": [
               {
-                "constant": false,
                 "id": 6,
                 "mutability": "mutable",
                 "name": "x",

@@ -18,7 +18,7 @@ interface I {
     B4 constant W = ~B4.wrap(0x12345678);
 }
 // ----
-// TypeError 8349: (169-210): Initial value for constant variable has to be compile-time constant.
-// TypeError 8349: (246-287): Initial value for constant variable has to be compile-time constant.
-// TypeError 8349: (324-344): Initial value for constant variable has to be compile-time constant.
-// TypeError 8349: (383-403): Initial value for constant variable has to be compile-time constant.
+// TypeError 8349: (169-210): Initial value for constant variable has to be a constant expression.
+// TypeError 8349: (246-287): Initial value for constant variable has to be a constant expression.
+// TypeError 8349: (324-344): Initial value for constant variable has to be a constant expression.
+// TypeError 8349: (383-403): Initial value for constant variable has to be a constant expression.

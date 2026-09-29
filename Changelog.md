@@ -4,11 +4,14 @@ Language Features:
 
 Compiler Features:
 * AST: Remove the ``isConstant`` field of expressions from the JSON AST. It was always ``false``.
+* AST: Remove the ``constant`` field of variable declarations from the JSON AST. Use ``mutability`` instead.
+* AST: Rename the ``isPure`` field of expressions in the JSON AST to ``isRuntimeConstant``. It marks expressions that can be used to initialize ``constant`` variables, not ``pure`` ones.
 * Commandline Interface: Remove the experimental `--yul-cfg-json` output.
 * Commandline Interface: Selecting an ethdebug output no longer implicitly enables the `ethdebug` and `ast-id` components of `--debug-info`; without `ethdebug` in the selection the `--ethdebug-program` and `--ethdebug-program-runtime` outputs carry no semantic debug info.
 * Standard JSON Interface: Remove the experimental `yulCFGJson` output.
 * Standard JSON Interface: Selecting an ethdebug output no longer implicitly enables the `ethdebug` and `ast-id` components of `settings.debug.debugInfo`; without `ethdebug` in the selection the `evm.bytecode.ethdebug` and `evm.deployedBytecode.ethdebug` outputs carry no semantic debug info.
 * Yul Optimizer: Improve performance of `DataFlowAnalyzer` using flat hash containers.
+* Type Checker: Say that the initial value of a constant variable has to be a constant expression rather than a compile-time constant, since it may be evaluated at runtime.
 
 Bugfixes:
 * Parser: Fix inverted version pragma range comparison for components in the range [2**31, 2**32).

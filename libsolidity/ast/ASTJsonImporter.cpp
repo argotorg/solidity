@@ -585,20 +585,13 @@ ASTPointer<VariableDeclaration> ASTJsonImporter::createVariableDeclaration(Json 
 	astAssert(member(_node, "mutability").is_string(), "'mutability' expected to be string.");
 	std::string const mutabilityStr = member(_node, "mutability").get<std::string>();
 	if (mutabilityStr == "constant")
-	{
 		mutability = VariableDeclaration::Mutability::Constant;
-		astAssert(memberAsBool(_node, "constant"));
-	}
+	else if (mutabilityStr == "mutable")
+		mutability = VariableDeclaration::Mutability::Mutable;
+	else if (mutabilityStr == "immutable")
+		mutability = VariableDeclaration::Mutability::Immutable;
 	else
-	{
-		astAssert(!memberAsBool(_node, "constant"));
-		if (mutabilityStr == "mutable")
-			mutability = VariableDeclaration::Mutability::Mutable;
-		else if (mutabilityStr == "immutable")
-			mutability = VariableDeclaration::Mutability::Immutable;
-		else
-			astAssert(false);
-	}
+		astAssert(false);
 
 	return createASTNode<VariableDeclaration>(
 		_node,

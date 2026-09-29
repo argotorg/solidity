@@ -71,7 +71,6 @@
                 {
                   "attributes":
                   {
-                    "constant": false,
                     "mutability": "mutable",
                     "name": "x",
                     "scope": 7,

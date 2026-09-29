@@ -24,7 +24,6 @@
             "nodeType": "ParameterList",
             "parameters": [
               {
-                "constant": false,
                 "id": 2,
                 "indexed": true,
                 "mutability": "mutable",
@@ -133,7 +132,6 @@
             "nodeType": "ParameterList",
             "parameters": [
               {
-                "constant": false,
                 "id": 7,
                 "mutability": "mutable",
                 "name": "sender",

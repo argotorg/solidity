@@ -7,7 +7,7 @@ contract C {
     bytes32 constant d = keccak256(abi.encodeWithSignature("f()", 1, k));
 }
 // ----
-// TypeError 8349: (55-82): Initial value for constant variable has to be compile-time constant.
-// TypeError 8349: (109-148): Initial value for constant variable has to be compile-time constant.
-// TypeError 8349: (175-226): Initial value for constant variable has to be compile-time constant.
-// TypeError 8349: (253-300): Initial value for constant variable has to be compile-time constant.
+// TypeError 8349: (55-82): Initial value for constant variable has to be a constant expression.
+// TypeError 8349: (109-148): Initial value for constant variable has to be a constant expression.
+// TypeError 8349: (175-226): Initial value for constant variable has to be a constant expression.
+// TypeError 8349: (253-300): Initial value for constant variable has to be a constant expression.

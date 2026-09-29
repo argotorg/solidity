@@ -495,11 +495,11 @@ bool TypeChecker::visit(VariableDeclaration const& _variable)
 	{
 		if (!_variable.value())
 			m_errorReporter.typeError(4266_error, _variable.location(), "Uninitialized \"constant\" variable.");
-		else if (!*_variable.value()->annotation().isPure)
+		else if (!*_variable.value()->annotation().isRuntimeConstant)
 			m_errorReporter.typeError(
 				8349_error,
 				_variable.value()->location(),
-				"Initial value for constant variable has to be compile-time constant."
+				"Initial value for constant variable has to be a constant expression."
 			);
 	}
 	else if (_variable.immutable())
@@ -1407,10 +1407,10 @@ bool TypeChecker::visit(Conditional const& _conditional)
 	}
 
 	_conditional.annotation().type = commonType;
-	_conditional.annotation().isPure =
-		*_conditional.condition().annotation().isPure &&
-		*_conditional.trueExpression().annotation().isPure &&
-		*_conditional.falseExpression().annotation().isPure;
+	_conditional.annotation().isRuntimeConstant =
+		*_conditional.condition().annotation().isRuntimeConstant &&
+		*_conditional.trueExpression().annotation().isRuntimeConstant &&
+		*_conditional.falseExpression().annotation().isRuntimeConstant;
 
 	_conditional.annotation().isLValue = false;
 
@@ -1463,7 +1463,7 @@ bool TypeChecker::visit(Assignment const& _assignment)
 	requireLValue(_assignment.leftHandSide());
 	Type const* t = type(_assignment.leftHandSide());
 	_assignment.annotation().type = t;
-	_assignment.annotation().isPure = false;
+	_assignment.annotation().isRuntimeConstant = false;
 	_assignment.annotation().isLValue = false;
 
 	checkExpressionAssignment(*t, _assignment.leftHandSide());
@@ -1530,11 +1530,11 @@ bool TypeChecker::visit(TupleExpression const& _tuple)
 			_tuple.annotation().type = TypeProvider::tuple(std::move(types));
 		// If some of the components are not LValues, the error is reported above.
 		_tuple.annotation().isLValue = true;
-		_tuple.annotation().isPure = false;
+		_tuple.annotation().isRuntimeConstant = false;
 	}
 	else
 	{
-		bool isPure = true;
+		bool isRuntimeConstant = true;
 		Type const* inlineArrayType = nullptr;
 
 		for (size_t i = 0; i < components.size(); ++i)
@@ -1570,10 +1570,10 @@ bool TypeChecker::visit(TupleExpression const& _tuple)
 				else if (inlineArrayType)
 					inlineArrayType = Type::commonType(inlineArrayType, types[i]);
 			}
-			if (!*components[i]->annotation().isPure)
-				isPure = false;
+			if (!*components[i]->annotation().isRuntimeConstant)
+				isRuntimeConstant = false;
 		}
-		_tuple.annotation().isPure = isPure;
+		_tuple.annotation().isRuntimeConstant = isRuntimeConstant;
 		if (_tuple.isInlineArray())
 		{
 			if (!inlineArrayType)
@@ -1670,10 +1670,10 @@ bool TypeChecker::visit(UnaryOperation const& _operation)
 		// first one - in valid code there will be only one anyway.
 		resultType = _operation.userDefinedFunctionType()->returnParameterTypes()[0];
 	_operation.annotation().type = resultType;
-	_operation.annotation().isPure =
+	_operation.annotation().isRuntimeConstant =
 		!modifying &&
-		*_operation.subExpression().annotation().isPure &&
-		(!_operation.userDefinedFunctionType() || _operation.userDefinedFunctionType()->isPure());
+		*_operation.subExpression().annotation().isRuntimeConstant &&
+		(!_operation.userDefinedFunctionType() || _operation.userDefinedFunctionType()->isRuntimeConstant());
 	_operation.annotation().isLValue = false;
 
 	return false;
@@ -1768,10 +1768,10 @@ void TypeChecker::endVisit(BinaryOperation const& _operation)
 	}
 
 	_operation.annotation().type = resultType;
-	_operation.annotation().isPure =
-		*_operation.leftExpression().annotation().isPure &&
-		*_operation.rightExpression().annotation().isPure &&
-		(!userDefinedFunctionType || userDefinedFunctionType->isPure());
+	_operation.annotation().isRuntimeConstant =
+		*_operation.leftExpression().annotation().isRuntimeConstant &&
+		*_operation.rightExpression().annotation().isRuntimeConstant &&
+		(!userDefinedFunctionType || userDefinedFunctionType->isRuntimeConstant());
 	_operation.annotation().isLValue = false;
 
 	if (_operation.getOperator() == Token::Equal || _operation.getOperator() == Token::NotEqual)
@@ -2694,14 +2694,14 @@ void TypeChecker::typeCheckFunctionGeneralChecks(
 bool TypeChecker::visit(FunctionCall const& _functionCall)
 {
 	std::vector<ASTPointer<Expression const>> const& arguments = _functionCall.arguments();
-	bool argumentsArePure = true;
+	bool argumentsAreRuntimeConstant = true;
 
 	// We need to check arguments' type first as they will be needed for overload resolution.
 	for (ASTPointer<Expression const> const& argument: arguments)
 	{
 		argument->accept(*this);
-		if (!*argument->annotation().isPure)
-			argumentsArePure = false;
+		if (!*argument->annotation().isRuntimeConstant)
+			argumentsAreRuntimeConstant = false;
 	}
 
 	// Store argument types - and names if given - for overload resolution
@@ -2726,7 +2726,7 @@ bool TypeChecker::visit(FunctionCall const& _functionCall)
 
 	bool isLValue = false;
 
-	// Determine and assign function call kind, lvalue, purity and function type for this FunctionCall node
+	// Determine and assign function call kind, lvalue, runtime constness and function type for this FunctionCall node
 	switch (expressionType->category())
 	{
 	case Type::Category::Function:
@@ -2742,11 +2742,11 @@ bool TypeChecker::visit(FunctionCall const& _functionCall)
 			if (dynamic_cast<FunctionDefinition const*>(identifier->annotation().referencedDeclaration))
 				_functionCall.expression().annotation().calledDirectly = true;
 
-		// Purity for function calls also depends upon the callee and its FunctionType
-		funcCallAnno.isPure =
-			argumentsArePure &&
-			*_functionCall.expression().annotation().isPure &&
-			functionType->isPure();
+		// Runtime constness of function calls also depends upon the callee and its FunctionType
+		funcCallAnno.isRuntimeConstant =
+			argumentsAreRuntimeConstant &&
+			*_functionCall.expression().annotation().isRuntimeConstant &&
+			functionType->isRuntimeConstant();
 
 		if (functionType->kind() == FunctionType::Kind::ArrayPush)
 			isLValue = functionType->parameterTypes().empty();
@@ -2782,7 +2782,7 @@ bool TypeChecker::visit(FunctionCall const& _functionCall)
 			funcCallAnno.kind = FunctionCallKind::TypeConversion;
 		}
 
-		funcCallAnno.isPure = argumentsArePure;
+		funcCallAnno.isRuntimeConstant = argumentsAreRuntimeConstant;
 
 		break;
 	}
@@ -2791,7 +2791,7 @@ bool TypeChecker::visit(FunctionCall const& _functionCall)
 		m_errorReporter.fatalTypeError(5704_error, _functionCall.location(), "This expression is not callable.");
 		// Unreachable, because fatalTypeError throws. We don't set kind, but that's okay because the switch below
 		// is never reached. And, even if it was, SetOnce would trigger an assertion violation and not UB.
-		funcCallAnno.isPure = argumentsArePure;
+		funcCallAnno.isRuntimeConstant = argumentsAreRuntimeConstant;
 		break;
 	}
 
@@ -2891,7 +2891,7 @@ bool TypeChecker::visit(FunctionCallOptions const& _functionCallOptions)
 
 	_functionCallOptions.expression().accept(*this);
 
-	_functionCallOptions.annotation().isPure = false;
+	_functionCallOptions.annotation().isRuntimeConstant = false;
 	_functionCallOptions.annotation().isLValue = false;
 
 	auto expressionFunctionType = dynamic_cast<FunctionType const*>(type(_functionCallOptions.expression()));
@@ -3048,7 +3048,7 @@ void TypeChecker::endVisit(NewExpression const& _newExpression)
 			m_errorReporter.typeError(4614_error, _newExpression.location(), "Cannot instantiate an abstract contract.");
 
 		_newExpression.annotation().type = FunctionType::newExpressionType(*contract);
-		_newExpression.annotation().isPure = false;
+		_newExpression.annotation().isRuntimeConstant = false;
 	}
 	else if (type->category() == Type::Category::Array)
 	{
@@ -3073,11 +3073,11 @@ void TypeChecker::endVisit(NewExpression const& _newExpression)
 			FunctionType::Kind::ObjectCreation,
 			StateMutability::Pure
 		);
-		_newExpression.annotation().isPure = true;
+		_newExpression.annotation().isRuntimeConstant = true;
 	}
 	else
 	{
-		_newExpression.annotation().isPure = false;
+		_newExpression.annotation().isRuntimeConstant = false;
 		m_errorReporter.fatalTypeError(8807_error, _newExpression.location(), "Contract or array type expected.");
 	}
 }
@@ -3330,7 +3330,7 @@ bool TypeChecker::visit(MemberAccess const& _memberAccess)
 		solAssert(owningObjectStructType);
 		_memberAccess.annotation().isLValue =
 			!owningObjectStructType->dataStoredIn(DataLocation::CallData) &&
-			!*_memberAccess.expression().annotation().isPure;
+			!*_memberAccess.expression().annotation().isRuntimeConstant;
 		break;
 	}
 	case Type::Category::Function:
@@ -3344,13 +3344,13 @@ bool TypeChecker::visit(MemberAccess const& _memberAccess)
 			{
 				if (auto const* parentMemberAccess = dynamic_cast<MemberAccess const*>(&_memberAccess.expression()))
 				{
-					bool isPure = *parentMemberAccess->expression().annotation().isPure;
+					bool isRuntimeConstant = *parentMemberAccess->expression().annotation().isRuntimeConstant;
 					// Accessing a function selector using `super|this.f.selector`.
 					if (auto const* exprInt = dynamic_cast<Identifier const*>(&parentMemberAccess->expression()))
 						if (exprInt->name() == "this" || exprInt->name() == "super")
-							isPure = true;
+							isRuntimeConstant = true;
 
-					_memberAccess.annotation().isPure = isPure;
+					_memberAccess.annotation().isRuntimeConstant = isRuntimeConstant;
 				}
 			}
 			// In case of event or error definition, the selector is always compile-time constant, as it can be
@@ -3359,7 +3359,7 @@ bool TypeChecker::visit(MemberAccess const& _memberAccess)
 				dynamic_cast<EventDefinition const*>(&owningObjectFunctionType->declaration()) ||
 				dynamic_cast<ErrorDefinition const*>(&owningObjectFunctionType->declaration())
 			)
-				_memberAccess.annotation().isPure = true;
+				_memberAccess.annotation().isRuntimeConstant = true;
 		}
 
 		_memberAccess.annotation().isLValue = false;
@@ -3376,7 +3376,7 @@ bool TypeChecker::visit(MemberAccess const& _memberAccess)
 		{
 		case Type::Category::Array:
 		{
-			// `concat` purity depends also on its arguments, but this is checked later, in visit(FunctionCall...)
+			// `concat` runtime constness depends also on its arguments, but this is checked later, in visit(FunctionCall...)
 			// This covers `bytes.concat` and `string.concat`.
 			auto const* accessedMemberFunctionType = dynamic_cast<FunctionType const*>(type(_memberAccess));
 			solAssert(accessedMemberFunctionType && (
@@ -3384,7 +3384,7 @@ bool TypeChecker::visit(MemberAccess const& _memberAccess)
 				accessedMemberFunctionType->kind() == FunctionType::Kind::BytesConcat
 			));
 
-			_memberAccess.annotation().isPure = true;
+			_memberAccess.annotation().isRuntimeConstant = true;
 			_memberAccess.annotation().isLValue = false;
 			break;
 		}
@@ -3396,12 +3396,12 @@ bool TypeChecker::visit(MemberAccess const& _memberAccess)
 				accessedMemberFunctionType &&
 				accessedMemberFunctionType->kind() == FunctionType::Kind::Declaration
 			)
-				_memberAccess.annotation().isPure = *_memberAccess.expression().annotation().isPure;
+				_memberAccess.annotation().isRuntimeConstant = *_memberAccess.expression().annotation().isRuntimeConstant;
 			break;
 		}
 		case Type::Category::Enum:
 		case Type::Category::UserDefinedValueType:
-			_memberAccess.annotation().isPure = true;
+			_memberAccess.annotation().isRuntimeConstant = true;
 			_memberAccess.annotation().isLValue = false;
 			break;
 		case Type::Category::Address:
@@ -3474,13 +3474,13 @@ bool TypeChecker::visit(MemberAccess const& _memberAccess)
 			break;
 		}
 		case MagicType::Kind::ABI:
-			_memberAccess.annotation().isPure = true;
+			_memberAccess.annotation().isRuntimeConstant = true;
 			break;
 		case MagicType::Kind::MetaType:
 		{
 			if (memberName == "creationCode" || memberName == "runtimeCode")
 			{
-				_memberAccess.annotation().isPure = true;
+				_memberAccess.annotation().isRuntimeConstant = true;
 				ContractType const& accessedContractType = dynamic_cast<ContractType const&>(*owningObjectMagicType->typeArgument());
 				solAssert(!accessedContractType.isSuper(), "");
 				if (
@@ -3499,7 +3499,7 @@ bool TypeChecker::visit(MemberAccess const& _memberAccess)
 				memberName == "min" ||
 				memberName == "max"
 			)
-				_memberAccess.annotation().isPure = true;
+				_memberAccess.annotation().isRuntimeConstant = true;
 			break;
 		}
 		// Empty cases.
@@ -3513,7 +3513,7 @@ bool TypeChecker::visit(MemberAccess const& _memberAccess)
 		break;
 	}
 	case Type::Category::Module:
-		_memberAccess.annotation().isPure = *_memberAccess.expression().annotation().isPure;
+		_memberAccess.annotation().isRuntimeConstant = *_memberAccess.expression().annotation().isRuntimeConstant;
 		_memberAccess.annotation().isLValue = false;
 		break;
 	case Type::Category::Address:
@@ -3550,18 +3550,18 @@ bool TypeChecker::visit(MemberAccess const& _memberAccess)
 	// We do not want to change the logic in refactor PR.
 	if (
 		auto const* varDecl = dynamic_cast<VariableDeclaration const*>(_memberAccess.annotation().referencedDeclaration);
-		!_memberAccess.annotation().isPure.set() &&
+		!_memberAccess.annotation().isRuntimeConstant.set() &&
 		varDecl &&
 		varDecl->isConstant()
 	)
 	{
 		solAssert(owningObjectType->category() != Type::Category::Magic);
-		_memberAccess.annotation().isPure = true;
+		_memberAccess.annotation().isRuntimeConstant = true;
 	}
 
 
-	if (!_memberAccess.annotation().isPure.set())
-		_memberAccess.annotation().isPure = false;
+	if (!_memberAccess.annotation().isRuntimeConstant.set())
+		_memberAccess.annotation().isRuntimeConstant = false;
 
 	return false;
 }
@@ -3572,7 +3572,7 @@ bool TypeChecker::visit(IndexAccess const& _access)
 	Type const* baseType = type(_access.baseExpression());
 	Type const* resultType = nullptr;
 	bool isLValue = false;
-	bool isPure = *_access.baseExpression().annotation().isPure;
+	bool isRuntimeConstant = *_access.baseExpression().annotation().isRuntimeConstant;
 	Expression const* index = _access.indexExpression();
 	switch (baseType->category())
 	{
@@ -3606,8 +3606,8 @@ bool TypeChecker::visit(IndexAccess const& _access)
 				}
 		}
 		resultType = actualType.baseType();
-		// A pure base is a fresh copy (e.g. a constant), so writing into it would have no effect.
-		isLValue = actualType.location() != DataLocation::CallData && !isPure;
+		// A runtime constant base is a fresh copy (e.g. a constant), so writing into it would have no effect.
+		isLValue = actualType.location() != DataLocation::CallData && !isRuntimeConstant;
 		break;
 	}
 	case Type::Category::Mapping:
@@ -3676,9 +3676,9 @@ bool TypeChecker::visit(IndexAccess const& _access)
 	}
 	_access.annotation().type = resultType;
 	_access.annotation().isLValue = isLValue;
-	if (index && !*index->annotation().isPure)
-		isPure = false;
-	_access.annotation().isPure = isPure;
+	if (index && !*index->annotation().isRuntimeConstant)
+		isRuntimeConstant = false;
+	_access.annotation().isRuntimeConstant = isRuntimeConstant;
 
 	return false;
 }
@@ -3688,23 +3688,23 @@ bool TypeChecker::visit(IndexRangeAccess const& _access)
 	_access.baseExpression().accept(*this);
 
 	bool isLValue = false; // TODO: set this correctly when implementing slices for memory and storage arrays
-	bool isPure = *_access.baseExpression().annotation().isPure;
+	bool isRuntimeConstant = *_access.baseExpression().annotation().isRuntimeConstant;
 
 	if (Expression const* start = _access.startExpression())
 	{
 		expectType(*start, *TypeProvider::uint256());
-		if (!*start->annotation().isPure)
-			isPure = false;
+		if (!*start->annotation().isRuntimeConstant)
+			isRuntimeConstant = false;
 	}
 	if (Expression const* end = _access.endExpression())
 	{
 		expectType(*end, *TypeProvider::uint256());
-		if (!*end->annotation().isPure)
-			isPure = false;
+		if (!*end->annotation().isRuntimeConstant)
+			isRuntimeConstant = false;
 	}
 
 	_access.annotation().isLValue = isLValue;
-	_access.annotation().isPure = isPure;
+	_access.annotation().isRuntimeConstant = isRuntimeConstant;
 
 	Type const* exprType = type(_access.baseExpression());
 	if (exprType->category() == Type::Category::TypeType)
@@ -3847,15 +3847,15 @@ bool TypeChecker::visit(Identifier const& _identifier)
 	annotation.type = annotation.referencedDeclaration->type();
 	solAssert(annotation.type, "Declaration referenced before type could be determined.");
 	if (auto variableDeclaration = dynamic_cast<VariableDeclaration const*>(annotation.referencedDeclaration))
-		annotation.isPure = variableDeclaration->isConstant();
+		annotation.isRuntimeConstant = variableDeclaration->isConstant();
 	else if (dynamic_cast<MagicVariableDeclaration const*>(annotation.referencedDeclaration))
-		annotation.isPure = dynamic_cast<FunctionType const*>(annotation.type);
+		annotation.isRuntimeConstant = dynamic_cast<FunctionType const*>(annotation.type);
 	else if (dynamic_cast<TypeType const*>(annotation.type))
-		annotation.isPure = true;
+		annotation.isRuntimeConstant = true;
 	else if (dynamic_cast<ModuleType const*>(annotation.type))
-		annotation.isPure = true;
+		annotation.isRuntimeConstant = true;
 	else
-		annotation.isPure = false;
+		annotation.isRuntimeConstant = false;
 
 	annotation.requiredLookup =
 		dynamic_cast<CallableDeclaration const*>(annotation.referencedDeclaration) ?
@@ -3927,7 +3927,7 @@ void TypeChecker::endVisit(UserDefinedTypeName const& _userDefinedTypeName)
 void TypeChecker::endVisit(ElementaryTypeNameExpression const& _expr)
 {
 	_expr.annotation().type = TypeProvider::typeType(TypeProvider::fromElementaryTypeName(_expr.type().typeName(), _expr.type().stateMutability()));
-	_expr.annotation().isPure = true;
+	_expr.annotation().isRuntimeConstant = true;
 	_expr.annotation().isLValue = false;
 }
 
@@ -3983,7 +3983,7 @@ void TypeChecker::endVisit(Literal const& _literal)
 	if (!_literal.annotation().type)
 		m_errorReporter.fatalTypeError(2826_error, _literal.location(), "Invalid literal value.");
 
-	_literal.annotation().isPure = true;
+	_literal.annotation().isRuntimeConstant = true;
 	_literal.annotation().isLValue = false;
 }
 
@@ -4335,7 +4335,7 @@ void TypeChecker::requireLValue(Expression const& _expression)
 	_expression.annotation().willBeWrittenTo = true;
 	_expression.accept(*this);
 
-	solAssert(!(*_expression.annotation().isLValue && *_expression.annotation().isPure));
+	solAssert(!(*_expression.annotation().isLValue && *_expression.annotation().isRuntimeConstant));
 	if (*_expression.annotation().isLValue)
 		return;
 
@@ -4380,7 +4380,7 @@ void TypeChecker::requireLValue(Expression const& _expression)
 			(base && isConstantVariableIdentifier(base->annotation()))
 		)
 			return { 6520_error, "Cannot assign to a constant variable." };
-		if (base && *base->annotation().isPure)
+		if (base && *base->annotation().isRuntimeConstant)
 			return { 5986_error, "Cannot modify part of a constant expression." };
 
 		if (auto identifier = dynamic_cast<Identifier const*>(&_expression))

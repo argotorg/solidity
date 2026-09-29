@@ -71,7 +71,6 @@
       "nodeType": "ContractDefinition",
       "nodes": [
         {
-          "constant": false,
           "id": 9,
           "mutability": "mutable",
           "name": "state",

@@ -10,5 +10,5 @@ contract A {
     string public constant abgetName = string.concat("aaaa", "bbbb",getName());
 }
 // ----
-// TypeError 8349: (165-200): Initial value for constant variable has to be compile-time constant.
-// TypeError 8349: (242-281): Initial value for constant variable has to be compile-time constant.
+// TypeError 8349: (165-200): Initial value for constant variable has to be a constant expression.
+// TypeError 8349: (242-281): Initial value for constant variable has to be a constant expression.

@@ -38,7 +38,6 @@
             "nodeType": "ParameterList",
             "parameters": [
               {
-                "constant": false,
                 "id": 2,
                 "indexed": true,
                 "mutability": "mutable",
@@ -118,7 +117,7 @@
                       },
                       "id": 14,
                       "isLValue": false,
-                      "isPure": false,
+                      "isRuntimeConstant": false,
                       "lValueRequested": false,
                       "memberLocation": "129:6:1",
                       "memberName": "sender",
@@ -151,7 +150,7 @@
                     },
                     "id": 12,
                     "isLValue": false,
-                    "isPure": false,
+                    "isRuntimeConstant": false,
                     "lValueRequested": false,
                     "memberLocation": "123:1:1",
                     "memberName": "E",
@@ -165,7 +164,7 @@
                   },
                   "id": 15,
                   "isLValue": false,
-                  "isPure": false,
+                  "isRuntimeConstant": false,
                   "kind": "functionCall",
                   "lValueRequested": false,
                   "nameLocations": [],
@@ -197,7 +196,6 @@
             "nodeType": "ParameterList",
             "parameters": [
               {
-                "constant": false,
                 "id": 7,
                 "mutability": "mutable",
                 "name": "sender",

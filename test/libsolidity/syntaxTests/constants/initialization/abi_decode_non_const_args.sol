@@ -6,4 +6,4 @@ contract A {
     bytes constant a = abi.decode(encoded(), (bytes));
 }
 // ----
-// TypeError 8349: (142-172): Initial value for constant variable has to be compile-time constant.
+// TypeError 8349: (142-172): Initial value for constant variable has to be a constant expression.
