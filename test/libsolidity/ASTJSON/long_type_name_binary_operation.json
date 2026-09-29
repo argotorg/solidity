@@ -35,7 +35,6 @@
                 ],
                 "declarations": [
                   {
-                    "constant": false,
                     "id": 4,
                     "mutability": "mutable",
                     "name": "a",

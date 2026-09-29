@@ -24,7 +24,6 @@
             "nodeType": "ParameterList",
             "parameters": [
               {
-                "constant": false,
                 "id": 4,
                 "indexed": false,
                 "mutability": "mutable",

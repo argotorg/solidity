@@ -35,7 +35,6 @@
                 ],
                 "declarations": [
                   {
-                    "constant": false,
                     "id": 5,
                     "mutability": "mutable",
                     "name": "x",
@@ -94,7 +93,6 @@
                       ],
                       "declarations": [
                         {
-                          "constant": false,
                           "id": 21,
                           "mutability": "mutable",
                           "name": "j",
@@ -194,7 +192,6 @@
                   ],
                   "declarations": [
                     {
-                      "constant": false,
                       "id": 10,
                       "mutability": "mutable",
                       "name": "i",
@@ -323,7 +320,6 @@
             "nodeType": "ParameterList",
             "parameters": [
               {
-                "constant": false,
                 "id": 30,
                 "mutability": "mutable",
                 "name": "param1",
@@ -350,7 +346,6 @@
                 "visibility": "internal"
               },
               {
-                "constant": false,
                 "id": 33,
                 "mutability": "mutable",
                 "name": "param2",
@@ -377,7 +372,6 @@
                 "visibility": "internal"
               },
               {
-                "constant": false,
                 "id": 36,
                 "mutability": "mutable",
                 "name": "param3",

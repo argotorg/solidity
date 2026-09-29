@@ -108,7 +108,6 @@
                         "nodeType": "ContractDefinition",
                         "nodes": [
                             {
-                                "constant": false,
                                 "functionSelector": "0c55699c",
                                 "id": 3,
                                 "mutability": "immutable",

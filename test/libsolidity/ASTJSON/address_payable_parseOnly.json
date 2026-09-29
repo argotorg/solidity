@@ -14,7 +14,6 @@
       "nodeType": "ContractDefinition",
       "nodes": [
         {
-          "constant": false,
           "id": 4,
           "mutability": "mutable",
           "name": "m",
@@ -63,7 +62,6 @@
                 ],
                 "declarations": [
                   {
-                    "constant": false,
                     "id": 12,
                     "mutability": "mutable",
                     "name": "a",
@@ -144,7 +142,6 @@
                 ],
                 "declarations": [
                   {
-                    "constant": false,
                     "id": 22,
                     "mutability": "mutable",
                     "name": "c",
@@ -283,7 +280,6 @@
             "nodeType": "ParameterList",
             "parameters": [
               {
-                "constant": false,
                 "id": 6,
                 "mutability": "mutable",
                 "name": "arg",
@@ -311,7 +307,6 @@
             "nodeType": "ParameterList",
             "parameters": [
               {
-                "constant": false,
                 "id": 9,
                 "mutability": "mutable",
                 "name": "r",

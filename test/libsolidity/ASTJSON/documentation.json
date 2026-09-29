@@ -103,7 +103,6 @@
       "nodeType": "ContractDefinition",
       "nodes": [
         {
-          "constant": false,
           "documentation": {
             "id": 7,
             "nodeType": "StructuredDocumentation",

@@ -42,7 +42,6 @@
           "id": 7,
           "members": [
             {
-              "constant": false,
               "id": 6,
               "mutability": "mutable",
               "name": "s",
@@ -88,7 +87,6 @@
                 ],
                 "declarations": [
                   {
-                    "constant": false,
                     "id": 15,
                     "mutability": "mutable",
                     "name": "E",
@@ -170,7 +168,6 @@
                 ],
                 "declarations": [
                   {
-                    "constant": false,
                     "id": 24,
                     "mutability": "mutable",
                     "name": "c",
@@ -217,7 +214,6 @@
             "nodeType": "ParameterList",
             "parameters": [
               {
-                "constant": false,
                 "id": 10,
                 "mutability": "mutable",
                 "name": "e",

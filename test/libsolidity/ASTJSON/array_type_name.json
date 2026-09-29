@@ -24,7 +24,6 @@
       "nodeType": "ContractDefinition",
       "nodes": [
         {
-          "constant": false,
           "id": 3,
           "mutability": "mutable",
           "name": "i",

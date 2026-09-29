@@ -136,7 +136,6 @@
       "nodeType": "ContractDefinition",
       "nodes": [
         {
-          "constant": false,
           "id": 13,
           "mutability": "mutable",
           "name": "c",

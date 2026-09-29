@@ -24,7 +24,6 @@
       "nodeType": "ContractDefinition",
       "nodes": [
         {
-          "constant": false,
           "functionSelector": "0dbe671f",
           "id": 3,
           "mutability": "immutable",
@@ -67,7 +66,6 @@
           "visibility": "public"
         },
         {
-          "constant": true,
           "functionSelector": "4df7e3d0",
           "id": 6,
           "mutability": "constant",
@@ -110,7 +108,6 @@
           "visibility": "public"
         },
         {
-          "constant": false,
           "functionSelector": "c3da42b8",
           "id": 9,
           "mutability": "mutable",

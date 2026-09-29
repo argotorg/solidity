@@ -23,7 +23,6 @@
         "nodeType": "ParameterList",
         "parameters": [
           {
-            "constant": false,
             "id": 2,
             "mutability": "mutable",
             "name": "msg",
@@ -80,7 +79,6 @@
             "nodeType": "ParameterList",
             "parameters": [
               {
-                "constant": false,
                 "id": 6,
                 "mutability": "mutable",
                 "name": "msg",
@@ -173,7 +171,6 @@
             "nodeType": "ParameterList",
             "parameters": [
               {
-                "constant": false,
                 "id": 13,
                 "mutability": "mutable",
                 "name": "msg",

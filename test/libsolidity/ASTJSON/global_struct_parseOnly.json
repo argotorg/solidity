@@ -7,7 +7,6 @@
       "id": 3,
       "members": [
         {
-          "constant": false,
           "id": 2,
           "mutability": "mutable",
           "name": "a",
