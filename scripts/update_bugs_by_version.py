@@ -83,7 +83,7 @@ def assign_uids(yaml_text, bugs):
     )
     sequence = itertools.count(last_sequence + 1)
     return re.sub(
-        r"^- uid:[ \t]*$",
+        r"^-[ \t]+uid:[ \t]*$",
         lambda _: f"- uid: SOL-{year}-{next(sequence)}",
         yaml_text,
         flags=re.MULTILINE,
@@ -106,7 +106,12 @@ def update_bugs(
     new_text = assign_uids(yaml_text, bugs)
     release = version_being_released(changelog_path, cmake_path)
     if release is not None:
-        new_text = re.sub(r"^(  fixed:) next$", rf"\g<1> {release}", new_text, flags=re.MULTILINE)
+        new_text = re.sub(
+            r"^([ \t]+fixed:)[ \t]*next[ \t]*$",
+            rf"\g<1> {release}",
+            new_text,
+            flags=re.MULTILINE,
+        )
     if new_text != yaml_text:
         input_path.write_text(new_text, encoding="utf8")
         bugs = yaml.safe_load(new_text)

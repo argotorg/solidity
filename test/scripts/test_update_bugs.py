@@ -127,6 +127,15 @@ class UpdateBugsTest(unittest.TestCase):
             self.assertEqual(generated[0]["fixed"], "0.9.2")
             self.assertEqual(notes, "")
 
+    def test_tolerates_whitespace_in_edited_lines(self):
+        yaml_variant = BUGS_YAML.replace("- uid:\n", "- uid:  \n").replace("  fixed: next\n", "  fixed:   next  \n")
+        with tempfile.TemporaryDirectory() as temp_dir:
+            yaml_text, generated, _, _ = self._update(temp_dir, CHANGELOG_AT_RELEASE, yaml_variant)
+
+            self.assertIn(f"- uid: SOL-{YEAR}-3", yaml_text)
+            self.assertIn("fixed: 0.9.2", yaml_text)
+            self.assertEqual(generated[0]["fixed"], "0.9.2")
+
     def test_missing_fixed_is_an_error(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             with self.assertRaises(SystemExit):
