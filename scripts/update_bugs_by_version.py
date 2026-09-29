@@ -61,7 +61,7 @@ def version_being_released(changelog_path, cmake_path):
     if project_version_match is None:
         sys.exit(f"Could not find PROJECT_VERSION in {cmake_path}.")
     project_version = project_version_match.group(1)
-    if dated_versions and max(dated_versions, key=comp) == project_version:
+    if len(dated_versions) != 0 and max(dated_versions, key=comp) == project_version:
         return project_version
     return None
 
@@ -117,7 +117,7 @@ def update_bugs(
             sys.exit(f'Missing "fixed" version for {bug["uid"]}. Use "next" for a fix that is not released yet.')
 
     pending_bugs = [bug["uid"] for bug in bugs if bug["fixed"] == "next"]
-    if pending_bugs:
+    if len(pending_bugs) != 0:
         print(
             "NOTE: bug list entries pending a release, not published yet: " + ", ".join(pending_bugs),
             file=sys.stderr,
