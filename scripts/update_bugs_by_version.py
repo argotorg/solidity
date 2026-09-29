@@ -72,11 +72,14 @@ def assign_uids(yaml_text, bugs):
     empty "uid" field.
     """
     year = datetime.now(timezone.utc).year
-    last_sequence = max((
-        int(match.group(1))
+    uid_matches = (
+        re.match(rf"^SOL-{year}-(\d+)$", bug.get("uid") or "")
         for bug in bugs
-        if (match := re.match(rf"^SOL-{year}-(\d+)$", bug.get("uid") or ""))
-    ), default=0)
+    )
+    last_sequence = max(
+        (int(match.group(1)) for match in uid_matches if match is not None),
+        default=0,
+    )
     sequence = itertools.count(last_sequence + 1)
     return re.sub(
         r"^- uid:[ \t]*$",
