@@ -1479,9 +1479,8 @@ public:
 		return *m_declaration;
 	}
 	bool hasDeclaration() const { return !!m_declaration; }
-	/// @returns true if calling this function with runtime constant arguments is a runtime constant,
-	/// i.e. can be used to initialize a constant variable.
-	/// Only true for some builtins like keccak256 and abi.encode, never for user-defined functions.
+	/// @returns true if calls to this function with runtime constant arguments are allowed
+	/// in constant variable initializers. Currently only true for a fixed set of builtins.
 	bool isRuntimeConstant() const;
 	bool isPayable() const { return m_stateMutability == StateMutability::Payable; }
 	/// @return A shared pointer of StructuredDocumentation.
