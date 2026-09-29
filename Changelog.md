@@ -10,6 +10,7 @@ Compiler Features:
 * Standard JSON Interface: Remove the experimental `yulCFGJson` output.
 * Standard JSON Interface: Selecting an ethdebug output no longer implicitly enables the `ethdebug` and `ast-id` components of `settings.debug.debugInfo`; without `ethdebug` in the selection the `evm.bytecode.ethdebug` and `evm.deployedBytecode.ethdebug` outputs carry no semantic debug info.
 * Yul Optimizer: Improve performance of `DataFlowAnalyzer` using flat hash containers.
+* Type Checker: Say that the initial value of a constant variable has to be a constant expression rather than a compile-time constant, since it may be evaluated at runtime.
 
 Bugfixes:
 * Parser: Fix inverted version pragma range comparison for components in the range [2**31, 2**32).

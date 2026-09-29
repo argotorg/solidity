@@ -12,6 +12,6 @@ contract A {
     bytes constant abgetDataPure = bytes.concat(hex"aaaa", hex"bbbb", getDataPure());
 }
 // ----
-// TypeError 8349: (230-274): Initial value for constant variable has to be compile-time constant.
-// TypeError 8349: (307-352): Initial value for constant variable has to be compile-time constant.
-// TypeError 8349: (389-438): Initial value for constant variable has to be compile-time constant.
+// TypeError 8349: (230-274): Initial value for constant variable has to be a constant expression.
+// TypeError 8349: (307-352): Initial value for constant variable has to be a constant expression.
+// TypeError 8349: (389-438): Initial value for constant variable has to be a constant expression.

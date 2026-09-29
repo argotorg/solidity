@@ -499,7 +499,7 @@ bool TypeChecker::visit(VariableDeclaration const& _variable)
 			m_errorReporter.typeError(
 				8349_error,
 				_variable.value()->location(),
-				"Initial value for constant variable has to be compile-time constant."
+				"Initial value for constant variable has to be a constant expression."
 			);
 	}
 	else if (_variable.immutable())

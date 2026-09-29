@@ -7,6 +7,6 @@ contract A {
     bytes32 constant keccak = keccak256(data);
 }
 // ----
-// TypeError 8349: (60-75): Initial value for constant variable has to be compile-time constant.
-// TypeError 8349: (105-120): Initial value for constant variable has to be compile-time constant.
-// TypeError 8349: (181-196): Initial value for constant variable has to be compile-time constant.
+// TypeError 8349: (60-75): Initial value for constant variable has to be a constant expression.
+// TypeError 8349: (105-120): Initial value for constant variable has to be a constant expression.
+// TypeError 8349: (181-196): Initial value for constant variable has to be a constant expression.
