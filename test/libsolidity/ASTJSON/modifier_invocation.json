@@ -96,7 +96,7 @@
                   "hexValue": "31",
                   "id": 9,
                   "isLValue": false,
-                  "isPure": true,
+                  "isRuntimeConstant": true,
                   "kind": "number",
                   "lValueRequested": false,
                   "nodeType": "Literal",

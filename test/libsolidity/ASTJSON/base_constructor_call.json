@@ -141,7 +141,7 @@
                   "hexValue": "32",
                   "id": 12,
                   "isLValue": false,
-                  "isPure": true,
+                  "isRuntimeConstant": true,
                   "kind": "number",
                   "lValueRequested": false,
                   "nodeType": "Literal",

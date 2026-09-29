@@ -174,7 +174,7 @@ void ASTJsonExporter::appendExpressionAttributes(
 	};
 
 	addIfSet(exprAttributes, "isLValue", _annotation.isLValue);
-	addIfSet(exprAttributes, "isPure", _annotation.isPure);
+	addIfSet(exprAttributes, "isRuntimeConstant", _annotation.isRuntimeConstant);
 
 	if (m_stackState > CompilerStack::State::ParsedAndImported)
 		exprAttributes.emplace_back("lValueRequested", _annotation.willBeWrittenTo);

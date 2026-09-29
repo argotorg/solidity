@@ -90,7 +90,7 @@ void PostTypeContractLevelChecker::checkStorageLayoutSpecifier(ContractDefinitio
 	solAssert(storageLayoutSpecifier);
 	Expression const& baseSlotExpression = storageLayoutSpecifier->baseSlotExpression();
 
-	if (!*baseSlotExpression.annotation().isPure)
+	if (!*baseSlotExpression.annotation().isRuntimeConstant)
 	{
 		m_errorReporter.typeError(
 			1139_error,

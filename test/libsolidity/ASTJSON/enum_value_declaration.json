@@ -57,7 +57,7 @@
               },
               "id": 10,
               "isLValue": false,
-              "isPure": true,
+              "isRuntimeConstant": true,
               "lValueRequested": false,
               "memberLocation": "57:1:1",
               "memberName": "X",

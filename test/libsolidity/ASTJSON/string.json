@@ -67,7 +67,7 @@
                   "hexValue": "48656c6c6f20576f726c64",
                   "id": 5,
                   "isLValue": false,
-                  "isPure": true,
+                  "isRuntimeConstant": true,
                   "kind": "string",
                   "lValueRequested": false,
                   "nodeType": "Literal",
