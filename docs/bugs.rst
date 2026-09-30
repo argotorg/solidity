@@ -55,8 +55,8 @@ fixed
 publish
     The date at which the bug became known publicly, optional
 severity
-    Severity of the bug: very low, low, medium, high. Takes into account
-    discoverability in contract tests, likelihood of occurrence and
+    Severity of the bug: ``very low``, ``low``, ``low/medium``, ``medium``, ``medium/high``, ``high``.
+    Takes into account discoverability in contract tests, likelihood of occurrence and
     potential damage by exploits.
 conditions
     Conditions that have to be met to trigger the bug. The following
@@ -82,6 +82,9 @@ check
     is a `JsonPath <https://github.com/json-path/JsonPath>`_ expression.
     If at least one path of the Solidity AST matches the query, the bug is
     likely present.
+
+The format of the file is formally specified by a `JSON schema
+<https://github.com/argotorg/solidity/blob/develop/docs/bugs.schema.json>`_.
 
 .. literalinclude:: bugs.json
    :language: js
