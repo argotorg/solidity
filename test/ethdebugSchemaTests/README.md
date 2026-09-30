@@ -21,4 +21,9 @@ The JSON inputs use `contentFile` entries to keep Solidity examples in regular
 `.sol` fixture files under `sources/`. The tests expand those entries to
 Standard JSON `content` before invoking `solc`.
 
+The suite only checks properties that hold for the output of any input. The
+expected output for specific inputs is pinned down by the isoltest cases under
+`test/libsolidity/ethdebugTests/`; the resources of the cases in its
+`resources/` subdirectory are validated against the schemas here as well.
+
 To update the schema version, bump the submodule commit and rerun this suite.
