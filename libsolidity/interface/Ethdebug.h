@@ -63,10 +63,15 @@ Resources resources(ContractDefinition const& _contract, std::map<std::string, u
 /// transient storage: each materialized at its slot, a value type as a
 /// region, a mapping as the region of its base slot and any other type
 /// through the template of the type in resources(), with its declaration
-/// and type reference.
+/// and type reference. Followed by its immutable variables that have a copy
+/// in the code, each materialized as the region of the code holding the value.
+/// @param _immutableOffsets the byte offset in the code of one copy of the
+/// value of each immutable variable, by the AST ID of its declaration. Empty
+/// for the creation code, which holds none.
 langutil::SemanticDebugScope stateVariableScope(
 	ContractDefinition const& _contract,
-	std::map<std::string, unsigned> const& _sourceIndices
+	std::map<std::string, unsigned> const& _sourceIndices,
+	std::map<int64_t, size_t> const& _immutableOffsets = {}
 );
 
 /// Consumes the scope to build the program-level context: every materialized

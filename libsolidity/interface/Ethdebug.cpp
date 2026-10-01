@@ -62,7 +62,8 @@ void ethdebug::Resources::merge(Resources _other)
 
 SemanticDebugScope ethdebug::stateVariableScope(
 	ContractDefinition const& _contract,
-	std::map<std::string, unsigned> const& _sourceIndices
+	std::map<std::string, unsigned> const& _sourceIndices,
+	std::map<int64_t, size_t> const& _immutableOffsets
 )
 {
 	TypeRegistry types{_sourceIndices};
@@ -88,6 +89,21 @@ SemanticDebugScope ethdebug::stateVariableScope(
 	};
 	addStateVariables(DataLocation::Storage);
 	addStateVariables(DataLocation::Transient);
+	// An immutable that the code never reads has no copy in it.
+	for (VariableDeclaration const* variable: contractType->immutableVariables())
+		if (auto const codeOffset = _immutableOffsets.find(variable->id());
+			codeOffset != _immutableOffsets.end()
+		)
+		{
+			SemanticDebugVariable record;
+			record.identifier = variable->name();
+			record.declarationASTID = variable->id();
+			record.declarationSourceRange = types.buildSourceRange(variable->location());
+			record.typeID = TypeRegistry::canonicalizeType(*variable->type()).identifier();
+			record.phase = SemanticDebugVariablePhase::Materialized;
+			record.pointer = PointerTemplateRegistry::buildImmutablePointer(*variable->type(), codeOffset->second);
+			scope.variableDefinitions.emplace_back(std::move(record));
+		}
 	return scope;
 }
 

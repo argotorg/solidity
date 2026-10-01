@@ -377,3 +377,8 @@ The pointer for a value type is a single region.
 For a struct, array, ``bytes`` or ``string``, the pointer uses the type's template with ``slot`` bound to the variable's slot.
 A mapping's pointer describes only its base slot.
 To locate an entry, bind a key when using the mapping's template.
+
+The deployed program lists the immutable variables of the contract as well, after the variables in storage and transient storage.
+The deployed code holds a copy of the value of an immutable wherever the code reads it, so its pointer is a region of the ``code`` covering the value in one of those copies.
+The value takes the trailing bytes of the 32-byte copy, or the leading ones for a ``bytesN`` value, the way it is aligned on the stack.
+An immutable that the code never reads has no copy and is not listed, and neither is any immutable in the creation program, which holds the values in memory until it returns the deployed code.

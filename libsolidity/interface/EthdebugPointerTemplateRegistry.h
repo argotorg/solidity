@@ -87,6 +87,9 @@ public:
 
 	std::map<std::string, langutil::ethdebug::schema::Pointer::Template> takeTemplates();
 
+	/// Locates the value within an immutable's word-sized copy in deployed code.
+	static langutil::ethdebug::schema::Pointer buildImmutablePointer(Type const& _type, size_t _codeOffset);
+
 private:
 	using Pointer = langutil::ethdebug::schema::Pointer;
 

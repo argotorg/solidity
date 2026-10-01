@@ -285,6 +285,21 @@ Pointer PointerTemplateRegistry::buildStateVariablePointer(
 	);
 }
 
+Pointer PointerTemplateRegistry::buildImmutablePointer(Type const& _type, size_t _codeOffset)
+{
+	solAssert(_type.isValueType() && _type.sizeOnStack() == 1, "An immutable is a single word.");
+	u256 const byteLength = _type.storageBytes();
+	solAssert(byteLength > 0 && byteLength <= 32);
+	u256 const offset = _type.leftAligned() ? u256(_codeOffset) : u256(_codeOffset) + 32 - byteLength;
+	return {Pointer::Region{
+		std::nullopt,
+		Pointer::Location::Code,
+		std::nullopt,
+		pointer::literal(offset),
+		pointer::literal(byteLength),
+	}};
+}
+
 void PointerTemplateRegistry::registerType(Type const& _type, DataLocation _location)
 {
 	std::string const id = identifier(_type, _location);
