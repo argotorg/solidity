@@ -3182,6 +3182,9 @@ BoolResult FunctionType::isImplicitlyConvertibleTo(Type const& _convertTo) const
 	if (!equalExcludingStateMutability(convertTo))
 		return false;
 
+	if (kind() == FunctionType::Kind::DelegateCall && m_stateMutability != convertTo.stateMutability())
+		return BoolResult::err("Library functions with different state mutability cannot be converted to each other.");
+
 	// non-payable should not be convertible to payable
 	if (m_stateMutability != StateMutability::Payable && convertTo.stateMutability() == StateMutability::Payable)
 		return false;
