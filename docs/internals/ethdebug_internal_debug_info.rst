@@ -1,5 +1,3 @@
-:orphan:
-
 .. index:: ! ethdebug, ! debug info
 
 ****************************
