@@ -469,7 +469,6 @@ Input Description
         //   evm.deployedBytecode.immutableReferences - Map from AST ids to bytecode ranges that reference immutables
         //   evm.methodIdentifiers - The list of function hashes
         //   evm.gasEstimates - Function gas estimates
-        //   yulCFGJson - Control Flow Graph (CFG) of the Single Static Assignment (SSA) form of the contract (experimental)
         //
         // Global level (needs "*" as file name and "*" as contract name):
         //   ethdebug.resources - Global ethdebug output (ethdebug/format/info/resources schema) containing source list and compiler info (experimental)
@@ -696,9 +695,7 @@ Output Description
                 "internal": {
                   "heavyLifting()": "infinite"
                 }
-              },
-              // Yul CFG representation of the SSA form (experimental)
-              "yulCFGJson": {/* ... */}
+              }
             }
           }
         }
@@ -777,7 +774,5 @@ The table below details all currently available experimental features.
 +-----------------------+--------------------------+------------------+-----------------------------------------------------------------------------------------------------------------------------------------+
 | Ethdebug              | ``ethdebug``             | no               | ``--ethdebug-resources``, ``--ethdebug-compilation``, ``--ethdebug-program``, ``--ethdebug-program-runtime``, ``--debug-info ethdebug`` |
 +-----------------------+--------------------------+------------------+-----------------------------------------------------------------------------------------------------------------------------------------+
-|                       |                          | no               | ``--yul-cfg-json``                                                                                                                      |
-| SSA CFG               + ``ssa-cfg``              +------------------+-----------------------------------------------------------------------------------------------------------------------------------------+
-|                       |                          | yes              | ``--via-ssa-cfg``                                                                                                                       |
+| SSA CFG               | ``ssa-cfg``              | yes              | ``--via-ssa-cfg``                                                                                                                       |
 +-----------------------+--------------------------+------------------+-----------------------------------------------------------------------------------------------------------------------------------------+

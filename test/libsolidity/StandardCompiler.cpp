@@ -2420,7 +2420,7 @@ BOOST_AUTO_TEST_CASE(no_experimental_invalid_output_selection)
 	BOOST_CHECK(
 		containsError(
 			result,
-			"FatalError", "'irAst', 'irOptimizedAst', 'yulCFGJson', and 'ethdebug' outputs are experimental and can only be used with the 'settings.experimental' option enabled."
+			"FatalError", "'irAst', 'irOptimizedAst', and 'ethdebug' outputs are experimental and can only be used with the 'settings.experimental' option enabled."
 		)
 	);
 }

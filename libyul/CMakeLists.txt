@@ -111,8 +111,6 @@ add_library(yul
 	backends/evm/ssa/StackUtils.h
 	backends/evm/ssa/io/DotExporterBase.cpp
 	backends/evm/ssa/io/DotExporterBase.h
-	backends/evm/ssa/io/JSONExporter.cpp
-	backends/evm/ssa/io/JSONExporter.h
 	backends/evm/ssa/io/Printer.cpp
 	backends/evm/ssa/io/Printer.h
 	backends/evm/ssa/spill/Emitter.h
@@ -126,6 +124,8 @@ add_library(yul
 	backends/evm/ssa/stack/Shuffler.h
 	backends/evm/ssa/transform/ConstantConditionFolder.cpp
 	backends/evm/ssa/transform/ConstantConditionFolder.h
+	backends/evm/ssa/transform/CriticalEdgeBreaker.cpp
+	backends/evm/ssa/transform/CriticalEdgeBreaker.h
 	backends/evm/ssa/transform/IdentityAndNopRemover.cpp
 	backends/evm/ssa/transform/IdentityAndNopRemover.h
 	backends/evm/ssa/transform/JumpThreader.cpp

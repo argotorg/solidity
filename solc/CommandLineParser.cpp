@@ -164,7 +164,6 @@ std::vector<std::string> const& CommandLineParser::experimentalOptionNames()
 		g_strImportEvmAssemblerJson,
 		"ir-ast-json",
 		"ir-optimized-ast-json",
-		"yul-cfg-json",
 		"ethdebug-resources",
 		"ethdebug-compilation",
 		"ethdebug-program",
@@ -471,7 +470,6 @@ void CommandLineParser::parseOutputSelection()
 			CompilerOutputs::componentName(&CompilerOutputs::irOptimized),
 			CompilerOutputs::componentName(&CompilerOutputs::astCompactJson),
 			CompilerOutputs::componentName(&CompilerOutputs::asmJson),
-			CompilerOutputs::componentName(&CompilerOutputs::yulCFGJson),
 			CompilerOutputs::componentName(&CompilerOutputs::ethdebugResources),
 			CompilerOutputs::componentName(&CompilerOutputs::ethdebugCompilation),
 			CompilerOutputs::componentName(&CompilerOutputs::ethdebugProgram),
@@ -760,10 +758,6 @@ General Information)").c_str(),
 		(CompilerOutputs::componentName(&CompilerOutputs::metadata).c_str(), "Combined Metadata JSON whose IPFS hash is stored on-chain.")
 		(CompilerOutputs::componentName(&CompilerOutputs::storageLayout).c_str(), "Slots, offsets and types of the contract's state variables located in storage.")
 		(CompilerOutputs::componentName(&CompilerOutputs::transientStorageLayout).c_str(), "Slots, offsets and types of the contract's state variables located in transient storage.")
-	(
-		CompilerOutputs::componentName(&CompilerOutputs::yulCFGJson).c_str(),
-		"(experimental) Control Flow Graph (CFG) of Yul code in Static Single Assignment (SSA) form in JSON format."
-	)
 	(
 		CompilerOutputs::componentName(&CompilerOutputs::ethdebugResources).c_str(),
 		"(experimental) Global ethdebug output (ethdebug/format/info/resources schema) containing source list and compiler info."
