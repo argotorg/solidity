@@ -2031,7 +2031,7 @@ jobs:
             git fetch --refetch origin
       - run:
           name: Build and tag the container
-          command: scripts/docker_deploy_manual.sh develop "file://$PWD" --no-push
+          command: scripts/docker_deploy_manual.sh "$CIRCLE_BRANCH" "file://$PWD" --no-push
       - run:
           name: Smoke test
           command: docker run --pull=never ghcr.io/argotorg/solc:build-alpine --version
