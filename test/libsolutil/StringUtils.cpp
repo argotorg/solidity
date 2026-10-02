@@ -335,6 +335,29 @@ BOOST_AUTO_TEST_CASE(test_format_number_readable_signed)
 	);
 }
 
+BOOST_AUTO_TEST_CASE(test_to_unsigned_int)
+{
+	BOOST_CHECK_EQUAL(toUnsignedInt("0").value_or(1), 0u);
+	BOOST_CHECK_EQUAL(toUnsignedInt("42").value_or(0), 42u);
+	BOOST_CHECK_EQUAL(toUnsignedInt("4294967295").value_or(0), 4294967295u);
+
+	// The conversion has to consume the whole string, so a number followed by trailing
+	// characters must not be truncated silently.
+	BOOST_CHECK(!toUnsignedInt("0x10"));
+	BOOST_CHECK(!toUnsignedInt("0x0"));
+	BOOST_CHECK(!toUnsignedInt("1e2"));
+	BOOST_CHECK(!toUnsignedInt("1.5"));
+	BOOST_CHECK(!toUnsignedInt("42abc"));
+	BOOST_CHECK(!toUnsignedInt("42_"));
+	BOOST_CHECK(!toUnsignedInt("42 "));
+	BOOST_CHECK(!toUnsignedInt(""));
+	BOOST_CHECK(!toUnsignedInt("abc"));
+
+	// Values that do not fit into an unsigned int.
+	BOOST_CHECK(!toUnsignedInt("4294967296"));
+	BOOST_CHECK(!toUnsignedInt("99999999999999999999999999"));
+}
+
 BOOST_AUTO_TEST_SUITE_END()
 
 }

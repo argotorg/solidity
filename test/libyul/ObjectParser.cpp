@@ -216,6 +216,25 @@ BOOST_AUTO_TEST_CASE(use_src_error_unexpected_trailing_tokens)
 	BOOST_CHECK_EQUAL(errors.front()->errorId().error, 9804);
 }
 
+BOOST_AUTO_TEST_CASE(use_src_invalid_syntax_hex_source_index)
+{
+	// The grammar only allows decimal indices, so a hex literal must not be truncated to its
+	// leading "0" and accepted silently.
+	auto const [mapping, errors] = tryGetSourceLocationMapping(R"(@use-src 0x10:"contract.sol")");
+
+	BOOST_REQUIRE_EQUAL(errors.size(), 1);
+	BOOST_CHECK_EQUAL(errors.front()->errorId().error, 9804);
+}
+
+BOOST_AUTO_TEST_CASE(use_src_invalid_syntax_scientific_notation_source_index)
+{
+	// Same for a value in scientific notation, which would otherwise be truncated to "1".
+	auto const [mapping, errors] = tryGetSourceLocationMapping(R"(@use-src 1e2:"contract.sol")");
+
+	BOOST_REQUIRE_EQUAL(errors.size(), 1);
+	BOOST_CHECK_EQUAL(errors.front()->errorId().error, 9804);
+}
+
 BOOST_AUTO_TEST_CASE(use_src_multiline)
 {
 	auto const [mapping, _] = tryGetSourceLocationMapping(

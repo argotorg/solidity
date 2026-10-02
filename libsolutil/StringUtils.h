@@ -117,12 +117,19 @@ std::string formatNumberReadable(bigint const& _value, bool _useTruncation = fal
 
 /// Safely converts an unsigned integer as string into an unsigned int type.
 ///
+/// The conversion has to consume the whole string: input consisting of a number followed by
+/// trailing characters is rejected, e.g. "0x10" and "1e2" (which would otherwise be silently
+/// converted to 0 and 1 respectively).
+///
 /// @return the converted number or nullopt in case of an failure (including if it would not fit).
 inline std::optional<unsigned> toUnsignedInt(std::string const& _value)
 {
 	try
 	{
-		auto const ulong = stoul(_value);
+		size_t charactersParsed = 0;
+		auto const ulong = stoul(_value, &charactersParsed);
+		if (charactersParsed != _value.size())
+			return std::nullopt;
 		if (ulong > std::numeric_limits<unsigned>::max())
 			return std::nullopt;
 		return static_cast<unsigned>(ulong);
