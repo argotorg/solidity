@@ -28,14 +28,28 @@ def test_cases(test_suite):
 if __name__ == '__main__':
     parser = ArgumentParser(description="Validate the compiler's ethdebug output against the ethdebug/format schemas.")
     parser.add_argument("--solc-binary-path", type=Path, required=True, help="Path to the solidity compiler binary.")
+    parser.add_argument(
+        "-k",
+        dest="patterns",
+        action="append",
+        default=[],
+        help="Only run the tests whose name matches the pattern, as with `python -m unittest -k`. Can be repeated.",
+    )
     options = parser.parse_args()
     assert options.solc_binary_path.is_file(), f"Not a file: {options.solc_binary_path}"
 
     config = Config(solc_path=options.solc_binary_path)
 
-    # This is equivalent to `python -m unittest discover --start-directory $TEST_DIR`, with
-    # every test case given the configuration.
-    test_suite = TestLoader().discover(start_dir=TEST_DIR)
+    # This is equivalent to `python -m unittest discover --start-directory $TEST_DIR -k ...`,
+    # with every test case given the configuration. Like unittest, match a pattern without
+    # wildcards as a substring of the test name.
+    test_loader = TestLoader()
+    if len(options.patterns) > 0:
+        test_loader.testNamePatterns = [
+            pattern if "*" in pattern else f"*{pattern}*"
+            for pattern in options.patterns
+        ]
+    test_suite = test_loader.discover(start_dir=TEST_DIR)
     for test_case in test_cases(test_suite):
         test_case.config = config
     result = TextTestRunner(verbosity=2).run(test_suite)
