@@ -3,6 +3,7 @@
     "$id": "https://raw.githubusercontent.com/argotorg/solidity/develop/docs/bugs.schema.json",
     "title": "Solidity known bugs list",
     "description": "Schema for docs/bugs.json, the list of known security-relevant bugs in the Solidity compiler. See docs/bugs.rst for the meaning of the fields.",
+    "$comment": "When changing this schema, update the description of the fields in docs/bugs.rst accordingly.",
     "type": "array",
     "items": {
         "type": "object",
@@ -50,7 +51,7 @@
             },
             "severity": {
                 "description": "Severity of the bug.",
-                "enum": ["very low", "low", "low/medium", "medium", "medium/high", "high"]
+                "enum": ["very low", "very low/low", "low", "low/medium", "medium", "medium/high", "high"]
             },
             "conditions": {
                 "description": "Conditions that have to be met to trigger the bug. If absent, the bug is present unconditionally.",

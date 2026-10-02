@@ -3,6 +3,7 @@
 """Generate docs/bugs.json from the human-editable YAML bug list."""
 
 import json
+import sys
 from collections import Counter
 from pathlib import Path
 
@@ -16,6 +17,10 @@ BUGS_JSON = ROOT_PATH / "docs" / "bugs.json"
 BUGS_SCHEMA = ROOT_PATH / "docs" / "bugs.schema.json"
 
 
+class BugListValidationError(Exception):
+    pass
+
+
 def validate_bugs(bugs, schema_path: Path = BUGS_SCHEMA):
     schema = json.loads(schema_path.read_text(encoding="utf8"))
     validator = jsonschema.Draft202012Validator(schema, format_checker=jsonschema.Draft202012Validator.FORMAT_CHECKER)
@@ -23,7 +28,7 @@ def validate_bugs(bugs, schema_path: Path = BUGS_SCHEMA):
     messages = []
     for error in validator.iter_errors(bugs):
         path = list(error.absolute_path)
-        if path and isinstance(path[0], int) and isinstance(bugs[path[0]], dict):
+        if len(path) > 0 and isinstance(path[0], int) and isinstance(bugs[path[0]], dict):
             location = bugs[path[0]].get("uid", f"entry #{path[0]}")
         else:
             location = "<root>"
@@ -35,8 +40,8 @@ def validate_bugs(bugs, schema_path: Path = BUGS_SCHEMA):
         name_counts = Counter(bug["name"] for bug in bugs)
         messages += [f"Duplicate bug name: {name}" for name, count in name_counts.items() if count > 1]
 
-    if messages:
-        raise ValueError("Invalid bug list:\n  " + "\n  ".join(messages))
+    if len(messages) != 0:
+        raise BugListValidationError("Invalid bug list:\n  " + "\n  ".join(messages))
 
 
 def update_bugs(input_path=BUGS_YAML, output_path=BUGS_JSON, schema_path=BUGS_SCHEMA):
@@ -56,4 +61,8 @@ def update_bugs(input_path=BUGS_YAML, output_path=BUGS_JSON, schema_path=BUGS_SC
 
 
 if __name__ == "__main__":
-    update_bugs()
+    try:
+        update_bugs()
+    except BugListValidationError as exception:
+        print(f"{exception}", file=sys.stderr)
+        sys.exit(1)

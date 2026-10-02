@@ -55,7 +55,7 @@ fixed
 publish
     The date at which the bug became known publicly, optional
 severity
-    Severity of the bug: ``very low``, ``low``, ``low/medium``, ``medium``, ``medium/high``, ``high``.
+    Severity of the bug: ``very low``, ``very low/low``, ``low``, ``low/medium``, ``medium``, ``medium/high``, ``high``.
     Takes into account discoverability in contract tests, likelihood of occurrence and
     potential damage by exploits.
 conditions
@@ -63,6 +63,12 @@ conditions
     keys can be used:
     ``optimizer``, Boolean value which
     means that the optimizer has to be switched on to enable the bug.
+    ``yulOptimizer``, Boolean value which means that the Yul optimizer
+    has to be switched on to enable the bug.
+    ``ABIEncoderV2``, Boolean value which means that ABI coder v2
+    has to be used to enable the bug.
+    ``viaIR``, Boolean value which means that the IR-based code generator
+    has to be used (``true``) or must not be used (``false``) to enable the bug.
     ``evmVersion``, a string that indicates which EVM version compiler
     settings trigger the bug. The string can contain comparison
     operators. For example, ``">=constantinople"`` means that the bug
