@@ -2212,11 +2212,6 @@ workflows:
 
   nightly:
 
-    triggers:
-      - schedule:
-          cron: "0 0 * * *"
-          <<: *on_develop
-
     jobs:
       # ASan build and tests
       - b_ubu_asan: *requires_nothing
