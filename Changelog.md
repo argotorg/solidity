@@ -11,6 +11,7 @@ Compiler Features:
 
 Bugfixes:
 * Parser: Fix inverted version pragma range comparison for components in the range [2**31, 2**32).
+* Yul: Reject `@use-src` source indices that are not plain decimal numbers. An index such as `0x10` or `1e2` was silently truncated to `0` and `1` respectively instead of being reported as a syntax error.
 
 Build System:
 * Switch from C++20 to C++23 as the target standard.
