@@ -5,6 +5,7 @@ Language Features:
 Compiler Features:
 * Commandline Interface: Remove the experimental `--yul-cfg-json` output.
 * Commandline Interface: Selecting an ethdebug output no longer implicitly enables the `ethdebug` and `ast-id` components of `--debug-info`; without `ethdebug` in the selection the `--ethdebug-program` and `--ethdebug-program-runtime` outputs carry no semantic debug info.
+* Constant Evaluator: Support keccak256 builtin compile time evaluation.
 * Standard JSON Interface: Remove the experimental `yulCFGJson` output.
 * Standard JSON Interface: Selecting an ethdebug output no longer implicitly enables the `ethdebug` and `ast-id` components of `settings.debug.debugInfo`; without `ethdebug` in the selection the `evm.bytecode.ethdebug` and `evm.deployedBytecode.ethdebug` outputs carry no semantic debug info.
 * Yul Optimizer: Improve performance of `DataFlowAnalyzer` using flat hash containers.
