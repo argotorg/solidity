@@ -129,9 +129,23 @@ private:
 bool ViewPureChecker::check()
 {
 	for (auto const& source: m_ast)
+		for (ContractDefinition const* contract: ASTNode::filteredNodes<ContractDefinition>(dynamic_cast<SourceUnit const&>(*source).nodes()))
+			for (ContractDefinition const* base: contract->annotation().linearizedBaseContracts)
+				m_derivedContracts[base].push_back(contract);
+
+	for (auto const& source: m_ast)
 		source->accept(*this);
 
 	return !m_errors;
+}
+
+std::span<ContractDefinition const* const> ViewPureChecker::currentDerivedContracts()
+{
+	if (!m_currentFunction || !m_currentFunction->annotation().contract)
+		return {};
+	auto const it = m_derivedContracts.find(m_currentFunction->annotation().contract);
+	solAssert(it != m_derivedContracts.end());
+	return it->second;
 }
 
 bool ViewPureChecker::visit(ImportDirective const&)
@@ -352,6 +366,44 @@ void ViewPureChecker::endVisit(FunctionCall const& _functionCall)
 		dynamic_cast<FunctionType const&>(*_functionCall.expression().annotation().type).stateMutability(),
 		_functionCall.location()
 	);
+
+	auto const* memberAccess = dynamic_cast<MemberAccess const*>(&_functionCall.expression());
+	if (!memberAccess || *memberAccess->annotation().requiredLookup != VirtualLookup::Super)
+		return;
+
+	// A super call may resolve to a different function in each contract inheriting the current one.
+	SecondarySourceLocation offendingContracts;
+	for (ContractDefinition const* derived: currentDerivedContracts())
+	{
+		FunctionDefinition const* resolved = ASTNode::resolveFunctionCall(_functionCall, derived);
+		if (
+			!resolved ||
+			// Error already covered by reportFunctionCallMutability
+			resolved == memberAccess->annotation().referencedDeclaration ||
+			resolved->stateMutability() <= m_currentFunction->stateMutability()
+		)
+			continue;
+
+		offendingContracts.append(
+			"In \"" + derived->name() + "\" it resolves to \"" +
+			resolved->annotation().contract->name() + "." + resolved->name() +
+			"\", which is " + stateMutabilityToString(resolved->stateMutability()) + ".",
+			derived->nameLocation()
+		);
+	}
+
+	if (offendingContracts.infos.empty())
+		return;
+
+	m_errorReporter.typeError(
+		7898_error,
+		_functionCall.location(),
+		offendingContracts,
+		"Function \"" + m_currentFunction->annotation().contract->name() + "." + m_currentFunction->name() +
+		"\" declared as " + stateMutabilityToString(m_currentFunction->stateMutability()) +
+		", but this \"super\" call resolves to a function with higher state mutability in a derived contract."
+	);
+	m_errors = true;
 }
 
 bool ViewPureChecker::visit(MemberAccess const& _memberAccess)
