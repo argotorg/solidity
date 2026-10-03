@@ -3,6 +3,7 @@
 Language Features:
 
 Compiler Features:
+* AST: Remove the ``isConstant`` field of expressions from the JSON AST. It was always ``false``.
 * Commandline Interface: Remove the experimental `--yul-cfg-json` output.
 * Commandline Interface: Selecting an ethdebug output no longer implicitly enables the `ethdebug` and `ast-id` components of `--debug-info`; without `ethdebug` in the selection the `--ethdebug-program` and `--ethdebug-program-runtime` outputs carry no semantic debug info.
 * Standard JSON Interface: Remove the experimental `yulCFGJson` output.
