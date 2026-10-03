@@ -182,6 +182,17 @@ void ViewPureChecker::endVisit(FunctionDefinition const& _funDef)
 	m_currentFunction = nullptr;
 }
 
+bool ViewPureChecker::visit(ContractDefinition const& _contract)
+{
+	m_mostDerivedContract = &_contract;
+	return true;
+}
+
+void ViewPureChecker::endVisit(ContractDefinition const&)
+{
+	m_mostDerivedContract = nullptr;
+}
+
 bool ViewPureChecker::visit(ModifierDefinition const& _modifier)
 {
 	solAssert(m_currentFunction == nullptr, "");
@@ -192,7 +203,7 @@ bool ViewPureChecker::visit(ModifierDefinition const& _modifier)
 void ViewPureChecker::endVisit(ModifierDefinition const& _modifierDef)
 {
 	solAssert(m_currentFunction == nullptr, "");
-	m_inferredMutability[&_modifierDef] = std::move(m_bestMutabilityAndLocation);
+	m_inferredMutability[{&_modifierDef, m_mostDerivedContract}] = std::move(m_bestMutabilityAndLocation);
 }
 
 void ViewPureChecker::endVisit(Identifier const& _identifier)
@@ -319,22 +330,27 @@ void ViewPureChecker::reportMutability(
 }
 
 ViewPureChecker::MutabilityAndLocation const& ViewPureChecker::modifierMutability(
-	ModifierDefinition const& _modifier
+	ModifierDefinition const& _modifier,
+	ContractDefinition const* _mostDerivedContract
 )
 {
-	if (!m_inferredMutability.count(&_modifier))
+	auto key = std::make_pair(&_modifier, _mostDerivedContract);
+	if (!m_inferredMutability.count(key))
 	{
 		MutabilityAndLocation bestMutabilityAndLocation{};
 		FunctionDefinition const* currentFunction = nullptr;
+		ContractDefinition const* mostDerivedContract = _mostDerivedContract;
 		std::swap(bestMutabilityAndLocation, m_bestMutabilityAndLocation);
 		std::swap(currentFunction, m_currentFunction);
+		std::swap(mostDerivedContract, m_mostDerivedContract);
 
 		_modifier.accept(*this);
 
 		std::swap(bestMutabilityAndLocation, m_bestMutabilityAndLocation);
 		std::swap(currentFunction, m_currentFunction);
+		std::swap(mostDerivedContract, m_mostDerivedContract);
 	}
-	return m_inferredMutability.at(&_modifier);
+	return m_inferredMutability.at(key);
 }
 
 void ViewPureChecker::reportFunctionCallMutability(StateMutability _mutability, langutil::SourceLocation const& _location)
@@ -370,6 +386,15 @@ void ViewPureChecker::endVisit(FunctionCall const& _functionCall)
 	auto const* memberAccess = dynamic_cast<MemberAccess const*>(&_functionCall.expression());
 	if (!memberAccess || *memberAccess->annotation().requiredLookup != VirtualLookup::Super)
 		return;
+
+	// No enclosing function means a modifier body: feed the target's mutability into the inference.
+	if (!m_currentFunction)
+	{
+		if (m_mostDerivedContract)
+			if (FunctionDefinition const* resolved = ASTNode::resolveFunctionCall(_functionCall, m_mostDerivedContract))
+				reportFunctionCallMutability(resolved->stateMutability(), _functionCall.location());
+		return;
+	}
 
 	// A super call may resolve to a different function in each contract inheriting the current one.
 	SecondarySourceLocation offendingContracts;
@@ -515,8 +540,36 @@ void ViewPureChecker::endVisit(ModifierInvocation const& _modifier)
 {
 	if (ModifierDefinition const* mod = dynamic_cast<decltype(mod)>(_modifier.name().annotation().referencedDeclaration))
 	{
-		MutabilityAndLocation const& mutAndLocation = modifierMutability(*mod);
-		reportMutability(mutAndLocation.mutability, _modifier.location(), mutAndLocation.location);
+		MutabilityAndLocation const& mutAndLocation = modifierMutability(*mod, m_mostDerivedContract);
+		StateMutability baseMutability = mutAndLocation.mutability;
+		reportMutability(baseMutability, _modifier.location(), mutAndLocation.location);
+
+		// The modifier may be overridden, or its `super` calls may resolve elsewhere, in each inheriting contract.
+		for (ContractDefinition const* derived: currentDerivedContracts())
+		{
+			ModifierDefinition const& resolved = mod->resolveVirtual(*derived);
+			StateMutability mutability = modifierMutability(resolved, derived).mutability;
+			// Anything this loose was already reported against the base above.
+			if (mutability <= baseMutability)
+				continue;
+
+			// Raise the mutability we suggest to the user, then skip if the declaration already permits it.
+			if (mutability > m_bestMutabilityAndLocation.mutability)
+				m_bestMutabilityAndLocation = {mutability, resolved.location()};
+			if (mutability <= m_currentFunction->stateMutability())
+				continue;
+
+			m_errorReporter.typeError(
+				1614_error,
+				resolved.location(),
+				"Modifier \"" + mod->name() + "\" has state mutability \"" +
+				stateMutabilityToString(mutability) + "\" in \"" + derived->name() + "\", but \"" +
+				m_currentFunction->annotation().contract->name() + "." + m_currentFunction->name() +
+				"\", which uses it, is declared \"" +
+				stateMutabilityToString(m_currentFunction->stateMutability()) + "\"."
+			);
+			m_errors = true;
+		}
 	}
 	else
 		solAssert(dynamic_cast<ContractDefinition const*>(_modifier.name().annotation().referencedDeclaration), "");
