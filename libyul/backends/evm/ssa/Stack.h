@@ -79,8 +79,8 @@ public:
 		m_data->emplace_back(_slot);
 		if (m_trace)
 			m_trace->push_back(
-				// a pushed non-literal value can only be a spill reload
-				_slot.isValue() && !_slot.isLiteralValue() ? ShuffleOp::load(_slot) : ShuffleOp::push(_slot)
+				// a pushed variable can only be a spill reload
+				_slot.isVariable() ? ShuffleOp::load(_slot) : ShuffleOp::push(_slot)
 			);
 	}
 
@@ -102,6 +102,15 @@ public:
 	bool isValidSwapTarget(Depth const& _depth) const noexcept { return _depth < size() && 1 <= _depth.value && _depth.value <= m_reachableStackDepth; }
 	bool isBeyondSwapRange(Offset const& _offset) const noexcept { return isBeyondSwapRange(offsetToDepth(_offset)); }
 	bool isBeyondSwapRange(Depth const& _depth) const noexcept { return _depth > m_reachableStackDepth; }
+
+	/// Renames the slot at `_depth` to `_slot`, leaving the content in place
+	void rename(Depth const& _depth, Slot const& _slot)
+	{
+		auto const op = ShuffleOp::rename(_depth, _slot);
+		apply(*m_data, op);
+		if (m_trace)
+			m_trace->push_back(op);
+	}
 
 	void declareJunk(Offset const& _offset) { (*m_data)[_offset.value] = Slot::makeJunk(); }
 	void declareJunk(Depth const& _depth) { declareJunk(depthToOffset(_depth)); }
