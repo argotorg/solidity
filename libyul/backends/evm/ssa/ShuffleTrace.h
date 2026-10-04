@@ -23,6 +23,7 @@
 #include <fmt/format.h>
 
 #include <cstdint>
+#include <limits>
 #include <type_traits>
 #include <vector>
 
@@ -39,13 +40,14 @@ struct ShuffleOp
 		Pop,   ///< remove the top slot (POP)
 		Push,  ///< produce the freely generatable `slot` (literal, junk or function call return label) on the top
 		Load,  ///< reload the spilled value `slot` from its memory slot onto the top
-		Store  ///< store the spilled value `slot` into its memory slot, consuming it from the top
+		Store, ///< store the spilled value `slot` into its memory slot, consuming it from the top
+		Rename ///< rename the slot at depth `depth` to `slot` without touching its content; emits no code
 	};
 
 	Kind kind = Kind::Pop;
-	/// EVM instruction operand # of SWAP# / DUP#
-	std::uint8_t depth = 0;
-	/// Slot produced by Push / Load or consumed by Store. Junk for all other kinds.
+	/// EVM instruction operand # of SWAP# / DUP#, or the depth of the slot renamed by Rename
+	std::uint16_t depth = 0;
+	/// Slot produced by Push / Load / Rename or consumed by Store. Junk for all other kinds.
 	StackSlot slot = StackSlot::makeJunk();
 
 	static ShuffleOp swap(StackDepth const _depth)
@@ -66,13 +68,21 @@ struct ShuffleOp
 	}
 	static ShuffleOp load(StackSlot const& _slot)
 	{
-		yulAssert(_slot.isValue() && !_slot.isLiteralValue(), "only spilled (non-literal) values can be loaded");
+		yulAssert(_slot.isVariable(), "only spilled variables (non-literal values, shadow slots) can be loaded");
 		return {Kind::Load, 0, _slot};
 	}
 	static ShuffleOp store(StackSlot const& _slot)
 	{
-		yulAssert(_slot.isValue() && !_slot.isLiteralValue(), "only spilled (non-literal) values can be stored");
+		yulAssert(_slot.isVariable(), "only spilled variables (non-literal values, shadow slots) can be stored");
 		return {Kind::Store, 0, _slot};
+	}
+	/// Renaming realizes a shadow value: an upsilon's input becomes the shadow slot of the
+	/// upsilon's phi, and the phi takes its value out of its shadow slot
+	static ShuffleOp rename(StackDepth const _depth, StackSlot const& _slot)
+	{
+		yulAssert(_depth.value <= std::numeric_limits<std::uint16_t>::max());
+		yulAssert(_slot.isShadow() || _slot.isPhiValue(), "rename yields a shadow slot or a phi");
+		return {Kind::Rename, static_cast<std::uint16_t>(_depth.value), _slot};
 	}
 
 	bool operator==(ShuffleOp const&) const = default;
@@ -111,6 +121,8 @@ struct fmt::formatter<solidity::yul::ssa::ShuffleOp>
 			return fmt::format_to(_ctx.out(), "LOAD {}", solidity::yul::ssa::slotToString(_op.slot));
 		case ShuffleOp::Kind::Store:
 			return fmt::format_to(_ctx.out(), "STORE {}", solidity::yul::ssa::slotToString(_op.slot));
+		case ShuffleOp::Kind::Rename:
+			return fmt::format_to(_ctx.out(), "RENAME[{}] {}", _op.depth, solidity::yul::ssa::slotToString(_op.slot));
 		}
 		solidity::util::unreachable();
 	}

@@ -47,6 +47,18 @@ void apply(StackData& _data, ShuffleOp const& _op)
 		yulAssert(!_data.empty() && _data.back() == _op.slot, "store must consume its value from the stack top");
 		stack.pop();
 		return;
+	case ShuffleOp::Kind::Rename:
+	{
+		yulAssert(_op.depth < _data.size(), "malformed rename in shuffle trace");
+		StackSlot& renamed = _data[_data.size() - 1 - _op.depth];
+		yulAssert(
+			(renamed.isValue() && _op.slot.isShadow()) ||
+			(renamed.isShadow() && _op.slot.isPhiValue() && _op.slot.value() == renamed.shadowPhi()),
+			"a value becomes a shadow slot, a shadow slot its phi"
+		);
+		renamed = _op.slot;
+		return;
+	}
 	}
 	solidity::util::unreachable();
 }
