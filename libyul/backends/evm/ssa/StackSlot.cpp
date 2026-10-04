@@ -42,6 +42,8 @@ std::string slotToString(StackSlot const& _slot)
 		return fmt::format("FunctionCallReturnLabel[{}]", _slot.functionCallReturnLabel());
 	case StackSlot::Kind::FunctionReturnLabel:
 		return fmt::format("ReturnLabel[{}]", _slot.functionReturnLabel());
+	case StackSlot::Kind::Shadow:
+		return fmt::format("^phi{}", _slot.shadowPhi().value);
 	}
 	solidity::util::unreachable();
 }
