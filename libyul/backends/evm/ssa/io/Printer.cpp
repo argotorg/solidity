@@ -24,6 +24,7 @@
 
 #include <libyul/Utilities.h>
 
+#include <libsolutil/CommonData.h>
 #include <libsolutil/StringUtils.h>
 #include <libsolutil/Visitor.h>
 
@@ -48,6 +49,11 @@ namespace
 std::string formatValueRef(InstId const _id)
 {
 	return fmt::format("v{}", _id.value);
+}
+
+std::string formatOperand(SSACFG const& _cfg, InstId const _id)
+{
+	return _cfg.isUnreachable(_id) ? "unreachable" : formatValueRef(_id);
 }
 
 std::string formatBlockRef(BlockId const _id)
@@ -81,12 +87,12 @@ void printBuiltinOperands(
 		if (builtin.literalArgument(i).has_value())
 		{
 			yulAssert(litIt != payload.literalArguments.end());
-			_out << formatLiteral(*litIt++);
+			_out << escapeAndQuoteString(formatLiteral(*litIt++));
 		}
 		else
 		{
 			yulAssert(valIt != _inst.inputs.end());
-			_out << formatValueRef(*valIt++);
+			_out << formatOperand(_cfg, *valIt++);
 		}
 	}
 }
@@ -115,7 +121,7 @@ void printCallOperands(
 		if (!first)
 			_out << ", ";
 		first = false;
-		_out << formatValueRef(input);
+		_out << formatOperand(_cfg, input);
 	}
 }
 
@@ -154,7 +160,7 @@ void printInstruction(
 		yulAssert(inst.inputs.size() == 1);
 		_out << fmt::format(
 			"    upsilon {} -> ^{}\n",
-			formatValueRef(inst.inputs.front()),
+			formatOperand(_cfg, inst.inputs.front()),
 			formatValueRef(_cfg.upsilonPhi(_id))
 		);
 		return;
@@ -181,7 +187,7 @@ void printInstruction(
 		_out << fmt::format(
 			"    {} = identity {}\n",
 			formatValueRef(_id),
-			formatValueRef(inst.inputs.front())
+			formatOperand(_cfg, inst.inputs.front())
 		);
 		return;
 	case InstOpcode::MemoryGuard:
@@ -212,7 +218,7 @@ void printInstruction(
 	yulAssert(false, "unhandled InstOpcode in Printer");
 }
 
-void printExit(std::ostream& _out, SSACFG::BasicBlock const& _block)
+void printExit(std::ostream& _out, SSACFG const& _cfg, SSACFG::BasicBlock const& _block)
 {
 	std::visit(GenericVisitor{
 		[&](SSACFG::BasicBlock::MainExit const&)
@@ -227,7 +233,7 @@ void printExit(std::ostream& _out, SSACFG::BasicBlock const& _block)
 		{
 			_out << fmt::format(
 				"    branch {}, {}, {}\n",
-				formatValueRef(_cjump.condition),
+				formatOperand(_cfg, _cjump.condition),
 				formatBlockRef(_cjump.nonZero),
 				formatBlockRef(_cjump.zero)
 			);
@@ -240,7 +246,7 @@ void printExit(std::ostream& _out, SSACFG::BasicBlock const& _block)
 			{
 				_out << (first ? " " : ", ");
 				first = false;
-				_out << formatValueRef(v);
+				_out << formatOperand(_cfg, v);
 			}
 			_out << '\n';
 		},
@@ -261,7 +267,7 @@ void printBlock(
 {
 	auto const& block = _cfg.block(_id);
 
-	if (_id != _cfg.entry && !block.entries.empty())
+	if (!block.entries.empty())
 		_out << fmt::format(
 			"{}: preds: {}\n",
 			formatBlockRef(_id),
@@ -273,7 +279,7 @@ void printBlock(
 	for (InstId const id: block.instructions)
 		printInstruction(_out, _module, _cfg, id, _argIndex);
 
-	printExit(_out, block);
+	printExit(_out, _cfg, block);
 }
 
 void printGraph(std::ostream& _out, ControlFlowGraphs const& _module, SSACFG const& _cfg)
