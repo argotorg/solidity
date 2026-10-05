@@ -24,6 +24,7 @@
 
 #include <liblangutil/EthdebugSchema.h>
 #include <liblangutil/SemanticDebugData.h>
+#include <liblangutil/SemanticDebugDataTable.h>
 
 #include <map>
 #include <optional>
@@ -83,6 +84,16 @@ langutil::SemanticDebugScope stateVariableScope(
 std::optional<langutil::ethdebug::schema::program::Context> programContext(
 	langutil::SemanticDebugScope _scope,
 	Resources const& _resources
+);
+
+/// The semantic debug info side table of @a _contract, as specified in
+/// docs/compiler-guide/ethdebug_internal_debug_info.rst, together with its
+/// resources(). It holds the scope record of the contract, with the state
+/// variables in storage and transient storage as stateVariableScope()
+/// describes them. A contract without such variables has no scope record.
+langutil::SemanticDebugDataTable semanticDebugDataTable(
+	ContractDefinition const& _contract,
+	std::map<std::string, unsigned> const& _sourceIndices
 );
 
 }

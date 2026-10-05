@@ -27,11 +27,16 @@
 
 #include <libsolutil/JSON.h>
 
+#include <memory>
+#include <optional>
 #include <set>
+#include <utility>
+#include <vector>
 #include <variant>
 
 using namespace solidity;
 using namespace solidity::frontend;
+using solidity::langutil::SemanticDebugDataTable;
 using solidity::langutil::SemanticDebugScope;
 using solidity::langutil::SemanticDebugVariable;
 using solidity::langutil::SemanticDebugVariablePhase;
@@ -189,4 +194,24 @@ ethdebug::Resources ethdebug::resources(ContractDefinition const& _contract, std
 		.types = types.takeDocuments(),
 		.pointers = templates.takeTemplates(),
 	};
+}
+
+SemanticDebugDataTable ethdebug::semanticDebugDataTable(
+	ContractDefinition const& _contract,
+	std::map<std::string, unsigned> const& _sourceIndices
+)
+{
+	SemanticDebugDataTable table;
+	table.setContractName(_contract.name());
+
+	SemanticDebugScope contractScope = stateVariableScope(_contract, _sourceIndices);
+	if (!contractScope.variableDefinitions.empty())
+		table.set({_contract.id(), 0}, std::make_shared<SemanticDebugScope const>(std::move(contractScope)));
+
+	Resources contractResources = resources(_contract, _sourceIndices);
+	for (auto& [id, document]: contractResources.types)
+		table.setType(id, std::move(document));
+	for (auto& [id, pointerTemplate]: contractResources.pointers)
+		table.setPointerTemplate(id, std::move(pointerTemplate));
+	return table;
 }

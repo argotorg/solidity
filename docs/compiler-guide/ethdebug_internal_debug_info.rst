@@ -421,7 +421,7 @@ The sidecar is both compiler input and compiler output, allowing the same debug 
 
 .. note::
 
-   For implementation testing, ``EthdebugTest`` will add ``Contract.semantic`` as a direct view of the serialized sidecar.
+   For implementation testing, ``EthdebugTest`` exposes ``Contract.semantic`` as a direct view of the serialized sidecar.
 
 Required Variable Coverage
 ==========================
