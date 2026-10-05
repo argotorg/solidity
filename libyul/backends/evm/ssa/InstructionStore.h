@@ -66,6 +66,8 @@ public:
 		FunctionGraphID graphID;
 		bool canContinue;
 		std::size_t numReturns;
+
+		bool operator==(Call const&) const = default;
 	};
 
 	using Payload = std::variant<
