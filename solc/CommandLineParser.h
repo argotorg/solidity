@@ -78,6 +78,7 @@ struct CompilerOutputs
 			{"bin-runtime", &CompilerOutputs::binaryRuntime},
 			{"abi", &CompilerOutputs::abi},
 			{"ir", &CompilerOutputs::ir},
+			{"ir-ethdebug", &CompilerOutputs::irEthdebug},
 			{"ir-ast-json", &CompilerOutputs::irAstJson},
 			{"ir-optimized", &CompilerOutputs::irOptimized},
 			{"ir-optimized-ast-json", &CompilerOutputs::irOptimizedAstJson},
@@ -103,6 +104,7 @@ struct CompilerOutputs
 	bool binaryRuntime = false;
 	bool abi = false;
 	bool ir = false;
+	bool irEthdebug = false;
 	bool irAstJson = false;
 	bool irOptimized = false;
 	bool irOptimizedAstJson = false;
@@ -191,6 +193,8 @@ struct CommandLineOptions
 		FileReader::FileSystemPathSet allowedDirectories;
 		bool ignoreMissingFiles = false;
 		bool noImportCallback = false;
+		/// Serialized ethdebug semantic debug info sidecar to attach to the strict assembly input.
+		std::optional<std::string> ethdebugInput;
 	} input;
 
 	struct Output

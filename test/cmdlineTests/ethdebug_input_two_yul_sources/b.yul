@@ -1,0 +1,5 @@
+object "C" {
+    code {
+        stop()
+    }
+}

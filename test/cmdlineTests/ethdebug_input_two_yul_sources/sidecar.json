@@ -1,0 +1,9 @@
+{
+    "format": "solidity-ethdebug-semantic-data",
+    "version": 1,
+    "resources": {
+        "types": {},
+        "pointers": {}
+    },
+    "scopes": {}
+}

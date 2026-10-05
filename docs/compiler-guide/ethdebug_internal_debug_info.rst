@@ -412,10 +412,6 @@ Standard JSON uses these fields:
 Request ``ethdebug.resources`` and ``ethdebug.compilation`` during the Solidity stage.
 The Yul stage does not emit these outputs.
 
-.. note::
-
-   The command-line sidecar options below are planned for a follow-up pull request.
-
 The command-line interface uses these options:
 
 - ``--ir`` and ``--ir-ethdebug`` emit the Yul text and sidecar.
