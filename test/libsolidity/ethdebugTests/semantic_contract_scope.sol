@@ -15,7 +15,7 @@ contract C {
 // ====
 // EVMVersion: >=cancun
 // ----
-// C.semantic.scopes | keys: ["34"]
+// C.semantic.scopes | keys: ["33","34"]
 // C.semantic.scopes.34.0.variableDefinitions | length: 4
 // C.semantic.scopes.34.0.variableDefinitions[0].identifier: counter
 // C.semantic.scopes.34.0.variableDefinitions[0].pointer: {"location":"storage","slot":"0x00"}
@@ -32,4 +32,6 @@ contract C {
 // C.semantic.scopes.34.0.variableDefinitions[2].pointer: {"location":"storage","slot":"0x02"}
 // C.semantic.scopes.34.0.variableDefinitions[3].identifier: temporary
 // C.semantic.scopes.34.0.variableDefinitions[3].pointer: {"location":"transient","slot":"0x00"}
+// C.semantic.scopes.33.0.variableDefinitions | length: 1
+// C.semantic.scopes.33.0.variableDefinitions[0].identifier: <PATH NOT FOUND>
 // C.semantic.resources.pointers | keys: ["storage-t_mapping$_t_address_$_t_uint256_$","storage-t_struct$_Point_$6_storage","storage-t_uint256","storage-t_uint8","transient-t_uint256"]

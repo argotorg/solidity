@@ -99,10 +99,17 @@ Scope Records
 =============
 
 ``frontend::ethdebug::semanticDebugDataTable()`` builds the side table described in :doc:`ethdebug_internal_debug_info` from analysis results.
-It contains the contract's scope record, keyed by its AST ID with instance 0, and the type documents and pointer templates returned by ``frontend::ethdebug::resources()``.
+It holds the scope records of a contract, all with instance 0:
 
-The scope record describes the state variables in storage and transient storage, located as in the program-level context.
-A contract without such variables has no scope record.
-Function and modifier scopes, immutables and local variables of blocks are not yet recorded here.
+- the contract's own, keyed by its AST ID, with the state variables in storage and transient storage, located as in the program-level context,
+- one for every function and modifier compiled into the contract, keyed by its AST ID, with its parameters and return variables in declaration order.
 
-The fixtures ``semantic_contract_scope.sol`` and ``semantic_without_variables.sol`` under ``test/libsolidity/ethdebugTests/`` show the table through ``Contract.semantic``.
+A scope without variables has no record.
+
+Parameters and return variables live on the stack.
+Their pointer is a ``stack`` region whose slot is a ``~~yulLocal`` expression naming the generated Yul local of the unoptimized IR, as ``IRVariable`` names it.
+A value with several stack slots, such as a calldata array or an external function, is a group of regions named after its stack items, such as ``offset`` and ``length``.
+A value without stack slots is optimized out.
+
+Immutables and local variables of blocks have no records yet.
+The test cases ``test/libsolidity/ethdebugTests/semantic_*.sol`` show the records.

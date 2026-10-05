@@ -90,7 +90,11 @@ std::optional<langutil::ethdebug::schema::program::Context> programContext(
 /// docs/compiler-guide/ethdebug_internal_debug_info.rst, together with its
 /// resources(). It holds the scope record of the contract, with the state
 /// variables in storage and transient storage as stateVariableScope()
-/// describes them. A contract without such variables has no scope record.
+/// describes them, and the scope record of every function and modifier
+/// compiled into the contract, with its parameters and return variables.
+/// Those live on the stack: their pointers are regions over the generated Yul
+/// locals of the unoptimized IR, which stand in for stack slots until Yul is
+/// compiled to EVM. Scopes without variables have no record.
 langutil::SemanticDebugDataTable semanticDebugDataTable(
 	ContractDefinition const& _contract,
 	std::map<std::string, unsigned> const& _sourceIndices
