@@ -186,7 +186,7 @@ object \"A1_14\" {
     code {
         {
             /// @src 0:58:123
-            mstore(64, memoryguard(0x80))
+            mstore(64, memoryguard(128))
             if callvalue()
             {
                 revert_error_ca66f745a3ce8ff40e2ccaf1ad45db7774001b90d25810abd9040049be7bf4bb()
@@ -205,7 +205,7 @@ object \"A1_14\" {
         code {
             {
                 /// @src 0:58:123
-                mstore(64, memoryguard(0x80))
+                mstore(64, memoryguard(128))
                 if iszero(lt(calldatasize(), 4))
                 {
                     let selector := shift_right_unsigned(calldataload(0))
@@ -481,7 +481,7 @@ object \"A2_27\" {
     code {
         {
             /// @src 0:124:189
-            mstore(64, memoryguard(0x80))
+            mstore(64, memoryguard(128))
             if callvalue()
             {
                 revert_error_ca66f745a3ce8ff40e2ccaf1ad45db7774001b90d25810abd9040049be7bf4bb()
@@ -500,7 +500,7 @@ object \"A2_27\" {
         code {
             {
                 /// @src 0:124:189
-                mstore(64, memoryguard(0x80))
+                mstore(64, memoryguard(128))
                 if iszero(lt(calldatasize(), 4))
                 {
                     let selector := shift_right_unsigned(calldataload(0))
@@ -778,7 +778,7 @@ object \"A1_42\" {
     code {
         {
             /// @src 1:58:123
-            mstore(64, memoryguard(0x80))
+            mstore(64, memoryguard(128))
             if callvalue()
             {
                 revert_error_ca66f745a3ce8ff40e2ccaf1ad45db7774001b90d25810abd9040049be7bf4bb()
@@ -797,7 +797,7 @@ object \"A1_42\" {
         code {
             {
                 /// @src 1:58:123
-                mstore(64, memoryguard(0x80))
+                mstore(64, memoryguard(128))
                 if iszero(lt(calldatasize(), 4))
                 {
                     let selector := shift_right_unsigned(calldataload(0))
@@ -1073,7 +1073,7 @@ object \"B2_55\" {
     code {
         {
             /// @src 1:124:189
-            mstore(64, memoryguard(0x80))
+            mstore(64, memoryguard(128))
             if callvalue()
             {
                 revert_error_ca66f745a3ce8ff40e2ccaf1ad45db7774001b90d25810abd9040049be7bf4bb()
@@ -1092,7 +1092,7 @@ object \"B2_55\" {
         code {
             {
                 /// @src 1:124:189
-                mstore(64, memoryguard(0x80))
+                mstore(64, memoryguard(128))
                 if iszero(lt(calldatasize(), 4))
                 {
                     let selector := shift_right_unsigned(calldataload(0))

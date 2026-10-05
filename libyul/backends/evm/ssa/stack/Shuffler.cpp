@@ -1079,5 +1079,7 @@ ShuffleResult stack::shuffle(
 )
 {
 	yulAssert(2 <= _reachableStackDepth);
+	yulAssert(_source.size() <= 1024);
+	yulAssert(_target.size() <= 1024);
 	return Shuffle{_source, _target, _spills, _spillingAllowed, _reachableStackDepth}.run();
 }

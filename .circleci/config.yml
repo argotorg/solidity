@@ -30,14 +30,14 @@ parameters:
   emscripten-docker-image:
     type: string
     # NOTE: Please remember to update the `scripts/build_emscripten.sh` whenever the hash of this image changes.
-    # ghcr.io/argotorg/solidity-buildpack-deps:emscripten-25
-    default: "ghcr.io/argotorg/solidity-buildpack-deps@sha256:7cfad5e8aa021f5a6a12dffb591071868ca65d9dec0e7b600c92e212760f8444"
+    # ghcr.io/argotorg/solidity-buildpack-deps:emscripten-26
+    default: "ghcr.io/argotorg/solidity-buildpack-deps@sha256:720839e35f1a0c38df09a8e58bdfd01022fe877a40ea7a591f1ce00b51a73421"
   evm-version:
     type: string
     default: osaka
 
 orbs:
-  win: circleci/windows@2.2.0
+  win: circleci/windows@5.1.1
 
 commands:
   matrix_notify_unless_pr:
