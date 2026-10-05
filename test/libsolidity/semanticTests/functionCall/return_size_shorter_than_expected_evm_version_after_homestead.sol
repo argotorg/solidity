@@ -27,7 +27,6 @@ contract Test {
     }
 }
 // ====
-// EVMVersion: >homestead
 // compileViaYul: true
 // ----
 // test() -> FAILURE
