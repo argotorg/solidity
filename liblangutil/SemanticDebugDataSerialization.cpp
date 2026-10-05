@@ -290,6 +290,11 @@ void requireResolvableTemplateReferences(SemanticDebugDataTable const& _table)
 
 }
 
+SemanticDebugScope langutil::cloneSemanticDebugScope(SemanticDebugScope const& _scope)
+{
+	return scopeFromJSON(scopeToJSON(_scope), "scope");
+}
+
 Json langutil::semanticDebugDataToJSON(SemanticDebugDataTable const& _table)
 {
 	Json result{

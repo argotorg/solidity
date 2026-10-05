@@ -40,6 +40,9 @@ constexpr unsigned SemanticDebugDataFormatVersion = 1;
 /// Asserts that the table contains only records the producer can generate.
 Json semanticDebugDataToJSON(SemanticDebugDataTable const& _table);
 
+/// Copies a scope's uniquely owned pointer trees before rewriting its records.
+SemanticDebugScope cloneSemanticDebugScope(SemanticDebugScope const& _scope);
+
 /// Reads a sidecar written by semanticDebugDataToJSON, checking it against
 /// the format: throws ethdebug::JsonValidationError, whose message names the
 /// offending location, for an unknown format or version, a malformed

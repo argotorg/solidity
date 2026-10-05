@@ -62,5 +62,11 @@ void SemanticDebugDataTable::merge(SemanticDebugDataTable const& _other)
 		)
 			solAssert(Json(existing->second) == Json(definition), "Conflicting ethdebug pointer templates for ID " + name + ".");
 		else
-			m_pointerTemplates.emplace(name, schema::templateFromJSON(Json(definition), "pointer template"));
+			// Preserve internal expressions when copying the in-memory table.
+			// The sidecar writer applies the public schema rules to resource templates.
+			m_pointerTemplates.emplace(name, schema::templateFromJSON(
+				Json(definition),
+				"pointer template",
+				{.internalExpressions = true}
+			));
 }
