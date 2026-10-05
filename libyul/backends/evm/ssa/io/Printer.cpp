@@ -53,7 +53,9 @@ std::string formatValueRef(InstId const _id)
 
 std::string formatOperand(SSACFG const& _cfg, InstId const _id)
 {
-	return _cfg.isUnreachable(_id) ? "unreachable" : formatValueRef(_id);
+	yulAssert(!_cfg.isTombstone(_id), "Tombstones must not be referenced.");
+	yulAssert(!_cfg.isUnreachable(_id), "Unreachable values must not be referenced.");
+	return formatValueRef(_id);
 }
 
 std::string formatBlockRef(BlockId const _id)
@@ -141,8 +143,7 @@ void printInstruction(
 		_out << fmt::format("    {} = nop\n", formatValueRef(_id));
 		return;
 	case InstOpcode::Tombstone:
-		_out << fmt::format("    {} = tombstone\n", formatValueRef(_id));
-		return;
+		yulAssert(false, "Tombstones must not be scheduled into a block.");
 	case InstOpcode::Projection:
 		yulAssert(inst.inputs.size() == 1);
 		_out << fmt::format(
@@ -180,8 +181,7 @@ void printInstruction(
 		return;
 	}
 	case InstOpcode::Unreachable:
-		_out << fmt::format("    {} = unreachable\n", formatValueRef(_id));
-		return;
+		yulAssert(false, "Unreachable values must not be scheduled into a block.");
 	case InstOpcode::Identity:
 		yulAssert(inst.inputs.size() == 1);
 		_out << fmt::format(
