@@ -86,6 +86,17 @@ std::optional<langutil::ethdebug::schema::program::Context> programContext(
 	Resources const& _resources
 );
 
+/// The resources @a _table carries: its type documents and pointer templates.
+Resources resources(langutil::SemanticDebugDataTable const& _table);
+
+/// The program-level context of the variables of all scope records of
+/// @a _table, as programContext() selects them: those whose pointer is closed,
+/// which are the contract-level ones. For Yul input, whose side table comes
+/// from a sidecar rather than from the contract it was generated from.
+std::optional<langutil::ethdebug::schema::program::Context> programContext(
+	langutil::SemanticDebugDataTable const& _table
+);
+
 /// The semantic debug info side table of @a _contract, as specified in
 /// docs/compiler-guide/ethdebug_internal_debug_info.rst, together with its
 /// resources(). It holds the scope record of the contract, with the state

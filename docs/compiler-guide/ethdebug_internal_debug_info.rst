@@ -77,14 +77,10 @@ Accordingly, ``ethdebug`` depends on the ``ast-id`` ``--debug-info`` component.
 CLI and Standard JSON input reject a debug-info selection containing ``ethdebug`` without ``ast-id``.
 Selecting an ethdebug output does not modify the debug-info selection, just as ``--ir-optimized`` does not imply ``--optimize``.
 Without ``ethdebug`` in the selection the program outputs are still produced from the assembly, but carry none of the semantic debug info the component adds; the resources and compilation outputs do not depend on it.
+The sidecar carries the semantic debug info itself, so requesting the ``irEthdebug`` output or attaching ``auxiliaryInput.ethdebug`` without ``ethdebug`` in the selection is an error.
 
 Core Structures
 ===============
-
-.. note::
-
-   The scope records and their transfer through ``DebugData`` are implemented.
-   Exposing the sidecar through the compiler interfaces will follow in a later pull request.
 
 ``langutil::DebugData`` is the debug payload carried by Yul AST nodes.
 The sidecar envelope and variable records are compiler-specific.
@@ -399,7 +395,8 @@ Each source record in ``ethdebug.compilation`` maps its ID to the source path an
        Instance ``0`` is written explicitly.
 
 Readers reject an unknown format, an unsupported version, malformed sidecar fields, and keys that do not parse as decimal integers in the documented ranges.
-Writers emit deterministic output by ordering both key levels in ascending numeric order.
+Writers emit deterministic output: the compiler's JSON writer orders object members lexicographically by key, so the decimal keys of both levels appear in that order rather than in numeric order.
+Readers do not depend on key order.
 
 Compiler Interfaces
 -------------------
@@ -407,9 +404,17 @@ Compiler Interfaces
 Standard JSON uses these fields:
 
 - Solidity output ``contracts[<source>][<contract>].ir`` contains the Yul text.
-- Solidity output ``contracts[<source>][<contract>].irEthdebug`` contains its semantic sidecar.
+- Solidity output ``contracts[<source>][<contract>].irEthdebug`` contains the semantic sidecar of its ``ir`` output.
+  The optimized IR is not a supported sidecar input yet: the Yul pipeline renames generated locals, and optimizer passes do not maintain the records (see the staging note above).
 - Yul input ``auxiliaryInput.ethdebug`` supplies the sidecar for the Yul source.
 - Yul output ``irEthdebug`` emits the updated sidecar again.
+
+Request ``ethdebug.resources`` and ``ethdebug.compilation`` during the Solidity stage.
+The Yul stage does not emit these outputs.
+
+.. note::
+
+   The command-line sidecar options below are planned for a follow-up pull request.
 
 The command-line interface uses these options:
 

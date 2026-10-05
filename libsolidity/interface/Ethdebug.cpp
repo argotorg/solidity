@@ -22,6 +22,16 @@
 #include <libsolidity/ast/CallGraph.h>
 #include <libsolidity/ast/Types.h>
 #include <libsolidity/codegen/ir/IRVariable.h>
+
+#include <liblangutil/SemanticDebugData.h>
+#include <liblangutil/SemanticDebugDataSerialization.h>
+
+#include <libsolutil/CommonData.h>
+#include <libsolutil/Numeric.h>
+
+#include <range/v3/view/map.hpp>
+
+#include <algorithm>
 #include <libsolidity/interface/EthdebugPointerTemplateRegistry.h>
 #include <libsolidity/interface/EthdebugTypeRegistry.h>
 #include <liblangutil/Exceptions.h>
@@ -291,6 +301,29 @@ ethdebug::Resources ethdebug::resources(ContractDefinition const& _contract, std
 		.types = types.takeDocuments(),
 		.pointers = templates.takeTemplates(),
 	};
+}
+
+ethdebug::Resources ethdebug::resources(SemanticDebugDataTable const& _table)
+{
+	Resources result;
+	for (auto const& [id, document]: _table.types())
+		result.types.emplace(id, schema::typeFromJSON(Json(document), "type"));
+	for (auto const& [id, pointerTemplate]: _table.pointerTemplates())
+		result.pointers.emplace(id, schema::templateFromJSON(Json(pointerTemplate), "pointer template"));
+	return result;
+}
+
+std::optional<schema::program::Context> ethdebug::programContext(SemanticDebugDataTable const& _table)
+{
+	SemanticDebugScope variables;
+	for (auto const& scope: _table.scopes() | ranges::views::values)
+		if (scope)
+		{
+			SemanticDebugScope clonedScope = langutil::cloneSemanticDebugScope(*scope);
+			for (auto& variable: clonedScope.variableDefinitions)
+				variables.variableDefinitions.emplace_back(std::move(variable));
+		}
+	return programContext(std::move(variables), resources(_table));
 }
 
 SemanticDebugDataTable ethdebug::semanticDebugDataTable(

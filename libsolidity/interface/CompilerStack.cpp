@@ -1593,9 +1593,9 @@ void CompilerStack::generateIR(ContractDefinition const& _contract, bool _unopti
 		*compiledContract.yulIR,
 		compiledContract.yulSemanticDebugData.has_value() ? &*compiledContract.yulSemanticDebugData : nullptr
 	);
-	// The side table pairs with the unoptimized IR: attaching checks every
-	// pointer against it, and the table is kept as attached. The optimized IR,
-	// whose variable names differ, is not a supported pairing yet.
+	// The sidecar pairs with the unoptimized IR: attaching checks every pointer
+	// against it, and the table is kept as attached. The optimized IR, whose
+	// variable names differ, is not a supported sidecar input yet.
 	if (compiledContract.yulSemanticDebugData.has_value())
 		compiledContract.yulSemanticDebugData = stack.semanticDebugData();
 	if (!_unoptimizedOnly)

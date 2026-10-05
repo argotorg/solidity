@@ -37,6 +37,8 @@
 
 #include <liblangutil/SemanticDebugDataTable.h>
 
+#include <liblangutil/EthdebugSchema.h>
+
 #include <libevmasm/LinkerObject.h>
 
 #include <memory>
@@ -158,6 +160,14 @@ public:
 	/// The side table as attached to the current Yul AST: the resource tables
 	/// and every scope record, whether or not a Yul node carries it.
 	langutil::SemanticDebugDataTable const& semanticDebugData() const { return m_semanticDebugData; }
+	/// Publishes @a _context as the program-level ethdebug context of the
+	/// assembled objects, under @a _contractName. The context is lowered from
+	/// the attached semantic debug info by the caller, which knows the source
+	/// language the object was generated from.
+	void setEthdebugProgramContext(
+		std::string _contractName,
+		std::optional<langutil::ethdebug::schema::program::Context> _context
+	);
 
 	Dialect const& dialect() const;
 
@@ -179,6 +189,12 @@ private:
 
 	void reportUnimplementedFeatureError(langutil::UnimplementedFeatureError const& _error);
 
+	/// The ethdebug program output of an assembled object, with the program-level context if one was set.
+	Json ethdebugProgram(
+		MachineAssemblyObject const& _object,
+		std::map<std::string, unsigned> const& _sourceIndices
+	) const;
+
 	langutil::EVMVersion m_evmVersion;
 	solidity::frontend::OptimiserSettings m_optimiserSettings;
 	langutil::DebugInfoSelection m_debugInfoSelection{};
@@ -195,6 +211,8 @@ private:
 	/// Semantic debug info keyed by (AST ID, instance). Retained across reparses
 	/// so that scope records no Yul node carries survive the Yul text boundary.
 	langutil::SemanticDebugDataTable m_semanticDebugData;
+	std::optional<std::string> m_ethdebugContractName;
+	std::optional<langutil::ethdebug::schema::program::Context> m_ethdebugProgramContext;
 	langutil::ErrorList m_errors;
 	langutil::ErrorReporter m_errorReporter;
 
