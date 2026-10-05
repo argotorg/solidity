@@ -111,7 +111,7 @@ Prerequisites
 For running all compiler tests you may want to optionally install a few
 dependencies (`evmone <https://github.com/ipsilon/evmone/releases>`_,
 `z3 <https://github.com/Z3Prover/z3>`_, `Eldarica <https://github.com/uuverifiers/eldarica/>`_,
-`cvc5 <https://github.com/cvc5/cvc5>`).
+`cvc5 <https://github.com/cvc5/cvc5>`_).
 
 On macOS systems, some of the testing scripts expect GNU coreutils to be installed.
 This can be easiest accomplished using Homebrew: ``brew install coreutils``.
