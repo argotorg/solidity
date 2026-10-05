@@ -84,7 +84,7 @@ Core Structures
 .. note::
 
    The scope records and their transfer through ``DebugData`` are implemented.
-   Connecting the Solidity builder to Yul and exposing the sidecar through the compiler interfaces will follow in later pull requests.
+   Exposing the sidecar through the compiler interfaces will follow in a later pull request.
 
 ``langutil::DebugData`` is the debug payload carried by Yul AST nodes.
 The sidecar envelope and variable records are compiler-specific.

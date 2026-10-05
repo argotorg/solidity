@@ -813,7 +813,10 @@ void CompilerStack::link()
 	}
 }
 
-YulStack CompilerStack::loadGeneratedIR(std::string const& _ir) const
+YulStack CompilerStack::loadGeneratedIR(
+	std::string const& _ir,
+	SemanticDebugDataTable const* _semanticDebugData
+) const
 {
 	YulStack stack(
 		m_evmVersion,
@@ -834,6 +837,8 @@ YulStack CompilerStack::loadGeneratedIR(std::string const& _ir) const
 			true   // _withErrorIds
 		) + "\n"
 	);
+	if (_semanticDebugData)
+		stack.attachSemanticDebugData(*_semanticDebugData);
 
 	return stack;
 }
@@ -971,6 +976,12 @@ std::optional<std::string> const& CompilerStack::yulIR(std::string const& _contr
 {
 	solAssert(m_stackState == CompilationSuccessful, "Compilation was not successful.");
 	return contract(_contractName).yulIR;
+}
+
+std::optional<SemanticDebugDataTable> const& CompilerStack::yulSemanticDebugData(std::string const& _contractName) const
+{
+	solAssert(m_stackState == CompilationSuccessful, "Compilation was not successful.");
+	return contract(_contractName).yulSemanticDebugData;
 }
 
 std::optional<Json> CompilerStack::yulIRAst(std::string const& _contractName) const
@@ -1573,7 +1584,20 @@ void CompilerStack::generateIR(ContractDefinition const& _contract, bool _unopti
 	);
 
 	yulAssert(compiledContract.yulIR);
-	YulStack stack = loadGeneratedIR(*compiledContract.yulIR);
+	if (m_debugInfoSelection.ethdebug)
+		compiledContract.yulSemanticDebugData = ethdebug::semanticDebugDataTable(_contract, sourceIndices());
+	else
+		compiledContract.yulSemanticDebugData = std::nullopt;
+
+	YulStack stack = loadGeneratedIR(
+		*compiledContract.yulIR,
+		compiledContract.yulSemanticDebugData.has_value() ? &*compiledContract.yulSemanticDebugData : nullptr
+	);
+	// The side table pairs with the unoptimized IR: attaching checks every
+	// pointer against it, and the table is kept as attached. The optimized IR,
+	// whose variable names differ, is not a supported pairing yet.
+	if (compiledContract.yulSemanticDebugData.has_value())
+		compiledContract.yulSemanticDebugData = stack.semanticDebugData();
 	if (!_unoptimizedOnly)
 	{
 		stack.optimize(m_viaSSACFG);
@@ -1595,7 +1619,10 @@ void CompilerStack::generateEVMFromIR(ContractDefinition const& _contract)
 		return;
 
 	// Re-parse the Yul IR in EVM dialect
-	YulStack stack = loadGeneratedIR(*compiledContract.yulIROptimized);
+	YulStack stack = loadGeneratedIR(
+		*compiledContract.yulIROptimized,
+		compiledContract.yulSemanticDebugData.has_value() ? &*compiledContract.yulSemanticDebugData : nullptr
+	);
 
 	std::string deployedName = IRNames::deployedObject(_contract);
 	solAssert(!deployedName.empty(), "");

@@ -40,8 +40,8 @@ namespace solidity::frontend::test
 /// Scope keys exposed to expectations:
 ///   - Globals: `.resources`, `.compilation`.
 ///   - Per contract: `Contract.creation`, `Contract.runtime`, `Contract.contract`,
-///     `Contract.semantic` (the internal semantic debug info side table, in the
-///     shape of its sidecar).
+///     `Contract.semantic` (the internal semantic debug info side table as
+///     attached to the Yul IR, in the format of its sidecar).
 ///   - Source-qualified per contract (when needed to disambiguate same-named
 ///     contracts in different sources): `source.sol:Contract.creation`, etc.
 class EthdebugTest: public JSONExpectationTest
