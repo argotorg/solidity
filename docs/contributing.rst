@@ -15,7 +15,7 @@ In particular, we appreciate support in the following areas:
 * `Translating <https://github.com/solidity-docs>`_ the documentation into more languages.
 * Responding to questions from other users on `StackExchange
   <https://ethereum.stackexchange.com>`_ and the `Solidity Matrix Chat
-  <https://matrix.to/#/#ethereum\_solidity-dev:gitter.im>`_.
+  <https://matrix.to/#/#ethereum\_solidity:gitter.im>`_.
 * Getting involved in the language design process by proposing language changes or new features in the `Solidity forum <https://forum.soliditylang.org/>`_ and providing feedback.
 
 To get started, you can try :ref:`building-from-source` in order to familiarize
