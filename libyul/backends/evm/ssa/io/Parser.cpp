@@ -21,6 +21,7 @@
 #include <libyul/backends/evm/EVMDialect.h>
 #include <libyul/backends/evm/ssa/ControlFlowGraphs.h>
 #include <libyul/backends/evm/ssa/SSACFG.h>
+#include <libyul/backends/evm/ssa/io/Keywords.h>
 
 #include <libyul/Utilities.h>
 
@@ -99,6 +100,8 @@ struct Token
 {
 	TokenKind kind;
 	SourceRange location;
+	/// Set for and only for tokens of kind `TokenKind::Keyword`.
+	std::optional<Keyword> keyword = std::nullopt;
 
 	std::string_view lexeme(std::string_view const _source) const
 	{
@@ -251,6 +254,12 @@ private:
 			bool const allDigits = ranges::all_of(digits, langutil::isDecimalDigit);
 			if (lexeme[0] == 'v' && !digits.empty() && allDigits)
 				token.kind = TokenKind::ValueRef;
+			else
+			{
+				token.keyword = keywordFromString(lexeme);
+				if (!token.keyword)
+					failHere(fmt::format("Unknown keyword '{}'.", lexeme));
+			}
 			return token;
 		}
 		failFrom(start, fmt::format("Unexpected character '{}'.", c));
@@ -371,7 +380,7 @@ public:
 	{
 		Module module;
 		skipNewlines();
-		if (atWord("memoryguard"))
+		if (current().keyword == Keyword::MemoryGuard)
 		{
 			advance();
 			expect(TokenKind::Equal);
@@ -381,7 +390,7 @@ public:
 		if (current().kind != TokenKind::BlockRef)
 			failAtCurrent("Expected the entry block of the main graph.");
 		module.main = Graph{.headerLocation = current().location, .blocks = parseBlocks()};
-		while (atWord("func"))
+		while (current().keyword == Keyword::Func)
 			module.functions.push_back(parseFunction());
 		if (current().kind != TokenKind::EndOfInput)
 			failAtCurrent("Expected 'func' or end of input.");
@@ -397,11 +406,6 @@ private:
 		if (token.kind != TokenKind::EndOfInput)
 			++m_position;
 		return token;
-	}
-
-	bool atWord(std::string_view const _word) const
-	{
-		return current().kind == TokenKind::Keyword && current().lexeme(m_source) == _word;
 	}
 
 	/// The source from `_begin` to the end of the last consumed token.
@@ -427,16 +431,16 @@ private:
 		return advance();
 	}
 
-	void expectWord(std::string_view const _word)
+	void expectWord(Keyword const _word)
 	{
-		if (!atWord(_word))
+		if (current().keyword != _word)
 			failAtCurrent(fmt::format("Expected '{}'.", _word));
 		advance();
 	}
 
-	bool acceptWord(std::string_view const _word)
+	bool acceptWord(Keyword const _word)
 	{
-		if (!atWord(_word))
+		if (current().keyword != _word)
 			return false;
 		advance();
 		return true;
@@ -493,12 +497,12 @@ private:
 
 	bool atOperand() const
 	{
-		return current().kind == TokenKind::ValueRef || atWord("unreachable");
+		return current().kind == TokenKind::ValueRef || current().keyword == Keyword::Unreachable;
 	}
 
 	Operand parseOperand()
 	{
-		if (atWord("unreachable"))
+		if (current().keyword == Keyword::Unreachable)
 			failAtCurrent("Unreachable values are never referenced.");
 		return parseLabel(TokenKind::ValueRef);
 	}
@@ -520,11 +524,11 @@ private:
 	Function parseFunction()
 	{
 		std::size_t const begin = current().location.begin;
-		expectWord("func");
+		expectWord(Keyword::Func);
 		FunctionHeader header;
 		header.name = parseSymbol();
 		expect(TokenKind::LParen);
-		expectWord("args");
+		expectWord(Keyword::Args);
 		expect(TokenKind::Colon);
 		expect(TokenKind::LParen);
 		if (current().kind == TokenKind::ValueRef)
@@ -533,7 +537,7 @@ private:
 		expect(TokenKind::RParen);
 		expect(TokenKind::Arrow);
 		header.numReturns = parseInteger<std::size_t>(expect(TokenKind::Number));
-		header.canContinue = !acceptWord("nocontinue");
+		header.canContinue = !acceptWord(Keyword::NoContinue);
 		expect(TokenKind::LBrace);
 		SourceRange const headerLocation = locationFrom(begin);
 		expectEndOfLine();
@@ -559,7 +563,7 @@ private:
 		std::size_t const begin = current().location.begin;
 		block.label = parseLabel(TokenKind::BlockRef);
 		expect(TokenKind::Colon);
-		if (acceptWord("preds"))
+		if (acceptWord(Keyword::Preds))
 		{
 			expect(TokenKind::Colon);
 			block.predecessors = parseLabelList(TokenKind::BlockRef);
@@ -578,11 +582,11 @@ private:
 	bool atExit() const
 	{
 		return
-			atWord("jump") ||
-			atWord("branch") ||
-			atWord("return") ||
-			atWord("main_exit") ||
-			atWord("terminated");
+			current().keyword == Keyword::Jump ||
+			current().keyword == Keyword::Branch ||
+			current().keyword == Keyword::Return ||
+			current().keyword == Keyword::MainExit ||
+			current().keyword == Keyword::Terminated;
 	}
 
 	Line parseLine()
@@ -595,11 +599,11 @@ private:
 			expect(TokenKind::Equal);
 			line.instruction = parseValueInstruction();
 		}
-		else if (atWord("builtin"))
+		else if (current().keyword == Keyword::Builtin)
 			line.instruction = parseBuiltin();
-		else if (atWord("call"))
+		else if (current().keyword == Keyword::Call)
 			line.instruction = parseCall();
-		else if (acceptWord("upsilon"))
+		else if (acceptWord(Keyword::Upsilon))
 		{
 			Operand const value = parseOperand();
 			expect(TokenKind::Arrow);
@@ -614,38 +618,38 @@ private:
 
 	Line::Instruction parseValueInstruction()
 	{
-		if (atWord("builtin"))
+		if (current().keyword == Keyword::Builtin)
 			return parseBuiltin();
-		if (atWord("call"))
+		if (current().keyword == Keyword::Call)
 			return parseCall();
-		if (acceptWord("const"))
+		if (acceptWord(Keyword::Const))
 			return ConstInst{parseWord(expect(TokenKind::HexNumber))};
-		if (acceptWord("phi"))
+		if (acceptWord(Keyword::Phi))
 			return PhiInst{};
-		if (acceptWord("arg"))
+		if (acceptWord(Keyword::Arg))
 			return ArgInst{parseInteger<std::size_t>(expect(TokenKind::Number))};
-		if (acceptWord("proj"))
+		if (acceptWord(Keyword::Proj))
 		{
 			Label const producer = parseLabel(TokenKind::ValueRef);
 			expect(TokenKind::Comma);
 			return ProjectionInst{producer, parseInteger<std::size_t>(expect(TokenKind::Number))};
 		}
-		if (acceptWord("identity"))
+		if (acceptWord(Keyword::Identity))
 			return IdentityInst{parseOperand()};
-		if (acceptWord("nop"))
+		if (acceptWord(Keyword::Nop))
 			return NopInst{};
-		if (acceptWord("memoryguard"))
+		if (acceptWord(Keyword::MemoryGuard))
 			return MemoryGuardInst{};
-		if (atWord("unreachable"))
+		if (current().keyword == Keyword::Unreachable)
 			failAtCurrent("Unreachables should never be in a block.");
-		if (atWord("tombstone"))
+		if (current().keyword == Keyword::Tombstone)
 			failAtCurrent("Tombstones should never be instantiated.");
 		failAtCurrent("Expected an instruction.");
 	}
 
 	BuiltinInst parseBuiltin()
 	{
-		expectWord("builtin");
+		expectWord(Keyword::Builtin);
 		BuiltinInst builtin{.name = parseSymbol(), .operands = {}};
 		if (current().kind == TokenKind::Newline || current().kind == TokenKind::EndOfInput)
 			return builtin;
@@ -665,16 +669,16 @@ private:
 
 	CallInst parseCall()
 	{
-		expectWord("call");
+		expectWord(Keyword::Call);
 		CallInst call{parseSymbol(), {}, true};
 		if (atOperand())
 			call.arguments = parseOperandList();
 		if (current().kind == TokenKind::LBrace)
 		{
 			advance();
-			expectWord("nocontinue");
+			expectWord(Keyword::NoContinue);
 			expect(TokenKind::Equal);
-			expectWord("true");
+			expectWord(Keyword::True);
 			expect(TokenKind::RBrace);
 			call.canContinue = false;
 		}
@@ -683,9 +687,9 @@ private:
 
 	Exit parseExit()
 	{
-		if (acceptWord("jump"))
+		if (acceptWord(Keyword::Jump))
 			return JumpExit{parseLabel(TokenKind::BlockRef)};
-		if (acceptWord("branch"))
+		if (acceptWord(Keyword::Branch))
 		{
 			BranchExit branch;
 			branch.condition = parseOperand();
@@ -695,16 +699,16 @@ private:
 			branch.zero = parseLabel(TokenKind::BlockRef);
 			return branch;
 		}
-		if (acceptWord("return"))
+		if (acceptWord(Keyword::Return))
 		{
 			ReturnExit ret;
 			if (atOperand())
 				ret.values = parseOperandList();
 			return ret;
 		}
-		if (acceptWord("main_exit"))
+		if (acceptWord(Keyword::MainExit))
 			return MainExit{};
-		expectWord("terminated");
+		expectWord(Keyword::Terminated);
 		return TerminatedExit{};
 	}
 
@@ -720,13 +724,6 @@ struct Callee
 };
 using Callees = std::map<std::string, Callee, std::less<>>;
 
-/// Builds a single graph. Value and block ids are allocated in a fixed order that depends only on
-/// the structure of the syntax tree, never on the labels.
-/// - Blocks are created in source order.
-/// - All instructions except upsilons are allocated in source order, with placeholder inputs.
-/// - Then inputs are resolved and upsilons are emitted (all phis exist now).
-/// - Finally, each block's instruction list is set to source order and predecessors are checked
-///   and assigned.
 class GraphBuilder
 {
 public:

@@ -21,6 +21,7 @@
 #include <libyul/backends/evm/EVMDialect.h>
 #include <libyul/backends/evm/ssa/ControlFlowGraphs.h>
 #include <libyul/backends/evm/ssa/SSACFG.h>
+#include <libyul/backends/evm/ssa/io/Keywords.h>
 
 #include <libyul/Utilities.h>
 
@@ -73,7 +74,7 @@ void printBuiltinOperands(
 	auto const& payload = _cfg.builtinPayload(_id);
 	auto const& builtin = _cfg.evmDialect.builtin(payload.builtin);
 
-	_out << fmt::format("builtin @{}", builtin.name);
+	_out << fmt::format("{} @{}", Keyword::Builtin, builtin.name);
 
 	if (builtin.numParameters == 0)
 		return;
@@ -111,7 +112,7 @@ void printCallOperands(
 	SSACFG const* callee = _module.functionGraph(payload.graphID);
 	yulAssert(callee);
 
-	_out << fmt::format("call @{}", callee->name);
+	_out << fmt::format("{} @{}", Keyword::Call, callee->name);
 
 	if (_inst.inputs.empty())
 		return;
@@ -140,27 +141,29 @@ void printInstruction(
 	switch (inst.opcode)
 	{
 	case InstOpcode::Nop:
-		_out << fmt::format("    {} = nop\n", formatValueRef(_id));
+		_out << fmt::format("    {} = {}\n", formatValueRef(_id), Keyword::Nop);
 		return;
 	case InstOpcode::Tombstone:
 		yulAssert(false, "Tombstones must not be scheduled into a block.");
 	case InstOpcode::Projection:
 		yulAssert(inst.inputs.size() == 1);
 		_out << fmt::format(
-			"    {} = proj {}, {}\n",
+			"    {} = {} {}, {}\n",
 			formatValueRef(_id),
+			Keyword::Proj,
 			formatValueRef(inst.inputs.front()),
 			_cfg.projectionIndex(_id)
 		);
 		return;
 	case InstOpcode::Phi:
-		_out << fmt::format("    {} = phi\n", formatValueRef(_id));
+		_out << fmt::format("    {} = {}\n", formatValueRef(_id), Keyword::Phi);
 		return;
 	case InstOpcode::Upsilon:
 	{
 		yulAssert(inst.inputs.size() == 1);
 		_out << fmt::format(
-			"    upsilon {} -> ^{}\n",
+			"    {} {} -> ^{}\n",
+			Keyword::Upsilon,
 			formatOperand(_cfg, inst.inputs.front()),
 			formatValueRef(_cfg.upsilonPhi(_id))
 		);
@@ -168,8 +171,9 @@ void printInstruction(
 	}
 	case InstOpcode::Const:
 		_out << fmt::format(
-			"    {} = const {}\n",
+			"    {} = {} {}\n",
 			formatValueRef(_id),
+			Keyword::Const,
 			toCompactHexWithPrefix(_cfg.literalPayload(_id))
 		);
 		return;
@@ -177,7 +181,7 @@ void printInstruction(
 	{
 		auto const it = _argIndex.find(_id.value);
 		yulAssert(it != _argIndex.end(), "FunctionArg without an entry in SSACFG::arguments");
-		_out << fmt::format("    {} = arg {}\n", formatValueRef(_id), it->second);
+		_out << fmt::format("    {} = {} {}\n", formatValueRef(_id), Keyword::Arg, it->second);
 		return;
 	}
 	case InstOpcode::Unreachable:
@@ -185,13 +189,14 @@ void printInstruction(
 	case InstOpcode::Identity:
 		yulAssert(inst.inputs.size() == 1);
 		_out << fmt::format(
-			"    {} = identity {}\n",
+			"    {} = {} {}\n",
 			formatValueRef(_id),
+			Keyword::Identity,
 			formatOperand(_cfg, inst.inputs.front())
 		);
 		return;
 	case InstOpcode::MemoryGuard:
-		_out << fmt::format("    {} = memoryguard\n", formatValueRef(_id));
+		_out << fmt::format("    {} = {}\n", formatValueRef(_id), Keyword::MemoryGuard);
 		return;
 	case InstOpcode::BuiltinCall:
 	{
@@ -210,7 +215,7 @@ void printInstruction(
 			_out << fmt::format("{} = ", formatValueRef(_id));
 		printCallOperands(_out, _module, inst, _id, _cfg);
 		if (!payload.canContinue)
-			_out << " { nocontinue = true }";
+			_out << fmt::format(" {{ {} = {} }}", Keyword::NoContinue, Keyword::True);
 		_out << '\n';
 		return;
 	}
@@ -223,16 +228,17 @@ void printExit(std::ostream& _out, SSACFG const& _cfg, SSACFG::BasicBlock const&
 	std::visit(GenericVisitor{
 		[&](SSACFG::BasicBlock::MainExit const&)
 		{
-			_out << "    main_exit\n";
+			_out << fmt::format("    {}\n", Keyword::MainExit);
 		},
 		[&](SSACFG::BasicBlock::Jump const& _jump)
 		{
-			_out << fmt::format("    jump {}\n", formatBlockRef(_jump.target));
+			_out << fmt::format("    {} {}\n", Keyword::Jump, formatBlockRef(_jump.target));
 		},
 		[&](SSACFG::BasicBlock::ConditionalJump const& _cjump)
 		{
 			_out << fmt::format(
-				"    branch {}, {}, {}\n",
+				"    {} {}, {}, {}\n",
+				Keyword::Branch,
 				formatOperand(_cfg, _cjump.condition),
 				formatBlockRef(_cjump.nonZero),
 				formatBlockRef(_cjump.zero)
@@ -240,7 +246,7 @@ void printExit(std::ostream& _out, SSACFG const& _cfg, SSACFG::BasicBlock const&
 		},
 		[&](SSACFG::BasicBlock::FunctionReturn const& _ret)
 		{
-			_out << "    return";
+			_out << fmt::format("    {}", Keyword::Return);
 			bool first = true;
 			for (InstId const v: _ret.returnValues)
 			{
@@ -252,7 +258,7 @@ void printExit(std::ostream& _out, SSACFG const& _cfg, SSACFG::BasicBlock const&
 		},
 		[&](SSACFG::BasicBlock::Terminated const&)
 		{
-			_out << "    terminated\n";
+			_out << fmt::format("    {}\n", Keyword::Terminated);
 		}
 	}, _block.exit);
 }
@@ -269,8 +275,9 @@ void printBlock(
 
 	if (!block.entries.empty())
 		_out << fmt::format(
-			"{}: preds: {}\n",
+			"{}: {}: {}\n",
 			formatBlockRef(_id),
+			Keyword::Preds,
 			fmt::join(block.entries | ranges::views::transform(formatBlockRef), ", ")
 		);
 	else
@@ -289,13 +296,15 @@ void printGraph(std::ostream& _out, ControlFlowGraphs const& _module, SSACFG con
 	if (wrapIntoFunc)
 	{
 		_out << fmt::format(
-			"func @{}(args: ({})) -> {}",
+			"{} @{}({}: ({})) -> {}",
+			Keyword::Func,
 			_cfg.name,
+			Keyword::Args,
 			fmt::join(_cfg.arguments | ranges::views::transform(formatValueRef), ", "),
 			_cfg.numReturns
 		);
 		if (!_cfg.canContinue)
-			_out << " nocontinue";
+			_out << fmt::format(" {}", Keyword::NoContinue);
 		_out << " {\n";
 	}
 
@@ -315,7 +324,11 @@ void printGraph(std::ostream& _out, ControlFlowGraphs const& _module, SSACFG con
 void io::print(std::ostream& _out, ControlFlowGraphs const& _cfgs)
 {
 	if (_cfgs.memoryGuard)
-		_out << fmt::format("memoryguard = {}\n\n", toCompactHexWithPrefix(*_cfgs.memoryGuard));
+		_out << fmt::format(
+			"{} = {}\n\n",
+			Keyword::MemoryGuard,
+			toCompactHexWithPrefix(*_cfgs.memoryGuard)
+		);
 
 	for (auto const& graph: _cfgs.functionGraphs)
 	{
