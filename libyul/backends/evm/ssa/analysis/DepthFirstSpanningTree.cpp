@@ -25,55 +25,54 @@ DepthFirstSpanningTree::DepthFirstSpanningTree(SSACFG const& _cfg):
 	m_explored(m_cfg.numBlocks(), false), m_blockWisePreOrder(m_cfg.numBlocks(), 0),
 	m_blockWiseMaxSubtreePreOrder(m_cfg.numBlocks(), 0)
 {
-	yulAssert(m_cfg.entry.value == 0);
 	m_preOrder.reserve(m_cfg.numBlocks());
 	m_postOrder.reserve(m_cfg.numBlocks());
-	dfs(0);
+	dfs(m_cfg.entry);
 
-	for (auto const& [v1, v2]: m_potentialBackEdges)
-		if (ancestor(v2, v1))
-			m_backEdgeTargets.insert(v2);
+	for (SSACFG::BlockId const source: m_preOrder)
+		m_cfg.block(source).forEachExit([&](SSACFG::BlockId const& _target) {
+			if (ancestor(_target, source))
+				m_backEdgeTargets.insert(_target);
+		});
 }
 
-void DepthFirstSpanningTree::dfs(SSACFG::BlockId::ValueType const _vertex) {
-	yulAssert(!m_explored[_vertex]);
-	m_explored[_vertex] = true;
-	m_blockWisePreOrder[_vertex] = static_cast<SSACFG::BlockId::ValueType>(m_preOrder.size());
-	m_blockWiseMaxSubtreePreOrder[_vertex] = m_blockWisePreOrder[_vertex];
-	m_preOrder.push_back(_vertex);
+void DepthFirstSpanningTree::dfs(SSACFG::BlockId const _block)
+{
+	yulAssert(!m_explored[_block.value]);
+	m_explored[_block.value] = true;
+	m_blockWisePreOrder[_block.value] = static_cast<SSACFG::BlockId::ValueType>(m_preOrder.size());
+	m_preOrder.push_back(_block);
 
-	m_cfg.block(SSACFG::BlockId{_vertex}).forEachExit([&](SSACFG::BlockId const& _exitBlock){
+	m_cfg.block(_block).forEachExit([&](SSACFG::BlockId const& _exitBlock) {
 		if (!m_explored[_exitBlock.value])
-		{
-			dfs(_exitBlock.value);
-			m_blockWiseMaxSubtreePreOrder[_vertex] = std::max(m_blockWiseMaxSubtreePreOrder[_vertex], m_blockWiseMaxSubtreePreOrder[_exitBlock.value]);
-		}
-		else
-			m_potentialBackEdges.emplace_back(_vertex, _exitBlock.value);
+			dfs(_exitBlock);
 	});
 
-	m_postOrder.push_back(_vertex);
+	// the subtree has been visited completely and occupies the pre-order indices up to here
+	m_blockWiseMaxSubtreePreOrder[_block.value] = static_cast<SSACFG::BlockId::ValueType>(m_preOrder.size() - 1);
+	m_postOrder.push_back(_block);
 }
 
-bool DepthFirstSpanningTree::ancestor(SSACFG::BlockId::ValueType const _block1, SSACFG::BlockId::ValueType const _block2) const {
-	yulAssert(_block1 < m_blockWisePreOrder.size());
-	yulAssert(_block2 < m_blockWisePreOrder.size());
-
-	auto const preOrderIndex1 = m_blockWisePreOrder[_block1];
-	auto const preOrderIndex2 = m_blockWisePreOrder[_block2];
-
-	bool const node1VisitedBeforeNode2 = preOrderIndex1 <= preOrderIndex2;
-	bool const node2InSubtreeOfNode1 = preOrderIndex2 <= m_blockWiseMaxSubtreePreOrder[_block1];
-	return node1VisitedBeforeNode2 && node2InSubtreeOfNode1;
-}
-
-bool DepthFirstSpanningTree::backEdge(SSACFG::BlockId const& _block1, SSACFG::BlockId const& _block2) const
+bool DepthFirstSpanningTree::ancestor(SSACFG::BlockId const _ancestor, SSACFG::BlockId const _block) const
 {
-	if (ancestor(_block2.value, _block1.value))
+	yulAssert(_ancestor.value < m_blockWisePreOrder.size());
+	yulAssert(_block.value < m_blockWisePreOrder.size());
+
+	auto const preOrderIndexAncestor = m_blockWisePreOrder[_ancestor.value];
+	auto const preOrderIndexBlock = m_blockWisePreOrder[_block.value];
+
+	bool const ancestorVisitedBeforeBlock = preOrderIndexAncestor <= preOrderIndexBlock;
+	bool const blockInSubtreeOfAncestor = preOrderIndexBlock <= m_blockWiseMaxSubtreePreOrder[_ancestor.value];
+	return ancestorVisitedBeforeBlock && blockInSubtreeOfAncestor;
+}
+
+bool DepthFirstSpanningTree::backEdge(SSACFG::BlockId const _source, SSACFG::BlockId const _target) const
+{
+	if (ancestor(_target, _source))
 	{
-		// check that block1 -> block2 is indeed an edge in the cfg
+		// check that source -> target is indeed an edge in the cfg
 		bool isEdge = false;
-		m_cfg.block(_block1).forEachExit([&_block2, &isEdge](SSACFG::BlockId const& _exit) { isEdge |= _block2 == _exit; });
+		m_cfg.block(_source).forEachExit([&](SSACFG::BlockId const& _exit) { isEdge |= _target == _exit; });
 		return isEdge;
 	}
 	return false;

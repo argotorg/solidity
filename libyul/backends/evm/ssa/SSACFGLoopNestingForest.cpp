@@ -33,7 +33,7 @@ SSACFGLoopNestingForest::SSACFGLoopNestingForest(analysis::DepthFirstSpanningTre
 	ranges::reverse(dfsOrder);
 
 	for (auto const& blockId: dfsOrder)
-		findLoop(blockId);
+		findLoop(blockId.value);
 
 	// get the root nodes
 	for (auto loopHeader: m_loopNodes)
@@ -46,7 +46,7 @@ SSACFGLoopNestingForest::SSACFGLoopNestingForest(analysis::DepthFirstSpanningTre
 
 void SSACFGLoopNestingForest::findLoop(BlockIdValue const _potentialHeader)
 {
-	if (m_dfsTree.backEdgeTargets().contains(_potentialHeader))
+	if (m_dfsTree.backEdgeTargets().contains(SSACFG::BlockId{_potentialHeader}))
 	{
 		std::set<BlockIdValue> loopBody;
 		std::set<BlockIdValue> workList;
@@ -55,7 +55,7 @@ void SSACFGLoopNestingForest::findLoop(BlockIdValue const _potentialHeader)
 			auto const representative = m_vertexPartition.find(pred.value);
 			if (
 				representative != _potentialHeader &&
-				m_dfsTree.backEdge(SSACFG::BlockId{pred}, SSACFG::BlockId{_potentialHeader})
+				m_dfsTree.backEdge(pred, SSACFG::BlockId{_potentialHeader})
 			)
 				workList.insert(representative);
 		}
@@ -67,7 +67,7 @@ void SSACFGLoopNestingForest::findLoop(BlockIdValue const _potentialHeader)
 
 			for (auto const& predecessor: m_cfg.block(SSACFG::BlockId{y}).entries)
 			{
-				if (!m_dfsTree.backEdge(SSACFG::BlockId{predecessor}, SSACFG::BlockId{y}))
+				if (!m_dfsTree.backEdge(predecessor, SSACFG::BlockId{y}))
 				{
 					auto const predecessorHeader = m_vertexPartition.find(predecessor.value);
 					if (predecessorHeader != _potentialHeader && loopBody.count(predecessorHeader) == 0)

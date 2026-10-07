@@ -29,7 +29,7 @@ JunkAdmittingBlocksFinder::JunkAdmittingBlocksFinder(SSACFG const& _cfg, analysi
 	// special case: only one block here, we mark it as junkable in case it's not a function return
 	if (_dfsTree.preOrder().size() == 1)
 	{
-		SSACFG::BlockId const id {_dfsTree.preOrder().front()};
+		SSACFG::BlockId const id = _dfsTree.preOrder().front();
 		m_blockAllowsJunk[id.value] = !_cfg.block(id).isFunctionReturnBlock();
 		return;
 	}
@@ -42,13 +42,12 @@ JunkAdmittingBlocksFinder::JunkAdmittingBlocksFinder(SSACFG const& _cfg, analysi
 
 	// of the bridge vertices, we have the exclude the ones that can lead to a function return
 	std::vector<SSACFG::BlockId> toVisit;
-	for (auto const blockIndex: _dfsTree.preOrder())
+	for (SSACFG::BlockId const blockId: _dfsTree.preOrder())
 	{
-		SSACFG::BlockId const blockId {blockIndex};
-		bool const isLoopHead = _dfsTree.backEdgeTargets().contains(blockIndex);
-		m_blockAllowsJunk[blockIndex] = (bridgeFinder.bridgeVertex(blockId) && !isLoopHead) || _cfg.block(blockId).isTerminationBlock();
+		bool const isLoopHead = _dfsTree.backEdgeTargets().contains(blockId);
+		m_blockAllowsJunk[blockId.value] = (bridgeFinder.bridgeVertex(blockId) && !isLoopHead) || _cfg.block(blockId).isTerminationBlock();
 		if (_cfg.block(blockId).isFunctionReturnBlock())
-			toVisit.emplace_back(SSACFG::BlockId{blockIndex});
+			toVisit.emplace_back(blockId);
 	}
 
 	std::vector<uint8_t> visited(_cfg.numBlocks(), false);

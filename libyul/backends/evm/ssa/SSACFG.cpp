@@ -80,8 +80,8 @@ protected:
 			_out << fmt::format(
 				"\\\nBlock {}; ({}, max {})\\n",
 				_blockId.value,
-				m_liveness->dfsTree().preOrderIndexOf(_blockId.value),
-				m_liveness->dfsTree().maxSubtreePreOrderIndexOf(_blockId.value)
+				m_liveness->dfsTree().preOrderIndexOf(_blockId),
+				m_liveness->dfsTree().maxSubtreePreOrderIndexOf(_blockId)
 			);
 			_out << fmt::format(
 				"LiveIn: {}\\l\\\n",

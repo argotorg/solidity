@@ -20,7 +20,6 @@
 
 #include <libyul/backends/evm/ssa/SSACFG.h>
 
-#include <cstddef>
 #include <set>
 #include <vector>
 
@@ -33,26 +32,34 @@ class DepthFirstSpanningTree
 public:
 	explicit DepthFirstSpanningTree(SSACFG const& _cfg);
 
-	std::vector<SSACFG::BlockId::ValueType> const& preOrder() const { return m_preOrder; }
-	std::vector<SSACFG::BlockId::ValueType> const& postOrder() const { return m_postOrder; }
-	std::set<SSACFG::BlockId::ValueType> const& backEdgeTargets() const { return m_backEdgeTargets; }
+	std::vector<SSACFG::BlockId> const& preOrder() const { return m_preOrder; }
+
+	/// Reversed, this is a topological order of the CFG without its back edges
+	std::vector<SSACFG::BlockId> const& postOrder() const { return m_postOrder; }
+
+	std::set<SSACFG::BlockId> const& backEdgeTargets() const { return m_backEdgeTargets; }
+
 	SSACFG const& cfg() const { return m_cfg; }
-	bool backEdge(SSACFG::BlockId const& _block1, SSACFG::BlockId const& _block2) const;
-	SSACFG::BlockId::ValueType preOrderIndexOf(SSACFG::BlockId::ValueType _block) const { return m_blockWisePreOrder[_block]; }
-	SSACFG::BlockId::ValueType maxSubtreePreOrderIndexOf(SSACFG::BlockId::ValueType _block) const { return m_blockWiseMaxSubtreePreOrder[_block]; }
+
+	/// Whether `_source -> _target` is an edge of the CFG whose target is a DFS-tree ancestor of its source
+	/// (a retreating edge). In a reducible CFG, these are exactly the back edges, i.e., the target dominates the source.
+	bool backEdge(SSACFG::BlockId _source, SSACFG::BlockId _target) const;
+
+	SSACFG::BlockId::ValueType preOrderIndexOf(SSACFG::BlockId _block) const { return m_blockWisePreOrder[_block.value]; }
+
+	SSACFG::BlockId::ValueType maxSubtreePreOrderIndexOf(SSACFG::BlockId _block) const { return m_blockWiseMaxSubtreePreOrder[_block.value]; }
 
 private:
-	void dfs(SSACFG::BlockId::ValueType _vertex);
+	void dfs(SSACFG::BlockId _block);
 	/// Checks if block1 is an ancestor of block2, ie there's a path from block1 to block2 in the dfs tree
-	bool ancestor(SSACFG::BlockId::ValueType _block1, SSACFG::BlockId::ValueType _block2) const;
+	bool ancestor(SSACFG::BlockId _ancestor, SSACFG::BlockId _block) const;
 
 	SSACFG const& m_cfg;
 	std::vector<char> m_explored{};
-	std::vector<SSACFG::BlockId::ValueType> m_postOrder{};
-	std::vector<SSACFG::BlockId::ValueType> m_preOrder{};
+	std::vector<SSACFG::BlockId> m_postOrder{};
+	std::vector<SSACFG::BlockId> m_preOrder{};
 	std::vector<SSACFG::BlockId::ValueType> m_blockWisePreOrder{};
 	std::vector<SSACFG::BlockId::ValueType> m_blockWiseMaxSubtreePreOrder{};
-	std::vector<std::tuple<SSACFG::BlockId::ValueType, SSACFG::BlockId::ValueType>> m_potentialBackEdges{};
-	std::set<SSACFG::BlockId::ValueType> m_backEdgeTargets{};
+	std::set<SSACFG::BlockId> m_backEdgeTargets{};
 };
 }

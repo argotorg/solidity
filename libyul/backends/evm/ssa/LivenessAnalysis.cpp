@@ -76,10 +76,9 @@ LivenessAnalysis::LivenessData LivenessAnalysis::used(SSACFG::BlockId const _blo
 void LivenessAnalysis::runDagDfs()
 {
 	// SSA Book, Algorithm 9.2
-	for (auto const blockIdValue: m_dfsTree.postOrder())
+	for (SSACFG::BlockId const blockId: m_dfsTree.postOrder())
 	{
 		// post-order traversal
-		SSACFG::BlockId blockId{blockIdValue};
 		auto const& block = m_cfg.block(blockId);
 
 		// live <- PhiUses(B)
