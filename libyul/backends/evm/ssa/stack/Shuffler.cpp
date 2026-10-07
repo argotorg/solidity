@@ -58,6 +58,12 @@ bool isSpilled(StackSlot const& _slot, spill::SpillSet const& _spills)
 	return _slot.isVariable() && _spills.isSpilled(_slot);
 }
 
+/// Whether `_slot` can be produced on `_stack`
+bool isAvailable(StackSlot const& _slot, StackData const& _stack, spill::SpillSet const& _spills)
+{
+	return canBeFreelyGenerated(_slot) || isSpilled(_slot, _spills) || ranges::contains(_stack, _slot);
+}
+
 /// Where a slot on a stack is headed: the target offset it is bound for, or no offset at all for a surplus slot,
 /// which is to be popped. This is what tells two slots holding the same value apart.
 using Destination = std::optional<StackOffset>;
@@ -78,11 +84,16 @@ public:
 	std::size_t stackSize() const { return m_destinationOf.size(); }
 
 	/// The destination of the slot at `_pos`, or none for a surplus slot
-	Destination const& destinationOf(StackOffset const _pos) const { return m_destinationOf[_pos.value]; }
+	Destination const& destinationOf(StackOffset const _pos) const
+	{
+		yulAssert(_pos.value < m_destinationOf.size(), "position out of range");
+		return m_destinationOf[_pos.value];
+	}
 
 	/// The position of the slot bound for `_destination`, or none if no slot is bound for it
 	std::optional<StackOffset> positionOf(StackOffset const _destination) const
 	{
+		yulAssert(_destination.value < m_positionOf.size(), "destination out of range");
 		return m_positionOf[_destination.value];
 	}
 
@@ -90,8 +101,8 @@ public:
 	/// bound for the destination yet
 	void bind(StackOffset const _pos, StackOffset const _destination)
 	{
-		yulAssert(!m_destinationOf[_pos.value].has_value(), "slot already has a destination");
-		yulAssert(!m_positionOf[_destination.value].has_value(), "destination already bound to a slot");
+		yulAssert(!destinationOf(_pos).has_value(), "slot already has a destination");
+		yulAssert(!positionOf(_destination).has_value(), "destination already bound to a slot");
 		m_destinationOf[_pos.value] = _destination;
 		m_positionOf[_destination.value] = _pos;
 	}
@@ -99,6 +110,7 @@ public:
 	/// Exchanges the destinations of the slots at `_a` and `_b`
 	void swapDestinations(StackOffset const _a, StackOffset const _b)
 	{
+		yulAssert(_a.value < stackSize() && _b.value < stackSize(), "position out of range");
 		std::swap(m_destinationOf[_a.value], m_destinationOf[_b.value]);
 		if (Destination const& destination = m_destinationOf[_a.value])
 			m_positionOf[destination->value] = _a;
@@ -847,15 +859,6 @@ public:
 
 	bool run()
 	{
-		for (StackSlot const& slot: m_target)
-			yulAssert(
-				slot.isJunk() ||
-				canBeFreelyGenerated(slot) ||
-				ranges::contains(m_source, slot) ||
-				isSpilled(slot, m_spills),
-				"target slot neither on the stack nor generatable"
-			);
-
 		while (true)
 		{
 			MappingBuilder builder(m_source, m_target, m_dropped, m_wildcardSlotsStrategy);
@@ -1081,5 +1084,8 @@ ShuffleResult stack::shuffle(
 	yulAssert(2 <= _reachableStackDepth);
 	yulAssert(_source.size() <= 1024);
 	yulAssert(_target.size() <= 1024);
+	yulAssert(
+		ranges::all_of(_target, [&](StackSlot const& _slot) { return isAvailable(_slot, _source, _spills); })
+	);
 	return Shuffle{_source, _target, _spills, _spillingAllowed, _reachableStackDepth}.run();
 }
