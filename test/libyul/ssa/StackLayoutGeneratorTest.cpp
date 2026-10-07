@@ -22,7 +22,7 @@
 #include <libyul/backends/evm/ssa/ControlFlowGraphs.h>
 #include <libyul/backends/evm/ssa/SSACFGBuilder.h>
 #include <libyul/backends/evm/ssa/stack/Stack.h>
-#include <libyul/backends/evm/ssa/StackLayout.h>
+#include <libyul/backends/evm/ssa/stack/Layout.h>
 #include <libyul/backends/evm/ssa/StackLayoutGenerator.h>
 #include <libyul/backends/evm/ssa/StackUtils.h>
 
@@ -62,7 +62,7 @@ public:
 	StackLayoutDotExporter(
 		SSACFG const& _cfg,
 		std::size_t _functionIndex,
-		SSACFGStackLayout const& _layout,
+		stack::Layout const& _layout,
 		spill::SpillSet const& _spillSet,
 		ControlFlowGraphs const& _controlFlow
 	):
@@ -130,7 +130,7 @@ protected:
 	}
 
 private:
-	SSACFGStackLayout const& m_layout;
+	stack::Layout const& m_layout;
 	spill::SpillSet const& m_spillSet;
 	ControlFlowGraphs const& m_controlFlow;
 };

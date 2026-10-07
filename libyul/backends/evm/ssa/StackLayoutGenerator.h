@@ -21,7 +21,7 @@
 #include <libyul/backends/evm/ssa/spill/SpillSet.h>
 
 #include <libyul/backends/evm/ssa/stack/Stack.h>
-#include <libyul/backends/evm/ssa/StackLayout.h>
+#include <libyul/backends/evm/ssa/stack/Layout.h>
 
 #include <memory>
 
@@ -39,7 +39,7 @@ public:
 	/// and the recorded def-site store trace of each spilled value
 	struct Result
 	{
-		SSACFGStackLayout layout;
+		stack::Layout layout;
 		spill::SpillSet spillSet;
 		spill::SpillStoreTraces spillStoreTraces;
 	};
@@ -77,7 +77,7 @@ private:
 	// m_inputStackProposalsPerBlock[blockId] contains (predecessorId, edgeStack) pairs
 	// representing the stack state flowing from each predecessor into the block.
 	std::vector<std::vector<std::pair<SSACFG::BlockId, stack::Data>>> m_inputStackProposalsPerBlock;
-	SSACFGStackLayout m_resultLayout;
+	stack::Layout m_resultLayout;
 	spill::SpillSet m_spillSet;
 };
 

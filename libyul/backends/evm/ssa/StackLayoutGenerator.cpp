@@ -161,7 +161,7 @@ void StackLayoutGenerator::defineStackIn(SSACFG::BlockId const& _blockId)
 	// we already have an input layout defined, return
 	if (m_resultLayout[_blockId])
 		return;
-	BlockLayout blockLayout{};
+	stack::BlockLayout blockLayout{};
 
 	if (_blockId == m_cfg.entry)
 	{
@@ -266,7 +266,7 @@ void StackLayoutGenerator::visitBlock(SSACFG::BlockId const& _blockId)
 {
 	defineStackIn(_blockId);
 	yulAssert(m_resultLayout[_blockId]);
-	BlockLayout& blockLayout = *m_resultLayout[_blockId];
+	stack::BlockLayout& blockLayout = *m_resultLayout[_blockId];
 
 	SSACFG::BasicBlock const& block = m_cfg.block(_blockId);
 

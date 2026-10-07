@@ -22,7 +22,7 @@
 
 #include <libyul/backends/evm/ssa/stack/ShuffleTrace.h>
 #include <libyul/backends/evm/ssa/stack/Stack.h>
-#include <libyul/backends/evm/ssa/StackLayout.h>
+#include <libyul/backends/evm/ssa/stack/Layout.h>
 
 #include <libyul/backends/evm/AbstractAssembly.h>
 
@@ -58,7 +58,7 @@ private:
 		FunctionLabels const& _functionLabels,
 		stack::CallSites const& _callSites,
 		SSACFG const& _cfg,
-		SSACFGStackLayout const& _stackLayout,
+		stack::Layout const& _stackLayout,
 		spill::SpillSet const& _spillSet,
 		spill::SpillStoreTraces const& _spillStoreTraces,
 		ControlFlowGraphs::FunctionGraphID _graphID,
@@ -90,7 +90,7 @@ private:
 	FunctionLabels const& m_functionLabels;
 	stack::CallSites const& m_callSites;
 	SSACFG const& m_cfg;
-	SSACFGStackLayout const& m_stackLayout;
+	stack::Layout const& m_stackLayout;
 	spill::SpillSet const& m_spillSet;
 	spill::SpillStoreTraces const& m_spillStoreTraces;
 	ControlFlowGraphs::FunctionGraphID const m_graphID;

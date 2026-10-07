@@ -23,24 +23,24 @@
 #include <utility>
 #include <vector>
 
-namespace solidity::yul::ssa
+namespace solidity::yul::ssa::stack
 {
 
 struct BlockLayout
 {
 	// stack layout required to enter the block
-	stack::Data stackIn;
+	Data stackIn;
 
 	/// One trace per Inst of the block
-	std::vector<stack::ShuffleTrace> operationShuffles;
+	std::vector<ShuffleTrace> operationShuffles;
 	/// Transforms the stack after the last operation into the block's exit state (for conditional jumps: condition on top, pre-JUMPI)
-	stack::ShuffleTrace exitShuffle;
+	ShuffleTrace exitShuffle;
 	/// Per predecessor edge: transforms the predecessor's post-exit stack (for conditional jumps: after
 	/// popping the condition) into the phi preimage of `stackIn` under that edge
-	std::vector<std::pair<SSACFG::BlockId, stack::ShuffleTrace>> tracesForStackIn;
+	std::vector<std::pair<SSACFG::BlockId, ShuffleTrace>> tracesForStackIn;
 
 	/// The recorded shuffle for the edge from `_predecessor` into this block
-	stack::ShuffleTrace const& traceForStackIn(SSACFG::BlockId const& _predecessor) const
+	ShuffleTrace const& traceForStackIn(SSACFG::BlockId const& _predecessor) const
 	{
 		for (auto const& [parent, trace]: tracesForStackIn)
 			if (parent == _predecessor)
@@ -50,7 +50,7 @@ struct BlockLayout
 	}
 
 	/// Records the shuffle for the edge from `_predecessor` into this block
-	void addTraceForStackIn(SSACFG::BlockId const& _predecessor, stack::ShuffleTrace&& _trace)
+	void addTraceForStackIn(SSACFG::BlockId const& _predecessor, ShuffleTrace&& _trace)
 	{
 		for (auto const& [parent, trace]: tracesForStackIn)
 			if (parent == _predecessor)
@@ -66,10 +66,10 @@ struct BlockLayout
 };
 
 /// For each (reachable) block in the SSACFG one block layout
-class SSACFGStackLayout
+class Layout
 {
 public:
-	SSACFGStackLayout(std::size_t const _numBlocks): m_blockLayouts(_numBlocks) {}
+	Layout(std::size_t const _numBlocks): m_blockLayouts(_numBlocks) {}
 
 	std::optional<BlockLayout>& operator[](SSACFG::BlockId const& _blockId)
 	{

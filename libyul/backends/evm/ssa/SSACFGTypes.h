@@ -40,9 +40,9 @@ template<typename R, typename T>
 concept InputRangeOf = ranges::input_range<R> && std::same_as<ranges::range_value_t<R>, T>;
 
 class SSACFG;
-class SSACFGStackLayout;
 namespace stack
 {
+class Layout;
 class Slot;
 using Data = std::vector<Slot>;
 }

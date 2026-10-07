@@ -60,7 +60,7 @@ void CodeTransform::run
 
 	std::size_t const numCFGs = _controlFlowGraphs.functionGraphs.size();
 	std::vector<stack::CallSites> callSitesPerCFG;
-	std::vector<SSACFGStackLayout> layouts;
+	std::vector<stack::Layout> layouts;
 	std::vector<spill::SpillSet> spillSetsPerCFG;
 	std::vector<spill::SpillStoreTraces> spillStoreTracesPerCFG;
 	callSitesPerCFG.reserve(numCFGs);
@@ -149,7 +149,7 @@ CodeTransform::CodeTransform(
 	FunctionLabels const& _functionLabels,
 	stack::CallSites const& _callSites,
 	SSACFG const& _cfg,
-	SSACFGStackLayout const& _stackLayout,
+	stack::Layout const& _stackLayout,
 	spill::SpillSet const& _spillSet,
 	spill::SpillStoreTraces const& _spillStoreTraces,
 	ControlFlowGraphs::FunctionGraphID _graphID,

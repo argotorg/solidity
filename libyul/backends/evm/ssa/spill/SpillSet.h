@@ -55,7 +55,7 @@ public:
 
 	/// Finalizes the spill set by making every spilled value's def-site `mstore` reachable.
 	/// If `_storeTraces` is provided, it is rebuilt to hold each spilled value's recorded def-site store trace.
-	void closeUnderReachabilityConstraints(SSACFG const& _cfg, SSACFGStackLayout const& _layout, SpillStoreTraces* _storeTraces = nullptr);
+	void closeUnderReachabilityConstraints(SSACFG const& _cfg, stack::Layout const& _layout, SpillStoreTraces* _storeTraces = nullptr);
 
 	/// Yields a copy of this spill set minus `_key`.
 	[[nodiscard]] SpillSet without(stack::SpillKey _key) const;

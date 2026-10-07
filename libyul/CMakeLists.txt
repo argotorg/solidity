@@ -92,7 +92,6 @@ add_library(yul
 	backends/evm/ssa/SSACFGDebugInfo.h
 	backends/evm/ssa/SSACFGTypes.cpp
 	backends/evm/ssa/SSACFGTypes.h
-	backends/evm/ssa/StackLayout.h
 	backends/evm/ssa/StackLayoutGenerator.cpp
 	backends/evm/ssa/StackLayoutGenerator.h
 	backends/evm/ssa/util/UseCountSet.h
@@ -122,6 +121,7 @@ add_library(yul
 	backends/evm/ssa/spill/SpillSet.h
 	backends/evm/ssa/stack/InstructionStackIn.cpp
 	backends/evm/ssa/stack/InstructionStackIn.h
+	backends/evm/ssa/stack/Layout.h
 	backends/evm/ssa/stack/Shuffler.cpp
 	backends/evm/ssa/stack/Shuffler.h
 	backends/evm/ssa/stack/ShuffleTrace.cpp

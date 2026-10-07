@@ -134,7 +134,7 @@ frontend::test::TestCase::TestResult SpillTest::run(std::ostream& _stream, std::
 
 		std::size_t const numCFGs = controlFlowGraphs->functionGraphs.size();
 		std::vector<spill::SpillSet> spillSetsPerCFG;
-		std::vector<SSACFGStackLayout> layouts;
+		std::vector<stack::Layout> layouts;
 		spillSetsPerCFG.reserve(numCFGs);
 		layouts.reserve(numCFGs);
 

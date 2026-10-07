@@ -21,7 +21,7 @@
 #include <libyul/backends/evm/ssa/stack/Shuffler.h>
 
 #include <libyul/backends/evm/ssa/stack/Stack.h>
-#include <libyul/backends/evm/ssa/StackLayout.h>
+#include <libyul/backends/evm/ssa/stack/Layout.h>
 
 #include <range/v3/view/zip.hpp>
 
@@ -37,7 +37,7 @@ namespace
 /// and operation effects from the block's `stackIn`
 stack::Data computeOperationOut(
 	SSACFG const& _cfg,
-	SSACFGStackLayout const& _layout,
+	stack::Layout const& _layout,
 	InstId const _value
 )
 {
@@ -81,7 +81,7 @@ stack::Data computeOperationOut(
 /// - any other value: it sits on its producer's `operationOut`.
 stack::Data defStackFor(
 	SSACFG const& _cfg,
-	SSACFGStackLayout const& _layout,
+	stack::Layout const& _layout,
 	InstId const _value
 )
 {
@@ -104,7 +104,7 @@ stack::Data defStackFor(
 
 }
 
-void SpillSet::closeUnderReachabilityConstraints(SSACFG const& _cfg, SSACFGStackLayout const& _layout, SpillStoreTraces* _storeTraces)
+void SpillSet::closeUnderReachabilityConstraints(SSACFG const& _cfg, stack::Layout const& _layout, SpillStoreTraces* _storeTraces)
 {
 	if (_storeTraces)
 		_storeTraces->clear();
