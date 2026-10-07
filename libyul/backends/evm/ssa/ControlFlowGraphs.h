@@ -37,8 +37,6 @@ struct ControlFlowGraphsLiveness{
 
 	std::reference_wrapper<ControlFlowGraphs const> controlFlowGraphs;
 	std::vector<std::unique_ptr<analysis::Liveness>> cfgLiveness;
-
-	std::string toDot() const;
 };
 
 struct ControlFlowGraphs
@@ -52,25 +50,6 @@ struct ControlFlowGraphs
 	SSACFG const* functionGraph(FunctionGraphID const _id) const
 	{
 		return functionGraphs.at(_id).get();
-	}
-
-	std::string toDot(ControlFlowGraphsLiveness const* _liveness=nullptr) const
-	{
-		if (_liveness)
-			yulAssert(&_liveness->controlFlowGraphs.get() == this);
-		std::ostringstream output;
-		output << "digraph SSACFG {\nnodesep=0.7;\ngraph[fontname=\"DejaVu Sans\"]\nnode[shape=box,fontname=\"DejaVu Sans\"];\n\n";
-
-		for (size_t index=0; index < functionGraphs.size(); ++index)
-			output << functionGraphs[index]->toDot(
-				false,
-				index,
-				_liveness ? _liveness->cfgLiveness[index].get() : nullptr,
-				this
-			);
-
-		output << "}\n";
-		return output.str();
 	}
 
 	std::string print() const

@@ -81,7 +81,6 @@ add_library(yul
 	backends/evm/ssa/ControlFlowGraphs.cpp
 	backends/evm/ssa/ControlFlowGraphs.h
 	backends/evm/ssa/InstructionStore.h
-	backends/evm/ssa/SSACFG.cpp
 	backends/evm/ssa/SSACFG.h
 	backends/evm/ssa/SSACFGBuilder.cpp
 	backends/evm/ssa/SSACFGBuilder.h
@@ -98,6 +97,8 @@ add_library(yul
 	backends/evm/ssa/analysis/LoopNestingForest.h
 	backends/evm/ssa/analysis/UseCounts.cpp
 	backends/evm/ssa/analysis/UseCounts.h
+	backends/evm/ssa/io/DotExporter.cpp
+	backends/evm/ssa/io/DotExporter.h
 	backends/evm/ssa/io/DotExporterBase.cpp
 	backends/evm/ssa/io/DotExporterBase.h
 	backends/evm/ssa/io/Keywords.cpp

@@ -46,11 +46,6 @@
 
 namespace solidity::yul::ssa
 {
-namespace analysis
-{
-class Liveness;
-}
-struct ControlFlowGraphs;
 
 class SSACFG
 {
@@ -379,13 +374,6 @@ public:
 	{
 		return m_instructions.numTrailingProjections(_producer);
 	}
-
-	std::string toDot(
-		bool _includeDiGraphDefinition=true,
-		std::optional<size_t> _functionIndex=std::nullopt,
-		analysis::Liveness const* _liveness=nullptr,
-		ControlFlowGraphs const* _controlFlow=nullptr
-	) const;
 
 private:
 	InstId scheduleInBlock(InstId const _id, BlockId const _block)

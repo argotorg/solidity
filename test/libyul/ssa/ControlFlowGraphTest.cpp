@@ -22,6 +22,7 @@
 #include <test/Common.h>
 
 #include <libyul/backends/evm/ssa/SSACFGBuilder.h>
+#include <libyul/backends/evm/ssa/io/DotExporter.h>
 
 #include <libyul/backends/evm/ssa/transform/OptimizationPipeline.h>
 
@@ -83,7 +84,7 @@ TestCase::TestResult ControlFlowGraphTest::run(std::ostream& _stream, std::strin
 	);
 	yul::ssa::transform::optimize(*controlFlowGraphs);
 	yul::ssa::ControlFlowGraphsLiveness liveness(*controlFlowGraphs);
-	m_obtainedResult = controlFlowGraphs->toDot(&liveness);
+	m_obtainedResult = yul::ssa::io::toDot(*controlFlowGraphs, &liveness);
 
 	auto result = checkResult(_stream, _linePrefix, _formatted);
 

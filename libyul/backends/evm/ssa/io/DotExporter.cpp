@@ -16,12 +16,13 @@
 */
 // SPDX-License-Identifier: GPL-3.0
 
-#include <libyul/backends/evm/ssa/SSACFG.h>
+#include <libyul/backends/evm/ssa/io/DotExporter.h>
 
 #include <libyul/backends/evm/ssa/ControlFlowGraphs.h>
-#include <libyul/backends/evm/ssa/stack/JunkAdmittingBlocksFinder.h>
+#include <libyul/backends/evm/ssa/SSACFG.h>
 #include <libyul/backends/evm/ssa/analysis/Liveness.h>
 #include <libyul/backends/evm/ssa/io/DotExporterBase.h>
+#include <libyul/backends/evm/ssa/stack/JunkAdmittingBlocksFinder.h>
 
 #include <libsolutil/StringUtils.h>
 
@@ -167,16 +168,37 @@ private:
 
 }
 
-std::string SSACFG::toDot(
+std::string io::toDot(
+	SSACFG const& _cfg,
 	bool _includeDiGraphDefinition,
 	std::optional<size_t> _functionIndex,
 	analysis::Liveness const* _liveness,
 	ControlFlowGraphs const* _controlFlow
-) const
+)
 {
-	SSACFGDotExporter exporter(*this, _functionIndex.value_or(isMainGraph() ? 0 : 1), _liveness, _controlFlow);
-	if (!isMainGraph())
-		return exporter.exportFunction(*this, _includeDiGraphDefinition);
+	SSACFGDotExporter exporter(_cfg, _functionIndex.value_or(_cfg.isMainGraph() ? 0 : 1), _liveness, _controlFlow);
+	if (!_cfg.isMainGraph())
+		return exporter.exportFunction(_cfg, _includeDiGraphDefinition);
 	else
-		return exporter.exportBlocks(entry, _includeDiGraphDefinition);
+		return exporter.exportBlocks(_cfg.entry, _includeDiGraphDefinition);
+}
+
+std::string io::toDot(ControlFlowGraphs const& _controlFlow, ControlFlowGraphsLiveness const* _liveness)
+{
+	if (_liveness)
+		yulAssert(&_liveness->controlFlowGraphs.get() == &_controlFlow);
+	std::ostringstream output;
+	output << "digraph SSACFG {\nnodesep=0.7;\ngraph[fontname=\"DejaVu Sans\"]\nnode[shape=box,fontname=\"DejaVu Sans\"];\n\n";
+
+	for (size_t index=0; index < _controlFlow.functionGraphs.size(); ++index)
+		output << toDot(
+			*_controlFlow.functionGraphs[index],
+			false,
+			index,
+			_liveness ? _liveness->cfgLiveness[index].get() : nullptr,
+			&_controlFlow
+		);
+
+	output << "}\n";
+	return output.str();
 }
