@@ -16,7 +16,7 @@
 */
 // SPDX-License-Identifier: GPL-3.0
 
-#include <libyul/backends/evm/ssa/CallGraph.h>
+#include <libyul/backends/evm/ssa/analysis/CallGraph.h>
 
 #include <libyul/backends/evm/ssa/ControlFlowGraphs.h>
 
@@ -30,7 +30,7 @@
 #include <range/v3/view/enumerate.hpp>
 #include <range/v3/view/zip.hpp>
 
-solidity::yul::ssa::CallGraph::CallGraph(ControlFlowGraphs const& _cfgs): m_callees(_cfgs.functionGraphs.size())
+solidity::yul::ssa::analysis::CallGraph::CallGraph(ControlFlowGraphs const& _cfgs): m_callees(_cfgs.functionGraphs.size())
 {
 	for (auto const& [index, cfgPtr]: _cfgs.functionGraphs | ranges::views::enumerate)
 		for (auto const& [instId, inst]: ranges::views::zip(cfgPtr->instructionIds(), cfgPtr->instructions()))
@@ -44,19 +44,19 @@ solidity::yul::ssa::CallGraph::CallGraph(ControlFlowGraphs const& _cfgs): m_call
 	}
 }
 
-std::vector<std::vector<solidity::yul::ssa::FunctionGraphID>> solidity::yul::ssa::CallGraph::computeSCCs() const
+std::vector<std::vector<solidity::yul::ssa::FunctionGraphID>> solidity::yul::ssa::analysis::CallGraph::computeSCCs() const
 {
 	return solidity::util::computeStronglyConnectedComponents(m_callees);
 }
 
-bool solidity::yul::ssa::CallGraph::isRecursive(FunctionGraphID const _function) const
+bool solidity::yul::ssa::analysis::CallGraph::isRecursive(FunctionGraphID const _function) const
 {
 	if (!m_recursiveFunctions)
 		computeRecursiveFunctions();
 	return (*m_recursiveFunctions)[_function];
 }
 
-void solidity::yul::ssa::CallGraph::computeRecursiveFunctions() const
+void solidity::yul::ssa::analysis::CallGraph::computeRecursiveFunctions() const
 {
 	std::vector result(m_callees.size(), false);
 	for (auto const& scc: computeSCCs())

@@ -18,7 +18,7 @@
 
 #include <libyul/backends/evm/ssa/JunkAdmittingBlocksFinder.h>
 
-#include <libyul/backends/evm/ssa/BridgeFinder.h>
+#include <libyul/backends/evm/ssa/analysis/BridgeFinder.h>
 
 namespace solidity::yul::ssa
 {
@@ -38,7 +38,7 @@ JunkAdmittingBlocksFinder::JunkAdmittingBlocksFinder(SSACFG const& _cfg, analysi
 	// Translated to SSA CFGs this means:
 	//   - control flow that enters a bridge vertex never returns to a previously visited block
 	//   - there is no parallel path to a child of the vertex, ie, adding junk is fine in terms of stack balance
-	BridgeFinder const bridgeFinder(_cfg);
+	analysis::BridgeFinder const bridgeFinder(_cfg);
 
 	// of the bridge vertices, we have the exclude the ones that can lead to a function return
 	std::vector<SSACFG::BlockId> toVisit;

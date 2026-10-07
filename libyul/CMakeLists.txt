@@ -73,9 +73,9 @@ add_library(yul
 	backends/evm/StackLayoutGenerator.h
 	backends/evm/VariableReferenceCounter.h
 	backends/evm/VariableReferenceCounter.cpp
-	backends/evm/ssa/BridgeFinder.h
-	backends/evm/ssa/CallGraph.cpp
-	backends/evm/ssa/CallGraph.h
+	backends/evm/ssa/analysis/BridgeFinder.h
+	backends/evm/ssa/analysis/CallGraph.cpp
+	backends/evm/ssa/analysis/CallGraph.h
 	backends/evm/ssa/CodeTransform.cpp
 	backends/evm/ssa/CodeTransform.h
 	backends/evm/ssa/ControlFlowGraphs.cpp
@@ -111,6 +111,8 @@ add_library(yul
 	backends/evm/ssa/analysis/Liveness.h
 	backends/evm/ssa/analysis/LoopNestingForest.cpp
 	backends/evm/ssa/analysis/LoopNestingForest.h
+	backends/evm/ssa/analysis/UseCounts.cpp
+	backends/evm/ssa/analysis/UseCounts.h
 	backends/evm/ssa/io/DotExporterBase.cpp
 	backends/evm/ssa/io/DotExporterBase.h
 	backends/evm/ssa/io/Keywords.cpp
@@ -144,8 +146,6 @@ add_library(yul
 	backends/evm/ssa/transform/TrivialPhiEliminator.h
 	backends/evm/ssa/transform/UnreachableBlockCleaner.cpp
 	backends/evm/ssa/transform/UnreachableBlockCleaner.h
-	backends/evm/ssa/transform/UseCounts.cpp
-	backends/evm/ssa/transform/UseCounts.h
 	optimiser/ASTCopier.cpp
 	optimiser/ASTCopier.h
 	optimiser/ASTWalker.cpp

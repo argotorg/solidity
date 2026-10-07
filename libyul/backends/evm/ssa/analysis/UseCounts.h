@@ -15,43 +15,46 @@
 	along with solidity.  If not, see <http://www.gnu.org/licenses/>.
 */
 // SPDX-License-Identifier: GPL-3.0
-
+/**
+ * Per-InstId use counts..
+ */
 #pragma once
 
 #include <libyul/backends/evm/ssa/SSACFGTypes.h>
 
-#include <cstddef>
-#include <optional>
+#include <libyul/Exceptions.h>
+
+#include <cstdint>
 #include <vector>
 
 namespace solidity::yul::ssa
 {
 
-struct ControlFlowGraphs;
+class SSACFG;
 
-class CallGraph
+namespace analysis
+{
+
+/// Determines how often each InstId is read.
+/// A use is an occurrence of the id in another instruction's inputs.
+/// An Upsilon's target phi is a def-site back-link, not a use.
+class UseCounts
 {
 public:
-	explicit CallGraph(ControlFlowGraphs const& _cfgs);
+	explicit UseCounts(SSACFG const& _cfg);
 
-	std::size_t numFunctions() const { return m_callees.size(); }
-
-	std::vector<FunctionGraphID> const& callees(FunctionGraphID const _function) const
+	/// Number of reads of `_id`.
+	std::uint32_t numUses(InstId const _id) const
 	{
-		return m_callees[_function];
+		yulAssert(_id.value < m_counts.size());
+		return m_counts[_id.value];
 	}
-
-	std::vector<std::vector<FunctionGraphID>> computeSCCs() const;
-
-	/// True iff `_function` participates in a recursive chain. Either directly (self-edge) or as part of a
-	/// mutual-recursion cycle of any length
-	bool isRecursive(FunctionGraphID _function) const;
+	bool hasSingleUse(InstId const _id) const { return numUses(_id) == 1; }
 
 private:
-	void computeRecursiveFunctions() const;
-
-	std::vector<std::vector<FunctionGraphID>> m_callees;
-	mutable std::optional<std::vector<bool>> m_recursiveFunctions;
+	std::vector<std::uint32_t> m_counts;
 };
+
+}
 
 }

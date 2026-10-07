@@ -16,7 +16,7 @@
 */
 // SPDX-License-Identifier: GPL-3.0
 
-#include <libyul/backends/evm/ssa/transform/UseCounts.h>
+#include <libyul/backends/evm/ssa/analysis/UseCounts.h>
 
 #include <libyul/backends/evm/ssa/SSACFG.h>
 
@@ -25,7 +25,7 @@
 using namespace solidity;
 using namespace solidity::yul;
 using namespace solidity::yul::ssa;
-using namespace solidity::yul::ssa::transform;
+using namespace solidity::yul::ssa::analysis;
 
 UseCounts::UseCounts(SSACFG const& _cfg): m_counts(_cfg.numInsts(), 0)
 {

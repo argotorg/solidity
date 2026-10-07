@@ -18,7 +18,7 @@
 
 #include <libyul/backends/evm/ssa/transform/ConstantConditionFolder.h>
 
-#include <libyul/backends/evm/ssa/transform/UseCounts.h>
+#include <libyul/backends/evm/ssa/analysis/UseCounts.h>
 
 #include <libyul/backends/evm/ssa/SSACFG.h>
 
@@ -65,7 +65,7 @@ void transform::foldConstantConditions(SSACFG& _cfg)
 	yulAssert(equalityHandle.has_value());
 	// Snapshot taken before any folding: folding only removes uses, so stale counts over-approximate
 	// and a count of 1 below remains exact (the sole use is this exit's condition read).
-	transform::UseCounts const useCounts(_cfg);
+	analysis::UseCounts const useCounts(_cfg);
 	for (BlockId const blockId: _cfg.liveBlocks())
 	{
 		auto& block = _cfg.block(blockId);

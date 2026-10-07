@@ -20,7 +20,7 @@
 
 #include <test/libyul/Common.h>
 
-#include <libyul/backends/evm/ssa/CallGraph.h>
+#include <libyul/backends/evm/ssa/analysis/CallGraph.h>
 #include <libyul/backends/evm/ssa/ControlFlowGraphs.h>
 #include <libyul/backends/evm/ssa/SSACFGBuilder.h>
 #include <libyul/backends/evm/ssa/StackLayoutGenerator.h>
@@ -130,7 +130,7 @@ frontend::test::TestCase::TestResult SpillTest::run(std::ostream& _stream, std::
 		);
 		transform::optimize(*controlFlowGraphs);
 		ControlFlowGraphsLiveness const liveness(*controlFlowGraphs);
-		CallGraph const callGraph(*controlFlowGraphs);
+		analysis::CallGraph const callGraph(*controlFlowGraphs);
 
 		std::size_t const numCFGs = controlFlowGraphs->functionGraphs.size();
 		std::vector<spill::SpillSet> spillSetsPerCFG;

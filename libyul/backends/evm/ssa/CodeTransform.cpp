@@ -18,7 +18,7 @@
 
 #include <libyul/backends/evm/ssa/CodeTransform.h>
 
-#include <libyul/backends/evm/ssa/CallGraph.h>
+#include <libyul/backends/evm/ssa/analysis/CallGraph.h>
 #include <libyul/backends/evm/ssa/PhiInverse.h>
 #include <libyul/backends/evm/ssa/StackLayoutGenerator.h>
 #include <libyul/backends/evm/ssa/StackUtils.h>
@@ -56,7 +56,7 @@ void CodeTransform::run
 	yulAssert(!_controlFlowLiveness.cfgLiveness.empty());
 	yulAssert(_controlFlowGraphs.functionGraphs.size() == _controlFlowLiveness.cfgLiveness.size());
 	FunctionLabels const functionLabels = registerFunctionLabels(_assembly, _controlFlowGraphs);
-	CallGraph const callGraph(_controlFlowGraphs);
+	analysis::CallGraph const callGraph(_controlFlowGraphs);
 
 	std::size_t const numCFGs = _controlFlowGraphs.functionGraphs.size();
 	std::vector<CallSites> callSitesPerCFG;

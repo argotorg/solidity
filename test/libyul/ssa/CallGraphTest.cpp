@@ -21,7 +21,7 @@
 #include <test/libyul/Common.h>
 #include <test/Common.h>
 
-#include <libyul/backends/evm/ssa/CallGraph.h>
+#include <libyul/backends/evm/ssa/analysis/CallGraph.h>
 #include <libyul/backends/evm/ssa/ControlFlowGraphs.h>
 #include <libyul/backends/evm/ssa/SSACFG.h>
 #include <libyul/backends/evm/ssa/SSACFGBuilder.h>
@@ -75,7 +75,7 @@ TestCase::TestResult CallGraphTest::run(std::ostream& _stream, std::string const
 		true
 	);
 
-	yul::ssa::CallGraph const callGraph(*controlFlowGraphs);
+	yul::ssa::analysis::CallGraph const callGraph(*controlFlowGraphs);
 	std::ostringstream out;
 	for (yul::ssa::FunctionGraphID id = 0; id < controlFlowGraphs->functionGraphs.size(); ++id)
 	{

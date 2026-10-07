@@ -27,7 +27,7 @@
 #include <optional>
 #include <vector>
 
-namespace solidity::yul::ssa
+namespace solidity::yul::ssa::analysis
 {
 /// Detect bridges according to Algorithm 1 of https://arxiv.org/pdf/2108.07346.pdf.
 ///
