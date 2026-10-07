@@ -22,10 +22,10 @@
 
 namespace solidity::yul::ssa
 {
-
 class SSACFG;
+}
 
-namespace transform
+namespace solidity::yul::ssa::transform
 {
 /// Merges every block that ends in an unconditional Jump into its target whenever that target has the
 /// block as its only predecessor, collapsing straight-line chains into a single block. Assumes trivial
@@ -34,6 +34,4 @@ namespace transform
 /// Preconditions:
 ///		- Blocks with a single predecessor do not contain phis, i.e., trivial phi elimination has run
 void threadJumps(SSACFG& _cfg);
-}
-
 }

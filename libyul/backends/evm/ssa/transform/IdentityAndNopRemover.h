@@ -26,13 +26,11 @@
 
 namespace solidity::yul::ssa
 {
-
 class SSACFG;
+}
 
-namespace transform
+namespace solidity::yul::ssa::transform
 {
 /// Resolves Identity / Nop Insts and tombstones their slots
 void removeIdentitiesAndNops(SSACFG& _cfg);
-}
-
 }

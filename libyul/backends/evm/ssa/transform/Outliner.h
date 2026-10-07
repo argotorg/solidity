@@ -20,12 +20,10 @@
 
 namespace solidity::yul::ssa
 {
-
 struct ControlFlowGraphs;
+}
 
-namespace transform
+namespace solidity::yul::ssa::transform
 {
 void runOutliner(ControlFlowGraphs&);
 }
-
-} // namespace solidity::yul::ssa

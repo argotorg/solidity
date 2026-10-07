@@ -29,10 +29,10 @@
 
 namespace solidity::yul::ssa
 {
-
 class SSACFG;
+}
 
-namespace analysis
+namespace solidity::yul::ssa::analysis
 {
 
 /// Determines how often each InstId is read.
@@ -54,7 +54,5 @@ public:
 private:
 	std::vector<std::uint32_t> m_counts;
 };
-
-}
 
 }

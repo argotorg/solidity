@@ -25,13 +25,11 @@
 
 namespace solidity::yul::ssa
 {
-
 class SSACFG;
+}
 
-namespace transform
+namespace solidity::yul::ssa::transform
 {
 /// Removes trivial phis from the SSA CFG
 void eliminateTrivialPhis(SSACFG& _cfg);
-}
-
 }

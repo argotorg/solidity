@@ -21,10 +21,9 @@
 namespace solidity::yul::ssa
 {
 struct ControlFlowGraphs;
-
-namespace transform
-{
-void optimize(ControlFlowGraphs&);
 }
 
+namespace solidity::yul::ssa::transform
+{
+void optimize(ControlFlowGraphs&);
 }

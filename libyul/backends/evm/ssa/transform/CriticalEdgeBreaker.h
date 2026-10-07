@@ -20,10 +20,10 @@
 
 namespace solidity::yul::ssa
 {
-
 class SSACFG;
+}
 
-namespace transform
+namespace solidity::yul::ssa::transform
 {
 /// Splits every critical edge, i.e., one from a block with several successors into a block with several
 /// predecessors, whose target carries phis. A new block is inserted on the edge and the predecessor's
@@ -46,6 +46,4 @@ namespace transform
 /// Best run after trivial phi elimination, otherwise this step may introduce edges and blocks for phis that are
 /// about to be removed anyways.
 void breakCriticalEdges(SSACFG& _cfg);
-}
-
 }

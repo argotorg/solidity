@@ -22,13 +22,11 @@
 
 namespace solidity::yul::ssa
 {
-
 class SSACFG;
+}
 
-namespace transform
+namespace solidity::yul::ssa::transform
 {
 /// Removes unreachable blocks and cleans up references to them.
 void cleanUnreachableBlocks(SSACFG& _cfg);
-}
-
 }
