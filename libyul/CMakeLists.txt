@@ -92,9 +92,6 @@ add_library(yul
 	backends/evm/ssa/SSACFGDebugInfo.h
 	backends/evm/ssa/SSACFGTypes.cpp
 	backends/evm/ssa/SSACFGTypes.h
-	backends/evm/ssa/ShuffleTrace.cpp
-	backends/evm/ssa/ShuffleTrace.h
-	backends/evm/ssa/Stack.h
 	backends/evm/ssa/StackLayout.h
 	backends/evm/ssa/StackLayoutGenerator.cpp
 	backends/evm/ssa/StackLayoutGenerator.h
@@ -127,9 +124,12 @@ add_library(yul
 	backends/evm/ssa/stack/InstructionStackIn.h
 	backends/evm/ssa/stack/Shuffler.cpp
 	backends/evm/ssa/stack/Shuffler.h
+	backends/evm/ssa/stack/ShuffleTrace.cpp
+	backends/evm/ssa/stack/ShuffleTrace.h
 	backends/evm/ssa/stack/Slot.cpp
 	backends/evm/ssa/stack/Slot.h
 	backends/evm/ssa/stack/SlotLiveness.h
+	backends/evm/ssa/stack/Stack.h
 	backends/evm/ssa/transform/ConstantConditionFolder.cpp
 	backends/evm/ssa/transform/ConstantConditionFolder.h
 	backends/evm/ssa/transform/CriticalEdgeBreaker.cpp

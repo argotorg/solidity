@@ -21,7 +21,7 @@
 #include <libyul/backends/evm/ssa/io/DotExporterBase.h>
 #include <libyul/backends/evm/ssa/ControlFlowGraphs.h>
 #include <libyul/backends/evm/ssa/SSACFGBuilder.h>
-#include <libyul/backends/evm/ssa/Stack.h>
+#include <libyul/backends/evm/ssa/stack/Stack.h>
 #include <libyul/backends/evm/ssa/StackLayout.h>
 #include <libyul/backends/evm/ssa/StackLayoutGenerator.h>
 #include <libyul/backends/evm/ssa/StackUtils.h>

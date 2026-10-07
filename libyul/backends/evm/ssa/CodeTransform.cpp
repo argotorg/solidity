@@ -246,7 +246,7 @@ void CodeTransform::operator()(SSACFG::BlockId const _blockId)
 	std::visit(solidity::util::GenericVisitor{ [this, &_blockId](auto const& exit) { (*this)(_blockId, exit); } }, block.exit);
 }
 
-void CodeTransform::operator()(InstId _instId, ShuffleTrace const& _operationShuffle)
+void CodeTransform::operator()(InstId _instId, stack::ShuffleTrace const& _operationShuffle)
 {
 	SSACFG::Inst const& _inst = m_cfg.inst(_instId);
 	yulAssert(_inst.isOperation());
@@ -386,10 +386,10 @@ void CodeTransform::spillStore(InstId const _value)
 	// `mstore` consuming it, leaving the rest of the stack in place.
 	auto const it = m_spillStoreTraces.find(_value);
 	yulAssert(it != m_spillStoreTraces.end(), fmt::format("no def-site store trace recorded for spilled value {}", _value));
-	ShuffleTrace const& storeTrace = it->second;
+	stack::ShuffleTrace const& storeTrace = it->second;
 	yulAssert(
 		!storeTrace.empty() &&
-		storeTrace.back().kind == ShuffleOp::Kind::Store &&
+		storeTrace.back().kind == stack::ShuffleOp::Kind::Store &&
 		storeTrace.back().slot == stack::Slot::makeValue(m_cfg, _value),
 		fmt::format("def-site trace for {} must conclude with its store", _value)
 	);
@@ -496,29 +496,29 @@ void CodeTransform::operator()(SSACFG::BlockId const& _blockId, SSACFG::BasicBlo
 	m_assembly.appendInstruction(evmasm::Instruction::INVALID);
 }
 
-void CodeTransform::playback(ShuffleTrace const& _trace)
+void CodeTransform::playback(stack::ShuffleTrace const& _trace)
 {
-	for (ShuffleOp const& op: _trace)
+	for (stack::ShuffleOp const& op: _trace)
 	{
 		apply(m_stackData, op);
 		emit(op);
 	}
 }
 
-void CodeTransform::emit(ShuffleOp const& _op)
+void CodeTransform::emit(stack::ShuffleOp const& _op)
 {
 	switch (_op.kind)
 	{
-	case ShuffleOp::Kind::Swap:
+	case stack::ShuffleOp::Kind::Swap:
 		m_assembly.appendInstruction(evmasm::swapInstruction(_op.depth));
 		return;
-	case ShuffleOp::Kind::Dup:
+	case stack::ShuffleOp::Kind::Dup:
 		m_assembly.appendInstruction(evmasm::dupInstruction(_op.depth));
 		return;
-	case ShuffleOp::Kind::Pop:
+	case stack::ShuffleOp::Kind::Pop:
 		m_assembly.appendInstruction(evmasm::Instruction::POP);
 		return;
-	case ShuffleOp::Kind::Push:
+	case stack::ShuffleOp::Kind::Push:
 		switch (_op.slot.kind())
 		{
 		case stack::Slot::Kind::Value:
@@ -542,14 +542,14 @@ void CodeTransform::emit(ShuffleOp const& _op)
 			yulAssert(false, "Cannot produce function return label.");
 		}
 		solidity::util::unreachable();
-	case ShuffleOp::Kind::Load:
+	case stack::ShuffleOp::Kind::Load:
 		yulAssert(
 			m_spillEmitter && m_spillEmitter->hasAddress(_op.slot),
 			fmt::format("Tried bringing up non-spilled non-const {}", _op.slot)
 		);
 		m_spillEmitter->emitLoad(_op.slot);
 		return;
-	case ShuffleOp::Kind::Store:
+	case stack::ShuffleOp::Kind::Store:
 		yulAssert(
 			m_spillEmitter && m_spillEmitter->hasAddress(_op.slot),
 			fmt::format("Tried storing variable {} without a spill slot", _op.slot)

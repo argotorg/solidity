@@ -20,7 +20,7 @@
 
 #include <libyul/backends/evm/ssa/spill/SpillSet.h>
 
-#include <libyul/backends/evm/ssa/Stack.h>
+#include <libyul/backends/evm/ssa/stack/Stack.h>
 #include <libyul/backends/evm/ssa/StackLayout.h>
 
 #include <memory>

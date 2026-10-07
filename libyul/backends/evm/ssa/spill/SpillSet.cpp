@@ -20,7 +20,7 @@
 
 #include <libyul/backends/evm/ssa/stack/Shuffler.h>
 
-#include <libyul/backends/evm/ssa/Stack.h>
+#include <libyul/backends/evm/ssa/stack/Stack.h>
 #include <libyul/backends/evm/ssa/StackLayout.h>
 
 #include <range/v3/view/zip.hpp>
@@ -156,7 +156,7 @@ void SpillSet::ensureDefSiteFeasible(
 	if (_storeTraces)
 	{
 		// the `mstore` consuming the variable from the top concludes the def-site trace
-		result.trace.push_back(ShuffleOp::store(_key));
+		result.trace.push_back(stack::ShuffleOp::store(_key));
 		(*_storeTraces)[_key.value()] = std::move(result.trace);
 	}
 

@@ -19,7 +19,7 @@
 #pragma once
 
 #include <libyul/backends/evm/ssa/SSACFGTypes.h>
-#include <libyul/backends/evm/ssa/ShuffleTrace.h>
+#include <libyul/backends/evm/ssa/stack/ShuffleTrace.h>
 
 #include <cstddef>
 #include <optional>

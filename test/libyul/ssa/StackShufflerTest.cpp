@@ -23,8 +23,8 @@
 
 #include <libyul/backends/evm/ssa/InstructionStore.h>
 #include <libyul/backends/evm/ssa/SSACFG.h>
-#include <libyul/backends/evm/ssa/ShuffleTrace.h>
-#include <libyul/backends/evm/ssa/Stack.h>
+#include <libyul/backends/evm/ssa/stack/ShuffleTrace.h>
+#include <libyul/backends/evm/ssa/stack/Stack.h>
 #include <libyul/backends/evm/ssa/StackUtils.h>
 
 #include <range/v3/view/split.hpp>
@@ -76,20 +76,20 @@ struct ParsedIdentifierTable
 
 /// Renders a recorded operation like the corresponding EVM instruction, with slots rendered through the
 /// identifier table. A spill reload renders as a plain PUSH, matching the assembly's single push-like materialization of a slot.
-std::string render(ParsedIdentifierTable const& _table, ShuffleOp const& _op)
+std::string render(ParsedIdentifierTable const& _table, stack::ShuffleOp const& _op)
 {
 	switch (_op.kind)
 	{
-	case ShuffleOp::Kind::Swap:
+	case stack::ShuffleOp::Kind::Swap:
 		return fmt::format("SWAP{}", _op.depth);
-	case ShuffleOp::Kind::Dup:
+	case stack::ShuffleOp::Kind::Dup:
 		return fmt::format("DUP{}", _op.depth);
-	case ShuffleOp::Kind::Pop:
+	case stack::ShuffleOp::Kind::Pop:
 		return "POP";
-	case ShuffleOp::Kind::Push:
-	case ShuffleOp::Kind::Load:
+	case stack::ShuffleOp::Kind::Push:
+	case stack::ShuffleOp::Kind::Load:
 		return fmt::format("PUSH {}", _table.render(_op.slot));
-	case ShuffleOp::Kind::Store:
+	case stack::ShuffleOp::Kind::Store:
 		return fmt::format("STORE {}", _table.render(_op.slot));
 	}
 	solidity::util::unreachable();
@@ -161,7 +161,7 @@ Slot parseSlot(ParsedIdentifierTable& _table, std::string_view _token)
 	return Slot::makeValue(_table.store, id);
 }
 
-/// Parse a string like "[v172, phi109, lit7, JUNK]" into Stack::Data
+/// Parse a string like "[v172, phi109, lit7, JUNK]" into stack::Data
 stack::Data parseSlots(ParsedIdentifierTable& _table, std::string_view _input, char const brackBegin = '[', char const brackEnd = ']')
 {
 	stack::Data result;
@@ -464,7 +464,7 @@ Lines starting with // are comments. Comments at the end of lines are supported,
 		TraceRecorder trace(oss, table, target);
 		trace.record("(initial)", *testConfig.initial);
 		stack::Data replayData = *testConfig.initial;
-		for (ShuffleOp const& op: shuffleResult.trace)
+		for (stack::ShuffleOp const& op: shuffleResult.trace)
 		{
 			apply(replayData, op);
 			trace.record(render(table, op), replayData);

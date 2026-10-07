@@ -18,7 +18,7 @@
 
 #include <libyul/backends/evm/ssa/stack/InstructionStackIn.h>
 
-#include <libyul/backends/evm/ssa/Stack.h>
+#include <libyul/backends/evm/ssa/stack/Stack.h>
 
 #include <range/v3/algorithm/contains.hpp>
 #include <range/v3/algorithm/none_of.hpp>

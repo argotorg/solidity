@@ -27,26 +27,26 @@
 
 using namespace solidity::yul::ssa;
 
-std::size_t solidity::yul::ssa::stackOpsGas(SSACFG const& _cfg, ShuffleTrace const& _trace)
+std::size_t solidity::yul::ssa::stackOpsGas(SSACFG const& _cfg, stack::ShuffleTrace const& _trace)
 {
 	auto const evmVersion = _cfg.evmDialect.evmVersion();
 	auto const runGas = [&](evmasm::Instruction const _instruction) {
 		return evmasm::GasMeter::runGas(_instruction, evmVersion);
 	};
 	std::size_t gas = 0;
-	for (ShuffleOp const& op: _trace)
+	for (stack::ShuffleOp const& op: _trace)
 		switch (op.kind)
 		{
-		case ShuffleOp::Kind::Swap:
+		case stack::ShuffleOp::Kind::Swap:
 			gas += evmasm::GasMeter::swapGas(op.depth, evmVersion);
 			break;
-		case ShuffleOp::Kind::Dup:
+		case stack::ShuffleOp::Kind::Dup:
 			gas += evmasm::GasMeter::dupGas(op.depth, evmVersion);
 			break;
-		case ShuffleOp::Kind::Pop:
+		case stack::ShuffleOp::Kind::Pop:
 			gas += runGas(evmasm::Instruction::POP);
 			break;
-		case ShuffleOp::Kind::Push:
+		case stack::ShuffleOp::Kind::Push:
 			if (op.slot.isLiteralValue())
 				gas += runGas(evmasm::pushInstruction(numberEncodingSize(_cfg.literalPayload(op.slot.value()))));
 			else if (op.slot.isJunk())
@@ -59,10 +59,10 @@ std::size_t solidity::yul::ssa::stackOpsGas(SSACFG const& _cfg, ShuffleTrace con
 				gas += runGas(evmasm::Instruction::PUSH2);
 			}
 			break;
-		case ShuffleOp::Kind::Load:
+		case stack::ShuffleOp::Kind::Load:
 			gas += runGas(evmasm::Instruction::PUSH32) + runGas(evmasm::Instruction::MLOAD);
 			break;
-		case ShuffleOp::Kind::Store:
+		case stack::ShuffleOp::Kind::Store:
 			gas += runGas(evmasm::Instruction::PUSH32) + runGas(evmasm::Instruction::MSTORE);
 			break;
 		}

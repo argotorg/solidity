@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include <libyul/backends/evm/ssa/ShuffleTrace.h>
+#include <libyul/backends/evm/ssa/stack/ShuffleTrace.h>
 #include <libyul/backends/evm/ssa/stack/Slot.h>
 
 #include <range/v3/algorithm/find.hpp>
@@ -26,20 +26,15 @@
 
 #include <cstddef>
 
-namespace solidity::yul::ssa
+namespace solidity::yul::ssa::stack
 {
 
-/// A view over a `stack::Data` mimicking EVM stack semantics. When constructed with a trace, every stack
+/// A view over a `Data` mimicking EVM stack semantics. When constructed with a trace, every stack
 /// manipulation is recorded as a `ShuffleOp`; an untraced view mutates the data silently.
 /// `_reachableStackDepth` is the deepest slot a swap may address
 class Stack
 {
 public:
-	using Slot = stack::Slot;
-	using Data = stack::Data;
-	using Depth = stack::Depth;
-	using Offset = stack::Offset;
-
 	explicit Stack(
 		Data& _data,
 		ShuffleTrace* _trace = nullptr,

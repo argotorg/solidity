@@ -23,7 +23,7 @@
 
 #include <libyul/backends/evm/ssa/JunkAdmittingBlocksFinder.h>
 #include <libyul/backends/evm/ssa/PhiInverse.h>
-#include <libyul/backends/evm/ssa/ShuffleTrace.h>
+#include <libyul/backends/evm/ssa/stack/ShuffleTrace.h>
 #include <libyul/backends/evm/ssa/StackUtils.h>
 
 #include <libsolutil/Visitor.h>
@@ -69,7 +69,7 @@ void handlePhiFunctions(stack::Data& _stackData, PhiInverse const& _phiInverse, 
 	}
 }
 
-void declareJunk(Stack& _stack, analysis::Liveness::LivenessData const& _live)
+void declareJunk(stack::Stack& _stack, analysis::Liveness::LivenessData const& _live)
 {
 	for (stack::Offset offset{0}; offset < _stack.size(); ++offset.value)
 	{
@@ -189,7 +189,7 @@ void StackLayoutGenerator::defineStackIn(SSACFG::BlockId const& _blockId)
 		yulAssert(stackInProposals.size() == 1);
 		blockLayout.stackIn = stackInProposals[0].second;
 		handlePhiFunctions(blockLayout.stackIn, PhiInverse(m_cfg, stackInProposals[0].first, _blockId), liveIn, m_cfg);
-		Stack stack(blockLayout.stackIn);
+		stack::Stack stack(blockLayout.stackIn);
 		declareJunk(stack, liveIn);
 	}
 	else
@@ -201,7 +201,7 @@ void StackLayoutGenerator::defineStackIn(SSACFG::BlockId const& _blockId)
 			proposals[i] = stackInProposals[i].second;
 			handlePhiFunctions(proposals[i], PhiInverse(m_cfg, stackInProposals[i].first, _blockId), liveIn, m_cfg);
 			{
-				Stack stack(proposals[i]);
+				stack::Stack stack(proposals[i]);
 				declareJunk(stack, liveIn);
 			}
 		}
@@ -271,7 +271,7 @@ void StackLayoutGenerator::visitBlock(SSACFG::BlockId const& _blockId)
 	SSACFG::BasicBlock const& block = m_cfg.block(_blockId);
 
 	stack::Data currentStackData = blockLayout.stackIn;
-	Stack stack(currentStackData);
+	stack::Stack stack(currentStackData);
 
 	auto const layoutOperation = [&](InstId const _instId, SSACFG::Inst const& _inst) {
 		auto opLiveOutWithoutOutputs = m_liveness.operationLiveOut(_instId);

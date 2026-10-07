@@ -16,25 +16,25 @@
 */
 // SPDX-License-Identifier: GPL-3.0
 
-#include <libyul/backends/evm/ssa/ShuffleTrace.h>
+#include <libyul/backends/evm/ssa/stack/ShuffleTrace.h>
 
-#include <libyul/backends/evm/ssa/Stack.h>
+#include <libyul/backends/evm/ssa/stack/Stack.h>
 
-namespace solidity::yul::ssa
+namespace solidity::yul::ssa::stack
 {
 
-void apply(stack::Data& _data, ShuffleOp const& _op)
+void apply(Data& _data, ShuffleOp const& _op)
 {
 	Stack stack(_data);
 	switch (_op.kind)
 	{
 	case ShuffleOp::Kind::Swap:
 		yulAssert(1 <= _op.depth && _op.depth <= reachableStackDepth, "malformed swap in shuffle trace");
-		stack.swap(stack::Depth{_op.depth});
+		stack.swap(Depth{_op.depth});
 		return;
 	case ShuffleOp::Kind::Dup:
 		yulAssert(1 <= _op.depth && _op.depth <= reachableStackDepth, "malformed dup in shuffle trace");
-		stack.dup(stack::Depth{static_cast<std::size_t>(_op.depth) - 1});
+		stack.dup(Depth{static_cast<std::size_t>(_op.depth) - 1});
 		return;
 	case ShuffleOp::Kind::Pop:
 		stack.pop();
@@ -51,7 +51,7 @@ void apply(stack::Data& _data, ShuffleOp const& _op)
 	solidity::util::unreachable();
 }
 
-void replay(stack::Data& _data, ShuffleTrace const& _trace)
+void replay(Data& _data, ShuffleTrace const& _trace)
 {
 	for (ShuffleOp const& op: _trace)
 		apply(_data, op);

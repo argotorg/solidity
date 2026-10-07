@@ -19,7 +19,7 @@
 #pragma once
 
 #include <libyul/backends/evm/ssa/SSACFGTypes.h>
-#include <libyul/backends/evm/ssa/ShuffleTrace.h>
+#include <libyul/backends/evm/ssa/stack/ShuffleTrace.h>
 #include <libyul/backends/evm/ssa/stack/Slot.h>
 
 #include <libyul/Exceptions.h>
@@ -34,7 +34,7 @@ namespace solidity::yul::ssa::spill
 
 /// Per def site of a spilled variable the recorded shuffle realizing its store: brings the variable to the
 /// stack top and concludes with the `Store` op consuming it. Keyed by the defining Inst.
-using SpillStoreTraces = std::map<InstId, ShuffleTrace>;
+using SpillStoreTraces = std::map<InstId, stack::ShuffleTrace>;
 
 /// Per-CFG set of variables spilled to memory
 class SpillSet

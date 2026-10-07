@@ -20,7 +20,7 @@
 
 #include <libyul/backends/evm/ssa/analysis/Liveness.h>
 #include <libyul/backends/evm/ssa/SSACFG.h>
-#include <libyul/backends/evm/ssa/Stack.h>
+#include <libyul/backends/evm/ssa/stack/Stack.h>
 #include <libyul/backends/evm/ssa/util/UseCountSet.h>
 
 namespace solidity::yul::ssa::stack

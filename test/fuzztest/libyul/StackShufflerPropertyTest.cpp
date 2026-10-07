@@ -17,7 +17,7 @@
 // SPDX-License-Identifier: GPL-3.0
 
 #include <libyul/backends/evm/ssa/InstructionStore.h>
-#include <libyul/backends/evm/ssa/ShuffleTrace.h>
+#include <libyul/backends/evm/ssa/stack/ShuffleTrace.h>
 #include <libyul/backends/evm/ssa/stack/Slot.h>
 #include <libyul/backends/evm/ssa/StackUtils.h>
 #include <libyul/backends/evm/ssa/spill/SpillSet.h>
@@ -234,8 +234,8 @@ void checkShuffleProperties(
 	if (!_spillingAllowed)
 		ASSERT_EQ(spills.numSpilled(), spilledBefore) << "admissible plan added spills although spilling was disallowed";
 
-	for (ShuffleOp const& op: result.trace)
-		if (op.kind == ShuffleOp::Kind::Swap || op.kind == ShuffleOp::Kind::Dup)
+	for (stack::ShuffleOp const& op: result.trace)
+		if (op.kind == stack::ShuffleOp::Kind::Swap || op.kind == stack::ShuffleOp::Kind::Dup)
 			ASSERT_LE(op.depth, _reachableDepth);
 
 	stack::Data replayed = initial;
