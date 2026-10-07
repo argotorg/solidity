@@ -98,7 +98,7 @@ else
 fi
 
 
-EVM_VERSIONS="homestead byzantium"
+EVM_VERSIONS="byzantium"
 
 if [ -z "$CI" ]
 then
@@ -106,7 +106,7 @@ then
 fi
 
 # And then run the Solidity unit-tests in the matrix combination of optimizer / no optimizer
-# and homestead / byzantium VM
+# and byzantium VM
 for optimize in "" "--optimize"
 do
     for vm in $EVM_VERSIONS
