@@ -29,6 +29,7 @@
 
 #include <cstdint>
 #include <type_traits>
+#include <vector>
 
 namespace solidity::yul::ssa::stack
 {
@@ -150,6 +151,9 @@ static_assert(sizeof(Slot) == 8, "Want cache efficiency, benchmark this if you g
 static_assert(std::is_trivially_copyable_v<Slot>, "Should be able to use memcpy semantics");
 static_assert(std::is_standard_layout_v<Slot>, "Want to have a predictable layout");
 static_assert(std::is_trivial_v<Slot>, "Want to have no init/cpy overhead");
+
+/// Stack contents, bottom to top.
+using Data = std::vector<Slot>;
 
 /// Whether a slot can be materialized on the stack top out of thin air, without a copy of it on the stack.
 constexpr bool canBeFreelyGenerated(Slot const& _slot)

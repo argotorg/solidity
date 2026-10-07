@@ -40,12 +40,6 @@ template<typename R, typename T>
 concept InputRangeOf = ranges::input_range<R> && std::same_as<ranges::range_value_t<R>, T>;
 
 class SSACFG;
-namespace stack
-{
-class Layout;
-class Slot;
-using Data = std::vector<Slot>;
-}
 using FunctionGraphID = std::uint32_t;
 
 struct BlockId

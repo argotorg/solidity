@@ -29,6 +29,11 @@
 #include <map>
 #include <set>
 
+namespace solidity::yul::ssa::stack
+{
+class Layout;
+}
+
 namespace solidity::yul::ssa::stack::spill
 {
 
