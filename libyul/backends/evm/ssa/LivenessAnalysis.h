@@ -20,7 +20,7 @@
 
 #include <libyul/backends/evm/ssa/analysis/DepthFirstSpanningTree.h>
 #include <libyul/backends/evm/ssa/SSACFG.h>
-#include <libyul/backends/evm/ssa/SSACFGLoopNestingForest.h>
+#include <libyul/backends/evm/ssa/analysis/LoopNestingForest.h>
 #include <libyul/backends/evm/ssa/util/UseCountSet.h>
 
 #include <boost/container/flat_map.hpp>
@@ -62,7 +62,7 @@ private:
 
 	SSACFG const& m_cfg;
 	analysis::DepthFirstSpanningTree m_dfsTree;
-	SSACFGLoopNestingForest m_loopNestingForest;
+	analysis::LoopNestingForest m_loopNestingForest;
 	std::vector<LivenessData> m_liveIns;
 	std::vector<LivenessData> m_liveOuts;
 	boost::container::flat_map<InstId::ValueType, LivenessData> m_operationLiveOutByInst;

@@ -27,17 +27,17 @@
 #include <set>
 #include <vector>
 
-namespace solidity::yul::ssa
+namespace solidity::yul::ssa::analysis
 {
 
 /// Constructs a loop nesting forest for an SSACFG using Tarjan's algorithm [1].
 ///
 /// [1] Ramalingam, Ganesan. "Identifying loops in almost linear time."
 ///     ACM Transactions on Programming Languages and Systems (TOPLAS) 21.2 (1999): 175-188.
-class SSACFGLoopNestingForest
+class LoopNestingForest
 {
 public:
-	explicit SSACFGLoopNestingForest(analysis::DepthFirstSpanningTree const& _dfsTree);
+	explicit LoopNestingForest(DepthFirstSpanningTree const& _dfsTree);
 
 	/// parent of `_block` in the loop nesting forest, empty if `_block` is not contained in a loop
 	BlockId loopParent(BlockId _block) const { return m_loopParents[_block.value]; }
@@ -49,7 +49,7 @@ private:
 	void findLoop(BlockId _potentialHeader);
 	void collapse(std::set<BlockId::ValueType> const& _loopBody, BlockId::ValueType _loopHeader);
 
-	analysis::DepthFirstSpanningTree const& m_dfsTree;
+	DepthFirstSpanningTree const& m_dfsTree;
 	SSACFG const& m_cfg;
 
 	solidity::util::ContiguousDisjointSet<BlockId::ValueType> m_vertexPartition;

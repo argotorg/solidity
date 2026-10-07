@@ -87,8 +87,6 @@ add_library(yul
 	backends/evm/ssa/LivenessAnalysis.h
 	backends/evm/ssa/PhiInverse.cpp
 	backends/evm/ssa/PhiInverse.h
-	backends/evm/ssa/SSACFGLoopNestingForest.cpp
-	backends/evm/ssa/SSACFGLoopNestingForest.h
 	backends/evm/ssa/SSACFG.cpp
 	backends/evm/ssa/SSACFG.h
 	backends/evm/ssa/SSACFGBuilder.cpp
@@ -111,6 +109,8 @@ add_library(yul
 	backends/evm/ssa/StackUtils.h
 	backends/evm/ssa/analysis/DepthFirstSpanningTree.cpp
 	backends/evm/ssa/analysis/DepthFirstSpanningTree.h
+	backends/evm/ssa/analysis/LoopNestingForest.cpp
+	backends/evm/ssa/analysis/LoopNestingForest.h
 	backends/evm/ssa/io/DotExporterBase.cpp
 	backends/evm/ssa/io/DotExporterBase.h
 	backends/evm/ssa/io/Keywords.cpp

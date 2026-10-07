@@ -16,13 +16,14 @@
 */
 // SPDX-License-Identifier: GPL-3.0
 
-#include <libyul/backends/evm/ssa/SSACFGLoopNestingForest.h>
+#include <libyul/backends/evm/ssa/analysis/LoopNestingForest.h>
 
 #include <range/v3/algorithm/reverse.hpp>
 
 using namespace solidity::yul::ssa;
+using namespace solidity::yul::ssa::analysis;
 
-SSACFGLoopNestingForest::SSACFGLoopNestingForest(analysis::DepthFirstSpanningTree const& _dfsTree):
+LoopNestingForest::LoopNestingForest(DepthFirstSpanningTree const& _dfsTree):
 	m_dfsTree(_dfsTree),
 	m_cfg(_dfsTree.cfg()),
 	m_vertexPartition(m_cfg.numBlocks()),
@@ -44,7 +45,7 @@ SSACFGLoopNestingForest::SSACFGLoopNestingForest(analysis::DepthFirstSpanningTre
 	}
 }
 
-void SSACFGLoopNestingForest::findLoop(BlockId const _potentialHeader)
+void LoopNestingForest::findLoop(BlockId const _potentialHeader)
 {
 	if (m_dfsTree.backEdgeTargets().contains(_potentialHeader))
 	{
@@ -80,7 +81,7 @@ void SSACFGLoopNestingForest::findLoop(BlockId const _potentialHeader)
 			collapse(loopBody, _potentialHeader.value);
 	}
 }
-void SSACFGLoopNestingForest::collapse(std::set<BlockId::ValueType> const& _loopBody, BlockId::ValueType _loopHeader)
+void LoopNestingForest::collapse(std::set<BlockId::ValueType> const& _loopBody, BlockId::ValueType _loopHeader)
 {
 	for (auto const z: _loopBody)
 	{
