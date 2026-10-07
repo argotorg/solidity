@@ -25,7 +25,14 @@
 
 #include <boost/container/flat_map.hpp>
 
+#include <functional>
+#include <memory>
 #include <vector>
+
+namespace solidity::yul::ssa
+{
+struct ControlFlowGraphs;
+}
 
 namespace solidity::yul::ssa::analysis
 {
@@ -66,6 +73,14 @@ private:
 	std::vector<LivenessData> m_liveIns;
 	std::vector<LivenessData> m_liveOuts;
 	boost::container::flat_map<InstId::ValueType, LivenessData> m_operationLiveOutByInst;
+};
+
+struct ControlFlowGraphsLiveness
+{
+	explicit ControlFlowGraphsLiveness(ControlFlowGraphs const& _controlFlow);
+
+	std::reference_wrapper<ControlFlowGraphs const> controlFlowGraphs;
+	std::vector<std::unique_ptr<Liveness>> cfgLiveness;
 };
 
 }

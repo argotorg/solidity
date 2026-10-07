@@ -48,7 +48,7 @@ void CodeTransform::run
 (
 	AbstractAssembly& _assembly,
 	ControlFlowGraphs& _controlFlowGraphs,
-	ControlFlowGraphsLiveness const& _controlFlowLiveness,
+	analysis::ControlFlowGraphsLiveness const& _controlFlowLiveness,
 	BuiltinContext& _builtinContext
 )
 {

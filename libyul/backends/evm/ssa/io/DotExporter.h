@@ -26,10 +26,10 @@ namespace solidity::yul::ssa
 {
 class SSACFG;
 struct ControlFlowGraphs;
-struct ControlFlowGraphsLiveness;
 namespace analysis
 {
 class Liveness;
+struct ControlFlowGraphsLiveness;
 }
 }
 
@@ -46,6 +46,9 @@ std::string toDot(
 );
 
 /// Renders all function graphs in Graphviz dot format, optionally annotated with liveness information.
-std::string toDot(ControlFlowGraphs const& _controlFlow, ControlFlowGraphsLiveness const* _liveness = nullptr);
+std::string toDot(
+	ControlFlowGraphs const& _controlFlow,
+	analysis::ControlFlowGraphsLiveness const* _liveness = nullptr
+);
 
 }

@@ -18,6 +18,7 @@
 
 #pragma once
 
+#include <libyul/backends/evm/ssa/analysis/Liveness.h>
 #include <libyul/backends/evm/ssa/stack/spill/Emitter.h>
 
 #include <libyul/backends/evm/ssa/stack/ShuffleTrace.h>
@@ -39,7 +40,7 @@ public:
 	static void run(
 		AbstractAssembly& _assembly,
 		ControlFlowGraphs& _controlFlowGraphs,
-		ControlFlowGraphsLiveness const& _liveness,
+		analysis::ControlFlowGraphsLiveness const& _liveness,
 		BuiltinContext& _builtinContext
 	);
 

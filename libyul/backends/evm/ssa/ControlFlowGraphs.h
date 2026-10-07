@@ -20,7 +20,6 @@
 
 #include <libyul/backends/evm/ssa/io/Printer.h>
 
-#include <libyul/backends/evm/ssa/analysis/Liveness.h>
 #include <libyul/backends/evm/ssa/SSACFG.h>
 
 #include <libsolutil/Numeric.h>
@@ -29,15 +28,6 @@
 
 namespace solidity::yul::ssa
 {
-
-struct ControlFlowGraphs;
-
-struct ControlFlowGraphsLiveness{
-	explicit ControlFlowGraphsLiveness(ControlFlowGraphs const& _controlFlow);
-
-	std::reference_wrapper<ControlFlowGraphs const> controlFlowGraphs;
-	std::vector<std::unique_ptr<analysis::Liveness>> cfgLiveness;
-};
 
 struct ControlFlowGraphs
 {

@@ -183,7 +183,7 @@ std::string io::toDot(
 		return exporter.exportBlocks(_cfg.entry, _includeDiGraphDefinition);
 }
 
-std::string io::toDot(ControlFlowGraphs const& _controlFlow, ControlFlowGraphsLiveness const* _liveness)
+std::string io::toDot(ControlFlowGraphs const& _controlFlow, analysis::ControlFlowGraphsLiveness const* _liveness)
 {
 	if (_liveness)
 		yulAssert(&_liveness->controlFlowGraphs.get() == &_controlFlow);

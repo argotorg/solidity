@@ -129,7 +129,7 @@ frontend::test::TestCase::TestResult SpillTest::run(std::ostream& _stream, std::
 			false
 		);
 		transform::optimize(*controlFlowGraphs);
-		ControlFlowGraphsLiveness const liveness(*controlFlowGraphs);
+		analysis::ControlFlowGraphsLiveness const liveness(*controlFlowGraphs);
 		analysis::CallGraph const callGraph(*controlFlowGraphs);
 
 		std::size_t const numCFGs = controlFlowGraphs->functionGraphs.size();

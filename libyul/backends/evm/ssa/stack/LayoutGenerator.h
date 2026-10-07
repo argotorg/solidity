@@ -18,6 +18,7 @@
 
 #pragma once
 
+#include <libyul/backends/evm/ssa/analysis/Liveness.h>
 #include <libyul/backends/evm/ssa/stack/spill/Set.h>
 
 #include <libyul/backends/evm/ssa/stack/Stack.h>

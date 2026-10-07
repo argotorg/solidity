@@ -18,13 +18,17 @@
 
 #include <libyul/backends/evm/ssa/analysis/Liveness.h>
 
+#include <libyul/backends/evm/ssa/ControlFlowGraphs.h>
+
 #include <libsolutil/Visitor.h>
 
 #include <boost/container/flat_map.hpp>
 
+#include <range/v3/range/conversion.hpp>
 #include <range/v3/view/enumerate.hpp>
 #include <range/v3/view/filter.hpp>
 #include <range/v3/view/reverse.hpp>
+#include <range/v3/view/transform.hpp>
 
 #include <utility>
 #include <vector>
@@ -185,3 +189,8 @@ void Liveness::fillOperationsLiveOut()
 		}
 	}
 }
+
+ControlFlowGraphsLiveness::ControlFlowGraphsLiveness(ControlFlowGraphs const& _controlFlow):
+	controlFlowGraphs(_controlFlow),
+	cfgLiveness(_controlFlow.functionGraphs | ranges::views::transform([](auto const& _cfg) { return std::make_unique<Liveness>(*_cfg); }) | ranges::to<std::vector>)
+{ }
