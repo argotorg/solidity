@@ -22,13 +22,13 @@
 
 using namespace solidity::yul::ssa;
 
-SSACFGLoopNestingForest::SSACFGLoopNestingForest(traversal::ForwardTopologicalSort const& _sort):
-	m_sort(_sort),
-	m_cfg(_sort.cfg()),
+SSACFGLoopNestingForest::SSACFGLoopNestingForest(analysis::DepthFirstSpanningTree const& _dfsTree):
+	m_dfsTree(_dfsTree),
+	m_cfg(_dfsTree.cfg()),
 	m_vertexPartition(m_cfg.numBlocks()),
 	m_loopParents(m_cfg.numBlocks(), std::numeric_limits<BlockIdValue>::max())
 {
-	auto dfsOrder = m_sort.preOrder();
+	auto dfsOrder = m_dfsTree.preOrder();
 	// we go from innermost to outermost
 	ranges::reverse(dfsOrder);
 
@@ -46,7 +46,7 @@ SSACFGLoopNestingForest::SSACFGLoopNestingForest(traversal::ForwardTopologicalSo
 
 void SSACFGLoopNestingForest::findLoop(BlockIdValue const _potentialHeader)
 {
-	if (m_sort.backEdgeTargets().contains(_potentialHeader))
+	if (m_dfsTree.backEdgeTargets().contains(_potentialHeader))
 	{
 		std::set<BlockIdValue> loopBody;
 		std::set<BlockIdValue> workList;
@@ -55,7 +55,7 @@ void SSACFGLoopNestingForest::findLoop(BlockIdValue const _potentialHeader)
 			auto const representative = m_vertexPartition.find(pred.value);
 			if (
 				representative != _potentialHeader &&
-				m_sort.backEdge(SSACFG::BlockId{pred}, SSACFG::BlockId{_potentialHeader})
+				m_dfsTree.backEdge(SSACFG::BlockId{pred}, SSACFG::BlockId{_potentialHeader})
 			)
 				workList.insert(representative);
 		}
@@ -67,7 +67,7 @@ void SSACFGLoopNestingForest::findLoop(BlockIdValue const _potentialHeader)
 
 			for (auto const& predecessor: m_cfg.block(SSACFG::BlockId{y}).entries)
 			{
-				if (!m_sort.backEdge(SSACFG::BlockId{predecessor}, SSACFG::BlockId{y}))
+				if (!m_dfsTree.backEdge(SSACFG::BlockId{predecessor}, SSACFG::BlockId{y}))
 				{
 					auto const predecessorHeader = m_vertexPartition.find(predecessor.value);
 					if (predecessorHeader != _potentialHeader && loopBody.count(predecessorHeader) == 0)

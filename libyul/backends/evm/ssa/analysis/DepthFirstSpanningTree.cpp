@@ -16,11 +16,11 @@
 */
 // SPDX-License-Identifier: GPL-3.0
 
-#include <libyul/backends/evm/ssa/traversal/ForwardTopologicalSort.h>
+#include <libyul/backends/evm/ssa/analysis/DepthFirstSpanningTree.h>
 
-using namespace solidity::yul::ssa::traversal;
+using namespace solidity::yul::ssa::analysis;
 
-ForwardTopologicalSort::ForwardTopologicalSort(SSACFG const& _cfg):
+DepthFirstSpanningTree::DepthFirstSpanningTree(SSACFG const& _cfg):
 	m_cfg(_cfg),
 	m_explored(m_cfg.numBlocks(), false), m_blockWisePreOrder(m_cfg.numBlocks(), 0),
 	m_blockWiseMaxSubtreePreOrder(m_cfg.numBlocks(), 0)
@@ -35,7 +35,7 @@ ForwardTopologicalSort::ForwardTopologicalSort(SSACFG const& _cfg):
 			m_backEdgeTargets.insert(v2);
 }
 
-void ForwardTopologicalSort::dfs(SSACFG::BlockId::ValueType const _vertex) {
+void DepthFirstSpanningTree::dfs(SSACFG::BlockId::ValueType const _vertex) {
 	yulAssert(!m_explored[_vertex]);
 	m_explored[_vertex] = true;
 	m_blockWisePreOrder[_vertex] = static_cast<SSACFG::BlockId::ValueType>(m_preOrder.size());
@@ -55,7 +55,7 @@ void ForwardTopologicalSort::dfs(SSACFG::BlockId::ValueType const _vertex) {
 	m_postOrder.push_back(_vertex);
 }
 
-bool ForwardTopologicalSort::ancestor(SSACFG::BlockId::ValueType const _block1, SSACFG::BlockId::ValueType const _block2) const {
+bool DepthFirstSpanningTree::ancestor(SSACFG::BlockId::ValueType const _block1, SSACFG::BlockId::ValueType const _block2) const {
 	yulAssert(_block1 < m_blockWisePreOrder.size());
 	yulAssert(_block2 < m_blockWisePreOrder.size());
 
@@ -67,7 +67,7 @@ bool ForwardTopologicalSort::ancestor(SSACFG::BlockId::ValueType const _block1, 
 	return node1VisitedBeforeNode2 && node2InSubtreeOfNode1;
 }
 
-bool ForwardTopologicalSort::backEdge(SSACFG::BlockId const& _block1, SSACFG::BlockId const& _block2) const
+bool DepthFirstSpanningTree::backEdge(SSACFG::BlockId const& _block1, SSACFG::BlockId const& _block2) const
 {
 	if (ancestor(_block2.value, _block1.value))
 	{

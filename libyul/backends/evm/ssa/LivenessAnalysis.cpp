@@ -53,8 +53,8 @@ LivenessAnalysis::LivenessData LivenessAnalysis::blockExitValues(SSACFG::BlockId
 
 LivenessAnalysis::LivenessAnalysis(SSACFG const& _cfg):
 	m_cfg(_cfg),
-	m_topologicalSort(_cfg),
-	m_loopNestingForest(m_topologicalSort),
+	m_dfsTree(_cfg),
+	m_loopNestingForest(m_dfsTree),
 	m_liveIns(_cfg.numBlocks()),
 	m_liveOuts(_cfg.numBlocks())
 {
@@ -76,7 +76,7 @@ LivenessAnalysis::LivenessData LivenessAnalysis::used(SSACFG::BlockId const _blo
 void LivenessAnalysis::runDagDfs()
 {
 	// SSA Book, Algorithm 9.2
-	for (auto const blockIdValue: m_topologicalSort.postOrder())
+	for (auto const blockIdValue: m_dfsTree.postOrder())
 	{
 		// post-order traversal
 		SSACFG::BlockId blockId{blockIdValue};
@@ -94,7 +94,7 @@ void LivenessAnalysis::runDagDfs()
 		// for each S \in succs(B) s.t. (B, S) not a back edge: live <- live \cup (LiveIn(S) - PhiDefs(S))
 		block.forEachExit(
 			[&](SSACFG::BlockId const& _successor) {
-				if (!m_topologicalSort.backEdge(blockId, _successor))
+				if (!m_dfsTree.backEdge(blockId, _successor))
 				{
 					// LiveIn(S) - PhiDefs(S)
 					auto liveInWithoutPhiDefs = m_liveIns[_successor.value];

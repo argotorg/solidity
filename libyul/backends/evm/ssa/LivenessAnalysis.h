@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include <libyul/backends/evm/ssa/traversal/ForwardTopologicalSort.h>
+#include <libyul/backends/evm/ssa/analysis/DepthFirstSpanningTree.h>
 #include <libyul/backends/evm/ssa/SSACFG.h>
 #include <libyul/backends/evm/ssa/SSACFGLoopNestingForest.h>
 #include <libyul/backends/evm/ssa/util/UseCountSet.h>
@@ -46,7 +46,7 @@ public:
 	LivenessData const& liveOut(SSACFG::BlockId const _blockId) const { return m_liveOuts[_blockId.value]; }
 	LivenessData used(SSACFG::BlockId _blockId) const;
 	LivenessData const& operationLiveOut(InstId const _id) const { return m_operationLiveOutByInst.at(_id.value); }
-	traversal::ForwardTopologicalSort const& topologicalSort() const { return m_topologicalSort; }
+	analysis::DepthFirstSpanningTree const& dfsTree() const { return m_dfsTree; }
 	SSACFG const& cfg() const { return m_cfg; }
 
 private:
@@ -61,7 +61,7 @@ private:
 	}
 
 	SSACFG const& m_cfg;
-	traversal::ForwardTopologicalSort m_topologicalSort;
+	analysis::DepthFirstSpanningTree m_dfsTree;
 	SSACFGLoopNestingForest m_loopNestingForest;
 	std::vector<LivenessData> m_liveIns;
 	std::vector<LivenessData> m_liveOuts;

@@ -24,14 +24,14 @@
 #include <set>
 #include <vector>
 
-namespace solidity::yul::ssa::traversal
+namespace solidity::yul::ssa::analysis
 {
 
-/// Performs a topological sort on the forward CFG (no back/cross edges)
-class ForwardTopologicalSort
+/// Depth-first spanning tree of the CFG, rooted at the entry block.
+class DepthFirstSpanningTree
 {
 public:
-	explicit ForwardTopologicalSort(SSACFG const& _cfg);
+	explicit DepthFirstSpanningTree(SSACFG const& _cfg);
 
 	std::vector<SSACFG::BlockId::ValueType> const& preOrder() const { return m_preOrder; }
 	std::vector<SSACFG::BlockId::ValueType> const& postOrder() const { return m_postOrder; }
