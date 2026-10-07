@@ -81,8 +81,6 @@ add_library(yul
 	backends/evm/ssa/ControlFlowGraphs.cpp
 	backends/evm/ssa/ControlFlowGraphs.h
 	backends/evm/ssa/InstructionStore.h
-	backends/evm/ssa/JunkAdmittingBlocksFinder.cpp
-	backends/evm/ssa/JunkAdmittingBlocksFinder.h
 	backends/evm/ssa/SSACFG.cpp
 	backends/evm/ssa/SSACFG.h
 	backends/evm/ssa/SSACFGBuilder.cpp
@@ -90,8 +88,6 @@ add_library(yul
 	backends/evm/ssa/SSACFGDebugInfo.h
 	backends/evm/ssa/SSACFGTypes.cpp
 	backends/evm/ssa/SSACFGTypes.h
-	backends/evm/ssa/StackLayoutGenerator.cpp
-	backends/evm/ssa/StackLayoutGenerator.h
 	backends/evm/ssa/util/UseCountSet.h
 	backends/evm/ssa/util/TLSFFreeList.h
 	backends/evm/ssa/analysis/DepthFirstSpanningTree.cpp
@@ -117,7 +113,11 @@ add_library(yul
 	backends/evm/ssa/spill/SpillSet.h
 	backends/evm/ssa/stack/InstructionStackIn.cpp
 	backends/evm/ssa/stack/InstructionStackIn.h
+	backends/evm/ssa/stack/JunkAdmittingBlocksFinder.cpp
+	backends/evm/ssa/stack/JunkAdmittingBlocksFinder.h
 	backends/evm/ssa/stack/Layout.h
+	backends/evm/ssa/stack/LayoutGenerator.cpp
+	backends/evm/ssa/stack/LayoutGenerator.h
 	backends/evm/ssa/stack/PhiInverse.cpp
 	backends/evm/ssa/stack/PhiInverse.h
 	backends/evm/ssa/stack/Shuffler.cpp

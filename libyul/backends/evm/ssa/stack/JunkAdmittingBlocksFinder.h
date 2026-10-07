@@ -24,7 +24,7 @@
 #include <cstdint>
 #include <vector>
 
-namespace solidity::yul::ssa
+namespace solidity::yul::ssa::stack
 {
 
 /// Identifies blocks where stack balance constraints can be relaxed.

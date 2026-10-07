@@ -16,11 +16,11 @@
 */
 // SPDX-License-Identifier: GPL-3.0
 
-#include <libyul/backends/evm/ssa/JunkAdmittingBlocksFinder.h>
+#include <libyul/backends/evm/ssa/stack/JunkAdmittingBlocksFinder.h>
 
 #include <libyul/backends/evm/ssa/analysis/BridgeFinder.h>
 
-namespace solidity::yul::ssa
+namespace solidity::yul::ssa::stack
 {
 
 JunkAdmittingBlocksFinder::JunkAdmittingBlocksFinder(SSACFG const& _cfg, analysis::DepthFirstSpanningTree const& _dfsTree):

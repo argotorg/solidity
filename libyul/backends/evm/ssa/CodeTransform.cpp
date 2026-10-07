@@ -20,7 +20,7 @@
 
 #include <libyul/backends/evm/ssa/analysis/CallGraph.h>
 #include <libyul/backends/evm/ssa/stack/PhiInverse.h>
-#include <libyul/backends/evm/ssa/StackLayoutGenerator.h>
+#include <libyul/backends/evm/ssa/stack/LayoutGenerator.h>
 #include <libyul/backends/evm/ssa/stack/Utils.h>
 
 #include <libyul/backends/evm/EVMBuiltins.h>
@@ -78,7 +78,7 @@ void CodeTransform::run
 		auto const graphID = static_cast<ControlFlowGraphs::FunctionGraphID>(functionIndex);
 		callSitesPerCFG.push_back(stack::gatherCallSites(cfg));
 		bool const spillingAllowed = !callGraph.isRecursive(graphID);
-		auto [layout, spillSet, spillStoreTraces] = StackLayoutGenerator::generate(*liveness, callSitesPerCFG.back(), graphID, spillingAllowed);
+		auto [layout, spillSet, spillStoreTraces] = stack::LayoutGenerator::generate(*liveness, callSitesPerCFG.back(), graphID, spillingAllowed);
 		layouts.push_back(std::move(layout));
 		spillSetsPerCFG.push_back(std::move(spillSet));
 		spillStoreTracesPerCFG.push_back(std::move(spillStoreTraces));

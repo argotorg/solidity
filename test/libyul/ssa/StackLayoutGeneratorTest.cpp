@@ -23,7 +23,7 @@
 #include <libyul/backends/evm/ssa/SSACFGBuilder.h>
 #include <libyul/backends/evm/ssa/stack/Stack.h>
 #include <libyul/backends/evm/ssa/stack/Layout.h>
-#include <libyul/backends/evm/ssa/StackLayoutGenerator.h>
+#include <libyul/backends/evm/ssa/stack/LayoutGenerator.h>
 #include <libyul/backends/evm/ssa/stack/Utils.h>
 
 #include <libyul/backends/evm/ssa/transform/OptimizationPipeline.h>
@@ -188,7 +188,7 @@ frontend::test::TestCase::TestResult StackLayoutGeneratorTest::run(std::ostream&
 		for (std::size_t index = 0; index < controlFlowGraphs->functionGraphs.size(); ++index)
 		{
 			auto const& cfg = *controlFlowGraphs->functionGraphs[index];
-			auto result = StackLayoutGenerator::generate(
+			auto result = stack::LayoutGenerator::generate(
 				analysis::Liveness(cfg),
 				stack::gatherCallSites(cfg),
 				static_cast<ControlFlowGraphs::FunctionGraphID>(index),

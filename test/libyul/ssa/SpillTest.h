@@ -26,7 +26,7 @@ namespace solidity::yul::test::ssa
 {
 
 /// Drives the SSA-CFG spill addressing without code generation
-/// (`SSACFGBuilder` -> optimizer -> `StackLayoutGenerator` -> `SpillSet::feasilize` -> `MemoryAddressing`)
+/// (`SSACFGBuilder` -> optimizer -> `stack::LayoutGenerator` -> `SpillSet::feasilize` -> `MemoryAddressing`)
 /// on a Yul object and prints, per CFG, the `print()`ed SSA CFG followed by what was spilled
 /// (value -> memory address) and the `mstore` schedule (which value is written at which instruction).
 class SpillTest: public frontend::test::TestCase

@@ -19,7 +19,7 @@
 #include <libyul/backends/evm/ssa/SSACFG.h>
 
 #include <libyul/backends/evm/ssa/ControlFlowGraphs.h>
-#include <libyul/backends/evm/ssa/JunkAdmittingBlocksFinder.h>
+#include <libyul/backends/evm/ssa/stack/JunkAdmittingBlocksFinder.h>
 #include <libyul/backends/evm/ssa/analysis/Liveness.h>
 #include <libyul/backends/evm/ssa/io/DotExporterBase.h>
 
@@ -66,7 +66,7 @@ public:
 		m_controlFlow(_controlFlow)
 	{
 		if (_liveness)
-			m_junkAdmittingBlocks = std::make_unique<JunkAdmittingBlocksFinder>(_cfg, _liveness->dfsTree());
+			m_junkAdmittingBlocks = std::make_unique<stack::JunkAdmittingBlocksFinder>(_cfg, _liveness->dfsTree());
 	}
 
 protected:
@@ -162,7 +162,7 @@ protected:
 private:
 	analysis::Liveness const* m_liveness;
 	ControlFlowGraphs const* m_controlFlow;
-	std::unique_ptr<JunkAdmittingBlocksFinder> m_junkAdmittingBlocks;
+	std::unique_ptr<stack::JunkAdmittingBlocksFinder> m_junkAdmittingBlocks;
 };
 
 }

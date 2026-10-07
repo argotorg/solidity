@@ -23,7 +23,7 @@
 #include <libyul/backends/evm/ssa/analysis/CallGraph.h>
 #include <libyul/backends/evm/ssa/ControlFlowGraphs.h>
 #include <libyul/backends/evm/ssa/SSACFGBuilder.h>
-#include <libyul/backends/evm/ssa/StackLayoutGenerator.h>
+#include <libyul/backends/evm/ssa/stack/LayoutGenerator.h>
 #include <libyul/backends/evm/ssa/stack/Utils.h>
 #include <libyul/backends/evm/ssa/spill/MemoryAddressing.h>
 #include <libyul/backends/evm/ssa/spill/SpillSet.h>
@@ -147,7 +147,7 @@ frontend::test::TestCase::TestResult SpillTest::run(std::ostream& _stream, std::
 			yulAssert(cfgLiveness);
 			auto const graphID = static_cast<ControlFlowGraphs::FunctionGraphID>(functionIndex);
 			bool const spillingAllowed = !callGraph.isRecursive(graphID);
-			auto result = StackLayoutGenerator::generate(
+			auto result = stack::LayoutGenerator::generate(
 				*cfgLiveness,
 				stack::gatherCallSites(cfg),
 				graphID,
