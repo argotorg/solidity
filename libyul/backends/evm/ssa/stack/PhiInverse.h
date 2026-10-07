@@ -22,7 +22,7 @@
 
 #include <map>
 
-namespace solidity::yul::ssa
+namespace solidity::yul::ssa::stack
 {
 
 /// If Block `_from` -> Block `_to` and `_to` has phi functions `v_k := phi(..., _from => v_i, ...)`, this transform

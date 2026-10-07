@@ -16,9 +16,10 @@
 */
 // SPDX-License-Identifier: GPL-3.0
 
-#include <libyul/backends/evm/ssa/PhiInverse.h>
+#include <libyul/backends/evm/ssa/stack/PhiInverse.h>
 
 using namespace solidity::yul::ssa;
+using namespace solidity::yul::ssa::stack;
 
 PhiInverse::PhiInverse(SSACFG const& _cfg, SSACFG::BlockId const& _from, SSACFG::BlockId const& _to)
 {

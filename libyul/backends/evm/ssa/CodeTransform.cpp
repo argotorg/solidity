@@ -19,9 +19,9 @@
 #include <libyul/backends/evm/ssa/CodeTransform.h>
 
 #include <libyul/backends/evm/ssa/analysis/CallGraph.h>
-#include <libyul/backends/evm/ssa/PhiInverse.h>
+#include <libyul/backends/evm/ssa/stack/PhiInverse.h>
 #include <libyul/backends/evm/ssa/StackLayoutGenerator.h>
-#include <libyul/backends/evm/ssa/StackUtils.h>
+#include <libyul/backends/evm/ssa/stack/Utils.h>
 
 #include <libyul/backends/evm/EVMBuiltins.h>
 
@@ -39,7 +39,7 @@ namespace
 {
 void assertLayoutCompatibility(stack::Data const& _layout1, stack::Data const& _layout2)
 {
-	auto const compatibility = checkLayoutCompatibility(_layout1, _layout2);
+	auto const compatibility = stack::checkLayoutCompatibility(_layout1, _layout2);
 	yulAssert(compatibility.ok(), compatibility.formatErrors());
 }
 }
@@ -76,7 +76,7 @@ void CodeTransform::run
 		auto const& liveness = _controlFlowLiveness.cfgLiveness[functionIndex];
 		yulAssert(liveness);
 		auto const graphID = static_cast<ControlFlowGraphs::FunctionGraphID>(functionIndex);
-		callSitesPerCFG.push_back(gatherCallSites(cfg));
+		callSitesPerCFG.push_back(stack::gatherCallSites(cfg));
 		bool const spillingAllowed = !callGraph.isRecursive(graphID);
 		auto [layout, spillSet, spillStoreTraces] = StackLayoutGenerator::generate(*liveness, callSitesPerCFG.back(), graphID, spillingAllowed);
 		layouts.push_back(std::move(layout));
@@ -565,7 +565,7 @@ void CodeTransform::prepareBlockExitStack(SSACFG::BlockId const& _currentBlock, 
 	auto const& targetLayout = m_stackLayout[_target];
 	yulAssert(targetLayout);
 	// pull back target to live in current variable space
-	auto const pulledBackTarget = stackPreImage(m_cfg, targetLayout->stackIn, PhiInverse(m_cfg, _currentBlock, _target));
+	auto const pulledBackTarget = stack::stackPreImage(m_cfg, targetLayout->stackIn, stack::PhiInverse(m_cfg, _currentBlock, _target));
 	// play back the recorded shuffle for this edge
 	playback(targetLayout->traceForStackIn(_currentBlock));
 	// check that the playback reproduced the edge target

@@ -18,14 +18,14 @@
 
 #pragma once
 
-#include <libyul/backends/evm/ssa/PhiInverse.h>
+#include <libyul/backends/evm/ssa/stack/PhiInverse.h>
 #include <libyul/backends/evm/ssa/stack/ShuffleTrace.h>
 #include <libyul/backends/evm/ssa/stack/Stack.h>
 
 #include <string>
 #include <vector>
 
-namespace solidity::yul::ssa
+namespace solidity::yul::ssa::stack
 {
 
 class ValidationResult
@@ -40,15 +40,15 @@ private:
 };
 
 /// Computes the EVM gas cost of executing `_trace`.
-std::size_t stackOpsGas(SSACFG const& _cfg, stack::ShuffleTrace const& _trace);
+std::size_t stackOpsGas(SSACFG const& _cfg, ShuffleTrace const& _trace);
 
 /// Transform stack data by replacing all its phi variables with their respective preimages.
-stack::Data stackPreImage(SSACFG const& _cfg, stack::Data _stack, PhiInverse const& _phiInverse);
+Data stackPreImage(SSACFG const& _cfg, Data _stack, PhiInverse const& _phiInverse);
 
-stack::CallSites gatherCallSites(SSACFG const& _cfg);
+CallSites gatherCallSites(SSACFG const& _cfg);
 
 /// Checks that _current and _desired have the same size and that each slot matches,
 /// treating junk slots in _desired as wildcards.
-ValidationResult checkLayoutCompatibility(stack::Data const& _current, stack::Data const& _desired);
+ValidationResult checkLayoutCompatibility(Data const& _current, Data const& _desired);
 
 }

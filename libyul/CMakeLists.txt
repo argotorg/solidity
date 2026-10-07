@@ -83,8 +83,6 @@ add_library(yul
 	backends/evm/ssa/InstructionStore.h
 	backends/evm/ssa/JunkAdmittingBlocksFinder.cpp
 	backends/evm/ssa/JunkAdmittingBlocksFinder.h
-	backends/evm/ssa/PhiInverse.cpp
-	backends/evm/ssa/PhiInverse.h
 	backends/evm/ssa/SSACFG.cpp
 	backends/evm/ssa/SSACFG.h
 	backends/evm/ssa/SSACFGBuilder.cpp
@@ -96,8 +94,6 @@ add_library(yul
 	backends/evm/ssa/StackLayoutGenerator.h
 	backends/evm/ssa/util/UseCountSet.h
 	backends/evm/ssa/util/TLSFFreeList.h
-	backends/evm/ssa/StackUtils.cpp
-	backends/evm/ssa/StackUtils.h
 	backends/evm/ssa/analysis/DepthFirstSpanningTree.cpp
 	backends/evm/ssa/analysis/DepthFirstSpanningTree.h
 	backends/evm/ssa/analysis/Liveness.cpp
@@ -122,6 +118,8 @@ add_library(yul
 	backends/evm/ssa/stack/InstructionStackIn.cpp
 	backends/evm/ssa/stack/InstructionStackIn.h
 	backends/evm/ssa/stack/Layout.h
+	backends/evm/ssa/stack/PhiInverse.cpp
+	backends/evm/ssa/stack/PhiInverse.h
 	backends/evm/ssa/stack/Shuffler.cpp
 	backends/evm/ssa/stack/Shuffler.h
 	backends/evm/ssa/stack/ShuffleTrace.cpp
@@ -130,6 +128,8 @@ add_library(yul
 	backends/evm/ssa/stack/Slot.h
 	backends/evm/ssa/stack/SlotLiveness.h
 	backends/evm/ssa/stack/Stack.h
+	backends/evm/ssa/stack/Utils.cpp
+	backends/evm/ssa/stack/Utils.h
 	backends/evm/ssa/transform/ConstantConditionFolder.cpp
 	backends/evm/ssa/transform/ConstantConditionFolder.h
 	backends/evm/ssa/transform/CriticalEdgeBreaker.cpp

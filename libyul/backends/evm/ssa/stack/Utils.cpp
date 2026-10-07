@@ -16,7 +16,7 @@
 */
 // SPDX-License-Identifier: GPL-3.0
 
-#include <libyul/backends/evm/ssa/StackUtils.h>
+#include <libyul/backends/evm/ssa/stack/Utils.h>
 
 #include <libevmasm/GasMeter.h>
 
@@ -26,27 +26,28 @@
 #include <fmt/ranges.h>
 
 using namespace solidity::yul::ssa;
+using namespace solidity::yul::ssa::stack;
 
-std::size_t solidity::yul::ssa::stackOpsGas(SSACFG const& _cfg, stack::ShuffleTrace const& _trace)
+std::size_t solidity::yul::ssa::stack::stackOpsGas(SSACFG const& _cfg, ShuffleTrace const& _trace)
 {
 	auto const evmVersion = _cfg.evmDialect.evmVersion();
 	auto const runGas = [&](evmasm::Instruction const _instruction) {
 		return evmasm::GasMeter::runGas(_instruction, evmVersion);
 	};
 	std::size_t gas = 0;
-	for (stack::ShuffleOp const& op: _trace)
+	for (ShuffleOp const& op: _trace)
 		switch (op.kind)
 		{
-		case stack::ShuffleOp::Kind::Swap:
+		case ShuffleOp::Kind::Swap:
 			gas += evmasm::GasMeter::swapGas(op.depth, evmVersion);
 			break;
-		case stack::ShuffleOp::Kind::Dup:
+		case ShuffleOp::Kind::Dup:
 			gas += evmasm::GasMeter::dupGas(op.depth, evmVersion);
 			break;
-		case stack::ShuffleOp::Kind::Pop:
+		case ShuffleOp::Kind::Pop:
 			gas += runGas(evmasm::Instruction::POP);
 			break;
-		case stack::ShuffleOp::Kind::Push:
+		case ShuffleOp::Kind::Push:
 			if (op.slot.isLiteralValue())
 				gas += runGas(evmasm::pushInstruction(numberEncodingSize(_cfg.literalPayload(op.slot.value()))));
 			else if (op.slot.isJunk())
@@ -59,31 +60,31 @@ std::size_t solidity::yul::ssa::stackOpsGas(SSACFG const& _cfg, stack::ShuffleTr
 				gas += runGas(evmasm::Instruction::PUSH2);
 			}
 			break;
-		case stack::ShuffleOp::Kind::Load:
+		case ShuffleOp::Kind::Load:
 			gas += runGas(evmasm::Instruction::PUSH32) + runGas(evmasm::Instruction::MLOAD);
 			break;
-		case stack::ShuffleOp::Kind::Store:
+		case ShuffleOp::Kind::Store:
 			gas += runGas(evmasm::Instruction::PUSH32) + runGas(evmasm::Instruction::MSTORE);
 			break;
 		}
 	return gas;
 }
 
-stack::Data solidity::yul::ssa::stackPreImage(SSACFG const& _cfg, stack::Data _stack, PhiInverse const& _phiInverse)
+Data solidity::yul::ssa::stack::stackPreImage(SSACFG const& _cfg, Data _stack, PhiInverse const& _phiInverse)
 {
 	if (!_phiInverse.noOp())
 		for (auto& slot: _stack)
 			if (slot.isValue())
 			{
 				auto const preImage = _phiInverse(slot.value());
-				slot = stack::Slot::makeValue(_cfg, preImage);
+				slot = Slot::makeValue(_cfg, preImage);
 			}
 	return _stack;
 }
 
-stack::CallSites solidity::yul::ssa::gatherCallSites(SSACFG const& _cfg)
+CallSites solidity::yul::ssa::stack::gatherCallSites(SSACFG const& _cfg)
 {
-	stack::CallSites result;
+	CallSites result;
 	std::vector<std::uint8_t> visited(_cfg.numBlocks(), false);
 	visited[_cfg.entry.value] = true;
 	std::vector<SSACFG::BlockId> toVisit;
@@ -120,24 +121,24 @@ std::string ValidationResult::formatErrors() const
 	return fmt::format("{}", fmt::join(m_errors, "\n"));
 }
 
-ValidationResult solidity::yul::ssa::checkLayoutCompatibility(stack::Data const& _current, stack::Data const& _desired)
+ValidationResult solidity::yul::ssa::stack::checkLayoutCompatibility(Data const& _current, Data const& _desired)
 {
 	ValidationResult result;
 	if (_current.size() != _desired.size())
 		return result.addError(fmt::format(
 			"size mismatch: {} = len({}) =/= len({}) = {}",
-			_current.size(), stack::stackToString(_current), stack::stackToString(_desired), _desired.size()
+			_current.size(), stackToString(_current), stackToString(_desired), _desired.size()
 		));
 	for (auto&& [index, currentSlot, desiredSlot]: ranges::zip_view(ranges::views::iota(0), _current, _desired))
 		if (!desiredSlot.isJunk() && currentSlot != desiredSlot)
 			result.addError(fmt::format(
 				"stack element mismatch: {} = {}[{}] =/= {}[{}] = {}",
-				stack::slotToString(currentSlot),
-				stack::stackToString(_current),
+				slotToString(currentSlot),
+				stackToString(_current),
 				index,
-				stack::stackToString(_desired),
+				stackToString(_desired),
 				index,
-				stack::slotToString(desiredSlot)
+				slotToString(desiredSlot)
 			));
 	return result;
 }

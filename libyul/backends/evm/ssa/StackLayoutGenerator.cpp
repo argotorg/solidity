@@ -22,9 +22,9 @@
 #include <libyul/backends/evm/ssa/stack/Shuffler.h>
 
 #include <libyul/backends/evm/ssa/JunkAdmittingBlocksFinder.h>
-#include <libyul/backends/evm/ssa/PhiInverse.h>
+#include <libyul/backends/evm/ssa/stack/PhiInverse.h>
 #include <libyul/backends/evm/ssa/stack/ShuffleTrace.h>
-#include <libyul/backends/evm/ssa/StackUtils.h>
+#include <libyul/backends/evm/ssa/stack/Utils.h>
 
 #include <libsolutil/Visitor.h>
 
@@ -39,7 +39,7 @@ using namespace solidity::yul::ssa;
 
 namespace
 {
-void handlePhiFunctions(stack::Data& _stackData, PhiInverse const& _phiInverse, analysis::Liveness::LivenessData const& _liveness, SSACFG const& _cfg)
+void handlePhiFunctions(stack::Data& _stackData, stack::PhiInverse const& _phiInverse, analysis::Liveness::LivenessData const& _liveness, SSACFG const& _cfg)
 {
 	// add any phi function values here that are not already contained in the stack
 	for (auto const& [phi, preImage]: _phiInverse.data())
@@ -188,7 +188,7 @@ void StackLayoutGenerator::defineStackIn(SSACFG::BlockId const& _blockId)
 		// pass through
 		yulAssert(stackInProposals.size() == 1);
 		blockLayout.stackIn = stackInProposals[0].second;
-		handlePhiFunctions(blockLayout.stackIn, PhiInverse(m_cfg, stackInProposals[0].first, _blockId), liveIn, m_cfg);
+		handlePhiFunctions(blockLayout.stackIn, stack::PhiInverse(m_cfg, stackInProposals[0].first, _blockId), liveIn, m_cfg);
 		stack::Stack stack(blockLayout.stackIn);
 		declareJunk(stack, liveIn);
 	}
@@ -199,7 +199,7 @@ void StackLayoutGenerator::defineStackIn(SSACFG::BlockId const& _blockId)
 		for (std::size_t i = 0; i < stackInProposals.size(); ++i)
 		{
 			proposals[i] = stackInProposals[i].second;
-			handlePhiFunctions(proposals[i], PhiInverse(m_cfg, stackInProposals[i].first, _blockId), liveIn, m_cfg);
+			handlePhiFunctions(proposals[i], stack::PhiInverse(m_cfg, stackInProposals[i].first, _blockId), liveIn, m_cfg);
 			{
 				stack::Stack stack(proposals[i]);
 				declareJunk(stack, liveIn);
@@ -217,12 +217,12 @@ void StackLayoutGenerator::defineStackIn(SSACFG::BlockId const& _blockId)
 				stack::Data edgeStack = stackInProposals[j].second;
 				stack::ShuffleResult const result = stack::shuffle(
 					edgeStack,
-					stackPreImage(m_cfg, proposals[i], PhiInverse(m_cfg, stackInProposals[j].first, _blockId)),
+					stack::stackPreImage(m_cfg, proposals[i], stack::PhiInverse(m_cfg, stackInProposals[j].first, _blockId)),
 					candidateSpillSet,
 					m_spillingAllowed
 				);
 				yulAssert(result.status == stack::ShuffleResult::Status::Admissible);
-				cumulativeGas[i] += stackOpsGas(m_cfg, result.trace);
+				cumulativeGas[i] += stack::stackOpsGas(m_cfg, result.trace);
 			}
 			candidateSpillSets[i] = std::move(candidateSpillSet);
 		}
@@ -248,7 +248,7 @@ void StackLayoutGenerator::defineStackIn(SSACFG::BlockId const& _blockId)
 		stack::Data edgeStack = parentExitStack;
 		auto shuffleResult = stack::shuffle(
 			edgeStack,
-			stackPreImage(m_cfg, blockLayout.stackIn, PhiInverse(m_cfg, parentBlockId, _blockId)),
+			stack::stackPreImage(m_cfg, blockLayout.stackIn, stack::PhiInverse(m_cfg, parentBlockId, _blockId)),
 			m_spillSet,
 			m_spillingAllowed
 		);
@@ -326,7 +326,7 @@ void StackLayoutGenerator::visitBlock(SSACFG::BlockId const& _blockId)
 		if (!m_liveness.dfsTree().backEdge(_blockId, _target))
 			return;
 		yulAssert(m_resultLayout[_target], "Back-edge target must have its stackIn defined already.");
-		stack::Data const target = stackPreImage(m_cfg, m_resultLayout[_target]->stackIn, PhiInverse(m_cfg, _blockId, _target));
+		stack::Data const target = stack::stackPreImage(m_cfg, m_resultLayout[_target]->stackIn, stack::PhiInverse(m_cfg, _blockId, _target));
 		stack::Data exitStack = currentStackData;
 		auto shuffleResult = stack::shuffle(exitStack, target, m_spillSet, m_spillingAllowed);
 		yulAssert(

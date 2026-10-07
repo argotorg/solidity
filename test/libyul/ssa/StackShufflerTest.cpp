@@ -25,7 +25,7 @@
 #include <libyul/backends/evm/ssa/SSACFG.h>
 #include <libyul/backends/evm/ssa/stack/ShuffleTrace.h>
 #include <libyul/backends/evm/ssa/stack/Stack.h>
-#include <libyul/backends/evm/ssa/StackUtils.h>
+#include <libyul/backends/evm/ssa/stack/Utils.h>
 
 #include <range/v3/view/split.hpp>
 
@@ -498,7 +498,7 @@ Lines starting with // are comments. Comments at the end of lines are supported,
 		);
 	// check stack data
 	if (!tooDeep)
-		yulAssert(checkLayoutCompatibility(stackData, target).ok());
+		yulAssert(stack::checkLayoutCompatibility(stackData, target).ok());
 	m_obtainedResult = oss.str();
 
 

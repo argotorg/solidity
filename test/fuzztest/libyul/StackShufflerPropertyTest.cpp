@@ -19,7 +19,7 @@
 #include <libyul/backends/evm/ssa/InstructionStore.h>
 #include <libyul/backends/evm/ssa/stack/ShuffleTrace.h>
 #include <libyul/backends/evm/ssa/stack/Slot.h>
-#include <libyul/backends/evm/ssa/StackUtils.h>
+#include <libyul/backends/evm/ssa/stack/Utils.h>
 #include <libyul/backends/evm/ssa/spill/SpillSet.h>
 #include <libyul/backends/evm/ssa/stack/Shuffler.h>
 
@@ -242,7 +242,7 @@ void checkShuffleProperties(
 	replay(replayed, result.trace);
 	ASSERT_TRUE(replayed == shuffled) << "replayed: " << stack::stackToString(replayed) << " shuffled: " << stack::stackToString(shuffled);
 
-	ValidationResult const validation = checkLayoutCompatibility(replayed, target);
+	stack::ValidationResult const validation = stack::checkLayoutCompatibility(replayed, target);
 	ASSERT_TRUE(validation.ok()) << validation.formatErrors();
 
 	// every non-generated target offset is mapped to by an initial source offset holding the demanded slot (wildcards accept anything)
