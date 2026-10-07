@@ -69,21 +69,21 @@ std::size_t solidity::yul::ssa::stackOpsGas(SSACFG const& _cfg, ShuffleTrace con
 	return gas;
 }
 
-StackData solidity::yul::ssa::stackPreImage(SSACFG const& _cfg, StackData _stack, PhiInverse const& _phiInverse)
+stack::Data solidity::yul::ssa::stackPreImage(SSACFG const& _cfg, stack::Data _stack, PhiInverse const& _phiInverse)
 {
 	if (!_phiInverse.noOp())
 		for (auto& slot: _stack)
 			if (slot.isValue())
 			{
 				auto const preImage = _phiInverse(slot.value());
-				slot = StackSlot::makeValue(_cfg, preImage);
+				slot = stack::Slot::makeValue(_cfg, preImage);
 			}
 	return _stack;
 }
 
-CallSites solidity::yul::ssa::gatherCallSites(SSACFG const& _cfg)
+stack::CallSites solidity::yul::ssa::gatherCallSites(SSACFG const& _cfg)
 {
-	CallSites result;
+	stack::CallSites result;
 	std::vector<std::uint8_t> visited(_cfg.numBlocks(), false);
 	visited[_cfg.entry.value] = true;
 	std::vector<SSACFG::BlockId> toVisit;
@@ -120,24 +120,24 @@ std::string ValidationResult::formatErrors() const
 	return fmt::format("{}", fmt::join(m_errors, "\n"));
 }
 
-ValidationResult solidity::yul::ssa::checkLayoutCompatibility(StackData const& _current, StackData const& _desired)
+ValidationResult solidity::yul::ssa::checkLayoutCompatibility(stack::Data const& _current, stack::Data const& _desired)
 {
 	ValidationResult result;
 	if (_current.size() != _desired.size())
 		return result.addError(fmt::format(
 			"size mismatch: {} = len({}) =/= len({}) = {}",
-			_current.size(), stackToString(_current), stackToString(_desired), _desired.size()
+			_current.size(), stack::stackToString(_current), stack::stackToString(_desired), _desired.size()
 		));
 	for (auto&& [index, currentSlot, desiredSlot]: ranges::zip_view(ranges::views::iota(0), _current, _desired))
 		if (!desiredSlot.isJunk() && currentSlot != desiredSlot)
 			result.addError(fmt::format(
 				"stack element mismatch: {} = {}[{}] =/= {}[{}] = {}",
-				slotToString(currentSlot),
-				stackToString(_current),
+				stack::slotToString(currentSlot),
+				stack::stackToString(_current),
 				index,
-				stackToString(_desired),
+				stack::stackToString(_desired),
 				index,
-				slotToString(desiredSlot)
+				stack::slotToString(desiredSlot)
 			));
 	return result;
 }

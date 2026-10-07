@@ -56,13 +56,13 @@ MemoryAddressing::MemoryAddressing(ControlFlowGraphs& _cfgs, std::span<SpillSet 
 		auto const& spillSet = _spillSetsPerCFG[i];
 		auto& cfgMap = m_addresses[i];
 		cfgMap.reserve(spillSet.numSpilled());
-		for (SpillKey const key: spillSet.spilledValues())
+		for (stack::SpillKey const key: spillSet.spilledValues())
 			cfgMap.emplace(key, originalGuard + u256(32) * globalSlot++);
 	}
 	yulAssert(globalSlot == totalSlots);
 }
 
-solidity::u256 MemoryAddressing::addressOf(FunctionGraphID _cfg, SpillKey const _key) const
+solidity::u256 MemoryAddressing::addressOf(FunctionGraphID _cfg, stack::SpillKey const _key) const
 {
 	yulAssert(_cfg < m_addresses.size(), fmt::format("CFG index out of range: {}", _cfg));
 	auto const& cfgMap = m_addresses[_cfg];
@@ -70,7 +70,7 @@ solidity::u256 MemoryAddressing::addressOf(FunctionGraphID _cfg, SpillKey const 
 	yulAssert(it != cfgMap.end(), fmt::format("not spilled: cfg={} variable={}", _cfg, _key));
 	return it->second;
 }
-bool MemoryAddressing::hasAddress(FunctionGraphID _cfg, SpillKey const _key) const
+bool MemoryAddressing::hasAddress(FunctionGraphID _cfg, stack::SpillKey const _key) const
 {
 	yulAssert(_cfg < m_addresses.size(), fmt::format("CFG index out of range: {}", _cfg));
 	auto const& cfgMap = m_addresses[_cfg];

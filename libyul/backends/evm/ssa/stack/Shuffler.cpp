@@ -53,14 +53,14 @@ using namespace solidity::yul::ssa::stack;
 namespace
 {
 
-bool isSpilled(StackSlot const& _slot, spill::SpillSet const& _spills)
+bool isSpilled(Slot const& _slot, spill::SpillSet const& _spills)
 {
 	return _slot.isVariable() && _spills.isSpilled(_slot);
 }
 
 /// Where a slot on a stack is headed: the target offset it is bound for, or no offset at all for a surplus slot,
 /// which is to be popped. This is what tells two slots holding the same value apart.
-using Destination = std::optional<StackOffset>;
+using Destination = std::optional<Offset>;
 
 /// The partial bijective mapping between the positions of a stack and the destinations of its slots
 /// No destination ever occurs twice.
@@ -78,17 +78,17 @@ public:
 	std::size_t stackSize() const { return m_destinationOf.size(); }
 
 	/// The destination of the slot at `_pos`, or none for a surplus slot
-	Destination const& destinationOf(StackOffset const _pos) const { return m_destinationOf[_pos.value]; }
+	Destination const& destinationOf(Offset const _pos) const { return m_destinationOf[_pos.value]; }
 
 	/// The position of the slot bound for `_destination`, or none if no slot is bound for it
-	std::optional<StackOffset> positionOf(StackOffset const _destination) const
+	std::optional<Offset> positionOf(Offset const _destination) const
 	{
 		return m_positionOf[_destination.value];
 	}
 
 	/// Binds the slot at `_pos` for `_destination`; the slot may not have a destination yet and no slot may be
 	/// bound for the destination yet
-	void bind(StackOffset const _pos, StackOffset const _destination)
+	void bind(Offset const _pos, Offset const _destination)
 	{
 		yulAssert(!m_destinationOf[_pos.value].has_value(), "slot already has a destination");
 		yulAssert(!m_positionOf[_destination.value].has_value(), "destination already bound to a slot");
@@ -97,7 +97,7 @@ public:
 	}
 
 	/// Exchanges the destinations of the slots at `_a` and `_b`
-	void swapDestinations(StackOffset const _a, StackOffset const _b)
+	void swapDestinations(Offset const _a, Offset const _b)
 	{
 		std::swap(m_destinationOf[_a.value], m_destinationOf[_b.value]);
 		if (Destination const& destination = m_destinationOf[_a.value])
@@ -115,18 +115,18 @@ public:
 	}
 
 	/// Binds the freshly pushed top slot for `_destination`, which no slot may be bound for yet
-	void push(StackOffset const _destination)
+	void push(Offset const _destination)
 	{
 		m_destinationOf.emplace_back();
-		bind(StackOffset{m_destinationOf.size() - 1}, _destination);
+		bind(Offset{m_destinationOf.size() - 1}, _destination);
 	}
 
 	/// Hands out the destination-indexed side, ending the mapping's life
-	[[nodiscard]] std::vector<std::optional<StackOffset>> release() && { return std::move(m_positionOf); }
+	[[nodiscard]] std::vector<std::optional<Offset>> release() && { return std::move(m_positionOf); }
 
 private:
 	std::vector<Destination> m_destinationOf;
-	std::vector<std::optional<StackOffset>> m_positionOf;
+	std::vector<std::optional<Offset>> m_positionOf;
 };
 
 /// Builds the mapping of the source stack to the target. Every target offset is either served by a source slot
@@ -139,8 +139,8 @@ public:
 	enum class WildcardSlotsStrategy : std::uint8_t { Leave, Take };
 
 	MappingBuilder(
-		StackData const& _source,
-		StackData const& _target,
+		Data const& _source,
+		Data const& _target,
 		std::vector<std::uint8_t> const& _dropped,  // dropped means that the slot is scheduled to be popped
 		WildcardSlotsStrategy const _wildcardSlotsStrategy
 	):
@@ -211,13 +211,13 @@ private:
 	/// Whether the source slot is not scheduled to be dropped and also not yet pointing to a target
 	bool mappable(std::size_t const _sourceOffset) const
 	{
-		return !m_dropped[_sourceOffset] && !m_mapping.destinationOf(StackOffset{_sourceOffset}).has_value();
+		return !m_dropped[_sourceOffset] && !m_mapping.destinationOf(Offset{_sourceOffset}).has_value();
 	}
 
 	/// Whether a source slot already serves `_targetOffset`
 	bool hasSourceAssigned(std::size_t const _targetOffset) const
 	{
-		return m_mapping.positionOf(StackOffset{_targetOffset}).has_value();
+		return m_mapping.positionOf(Offset{_targetOffset}).has_value();
 	}
 
 	/// Whether the target at `_targetOffset` is junk, i.e. accepts whatever ends up there
@@ -254,11 +254,11 @@ private:
 	void map(std::size_t const _sourceOffset, std::size_t const _targetOffset)
 	{
 		yulAssert(mappable(_sourceOffset));
-		m_mapping.bind(StackOffset{_sourceOffset}, StackOffset{_targetOffset});
+		m_mapping.bind(Offset{_sourceOffset}, Offset{_targetOffset});
 	}
 
-	StackData const& m_source;
-	StackData const& m_target;
+	Data const& m_source;
+	Data const& m_target;
 	std::vector<std::uint8_t> const& m_dropped;
 	Mapping m_mapping;
 	bool m_sawWildcardCopy = false;
@@ -276,7 +276,7 @@ public:
 	/// The slot at `offset` of the working stack is out of reach by `excess` slots (might be recoverable)
 	struct Blocked
 	{
-		StackOffset offset;
+		Offset offset;
 		std::size_t excess;
 	};
 
@@ -287,13 +287,13 @@ public:
 	{
 		std::optional<Blocked> blocked;
 		ShuffleTrace trace;
-		StackData data;
+		Data data;
 		Mapping mapping;
 	};
 
 	Emission(
-		StackData const& _source,
-		StackData const& _target,
+		Data const& _source,
+		Data const& _target,
 		Mapping const& _mapping,
 		spill::SpillSet const& _spills,
 		std::size_t const _maxSwapDepth,
@@ -310,7 +310,7 @@ public:
 		m_pendingGenerations = static_cast<std::size_t>(ranges::count_if(
 			ranges::views::iota(std::size_t{0}, _target.size()),
 			[&](std::size_t const _offset) {
-				return !_mapping.positionOf(StackOffset{_offset}).has_value();
+				return !_mapping.positionOf(Offset{_offset}).has_value();
 			}
 		));
 	}
@@ -337,7 +337,7 @@ private:
 	{
 		return
 			ranges::views::iota(std::size_t{0}, m_data.size()) |
-			ranges::views::transform([](std::size_t const _offset) { return StackOffset{_offset}; });
+			ranges::views::transform([](std::size_t const _offset) { return Offset{_offset}; });
 	}
 
 	// pop all surplus or bail if surplus that is scheduled for pop isn't reachable
@@ -345,9 +345,9 @@ private:
 	{
 		while (!m_stack.empty())
 		{
-			StackOffset shallowestSurplus{empty};
-			StackOffset deepestReachableSurplus{empty};
-			for (StackOffset const pos: stackOffsets() | ranges::views::reverse)
+			Offset shallowestSurplus{empty};
+			Offset deepestReachableSurplus{empty};
+			for (Offset const pos: stackOffsets() | ranges::views::reverse)
 				if (isSurplus(pos))
 				{
 					if (shallowestSurplus == empty)
@@ -362,13 +362,13 @@ private:
 				return blockSwapUnreachable(shallowestSurplus);
 
 			if (
-				StackOffset const stackTopOffset{m_stack.size() - 1};
+				Offset const stackTopOffset{m_stack.size() - 1};
 				shallowestSurplus != stackTopOffset
 			)
 			{
 				// a surplus slot equal to the top takes over the top's destination, so the top itself can be popped
-				StackOffset equalSurplus{empty};
-				for (StackOffset const pos: stackOffsets() | ranges::views::reverse | ranges::views::drop(1))
+				Offset equalSurplus{empty};
+				for (Offset const pos: stackOffsets() | ranges::views::reverse | ranges::views::drop(1))
 					if (isSurplus(pos) && m_stack[pos] == m_stack.top())
 					{
 						equalSurplus = pos;
@@ -385,9 +385,9 @@ private:
 	}
 
 	/// Produces the slot for `_targetOffset`
-	[[nodiscard]] std::optional<Blocked> produce(StackOffset const _targetOffset)
+	[[nodiscard]] std::optional<Blocked> produce(Offset const _targetOffset)
 	{
-		StackSlot const& slot = m_target[_targetOffset.value];
+		Slot const& slot = m_target[_targetOffset.value];
 		auto const copy = shallowestCopyPosition(slot);
 		if (slot.isJunk())
 			push(slot, _targetOffset);
@@ -399,7 +399,7 @@ private:
 			return blockDupUnreachable(*copy);
 		else
 			yulAssert(false, "generated slot has no copy on the stack and is not spilled");
-		yulAssert(m_mapping.positionOf(_targetOffset) == StackOffset{m_data.size() - 1});
+		yulAssert(m_mapping.positionOf(_targetOffset) == Offset{m_data.size() - 1});
 		--m_pendingGenerations;
 		return std::nullopt;
 	}
@@ -407,7 +407,7 @@ private:
 	/// Produces the slot for `_targetOffset` and moves it toward its place right away: if the offset exists
 	/// already and holds a slot that is not final, a single swap places the produced slot and floats the other
 	/// one, which may be its own placement. An equal slot there just takes over the destination.
-	[[nodiscard]] std::optional<Blocked> generate(StackOffset const _targetOffset)
+	[[nodiscard]] std::optional<Blocked> generate(Offset const _targetOffset)
 	{
 		if (std::optional<Blocked> blocked = produce(_targetOffset))
 			return blocked;
@@ -417,7 +417,7 @@ private:
 		{
 			if (m_data[_targetOffset.value] == m_data.back())
 				// an equal slot stands at the offset: retag instead of swapping two equal slots
-				m_mapping.swapDestinations(_targetOffset, StackOffset{m_data.size() - 1});
+				m_mapping.swapDestinations(_targetOffset, Offset{m_data.size() - 1});
 			else if (isSwapReachable(_targetOffset))
 				swapWith(_targetOffset);
 			// out of swap reach: leave the slot on top; buildBottomUp re-checks reach when filling the offset
@@ -441,11 +441,11 @@ private:
 		// offsets whose target values will be generated later
 		std::vector<std::size_t> holes;
 		std::vector<std::size_t> parked;
-		for (StackOffset const pos: stackOffsets())
+		for (Offset const pos: stackOffsets())
 		{
 			// all surplus is gone, so every slot has a destination
 			yulAssert(destinationOf(pos).has_value());
-			StackOffset const destination = *destinationOf(pos);
+			Offset const destination = *destinationOf(pos);
 			// target offset at offset pos has no source (ie the value has to be generated)
 			bool const isHole = !m_plannedMapping.positionOf(pos).has_value();
 			// can't serve the destination yet
@@ -477,7 +477,7 @@ private:
 	/// Loop invariant: every offset below `targetOffset` is final, i.e., holds the slot bound for it.
 	[[nodiscard]] std::optional<Blocked> buildBottomUp()
 	{
-		for (StackOffset targetOffset{0}; targetOffset < m_target.size(); ++targetOffset.value)
+		for (Offset targetOffset{0}; targetOffset < m_target.size(); ++targetOffset.value)
 		{
 			// the offset exists and already holds the slot bound for it: nothing to do
 			if (targetOffset < m_data.size() && isFinal(targetOffset))
@@ -489,18 +489,18 @@ private:
 				yulAssert(m_data.size() == m_target.size());
 				// every slot goes to the offset it is bound for
 				return permute(ranges::views::iota(std::size_t{0}, m_target.size())
-					| ranges::views::transform([&](std::size_t i) { return destinationOf(StackOffset{i}).value().value; })
+					| ranges::views::transform([&](std::size_t i) { return destinationOf(Offset{i}).value().value; })
 					| ranges::to<std::vector>());
 			}
 
 			// a target offset that needs something DUPed urgently before it goes out of dup reach
-			std::optional<StackOffset> urgentToDup;
-			for (StackOffset offset = targetOffset; offset < m_target.size(); ++offset.value)  // going bottom-up so we can start from targetOffset
+			std::optional<Offset> urgentToDup;
+			for (Offset offset = targetOffset; offset < m_target.size(); ++offset.value)  // going bottom-up so we can start from targetOffset
 			{
 				// only offsets no slot is bound for yet (ie that need to be duped) can be urgent
 				if (m_mapping.positionOf(offset).has_value())
 					continue;
-				StackSlot const& slot = m_target[offset.value];
+				Slot const& slot = m_target[offset.value];
 				if (slot.isJunk() || canBeFreelyGenerated(slot) || isSpilled(slot, m_spills))
 					continue;
 				if (auto const sourceCopy = shallowestCopyPosition(slot))
@@ -529,7 +529,7 @@ private:
 
 			// a slot whose offset is exactly where the result of a dup would end up is in place for free,
 			// as long as nothing is urgent and targetOffset stays in reach for the slot generated after it
-			StackOffset const sourceTop{m_data.size()};
+			Offset const sourceTop{m_data.size()};
 			if (
 				!urgentToDup &&  // nothing urgent
 				sourceTop > targetOffset &&  // the new top sits above the current targetOffset
@@ -552,13 +552,13 @@ private:
 			{
 				// We go bottom-up, so the slot that should go into targetOffset is somewhere above
 				// Any equal slot that is not in place will do the trick: the one at `targetOffset` itself, else the shallowest one
-				std::optional<StackOffset> const boundForTarget = m_mapping.positionOf(targetOffset);
+				std::optional<Offset> const boundForTarget = m_mapping.positionOf(targetOffset);
 				yulAssert(
 					boundForTarget.has_value() && *boundForTarget >= targetOffset,
 					"slot bound for the offset being filled is missing or already below it"
 				);
-				StackOffset const sourceForTargetOffset = *boundForTarget;
-				StackOffset pos = sourceForTargetOffset;
+				Offset const sourceForTargetOffset = *boundForTarget;
+				Offset pos = sourceForTargetOffset;
 				if (m_data[targetOffset.value] == m_data[sourceForTargetOffset.value])
 					// if the slot currently occupying targetOffset happens to be an equal copy of that value we're done
 					// and can set `pos` directly to the target offset
@@ -566,7 +566,7 @@ private:
 				else
 					// otherwise search if there is an equal, movable copy shallower than carrier
 					for (
-						StackOffset const candidate: stackOffsets() | ranges::views::reverse | ranges::views::take(depthOf(sourceForTargetOffset).value)
+						Offset const candidate: stackOffsets() | ranges::views::reverse | ranges::views::take(depthOf(sourceForTargetOffset).value)
 					)
 						if (m_data[candidate.value] == m_data[sourceForTargetOffset.value] && !isFinal(candidate))
 						{
@@ -674,9 +674,9 @@ private:
 			}
 		}
 
-		auto exchangeWithTop = [this, &_permutation](StackOffset const _pos) -> std::optional<Blocked>
+		auto exchangeWithTop = [this, &_permutation](Offset const _pos) -> std::optional<Blocked>
 		{
-			StackOffset const top{m_data.size() - 1};
+			Offset const top{m_data.size() - 1};
 			if (m_data[_pos.value] == m_data[top.value])
 				m_mapping.swapDestinations(_pos, top);
 			else if (!isSwapReachable(_pos))
@@ -691,7 +691,7 @@ private:
 		{
 			std::size_t const top = m_data.size() - 1;
 			if (
-				StackOffset const desiredOfTop{_permutation[top]};
+				Offset const desiredOfTop{_permutation[top]};
 				desiredOfTop != top
 			)
 			{
@@ -700,11 +700,11 @@ private:
 					return blocked;
 				continue;
 			}
-			StackOffset misplaced{empty};
+			Offset misplaced{empty};
 			for (std::size_t const pos: ranges::views::iota(std::size_t{0}, top) | ranges::views::reverse)
 				if (_permutation[pos] != pos)  // not already in place
 				{
-					misplaced = StackOffset{pos};  // we found something misplaced
+					misplaced = Offset{pos};  // we found something misplaced
 					break;
 				}
 
@@ -719,56 +719,56 @@ private:
 	}
 
 	/// Whether the slot at `_pos` has no target offset to go to and is to be popped
-	bool isSurplus(StackOffset const _pos) const
+	bool isSurplus(Offset const _pos) const
 	{
 		return !destinationOf(_pos).has_value();
 	}
 
 	/// The destination of the slot at `_pos`: the target offset it is bound for, or none for a surplus slot.
 	/// Whether absence is expected is the caller's business - after `removeSurplus` every slot has one.
-	Destination const& destinationOf(StackOffset const _pos) const
+	Destination const& destinationOf(Offset const _pos) const
 	{
 		return m_mapping.destinationOf(_pos);
 	}
 
 	/// Whether the slot at `_pos` is bound for `_pos` itself, i.e., already is at its final target offset
-	bool isFinal(StackOffset const _pos) const
+	bool isFinal(Offset const _pos) const
 	{
 		return destinationOf(_pos) == _pos;
 	}
 
 	/// Depth of the slot at `_pos` below the top of the working stack
-	StackDepth depthOf(StackOffset const _pos) const
+	Depth depthOf(Offset const _pos) const
 	{
 		return m_stack.offsetToDepth(_pos);
 	}
 
 	/// Whether a swap can reach the slot at `_pos`; trivially true for the top itself
-	bool isSwapReachable(StackOffset const _pos) const
+	bool isSwapReachable(Offset const _pos) const
 	{
 		return !m_stack.isBeyondSwapRange(depthOf(_pos));
 	}
 
 	/// Whether a dup can reach the slot at `_pos`
-	bool isDupReachable(StackOffset const _pos) const
+	bool isDupReachable(Offset const _pos) const
 	{
 		return m_stack.dupReachable(depthOf(_pos));
 	}
 
-	std::optional<StackOffset> shallowestCopyPosition(StackSlot const& _slot) const
+	std::optional<Offset> shallowestCopyPosition(Slot const& _slot) const
 	{
-		for (StackOffset const pos: stackOffsets() | ranges::views::reverse)
+		for (Offset const pos: stackOffsets() | ranges::views::reverse)
 			if (m_data[pos.value] == _slot)
 				return pos;
 		return std::nullopt;
 	}
 
 	/// Swaps the top with the slot at `_pos`, the destinations traveling along
-	void swapWith(StackOffset const _pos)
+	void swapWith(Offset const _pos)
 	{
 		yulAssert(!isFinal(_pos), "swapping a final slot out of place");
 		m_stack.swap(_pos);
-		m_mapping.swapDestinations(_pos, StackOffset{m_data.size() - 1});
+		m_mapping.swapDestinations(_pos, Offset{m_data.size() - 1});
 	}
 
 	void pop()
@@ -777,38 +777,38 @@ private:
 		m_mapping.pop();
 	}
 
-	void push(StackSlot const& _slot, StackOffset const _destination)
+	void push(Slot const& _slot, Offset const _destination)
 	{
 		m_stack.push(_slot);
 		m_mapping.push(_destination);
 	}
 
-	void dup(StackOffset const _copy, StackOffset const _destination)
+	void dup(Offset const _copy, Offset const _destination)
 	{
 		m_stack.dup(_copy);
 		m_mapping.push(_destination);
 	}
 
 	/// The slot at `_position` is out of reach by `_excess` slots
-	[[nodiscard]] Blocked block(StackOffset const _position, std::size_t const _excess) const
+	[[nodiscard]] Blocked block(Offset const _position, std::size_t const _excess) const
 	{
 		yulAssert(_excess > 0);
 		return Blocked{_position, _excess};
 	}
 
 	/// A swap cannot reach the slot at `_position`
-	[[nodiscard]] Blocked blockSwapUnreachable(StackOffset const _position) const
+	[[nodiscard]] Blocked blockSwapUnreachable(Offset const _position) const
 	{
 		return block(_position, depthOf(_position).value - m_maxSwapDepth);
 	}
 
 	/// A dup cannot reach the slot at `_position`
-	[[nodiscard]] Blocked blockDupUnreachable(StackOffset const _position) const
+	[[nodiscard]] Blocked blockDupUnreachable(Offset const _position) const
 	{
 		return block(_position, depthOf(_position).value - m_maxDupDepth);
 	}
 
-	StackData const& m_target;
+	Data const& m_target;
 	/// The mapping as planned, before any operation
 	Mapping const& m_plannedMapping;
 	spill::SpillSet const& m_spills;
@@ -816,7 +816,7 @@ private:
 	std::size_t const m_maxDupDepth;
 
 	/// The working stack and its (in sync) mapping
-	StackData m_data;
+	Data m_data;
 	Mapping m_mapping;
 	/// Number of target offsets whose slot still has to be produced; decremented by `produce`
 	std::size_t m_pendingGenerations = 0;
@@ -828,8 +828,8 @@ class Planner
 {
 public:
 	Planner(
-		StackData const& _source,
-		StackData const& _target,
+		Data const& _source,
+		Data const& _target,
 		spill::SpillSet _spills,
 		bool const _spillingAllowed,
 		MappingBuilder::WildcardSlotsStrategy const _wildcardSlotsStrategy,
@@ -847,7 +847,7 @@ public:
 
 	bool run()
 	{
-		for (StackSlot const& slot: m_target)
+		for (Slot const& slot: m_target)
 			yulAssert(
 				slot.isJunk() ||
 				canBeFreelyGenerated(slot) ||
@@ -884,7 +884,7 @@ public:
 	}
 
 	/// Moves the successful attempt into `_source` and `_spills` and hands out the plan
-	[[nodiscard]] ShuffleResult apply(StackData& _source, spill::SpillSet& _spills) &&
+	[[nodiscard]] ShuffleResult apply(Data& _source, spill::SpillSet& _spills) &&
 	{
 		yulAssert(m_result.has_value() && m_plan.has_value());
 		_source = std::move(m_result->data);
@@ -909,12 +909,12 @@ private:
 	{
 		std::vector<std::uint8_t> droppedNow(m_source.size(), false);
 
-		auto const isRetained = [&](StackOffset const _sourceOffset) {
+		auto const isRetained = [&](Offset const _sourceOffset) {
 			return _mapping.destinationOf(_sourceOffset).has_value();
 		};
 
-		auto const hasOtherRetainedCopy = [&](StackOffset const _offset) {
-			for (StackOffset sourceOffset{0}; sourceOffset < m_source.size(); ++sourceOffset.value)
+		auto const hasOtherRetainedCopy = [&](Offset const _offset) {
+			for (Offset sourceOffset{0}; sourceOffset < m_source.size(); ++sourceOffset.value)
 				if (
 					sourceOffset != _offset &&
 					m_source[sourceOffset.value] == m_source[_offset.value] &&  // same value
@@ -926,10 +926,10 @@ private:
 		};
 
 		// this slot is needed somewhere in the target
-		auto const isDemanded = [&](StackSlot const& _slot) {
+		auto const isDemanded = [&](Slot const& _slot) {
 			return ranges::any_of(
 				m_target,
-				[&](StackSlot const& slot) { return !slot.isJunk() && slot == _slot; }
+				[&](Slot const& slot) { return !slot.isJunk() && slot == _slot; }
 			);
 		};
 
@@ -939,8 +939,8 @@ private:
 		/// - 2 = reloaded from existing spill,
 		/// - 3 = duplicated from another copy,
 		/// - 4 = reloaded after a planned spill
-		auto const classify = [&](StackOffset const _offset) -> std::optional<unsigned> {
-			StackSlot const& slot = m_source[_offset.value];
+		auto const classify = [&](Offset const _offset) -> std::optional<unsigned> {
+			Slot const& slot = m_source[_offset.value];
 			if (slot.isFunctionReturnLabel())
 				return std::nullopt;
 			bool const regenerable = slot.isJunk() || canBeFreelyGenerated(slot) || isSpilled(slot, m_spills) || hasOtherRetainedCopy(_offset);
@@ -959,17 +959,17 @@ private:
 
 		// retained slots above the blocked one; the source offset of a retained slot is the one its destination
 		// maps back to, while generated and surplus slots have no source
-		std::vector<StackOffset> candidates;
-		for (StackOffset pos{_blocked.offset.value + 1}; pos < _current.stackSize(); ++pos.value)
+		std::vector<Offset> candidates;
+		for (Offset pos{_blocked.offset.value + 1}; pos < _current.stackSize(); ++pos.value)
 			if (Destination const& destination = _current.destinationOf(pos))
-				if (std::optional<StackOffset> const source = _mapping.positionOf(*destination))
+				if (std::optional<Offset> const source = _mapping.positionOf(*destination))
 					candidates.emplace_back(*source);
 		for (std::size_t dropped = 0; dropped < _blocked.excess; ++dropped)
 		{
 			// classes can shift as copies get dropped, so pick one victim at a time
-			std::optional<StackOffset> best;
+			std::optional<Offset> best;
 			unsigned bestClass = 0;
-			for (StackOffset const offset: candidates)
+			for (Offset const offset: candidates)
 			{
 				if (droppedNow[offset.value])
 					continue;
@@ -1002,8 +1002,8 @@ private:
 	/// Deepest slot a dup may address: DUP16 duplicates the slot at depth 15
 	std::size_t const m_maxDupDepth;
 
-	StackData const& m_source;
-	StackData const& m_target;
+	Data const& m_source;
+	Data const& m_target;
 	spill::SpillSet m_spills;
 	bool const m_spillingAllowed;
 	MappingBuilder::WildcardSlotsStrategy const m_wildcardSlotsStrategy;
@@ -1024,8 +1024,8 @@ class Shuffle
 {
 public:
 	Shuffle(
-		StackData& _source,
-		StackData const& _target,
+		Data& _source,
+		Data const& _target,
 		spill::SpillSet& _spills,
 		bool const _spillingAllowed,
 		std::size_t const _reachableStackDepth
@@ -1061,8 +1061,8 @@ public:
 private:
 	static ShuffleResult stackTooDeep() { return {.status = ShuffleResult::Status::StackTooDeep}; }
 
-	StackData& m_source;
-	StackData const& m_target;
+	Data& m_source;
+	Data const& m_target;
 	spill::SpillSet& m_spills;
 	bool const m_spillingAllowed;
 	std::size_t const m_reachableStackDepth;
@@ -1071,8 +1071,8 @@ private:
 }
 
 ShuffleResult stack::shuffle(
-	StackData& _source,
-	StackData const& _target,
+	Data& _source,
+	Data const& _target,
 	spill::SpillSet& _spills,
 	bool const _spillingAllowed,
 	std::size_t const _reachableStackDepth

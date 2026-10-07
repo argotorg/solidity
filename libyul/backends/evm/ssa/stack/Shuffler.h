@@ -39,14 +39,14 @@ struct ShuffleResult
 	Status status = Status::Admissible;
 	ShuffleTrace trace{};
 	/// The plan: for every target offset the source offset that serves it; generated offsets are empty
-	std::vector<std::optional<StackOffset>> sourceOf{};
+	std::vector<std::optional<Offset>> sourceOf{};
 };
 
 /// Shuffles `_source` positionally to `_target` (junk slots in the target are wildcards) and returns the trace of
 /// stack operations realizing it
 [[nodiscard]] ShuffleResult shuffle(
-	StackData& _source,
-	StackData const& _target,
+	Data& _source,
+	Data const& _target,
 	spill::SpillSet& _spills,
 	bool _spillingAllowed = true,
 	std::size_t _reachableStackDepth = reachableStackDepth

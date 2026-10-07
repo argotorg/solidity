@@ -39,14 +39,14 @@ using namespace solidity::yul::ssa;
 
 namespace
 {
-void handlePhiFunctions(StackData& _stackData, PhiInverse const& _phiInverse, analysis::Liveness::LivenessData const& _liveness, SSACFG const& _cfg)
+void handlePhiFunctions(stack::Data& _stackData, PhiInverse const& _phiInverse, analysis::Liveness::LivenessData const& _liveness, SSACFG const& _cfg)
 {
 	// add any phi function values here that are not already contained in the stack
 	for (auto const& [phi, preImage]: _phiInverse.data())
 	{
 		auto reversedStackData = _stackData | ranges::views::reverse;
-		auto const phiSlot = StackSlot::makeValue(_cfg, phi);
-		auto const preImageSlot = StackSlot::makeValue(_cfg, preImage);
+		auto const phiSlot = stack::Slot::makeValue(_cfg, phi);
+		auto const preImageSlot = stack::Slot::makeValue(_cfg, preImage);
 		auto it = ranges::find(reversedStackData, preImageSlot);
 		if (_liveness.contains(preImage))
 		{
@@ -71,7 +71,7 @@ void handlePhiFunctions(StackData& _stackData, PhiInverse const& _phiInverse, an
 
 void declareJunk(Stack& _stack, analysis::Liveness::LivenessData const& _live)
 {
-	for (StackOffset offset{0}; offset < _stack.size(); ++offset.value)
+	for (stack::Offset offset{0}; offset < _stack.size(); ++offset.value)
 	{
 		auto const& slot = _stack[offset];
 		if (slot.isValue() && !_live.contains(slot.value()))
@@ -83,7 +83,7 @@ void declareJunk(Stack& _stack, analysis::Liveness::LivenessData const& _live)
 
 StackLayoutGenerator::Result StackLayoutGenerator::generate(
 	analysis::Liveness const& _liveness,
-	CallSites const& _callSites,
+	stack::CallSites const& _callSites,
 	ControlFlowGraphs::FunctionGraphID const _graphID,
 	bool const _spillingAllowed
 )
@@ -107,7 +107,7 @@ StackLayoutGenerator::Result StackLayoutGenerator::generate(
 
 StackLayoutGenerator::StackLayoutGenerator(
 	analysis::Liveness const& _liveness,
-	CallSites const& _callSites,
+	stack::CallSites const& _callSites,
 	ControlFlowGraphs::FunctionGraphID const _graphID,
 	bool const _spillingAllowed,
 	spill::SpillSet _initialSpillSet
@@ -195,7 +195,7 @@ void StackLayoutGenerator::defineStackIn(SSACFG::BlockId const& _blockId)
 	else
 	{
 		// Pre-compute each parent's proposal
-		std::vector<StackData> proposals(stackInProposals.size());
+		std::vector<stack::Data> proposals(stackInProposals.size());
 		for (std::size_t i = 0; i < stackInProposals.size(); ++i)
 		{
 			proposals[i] = stackInProposals[i].second;
@@ -214,7 +214,7 @@ void StackLayoutGenerator::defineStackIn(SSACFG::BlockId const& _blockId)
 			spill::SpillSet candidateSpillSet = m_spillSet;
 			for (std::size_t j = 0; j < stackInProposals.size(); ++j)
 			{
-				StackData edgeStack = stackInProposals[j].second;
+				stack::Data edgeStack = stackInProposals[j].second;
 				stack::ShuffleResult const result = stack::shuffle(
 					edgeStack,
 					stackPreImage(m_cfg, proposals[i], PhiInverse(m_cfg, stackInProposals[j].first, _blockId)),
@@ -245,7 +245,7 @@ void StackLayoutGenerator::defineStackIn(SSACFG::BlockId const& _blockId)
 	// Validate every incoming forward edge
 	for (auto const& [parentBlockId, parentExitStack]: stackInProposals)
 	{
-		StackData edgeStack = parentExitStack;
+		stack::Data edgeStack = parentExitStack;
 		auto shuffleResult = stack::shuffle(
 			edgeStack,
 			stackPreImage(m_cfg, blockLayout.stackIn, PhiInverse(m_cfg, parentBlockId, _blockId)),
@@ -270,7 +270,7 @@ void StackLayoutGenerator::visitBlock(SSACFG::BlockId const& _blockId)
 
 	SSACFG::BasicBlock const& block = m_cfg.block(_blockId);
 
-	StackData currentStackData = blockLayout.stackIn;
+	stack::Data currentStackData = blockLayout.stackIn;
 	Stack stack(currentStackData);
 
 	auto const layoutOperation = [&](InstId const _instId, SSACFG::Inst const& _inst) {
@@ -291,12 +291,12 @@ void StackLayoutGenerator::visitBlock(SSACFG::BlockId const& _blockId)
 		requiredStackTop +=
 			_inst.inputs |
 			ranges::views::reverse |
-			ranges::views::transform([this](InstId const& _id) { return StackSlot::makeValue(m_cfg, _id); });
+			ranges::views::transform([this](InstId const& _id) { return stack::Slot::makeValue(m_cfg, _id); });
 
 		{
 			// Values that are dead before the operation are left on the stack; the shuffle to the
 			// optimal target pops them as surplus as needed
-			StackSlotLiveness const opLiveOutSlots = toStackSlotLiveness(m_cfg, opLiveOutWithoutOutputs);
+			stack::SlotLiveness const opLiveOutSlots = stack::toSlotLiveness(m_cfg, opLiveOutWithoutOutputs);
 			auto const target = stack::buildInstructionStackIn(stack.data(), requiredStackTop, opLiveOutSlots, m_spillSet);
 			auto const spillCountBefore = m_spillSet.numSpilled();
 			auto shuffleResult = stack::shuffle(currentStackData, target, m_spillSet, m_spillingAllowed);
@@ -326,8 +326,8 @@ void StackLayoutGenerator::visitBlock(SSACFG::BlockId const& _blockId)
 		if (!m_liveness.dfsTree().backEdge(_blockId, _target))
 			return;
 		yulAssert(m_resultLayout[_target], "Back-edge target must have its stackIn defined already.");
-		StackData const target = stackPreImage(m_cfg, m_resultLayout[_target]->stackIn, PhiInverse(m_cfg, _blockId, _target));
-		StackData exitStack = currentStackData;
+		stack::Data const target = stackPreImage(m_cfg, m_resultLayout[_target]->stackIn, PhiInverse(m_cfg, _blockId, _target));
+		stack::Data exitStack = currentStackData;
 		auto shuffleResult = stack::shuffle(exitStack, target, m_spillSet, m_spillingAllowed);
 		yulAssert(
 			shuffleResult.status == stack::ShuffleResult::Status::Admissible,
@@ -349,7 +349,7 @@ void StackLayoutGenerator::visitBlock(SSACFG::BlockId const& _blockId)
 				if (!conditionSlotAlreadyFinal)
 				{
 					auto const condition = Slot::makeValue(m_cfg, _cJump.condition);
-					StackSlotLiveness const blockLiveOutSlots = toStackSlotLiveness(m_cfg, blockLiveOut);
+					stack::SlotLiveness const blockLiveOutSlots = stack::toSlotLiveness(m_cfg, blockLiveOut);
 					auto const target = stack::buildInstructionStackIn(stack.data(), {condition}, blockLiveOutSlots, m_spillSet);
 					auto const spillCountBefore = m_spillSet.numSpilled();
 					auto shuffleResult = stack::shuffle(currentStackData, target, m_spillSet, m_spillingAllowed);
@@ -374,8 +374,8 @@ void StackLayoutGenerator::visitBlock(SSACFG::BlockId const& _blockId)
 			[&](SSACFG::BasicBlock::FunctionReturn const& _functionReturn) {
 				yulAssert(m_hasFunctionReturnLabel, "When there is a proper function return, we need to have a label for it");
 				// in case there are return values, let's bring the function return label to the top
-				StackData returnStack = _functionReturn.returnValues | ranges::views::transform([this](InstId const _id) { return StackSlot::makeValue(m_cfg, _id); }) | ranges::to<std::vector>;
-				returnStack.push_back(StackSlot::makeFunctionReturnLabel(m_graphID));
+				stack::Data returnStack = _functionReturn.returnValues | ranges::views::transform([this](InstId const _id) { return stack::Slot::makeValue(m_cfg, _id); }) | ranges::to<std::vector>;
+				returnStack.push_back(stack::Slot::makeFunctionReturnLabel(m_graphID));
 				auto shuffleResult = stack::shuffle(currentStackData, returnStack, m_spillSet, m_spillingAllowed);
 				yulAssert(shuffleResult.status == stack::ShuffleResult::Status::Admissible, "Spilling not allowed, stack too deep.");
 				blockLayout.exitShuffle = std::move(shuffleResult.trace);

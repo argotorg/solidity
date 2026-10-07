@@ -20,7 +20,7 @@
 
 #include <libyul/backends/evm/ssa/SSACFGTypes.h>
 #include <libyul/backends/evm/ssa/ShuffleTrace.h>
-#include <libyul/backends/evm/ssa/StackSlot.h>
+#include <libyul/backends/evm/ssa/stack/Slot.h>
 
 #include <libyul/Exceptions.h>
 
@@ -40,32 +40,32 @@ using SpillStoreTraces = std::map<InstId, ShuffleTrace>;
 class SpillSet
 {
 public:
-	void add(SpillKey const _key)
+	void add(stack::SpillKey const _key)
 	{
 		yulAssert(_key.isVariable(), fmt::format("only variables can be spilled, not {}", _key));
 		bool const inserted = m_values.insert(_key).second;
 		yulAssert(inserted, fmt::format("can't spill a variable ({}) twice", _key));
 	}
 
-	bool isSpilled(SpillKey const _key) const { return m_values.contains(_key); }
+	bool isSpilled(stack::SpillKey const _key) const { return m_values.contains(_key); }
 
 	std::size_t numSpilled() const { return m_values.size(); }
 
-	std::set<SpillKey> const& spilledValues() const { return m_values; }
+	std::set<stack::SpillKey> const& spilledValues() const { return m_values; }
 
 	/// Finalizes the spill set by making every spilled value's def-site `mstore` reachable.
 	/// If `_storeTraces` is provided, it is rebuilt to hold each spilled value's recorded def-site store trace.
 	void closeUnderReachabilityConstraints(SSACFG const& _cfg, SSACFGStackLayout const& _layout, SpillStoreTraces* _storeTraces = nullptr);
 
 	/// Yields a copy of this spill set minus `_key`.
-	[[nodiscard]] SpillSet without(SpillKey _key) const;
+	[[nodiscard]] SpillSet without(stack::SpillKey _key) const;
 
 private:
 	/// Ensure that the variable `_key` can be spilled, i.e.,
 	/// brought up to the top and `mstore`d. Might populate the spill set with more entries if not possible right away.
-	void ensureDefSiteFeasible(SpillKey _key, StackData const& _defStack, std::deque<SpillKey>& _workQueue, SpillStoreTraces* _storeTraces);
+	void ensureDefSiteFeasible(stack::SpillKey _key, stack::Data const& _defStack, std::deque<stack::SpillKey>& _workQueue, SpillStoreTraces* _storeTraces);
 
-	std::set<SpillKey> m_values;
+	std::set<stack::SpillKey> m_values;
 };
 
 }

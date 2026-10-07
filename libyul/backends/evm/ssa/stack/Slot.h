@@ -30,7 +30,7 @@
 #include <cstdint>
 #include <type_traits>
 
-namespace solidity::yul::ssa
+namespace solidity::yul::ssa::stack
 {
 
 /// Registry for tracking function call sites.
@@ -75,7 +75,7 @@ private:
 ///     - FunctionReturnLabel: Identifies the calling function's graph
 ///
 /// Memory layout is optimized: 8 bytes size for cache efficiency, trivially copyable, standard layout, trivial
-class StackSlot
+class Slot
 {
 public:
 	enum struct Kind: std::uint8_t
@@ -86,11 +86,11 @@ public:
 		FunctionReturnLabel // identifying the function graph via ControlFlowGraphs
 	};
 
-	constexpr StackSlot() = default;
-	constexpr StackSlot(StackSlot const&) = default;
-	constexpr StackSlot(StackSlot&&) = default;
-	constexpr StackSlot& operator=(StackSlot const&) = default;
-	constexpr StackSlot& operator=(StackSlot&&) = default;
+	constexpr Slot() = default;
+	constexpr Slot(Slot const&) = default;
+	constexpr Slot(Slot&&) = default;
+	constexpr Slot& operator=(Slot const&) = default;
+	constexpr Slot& operator=(Slot&&) = default;
 
 	constexpr bool isValue() const noexcept { return kind() == Kind::Value; }
 	constexpr bool isLiteralValue() const noexcept { return m_valueOpcode == InstOpcode::Const; }
@@ -112,20 +112,20 @@ public:
 		return InstId{m_payload};
 	}
 
-	static constexpr StackSlot makeJunk() { return {0, Kind::Junk}; }
-	static StackSlot makeValue(SSACFG const& _cfg, InstId _value)
+	static constexpr Slot makeJunk() { return {0, Kind::Junk}; }
+	static Slot makeValue(SSACFG const& _cfg, InstId _value)
 	{
 		return {_value.value, Kind::Value, _cfg.kindOf(_value)};
 	}
-	static StackSlot makeValue(InstructionStore const& _store, InstId _value)
+	static Slot makeValue(InstructionStore const& _store, InstId _value)
 	{
 		return {_value.value, Kind::Value, _store.kindOf(_value)};
 	}
-	static constexpr StackSlot makeFunctionReturnLabel(ControlFlowGraphs::FunctionGraphID const _graphID) { return {_graphID, Kind::FunctionReturnLabel}; }
-	static constexpr StackSlot makeFunctionCallReturnLabel(CallSites::CallSiteID const _callSiteID) { return {_callSiteID, Kind::FunctionCallReturnLabel};	}
+	static constexpr Slot makeFunctionReturnLabel(ControlFlowGraphs::FunctionGraphID const _graphID) { return {_graphID, Kind::FunctionReturnLabel}; }
+	static constexpr Slot makeFunctionCallReturnLabel(CallSites::CallSiteID const _callSiteID) { return {_callSiteID, Kind::FunctionCallReturnLabel};	}
 
-	auto operator<=>(StackSlot const&) const = default;
-	friend std::size_t hash_value(StackSlot const& _slot)
+	auto operator<=>(Slot const&) const = default;
+	friend std::size_t hash_value(Slot const& _slot)
 	{
 		std::size_t hash = 0;
 		boost::hash_combine(hash, _slot.m_payload);
@@ -134,7 +134,7 @@ public:
 		return hash;
 	}
 private:
-	constexpr StackSlot(std::uint32_t const _payload, Kind const _kind, InstOpcode const _valueOpcode = InstOpcode::Unreachable):
+	constexpr Slot(std::uint32_t const _payload, Kind const _kind, InstOpcode const _valueOpcode = InstOpcode::Unreachable):
 		m_payload(_payload),
 		m_kind(_kind),
 		m_valueOpcode(_valueOpcode)
@@ -146,60 +146,60 @@ private:
 	/// for Kind::Value: cached Opcode of the defining Inst
 	InstOpcode m_valueOpcode;
 };
-static_assert(sizeof(StackSlot) == 8, "Want cache efficiency, benchmark this if you go beyond 8 bytes");
-static_assert(std::is_trivially_copyable_v<StackSlot>, "Should be able to use memcpy semantics");
-static_assert(std::is_standard_layout_v<StackSlot>, "Want to have a predictable layout");
-static_assert(std::is_trivial_v<StackSlot>, "Want to have no init/cpy overhead");
+static_assert(sizeof(Slot) == 8, "Want cache efficiency, benchmark this if you go beyond 8 bytes");
+static_assert(std::is_trivially_copyable_v<Slot>, "Should be able to use memcpy semantics");
+static_assert(std::is_standard_layout_v<Slot>, "Want to have a predictable layout");
+static_assert(std::is_trivial_v<Slot>, "Want to have no init/cpy overhead");
 
 /// Whether a slot can be materialized on the stack top out of thin air, without a copy of it on the stack.
-constexpr bool canBeFreelyGenerated(StackSlot const& _slot)
+constexpr bool canBeFreelyGenerated(Slot const& _slot)
 {
 	return _slot.isLiteralValue() || _slot.isJunk() || _slot.isFunctionCallReturnLabel();
 }
 
-std::string slotToString(StackSlot const& _slot);
-std::string stackToString(StackData const& _stackData);
+std::string slotToString(Slot const& _slot);
+std::string stackToString(Data const& _stackData);
 
 /// A slot as spill key: a non-literal SSA value, each addressing its own memory slot
-using SpillKey = StackSlot;
+using SpillKey = Slot;
 
 /// Array index into stack from the bottom (offset 0 = bottom).
 /// Natural for array-like access and iteration; used when treating the stack as a data structure.
-struct StackOffset
+struct Offset
 {
-	explicit constexpr StackOffset(size_t _value) : value(_value) {}
+	explicit constexpr Offset(size_t _value) : value(_value) {}
 	size_t value;
-	auto operator<=>(StackOffset const&) const = default;
+	auto operator<=>(Offset const&) const = default;
 };
 // comparison operations with size_t
-constexpr auto operator<=>(StackOffset const lhs, size_t const rhs) noexcept { return lhs.value <=> rhs; }
-constexpr auto operator<=>(size_t const lhs, StackOffset const rhs) noexcept { return lhs <=> rhs.value; }
-constexpr bool operator==(StackOffset const lhs, size_t const rhs) noexcept { return lhs.value == rhs; }
+constexpr auto operator<=>(Offset const lhs, size_t const rhs) noexcept { return lhs.value <=> rhs; }
+constexpr auto operator<=>(size_t const lhs, Offset const rhs) noexcept { return lhs <=> rhs.value; }
+constexpr bool operator==(Offset const lhs, size_t const rhs) noexcept { return lhs.value == rhs; }
 
 /// Distance from the stack top (depth 0 = top).
 /// Natural for stack operations (SWAP1 = swap with depth 1); used for operations that
 /// conceptually work "from the top".
-struct StackDepth
+struct Depth
 {
-	explicit constexpr StackDepth(size_t _value) : value(_value) {}
+	explicit constexpr Depth(size_t _value) : value(_value) {}
 	size_t value;
-	auto operator<=>(StackDepth const&) const = default;
+	auto operator<=>(Depth const&) const = default;
 };
 // comparison operations with size_t
-constexpr auto operator<=>(StackDepth const lhs, size_t const rhs) noexcept { return lhs.value <=> rhs; }
-constexpr auto operator<=>(size_t const lhs, StackDepth const rhs) noexcept { return lhs <=> rhs.value; }
-constexpr bool operator==(StackDepth const lhs, size_t const rhs) noexcept { return lhs.value == rhs; }
+constexpr auto operator<=>(Depth const lhs, size_t const rhs) noexcept { return lhs.value <=> rhs; }
+constexpr auto operator<=>(size_t const lhs, Depth const rhs) noexcept { return lhs <=> rhs.value; }
+constexpr bool operator==(Depth const lhs, size_t const rhs) noexcept { return lhs.value == rhs; }
 
 }
 
 template<>
-struct fmt::formatter<solidity::yul::ssa::StackSlot>
+struct fmt::formatter<solidity::yul::ssa::stack::Slot>
 {
 	static auto constexpr parse(format_parse_context& ctx) -> decltype(ctx.begin()) { return ctx.begin(); }
 
 	template<typename FormatContext>
-	auto format(solidity::yul::ssa::StackSlot const& _slot, FormatContext& _ctx) const -> decltype(_ctx.out())
+	auto format(solidity::yul::ssa::stack::Slot const& _slot, FormatContext& _ctx) const -> decltype(_ctx.out())
 	{
-		return fmt::format_to(_ctx.out(), "{}", solidity::yul::ssa::slotToString(_slot));
+		return fmt::format_to(_ctx.out(), "{}", solidity::yul::ssa::stack::slotToString(_slot));
 	}
 };

@@ -33,7 +33,7 @@ class JunkAdmittingBlocksFinder;
 class StackLayoutGenerator
 {
 public:
-	using Slot = StackSlot;
+	using Slot = stack::Slot;
 
 	/// the per-block stack layout plus the set of values the layout generator decided to spill to memory
 	/// and the recorded def-site store trace of each spilled value
@@ -48,7 +48,7 @@ public:
 	/// to memory to realize it; layout generation and def-site closure are iterated to a fixed point of the spill set
 	static Result generate(
 		analysis::Liveness const& _liveness,
-		CallSites const& _callSites,
+		stack::CallSites const& _callSites,
 		ControlFlowGraphs::FunctionGraphID _graphID,
 		bool _spillingAllowed
 	);
@@ -56,7 +56,7 @@ public:
 private:
 	explicit StackLayoutGenerator(
 		analysis::Liveness const& _liveness,
-		CallSites const& _callSites,
+		stack::CallSites const& _callSites,
 		ControlFlowGraphs::FunctionGraphID _graphID,
 		bool _spillingAllowed,
 		spill::SpillSet _initialSpillSet
@@ -67,7 +67,7 @@ private:
 
 	SSACFG const& m_cfg;
 	analysis::Liveness const& m_liveness;
-	CallSites const& m_callSites;
+	stack::CallSites const& m_callSites;
 	ControlFlowGraphs::FunctionGraphID m_graphID;
 	bool m_hasFunctionReturnLabel;
 	bool m_spillingAllowed;
@@ -76,7 +76,7 @@ private:
 	// Per-edge stack proposals for defineStackIn.
 	// m_inputStackProposalsPerBlock[blockId] contains (predecessorId, edgeStack) pairs
 	// representing the stack state flowing from each predecessor into the block.
-	std::vector<std::vector<std::pair<SSACFG::BlockId, StackData>>> m_inputStackProposalsPerBlock;
+	std::vector<std::vector<std::pair<SSACFG::BlockId, stack::Data>>> m_inputStackProposalsPerBlock;
 	SSACFGStackLayout m_resultLayout;
 	spill::SpillSet m_spillSet;
 };

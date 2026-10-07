@@ -41,8 +41,11 @@ concept InputRangeOf = ranges::input_range<R> && std::same_as<ranges::range_valu
 
 class SSACFG;
 class SSACFGStackLayout;
-class StackSlot;
-using StackData = std::vector<StackSlot>;
+namespace stack
+{
+class Slot;
+using Data = std::vector<Slot>;
+}
 using FunctionGraphID = std::uint32_t;
 
 struct BlockId

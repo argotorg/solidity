@@ -98,9 +98,6 @@ add_library(yul
 	backends/evm/ssa/StackLayout.h
 	backends/evm/ssa/StackLayoutGenerator.cpp
 	backends/evm/ssa/StackLayoutGenerator.h
-	backends/evm/ssa/StackSlot.cpp
-	backends/evm/ssa/StackSlot.h
-	backends/evm/ssa/StackSlotLiveness.h
 	backends/evm/ssa/util/UseCountSet.h
 	backends/evm/ssa/util/TLSFFreeList.h
 	backends/evm/ssa/StackUtils.cpp
@@ -130,6 +127,9 @@ add_library(yul
 	backends/evm/ssa/stack/InstructionStackIn.h
 	backends/evm/ssa/stack/Shuffler.cpp
 	backends/evm/ssa/stack/Shuffler.h
+	backends/evm/ssa/stack/Slot.cpp
+	backends/evm/ssa/stack/Slot.h
+	backends/evm/ssa/stack/SlotLiveness.h
 	backends/evm/ssa/transform/ConstantConditionFolder.cpp
 	backends/evm/ssa/transform/ConstantConditionFolder.h
 	backends/evm/ssa/transform/CriticalEdgeBreaker.cpp

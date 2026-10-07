@@ -40,7 +40,7 @@ namespace
 struct InstructionStackInBuilder
 {
 	/// the amount of times `_slot` appears in `args` from the `args`-relative offset `_fromArgsIndex`.
-	std::size_t remainingArgsCount(StackSlot const& _slot, std::size_t const _fromArgsIndex) const
+	std::size_t remainingArgsCount(Slot const& _slot, std::size_t const _fromArgsIndex) const
 	{
 		yulAssert(_fromArgsIndex <= args.size());
 		return static_cast<std::size_t>(std::count(
@@ -51,7 +51,7 @@ struct InstructionStackInBuilder
 	}
 
 	/// A slot the tail does not need to keep: junk, or a value that is neither live out nor an argument
-	bool isDead(StackSlot const& _slot) const
+	bool isDead(Slot const& _slot) const
 	{
 		if (_slot.isJunk())
 			return true;
@@ -66,7 +66,7 @@ struct InstructionStackInBuilder
 	/// - after the operation it is either dead or spilled (so the stack may lose its copy)
 	bool isMovable(std::size_t const _argIndex) const
 	{
-		StackSlot const& arg = args[_argIndex];
+		Slot const& arg = args[_argIndex];
 		return
 			arg.isVariable() &&
 			(!liveOut.contains(arg) || spillSet.isSpilled(arg)) &&
@@ -76,7 +76,7 @@ struct InstructionStackInBuilder
 
 	/// A slot that can be dropped to bring something else within reach without a new spill: dead, or a spilled
 	/// value (reloadable) that is not an argument
-	bool isDroppableForReach(StackSlot const& _slot) const
+	bool isDroppableForReach(Slot const& _slot) const
 	{
 		return
 			isDead(_slot) ||
@@ -90,8 +90,8 @@ struct InstructionStackInBuilder
 	/// Erases droppable slots above `_offset` in `_data` until `_outOfReach(_offset)` no longer
 	/// holds or nothing droppable is left. Only slots above `_offset` are erased, so the offset
 	/// stays valid throughout while the slot's depth shrinks with each erasure.
-	template<std::predicate<StackOffset> OutOfReachFunction>
-	void dropForReach(StackData& _data, StackOffset _offset, OutOfReachFunction const& _outOfReach) const
+	template<std::predicate<Offset> OutOfReachFunction>
+	void dropForReach(Data& _data, Offset _offset, OutOfReachFunction const& _outOfReach) const
 	{
 		std::size_t candidate = _offset.value + 1;
 		while (_outOfReach(_offset) && candidate < _data.size())
@@ -101,9 +101,9 @@ struct InstructionStackInBuilder
 				++candidate;
 	}
 
-	StackData build() const
+	Data build() const
 	{
-		StackData data = stack;
+		Data data = stack;
 		// simulating what a shuffler might produce based on args requirements, liveness, and reachability
 		Stack sim(data);
 
@@ -122,7 +122,7 @@ struct InstructionStackInBuilder
 				dropForReach(
 					data,
 					sim.depthToOffset(*sim.findSlotDepth(args[i])),  // shallowest copy of args[i] in the tail
-					[&](StackOffset const& _offset) { return sim.offsetToDepth(_offset).value > reachableStackDepth; }
+					[&](Offset const& _offset) { return sim.offsetToDepth(_offset).value > reachableStackDepth; }
 				);
 
 		// Takes the top off the tail if it is the copy of a pending moved arg
@@ -160,25 +160,25 @@ struct InstructionStackInBuilder
 					dropForReach(
 						data,
 						sim.depthToOffset(*source),
-						[&](StackOffset const& _offset) { return sim.offsetToDepth(_offset).value + 1 > reachableStackDepth; }
+						[&](Offset const& _offset) { return sim.offsetToDepth(_offset).value + 1 > reachableStackDepth; }
 					);
 			sim.push(args[i]);
 		}
 		return data;
 	}
 
-	StackData const& stack;
-	StackData const& args;
-	StackSlotLiveness const& liveOut;
+	Data const& stack;
+	Data const& args;
+	SlotLiveness const& liveOut;
 	spill::SpillSet const& spillSet;
 };
 }
 
-StackData stack::buildInstructionStackIn
+Data stack::buildInstructionStackIn
 (
-	StackData const& _stack,
-	StackData const& _args,
-	StackSlotLiveness const& _liveOut,
+	Data const& _stack,
+	Data const& _args,
+	SlotLiveness const& _liveOut,
 	spill::SpillSet const& _spillSet
 )
 {

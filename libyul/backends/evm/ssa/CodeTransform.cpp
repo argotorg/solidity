@@ -37,7 +37,7 @@ using namespace solidity::yul::ssa;
 
 namespace
 {
-void assertLayoutCompatibility(StackData const& _layout1, StackData const& _layout2)
+void assertLayoutCompatibility(stack::Data const& _layout1, stack::Data const& _layout2)
 {
 	auto const compatibility = checkLayoutCompatibility(_layout1, _layout2);
 	yulAssert(compatibility.ok(), compatibility.formatErrors());
@@ -59,7 +59,7 @@ void CodeTransform::run
 	analysis::CallGraph const callGraph(_controlFlowGraphs);
 
 	std::size_t const numCFGs = _controlFlowGraphs.functionGraphs.size();
-	std::vector<CallSites> callSitesPerCFG;
+	std::vector<stack::CallSites> callSitesPerCFG;
 	std::vector<SSACFGStackLayout> layouts;
 	std::vector<spill::SpillSet> spillSetsPerCFG;
 	std::vector<spill::SpillStoreTraces> spillStoreTracesPerCFG;
@@ -147,7 +147,7 @@ CodeTransform::CodeTransform(
 	BuiltinContext& _builtinContext,
 	ControlFlowGraphs const& _controlFlow,
 	FunctionLabels const& _functionLabels,
-	CallSites const& _callSites,
+	stack::CallSites const& _callSites,
 	SSACFG const& _cfg,
 	SSACFGStackLayout const& _stackLayout,
 	spill::SpillSet const& _spillSet,
@@ -194,12 +194,12 @@ CodeTransform::CodeTransform(
 		m_assembly.appendLabel(findIt->second);
 		m_assembly.setStackHeight(static_cast<int>(m_cfg.arguments.size()) + (m_cfg.canContinue ? 1 : 0));
 	}
-	StackData expectedStackTop;
+	stack::Data expectedStackTop;
 	expectedStackTop.reserve(m_cfg.arguments.size() + (isFunctionGraph && m_cfg.canContinue ? 1 : 0));
 	if (isFunctionGraph && m_cfg.canContinue)
-		expectedStackTop.push_back(StackSlot::makeFunctionReturnLabel(m_graphID));
+		expectedStackTop.push_back(stack::Slot::makeFunctionReturnLabel(m_graphID));
 	for (auto const& arg: m_cfg.arguments | ranges::views::reverse)
-		expectedStackTop.push_back(StackSlot::makeValue(_cfg, arg));
+		expectedStackTop.push_back(stack::Slot::makeValue(_cfg, arg));
 	assertLayoutCompatibility(m_stack.data(), expectedStackTop);
 
 	// Spilled function args need an `mstore` at function entry so later `mload`s see a populated slot
@@ -281,7 +281,7 @@ void CodeTransform::operator()(InstId _instId, ShuffleTrace const& _operationShu
 	if (hasReturnLabel)
 	{
 		yulAssert(m_stack.size() > _inst.inputs.size());
-		auto const returnLabelSlot = m_stack.slot(StackDepth{_inst.inputs.size()});
+		auto const returnLabelSlot = m_stack.slot(stack::Depth{_inst.inputs.size()});
 		yulAssert(isCall);
 		yulAssert(
 			returnLabelSlot.isFunctionCallReturnLabel() &&
@@ -358,7 +358,7 @@ void CodeTransform::operator()(InstId _instId, ShuffleTrace const& _operationShu
 	// simulate that the outputs are produced
 	auto const numOutputs = m_cfg.numReturnsOf(_instId);
 	for (InstId const id: m_cfg.outputsOf(_instId))
-		m_stack.push(StackSlot::makeValue(m_cfg, id));
+		m_stack.push(stack::Slot::makeValue(m_cfg, id));
 
 	// Each output the layout decided to spill gets its `mstore` here
 	if (m_spillEmitter)
@@ -379,7 +379,7 @@ void CodeTransform::operator()(InstId _instId, ShuffleTrace const& _operationShu
 
 void CodeTransform::spillStore(InstId const _value)
 {
-	if (!m_spillEmitter || !m_spillSet.isSpilled(StackSlot::makeValue(m_cfg, _value)))
+	if (!m_spillEmitter || !m_spillSet.isSpilled(stack::Slot::makeValue(m_cfg, _value)))
 		return;
 
 	// Play back the recorded def-site trace: it brings `_value` to the stack top and concludes with the
@@ -390,7 +390,7 @@ void CodeTransform::spillStore(InstId const _value)
 	yulAssert(
 		!storeTrace.empty() &&
 		storeTrace.back().kind == ShuffleOp::Kind::Store &&
-		storeTrace.back().slot == StackSlot::makeValue(m_cfg, _value),
+		storeTrace.back().slot == stack::Slot::makeValue(m_cfg, _value),
 		fmt::format("def-site trace for {} must conclude with its store", _value)
 	);
 	playback(storeTrace);
@@ -414,7 +414,7 @@ void CodeTransform::operator()(SSACFG::BlockId const& _currentBlock, SSACFG::Bas
 
 	{
 		// restore stack to previous state once zero-path is handled
-		ScopedSaveAndRestore restoreStack(m_stackData, StackData(m_stackData));
+		ScopedSaveAndRestore restoreStack(m_stackData, stack::Data(m_stackData));
 		yulAssert(m_stackLayout[_conditionalJump.zero]);
 
 		// transform stack to a state in which we can jump to the zero branch
@@ -459,7 +459,7 @@ void CodeTransform::operator()(SSACFG::BlockId const&, SSACFG::BasicBlock::Funct
 	yulAssert(m_stack.top().functionReturnLabel() == m_graphID);
 	for (std::size_t i = 0; i < _functionReturn.returnValues.size(); ++i)
 	{
-		auto const& returnValueSlot = m_stack.slot(StackOffset{i});
+		auto const& returnValueSlot = m_stack.slot(stack::Offset{i});
 		yulAssert(returnValueSlot.isValue());
 		yulAssert(returnValueSlot.value() == _functionReturn.returnValues[i]);
 	}
@@ -521,24 +521,24 @@ void CodeTransform::emit(ShuffleOp const& _op)
 	case ShuffleOp::Kind::Push:
 		switch (_op.slot.kind())
 		{
-		case StackSlot::Kind::Value:
+		case stack::Slot::Kind::Value:
 			yulAssert(m_cfg.isLiteral(_op.slot.value()), "Non-literal value pushes must be recorded as Load.");
 			m_assembly.appendConstant(m_cfg.literalPayload(_op.slot.value()));
 			return;
-		case StackSlot::Kind::Junk:
+		case stack::Slot::Kind::Junk:
 			if (m_assembly.evmVersion().hasPush0())
 				m_assembly.appendConstant(0);
 			else
 				m_assembly.appendInstruction(evmasm::Instruction::CODESIZE);
 			return;
-		case StackSlot::Kind::FunctionCallReturnLabel:
+		case stack::Slot::Kind::FunctionCallReturnLabel:
 		{
 			auto const instId = m_callSites.instId(_op.slot.functionCallReturnLabel());
 			yulAssert(m_returnLabels.count(instId), "FunctionCallReturnLabel not pre-registered before shuffle.");
 			m_assembly.appendLabelReference(m_returnLabels.at(instId));
 			return;
 		}
-		case StackSlot::Kind::FunctionReturnLabel:
+		case stack::Slot::Kind::FunctionReturnLabel:
 			yulAssert(false, "Cannot produce function return label.");
 		}
 		solidity::util::unreachable();

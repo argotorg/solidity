@@ -42,13 +42,13 @@ public:
 	{
 	}
 
-	[[nodiscard]] bool hasAddress(SpillKey const _key) const
+	[[nodiscard]] bool hasAddress(stack::SpillKey const _key) const
 	{
 		return m_addressing->hasAddress(m_cfgIdx, _key);
 	}
 
 	/// Materializes the spilled variable `_key` on the stack top: `PUSH addr; MLOAD`. Dual of emitStore.
-	void emitLoad(SpillKey const _key) const
+	void emitLoad(stack::SpillKey const _key) const
 	{
 		m_assembly->appendConstant(m_addressing->addressOf(m_cfgIdx, _key));
 		m_assembly->appendInstruction(evmasm::Instruction::MLOAD);
@@ -56,7 +56,7 @@ public:
 
 	/// Writes the stack-top value into the spill slot of `_key`, consuming it: `PUSH addr; MSTORE`.
 	/// Dual of emitLoad. The value must already be on the stack top.
-	void emitStore(SpillKey const _key) const
+	void emitStore(stack::SpillKey const _key) const
 	{
 		m_assembly->appendConstant(m_addressing->addressOf(m_cfgIdx, _key));
 		m_assembly->appendInstruction(evmasm::Instruction::MSTORE);

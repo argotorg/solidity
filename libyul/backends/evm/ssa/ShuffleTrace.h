@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include <libyul/backends/evm/ssa/StackSlot.h>
+#include <libyul/backends/evm/ssa/stack/Slot.h>
 
 #include <fmt/format.h>
 
@@ -46,30 +46,30 @@ struct ShuffleOp
 	/// EVM instruction operand # of SWAP# / DUP#
 	std::uint8_t depth = 0;
 	/// Slot produced by Push / Load or consumed by Store. Junk for all other kinds.
-	StackSlot slot = StackSlot::makeJunk();
+	stack::Slot slot = stack::Slot::makeJunk();
 
-	static ShuffleOp swap(StackDepth const _depth)
+	static ShuffleOp swap(stack::Depth const _depth)
 	{
 		yulAssert(1 <= _depth.value && _depth.value <= reachableStackDepth);
-		return {Kind::Swap, static_cast<std::uint8_t>(_depth.value), StackSlot::makeJunk()};
+		return {Kind::Swap, static_cast<std::uint8_t>(_depth.value), stack::Slot::makeJunk()};
 	}
-	static ShuffleOp dup(StackDepth const _depth)
+	static ShuffleOp dup(stack::Depth const _depth)
 	{
 		yulAssert(1 <= _depth.value && _depth.value <= reachableStackDepth);
-		return {Kind::Dup, static_cast<std::uint8_t>(_depth.value), StackSlot::makeJunk()};
+		return {Kind::Dup, static_cast<std::uint8_t>(_depth.value), stack::Slot::makeJunk()};
 	}
-	static ShuffleOp pop() { return {Kind::Pop, 0, StackSlot::makeJunk()}; }
-	static ShuffleOp push(StackSlot const& _slot)
+	static ShuffleOp pop() { return {Kind::Pop, 0, stack::Slot::makeJunk()}; }
+	static ShuffleOp push(stack::Slot const& _slot)
 	{
-		yulAssert(canBeFreelyGenerated(_slot), "only freely generatable slots can be pushed");
+		yulAssert(stack::canBeFreelyGenerated(_slot), "only freely generatable slots can be pushed");
 		return {Kind::Push, 0, _slot};
 	}
-	static ShuffleOp load(StackSlot const& _slot)
+	static ShuffleOp load(stack::Slot const& _slot)
 	{
 		yulAssert(_slot.isValue() && !_slot.isLiteralValue(), "only spilled (non-literal) values can be loaded");
 		return {Kind::Load, 0, _slot};
 	}
-	static ShuffleOp store(StackSlot const& _slot)
+	static ShuffleOp store(stack::Slot const& _slot)
 	{
 		yulAssert(_slot.isValue() && !_slot.isLiteralValue(), "only spilled (non-literal) values can be stored");
 		return {Kind::Store, 0, _slot};
@@ -82,9 +82,9 @@ static_assert(std::is_trivially_copyable_v<ShuffleOp>, "Traces should be cheap t
 using ShuffleTrace = std::vector<ShuffleOp>;
 
 /// Applies a single recorded operation to `_data`, reproducing the stack mutation that was recorded.
-void apply(StackData& _data, ShuffleOp const& _op);
+void apply(stack::Data& _data, ShuffleOp const& _op);
 /// Replays a whole trace on `_data`.
-void replay(StackData& _data, ShuffleTrace const& _trace);
+void replay(stack::Data& _data, ShuffleTrace const& _trace);
 
 }
 
@@ -106,11 +106,11 @@ struct fmt::formatter<solidity::yul::ssa::ShuffleOp>
 		case ShuffleOp::Kind::Pop:
 			return fmt::format_to(_ctx.out(), "POP");
 		case ShuffleOp::Kind::Push:
-			return fmt::format_to(_ctx.out(), "PUSH {}", solidity::yul::ssa::slotToString(_op.slot));
+			return fmt::format_to(_ctx.out(), "PUSH {}", solidity::yul::ssa::stack::slotToString(_op.slot));
 		case ShuffleOp::Kind::Load:
-			return fmt::format_to(_ctx.out(), "LOAD {}", solidity::yul::ssa::slotToString(_op.slot));
+			return fmt::format_to(_ctx.out(), "LOAD {}", solidity::yul::ssa::stack::slotToString(_op.slot));
 		case ShuffleOp::Kind::Store:
-			return fmt::format_to(_ctx.out(), "STORE {}", solidity::yul::ssa::slotToString(_op.slot));
+			return fmt::format_to(_ctx.out(), "STORE {}", solidity::yul::ssa::stack::slotToString(_op.slot));
 		}
 		solidity::util::unreachable();
 	}

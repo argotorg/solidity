@@ -29,7 +29,7 @@ namespace solidity::yul::ssa
 struct BlockLayout
 {
 	// stack layout required to enter the block
-	StackData stackIn;
+	stack::Data stackIn;
 
 	/// One trace per Inst of the block
 	std::vector<ShuffleTrace> operationShuffles;

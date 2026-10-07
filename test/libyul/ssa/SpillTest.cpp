@@ -50,7 +50,7 @@ namespace
 std::string describeCFG(
 	SSACFG const& _cfg,
 	ControlFlowGraphs::FunctionGraphID const _graphID,
-	std::vector<std::pair<SpillKey, u256>> const& _spilled
+	std::vector<std::pair<stack::SpillKey, u256>> const& _spilled
 )
 {
 	std::string label = _cfg.isMainGraph() ? "<main>" : _cfg.name;
@@ -176,8 +176,8 @@ frontend::test::TestCase::TestResult SpillTest::run(std::ostream& _stream, std::
 		{
 			SSACFG const& cfg = *controlFlowGraphs->functionGraphs[functionIndex];
 			auto const graphID = static_cast<ControlFlowGraphs::FunctionGraphID>(functionIndex);
-			std::vector<std::pair<SpillKey, u256>> spilled;
-			for (SpillKey const key: spillSetsPerCFG[functionIndex].spilledValues())
+			std::vector<std::pair<stack::SpillKey, u256>> spilled;
+			for (stack::SpillKey const key: spillSetsPerCFG[functionIndex].spilledValues())
 				spilled.emplace_back(key, addressing.addressOf(graphID, key));
 			m_obtainedResult += describeCFG(cfg, graphID, spilled);
 		}

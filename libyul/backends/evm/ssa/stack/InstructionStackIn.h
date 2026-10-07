@@ -21,16 +21,16 @@
 #include <libyul/backends/evm/ssa/spill/SpillSet.h>
 
 #include <libyul/backends/evm/ssa/SSACFGTypes.h>
-#include <libyul/backends/evm/ssa/StackSlotLiveness.h>
+#include <libyul/backends/evm/ssa/stack/SlotLiveness.h>
 
 namespace solidity::yul::ssa::stack
 {
 
 /// Builds the target stack layout for an instruction: a tail derived from `_stack` followed by `_args`.
-StackData buildInstructionStackIn(
-	StackData const& _stack,
-	StackData const& _args,
-	StackSlotLiveness const& _liveOut,
+Data buildInstructionStackIn(
+	Data const& _stack,
+	Data const& _args,
+	SlotLiveness const& _liveOut,
 	spill::SpillSet const& _spillSet
 );
 

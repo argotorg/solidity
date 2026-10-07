@@ -23,19 +23,19 @@
 #include <libyul/backends/evm/ssa/Stack.h>
 #include <libyul/backends/evm/ssa/util/UseCountSet.h>
 
-namespace solidity::yul::ssa
+namespace solidity::yul::ssa::stack
 {
 
-/// Liveness counts keyed on StackSlot
-using StackSlotLiveness = util::UseCountSet<StackSlot>;
+/// Liveness counts keyed on Slot
+using SlotLiveness = util::UseCountSet<Slot>;
 
-inline StackSlotLiveness toStackSlotLiveness(SSACFG const& _cfg, analysis::Liveness::LivenessData const& _liveness)
+inline SlotLiveness toSlotLiveness(SSACFG const& _cfg, analysis::Liveness::LivenessData const& _liveness)
 {
-	StackSlotLiveness::Entries entries;
+	SlotLiveness::Entries entries;
 	entries.reserve(_liveness.size());
 	for (auto const& [valueId, count]: _liveness)
-		entries.emplace_back(StackSlot::makeValue(_cfg, valueId), count);
-	return StackSlotLiveness{std::move(entries)};
+		entries.emplace_back(Slot::makeValue(_cfg, valueId), count);
+	return SlotLiveness{std::move(entries)};
 }
 
 }

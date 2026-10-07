@@ -35,7 +35,7 @@ namespace
 
 /// Build the symbolic stack right after `_value`'s operation completes by replaying the recorded shuffles
 /// and operation effects from the block's `stackIn`
-StackData computeOperationOut(
+stack::Data computeOperationOut(
 	SSACFG const& _cfg,
 	SSACFGStackLayout const& _layout,
 	InstId const _value
@@ -49,7 +49,7 @@ StackData computeOperationOut(
 
 	auto const& instructions = _cfg.block(block).instructions;
 	yulAssert(blockLayout->operationShuffles.size() == instructions.size());
-	StackData opOutStack = blockLayout->stackIn;
+	stack::Data opOutStack = blockLayout->stackIn;
 	for (auto const& [id, shuffle]: ranges::views::zip(instructions, blockLayout->operationShuffles))
 	{
 		if (!_cfg.isOperation(id))
@@ -65,7 +65,7 @@ StackData computeOperationOut(
 		for (std::size_t i = 0; i < consumedSlots; ++i)
 			opOutStack.pop_back();
 		_cfg.forEachOutput(id, [&](InstId const output) {
-			opOutStack.push_back(StackSlot::makeValue(_cfg, output));
+			opOutStack.push_back(stack::Slot::makeValue(_cfg, output));
 		});
 
 		if (id == producer)
@@ -79,7 +79,7 @@ StackData computeOperationOut(
 /// - a phi: the merged value is materialized on its defining block's `stackIn`, so a single store there covers every incoming edge;
 /// - a function argument: it has no producer operation and lives on the function entry stack, where CodeTransform emits `mstore` while the args are still laid out;
 /// - any other value: it sits on its producer's `operationOut`.
-StackData defStackFor(
+stack::Data defStackFor(
 	SSACFG const& _cfg,
 	SSACFGStackLayout const& _layout,
 	InstId const _value
@@ -110,38 +110,38 @@ void SpillSet::closeUnderReachabilityConstraints(SSACFG const& _cfg, SSACFGStack
 		_storeTraces->clear();
 
 	// work queue over variables that are marked for spillage
-	std::deque<SpillKey> queue;
-	for (SpillKey const key: spilledValues())
+	std::deque<stack::SpillKey> queue;
+	for (stack::SpillKey const key: spilledValues())
 		queue.push_back(key);
 
 	while (!queue.empty())
 	{
-		SpillKey const key = queue.front();
+		stack::SpillKey const key = queue.front();
 		queue.pop_front();
 
 		InstId const value = key.value();
-		StackData const defStack = defStackFor(_cfg, _layout, value);
+		stack::Data const defStack = defStackFor(_cfg, _layout, value);
 		ensureDefSiteFeasible(key, defStack, queue, _storeTraces);
 	}
 }
 
 void SpillSet::ensureDefSiteFeasible(
-	SpillKey const _key,
-	StackData const& _defStack,
-	std::deque<SpillKey>& _workQueue,
+	stack::SpillKey const _key,
+	stack::Data const& _defStack,
+	std::deque<stack::SpillKey>& _workQueue,
 	SpillStoreTraces* _storeTraces)
 {
 	// predicate = spill set minus the owner; the shuffle accumulates discovered culprits here.
 	SpillSet spillSetWithoutOwner = without(_key);
 	// [... defStack ..., _key]
-	StackData const target = [&]{
-		StackData result;
+	stack::Data const target = [&]{
+		stack::Data result;
 		result.reserve(_defStack.size() + 1);
 		result.insert(result.end(), _defStack.begin(), _defStack.end());
 		result.push_back(_key);
 		return result;
 	}();
-	StackData workStack = _defStack;
+	stack::Data workStack = _defStack;
 	stack::ShuffleResult result = stack::shuffle(workStack, target, spillSetWithoutOwner);
 	yulAssert(
 		result.status == stack::ShuffleResult::Status::Admissible,
@@ -160,7 +160,7 @@ void SpillSet::ensureDefSiteFeasible(
 		(*_storeTraces)[_key.value()] = std::move(result.trace);
 	}
 
-	for (SpillKey const culprit: spillSetWithoutOwner.spilledValues())
+	for (stack::SpillKey const culprit: spillSetWithoutOwner.spilledValues())
 	{
 		if (isSpilled(culprit))
 			continue;
@@ -169,7 +169,7 @@ void SpillSet::ensureDefSiteFeasible(
 	}
 }
 
-SpillSet SpillSet::without(SpillKey const _key) const
+SpillSet SpillSet::without(stack::SpillKey const _key) const
 {
 	SpillSet result = *this;
 	result.m_values.erase(_key);

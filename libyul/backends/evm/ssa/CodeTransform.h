@@ -56,7 +56,7 @@ private:
 		BuiltinContext& _builtinContext,
 		ControlFlowGraphs const& _controlFlow,
 		FunctionLabels const& _functionLabels,
-		CallSites const& _callSites,
+		stack::CallSites const& _callSites,
 		SSACFG const& _cfg,
 		SSACFGStackLayout const& _stackLayout,
 		spill::SpillSet const& _spillSet,
@@ -88,7 +88,7 @@ private:
 	BuiltinContext& m_builtinContext;
 	ControlFlowGraphs const& m_controlFlow;
 	FunctionLabels const& m_functionLabels;
-	CallSites const& m_callSites;
+	stack::CallSites const& m_callSites;
 	SSACFG const& m_cfg;
 	SSACFGStackLayout const& m_stackLayout;
 	spill::SpillSet const& m_spillSet;
@@ -98,7 +98,7 @@ private:
 	std::vector<std::uint8_t> m_blockIsTransformed;
 	std::vector<AbstractAssembly::LabelID> m_blockLabels;
 	std::optional<spill::Emitter> m_spillEmitter{std::nullopt};
-	StackData m_stackData;
+	stack::Data m_stackData;
 	Stack m_stack;
 	std::map<InstId, AbstractAssembly::LabelID> m_returnLabels;
 };

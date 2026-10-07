@@ -57,7 +57,7 @@ std::string_view constexpr parserKeyAllowSpilling {"allowSpilling"};
 std::string_view constexpr parserKeyInitialSpilled {"initialSpilledSet"};
 std::string_view constexpr parserKeyReachableDepth {"reachableStackDepth"};
 
-using Slot = StackSlot;
+using Slot = stack::Slot;
 
 struct ParsedIdentifierTable
 {
@@ -65,12 +65,12 @@ struct ParsedIdentifierTable
 	std::map<std::string, InstId> tokenToId;
 	std::map<InstId, std::string> idToToken;
 
-	std::string render(StackSlot const& _slot) const
+	std::string render(stack::Slot const& _slot) const
 	{
 		if (_slot.isValue())
 			if (auto const it = idToToken.find(_slot.value()); it != idToToken.end())
 				return it->second;
-		return slotToString(_slot);
+		return stack::slotToString(_slot);
 	}
 };
 
@@ -122,7 +122,7 @@ Slot parseSlot(ParsedIdentifierTable& _table, std::string_view _token)
 	if (_token.starts_with(callReturnLabelPrefix) && _token.ends_with(']'))
 	{
 		auto const inner = _token.substr(callReturnLabelPrefix.size(), _token.size() - callReturnLabelPrefix.size() - 1);
-		if (auto const num = solidity::util::parseArithmetic<CallSites::CallSiteID>(inner))
+		if (auto const num = solidity::util::parseArithmetic<stack::CallSites::CallSiteID>(inner))
 			return Slot::makeFunctionCallReturnLabel(*num);
 		throw std::runtime_error(fmt::format("Couldn't parse FunctionCallReturnLabel token: {}", _token));
 	}
@@ -162,9 +162,9 @@ Slot parseSlot(ParsedIdentifierTable& _table, std::string_view _token)
 }
 
 /// Parse a string like "[v172, phi109, lit7, JUNK]" into Stack::Data
-StackData parseSlots(ParsedIdentifierTable& _table, std::string_view _input, char const brackBegin = '[', char const brackEnd = ']')
+stack::Data parseSlots(ParsedIdentifierTable& _table, std::string_view _input, char const brackBegin = '[', char const brackEnd = ']')
 {
-	StackData result;
+	stack::Data result;
 
 	// trim and remove brackets
 	{
@@ -192,12 +192,12 @@ StackData parseSlots(ParsedIdentifierTable& _table, std::string_view _input, cha
 
 struct ShuffleTestInput
 {
-	std::optional<StackData> initial;
-	std::optional<StackData> targetStackTop;
+	std::optional<stack::Data> initial;
+	std::optional<stack::Data> targetStackTop;
 	bool allowSpilling = false;
 	std::size_t reachableDepth = reachableStackDepth;
 	spill::SpillSet initialSpilledSet{};
-	StackData initialSpilledSetSlots{};
+	stack::Data initialSpilledSetSlots{};
 
 	bool valid() const
 	{
@@ -277,13 +277,13 @@ class TraceRecorder
 	static char constexpr junkSymbol = '*';
 
 public:
-	TraceRecorder(std::ostream& _out, ParsedIdentifierTable const& _table, StackData const& _target):
+	TraceRecorder(std::ostream& _out, ParsedIdentifierTable const& _table, stack::Data const& _target):
 		m_out(_out),
 		m_table(_table),
 		m_target(_target)
 	{}
 
-	void record(std::string const& _operation, StackData const& _stack)
+	void record(std::string const& _operation, stack::Data const& _stack)
 	{
 		m_entries.push_back(TraceEntry{_operation, _stack});
 	}
@@ -322,15 +322,15 @@ public:
 private:
 	struct TraceEntry {
 		std::string operation;
-		StackData stackAfter;
+		stack::Data stackAfter;
 	};
 
 	std::ostream& m_out;
 	ParsedIdentifierTable const& m_table;
-	StackData const& m_target;
+	stack::Data const& m_target;
 	std::vector<TraceEntry> m_entries;
 
-	std::string render(StackSlot const& _slot) const
+	std::string render(stack::Slot const& _slot) const
 	{
 		return _slot.isJunk() ? std::string(1, junkSymbol) : m_table.render(_slot);
 	}
@@ -434,18 +434,18 @@ Lines starting with // are comments. Comments at the end of lines are supported,
 		return TestResult::FatalError;
 	}
 
-	StackData const& target = *testConfig.targetStackTop;
+	stack::Data const& target = *testConfig.targetStackTop;
 	spill::SpillSet spillSet = testConfig.initialSpilledSet;
 	auto stackData = *testConfig.initial;
 	std::ostringstream oss;
 	// Tracks the kind of each spilled value
-	std::vector<StackSlot> spilledSlotList = testConfig.initialSpilledSetSlots;
+	std::vector<stack::Slot> spilledSlotList = testConfig.initialSpilledSetSlots;
 
 	// The planner plans its spills itself; without allowSpilling a plan that needs one is reported as too deep.
 	spill::SpillSet const spillSetBefore = spillSet;
 	stack::ShuffleResult shuffleResult = stack::shuffle(stackData, target, spillSet, true, testConfig.reachableDepth);
-	std::vector<StackSlot> newlySpilled;
-	for (SpillKey const key: spillSet.spilledValues())
+	std::vector<stack::Slot> newlySpilled;
+	for (stack::SpillKey const key: spillSet.spilledValues())
 		if (!spillSetBefore.isSpilled(key))
 			newlySpilled.push_back(key);
 	bool const tooDeep =
@@ -463,7 +463,7 @@ Lines starting with // are comments. Comments at the end of lines are supported,
 	{
 		TraceRecorder trace(oss, table, target);
 		trace.record("(initial)", *testConfig.initial);
-		StackData replayData = *testConfig.initial;
+		stack::Data replayData = *testConfig.initial;
 		for (ShuffleOp const& op: shuffleResult.trace)
 		{
 			apply(replayData, op);
@@ -492,7 +492,7 @@ Lines starting with // are comments. Comments at the end of lines are supported,
 		oss << fmt::format(
 			"Spilled: {{{}}}\n",
 			fmt::join(
-				spilledSlotList | ranges::views::transform([&](StackSlot const& _slot) { return table.render(_slot); }),
+				spilledSlotList | ranges::views::transform([&](stack::Slot const& _slot) { return table.render(_slot); }),
 				", "
 			)
 		);

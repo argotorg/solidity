@@ -16,37 +16,37 @@
 */
 // SPDX-License-Identifier: GPL-3.0
 
-#include <libyul/backends/evm/ssa/StackSlot.h>
+#include <libyul/backends/evm/ssa/stack/Slot.h>
 
 #include <range/v3/view/transform.hpp>
 
 #include <fmt/format.h>
 #include <fmt/ranges.h>
 
-namespace solidity::yul::ssa
+namespace solidity::yul::ssa::stack
 {
 
-std::string slotToString(StackSlot const& _slot)
+std::string slotToString(Slot const& _slot)
 {
 	switch (_slot.kind())
 	{
-	case StackSlot::Kind::Value:
+	case Slot::Kind::Value:
 		if (_slot.isLiteralValue())
 			return fmt::format("lit{}", _slot.value().value);
 		if (_slot.isPhiValue())
 			return fmt::format("phi{}", _slot.value().value);
 		return fmt::format("{}", _slot.value());
-	case StackSlot::Kind::Junk:
+	case Slot::Kind::Junk:
 		return "JUNK";
-	case StackSlot::Kind::FunctionCallReturnLabel:
+	case Slot::Kind::FunctionCallReturnLabel:
 		return fmt::format("FunctionCallReturnLabel[{}]", _slot.functionCallReturnLabel());
-	case StackSlot::Kind::FunctionReturnLabel:
+	case Slot::Kind::FunctionReturnLabel:
 		return fmt::format("ReturnLabel[{}]", _slot.functionReturnLabel());
 	}
 	solidity::util::unreachable();
 }
 
-std::string stackToString(StackData const& _stackData)
+std::string stackToString(Data const& _stackData)
 {
 	return fmt::format(
 		"[{}]",

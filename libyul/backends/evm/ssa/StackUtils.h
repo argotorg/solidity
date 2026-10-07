@@ -43,12 +43,12 @@ private:
 std::size_t stackOpsGas(SSACFG const& _cfg, ShuffleTrace const& _trace);
 
 /// Transform stack data by replacing all its phi variables with their respective preimages.
-StackData stackPreImage(SSACFG const& _cfg, StackData _stack, PhiInverse const& _phiInverse);
+stack::Data stackPreImage(SSACFG const& _cfg, stack::Data _stack, PhiInverse const& _phiInverse);
 
-CallSites gatherCallSites(SSACFG const& _cfg);
+stack::CallSites gatherCallSites(SSACFG const& _cfg);
 
 /// Checks that _current and _desired have the same size and that each slot matches,
 /// treating junk slots in _desired as wildcards.
-ValidationResult checkLayoutCompatibility(StackData const& _current, StackData const& _desired);
+ValidationResult checkLayoutCompatibility(stack::Data const& _current, stack::Data const& _desired);
 
 }
