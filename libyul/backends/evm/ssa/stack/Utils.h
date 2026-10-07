@@ -40,10 +40,10 @@ private:
 };
 
 /// Computes the EVM gas cost of executing `_trace`.
-std::size_t stackOpsGas(SSACFG const& _cfg, ShuffleTrace const& _trace);
+std::size_t gasCost(SSACFG const& _cfg, ShuffleTrace const& _trace);
 
 /// Transform stack data by replacing all its phi variables with their respective preimages.
-Data stackPreImage(SSACFG const& _cfg, Data _stack, PhiInverse const& _phiInverse);
+Data preImage(SSACFG const& _cfg, Data _stack, PhiInverse const& _phiInverse);
 
 CallSites gatherCallSites(SSACFG const& _cfg);
 

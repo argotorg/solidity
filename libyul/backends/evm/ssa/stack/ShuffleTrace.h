@@ -106,11 +106,11 @@ struct fmt::formatter<solidity::yul::ssa::stack::ShuffleOp>
 		case ShuffleOp::Kind::Pop:
 			return fmt::format_to(_ctx.out(), "POP");
 		case ShuffleOp::Kind::Push:
-			return fmt::format_to(_ctx.out(), "PUSH {}", solidity::yul::ssa::stack::slotToString(_op.slot));
+			return fmt::format_to(_ctx.out(), "PUSH {}", solidity::yul::ssa::stack::toString(_op.slot));
 		case ShuffleOp::Kind::Load:
-			return fmt::format_to(_ctx.out(), "LOAD {}", solidity::yul::ssa::stack::slotToString(_op.slot));
+			return fmt::format_to(_ctx.out(), "LOAD {}", solidity::yul::ssa::stack::toString(_op.slot));
 		case ShuffleOp::Kind::Store:
-			return fmt::format_to(_ctx.out(), "STORE {}", solidity::yul::ssa::stack::slotToString(_op.slot));
+			return fmt::format_to(_ctx.out(), "STORE {}", solidity::yul::ssa::stack::toString(_op.slot));
 		}
 		solidity::util::unreachable();
 	}

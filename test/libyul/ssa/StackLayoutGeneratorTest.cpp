@@ -86,7 +86,7 @@ protected:
 		yulAssert(blockLayout.has_value());
 
 		_out << "\\\n";
-		_out << "IN: " << stack::stackToString(blockLayout->stackIn) << "\\l\\\n";
+		_out << "IN: " << stack::toString(blockLayout->stackIn) << "\\l\\\n";
 
 		// Reconstruct the per-operation input layouts and the exit state by replaying the recorded
 		// shuffle traces and operation effects from the block's stackIn.
@@ -100,7 +100,7 @@ protected:
 			replay(operationStack, trace);
 
 			_out << "\\l\\\n";
-			_out << stack::stackToString(operationStack) << "\\l\\\n";
+			_out << stack::toString(operationStack) << "\\l\\\n";
 
 			if (inst.opcode == InstOpcode::Call)
 				_out << escapeLabel(m_controlFlow.functionGraph(m_cfg.callPayload(instId).graphID)->name);
@@ -121,12 +121,12 @@ protected:
 			m_cfg.forEachOutput(instId, [&](InstId const output) {
 				operationStack.push_back(stack::Slot::makeValue(m_cfg, output));
 			});
-			_out << stack::stackToString(operationStack) << "\\l\\\n";
+			_out << stack::toString(operationStack) << "\\l\\\n";
 		}
 
 		replay(operationStack, blockLayout->exitShuffle);
 		_out << "\\l\\\n";
-		_out << "OUT: " << stack::stackToString(operationStack) << "\\l\\\n";
+		_out << "OUT: " << stack::toString(operationStack) << "\\l\\\n";
 	}
 
 private:

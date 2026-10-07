@@ -70,7 +70,7 @@ struct ParsedIdentifierTable
 		if (_slot.isValue())
 			if (auto const it = idToToken.find(_slot.value()); it != idToToken.end())
 				return it->second;
-		return stack::slotToString(_slot);
+		return stack::toString(_slot);
 	}
 };
 

@@ -161,8 +161,8 @@ constexpr bool canBeFreelyGenerated(Slot const& _slot)
 	return _slot.isLiteralValue() || _slot.isJunk() || _slot.isFunctionCallReturnLabel();
 }
 
-std::string slotToString(Slot const& _slot);
-std::string stackToString(Data const& _stackData);
+std::string toString(Slot const& _slot);
+std::string toString(Data const& _stackData);
 
 /// A slot as spill key: a non-literal SSA value, each addressing its own memory slot
 using SpillKey = Slot;
@@ -204,6 +204,6 @@ struct fmt::formatter<solidity::yul::ssa::stack::Slot>
 	template<typename FormatContext>
 	auto format(solidity::yul::ssa::stack::Slot const& _slot, FormatContext& _ctx) const -> decltype(_ctx.out())
 	{
-		return fmt::format_to(_ctx.out(), "{}", solidity::yul::ssa::stack::slotToString(_slot));
+		return fmt::format_to(_ctx.out(), "{}", solidity::yul::ssa::stack::toString(_slot));
 	}
 };

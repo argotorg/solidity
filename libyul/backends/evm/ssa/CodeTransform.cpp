@@ -565,7 +565,7 @@ void CodeTransform::prepareBlockExitStack(SSACFG::BlockId const& _currentBlock, 
 	auto const& targetLayout = m_stackLayout[_target];
 	yulAssert(targetLayout);
 	// pull back target to live in current variable space
-	auto const pulledBackTarget = stack::stackPreImage(m_cfg, targetLayout->stackIn, stack::PhiInverse(m_cfg, _currentBlock, _target));
+	auto const pulledBackTarget = stack::preImage(m_cfg, targetLayout->stackIn, stack::PhiInverse(m_cfg, _currentBlock, _target));
 	// play back the recorded shuffle for this edge
 	playback(targetLayout->traceForStackIn(_currentBlock));
 	// check that the playback reproduced the edge target

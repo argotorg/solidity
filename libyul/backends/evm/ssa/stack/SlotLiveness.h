@@ -29,7 +29,7 @@ namespace solidity::yul::ssa::stack
 /// Liveness counts keyed on Slot
 using SlotLiveness = util::UseCountSet<Slot>;
 
-inline SlotLiveness toSlotLiveness(SSACFG const& _cfg, analysis::Liveness::LivenessData const& _liveness)
+inline SlotLiveness toSlotLiveness(SSACFG const& _cfg, analysis::Liveness::Data const& _liveness)
 {
 	SlotLiveness::Entries entries;
 	entries.reserve(_liveness.size());

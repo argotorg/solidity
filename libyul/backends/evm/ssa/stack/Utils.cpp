@@ -28,7 +28,7 @@
 using namespace solidity::yul::ssa;
 using namespace solidity::yul::ssa::stack;
 
-std::size_t solidity::yul::ssa::stack::stackOpsGas(SSACFG const& _cfg, ShuffleTrace const& _trace)
+std::size_t solidity::yul::ssa::stack::gasCost(SSACFG const& _cfg, ShuffleTrace const& _trace)
 {
 	auto const evmVersion = _cfg.evmDialect.evmVersion();
 	auto const runGas = [&](evmasm::Instruction const _instruction) {
@@ -70,7 +70,7 @@ std::size_t solidity::yul::ssa::stack::stackOpsGas(SSACFG const& _cfg, ShuffleTr
 	return gas;
 }
 
-Data solidity::yul::ssa::stack::stackPreImage(SSACFG const& _cfg, Data _stack, PhiInverse const& _phiInverse)
+Data solidity::yul::ssa::stack::preImage(SSACFG const& _cfg, Data _stack, PhiInverse const& _phiInverse)
 {
 	if (!_phiInverse.noOp())
 		for (auto& slot: _stack)
@@ -127,18 +127,18 @@ ValidationResult solidity::yul::ssa::stack::checkLayoutCompatibility(Data const&
 	if (_current.size() != _desired.size())
 		return result.addError(fmt::format(
 			"size mismatch: {} = len({}) =/= len({}) = {}",
-			_current.size(), stackToString(_current), stackToString(_desired), _desired.size()
+			_current.size(), toString(_current), toString(_desired), _desired.size()
 		));
 	for (auto&& [index, currentSlot, desiredSlot]: ranges::zip_view(ranges::views::iota(0), _current, _desired))
 		if (!desiredSlot.isJunk() && currentSlot != desiredSlot)
 			result.addError(fmt::format(
 				"stack element mismatch: {} = {}[{}] =/= {}[{}] = {}",
-				slotToString(currentSlot),
-				stackToString(_current),
+				toString(currentSlot),
+				toString(_current),
 				index,
-				stackToString(_desired),
+				toString(_desired),
 				index,
-				slotToString(desiredSlot)
+				toString(desiredSlot)
 			));
 	return result;
 }

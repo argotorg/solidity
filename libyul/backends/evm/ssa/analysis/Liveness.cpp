@@ -36,9 +36,9 @@
 using namespace solidity::yul::ssa;
 using namespace solidity::yul::ssa::analysis;
 
-Liveness::LivenessData Liveness::blockExitValues(SSACFG::BlockId const& _blockId) const
+Liveness::Data Liveness::blockExitValues(SSACFG::BlockId const& _blockId) const
 {
-	LivenessData result;
+	Data result;
 	solidity::util::GenericVisitor exitVisitor{
 		[](SSACFG::BasicBlock::MainExit const&) {},
 		[&](SSACFG::BasicBlock::FunctionReturn const& _functionReturn)
@@ -70,7 +70,7 @@ Liveness::Liveness(SSACFG const& _cfg):
 	fillOperationsLiveOut();
 }
 
-Liveness::LivenessData Liveness::used(SSACFG::BlockId const _blockId) const
+Liveness::Data Liveness::used(SSACFG::BlockId const _blockId) const
 {
 	auto used = liveIn(_blockId);
 	for (auto const& [valueId, count]: liveOut(_blockId))
@@ -87,7 +87,7 @@ void Liveness::runDagDfs()
 		auto const& block = m_cfg.block(blockId);
 
 		// live <- PhiUses(B)
-		LivenessData live{};
+		Data live{};
 		m_cfg.forEachUpsilon(block, [&](InstId, SSACFG::Inst const& inst) {
 			InstId const v = inst.inputs.at(0);
 			yulAssert(!m_cfg.isUnreachable(v));

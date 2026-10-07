@@ -227,7 +227,7 @@ void checkShuffleProperties(
 	bool const hasReturnLabel = ranges::any_of(initial, [](stack::Slot const& _s) { return _s.isFunctionReturnLabel(); });
 	if (_spillingAllowed && !hasReturnLabel)
 		ASSERT_EQ(result.status, stack::ShuffleResult::Status::Admissible)
-			<< "source: " << stack::stackToString(initial) << " target: " << stack::stackToString(target);
+			<< "source: " << stack::toString(initial) << " target: " << stack::toString(target);
 	if (result.status != stack::ShuffleResult::Status::Admissible)
 		return;
 
@@ -240,7 +240,7 @@ void checkShuffleProperties(
 
 	stack::Data replayed = initial;
 	replay(replayed, result.trace);
-	ASSERT_TRUE(replayed == shuffled) << "replayed: " << stack::stackToString(replayed) << " shuffled: " << stack::stackToString(shuffled);
+	ASSERT_TRUE(replayed == shuffled) << "replayed: " << stack::toString(replayed) << " shuffled: " << stack::toString(shuffled);
 
 	stack::ValidationResult const validation = stack::checkLayoutCompatibility(replayed, target);
 	ASSERT_TRUE(validation.ok()) << validation.formatErrors();
@@ -253,8 +253,8 @@ void checkShuffleProperties(
 			ASSERT_LT(sourceOffset->value, initial.size());
 			if (!target[targetOffset].isJunk())
 				ASSERT_TRUE(initial[sourceOffset->value] == target[targetOffset])
-					<< "plan serves " << stack::slotToString(target[targetOffset])
-					<< " from " << stack::slotToString(initial[sourceOffset->value]);
+					<< "plan serves " << stack::toString(target[targetOffset])
+					<< " from " << stack::toString(initial[sourceOffset->value]);
 		}
 }
 

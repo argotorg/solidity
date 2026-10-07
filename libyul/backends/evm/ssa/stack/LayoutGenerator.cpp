@@ -40,7 +40,7 @@ using namespace solidity::yul::ssa::stack;
 
 namespace
 {
-void handlePhiFunctions(Data& _stackData, PhiInverse const& _phiInverse, analysis::Liveness::LivenessData const& _liveness, SSACFG const& _cfg)
+void handlePhiFunctions(Data& _stackData, PhiInverse const& _phiInverse, analysis::Liveness::Data const& _liveness, SSACFG const& _cfg)
 {
 	// add any phi function values here that are not already contained in the stack
 	for (auto const& [phi, preImage]: _phiInverse.data())
@@ -70,7 +70,7 @@ void handlePhiFunctions(Data& _stackData, PhiInverse const& _phiInverse, analysi
 	}
 }
 
-void declareJunk(Stack& _stack, analysis::Liveness::LivenessData const& _live)
+void declareJunk(Stack& _stack, analysis::Liveness::Data const& _live)
 {
 	for (Offset offset{0}; offset < _stack.size(); ++offset.value)
 	{
@@ -218,12 +218,12 @@ void LayoutGenerator::defineStackIn(SSACFG::BlockId const& _blockId)
 				Data edgeStack = stackInProposals[j].second;
 				ShuffleResult const result = shuffle(
 					edgeStack,
-					stackPreImage(m_cfg, proposals[i], PhiInverse(m_cfg, stackInProposals[j].first, _blockId)),
+					preImage(m_cfg, proposals[i], PhiInverse(m_cfg, stackInProposals[j].first, _blockId)),
 					candidateSpillSet,
 					m_spillingAllowed
 				);
 				yulAssert(result.status == ShuffleResult::Status::Admissible);
-				cumulativeGas[i] += stackOpsGas(m_cfg, result.trace);
+				cumulativeGas[i] += gasCost(m_cfg, result.trace);
 			}
 			candidateSpillSets[i] = std::move(candidateSpillSet);
 		}
@@ -249,7 +249,7 @@ void LayoutGenerator::defineStackIn(SSACFG::BlockId const& _blockId)
 		Data edgeStack = parentExitStack;
 		auto shuffleResult = shuffle(
 			edgeStack,
-			stackPreImage(m_cfg, blockLayout.stackIn, PhiInverse(m_cfg, parentBlockId, _blockId)),
+			preImage(m_cfg, blockLayout.stackIn, PhiInverse(m_cfg, parentBlockId, _blockId)),
 			m_spillSet,
 			m_spillingAllowed
 		);
@@ -327,7 +327,7 @@ void LayoutGenerator::visitBlock(SSACFG::BlockId const& _blockId)
 		if (!m_liveness.dfsTree().backEdge(_blockId, _target))
 			return;
 		yulAssert(m_resultLayout[_target], "Back-edge target must have its stackIn defined already.");
-		Data const target = stackPreImage(m_cfg, m_resultLayout[_target]->stackIn, PhiInverse(m_cfg, _blockId, _target));
+		Data const target = preImage(m_cfg, m_resultLayout[_target]->stackIn, PhiInverse(m_cfg, _blockId, _target));
 		Data exitStack = currentStackData;
 		auto shuffleResult = shuffle(exitStack, target, m_spillSet, m_spillingAllowed);
 		yulAssert(

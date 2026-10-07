@@ -26,7 +26,7 @@
 namespace solidity::yul::ssa::stack
 {
 
-std::string slotToString(Slot const& _slot)
+std::string toString(Slot const& _slot)
 {
 	switch (_slot.kind())
 	{
@@ -46,11 +46,11 @@ std::string slotToString(Slot const& _slot)
 	solidity::util::unreachable();
 }
 
-std::string stackToString(Data const& _stackData)
+std::string toString(Data const& _stackData)
 {
 	return fmt::format(
 		"[{}]",
-		fmt::join(_stackData | ranges::views::transform([&](auto const& _slot) { return slotToString(_slot); }), ", ")
+		fmt::join(_stackData | ranges::views::transform([&](auto const& _slot) { return toString(_slot); }), ", ")
 	);
 }
 
