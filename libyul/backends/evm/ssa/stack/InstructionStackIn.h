@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include <libyul/backends/evm/ssa/spill/SpillSet.h>
+#include <libyul/backends/evm/ssa/stack/spill/Set.h>
 
 #include <libyul/backends/evm/ssa/SSACFGTypes.h>
 #include <libyul/backends/evm/ssa/stack/SlotLiveness.h>
@@ -31,7 +31,7 @@ Data buildInstructionStackIn(
 	Data const& _stack,
 	Data const& _args,
 	SlotLiveness const& _liveOut,
-	spill::SpillSet const& _spillSet
+	spill::Set const& _spillSet
 );
 
 }

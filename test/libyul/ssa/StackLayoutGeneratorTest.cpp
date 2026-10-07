@@ -63,7 +63,7 @@ public:
 		SSACFG const& _cfg,
 		std::size_t _functionIndex,
 		stack::Layout const& _layout,
-		spill::SpillSet const& _spillSet,
+		stack::spill::Set const& _spillSet,
 		ControlFlowGraphs const& _controlFlow
 	):
 		DotExporterBase(_cfg, _functionIndex),
@@ -131,7 +131,7 @@ protected:
 
 private:
 	stack::Layout const& m_layout;
-	spill::SpillSet const& m_spillSet;
+	stack::spill::Set const& m_spillSet;
 	ControlFlowGraphs const& m_controlFlow;
 };
 

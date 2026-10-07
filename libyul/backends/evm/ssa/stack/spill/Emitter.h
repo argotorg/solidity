@@ -20,11 +20,11 @@
 
 #include <libyul/backends/evm/AbstractAssembly.h>
 #include <libyul/backends/evm/ssa/SSACFGTypes.h>
-#include <libyul/backends/evm/ssa/spill/MemoryAddressing.h>
+#include <libyul/backends/evm/ssa/stack/spill/MemoryAddressing.h>
 
 #include <libevmasm/Instruction.h>
 
-namespace solidity::yul::ssa::spill
+namespace solidity::yul::ssa::stack::spill
 {
 
 /// Emits the two memory accesses that move a spilled variable between the stack and its reserved memory slot.
@@ -42,13 +42,13 @@ public:
 	{
 	}
 
-	[[nodiscard]] bool hasAddress(stack::SpillKey const _key) const
+	[[nodiscard]] bool hasAddress(SpillKey const _key) const
 	{
 		return m_addressing->hasAddress(m_cfgIdx, _key);
 	}
 
 	/// Materializes the spilled variable `_key` on the stack top: `PUSH addr; MLOAD`. Dual of emitStore.
-	void emitLoad(stack::SpillKey const _key) const
+	void emitLoad(SpillKey const _key) const
 	{
 		m_assembly->appendConstant(m_addressing->addressOf(m_cfgIdx, _key));
 		m_assembly->appendInstruction(evmasm::Instruction::MLOAD);
@@ -56,7 +56,7 @@ public:
 
 	/// Writes the stack-top value into the spill slot of `_key`, consuming it: `PUSH addr; MSTORE`.
 	/// Dual of emitLoad. The value must already be on the stack top.
-	void emitStore(stack::SpillKey const _key) const
+	void emitStore(SpillKey const _key) const
 	{
 		m_assembly->appendConstant(m_addressing->addressOf(m_cfgIdx, _key));
 		m_assembly->appendInstruction(evmasm::Instruction::MSTORE);

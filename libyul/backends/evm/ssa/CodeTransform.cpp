@@ -61,8 +61,8 @@ void CodeTransform::run
 	std::size_t const numCFGs = _controlFlowGraphs.functionGraphs.size();
 	std::vector<stack::CallSites> callSitesPerCFG;
 	std::vector<stack::Layout> layouts;
-	std::vector<spill::SpillSet> spillSetsPerCFG;
-	std::vector<spill::SpillStoreTraces> spillStoreTracesPerCFG;
+	std::vector<stack::spill::Set> spillSetsPerCFG;
+	std::vector<stack::spill::StoreTraces> spillStoreTracesPerCFG;
 	callSitesPerCFG.reserve(numCFGs);
 	layouts.reserve(numCFGs);
 	spillSetsPerCFG.reserve(numCFGs);
@@ -85,7 +85,7 @@ void CodeTransform::run
 	}
 
 	// build up global addressing based on the spill sets
-	spill::MemoryAddressing const addressing(_controlFlowGraphs, spillSetsPerCFG);
+	stack::spill::MemoryAddressing const addressing(_controlFlowGraphs, spillSetsPerCFG);
 
 	for (std::size_t functionIndex = 0; functionIndex < _controlFlowGraphs.functionGraphs.size(); ++functionIndex)
 	{
@@ -150,10 +150,10 @@ CodeTransform::CodeTransform(
 	stack::CallSites const& _callSites,
 	SSACFG const& _cfg,
 	stack::Layout const& _stackLayout,
-	spill::SpillSet const& _spillSet,
-	spill::SpillStoreTraces const& _spillStoreTraces,
+	stack::spill::Set const& _spillSet,
+	stack::spill::StoreTraces const& _spillStoreTraces,
 	ControlFlowGraphs::FunctionGraphID _graphID,
-	spill::MemoryAddressing const& _addressing
+	stack::spill::MemoryAddressing const& _addressing
 ):
 	m_assembly(_assembly),
 	m_builtinContext(_builtinContext),
@@ -173,9 +173,9 @@ CodeTransform::CodeTransform(
 			blockLabels.push_back(m_assembly.newLabelId());
 		return blockLabels;
 	}()),
-	m_spillEmitter([&]() -> std::optional<spill::Emitter> {
+	m_spillEmitter([&]() -> std::optional<stack::spill::Emitter> {
 		if (_spillSet.numSpilled() > 0)
-			return spill::Emitter(_addressing, _graphID, _assembly);
+			return stack::spill::Emitter(_addressing, _graphID, _assembly);
 		return std::nullopt;
 	}()),
 	m_stackData([&]

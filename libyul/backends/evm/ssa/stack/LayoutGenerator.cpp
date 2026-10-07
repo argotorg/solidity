@@ -89,8 +89,8 @@ LayoutGenerator::Result LayoutGenerator::generate(
 	bool const _spillingAllowed
 )
 {
-	spill::SpillSet spillSet;
-	spill::SpillStoreTraces spillStoreTraces;
+	spill::Set spillSet;
+	spill::StoreTraces spillStoreTraces;
 	while (true)
 	{
 		auto const spillCountBefore = spillSet.numSpilled();
@@ -111,7 +111,7 @@ LayoutGenerator::LayoutGenerator(
 	CallSites const& _callSites,
 	ControlFlowGraphs::FunctionGraphID const _graphID,
 	bool const _spillingAllowed,
-	spill::SpillSet _initialSpillSet
+	spill::Set _initialSpillSet
 ):
 	m_cfg(_liveness.cfg()),
 	m_liveness(_liveness),
@@ -209,10 +209,10 @@ void LayoutGenerator::defineStackIn(SSACFG::BlockId const& _blockId)
 		// For each candidate stack-in layout (one parent's proposal), reconcile every parent to it,
 		// discovering the spills needed to make each reconciliation realizable
 		std::vector<std::size_t> cumulativeGas(stackInProposals.size(), 0);
-		std::vector<spill::SpillSet> candidateSpillSets(stackInProposals.size());
+		std::vector<spill::Set> candidateSpillSets(stackInProposals.size());
 		for (std::size_t i = 0; i < stackInProposals.size(); ++i)
 		{
-			spill::SpillSet candidateSpillSet = m_spillSet;
+			spill::Set candidateSpillSet = m_spillSet;
 			for (std::size_t j = 0; j < stackInProposals.size(); ++j)
 			{
 				Data edgeStack = stackInProposals[j].second;

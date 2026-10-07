@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include <libyul/backends/evm/ssa/spill/SpillSet.h>
+#include <libyul/backends/evm/ssa/stack/spill/Set.h>
 
 #include <libyul/backends/evm/ssa/stack/Stack.h>
 #include <libyul/backends/evm/ssa/stack/Layout.h>
@@ -38,8 +38,8 @@ public:
 	struct Result
 	{
 		Layout layout;
-		spill::SpillSet spillSet;
-		spill::SpillStoreTraces spillStoreTraces;
+		spill::Set spillSet;
+		spill::StoreTraces spillStoreTraces;
 	};
 
 	/// Generates the stack layout for the function graph together with the set of values that have to be spilled
@@ -57,7 +57,7 @@ private:
 		CallSites const& _callSites,
 		ControlFlowGraphs::FunctionGraphID _graphID,
 		bool _spillingAllowed,
-		spill::SpillSet _initialSpillSet
+		spill::Set _initialSpillSet
 	);
 
 	void defineStackIn(SSACFG::BlockId const& _blockId);
@@ -76,7 +76,7 @@ private:
 	// representing the stack state flowing from each predecessor into the block.
 	std::vector<std::vector<std::pair<SSACFG::BlockId, Data>>> m_inputStackProposalsPerBlock;
 	Layout m_resultLayout;
-	spill::SpillSet m_spillSet;
+	spill::Set m_spillSet;
 };
 
 }

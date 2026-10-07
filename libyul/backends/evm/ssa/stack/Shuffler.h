@@ -25,9 +25,9 @@
 #include <optional>
 #include <vector>
 
-namespace solidity::yul::ssa::spill
+namespace solidity::yul::ssa::stack::spill
 {
-class SpillSet;
+class Set;
 }
 
 namespace solidity::yul::ssa::stack
@@ -47,7 +47,7 @@ struct ShuffleResult
 [[nodiscard]] ShuffleResult shuffle(
 	Data& _source,
 	Data const& _target,
-	spill::SpillSet& _spills,
+	spill::Set& _spills,
 	bool _spillingAllowed = true,
 	std::size_t _reachableStackDepth = reachableStackDepth
 );

@@ -25,8 +25,8 @@
 #include <libyul/backends/evm/ssa/SSACFGBuilder.h>
 #include <libyul/backends/evm/ssa/stack/LayoutGenerator.h>
 #include <libyul/backends/evm/ssa/stack/Utils.h>
-#include <libyul/backends/evm/ssa/spill/MemoryAddressing.h>
-#include <libyul/backends/evm/ssa/spill/SpillSet.h>
+#include <libyul/backends/evm/ssa/stack/spill/MemoryAddressing.h>
+#include <libyul/backends/evm/ssa/stack/spill/Set.h>
 #include <libyul/backends/evm/ssa/transform/OptimizationPipeline.h>
 
 #include <libyul/backends/evm/EVMDialect.h>
@@ -133,7 +133,7 @@ frontend::test::TestCase::TestResult SpillTest::run(std::ostream& _stream, std::
 		analysis::CallGraph const callGraph(*controlFlowGraphs);
 
 		std::size_t const numCFGs = controlFlowGraphs->functionGraphs.size();
-		std::vector<spill::SpillSet> spillSetsPerCFG;
+		std::vector<stack::spill::Set> spillSetsPerCFG;
 		std::vector<stack::Layout> layouts;
 		spillSetsPerCFG.reserve(numCFGs);
 		layouts.reserve(numCFGs);
@@ -164,7 +164,7 @@ frontend::test::TestCase::TestResult SpillTest::run(std::ostream& _stream, std::
 			);
 
 		// build up global addressing based on the spill sets
-		spill::MemoryAddressing const addressing(*controlFlowGraphs, spillSetsPerCFG);
+		stack::spill::MemoryAddressing const addressing(*controlFlowGraphs, spillSetsPerCFG);
 
 		if (!m_obtainedResult.empty())
 			m_obtainedResult += OBJECT_SEPARATOR;

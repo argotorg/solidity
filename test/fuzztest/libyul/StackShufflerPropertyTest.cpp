@@ -20,7 +20,7 @@
 #include <libyul/backends/evm/ssa/stack/ShuffleTrace.h>
 #include <libyul/backends/evm/ssa/stack/Slot.h>
 #include <libyul/backends/evm/ssa/stack/Utils.h>
-#include <libyul/backends/evm/ssa/spill/SpillSet.h>
+#include <libyul/backends/evm/ssa/stack/spill/Set.h>
 #include <libyul/backends/evm/ssa/stack/Shuffler.h>
 
 #include <range/v3/action/sort.hpp>
@@ -101,9 +101,9 @@ fuzztest::Domain<std::vector<stack::Slot>> spilledSlotsDomain()
 		.WithMaxSize(SlotPool::numValues);
 }
 
-spill::SpillSet toSpillSet(std::vector<stack::Slot> const& _slots)
+stack::spill::Set toSpillSet(std::vector<stack::Slot> const& _slots)
 {
-	spill::SpillSet spills;
+	stack::spill::Set spills;
 	for (stack::Slot const& slot: _slots)
 		if (!spills.isSpilled(slot))
 			spills.add(slot);
@@ -219,7 +219,7 @@ void checkShuffleProperties(
 )
 {
 	auto const& [initial, target, spilled] = _case;
-	spill::SpillSet spills = toSpillSet(spilled);
+	stack::spill::Set spills = toSpillSet(spilled);
 	std::size_t const spilledBefore = spills.numSpilled();
 	stack::Data shuffled = initial;
 	stack::ShuffleResult const result = stack::shuffle(shuffled, target, spills, _spillingAllowed, _reachableDepth);

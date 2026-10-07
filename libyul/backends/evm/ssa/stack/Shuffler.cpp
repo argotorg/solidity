@@ -18,7 +18,7 @@
 
 #include <libyul/backends/evm/ssa/stack/Shuffler.h>
 
-#include <libyul/backends/evm/ssa/spill/SpillSet.h>
+#include <libyul/backends/evm/ssa/stack/spill/Set.h>
 
 #include <libyul/backends/evm/ssa/stack/ShuffleTrace.h>
 #include <libyul/backends/evm/ssa/stack/Stack.h>
@@ -53,7 +53,7 @@ using namespace solidity::yul::ssa::stack;
 namespace
 {
 
-bool isSpilled(Slot const& _slot, spill::SpillSet const& _spills)
+bool isSpilled(Slot const& _slot, spill::Set const& _spills)
 {
 	return _slot.isVariable() && _spills.isSpilled(_slot);
 }
@@ -295,7 +295,7 @@ public:
 		Data const& _source,
 		Data const& _target,
 		Mapping const& _mapping,
-		spill::SpillSet const& _spills,
+		spill::Set const& _spills,
 		std::size_t const _maxSwapDepth,
 		std::size_t const _maxDupDepth
 	):
@@ -811,7 +811,7 @@ private:
 	Data const& m_target;
 	/// The mapping as planned, before any operation
 	Mapping const& m_plannedMapping;
-	spill::SpillSet const& m_spills;
+	spill::Set const& m_spills;
 	std::size_t const m_maxSwapDepth;
 	std::size_t const m_maxDupDepth;
 
@@ -830,7 +830,7 @@ public:
 	Planner(
 		Data const& _source,
 		Data const& _target,
-		spill::SpillSet _spills,
+		spill::Set _spills,
 		bool const _spillingAllowed,
 		MappingBuilder::WildcardSlotsStrategy const _wildcardSlotsStrategy,
 		std::size_t const _reachableStackDepth
@@ -884,7 +884,7 @@ public:
 	}
 
 	/// Moves the successful attempt into `_source` and `_spills` and hands out the plan
-	[[nodiscard]] ShuffleResult apply(Data& _source, spill::SpillSet& _spills) &&
+	[[nodiscard]] ShuffleResult apply(Data& _source, spill::Set& _spills) &&
 	{
 		yulAssert(m_result.has_value() && m_plan.has_value());
 		_source = std::move(m_result->data);
@@ -1004,7 +1004,7 @@ private:
 
 	Data const& m_source;
 	Data const& m_target;
-	spill::SpillSet m_spills;
+	spill::Set m_spills;
 	bool const m_spillingAllowed;
 	MappingBuilder::WildcardSlotsStrategy const m_wildcardSlotsStrategy;
 	bool m_sawWildcardCopy = false;
@@ -1026,7 +1026,7 @@ public:
 	Shuffle(
 		Data& _source,
 		Data const& _target,
-		spill::SpillSet& _spills,
+		spill::Set& _spills,
 		bool const _spillingAllowed,
 		std::size_t const _reachableStackDepth
 	):
@@ -1063,7 +1063,7 @@ private:
 
 	Data& m_source;
 	Data const& m_target;
-	spill::SpillSet& m_spills;
+	spill::Set& m_spills;
 	bool const m_spillingAllowed;
 	std::size_t const m_reachableStackDepth;
 };
@@ -1073,7 +1073,7 @@ private:
 ShuffleResult stack::shuffle(
 	Data& _source,
 	Data const& _target,
-	spill::SpillSet& _spills,
+	spill::Set& _spills,
 	bool const _spillingAllowed,
 	std::size_t const _reachableStackDepth
 )

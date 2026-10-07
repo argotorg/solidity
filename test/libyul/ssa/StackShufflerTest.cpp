@@ -18,7 +18,7 @@
 
 #include <test/libyul/ssa/StackShufflerTest.h>
 
-#include <libyul/backends/evm/ssa/spill/SpillSet.h>
+#include <libyul/backends/evm/ssa/stack/spill/Set.h>
 #include <libyul/backends/evm/ssa/stack/Shuffler.h>
 
 #include <libyul/backends/evm/ssa/InstructionStore.h>
@@ -196,7 +196,7 @@ struct ShuffleTestInput
 	std::optional<stack::Data> targetStackTop;
 	bool allowSpilling = false;
 	std::size_t reachableDepth = reachableStackDepth;
-	spill::SpillSet initialSpilledSet{};
+	stack::spill::Set initialSpilledSet{};
 	stack::Data initialSpilledSetSlots{};
 
 	bool valid() const
@@ -435,14 +435,14 @@ Lines starting with // are comments. Comments at the end of lines are supported,
 	}
 
 	stack::Data const& target = *testConfig.targetStackTop;
-	spill::SpillSet spillSet = testConfig.initialSpilledSet;
+	stack::spill::Set spillSet = testConfig.initialSpilledSet;
 	auto stackData = *testConfig.initial;
 	std::ostringstream oss;
 	// Tracks the kind of each spilled value
 	std::vector<stack::Slot> spilledSlotList = testConfig.initialSpilledSetSlots;
 
 	// The planner plans its spills itself; without allowSpilling a plan that needs one is reported as too deep.
-	spill::SpillSet const spillSetBefore = spillSet;
+	stack::spill::Set const spillSetBefore = spillSet;
 	stack::ShuffleResult shuffleResult = stack::shuffle(stackData, target, spillSet, true, testConfig.reachableDepth);
 	std::vector<stack::Slot> newlySpilled;
 	for (stack::SpillKey const key: spillSet.spilledValues())

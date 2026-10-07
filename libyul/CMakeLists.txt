@@ -106,11 +106,6 @@ add_library(yul
 	backends/evm/ssa/io/Parser.h
 	backends/evm/ssa/io/Printer.cpp
 	backends/evm/ssa/io/Printer.h
-	backends/evm/ssa/spill/Emitter.h
-	backends/evm/ssa/spill/MemoryAddressing.cpp
-	backends/evm/ssa/spill/MemoryAddressing.h
-	backends/evm/ssa/spill/SpillSet.cpp
-	backends/evm/ssa/spill/SpillSet.h
 	backends/evm/ssa/stack/InstructionStackIn.cpp
 	backends/evm/ssa/stack/InstructionStackIn.h
 	backends/evm/ssa/stack/JunkAdmittingBlocksFinder.cpp
@@ -130,6 +125,11 @@ add_library(yul
 	backends/evm/ssa/stack/Stack.h
 	backends/evm/ssa/stack/Utils.cpp
 	backends/evm/ssa/stack/Utils.h
+	backends/evm/ssa/stack/spill/Emitter.h
+	backends/evm/ssa/stack/spill/MemoryAddressing.cpp
+	backends/evm/ssa/stack/spill/MemoryAddressing.h
+	backends/evm/ssa/stack/spill/Set.cpp
+	backends/evm/ssa/stack/spill/Set.h
 	backends/evm/ssa/transform/ConstantConditionFolder.cpp
 	backends/evm/ssa/transform/ConstantConditionFolder.h
 	backends/evm/ssa/transform/CriticalEdgeBreaker.cpp

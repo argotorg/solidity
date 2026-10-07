@@ -170,7 +170,7 @@ struct InstructionStackInBuilder
 	Data const& stack;
 	Data const& args;
 	SlotLiveness const& liveOut;
-	spill::SpillSet const& spillSet;
+	spill::Set const& spillSet;
 };
 }
 
@@ -179,7 +179,7 @@ Data stack::buildInstructionStackIn
 	Data const& _stack,
 	Data const& _args,
 	SlotLiveness const& _liveOut,
-	spill::SpillSet const& _spillSet
+	spill::Set const& _spillSet
 )
 {
 	return InstructionStackInBuilder{.stack = _stack, .args = _args, .liveOut = _liveOut, .spillSet = _spillSet}.build();
