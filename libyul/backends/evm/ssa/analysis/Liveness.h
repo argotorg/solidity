@@ -27,26 +27,26 @@
 
 #include <vector>
 
-namespace solidity::yul::ssa
+namespace solidity::yul::ssa::analysis
 {
 
 /// Performs liveness analysis on a reducible SSA CFG following Algorithm 9.1 in [1].
 ///
 /// [1] Rastello, Fabrice, and Florent Bouchez Tichadou, eds. SSA-based Compiler Design. Springer, 2022.
-class LivenessAnalysis
+class Liveness
 {
 public:
 	/// Per-program-point liveness, each value's use count is the max number of times the value will be read along
 	/// all paths downstream of that point
 	using LivenessData = util::UseCountSet<InstId>;
 
-	explicit LivenessAnalysis(SSACFG const& _cfg);
+	explicit Liveness(SSACFG const& _cfg);
 
 	LivenessData const& liveIn(SSACFG::BlockId const _blockId) const { return m_liveIns[_blockId.value]; }
 	LivenessData const& liveOut(SSACFG::BlockId const _blockId) const { return m_liveOuts[_blockId.value]; }
 	LivenessData used(SSACFG::BlockId _blockId) const;
 	LivenessData const& operationLiveOut(InstId const _id) const { return m_operationLiveOutByInst.at(_id.value); }
-	analysis::DepthFirstSpanningTree const& dfsTree() const { return m_dfsTree; }
+	DepthFirstSpanningTree const& dfsTree() const { return m_dfsTree; }
 	SSACFG const& cfg() const { return m_cfg; }
 
 private:
@@ -61,8 +61,8 @@ private:
 	}
 
 	SSACFG const& m_cfg;
-	analysis::DepthFirstSpanningTree m_dfsTree;
-	analysis::LoopNestingForest m_loopNestingForest;
+	DepthFirstSpanningTree m_dfsTree;
+	LoopNestingForest m_loopNestingForest;
 	std::vector<LivenessData> m_liveIns;
 	std::vector<LivenessData> m_liveOuts;
 	boost::container::flat_map<InstId::ValueType, LivenessData> m_operationLiveOutByInst;

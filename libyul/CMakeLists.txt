@@ -83,8 +83,6 @@ add_library(yul
 	backends/evm/ssa/InstructionStore.h
 	backends/evm/ssa/JunkAdmittingBlocksFinder.cpp
 	backends/evm/ssa/JunkAdmittingBlocksFinder.h
-	backends/evm/ssa/LivenessAnalysis.cpp
-	backends/evm/ssa/LivenessAnalysis.h
 	backends/evm/ssa/PhiInverse.cpp
 	backends/evm/ssa/PhiInverse.h
 	backends/evm/ssa/SSACFG.cpp
@@ -109,6 +107,8 @@ add_library(yul
 	backends/evm/ssa/StackUtils.h
 	backends/evm/ssa/analysis/DepthFirstSpanningTree.cpp
 	backends/evm/ssa/analysis/DepthFirstSpanningTree.h
+	backends/evm/ssa/analysis/Liveness.cpp
+	backends/evm/ssa/analysis/Liveness.h
 	backends/evm/ssa/analysis/LoopNestingForest.cpp
 	backends/evm/ssa/analysis/LoopNestingForest.h
 	backends/evm/ssa/io/DotExporterBase.cpp

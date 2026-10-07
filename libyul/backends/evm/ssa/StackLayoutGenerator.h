@@ -47,7 +47,7 @@ public:
 	/// Generates the stack layout for the function graph together with the set of values that have to be spilled
 	/// to memory to realize it; layout generation and def-site closure are iterated to a fixed point of the spill set
 	static Result generate(
-		LivenessAnalysis const& _liveness,
+		analysis::Liveness const& _liveness,
 		CallSites const& _callSites,
 		ControlFlowGraphs::FunctionGraphID _graphID,
 		bool _spillingAllowed
@@ -55,7 +55,7 @@ public:
 
 private:
 	explicit StackLayoutGenerator(
-		LivenessAnalysis const& _liveness,
+		analysis::Liveness const& _liveness,
 		CallSites const& _callSites,
 		ControlFlowGraphs::FunctionGraphID _graphID,
 		bool _spillingAllowed,
@@ -66,7 +66,7 @@ private:
 	void visitBlock(SSACFG::BlockId const& _blockId);
 
 	SSACFG const& m_cfg;
-	LivenessAnalysis const& m_liveness;
+	analysis::Liveness const& m_liveness;
 	CallSites const& m_callSites;
 	ControlFlowGraphs::FunctionGraphID m_graphID;
 	bool m_hasFunctionReturnLabel;

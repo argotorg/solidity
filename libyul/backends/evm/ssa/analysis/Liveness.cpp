@@ -16,7 +16,7 @@
 */
 // SPDX-License-Identifier: GPL-3.0
 
-#include <libyul/backends/evm/ssa/LivenessAnalysis.h>
+#include <libyul/backends/evm/ssa/analysis/Liveness.h>
 
 #include <libsolutil/Visitor.h>
 
@@ -30,8 +30,9 @@
 #include <vector>
 
 using namespace solidity::yul::ssa;
+using namespace solidity::yul::ssa::analysis;
 
-LivenessAnalysis::LivenessData LivenessAnalysis::blockExitValues(SSACFG::BlockId const& _blockId) const
+Liveness::LivenessData Liveness::blockExitValues(SSACFG::BlockId const& _blockId) const
 {
 	LivenessData result;
 	solidity::util::GenericVisitor exitVisitor{
@@ -51,7 +52,7 @@ LivenessAnalysis::LivenessData LivenessAnalysis::blockExitValues(SSACFG::BlockId
 	return result;
 }
 
-LivenessAnalysis::LivenessAnalysis(SSACFG const& _cfg):
+Liveness::Liveness(SSACFG const& _cfg):
 	m_cfg(_cfg),
 	m_dfsTree(_cfg),
 	m_loopNestingForest(m_dfsTree),
@@ -65,7 +66,7 @@ LivenessAnalysis::LivenessAnalysis(SSACFG const& _cfg):
 	fillOperationsLiveOut();
 }
 
-LivenessAnalysis::LivenessData LivenessAnalysis::used(SSACFG::BlockId const _blockId) const
+Liveness::LivenessData Liveness::used(SSACFG::BlockId const _blockId) const
 {
 	auto used = liveIn(_blockId);
 	for (auto const& [valueId, count]: liveOut(_blockId))
@@ -73,7 +74,7 @@ LivenessAnalysis::LivenessData LivenessAnalysis::used(SSACFG::BlockId const _blo
 	return used;
 }
 
-void LivenessAnalysis::runDagDfs()
+void Liveness::runDagDfs()
 {
 	// SSA Book, Algorithm 9.2
 	for (SSACFG::BlockId const blockId: m_dfsTree.postOrder())
@@ -138,7 +139,7 @@ void LivenessAnalysis::runDagDfs()
 	}
 }
 
-void LivenessAnalysis::runLoopTreeDfs(SSACFG::BlockId const _loopHeader)
+void Liveness::runLoopTreeDfs(SSACFG::BlockId const _loopHeader)
 {
 	// SSA Book, Algorithm 9.3
 	if (m_loopNestingForest.loopNodes().contains(_loopHeader))
@@ -165,7 +166,7 @@ void LivenessAnalysis::runLoopTreeDfs(SSACFG::BlockId const _loopHeader)
 	}
 }
 
-void LivenessAnalysis::fillOperationsLiveOut()
+void Liveness::fillOperationsLiveOut()
 {
 	for (SSACFG::BlockId const blockId: m_cfg.liveBlocks())
 	{

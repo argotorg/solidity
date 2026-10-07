@@ -189,7 +189,7 @@ frontend::test::TestCase::TestResult StackLayoutGeneratorTest::run(std::ostream&
 		{
 			auto const& cfg = *controlFlowGraphs->functionGraphs[index];
 			auto result = StackLayoutGenerator::generate(
-				LivenessAnalysis(cfg),
+				analysis::Liveness(cfg),
 				gatherCallSites(cfg),
 				static_cast<ControlFlowGraphs::FunctionGraphID>(index),
 				true

@@ -46,7 +46,10 @@
 
 namespace solidity::yul::ssa
 {
-class LivenessAnalysis;
+namespace analysis
+{
+class Liveness;
+}
 struct ControlFlowGraphs;
 
 class SSACFG
@@ -380,7 +383,7 @@ public:
 	std::string toDot(
 		bool _includeDiGraphDefinition=true,
 		std::optional<size_t> _functionIndex=std::nullopt,
-		LivenessAnalysis const* _liveness=nullptr,
+		analysis::Liveness const* _liveness=nullptr,
 		ControlFlowGraphs const* _controlFlow=nullptr
 	) const;
 

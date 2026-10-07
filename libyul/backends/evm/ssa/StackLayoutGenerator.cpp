@@ -39,7 +39,7 @@ using namespace solidity::yul::ssa;
 
 namespace
 {
-void handlePhiFunctions(StackData& _stackData, PhiInverse const& _phiInverse, LivenessAnalysis::LivenessData const& _liveness, SSACFG const& _cfg)
+void handlePhiFunctions(StackData& _stackData, PhiInverse const& _phiInverse, analysis::Liveness::LivenessData const& _liveness, SSACFG const& _cfg)
 {
 	// add any phi function values here that are not already contained in the stack
 	for (auto const& [phi, preImage]: _phiInverse.data())
@@ -69,7 +69,7 @@ void handlePhiFunctions(StackData& _stackData, PhiInverse const& _phiInverse, Li
 	}
 }
 
-void declareJunk(Stack& _stack, LivenessAnalysis::LivenessData const& _live)
+void declareJunk(Stack& _stack, analysis::Liveness::LivenessData const& _live)
 {
 	for (StackOffset offset{0}; offset < _stack.size(); ++offset.value)
 	{
@@ -82,7 +82,7 @@ void declareJunk(Stack& _stack, LivenessAnalysis::LivenessData const& _live)
 }
 
 StackLayoutGenerator::Result StackLayoutGenerator::generate(
-	LivenessAnalysis const& _liveness,
+	analysis::Liveness const& _liveness,
 	CallSites const& _callSites,
 	ControlFlowGraphs::FunctionGraphID const _graphID,
 	bool const _spillingAllowed
@@ -106,7 +106,7 @@ StackLayoutGenerator::Result StackLayoutGenerator::generate(
 }
 
 StackLayoutGenerator::StackLayoutGenerator(
-	LivenessAnalysis const& _liveness,
+	analysis::Liveness const& _liveness,
 	CallSites const& _callSites,
 	ControlFlowGraphs::FunctionGraphID const _graphID,
 	bool const _spillingAllowed,
