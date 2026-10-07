@@ -29,7 +29,8 @@ def validate_bugs(bugs, schema_path: Path = BUGS_SCHEMA):
     for error in validator.iter_errors(bugs):
         path = list(error.absolute_path)
         if len(path) > 0 and isinstance(path[0], int) and isinstance(bugs[path[0]], dict):
-            location = bugs[path[0]].get("uid", f"entry #{path[0]}")
+            uid = bugs[path[0]].get("uid")
+            location = uid if isinstance(uid, str) and len(uid) > 0 else f"entry #{path[0]}"
         else:
             location = "<root>"
         field = ".".join(str(component) for component in path[1:]) or "<entry>"
