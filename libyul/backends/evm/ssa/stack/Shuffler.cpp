@@ -559,14 +559,13 @@ private:
 			}
 
 			if (
-				m_mapping.positionOf(targetOffset).has_value()  // a slot is bound for the target: retained or generated already
+				std::optional<StackOffset> const boundForTarget = m_mapping.positionOf(targetOffset) // a slot is bound for the target: retained or generated already
 			)
 			{
 				// We go bottom-up, so the slot that should go into targetOffset is somewhere above
 				// Any equal slot that is not in place will do the trick: the one at `targetOffset` itself, else the shallowest one
-				std::optional<StackOffset> const boundForTarget = m_mapping.positionOf(targetOffset);
 				yulAssert(
-					boundForTarget.has_value() && *boundForTarget >= targetOffset,
+					*boundForTarget >= targetOffset,
 					"slot bound for the offset being filled is missing or already below it"
 				);
 				StackOffset const sourceForTargetOffset = *boundForTarget;
