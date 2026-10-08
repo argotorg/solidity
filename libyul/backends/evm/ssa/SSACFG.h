@@ -341,6 +341,17 @@ public:
 		m_instructions.replaceWithIdentity(_target, _forward);
 	}
 
+	/// Flips _target's opcode to Upsilon feeding _value from _block to _phi
+	void replaceWithUpsilon(
+		InstId const _target,
+		BlockId const _block,
+		InstId const _value,
+		InstId const _phi
+	)
+	{
+		m_instructions.replaceWithUpsilon(_target, _block, _value, _phi);
+	}
+
 	/// Flips _target to Const carrying _value
 	void replaceWithConst(InstId const _target, u256 _value)
 	{
