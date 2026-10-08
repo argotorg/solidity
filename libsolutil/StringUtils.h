@@ -29,7 +29,6 @@
 
 #include <algorithm>
 #include <charconv>
-#include <limits>
 #include <locale>
 #include <optional>
 #include <string>
@@ -115,22 +114,25 @@ std::string joinHumanReadablePrefixed
 /// @example formatNumberReadable(-57896044618658097711785492504343953926634992332820282019728792003956564819968) = -2**255
 std::string formatNumberReadable(bigint const& _value, bool _useTruncation = false);
 
+/// Parses an arithmetic value from a `string_view` without allocating and/or throwing.
+/// The whole string has to be consumed, i.e., a number followed by trailing characters is rejected.
+/// Returns `std::nullopt` on error.
+template<concepts::arithmetic T>
+std::optional<T> parseArithmetic(std::string_view const _value)
+{
+	T result;
+	auto const [end, errorCondition] = std::from_chars(_value.data(), _value.data() + _value.size(), result);
+	if (errorCondition == std::errc() && end == _value.data() + _value.size())
+		return result;
+	return std::nullopt;
+}
+
 /// Safely converts an unsigned integer as string into an unsigned int type.
 ///
 /// @return the converted number or nullopt in case of an failure (including if it would not fit).
 inline std::optional<unsigned> toUnsignedInt(std::string const& _value)
 {
-	try
-	{
-		auto const ulong = stoul(_value);
-		if (ulong > std::numeric_limits<unsigned>::max())
-			return std::nullopt;
-		return static_cast<unsigned>(ulong);
-	}
-	catch (...)
-	{
-		return std::nullopt;
-	}
+	return parseArithmetic<unsigned>(_value);
 }
 
 /// Converts parameter _c to its lowercase equivalent if c is an uppercase letter and has a lowercase equivalent. It uses the classic "C" locale semantics.
@@ -206,19 +208,6 @@ void printPrefixed(
 inline std::string indent(std::string const& _input, bool _indentEmptyLines = false)
 {
 	return prefixLines(_input, "    ", !_indentEmptyLines);
-}
-
-/// Parses an arithmetic value from a `string_view` without allocating and/or throwing.
-/// The whole string has to be consumed, i.e., a number followed by trailing characters is rejected.
-/// Returns `std::nullopt` on error.
-template<concepts::arithmetic T>
-std::optional<T> parseArithmetic(std::string_view const sv)
-{
-	T result;
-	auto const [end, errorCondition] = std::from_chars(sv.data(), sv.data() + sv.size(), result);
-	if (errorCondition == std::errc() && end == sv.data() + sv.size())
-		return result;
-	return std::nullopt;
 }
 
 }
