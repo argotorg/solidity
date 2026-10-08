@@ -109,6 +109,8 @@ add_library(yul
 	backends/evm/ssa/util/TLSFFreeList.h
 	backends/evm/ssa/StackUtils.cpp
 	backends/evm/ssa/StackUtils.h
+	backends/evm/ssa/analysis/DepthFirstSpanningTree.cpp
+	backends/evm/ssa/analysis/DepthFirstSpanningTree.h
 	backends/evm/ssa/io/DotExporterBase.cpp
 	backends/evm/ssa/io/DotExporterBase.h
 	backends/evm/ssa/io/Keywords.cpp
@@ -144,8 +146,6 @@ add_library(yul
 	backends/evm/ssa/transform/UnreachableBlockCleaner.h
 	backends/evm/ssa/transform/UseCounts.cpp
 	backends/evm/ssa/transform/UseCounts.h
-	backends/evm/ssa/traversal/ForwardTopologicalSort.cpp
-	backends/evm/ssa/traversal/ForwardTopologicalSort.h
 	optimiser/ASTCopier.cpp
 	optimiser/ASTCopier.h
 	optimiser/ASTWalker.cpp
