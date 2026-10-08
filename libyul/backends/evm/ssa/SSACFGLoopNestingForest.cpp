@@ -26,36 +26,36 @@ SSACFGLoopNestingForest::SSACFGLoopNestingForest(analysis::DepthFirstSpanningTre
 	m_dfsTree(_dfsTree),
 	m_cfg(_dfsTree.cfg()),
 	m_vertexPartition(m_cfg.numBlocks()),
-	m_loopParents(m_cfg.numBlocks(), std::numeric_limits<BlockIdValue>::max())
+	m_loopParents(m_cfg.numBlocks())
 {
 	auto dfsOrder = m_dfsTree.preOrder();
 	// we go from innermost to outermost
 	ranges::reverse(dfsOrder);
 
 	for (auto const& blockId: dfsOrder)
-		findLoop(blockId.value);
+		findLoop(blockId);
 
 	// get the root nodes
 	for (auto loopHeader: m_loopNodes)
 	{
-		while (m_loopParents[loopHeader] != std::numeric_limits<BlockIdValue>::max())
-			loopHeader = m_loopParents[loopHeader];
+		while (m_loopParents[loopHeader.value].hasValue())
+			loopHeader = m_loopParents[loopHeader.value];
 		m_loopRootNodes.insert(loopHeader);
 	}
 }
 
-void SSACFGLoopNestingForest::findLoop(BlockIdValue const _potentialHeader)
+void SSACFGLoopNestingForest::findLoop(BlockId const _potentialHeader)
 {
-	if (m_dfsTree.backEdgeTargets().contains(SSACFG::BlockId{_potentialHeader}))
+	if (m_dfsTree.backEdgeTargets().contains(_potentialHeader))
 	{
-		std::set<BlockIdValue> loopBody;
-		std::set<BlockIdValue> workList;
-		for (auto const pred: m_cfg.block(SSACFG::BlockId{_potentialHeader}).entries)
+		std::set<BlockId::ValueType> loopBody;
+		std::set<BlockId::ValueType> workList;
+		for (auto const pred: m_cfg.block(_potentialHeader).entries)
 		{
 			auto const representative = m_vertexPartition.find(pred.value);
 			if (
-				representative != _potentialHeader &&
-				m_dfsTree.backEdge(pred, SSACFG::BlockId{_potentialHeader})
+				representative != _potentialHeader.value &&
+				m_dfsTree.backEdge(pred, _potentialHeader)
 			)
 				workList.insert(representative);
 		}
@@ -70,23 +70,23 @@ void SSACFGLoopNestingForest::findLoop(BlockIdValue const _potentialHeader)
 				if (!m_dfsTree.backEdge(predecessor, SSACFG::BlockId{y}))
 				{
 					auto const predecessorHeader = m_vertexPartition.find(predecessor.value);
-					if (predecessorHeader != _potentialHeader && loopBody.count(predecessorHeader) == 0)
+					if (predecessorHeader != _potentialHeader.value && !loopBody.contains(predecessorHeader))
 						workList.insert(predecessorHeader);
 				}
 			}
 		}
 
 		if (!loopBody.empty())
-			collapse(loopBody, _potentialHeader);
+			collapse(loopBody, _potentialHeader.value);
 	}
 }
-void SSACFGLoopNestingForest::collapse(std::set<BlockIdValue> const& _loopBody, BlockIdValue _loopHeader)
+void SSACFGLoopNestingForest::collapse(std::set<BlockId::ValueType> const& _loopBody, BlockId::ValueType _loopHeader)
 {
 	for (auto const z: _loopBody)
 	{
-		m_loopParents[z] = _loopHeader;
+		m_loopParents[z] = BlockId{_loopHeader};
 		m_vertexPartition.merge(_loopHeader, z, false);  // don't merge by size, loop header should be representative
 	}
 	yulAssert(m_vertexPartition.find(_loopHeader) == _loopHeader);  // representative was preserved
-	m_loopNodes.insert(_loopHeader);
+	m_loopNodes.insert(BlockId{_loopHeader});
 }

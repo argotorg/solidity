@@ -138,29 +138,29 @@ void LivenessAnalysis::runDagDfs()
 	}
 }
 
-void LivenessAnalysis::runLoopTreeDfs(SSACFG::BlockId::ValueType const _loopHeader)
+void LivenessAnalysis::runLoopTreeDfs(SSACFG::BlockId const _loopHeader)
 {
 	// SSA Book, Algorithm 9.3
 	if (m_loopNestingForest.loopNodes().contains(_loopHeader))
 	{
 		// the loop header block id
-		auto const& block = m_cfg.block(SSACFG::BlockId{_loopHeader});
+		auto const& block = m_cfg.block(_loopHeader);
 		// LiveLoop <- LiveIn(B_N) - PhiDefs(B_N)
-		auto liveLoop = m_liveIns[_loopHeader];
+		auto liveLoop = m_liveIns[_loopHeader.value];
 		m_cfg.forEachPhi(block, [&](InstId const instId, SSACFG::Inst const&) {
 			liveLoop.erase(instId);
 		});
 		// must be live out of header if live in of children
-		m_liveOuts[_loopHeader].maxUnion(liveLoop);
+		m_liveOuts[_loopHeader.value].maxUnion(liveLoop);
 		// for each blockId \in children(loopHeader)
 		for (SSACFG::BlockId const blockId: m_cfg.liveBlocks())
-			if (m_loopNestingForest.loopParents()[blockId.value] == _loopHeader)
+			if (m_loopNestingForest.loopParent(blockId) == _loopHeader)
 			{
 				// propagate loop liveness information down to the loop header's children
 				m_liveIns[blockId.value].maxUnion(liveLoop);
 				m_liveOuts[blockId.value].maxUnion(liveLoop);
 
-				runLoopTreeDfs(blockId.value);
+				runLoopTreeDfs(blockId);
 			}
 	}
 }

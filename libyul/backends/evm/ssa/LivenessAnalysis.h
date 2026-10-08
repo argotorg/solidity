@@ -51,7 +51,7 @@ public:
 
 private:
 	void runDagDfs();
-	void runLoopTreeDfs(SSACFG::BlockId::ValueType _loopHeader);
+	void runLoopTreeDfs(SSACFG::BlockId _loopHeader);
 	void fillOperationsLiveOut();
 	LivenessData blockExitValues(SSACFG::BlockId const& _blockId) const;
 
