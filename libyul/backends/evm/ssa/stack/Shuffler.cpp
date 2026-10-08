@@ -491,6 +491,8 @@ private:
 	{
 		for (StackOffset targetOffset{0}; targetOffset < m_target.size(); ++targetOffset.value)
 		{
+			yulAssert(m_data.size() + m_pendingGenerations == m_target.size());
+
 			// the offset exists and already holds the slot bound for it: nothing to do
 			if (targetOffset < m_data.size() && isFinal(targetOffset))
 				continue;
@@ -499,9 +501,21 @@ private:
 			if (m_pendingGenerations == 0)
 			{
 				yulAssert(m_data.size() == m_target.size());
+
+				yulAssert(
+					ranges::all_of(
+						ranges::views::iota(std::size_t{0}, m_target.size()) |
+						ranges::views::transform(
+							[&](std::size_t _i) { return destinationOf(StackOffset{_i}).has_value(); }
+						),
+						std::identity{}
+					),
+					"all source slots have a destination"
+				);
+
 				// every slot goes to the offset it is bound for
 				return permute(ranges::views::iota(std::size_t{0}, m_target.size())
-					| ranges::views::transform([&](std::size_t i) { return destinationOf(StackOffset{i}).value().value; })
+					| ranges::views::transform([&](std::size_t _i) { return destinationOf(StackOffset{_i}).value().value; })
 					| ranges::to<std::vector>());
 			}
 
@@ -624,6 +638,7 @@ private:
 			}
 		}
 		yulAssert(m_data.size() == m_target.size());
+		yulAssert(m_pendingGenerations == 0);
 		return std::nullopt;
 	}
 
