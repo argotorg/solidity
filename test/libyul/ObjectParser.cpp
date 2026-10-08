@@ -206,6 +206,28 @@ BOOST_AUTO_TEST_CASE(use_src_invalid_syntax_malformed_param_2)
 	BOOST_CHECK_EQUAL(errors.front()->errorId().error, 9804);
 }
 
+BOOST_AUTO_TEST_CASE(use_src_rejects_hex_source_index)
+{
+	// "0x10" is a hex literal. @use-src requires a pure decimal index, so it must
+	// be rejected. Previously std::stoul() silently consumed only the leading "0"
+	// and mapped the entry to source index 0.
+	auto const [mapping, errors] = tryGetSourceLocationMapping(R"(@use-src 0x10:"contract.sol")");
+
+	BOOST_REQUIRE_EQUAL(errors.size(), 1);
+	BOOST_CHECK_EQUAL(errors.front()->errorId().error, 9804);
+}
+
+BOOST_AUTO_TEST_CASE(use_src_rejects_digit_separator_source_index)
+{
+	// "1_0" uses a Solidity digit separator. @use-src requires a pure decimal index,
+	// so it must be rejected. Previously std::stoul() silently consumed only the
+	// leading "1" and dropped "_0", mapping the entry to source index 1 instead of 10.
+	auto const [mapping, errors] = tryGetSourceLocationMapping(R"(@use-src 1_0:"contract.sol")");
+
+	BOOST_REQUIRE_EQUAL(errors.size(), 1);
+	BOOST_CHECK_EQUAL(errors.front()->errorId().error, 9804);
+}
+
 BOOST_AUTO_TEST_CASE(use_src_error_unexpected_trailing_tokens)
 {
 	auto const [mapping, errors] = tryGetSourceLocationMapping(

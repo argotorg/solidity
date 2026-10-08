@@ -149,7 +149,10 @@ std::optional<SourceNameMap> ObjectParser::tryParseSourceNameMapping() const
 	{
 		if (scanner.currentToken() != Token::Number)
 			break;
-		auto sourceIndex = toUnsignedInt(scanner.currentLiteral());
+		// Use strict full-string parsing so that non-decimal tokens such as hex
+		// literals (0x10) or digit-separated decimals (1_0) are rejected instead of
+		// being silently truncated to a wrong index by std::stoul.
+		auto sourceIndex = util::parseArithmetic<unsigned>(scanner.currentLiteral());
 		if (!sourceIndex)
 			break;
 		if (scanner.next() != Token::Colon)
