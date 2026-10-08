@@ -504,11 +504,8 @@ private:
 
 				yulAssert(
 					ranges::all_of(
-						ranges::views::iota(std::size_t{0}, m_target.size()) |
-						ranges::views::transform(
+						ranges::views::iota(std::size_t{0}, m_target.size()),
 							[&](std::size_t _i) { return destinationOf(StackOffset{_i}).has_value(); }
-						),
-						std::identity{}
 					),
 					"all source slots have a destination"
 				);
