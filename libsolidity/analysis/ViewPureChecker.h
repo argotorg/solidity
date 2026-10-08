@@ -54,6 +54,8 @@ private:
 
 	bool visit(ImportDirective const&) override;
 
+	bool visit(ContractDefinition const& _contract) override;
+	void endVisit(ContractDefinition const& _contract) override;
 	bool visit(FunctionDefinition const& _funDef) override;
 	void endVisit(FunctionDefinition const& _funDef) override;
 	void endVisit(BinaryOperation const& _binaryOperation) override;
@@ -79,8 +81,13 @@ private:
 
 	void reportFunctionCallMutability(StateMutability _mutability, langutil::SourceLocation const& _location);
 
-	/// Determines the mutability of modifier if not already cached.
-	MutabilityAndLocation const& modifierMutability(ModifierDefinition const& _modifier);
+	/// Determines the mutability of modifier as seen from @a _mostDerivedContract if not already
+	/// cached. A super call in the body resolves differently in each contract, so the mutability
+	/// belongs to the pair, not to the modifier alone.
+	MutabilityAndLocation const& modifierMutability(
+		ModifierDefinition const& _modifier,
+		ContractDefinition const* _mostDerivedContract
+	);
 
 	/// @returns the contracts @a m_currentFunction can be inherited into, empty if it is not a member of a contract.
 	std::span<ContractDefinition const* const> currentDerivedContracts();
@@ -91,7 +98,10 @@ private:
 	bool m_errors = false;
 	MutabilityAndLocation m_bestMutabilityAndLocation = MutabilityAndLocation{StateMutability::Payable, langutil::SourceLocation()};
 	FunctionDefinition const* m_currentFunction = nullptr;
-	std::map<ModifierDefinition const*, MutabilityAndLocation> m_inferredMutability;
+	/// Contract supplying the linearization that `super` calls are resolved against.
+	ContractDefinition const* m_mostDerivedContract = nullptr;
+	/// Inferred mutability of each modifier, as seen from a given most derived contract.
+	std::map<std::pair<ModifierDefinition const*, ContractDefinition const*>, MutabilityAndLocation> m_inferredMutability;
 	/// Reverse of the linearizations: every contract mapped to the contracts that inherit from it.
 	std::map<ContractDefinition const*, std::vector<ContractDefinition const*>> m_derivedContracts;
 };
