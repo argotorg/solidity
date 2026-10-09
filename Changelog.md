@@ -15,7 +15,7 @@ Bugfixes:
 
 Build System:
 * Switch from C++20 to C++23 as the target standard.
-* Update emscripten to version 3.1.45.
+* Update emscripten to version 3.1.54.
 * Update minimum version requirement of Clang to 19.1.1.
 
 Solc-Js:
