@@ -53,46 +53,57 @@ namespace
 
 using NodeID = std::uint32_t;
 
-/// The exit of a block: the first `numSuccessors` (0, 1 or 2) of the targets are its successors.
 struct BlockExit
 {
 	std::uint8_t numSuccessors;
-	NodeID first;
-	NodeID second;
+	NodeID first;  // first exit node if numSuccessors >= 1
+	NodeID second;  // second exit node if numSuccessors == 2
 };
 
 constexpr std::uint32_t maxBlocks = 64;
+
+struct TestGraph
+{
+	explicit TestGraph(std::vector<BlockExit> const& _exits):
+		cfg(EVMDialect::strictAssemblyForEVM(langutil::EVMVersion::current())),
+		successors(_exits.size())
+	{
+		auto const numBlocks = static_cast<NodeID>(_exits.size());
+		for (NodeID i = 0; i < numBlocks; ++i)
+			cfg.makeBlock(nullptr);
+
+		for (NodeID i = 0; i < numBlocks; ++i)
+		{
+			auto const& [numSuccessors, first, second] = _exits[i];
+			auto& block = cfg.block(SSACFG::BlockId{i});
+			if (numSuccessors == 1)
+			{
+				block.exit = SSACFG::BasicBlock::Jump{SSACFG::BlockId{first}};
+				successors[i] = {first};
+			}
+			else if (numSuccessors == 2)
+			{
+				block.exit = SSACFG::BasicBlock::ConditionalJump{{}, SSACFG::BlockId{first}, SSACFG::BlockId{second}};
+				successors[i] = {first, second};
+			}
+			for (NodeID const successor: successors[i])
+				cfg.block(SSACFG::BlockId{successor}).entries.push_back(SSACFG::BlockId{i});
+		}
+	}
+
+	SSACFG cfg;
+	std::vector<std::vector<NodeID>> successors;
+};
 
 }
 
 static void DominatorTreeMatchesDefinition(std::vector<BlockExit> const& _exits)
 {
 	auto const numBlocks = static_cast<NodeID>(_exits.size());
+	TestGraph const graph(_exits);
+	auto const& successors = graph.successors;
 
-	SSACFG cfg(EVMDialect::strictAssemblyForEVM(langutil::EVMVersion::current()));
-	for (NodeID i = 0; i < numBlocks; ++i)
-		cfg.makeBlock(nullptr);
-
-	std::vector<std::vector<NodeID>> successors(numBlocks);
-	for (NodeID i = 0; i < numBlocks; ++i)
-	{
-		auto const& [numSuccessors, first, second] = _exits[i];
-		auto& block = cfg.block(SSACFG::BlockId{i});
-		if (numSuccessors == 1)
-		{
-			block.exit = SSACFG::BasicBlock::Jump{SSACFG::BlockId{first}};
-			successors[i] = {first};
-		}
-		else if (numSuccessors == 2)
-		{
-			block.exit = SSACFG::BasicBlock::ConditionalJump{{}, SSACFG::BlockId{first}, SSACFG::BlockId{second}};
-			successors[i] = {first, second};
-		}
-		for (NodeID const successor: successors[i])
-			cfg.block(SSACFG::BlockId{successor}).entries.push_back(SSACFG::BlockId{i});
-	}
-
-	DepthFirstSpanningTree const dfsTree(cfg);
+	DepthFirstSpanningTree const dfsTree(graph.cfg);
 	DominatorTree const dominatorTree(dfsTree);
 
 	// Blocks reachable from the entry without passing through `_removed`.
@@ -126,14 +137,18 @@ static void DominatorTreeMatchesDefinition(std::vector<BlockExit> const& _exits)
 	{
 		std::vector<std::uint8_t> const reachedWithoutD = reachableWithout(d);
 		for (NodeID v = 0; v < numBlocks; ++v)
-			dom[v][d] = reachable[v] && (v == d || !reachedWithoutD[v]);
+			dom[v][d] = reachable[v] && !reachedWithoutD[v];
 	}
 
 	for (NodeID a = 0; a < numBlocks; ++a)
+	{
+		if (!reachable[a])
+			continue;
 		for (NodeID b = 0; b < numBlocks; ++b)
-			if (reachable[a] && reachable[b])
+			if (reachable[b])
 				ASSERT_EQ(dominatorTree.dominates(SSACFG::BlockId{a}, SSACFG::BlockId{b}), static_cast<bool>(dom[b][a]))
 					<< "does " << a << " dominate " << b << "?";
+	}
 
 	ASSERT_EQ(dominatorTree.immediateDominator(SSACFG::BlockId{0}).value, 0u);
 	for (NodeID b = 1; b < numBlocks; ++b)
@@ -171,7 +186,7 @@ FUZZ_TEST(DominatorTreeProperty, DominatorTreeMatchesDefinition)
 			[](NodeID const _numBlocks) {
 				return fuzztest::VectorOf(
 					fuzztest::StructOf<BlockExit>(
-						fuzztest::InRange<std::uint8_t>(0, 2),
+						fuzztest::ElementOf<std::uint8_t>({0, 1, 1, 2, 2, 2}),
 						fuzztest::InRange<NodeID>(0, _numBlocks - 1),
 						fuzztest::InRange<NodeID>(0, _numBlocks - 1)
 					)
