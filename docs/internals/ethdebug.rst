@@ -51,7 +51,7 @@ The Mapping
    * - ``bool``
      - Bool
      - bool
-     -
+     - none
    * - ``address``, ``address payable``
      - Address
      - address
@@ -67,7 +67,7 @@ The Mapping
    * - ``string``
      - Array
      - string
-     -
+     - none
    * - ``fixedNxM``, ``ufixedNxM``
      - FixedPoint
      - fixed, ufixed
