@@ -7,10 +7,6 @@
 #     - ems: Emscripten
 version: 2.1
 parameters:
-  ubuntu-2004-docker-image:
-    type: string
-    # ghcr.io/argotorg/solidity-buildpack-deps:ubuntu2004-26
-    default: "ghcr.io/argotorg/solidity-buildpack-deps@sha256:1f387a77be889f65a2a25986a5c5eccc88cec23fabe6aeaf351790751145c81e"
   ubuntu-2404-docker-image:
     type: string
     # ghcr.io/argotorg/solidity-buildpack-deps:ubuntu2404-8
@@ -593,30 +589,6 @@ defaults:
         MAKEFLAGS: -j 5
         CPUs: 5
 
-  - base_ubuntu2004: &base_ubuntu2004
-      docker:
-        - image: << pipeline.parameters.ubuntu-2004-docker-image >>
-      environment: &base_ubuntu2004_env
-        TERM: xterm
-        MAKEFLAGS: -j 3
-        CPUs: 3
-
-  - base_ubuntu2004_small: &base_ubuntu2004_small
-      <<: *base_ubuntu2004
-      resource_class: small
-      environment: &base_ubuntu2004_small_env
-        <<: *base_ubuntu2004_env
-        MAKEFLAGS: -j 2
-        CPUs: 2
-
-  - base_ubuntu2004_xlarge: &base_ubuntu2004_xlarge
-      <<: *base_ubuntu2004
-      resource_class: xlarge
-      environment: &base_ubuntu2004_xlarge_env
-        <<: *base_ubuntu2004_env
-        MAKEFLAGS: -j 10
-        CPUs: 10
-
   - base_ubuntu2404: &base_ubuntu2404
       docker:
         - image: << pipeline.parameters.ubuntu-2404-docker-image >>
@@ -1107,9 +1079,6 @@ jobs:
       FORCE_RELEASE: ON
 
   b_ubu_static:
-    # We temporarily keep building static release binaries on ubuntu 20.04
-    # to avoid glibc incompatibilities.
-    # See: https://github.com/argotorg/solidity/issues/13954
     # On large runs 2x faster than on medium. 3x on xlarge.
     <<: *base_ubuntu2404_xlarge
     environment:
@@ -1822,21 +1791,18 @@ jobs:
       - store_artifacts_test_results
       - matrix_notify_failure_unless_pr
 
-  # Note: b_bytecode_ubu_static is required because b_ubu_static and b_ubu
-  # are currently built on different Ubuntu base images.
-  # It can be safely removed once we move both to the same Ubuntu version.
   b_bytecode_ubu_static:
     parameters:
       preset:
         type: string
-    <<: *base_ubuntu2004_small
+    <<: *base_ubuntu2404_small
     parallelism: 2 # For prepare_bytecode_report
     steps:
       - checkout
       - attach_workspace:
           at: build
       - prepare_bytecode_report:
-          label: "ubuntu2004-static"
+          label: "ubuntu-static"
           binary_type: native
           binary_path: "build/solc/solc-static-linux"
           preset: "<< parameters.preset >>"
