@@ -32,12 +32,6 @@
 using namespace solidity::yul::ssa;
 using namespace solidity::yul::ssa::analysis;
 
-namespace
-{
-constexpr auto undefinedBlock = std::numeric_limits<SSACFG::BlockId::ValueType>::max();
-static_assert(!BlockId{undefinedBlock}.hasValue());
-}
-
 DominatorTree::DominatorTree(DepthFirstSpanningTree const& _dfsTree)
 {
 	SSACFG const& cfg = _dfsTree.cfg();
@@ -45,11 +39,12 @@ DominatorTree::DominatorTree(DepthFirstSpanningTree const& _dfsTree)
 	std::size_t const numConnectedBlocks = preOrder.size();
 	std::size_t const numBlocks = cfg.numBlocks();
 
-	m_idom.assign(numBlocks, undefinedBlock);
+	m_idom.assign(numBlocks, SSACFG::BlockId{});
 	m_domTreePreOrder.assign(numBlocks, 0);
 	m_domTreeMaxSubtreePreOrder.assign(numBlocks, 0);
 
 	// SEMI-NCA algorithm [GTW06, Section 2.3]
+	// link and eval follow the simple version (path compression only) of [LT79]
 	// All arrays are indexed by DFS index (0 = entry)
 	std::vector<std::size_t> parent(numConnectedBlocks, 0);
 	for (std::size_t i = 1; i < numConnectedBlocks; ++i)
@@ -60,12 +55,13 @@ DominatorTree::DominatorTree(DepthFirstSpanningTree const& _dfsTree)
 	std::vector label = semi;
 	static std::size_t constexpr NO_FOREST_ANCESTOR = std::numeric_limits<std::size_t>::max();
 	std::vector forestAncestor(numConnectedBlocks, NO_FOREST_ANCESTOR);
-	std::vector<std::size_t> compressionPath;
 
 	// The `eval` operation of the link-eval structure [GTW06, Section 2.2], [LT79] with path
 	// compression only: returns `_v` if it is a forest root, and otherwise the minimal
-	// semidominator on the forest path from `_v` up to, but excluding, its root
-	auto eval = [&](std::size_t const _v) -> std::size_t {
+	// semidominator on the forest path from `_v` up to, but excluding, its root.
+	// SEMI-NCA only needs the minimal value rather than a vertex attaining it [GTW06, Section 2.3].
+	// The recursive `compress` of [LT79] is unrolled: collect the path, then compress it top-down
+	auto eval = [&, compressionPath = std::vector<std::size_t>{}](std::size_t const _v) mutable -> std::size_t {
 		if (forestAncestor[_v] == NO_FOREST_ANCESTOR)
 			return _v;
 		compressionPath.clear();
@@ -80,13 +76,18 @@ DominatorTree::DominatorTree(DepthFirstSpanningTree const& _dfsTree)
 	};
 
 	// GTW06, Section 2.3 (a): compute semidominators in reverse DFS preorder as sdom(w) = min{s_w(v) | v in pred(w)}
+	// [GTW06, Section 2.2]. When w is processed, exactly the vertices > w are linked, so the forest root of a
+	// predecessor v is NCA(D, {v, w}) and eval(v) = s_w(v)
 	for (std::size_t w = numConnectedBlocks - 1; w >= 1; --w)
 	{
 		for (auto const& predBlock: cfg.block(preOrder[w]).entries)
 			if (_dfsTree.reachable(predBlock))
 				semi[w] = std::min(semi[w], eval(_dfsTree.preOrderIndexOf(predBlock)));
-		forestAncestor[w] = parent[w];
-		label[w] = semi[w];
+		// link(w, sdom(w)) [GTW06, Section 2.2]
+		{
+			forestAncestor[w] = parent[w];
+			label[w] = semi[w];
+		}
 	}
 
 	// GTW06, Section 2.3 (b): compute immediate dominators
@@ -122,7 +123,7 @@ DominatorTree::DominatorTree(DepthFirstSpanningTree const& _dfsTree)
 	for (std::size_t i = 0; i < numConnectedBlocks; ++i)
 	{
 		auto const block = preOrder[i].value;
-		m_idom[block] = preOrder[idom[i]].value;
+		m_idom[block] = preOrder[idom[i]];
 		m_domTreePreOrder[block] = static_cast<SSACFG::BlockId::ValueType>(domTreePreOrder[i]);
 		m_domTreeMaxSubtreePreOrder[block] = static_cast<SSACFG::BlockId::ValueType>(domTreePreOrder[i] + subtreeSize[i] - 1);
 	}
@@ -142,11 +143,11 @@ bool DominatorTree::dominates(SSACFG::BlockId _dominator, SSACFG::BlockId _domin
 SSACFG::BlockId DominatorTree::immediateDominator(SSACFG::BlockId _block) const
 {
 	yulAssert(reachable(_block), "Immediate dominator is only defined for reachable blocks.");
-	return SSACFG::BlockId{m_idom[_block.value]};
+	return m_idom[_block.value];
 }
 
 bool DominatorTree::reachable(SSACFG::BlockId _block) const
 {
 	yulAssert(_block.value < m_idom.size());
-	return m_idom[_block.value] != undefinedBlock;
+	return m_idom[_block.value].hasValue();
 }

@@ -47,8 +47,8 @@ public:
 private:
 	bool reachable(SSACFG::BlockId _block) const;
 
-	/// indexed by block ID value, stores the block ID value of the immediate dominator
-	std::vector<SSACFG::BlockId::ValueType> m_idom;
+	/// indexed by block ID value, stores the immediate dominator; no value for unreachable blocks
+	std::vector<SSACFG::BlockId> m_idom;
 	/// indexed by block ID value, preorder numbering of the dominator tree and the largest number within each subtree
 	std::vector<SSACFG::BlockId::ValueType> m_domTreePreOrder;
 	std::vector<SSACFG::BlockId::ValueType> m_domTreeMaxSubtreePreOrder;
