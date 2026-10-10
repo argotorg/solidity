@@ -114,6 +114,21 @@ BOOST_AUTO_TEST_CASE(move_constructed_has_same_value_as_original)
 	BOOST_CHECK_EQUAL(valueOf(std::move(moveConstructed)), 12);
 }
 
+BOOST_AUTO_TEST_CASE(move_assigned_has_same_value_as_original)
+{
+	LazyInit<int> source;
+	source.init([]{ return 12; });
+
+	LazyInit<int> target;
+	LazyInit<int>& result = (target = std::move(source));
+
+	// Move assignment has to yield a reference to the left-hand side. Without `return *this;`
+	// the function falls off the end of a value-returning function, which is undefined behaviour.
+	BOOST_CHECK_EQUAL(&result, &target);
+	BOOST_CHECK_EQUAL(valueOf(std::move(target)), 12);
+	assertEmpty(std::move(source));
+}
+
 BOOST_AUTO_TEST_SUITE_END()
 
 }

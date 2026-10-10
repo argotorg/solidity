@@ -59,10 +59,12 @@ public:
 		_other.m_value.reset();
 	}
 
+	// Move assignment must be overridden to ensure that moved-from object is left empty.
 	LazyInit& operator=(LazyInit&& _other) noexcept
 	{
 		this->m_value.swap(_other.m_value);
 		_other.m_value.reset();
+		return *this;
 	}
 
 	template<typename F>
