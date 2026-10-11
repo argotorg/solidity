@@ -11,6 +11,7 @@ Compiler Features:
 
 Bugfixes:
 * Parser: Fix inverted version pragma range comparison for components in the range [2**31, 2**32).
+* Type Checker: Fix internal compiler error on a static calldata array whose base type has no ABI encoding, such as a struct with an internal function type member.
 * Yul Parser: Fix `@use-src` source indices that are not decimal numbers being silently truncated instead of rejected.
 
 Build System:
