@@ -3,17 +3,24 @@
 Language Features:
 
 Compiler Features:
- * Code Generator: Experimental support for EIP-7979 subroutines (``CALLSUB``, ``CALLDEST``, ``RETURNSUB``) for internal function calls in the IR-based pipeline with the optimizer, enabled with ``--evm-version @future``.
- * Optimizer: With EIP-7979 subroutines enabled, code shared by several subroutines is made a subroutine entry, so that the output has static control flow in the sense of EIP-8337.
- * Optimizer: The assembly-level control-flow graph and block deduplicator treat ``CALLSUB`` as control flow that falls through to its return point.
+* Code Generator: Experimental support for EIP-7979 subroutines (``CALLSUB``, ``CALLDEST``, ``RETURNSUB``) for internal function calls in the IR-based pipeline with the optimizer, enabled with ``--evm-version @future``.
+* Optimizer: With EIP-7979 subroutines enabled, code shared by several subroutines is made a subroutine entry, so that the output has static control flow in the sense of EIP-8337.
+* Optimizer: The assembly-level control-flow graph and block deduplicator treat ``CALLSUB`` as control flow that falls through to its return point.
+* Commandline Interface: Selecting an ethdebug output no longer implicitly enables the `ethdebug` and `ast-id` components of `--debug-info`; without `ethdebug` in the selection the `--ethdebug-program` and `--ethdebug-program-runtime` outputs carry no semantic debug info.
+* Standard JSON Interface: Selecting an ethdebug output no longer implicitly enables the `ethdebug` and `ast-id` components of `settings.debug.debugInfo`; without `ethdebug` in the selection the `evm.bytecode.ethdebug` and `evm.deployedBytecode.ethdebug` outputs carry no semantic debug info.
 
 Bugfixes:
+* Parser: Fix inverted version pragma range comparison for components in the range [2**31, 2**32).
+
+Build System:
+* Update emscripten to version 3.1.23.
 
 
 ### 0.8.37 (2026-09-10)
 
 Important Bugfixes:
 * Code Generator: Fix `delete` applied to an element of a `bytes` array in memory zeroing the whole 32-byte word starting at the element's location instead of only the element's byte.
+* Yul IR Code Generation: Encode custom error named parameters in declaration order instead of call-site order when used from a `require` function.
 * Yul Optimizer: Fix too few memory slots being reserved when moving local variables to memory to work around stack-too-deep errors in code containing mutually recursive functions. Variables of two functions that can be active at the same time could be assigned the same slot, silently overwriting one of them while it was still in use.
 
 Language Features:
@@ -42,7 +49,6 @@ Bugfixes:
 * Commandline Interface: Report proper error instead of ICE on non-hex mixed-case address value given via `--libraries`.
 * Standard JSON Interface: Fix the entire output being replaced by a `JSONError` ("Error writing output JSON.") when an error message quotes a long source line and truncating it splits a multi-byte character.
 * Type Checker: Report an unimplemented feature error instead of ICE when a variable of a fixed point type is accessed in inline assembly.
-* Yul IR Code Generation: Encode custom error named parameters in declaration order instead of call-site order when used from a `require` function.
 * Yul Optimizer: Fix incorrect removal of `returndatacopy()` operations referencing a stale result of `returndatasize()`.
 
 Build System:

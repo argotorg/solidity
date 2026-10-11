@@ -33,9 +33,9 @@ if (( $# != 0 )); then
     params="$(printf "%q " "${@}")"
 fi
 
-# ghcr.io/argotorg/solidity-buildpack-deps:emscripten-22
+# ghcr.io/argotorg/solidity-buildpack-deps:emscripten-23
 # NOTE: Without `safe.directory` git would assume it's not safe to operate on /root/project since it's owned by a different user.
 # See https://github.blog/2022-04-12-git-security-vulnerability-announced/
 docker run -v "$(pwd):/root/project" -w /root/project \
-    ghcr.io/argotorg/solidity-buildpack-deps@sha256:b9c953144d82cca5553f65626bc43b8af456dbc8966f8732ff9522f33ca8d722 \
+    ghcr.io/argotorg/solidity-buildpack-deps@sha256:a1fb35750684c4e47ea515b0e791cea1b20f4cc48fbd114de6261be13e23e152 \
     /bin/bash -c "git config --global --add safe.directory /root/project && ./scripts/ci/build_emscripten.sh ${params}"

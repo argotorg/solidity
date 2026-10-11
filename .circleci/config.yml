@@ -30,8 +30,8 @@ parameters:
   emscripten-docker-image:
     type: string
     # NOTE: Please remember to update the `scripts/build_emscripten.sh` whenever the hash of this image changes.
-    # ghcr.io/argotorg/solidity-buildpack-deps:emscripten-22
-    default: "ghcr.io/argotorg/solidity-buildpack-deps@sha256:b9c953144d82cca5553f65626bc43b8af456dbc8966f8732ff9522f33ca8d722"
+    # ghcr.io/argotorg/solidity-buildpack-deps:emscripten-23
+    default: "ghcr.io/argotorg/solidity-buildpack-deps@sha256:a1fb35750684c4e47ea515b0e791cea1b20f4cc48fbd114de6261be13e23e152"
   evm-version:
     type: string
     default: osaka
@@ -275,9 +275,16 @@ commands:
           - gcc
           - clang
     steps:
+      - restore_cache:
+          keys:
+            - cmake-download-{{ checksum "scripts/ci/install_and_check_minimum_requirements.sh" }}
       - run:
           name: Install and check minimum requirements
           command: scripts/ci/install_and_check_minimum_requirements.sh "--<< parameters.compiler >>"
+      - save_cache:
+          key: cmake-download-{{ checksum "scripts/ci/install_and_check_minimum_requirements.sh" }}
+          paths:
+            - ~/.cache/cmake-download
 
   run_build:
     steps:
@@ -1023,6 +1030,8 @@ jobs:
   t_ubu_pyscripts:
     <<: *base_ubuntu2404_small
     steps:
+      - install_python3:
+          packages: pyyaml
       - checkout
       - run:
           name: Python unit tests
@@ -1039,7 +1048,7 @@ jobs:
       - checkout
       - run:
           name: Install dependencies
-          command: python -m pip install --user requests parsec tabulate
+          command: python -m pip install --user requests parsec tabulate pyyaml
       - run:
           name: Python unit tests
           command: python.exe test/pyscriptTests.py

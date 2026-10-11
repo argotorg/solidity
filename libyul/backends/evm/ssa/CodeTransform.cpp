@@ -222,24 +222,20 @@ void CodeTransform::operator()(SSACFG::BlockId const _blockId)
 
 	auto const& block = m_cfg.block(_blockId);
 
-	std::size_t operationIndex = 0;
-
-	// Iterate every Inst in the block in scheduled order. Only Operations advance codegen;
+	// Iterate every Inst in the block in scheduled order with its recorded trace. Only Operations advance codegen;
 	// Phis are otherwise pure stack assertions (already materialized on the block's stackIn).
-	for (InstId const instId: block.instructions)
+	yulAssert(blockLayout->operationShuffles.size() == block.instructions.size());
+	for (auto const& [instId, trace]: ranges::views::zip(block.instructions, blockLayout->operationShuffles))
 	{
 		SSACFG::Inst const& inst = m_cfg.inst(instId);
 		if (inst.isPhi())
 			// this is a no-op for not spilled phis
 			spillStore(instId);
 		if (inst.isOperation())
-		{
-			yulAssert(operationIndex < blockLayout->operationShuffles.size());
-			(*this)(instId, blockLayout->operationShuffles[operationIndex]);
-			++operationIndex;
-		}
+			(*this)(instId, trace);
+		else
+			yulAssert(trace.empty());
 	}
-	yulAssert(operationIndex == blockLayout->operationShuffles.size());
 
 	// Play back the recorded shuffle to the block's exit state before dispatching the exit.
 	// This ensures the condition is on top for ConditionalJump, phi pre-images are

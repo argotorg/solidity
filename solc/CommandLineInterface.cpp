@@ -72,8 +72,6 @@
 	#include <unistd.h>
 #endif
 
-#include <fstream>
-
 #if !defined(STDERR_FILENO)
 	#define STDERR_FILENO 2
 #endif

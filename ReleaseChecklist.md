@@ -44,7 +44,7 @@ At least a day before the release:
 
 ### Changelog
 - [ ] Ensure that all changelog entries are correctly classified as language or compiler features.
-- [ ] Ensure that every important bug has a `bugs.json` entry **and** a changelog entry under "Important Bugfixes" (not "Bugfixes").
+- [ ] Ensure that every important bug has a `bugs.yaml` entry **and** a changelog entry under "Important Bugfixes" (not "Bugfixes").
     Verify that every bug list entry added in this release has a sequential `uid`, uses the new version in the `fixed` field and has a blog `link` matching the release date.
 - [ ] Sort the changelog entries alphabetically and correct any errors you notice. Commit it.
 - [ ] Update the changelog to include a release date.
@@ -76,7 +76,8 @@ At least a day before the release:
 - [ ] Create a pull request in solc-bin and merge.
 
 ### Homebrew and MacOS
-- [ ] Update the version and the hash (`sha256sum solidity_$VERSION.tar.gz`) in the [`solidity` formula in Homebrew core repository](https://github.com/Homebrew/homebrew-core/blob/master/Formula/s/solidity.rb).
+- [ ] Verify that the Homebrew bot picked up on the new release and a PR has been [automatically submitted](https://github.com/Homebrew/homebrew-core/pulls?q=is:pr+solidity) and merged (usually takes a while, 1h+).
+    If not, create a PR updating the version and the hash (`sha256sum solidity_$VERSION.tar.gz`) in the [`solidity` formula in Homebrew core repository](https://github.com/Homebrew/homebrew-core/blob/master/Formula/s/solidity.rb).
 
 ### Docker
 - [ ] Make sure `docker-buildx` is installed.
