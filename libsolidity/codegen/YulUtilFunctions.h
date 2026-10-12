@@ -396,7 +396,7 @@ public:
 		Type const& _toType,
 		VariableDeclaration::Location _location,
 		std::optional<unsigned> const& _offset = std::optional<unsigned>()
-	);
+	) const;
 
 	/// Returns the name of a function that will write the given value to
 	/// the specified address.
@@ -515,7 +515,10 @@ public:
 	/// @returns the name of a function that will set the given storage item to
 	/// zero
 	/// signature: (slot, offset) ->
-	std::string storageSetToZeroFunction(Type const& _type, VariableDeclaration::Location _location);
+	std::string storageSetToZeroFunction(
+		Type const& _type,
+		VariableDeclaration::Location _location
+	) const;
 
 	/// If revertStrings is debug, @returns the name of a function that
 	/// stores @param _message in memory position 0 and reverts.
