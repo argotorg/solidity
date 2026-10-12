@@ -22,6 +22,7 @@
 #pragma once
 
 #include <liblangutil/EVMVersion.h>
+#include <liblangutil/Exceptions.h>
 
 #include <libsolidity/ast/Types.h>
 #include <libsolidity/ast/AST.h>
@@ -58,7 +59,11 @@ public:
 		m_evmVersion(_evmVersion),
 		m_revertStrings(_revertStrings),
 		m_functionCollector(_functionCollector)
-	{}
+	{
+		// Functions generated through kinds are defined with the EVM version and revert strings of the collector.
+		solAssert(m_evmVersion == m_functionCollector.evmVersion());
+		solAssert(m_revertStrings == m_functionCollector.revertStrings());
+	}
 
 	/// @returns the name of a function that returns its argument.
 	/// Sometimes needed to satisfy templates.
