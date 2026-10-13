@@ -159,7 +159,7 @@ Block StackLimitEvader::run(
 		"StackLimitEvader can only be run on objects using the EVMDialect with object access."
 	);
 	auto astRoot = std::get<Block>(ASTCopier{}(_object.code()->root()));
-	if (evmDialect && evmDialect->evmVersion().canOverchargeGasForCall())
+	if (evmDialect)
 	{
 		yul::AsmAnalysisInfo analysisInfo = yul::AsmAnalyzer::analyzeStrictAssertCorrect(
 			*evmDialect,
