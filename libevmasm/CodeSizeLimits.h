@@ -37,8 +37,9 @@ namespace solidity::evmasm
 void checkCodeSizeLimits(
 	langutil::ErrorReporter& _errorReporter,
 	langutil::EVMVersion _evmVersion,
-	langutil::SourceLocation const& _location,
+	langutil::SourceLocation const& _creationObjectlocation,
 	size_t _creationCodeSize,
+	langutil::SourceLocation const& _runtimeObjectlocation,
 	size_t _runtimeCodeSize
 );
 

@@ -243,6 +243,29 @@ MachineAssemblyObject YulStack::assemble(Machine _machine, bool _viaSSACFG)
 	unreachable();
 }
 
+langutil::SourceLocation YulStack::objectSourceLocation(MachineAssemblyObject const& object) const
+{
+	if (object.assembly)
+	{
+		std::string const& name = object.assembly->name();
+
+		if (name == m_parserResult->name)
+			return m_parserResult->code()->root().debugData->nativeLocation;
+
+		if (
+			auto const it = m_parserResult->subIndexByName.find(name);
+			it != m_parserResult->subIndexByName.end()
+		)
+		{
+			yul::Object const* yulObject = dynamic_cast<yul::Object*>(m_parserResult->subObjects[it->second].get());
+			yulAssert(yulObject);
+			return yulObject->code()->root().debugData->nativeLocation;
+		}
+	}
+
+	return langutil::SourceLocation{};
+}
+
 std::pair<MachineAssemblyObject, MachineAssemblyObject>
 YulStack::assembleWithDeployed(std::optional<std::string_view> _deployName, bool _viaSSACFG)
 {
@@ -296,11 +319,13 @@ YulStack::assembleWithDeployed(std::optional<std::string_view> _deployName, bool
 	}
 
 	yulAssert(creationObject.bytecode);
+
 	evmasm::checkCodeSizeLimits(
 		m_errorReporter,
 		m_evmVersion,
-		m_parserResult->code()->root().debugData->nativeLocation,
+		objectSourceLocation(creationObject),
 		creationObject.bytecode->bytecode.size(),
+		objectSourceLocation(deployedObject),
 		deployedObject.bytecode ? deployedObject.bytecode->bytecode.size() : 0
 	);
 
