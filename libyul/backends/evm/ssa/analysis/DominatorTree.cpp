@@ -51,19 +51,20 @@ DominatorTree::DominatorTree(DepthFirstSpanningTree const& _dfsTree)
 		parent[i] = _dfsTree.preOrderIndexOf(_dfsTree.parentOf(preOrder[i]));
 
 	std::vector semi = ranges::views::iota(0u, numConnectedBlocks) | ranges::to<std::vector<std::size_t>>();
-	// label[v] = minimal semidominator on the compressed forest path ending in a linked vertex v
+	// label[v] = minimal semidominator value on the compressed forest path ending in a linked vertex v.
+	// Unlike [LT79], where label holds a vertex attaining that minimum, it holds the value itself: SEMI-NCA
+	// only needs the minimal value [GTW06, Section 2.3]
 	std::vector label = semi;
 	static std::size_t constexpr NO_FOREST_ANCESTOR = std::numeric_limits<std::size_t>::max();
 	std::vector forestAncestor(numConnectedBlocks, NO_FOREST_ANCESTOR);
 
 	// The `eval` operation of the link-eval structure [GTW06, Section 2.2], [LT79] with path
-	// compression only: returns `_v` if it is a forest root, and otherwise the minimal
-	// semidominator on the forest path from `_v` up to, but excluding, its root.
-	// SEMI-NCA only needs the minimal value rather than a vertex attaining it [GTW06, Section 2.3].
+	// compression only: returns the semidominator value of `_v` if it is a forest root, and otherwise the minimal
+	// semidominator value on the forest path from `_v` up to, but excluding, its root.
 	// The recursive `compress` of [LT79] is unrolled: collect the path, then compress it top-down
 	auto eval = [&, compressionPath = std::vector<std::size_t>{}](std::size_t const _v) mutable -> std::size_t {
 		if (forestAncestor[_v] == NO_FOREST_ANCESTOR)
-			return _v;
+			return semi[_v];
 		compressionPath.clear();
 		for (std::size_t u = _v; forestAncestor[forestAncestor[u]] != NO_FOREST_ANCESTOR; u = forestAncestor[u])
 			compressionPath.push_back(u);
