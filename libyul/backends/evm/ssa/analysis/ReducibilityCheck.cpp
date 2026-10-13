@@ -24,15 +24,16 @@
 using namespace solidity::yul::ssa;
 using namespace solidity::yul::ssa::analysis;
 
-bool analysis::isReducibleCFG(DepthFirstSpanningTree const& _dfsTree, DominatorTree const& _dominatorTree)
+bool analysis::isReducibleCFG(DepthFirstSpanningTree const& _dfsTree)
 {
+	DominatorTree const dominatorTree(_dfsTree);
 	for (auto const src: _dfsTree.preOrder())
 	{
 		bool reducible = true;
 		_dfsTree.cfg().block(src).forEachExit([&](SSACFG::BlockId const& _target) {
 			if (
 				_dfsTree.ancestor(_target, src) &&
-				!_dominatorTree.dominates(_target, src)
+				!dominatorTree.dominates(_target, src)
 			)
 				reducible = false;
 		});

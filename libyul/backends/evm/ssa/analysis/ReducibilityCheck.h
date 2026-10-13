@@ -22,9 +22,8 @@ namespace solidity::yul::ssa::analysis
 {
 
 class DepthFirstSpanningTree;
-class DominatorTree;
 
 /// Checks whether the CFG is reducible, i.e., every DFS back edge u -> v has v dominating u
-bool isReducibleCFG(DepthFirstSpanningTree const& _dfsTree, DominatorTree const& _dominatorTree);
+bool isReducibleCFG(DepthFirstSpanningTree const& _dfsTree);
 
 }
