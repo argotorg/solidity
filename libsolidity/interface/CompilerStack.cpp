@@ -1439,8 +1439,9 @@ void CompilerStack::assembleYul(
 		m_errorReporter,
 		m_evmVersion,
 		_contract.location(),
+		"Contract",
 		compiledContract.object.bytecode.size(),
-		_contract.location(),
+		"Contract",
 		compiledContract.runtimeObject.bytecode.size()
 	);
 }

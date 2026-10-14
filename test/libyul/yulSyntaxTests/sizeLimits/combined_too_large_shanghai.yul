@@ -1159,5 +1159,5 @@ object "A" {
 // ====
 // EVMVersion: =shanghai
 // ----
-// Warning 5574: (116339-179978): Contract code size is 26801 bytes and exceeds 24576 bytes (a limit introduced in Spurious Dragon). This contract may not be deployable on Mainnet. Consider enabling the optimizer (with a low "runs" value!), turning off revert strings, or using libraries.
-// Warning 3860: (22-116299): Contract initcode size is 50252 bytes and exceeds 49152 bytes (a limit introduced in Shanghai). This contract may not be deployable on Mainnet. Consider enabling the optimizer (with a low "runs" value!), turning off revert strings, or using libraries.
+// Warning 5574: Yul object "A_deployed" code size is 26801 bytes and exceeds 24576 bytes (a limit introduced in Spurious Dragon). This contract may not be deployable on Mainnet. Consider enabling the optimizer (with a low "runs" value!), turning off revert strings, or using libraries.
+// Warning 3860: Yul object "A" initcode size is 50252 bytes and exceeds 49152 bytes (a limit introduced in Shanghai). This contract may not be deployable on Mainnet. Consider enabling the optimizer (with a low "runs" value!), turning off revert strings, or using libraries.

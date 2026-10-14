@@ -40,9 +40,10 @@ constexpr size_t CREATION_CODE_SIZE_LIMIT = 49152;
 void checkCodeSizeLimits(
 	ErrorReporter& _errorReporter,
 	EVMVersion _evmVersion,
-	SourceLocation const& _creationObjectlocation,
+	SourceLocation const& _location,
+	std::string const& _creationSubject,
 	size_t _creationCodeSize,
-	SourceLocation const& _runtimeObjectlocation,
+	std::string const& _runtimeSubject,
 	size_t _runtimeCodeSize
 )
 {
@@ -50,8 +51,8 @@ void checkCodeSizeLimits(
 	if (_evmVersion >= EVMVersion::spuriousDragon() && _runtimeCodeSize > RUNTIME_CODE_SIZE_LIMIT)
 		_errorReporter.warning(
 			5574_error,
-			_runtimeObjectlocation,
-			"Contract code size is "s +
+			_location,
+			_runtimeSubject + " code size is "s +
 			std::to_string(_runtimeCodeSize) +
 			" bytes and exceeds " + std::to_string(RUNTIME_CODE_SIZE_LIMIT) +
 			" bytes (a limit introduced in Spurious Dragon). "
@@ -64,8 +65,8 @@ void checkCodeSizeLimits(
 	if (_evmVersion >= EVMVersion::shanghai() && _creationCodeSize > CREATION_CODE_SIZE_LIMIT)
 		_errorReporter.warning(
 			3860_error,
-			_creationObjectlocation,
-			"Contract initcode size is "s +
+			_location,
+			_creationSubject + " initcode size is "s +
 			std::to_string(_creationCodeSize) +
 			" bytes and exceeds " + std::to_string(CREATION_CODE_SIZE_LIMIT) +
 			" bytes (a limit introduced in Shanghai). "

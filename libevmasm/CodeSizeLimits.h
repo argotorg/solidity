@@ -22,6 +22,7 @@
 #include <liblangutil/SourceLocation.h>
 
 #include <cstddef>
+#include <string>
 
 namespace solidity::langutil
 {
@@ -37,9 +38,10 @@ namespace solidity::evmasm
 void checkCodeSizeLimits(
 	langutil::ErrorReporter& _errorReporter,
 	langutil::EVMVersion _evmVersion,
-	langutil::SourceLocation const& _creationObjectlocation,
+	langutil::SourceLocation const& _location,
+	std::string const& _creationSubject,
 	size_t _creationCodeSize,
-	langutil::SourceLocation const& _runtimeObjectlocation,
+	std::string const& _runtimeSubject,
 	size_t _runtimeCodeSize
 );
 

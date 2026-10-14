@@ -164,8 +164,6 @@ private:
 
 	void reportUnimplementedFeatureError(langutil::UnimplementedFeatureError const& _error);
 
-	langutil::SourceLocation objectSourceLocation(MachineAssemblyObject const& object) const;
-
 	langutil::EVMVersion m_evmVersion;
 	solidity::frontend::OptimiserSettings m_optimiserSettings;
 	langutil::DebugInfoSelection m_debugInfoSelection{};

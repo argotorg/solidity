@@ -408,4 +408,4 @@ object "A" {
 // ====
 // EVMVersion: =paris
 // ----
-// Warning 5574: (69-63708): Contract code size is 26801 bytes and exceeds 24576 bytes (a limit introduced in Spurious Dragon). This contract may not be deployable on Mainnet. Consider enabling the optimizer (with a low "runs" value!), turning off revert strings, or using libraries.
+// Warning 5574: Yul object "A_deployed" code size is 26801 bytes and exceeds 24576 bytes (a limit introduced in Spurious Dragon). This contract may not be deployable on Mainnet. Consider enabling the optimizer (with a low "runs" value!), turning off revert strings, or using libraries.
