@@ -28,6 +28,7 @@
 #include <libyul/optimiser/Semantics.h>
 #include <libyul/optimiser/Suite.h>
 #include <libevmasm/Assembly.h>
+#include <libevmasm/CodeSizeLimits.h>
 #include <libevmasm/Ethdebug.h>
 #include <liblangutil/Scanner.h>
 #include <liblangutil/SourceReferenceFormatter.h>
@@ -294,6 +295,19 @@ YulStack::assembleWithDeployed(std::optional<std::string_view> _deployName, bool
 		return {MachineAssemblyObject{}, MachineAssemblyObject{}};
 	}
 
+	yulAssert(creationObject.bytecode);
+	yulAssert(creationObject.assembly);
+
+	evmasm::checkCodeSizeLimits(
+		m_errorReporter,
+		m_evmVersion,
+		SourceLocation{-1, -1, std::make_shared<std::string>(m_charStream->name())},
+		"Yul object \"" + creationObject.assembly->name() + "\"",
+		creationObject.bytecode->bytecode.size(),
+		deployedObject.assembly ? "Yul object \"" + deployedObject.assembly->name() + "\"" : "",
+		deployedObject.bytecode ? deployedObject.bytecode->bytecode.size() : 0
+	);
+
 	return {std::move(creationObject), std::move(deployedObject)};
 }
 
@@ -305,7 +319,7 @@ YulStack::assembleEVMWithDeployed(std::optional<std::string_view> _deployName, b
 	yulAssert(m_parserResult->hasCode(), "");
 	yulAssert(m_parserResult->analysisInfo, "");
 
-	evmasm::Assembly assembly(m_evmVersion, true, {});
+	evmasm::Assembly assembly(m_evmVersion, true, m_parserResult->name);
 	EthAssemblyAdapter adapter(assembly);
 
 	// NOTE: We always need stack optimization when Yul optimizer is disabled (unless code contains
