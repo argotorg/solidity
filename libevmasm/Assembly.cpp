@@ -240,51 +240,54 @@ AssemblyItem Assembly::createAssemblyItemFromJSON(Json const& _json, std::vector
 
 	AssemblyItem result(0);
 
-	if (name == "SWAPN" || name == "DUPN")
+	if (c_instructions.count(name))
 	{
-		solRequire(
-			m_evmVersion.hasDupSwapN(),
-			AssemblyImportException,
-			"Instruction '" + name + "' is only available starting from the \"amsterdam\" EVM version."
-		);
-		solRequire(
-			jumpType.empty(),
-			AssemblyImportException,
-			"Member 'jumpType' set on instruction different from JUMP or JUMPI (was set on instruction '" + name + "')"
-		);
-		requireValueDefinedForInstruction(name, value);
-		std::optional<uint8_t> const depth = parseArithmetic<uint8_t>(value);
-		solRequire(depth.has_value(), AssemblyImportException, "Invalid depth for instruction '" + name + "'.");
-		solRequire(
-			isValidDupSwapNDepth(*depth),
-			AssemblyImportException,
-			"Invalid depth for instruction '" + name + "'."
-		);
-		if (name == "SWAPN")
-			result = AssemblyItem::swap(*depth);
-		else
-			result = AssemblyItem::dup(*depth);
-	}
-	else if (c_instructions.count(name))
-	{
-		AssemblyItem item{c_instructions.at(name), langutil::DebugData::create(location)};
-		if (!jumpType.empty())
+		if (name == "SWAPN" || name == "DUPN")
 		{
-			if (item.instruction() == Instruction::JUMP || item.instruction() == Instruction::JUMPI)
-			{
-				std::optional<AssemblyItem::JumpType> parsedJumpType = AssemblyItem::parseJumpType(jumpType);
-				if (!parsedJumpType.has_value())
-					solThrow(AssemblyImportException, "Invalid jump type.");
-				item.setJumpType(parsedJumpType.value());
-			}
+			solRequire(
+				m_evmVersion.hasDupSwapN(),
+				AssemblyImportException,
+				"Instruction '" + name + "' is only available starting from the \"amsterdam\" EVM version."
+			);
+			solRequire(
+				jumpType.empty(),
+				AssemblyImportException,
+				"Member 'jumpType' set on instruction different from JUMP or JUMPI (was set on instruction '" + name + "')"
+			);
+			requireValueDefinedForInstruction(name, value);
+			std::optional<uint8_t> const depth = parseArithmetic<uint8_t>(value);
+			solRequire(depth.has_value(), AssemblyImportException, "Invalid depth for instruction '" + name + "'.");
+			solRequire(
+				isValidDupSwapNDepth(*depth),
+				AssemblyImportException,
+				"Invalid depth for instruction '" + name + "'."
+			);
+			if (name == "SWAPN")
+				result = AssemblyItem::swap(*depth);
 			else
-				solThrow(
-					AssemblyImportException,
-					"Member 'jumpType' set on instruction different from JUMP or JUMPI (was set on instruction '" + name + "')"
-				);
+				result = AssemblyItem::dup(*depth);
 		}
-		requireValueUndefinedForInstruction(name, value);
-		result = item;
+		else
+		{
+			AssemblyItem item{c_instructions.at(name), langutil::DebugData::create(location)};
+			if (!jumpType.empty())
+			{
+				if (item.instruction() == Instruction::JUMP || item.instruction() == Instruction::JUMPI)
+				{
+					std::optional<AssemblyItem::JumpType> parsedJumpType = AssemblyItem::parseJumpType(jumpType);
+					if (!parsedJumpType.has_value())
+						solThrow(AssemblyImportException, "Invalid jump type.");
+					item.setJumpType(parsedJumpType.value());
+				}
+				else
+					solThrow(
+						AssemblyImportException,
+						"Member 'jumpType' set on instruction different from JUMP or JUMPI (was set on instruction '" + name + "')"
+					);
+			}
+			requireValueUndefinedForInstruction(name, value);
+			result = item;
+		}
 	}
 	else
 	{
