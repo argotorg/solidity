@@ -307,4 +307,29 @@ bool isValidInstruction(Instruction _inst);
 /// Convert from string mnemonic to Instruction type.
 extern const std::map<std::string, Instruction, std::less<>> c_instructions;
 
+/// @returns true if @a _immediate encodes a valid DUPN/SWAPN stack depth.
+/// The encoded depth is `immediate + 145 (mod 256)`, so immediates in [0x80, 0xff] encode
+/// depths 17-144 and immediates in [0x00, 0x5a] encode depths 145-235. The remaining
+/// immediates in [0x5b, 0x7f] would encode the invalid depths 236-255 and 0-16.
+/// See https://eips.ethereum.org/EIPS/eip-8024
+inline bool isValidDupSwapNImmediate(uint8_t _immediate)
+{
+	return _immediate <= 0x5a || _immediate >= 0x80;
+}
+
+/// @returns the stack depth encoded by the DUPN/SWAPN immediate argument @a _immediate,
+/// i.e. `immediate + 145 (mod 256)`. See https://eips.ethereum.org/EIPS/eip-8024
+inline size_t decodeDupSwapNImmediate(uint8_t _immediate)
+{
+	solAssert(isValidDupSwapNImmediate(_immediate));
+	return static_cast<uint8_t>((_immediate + 145) % 256);
+}
+
+// https://eips.ethereum.org/EIPS/eip-8024
+inline uint8_t encodeDupSwapNImmediate(size_t _depth)
+{
+	solAssert(_depth >= 17 && _depth <= 235);
+	return static_cast<uint8_t>((_depth + 111) % 256);
+}
+
 }

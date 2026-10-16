@@ -56,14 +56,6 @@ using namespace solidity::util;
 
 namespace
 {
-
-// https://eips.ethereum.org/EIPS/eip-8024
-uint8_t encodeDupSwapNImmediate(size_t _depth)
-{
-	solAssert(_depth >= 17 && _depth <= 235);
-	return static_cast<uint8_t>((_depth + 111) % 256);
-}
-
 /// Produces instruction location info in RAII style. When an assembly instruction is added to the bytecode,
 /// this class can be instantiated in that scope. It will record the current bytecode size (before addition)
 /// and, at destruction time, record the new bytecode size. This information is then added to an external
