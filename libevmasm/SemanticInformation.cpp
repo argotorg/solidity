@@ -263,22 +263,28 @@ bool SemanticInformation::isCommutativeOperation(AssemblyItem const& _item)
 
 bool SemanticInformation::isDupInstruction(AssemblyItem const& _item)
 {
-	if (_item.type() == evmasm::DupN)
-		return true;
-	if (_item.type() != evmasm::Operation)
+	if (_item.type() != evmasm::Operation && _item.type() != evmasm::DupN)
 		return false;
 	auto inst = _item.instruction();
-	return Instruction::DUP1 <= inst && inst <= Instruction::DUP16;
+	return isDupInstruction(inst);
 }
 
 bool SemanticInformation::isSwapInstruction(AssemblyItem const& _item)
 {
-	if (_item.type() == evmasm::SwapN)
-		return true;
-	if (_item.type() != evmasm::Operation)
+	if (_item.type() != evmasm::Operation && _item.type() != evmasm::SwapN)
 		return false;
 	auto inst = _item.instruction();
-	return Instruction::SWAP1 <= inst && inst <= Instruction::SWAP16;
+	return isSwapInstruction(inst);
+}
+
+bool SemanticInformation::isDupInstruction(Instruction const& _inst)
+{
+	return (Instruction::DUP1 <= _inst && _inst <= Instruction::DUP16) || _inst == Instruction::DUPN;
+}
+
+bool SemanticInformation::isSwapInstruction(Instruction const& _inst)
+{
+	return (Instruction::SWAP1 <= _inst && _inst <= Instruction::SWAP16) || _inst == Instruction::SWAPN;
 }
 
 bool SemanticInformation::altersControlFlow(AssemblyItem const& _item)
