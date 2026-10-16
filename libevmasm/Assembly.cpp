@@ -56,7 +56,6 @@ using namespace solidity::util;
 
 namespace
 {
-
 /// Produces instruction location info in RAII style. When an assembly instruction is added to the bytecode,
 /// this class can be instantiated in that scope. It will record the current bytecode size (before addition)
 /// and, at destruction time, record the new bytecode size. This information is then added to an external
@@ -243,24 +242,48 @@ AssemblyItem Assembly::createAssemblyItemFromJSON(Json const& _json, std::vector
 
 	if (c_instructions.count(name))
 	{
-		AssemblyItem item{c_instructions.at(name), langutil::DebugData::create(location)};
-		if (!jumpType.empty())
+		if (name == "SWAPN" || name == "DUPN")
 		{
-			if (item.instruction() == Instruction::JUMP || item.instruction() == Instruction::JUMPI)
-			{
-				std::optional<AssemblyItem::JumpType> parsedJumpType = AssemblyItem::parseJumpType(jumpType);
-				if (!parsedJumpType.has_value())
-					solThrow(AssemblyImportException, "Invalid jump type.");
-				item.setJumpType(parsedJumpType.value());
-			}
+			solRequire(
+				m_evmVersion.hasDupSwapN(),
+				AssemblyImportException,
+				"Instruction '" + name + "' is only available starting from the \"amsterdam\" EVM version."
+			);
+			solRequire(
+				jumpType.empty(),
+				AssemblyImportException,
+				"Member 'jumpType' set on instruction different from JUMP or JUMPI (was set on instruction '" + name + "')"
+			);
+			requireValueDefinedForInstruction(name, value);
+			std::optional<uint8_t> const depth = parseArithmetic<uint8_t>(value);
+			solRequire(depth.has_value() && isValidDupSwapNDepth(*depth), AssemblyImportException, "Invalid depth for instruction '" + name + "'.");
+
+			if (name == "SWAPN")
+				result = AssemblyItem::swap(*depth);
 			else
-				solThrow(
-					AssemblyImportException,
-					"Member 'jumpType' set on instruction different from JUMP or JUMPI (was set on instruction '" + name + "')"
-				);
+				result = AssemblyItem::dup(*depth);
 		}
-		requireValueUndefinedForInstruction(name, value);
-		result = item;
+		else
+		{
+			AssemblyItem item{c_instructions.at(name), langutil::DebugData::create(location)};
+			if (!jumpType.empty())
+			{
+				if (item.instruction() == Instruction::JUMP || item.instruction() == Instruction::JUMPI)
+				{
+					std::optional<AssemblyItem::JumpType> parsedJumpType = AssemblyItem::parseJumpType(jumpType);
+					if (!parsedJumpType.has_value())
+						solThrow(AssemblyImportException, "Invalid jump type.");
+					item.setJumpType(parsedJumpType.value());
+				}
+				else
+					solThrow(
+						AssemblyImportException,
+						"Member 'jumpType' set on instruction different from JUMP or JUMPI (was set on instruction '" + name + "')"
+					);
+			}
+			requireValueUndefinedForInstruction(name, value);
+			result = item;
+		}
 	}
 	else
 	{
@@ -582,7 +605,8 @@ Json Assembly::assemblyJSON(std::map<std::string, unsigned> const& _sourceIndice
 std::pair<std::shared_ptr<Assembly>, std::vector<std::string>> Assembly::fromJSON(
 	Json const& _json,
 	std::vector<std::string> const& _sourceList,
-	size_t _level
+	size_t _level,
+	EVMVersion _evmVersion
 )
 {
 	solRequire(_json.is_object(), AssemblyImportException, "Supplied JSON is not an object.");
@@ -613,7 +637,7 @@ std::pair<std::shared_ptr<Assembly>, std::vector<std::string>> Assembly::fromJSO
 			"Member 'sourceList' may only be present in the root JSON object."
 		);
 
-	auto result = std::make_shared<Assembly>(EVMVersion{}, _level == 0 /* _creation */, "" /* _name */);
+	auto result = std::make_shared<Assembly>(_evmVersion, _level == 0 /* _creation */, "" /* _name */);
 	std::vector<std::string> parsedSourceList;
 	if (_json.contains("sourceList"))
 	{
@@ -680,7 +704,8 @@ std::pair<std::shared_ptr<Assembly>, std::vector<std::string>> Assembly::fromJSO
 					solThrow(AssemblyImportException, "The key '" + key + "' inside '.data' is out of the supported integer range.");
 				}
 
-				auto [subAssembly, emptySourceList] = Assembly::fromJSON(value, _level == 0 ? parsedSourceList : _sourceList, _level + 1);
+				auto [subAssembly, emptySourceList] =
+					Assembly::fromJSON(value, _level == 0 ? parsedSourceList : _sourceList, _level + 1, _evmVersion);
 				solAssert(subAssembly);
 				solAssert(emptySourceList.empty());
 				solAssert(subAssemblies.count(index) == 0);
@@ -1097,6 +1122,13 @@ LinkerObject const& Assembly::assembleLegacy() const
 		{
 		case Operation:
 			ret.bytecode += assembleOperation(item);
+			break;
+		case SwapN:
+		case DupN:
+			solAssert(m_evmVersion.hasDupSwapN());
+			ret.bytecode.push_back(static_cast<uint8_t>(item.instruction()));
+			solAssert(item.data() < std::numeric_limits<size_t>::max());
+			ret.bytecode.push_back(encodeDupSwapNImmediate(static_cast<size_t>(item.data())));
 			break;
 		case Push:
 			ret.bytecode += assemblePush(item);

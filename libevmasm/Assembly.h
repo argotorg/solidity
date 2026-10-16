@@ -170,8 +170,9 @@ public:
 	///     assembly or an empty list (in recursive calls).
 	static std::pair<std::shared_ptr<Assembly>, std::vector<std::string>> fromJSON(
 		Json const& _json,
-		std::vector<std::string> const& _sourceList = {},
-		size_t _level = 0
+		std::vector<std::string> const& _sourceList,
+		size_t _level,
+		langutil::EVMVersion _evmVersion
 	);
 
 	/// Mark this assembly as invalid. Calling ``assemble`` on it will throw.
