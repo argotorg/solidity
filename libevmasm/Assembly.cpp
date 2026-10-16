@@ -253,16 +253,17 @@ AssemblyItem Assembly::createAssemblyItemFromJSON(Json const& _json, std::vector
 			"Member 'jumpType' set on instruction different from JUMP or JUMPI (was set on instruction '" + name + "')"
 		);
 		requireValueDefinedForInstruction(name, value);
-		u256 const depth{value};
+		std::optional<uint8_t> const depth = parseArithmetic<uint8_t>(value);
+		solRequire(depth.has_value(), AssemblyImportException, "Invalid depth for instruction '" + name + "'.");
 		solRequire(
-			depth >= 17 && depth <= 235,
+			isValidDupSwapNDepth(*depth),
 			AssemblyImportException,
 			"Invalid depth for instruction '" + name + "'."
 		);
 		if (name == "SWAPN")
-			result = AssemblyItem::swap(static_cast<size_t>(depth));
+			result = AssemblyItem::swap(*depth);
 		else
-			result = AssemblyItem::dup(static_cast<size_t>(depth));
+			result = AssemblyItem::dup(*depth);
 	}
 	else if (c_instructions.count(name))
 	{

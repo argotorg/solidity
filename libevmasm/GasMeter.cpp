@@ -313,6 +313,9 @@ unsigned GasMeter::swapGas(size_t _depth, langutil::EVMVersion _evmVersion)
 {
 	if (_depth <= 16)
 		return runGas(evmasm::swapInstruction(static_cast<unsigned>(_depth)), _evmVersion);
+
+	solAssert(_evmVersion.hasDupSwapN());
+	solAssert(isValidDupSwapNDepth(_depth));
 	auto gasCost = gasCostForTier(instructionInfo(evmasm::Instruction::SWAPN, _evmVersion).gasPriceTier);
 	solAssert(gasCost.has_value(), "Expected gas cost for SWAPN to be defined.");
 	return *gasCost;
@@ -322,6 +325,9 @@ unsigned GasMeter::dupGas(size_t _depth, langutil::EVMVersion _evmVersion)
 {
 	if (_depth <= 16)
 		return runGas(evmasm::dupInstruction(static_cast<unsigned>(_depth)), _evmVersion);
+
+	solAssert(_evmVersion.hasDupSwapN());
+	solAssert(isValidDupSwapNDepth(_depth));
 	auto gasCost = gasCostForTier(instructionInfo(evmasm::Instruction::DUPN, _evmVersion).gasPriceTier);
 	solAssert(gasCost.has_value(), "Expected gas cost for DUPN to be defined.");
 	return *gasCost;

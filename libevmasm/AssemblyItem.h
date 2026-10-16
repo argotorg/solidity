@@ -115,7 +115,7 @@ public:
 		if (_depth <= 16)
 			// Depth 0 is rejected by an assert in swapInstruction().
 			return AssemblyItem(swapInstruction(static_cast<unsigned>(_depth)), std::move(_debugData));
-		solAssert(_depth <= 235, "Invalid SWAPN depth.");
+		solAssert(isValidDupSwapNDepth(_depth), "Invalid SWAPN depth.");
 		return AssemblyItem(SwapN, Instruction::SWAPN, _depth, std::move(_debugData));
 	}
 	/// @returns an item duplicating the value at stack depth @a _depth to the top of the stack,
@@ -126,7 +126,7 @@ public:
 		if (_depth <= 16)
 			// Depth 0 is rejected by an assert in dupInstruction().
 			return AssemblyItem(dupInstruction(static_cast<unsigned>(_depth)), std::move(_debugData));
-		solAssert(_depth <= 235, "Invalid DUPN depth.");
+		solAssert(isValidDupSwapNDepth(_depth), "Invalid DUPN depth.");
 		return AssemblyItem(DupN, Instruction::DUPN, _depth, std::move(_debugData));
 	}
 
