@@ -57,12 +57,14 @@ void NoOutputAssembly::appendInstruction(evmasm::Instruction _instr)
 	m_stackHeight += instructionInfo(_instr, m_evmVersion).ret - instructionInfo(_instr, m_evmVersion).args;
 }
 
-void NoOutputAssembly::appendSwap(size_t)
+void NoOutputAssembly::appendSwap(size_t _depth)
 {
+	yulAssert(_depth <= m_evmVersion.reachableStackDepth());
 }
 
-void NoOutputAssembly::appendDup(size_t)
+void NoOutputAssembly::appendDup(size_t _depth)
 {
+	yulAssert(_depth <= m_evmVersion.reachableStackDepth());
 	m_stackHeight++;
 }
 
