@@ -256,12 +256,8 @@ AssemblyItem Assembly::createAssemblyItemFromJSON(Json const& _json, std::vector
 			);
 			requireValueDefinedForInstruction(name, value);
 			std::optional<uint8_t> const depth = parseArithmetic<uint8_t>(value);
-			solRequire(depth.has_value(), AssemblyImportException, "Invalid depth for instruction '" + name + "'.");
-			solRequire(
-				isValidDupSwapNDepth(*depth),
-				AssemblyImportException,
-				"Invalid depth for instruction '" + name + "'."
-			);
+			solRequire(depth.has_value() && isValidDupSwapNDepth(*depth), AssemblyImportException, "Invalid depth for instruction '" + name + "'.");
+
 			if (name == "SWAPN")
 				result = AssemblyItem::swap(*depth);
 			else
