@@ -170,6 +170,8 @@ std::map<std::string, Instruction, std::less<>> const solidity::evmasm::c_instru
 	{ "LOG2", Instruction::LOG2 },
 	{ "LOG3", Instruction::LOG3 },
 	{ "LOG4", Instruction::LOG4 },
+	{ "SWAPN", Instruction::SWAPN },
+	{ "DUPN", Instruction::DUPN },
 	{ "CREATE", Instruction::CREATE },
 	{ "CALL", Instruction::CALL },
 	{ "CALLCODE", Instruction::CALLCODE },
