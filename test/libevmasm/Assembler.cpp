@@ -599,7 +599,8 @@ BOOST_AUTO_TEST_CASE(can_be_functional)
 	BOOST_CHECK(!AssemblyItem(AssignImmutable, 0).canBeFunctional());
 	BOOST_CHECK(!AssemblyItem(bytes{0x60, 0x00}, 0, 1).canBeFunctional());  // VerbatimBytecode
 	BOOST_CHECK(!AssemblyItem(UndefinedItem).canBeFunctional());
-	BOOST_CHECK(!AssemblyItem(UndefinedItem).canBeFunctional());
+	BOOST_CHECK(!AssemblyItem::swap(17).canBeFunctional());
+	BOOST_CHECK(!AssemblyItem::dup(17).canBeFunctional());
 }
 
 BOOST_AUTO_TEST_SUITE_END()
