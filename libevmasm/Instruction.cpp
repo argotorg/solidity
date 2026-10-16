@@ -360,3 +360,11 @@ bool solidity::evmasm::isValidInstruction(Instruction _inst)
 {
 	return !!c_instructionInfo.count(_inst);
 }
+
+bool solidity::evmasm::isValidImmediateData(Instruction _inst, u256 const& _immediate)
+{
+	if (_inst == Instruction::SWAPN || _inst == Instruction::DUPN)
+		return _immediate <= std::numeric_limits<uint8_t>::max() && isValidDupSwapNImmediate(static_cast<uint8_t>(_immediate));
+	else
+		return true;
+}

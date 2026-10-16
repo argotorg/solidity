@@ -24,6 +24,7 @@
 
 #include <libevmasm/Exceptions.h>
 #include <libsolutil/Common.h>
+#include <libsolutil/Numeric.h>
 #include <libsolutil/Assertions.h>
 #include <liblangutil/EVMVersion.h>
 #include <liblangutil/Exceptions.h>
@@ -303,6 +304,9 @@ InstructionInfo instructionInfo(Instruction _inst, langutil::EVMVersion _evmVers
 
 /// check whether instructions exists.
 bool isValidInstruction(Instruction _inst);
+
+/// @returns false if @a _immediate is not a valid immediate argument of @a _inst.
+bool isValidImmediateData(Instruction _inst, u256 const& _immediate);
 
 /// Convert from string mnemonic to Instruction type.
 extern const std::map<std::string, Instruction, std::less<>> c_instructions;
