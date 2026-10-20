@@ -145,10 +145,9 @@ BOOST_AUTO_TEST_CASE(cli_mode_options)
 			"--optimize-yul",
 			"--optimize-runs=1000",
 			"--yul-optimizations=agf",
-			"--model-checker-bmc-loop-iterations=2",
 			"--model-checker-contracts=contract1.yul:A,contract2.yul:B",
 			"--model-checker-div-mod-no-slacks",
-			"--model-checker-engine=bmc",
+			"--model-checker-engine=chc",
 			"--model-checker-ext-calls=trusted",
 			"--model-checker-invariants=contract,reentrancy",
 			"--model-checker-show-proved-safe",
@@ -217,10 +216,9 @@ BOOST_AUTO_TEST_CASE(cli_mode_options)
 
 		expectedOptions.modelChecker.initialize = true;
 		expectedOptions.modelChecker.settings = {
-			2,
 			{{{"contract1.yul", {"A"}}, {"contract2.yul", {"B"}}}},
 			true,
-			{true, false},
+			ModelCheckerEngine::CHC(),
 			{ModelCheckerExtCalls::Mode::TRUSTED},
 			{{InvariantType::Contract, InvariantType::Reentrancy}},
 			false, // --model-checker-print-query

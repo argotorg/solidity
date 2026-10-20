@@ -1135,16 +1135,6 @@ std::variant<StandardCompiler::InputsAndSettings, Json> StandardCompiler::parseI
 		ret.modelCheckerSettings.engine = *engine;
 	}
 
-	if (modelCheckerSettings.contains("bmcLoopIterations"))
-	{
-		if (!ret.modelCheckerSettings.engine.bmc)
-			return formatFatalError(Error::Type::JSONError, "settings.modelChecker.bmcLoopIterations requires the BMC engine to be enabled.");
-		if (modelCheckerSettings["bmcLoopIterations"].is_number_unsigned())
-			ret.modelCheckerSettings.bmcLoopIterations = modelCheckerSettings["bmcLoopIterations"].get<unsigned>();
-		else
-			return formatFatalError(Error::Type::JSONError, "settings.modelChecker.bmcLoopIterations must be an unsigned integer.");
-	}
-
 	if (modelCheckerSettings.contains("extCalls"))
 	{
 		if (!modelCheckerSettings["extCalls"].is_string())

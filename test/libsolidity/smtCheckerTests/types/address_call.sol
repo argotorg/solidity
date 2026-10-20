@@ -16,7 +16,7 @@ contract C
 	}
 }
 // ====
-// SMTEngine: all
+// SMTEngine: chc
 // SMTIgnoreCex: yes
 // SMTIgnoreInv: yes
 // SMTIgnoreOS: macos
@@ -25,4 +25,3 @@ contract C
 // Warning 2072: (191-207): Unused local variable.
 // Warning 6328: (227-242): CHC: Assertion violation happens here.\nCounterexample:\nx = 0\na = 0x0\nsuccess = false\nret = []\n\nTransaction trace:\nC.constructor()\nState: x = 0\nC.f(0x0, data) -- counterexample incomplete; parameter name used instead of value\n    a.call(data) -- untrusted external call
 // Info 1391: CHC: 1 verification condition(s) proved safe! Enable the model checker option "show proved safe" to see all of them.
-// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

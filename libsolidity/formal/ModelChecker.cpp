@@ -48,7 +48,6 @@ ModelChecker::ModelChecker(
 	m_provedSafeReporter(m_provedSafeLogs),
 	m_settings(std::move(_settings)),
 	m_context(),
-	m_bmc(m_context, m_uniqueErrorReporter, m_unsupportedErrorReporter, m_provedSafeReporter, _smtlib2Responses, _smtCallback, m_settings, _charStreamProvider),
 	m_chc(m_context, m_uniqueErrorReporter, m_unsupportedErrorReporter, m_provedSafeReporter, _smtlib2Responses, _smtCallback, m_settings, _charStreamProvider)
 {
 }
@@ -134,20 +133,6 @@ void ModelChecker::analyze(SourceUnit const& _source)
 	for (auto const& [node, targets]: m_chc.unsafeTargets())
 		solvedTargets[node] += targets | ranges::views::keys;
 
-	if (m_settings.engine.bmc)
-	{
-		if (!m_uniqueErrorReporter.hasError(ErrorId{3993}))
-		{
-			m_uniqueErrorReporter.warning(
-				3993_error,
-				SourceLocation(),
-				"The BMC engine of the SMTChecker is deprecated and will be removed in a future release. "
-				"Please use the CHC engine instead."
-			);
-		}
-		m_bmc.analyze(_source, solvedTargets);
-	}
-
 	if (m_settings.showUnsupported)
 	{
 		m_errorReporter.append(m_unsupportedErrorReporter.errors());
@@ -175,7 +160,7 @@ void ModelChecker::analyze(SourceUnit const& _source)
 
 std::vector<std::string> ModelChecker::unhandledQueries()
 {
-	return m_bmc.unhandledQueries() + m_chc.unhandledQueries();
+	return m_chc.unhandledQueries();
 }
 
 SMTSolverChoice ModelChecker::availableSolvers()

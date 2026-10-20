@@ -23,7 +23,6 @@
 
 #pragma once
 
-#include <libsolidity/formal/BMC.h>
 #include <libsolidity/formal/CHC.h>
 #include <libsolidity/formal/EncodingContext.h>
 #include <libsolidity/formal/ModelCheckerSettings.h>
@@ -105,9 +104,6 @@ private:
 
 	/// Stores the context of the encoding.
 	smt::EncodingContext m_context;
-
-	/// Bounded Model Checker engine.
-	BMC m_bmc;
 
 	/// Constrained Horn Clauses engine.
 	CHC m_chc;
