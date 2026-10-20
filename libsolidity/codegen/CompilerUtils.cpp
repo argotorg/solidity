@@ -947,7 +947,7 @@ void CompilerUtils::convertType(
 					// Move it back into its place.
 					for (unsigned j = 0; j < std::min(sourceSize, targetSize); ++j)
 						m_context <<
-							swapInstruction(depth + targetSize - sourceSize) <<
+							AssemblyItem::swap(depth + targetSize - sourceSize) <<
 							Instruction::POP;
 					// Value shrank
 					for (unsigned j = targetSize; j < sourceSize; ++j)
@@ -1099,7 +1099,7 @@ void CompilerUtils::moveToStackVariable(VariableDeclaration const& _variable)
 			util::errinfo_comment(util::stackTooDeepString)
 		);
 	for (unsigned i = 0; i < size; ++i)
-		m_context << swapInstruction(stackPosition - size + 1) << Instruction::POP;
+		m_context << AssemblyItem::swap(stackPosition - size + 1) << Instruction::POP;
 }
 
 void CompilerUtils::copyToStackTop(unsigned _stackDepth, unsigned _itemSize)
@@ -1110,7 +1110,7 @@ void CompilerUtils::copyToStackTop(unsigned _stackDepth, unsigned _itemSize)
 		util::stackTooDeepString
 	);
 	for (unsigned i = 0; i < _itemSize; ++i)
-		m_context << dupInstruction(_stackDepth);
+		m_context << AssemblyItem::dup(_stackDepth);
 }
 
 void CompilerUtils::moveToStackTop(unsigned _stackDepth, unsigned _itemSize)
@@ -1136,7 +1136,7 @@ void CompilerUtils::rotateStackUp(unsigned _items)
 		util::stackTooDeepString
 	);
 	for (unsigned i = 1; i < _items; ++i)
-		m_context << swapInstruction(_items - i);
+		m_context << AssemblyItem::swap(_items - i);
 }
 
 void CompilerUtils::rotateStackDown(unsigned _items)
@@ -1147,7 +1147,7 @@ void CompilerUtils::rotateStackDown(unsigned _items)
 		util::stackTooDeepString
 	);
 	for (unsigned i = 1; i < _items; ++i)
-		m_context << swapInstruction(i);
+		m_context << AssemblyItem::swap(i);
 }
 
 void CompilerUtils::popStackElement(Type const& _type)
