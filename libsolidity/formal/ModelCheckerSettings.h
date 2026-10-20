@@ -58,23 +58,19 @@ struct ModelCheckerContracts
 
 struct ModelCheckerEngine
 {
-	bool bmc = false;
 	bool chc = false;
 
-	static constexpr ModelCheckerEngine All() { return {true, true}; }
-	static constexpr ModelCheckerEngine BMC() { return {true, false}; }
-	static constexpr ModelCheckerEngine CHC() { return {false, true}; }
-	static constexpr ModelCheckerEngine None() { return {false, false}; }
+	static constexpr ModelCheckerEngine All() { return {true}; }
+	static constexpr ModelCheckerEngine CHC() { return {true}; }
+	static constexpr ModelCheckerEngine None() { return {false}; }
 
 	bool none() const { return !any(); }
-	bool any() const { return bmc || chc; }
-	bool all() const { return bmc && chc; }
+	bool any() const { return chc; }
 
 	static std::optional<ModelCheckerEngine> fromString(std::string const& _engine)
 	{
 		static std::map<std::string, ModelCheckerEngine> engineMap{
 			{"all", All()},
-			{"bmc", BMC()},
 			{"chc", CHC()},
 			{"none", None()}
 		};
@@ -84,7 +80,7 @@ struct ModelCheckerEngine
 	}
 
 	bool operator!=(ModelCheckerEngine const& _other) const noexcept { return !(*this == _other); }
-	bool operator==(ModelCheckerEngine const& _other) const noexcept { return bmc == _other.bmc && chc == _other.chc; }
+	bool operator==(ModelCheckerEngine const& _other) const noexcept { return chc == _other.chc; }
 };
 
 enum class InvariantType { Contract, Reentrancy };
@@ -113,7 +109,7 @@ struct ModelCheckerInvariants
 	std::set<InvariantType> invariants;
 };
 
-enum class VerificationTargetType { ConstantCondition, Underflow, Overflow, DivByZero, Balance, Assert, PopEmptyArray, OutOfBounds };
+enum class VerificationTargetType { Underflow, Overflow, DivByZero, Balance, Assert, PopEmptyArray, OutOfBounds };
 
 struct ModelCheckerTargets
 {
@@ -157,7 +153,6 @@ struct ModelCheckerExtCalls
 
 struct ModelCheckerSettings
 {
-	std::optional<unsigned> bmcLoopIterations;
 	ModelCheckerContracts contracts = ModelCheckerContracts::Default();
 	/// Currently division and modulo are replaced by multiplication with slack vars, such that
 	/// a / b <=> a = b * k + m
@@ -181,7 +176,6 @@ struct ModelCheckerSettings
 	bool operator==(ModelCheckerSettings const& _other) const noexcept
 	{
 		return
-			bmcLoopIterations == _other.bmcLoopIterations &&
 			contracts == _other.contracts &&
 			divModNoSlacks == _other.divModNoSlacks &&
 			engine == _other.engine &&

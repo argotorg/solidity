@@ -20,4 +20,3 @@ contract C {
 // SMTEngine: all
 // ----
 // Warning 6368: (196-202): CHC: Out of bounds access might happen here.
-// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

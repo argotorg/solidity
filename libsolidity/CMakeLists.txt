@@ -103,8 +103,6 @@ set(sources
 	codegen/ir/IRVariable.h
 	formal/ArraySlicePredicate.cpp
 	formal/ArraySlicePredicate.h
-	formal/BMC.cpp
-	formal/BMC.h
 	formal/CHC.cpp
 	formal/CHC.h
 	formal/Cvc5SMTLib2Interface.cpp

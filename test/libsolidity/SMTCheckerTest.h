@@ -51,7 +51,7 @@ protected:
 
 	/*
 	Options that can be set in the test:
-	SMTEngine: `all`, `chc`, `bmc`, `none`, where the default is `all`.
+	SMTEngine: `all`, `chc`, `none`, where the default is `all`.
 		Set in m_modelCheckerSettings.
 	SMTIgnoreCex: `yes`, `no`, where the default is `no`.
 		Set in m_ignoreCex.
@@ -62,8 +62,6 @@ protected:
 	SMTShowUnproved: `yes`, `no`, where the default is `yes`.
 		Set in m_modelCheckerSettings.
 	SMTSolvers: `all`, `cvc5`, `z3`, `eld`, `none`, where the default is `z3`.
-		Set in m_modelCheckerSettings.
-	BMCLoopIterations: number of loop iterations for BMC engine, the default is 1.
 		Set in m_modelCheckerSettings.
 	*/
 

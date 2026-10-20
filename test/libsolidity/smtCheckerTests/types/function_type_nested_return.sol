@@ -21,6 +21,3 @@ contract C {
 // Warning 1695: (255-256): Assertion checker does not yet support this global variable.
 // Warning 6031: (295-297): Internal error: Expression undefined for SMT solver.
 // Warning 8364: (295-297): Assertion checker does not yet implement type function (function (uint256))
-// Warning 5729: (163-168): BMC does not yet implement this type of function call.
-// Warning 5729: (252-259): BMC does not yet implement this type of function call.
-// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.
