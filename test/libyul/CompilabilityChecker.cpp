@@ -185,6 +185,8 @@ BOOST_AUTO_TEST_CASE(many_return_variables_used_arguments, *boost::unit_test::pr
 BOOST_AUTO_TEST_CASE(many_variables_few_uses_dupn_swapn, *boost::unit_test::precondition(minEVMVersionCheck(EVMVersion::amsterdam())))
 {
 	BOOST_CHECK_EQUAL(check(manyVariablesSource(18, 9)), "");
+	BOOST_CHECK_EQUAL(check(manyVariablesSource(237, 116)), "");
+	BOOST_CHECK_EQUAL(check(manyVariablesSource(237, 117)), "f: 1 ");
 	BOOST_CHECK_EQUAL(check(manyVariablesSource(237, 228)), "f: 223 ");
 }
 
@@ -197,12 +199,16 @@ BOOST_AUTO_TEST_CASE(many_variables_many_uses_dupn_swapn, *boost::unit_test::pre
 BOOST_AUTO_TEST_CASE(many_return_variables_unused_arguments_dupn_swapn, *boost::unit_test::precondition(minEVMVersionCheck(EVMVersion::amsterdam())))
 {
 	BOOST_CHECK_EQUAL(check(manyReturnVariablesSource(19, false)), "");
+	BOOST_CHECK_EQUAL(check(manyReturnVariablesSource(235, false)), "");
+	BOOST_CHECK_EQUAL(check(manyReturnVariablesSource(236, false)), "f: 1 ");
 	BOOST_CHECK_EQUAL(check(manyReturnVariablesSource(238, false)), "f: 3 ");
 }
 
 BOOST_AUTO_TEST_CASE(many_return_variables_used_arguments_dupn_swapn, *boost::unit_test::precondition(minEVMVersionCheck(EVMVersion::amsterdam())))
 {
 	BOOST_CHECK_EQUAL(check(manyReturnVariablesSource(19, true)), "");
+	BOOST_CHECK_EQUAL(check(manyReturnVariablesSource(233, true)), "");
+	BOOST_CHECK_EQUAL(check(manyReturnVariablesSource(234, true)), "f: 1 ");
 	BOOST_CHECK_EQUAL(check(manyReturnVariablesSource(238, true)), "f: 5 ");
 }
 
