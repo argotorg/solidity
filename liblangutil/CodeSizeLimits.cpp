@@ -54,16 +54,13 @@ CodeSizeLimit creationCodeSizeLimit(EVMVersion _evmVersion)
 		return {};
 }
 
-CodeSizeLimit runtimeCodeSizeLimit(EVMVersion _evmVersion)
+CodeSizeLimit runtimeCodeSizeLimit()
 {
-	if (_evmVersion >= EVMVersion::spuriousDragon())
-		return {
-			"Spurious Dragon",
-			RUNTIME_CODE_SIZE_LIMIT_SPURIOUS_DRAGON,
-			5574_error,
-		};
-	else
-		return {};
+	return {
+		"Spurious Dragon",
+		RUNTIME_CODE_SIZE_LIMIT_SPURIOUS_DRAGON,
+		5574_error,
+	};
 }
 
 void reportCodeSizeLimitWarningIfExceeded(
@@ -101,7 +98,7 @@ void checkCodeSizeLimits(
 {
 	reportCodeSizeLimitWarningIfExceeded(
 		_errorReporter,
-		runtimeCodeSizeLimit(_evmVersion),
+		runtimeCodeSizeLimit(),
 		_runtimeCodeSize,
 		_codeSizeWarningSubject + " code",
 		_location
