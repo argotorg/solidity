@@ -611,20 +611,14 @@ std::optional<FunctionDefinition const*> FunctionDefinition::superLookupTarget(
 {
 	FunctionType const* externalFunctionType = TypeProvider::function(*this)->asExternallyCallableFunction(false);
 
-	bool foundSearchStart = false;
-	for (ContractDefinition const* c: _mostDerivedContract.annotation().linearizedBaseContracts)
-	{
-		if (!foundSearchStart && c != &_searchStart)
-			continue;
-		foundSearchStart = true;
-
+    auto toSearch = _mostDerivedContract.annotation().linearizedBaseContracts | ranges::views::drop_while([&](auto const* contract) { return contract != &_searchStart; });
+	for (ContractDefinition const* c: toSearch)
 		for (FunctionDefinition const* function: c->definedFunctions(name()))
 			if (
 				function->isImplemented() &&
 				FunctionType(*function).asExternallyCallableFunction(false)->hasEqualParameterTypes(*externalFunctionType)
 			)
 				return function;
-	}
 	return std::nullopt;
 }
 
