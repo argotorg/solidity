@@ -317,14 +317,20 @@ void DataFlowAnalyzer::clearValues(VariableSet const& _variablesToClear)
 	// This cannot be easily tested since the substitutions will be done
 	// one by one on the fly, and the last line will just be add(1, 1)
 
+	if (_variablesToClear.empty())
+		return;
+
 	// First clear storage knowledge, because we do not have to clear
 	// storage knowledge of variables whose expression has changed,
 	// since the value is still unchanged.
 	auto eraseCondition = mapTuple([&_variablesToClear](auto&& key, auto&& value) {
 		return _variablesToClear.count(key) || _variablesToClear.count(value);
 	});
-	boost::unordered::erase_if(m_state.environment.storage, eraseCondition);
-	boost::unordered::erase_if(m_state.environment.memory, eraseCondition);
+	// erase_if on flat maps visits every slot of the allocated capacity, so skip it for empty maps.
+	if (!m_state.environment.storage.empty())
+		boost::unordered::erase_if(m_state.environment.storage, eraseCondition);
+	if (!m_state.environment.memory.empty())
+		boost::unordered::erase_if(m_state.environment.memory, eraseCondition);
 	std::erase_if(m_state.environment.keccak, [&_variablesToClear](auto&& _item) {
 		return
 			_variablesToClear.count(_item.first.first) ||
@@ -333,15 +339,22 @@ void DataFlowAnalyzer::clearValues(VariableSet const& _variablesToClear)
 	});
 
 	// Also clear variables that reference variables to be cleared.
-	std::vector const sortedVariablesToClear(_variablesToClear.begin(), _variablesToClear.end());
-	boost::unordered::erase_if(m_state.sortedReferences, mapTuple([&](auto&& referencingVariable, auto&& referencedVariables) {
+	auto const referencesVariableToClear = [&](auto const& _referencedVariables) {
+		// Both ranges are sorted by `std::less<YulName>`: the variable sets are ordered sets and
+		// the references are sorted on insertion.
+		if (_variablesToClear.size() == 1)
+			return std::ranges::binary_search(_referencedVariables, *_variablesToClear.begin());
 		// instead of checking each variable in `referencedVariables`, we check if there is any intersection making use of the
-		// sortedness of the vectors, which can increase performance by up to 50% in pathological cases
-		if (!hasNonemptyIntersectionSorted(referencedVariables, sortedVariablesToClear))
-			return false;
-		m_state.value.erase(referencingVariable);
-		return true;
-	}));
+		// sortedness of the ranges, which can increase performance by up to 50% in pathological cases
+		return hasNonemptyIntersectionSorted(_referencedVariables, _variablesToClear);
+	};
+	if (!m_state.sortedReferences.empty())
+		boost::unordered::erase_if(m_state.sortedReferences, mapTuple([&](auto&& referencingVariable, auto&& referencedVariables) {
+			if (!referencesVariableToClear(referencedVariables))
+				return false;
+			m_state.value.erase(referencingVariable);
+			return true;
+		}));
 
 	// Clear the value and update the reference relation.
 	for (auto const& name: _variablesToClear)
