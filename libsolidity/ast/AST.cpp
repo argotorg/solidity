@@ -581,6 +581,7 @@ FunctionDefinition const& FunctionDefinition::resolveVirtual(
 	{
 		std::optional<FunctionDefinition const*> const target = superLookupTarget(_mostDerivedContract, *_searchStart);
 		solAssert(target, "Super lookup for function " + name() + " found no target.");
+		solAssert(*target, "Super lookup for function " + name() + " returned a null target.");
 		// An external target may differ in data location; it is rejected by PostTypeContractLevelChecker
 		if ((*target)->isVisibleInDerivedContracts())
 			solAssert(FunctionType(**target).hasEqualParameterTypes(*TypeProvider::function(*this)));

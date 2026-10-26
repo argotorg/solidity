@@ -142,6 +142,7 @@ void PostTypeContractLevelChecker::checkSuperCallsResolvingToExternalFunctions(C
 		// the function the super call binds to, using the lookup that resolveVirtual performs
 		std::optional<FunctionDefinition const*> const targetOrNone = function->superLookupTarget(_contract, *searchStart);
 		solAssert(targetOrNone, "Super lookup for function " + function->name() + " found no target.");
+		solAssert(*targetOrNone, "Super lookup for function " + function->name() + " returned a null target.");
 		FunctionDefinition const& target = **targetOrNone;
 		if (target.isVisibleInDerivedContracts())
 			continue;
