@@ -22,12 +22,11 @@
 
 #include <libyul/Exceptions.h>
 
-#include <range/v3/view/iota.hpp>
 #include <range/v3/view/reverse.hpp>
-#include <range/v3/to_container.hpp>
 
 #include <algorithm>
 #include <limits>
+#include <numeric>
 
 using namespace solidity::yul::ssa;
 using namespace solidity::yul::ssa::analysis;
@@ -50,7 +49,8 @@ DominatorTree::DominatorTree(DepthFirstSpanningTree const& _dfsTree)
 	for (std::size_t i = 1; i < numConnectedBlocks; ++i)
 		parent[i] = _dfsTree.preOrderIndexOf(_dfsTree.parentOf(preOrder[i]));
 
-	std::vector semi = ranges::views::iota(0u, numConnectedBlocks) | ranges::to<std::vector<std::size_t>>();
+	std::vector<std::size_t> semi(numConnectedBlocks);
+	std::iota(semi.begin(), semi.end(), 0);
 	// label[v] = minimal semidominator value on the compressed forest path ending in a linked vertex v.
 	// Unlike [LT79], where label holds a vertex attaining that minimum, it holds the value itself: SEMI-NCA
 	// only needs the minimal value [GTW06, Section 2.3]
