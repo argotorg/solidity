@@ -26,7 +26,7 @@
 
 #include <libsolutil/Assertions.h>
 
-#include <regex>
+#include <boost/regex.hpp>
 
 using namespace solidity::util;
 
@@ -76,13 +76,13 @@ std::string Whiskers::render() const
 
 void Whiskers::checkTemplateValid() const
 {
-	static std::regex const validTemplate(
+	static boost::regex const validTemplate(
 		"<[#?!\\/]\\+{0,1}[a-zA-Z0-9_$-]+(?:[^a-zA-Z0-9_$>-]|$)",
-		std::regex_constants::ECMAScript | std::regex_constants::optimize
+		boost::regex::ECMAScript
 	);
-	std::smatch match;
+	boost::smatch match;
 	assertThrow(
-		!regex_search(m_template, match, validTemplate),
+		!boost::regex_search(m_template, match, validTemplate),
 		WhiskersError,
 		"Template contains an invalid/unclosed tag " + match.str()
 	);
@@ -90,12 +90,12 @@ void Whiskers::checkTemplateValid() const
 
 void Whiskers::checkParameterValid(std::string const& _parameter) const
 {
-	static std::regex const validParam(
+	static boost::regex const validParam(
 		"^" + paramRegex() + "$",
-		std::regex_constants::ECMAScript | std::regex_constants::optimize
+		boost::regex::ECMAScript
 	);
 	assertThrow(
-		regex_match(_parameter, validParam),
+		boost::regex_match(_parameter, validParam),
 		WhiskersError,
 		"Parameter" + _parameter + " contains invalid characters."
 	);
@@ -133,32 +133,6 @@ void Whiskers::checkTemplateContainsTags(std::string const& _parameter, std::vec
 	}
 }
 
-namespace
-{
-template<class ReplaceCallback>
-std::string regex_replace(
-	std::string const& _source,
-	std::regex const& _pattern,
-	ReplaceCallback _replace,
-	std::regex_constants::match_flag_type _flags = std::regex_constants::match_default
-)
-{
-	std::sregex_iterator curMatch(_source.begin(), _source.end(), _pattern, _flags);
-	std::sregex_iterator matchEnd;
-	std::string::const_iterator lastMatchedPos(_source.cbegin());
-	std::string result;
-	while (curMatch != matchEnd)
-	{
-		result.append(curMatch->prefix().first, curMatch->prefix().second);
-		result.append(_replace(*curMatch));
-		lastMatchedPos = (*curMatch)[0].second;
-		++curMatch;
-	}
-	result.append(lastMatchedPos, _source.cend());
-	return result;
-}
-}
-
 std::string Whiskers::replace(
 	std::string const& _template,
 	StringMap const& _parameters,
@@ -166,13 +140,13 @@ std::string Whiskers::replace(
 	std::map<std::string, std::vector<StringMap>> const& _listParameters
 )
 {
-	static std::regex listOrTag(
+	static boost::regex listOrTag(
 		"<(" + paramRegex() + ")>|"
 		"<#(" + paramRegex() + ")>((?:.|\\r|\\n)*?)</\\2>|"
 		"<\\?(\\+?" + paramRegex() + ")>((?:.|\\r|\\n)*?)(<!\\4>((?:.|\\r|\\n)*?))?</\\4>",
-		std::regex_constants::ECMAScript | std::regex_constants::optimize
+		boost::regex::ECMAScript
 	);
-	return regex_replace(_template, listOrTag, [&](std::match_results<std::string::const_iterator> _match) -> std::string
+	return boost::regex_replace(_template, listOrTag, [&](boost::smatch const& _match) -> std::string
 	{
 		std::string tagName(_match[1]);
 		std::string listName(_match[2]);
