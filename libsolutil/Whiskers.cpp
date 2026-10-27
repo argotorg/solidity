@@ -35,9 +35,6 @@ namespace
 // Parameter names. The trailing '-' must be escaped: unlike ECMAScript, CTRE rejects a bare '-' before ']'.
 #define WHISKERS_PARAM "[a-zA-Z0-9_$\\-]+"
 
-constexpr auto invalidTagRegex = ctll::fixed_string{
-	"<[#?!\\/]\\+{0,1}" WHISKERS_PARAM "(?:[^a-zA-Z0-9_$>\\-]|$)"
-};
 constexpr auto paramRegex = ctll::fixed_string{WHISKERS_PARAM};
 // The else-branch of a condition is written as an alternative rather than as an optional group:
 // CTRE never takes an optional group that follows a lazy repetition, so `(<!\4>...)?` would
@@ -49,12 +46,6 @@ constexpr auto listOrTagRegex = ctll::fixed_string{
 };
 
 #undef WHISKERS_PARAM
-}
-
-Whiskers::Whiskers(std::string _template):
-	m_template(std::move(_template))
-{
-	checkTemplateValid();
 }
 
 Whiskers& Whiskers::operator()(std::string _parameter, std::string _value)
@@ -93,16 +84,6 @@ Whiskers& Whiskers::operator()(
 std::string Whiskers::render() const
 {
 	return replace(m_template, m_parameters, m_conditions, m_listParameters);
-}
-
-void Whiskers::checkTemplateValid() const
-{
-	auto const match = ctre::search<invalidTagRegex>(m_template);
-	assertThrow(
-		!match,
-		WhiskersError,
-		"Template contains an invalid/unclosed tag " + match.to_string()
-	);
 }
 
 void Whiskers::checkParameterValid(std::string const& _parameter) const

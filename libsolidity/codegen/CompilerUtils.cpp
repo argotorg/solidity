@@ -373,9 +373,10 @@ void CompilerUtils::abiDecode(TypePointers const& _typeParameters, bool _fromMem
 					m_context.appendInlineAssembly(Whiskers(R"({
 						if or(
 							gt(array_length, 0x100000000),
-							gt(add(data_ptr, mul(array_length, )" + std::to_string(arrayType.calldataStride()) + R"()), input_end)
+							gt(add(data_ptr, mul(array_length, <stride>)), input_end)
 						) { <revertString> }
 					})")
+					("stride", std::to_string(arrayType.calldataStride()))
 					("revertString", m_context.revertReasonIfDebug("ABI calldata decoding: invalid data pointer"))
 					.render(), {"input_end", "base_offset", "data_ptr", "array_length", "next_ptr"});
 				}

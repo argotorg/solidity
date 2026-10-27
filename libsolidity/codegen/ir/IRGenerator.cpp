@@ -1082,11 +1082,11 @@ std::string IRGenerator::memoryInit(bool _useMemoryGuard)
 	// and thus can assume all memory to be zero, including the contents of
 	// the "zero memory area" (the position CompilerUtils::zeroPointer points to).
 	return
-		Whiskers{
+		(
 			_useMemoryGuard ?
-			"mstore(<memPtr>, memoryguard(<freeMemoryStart>))" :
-			"mstore(<memPtr>, <freeMemoryStart>)"
-		}
+			Whiskers{"mstore(<memPtr>, memoryguard(<freeMemoryStart>))"} :
+			Whiskers{"mstore(<memPtr>, <freeMemoryStart>)"}
+		)
 		("memPtr", std::to_string(CompilerUtils::freeMemoryPointer))
 		(
 			"freeMemoryStart",

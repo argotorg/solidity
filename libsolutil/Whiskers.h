@@ -27,6 +27,7 @@
 #include <libsolutil/Exceptions.h>
 
 #include <string>
+#include <string_view>
 #include <map>
 #include <vector>
 
@@ -34,6 +35,60 @@ namespace solidity::util
 {
 
 DEV_SIMPLE_EXCEPTION(WhiskersError);
+
+/// @returns the first invalid or unclosed tag in @a _text (a tag start `<#name`, `<?name`, `<!name`
+/// or `</name`, optionally with `+` before the name, that is not followed by `>`), or an empty view if
+/// there is none.
+constexpr std::string_view findInvalidWhiskersTag(std::string_view _text)
+{
+	auto isParameterChar = [](char _c) {
+		return
+			('a' <= _c && _c <= 'z') ||
+			('A' <= _c && _c <= 'Z') ||
+			('0' <= _c && _c <= '9') ||
+			_c == '_' || _c == '$' || _c == '-';
+	};
+	for (size_t start = 0; start + 1 < _text.size(); ++start)
+	{
+		if (_text[start] != '<' || std::string_view{"#?!/"}.find(_text[start + 1]) == std::string_view::npos)
+			continue;
+		size_t nameStart = start + 2;
+		if (nameStart < _text.size() && _text[nameStart] == '+')
+			++nameStart;
+		size_t nameEnd = nameStart;
+		while (nameEnd < _text.size() && isParameterChar(_text[nameEnd]))
+			++nameEnd;
+		if (nameEnd == nameStart)
+			continue;
+		if (nameEnd == _text.size())
+			return _text.substr(start);
+		if (_text[nameEnd] != '>')
+			return _text.substr(start, nameEnd + 1 - start);
+	}
+	return {};
+}
+
+/**
+ * Text of a Whiskers template, implicitly constructible from a string literal.
+ * The template is checked for invalid or unclosed tags at compile time.
+ */
+class WhiskersTemplate
+{
+public:
+	consteval WhiskersTemplate(char const* _text): m_text(_text)
+	{
+		if (!findInvalidWhiskersTag(m_text).empty())
+			templateContainsInvalidOrUnclosedTag();
+	}
+
+	std::string_view text() const { return m_text; }
+
+private:
+	/// Not constexpr: reaching it during constant evaluation turns an invalid template into a compile error.
+	static void templateContainsInvalidOrUnclosedTag() {}
+
+	std::string_view m_text;
+};
 
 /**
  * Moustache-like templates.
@@ -74,7 +129,8 @@ public:
 	using StringMap = std::map<std::string, std::string>;
 	using StringListMap = std::map<std::string, std::vector<StringMap>>;
 
-	explicit Whiskers(std::string _template = "");
+	Whiskers() = default;
+	explicit Whiskers(WhiskersTemplate _template): m_template(_template.text()) {}
 
 	/// Sets a single regular parameter, <paramName>.
 	Whiskers& operator()(std::string _parameter, std::string _value);
@@ -92,7 +148,6 @@ public:
 private:
 	// Prevent implicit cast to bool
 	Whiskers& operator()(std::string _parameter, long long);
-	void checkTemplateValid() const;
 	void checkParameterValid(std::string const& _parameter) const;
 	void checkParameterUnknown(std::string const& _parameter) const;
 

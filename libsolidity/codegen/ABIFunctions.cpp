@@ -85,16 +85,15 @@ std::string ABIFunctions::tupleEncoder(
 			solAssert(_targetTypes[i], "");
 			size_t sizeOnStack = _givenTypes[i]->sizeOnStack();
 			bool dynamic = _targetTypes[i]->isDynamicallyEncoded();
-			Whiskers elementTempl(
+			Whiskers elementTempl =
 				dynamic ?
-				std::string(R"(
+				Whiskers(R"(
 					mstore(add(headStart, <pos>), sub(tail, headStart))
 					tail := <abiEncode>(<values> tail)
 				)") :
-				std::string(R"(
+				Whiskers(R"(
 					<abiEncode>(<values> add(headStart, <pos>))
-				)")
-			);
+				)");
 			std::string values = suffixedVariableNameList("value", stackPos, stackPos + sizeOnStack);
 			elementTempl("values", values.empty() ? "" : values + ", ");
 			elementTempl("pos", std::to_string(headPos));
@@ -161,16 +160,15 @@ std::string ABIFunctions::tupleEncoderPacked(
 			solAssert(_targetTypes[i], "");
 			size_t sizeOnStack = _givenTypes[i]->sizeOnStack();
 			bool dynamic = _targetTypes[i]->isDynamicallyEncoded();
-			Whiskers elementTempl(
+			Whiskers elementTempl =
 				dynamic ?
-				std::string(R"(
+				Whiskers(R"(
 					pos := <abiEncode>(<values> pos)
 				)") :
-				std::string(R"(
+				Whiskers(R"(
 					<abiEncode>(<values> pos)
 					pos := add(pos, <calldataEncodedSize>)
-				)")
-			);
+				)");
 			std::string values = suffixedVariableNameList("value", stackPos, stackPos + sizeOnStack);
 			elementTempl("values", values.empty() ? "" : values + ", ");
 			if (!dynamic)
@@ -548,9 +546,9 @@ std::string ABIFunctions::abiEncodingFunctionSimpleArray(
 		subOptions.encodeFunctionFromStack = false;
 		subOptions.padded = true;
 		std::string elementValues = suffixedVariableNameList("elementValue", 0, numVariablesForType(*_from.baseType(), subOptions));
-		Whiskers templ(
+		Whiskers templ =
 			usesTail ?
-			R"(
+			Whiskers(R"(
 				// <readableTypeNameFrom> -> <readableTypeNameTo>
 				function <functionName>(value,<maybeLength> pos) <return> {
 					<declareLength>
@@ -570,8 +568,8 @@ std::string ABIFunctions::abiEncodingFunctionSimpleArray(
 					pos := tail
 					<assignEnd>
 				}
-			)" :
-			R"(
+			)") :
+			Whiskers(R"(
 				// <readableTypeNameFrom> -> <readableTypeNameTo>
 				function <functionName>(value,<maybeLength> pos) <return> {
 					<declareLength>
@@ -586,8 +584,7 @@ std::string ABIFunctions::abiEncodingFunctionSimpleArray(
 					}
 					<assignEnd>
 				}
-			)"
-		);
+			)");
 		templ("functionName", functionName);
 		templ("elementValues", elementValues);
 		bool lengthAsArgument = _from.dataStoredIn(DataLocation::CallData) && _from.isDynamicallySized();
@@ -939,14 +936,13 @@ std::string ABIFunctions::abiEncodingFunctionStruct(
 					.render();
 			else
 			{
-				Whiskers encodeTempl(
+				Whiskers encodeTempl =
 					dynamicMember ?
-					std::string(R"(
+					Whiskers(R"(
 						mstore(add(pos, <encodingOffset>), sub(tail, pos))
 						tail := <abiEncode>(<memberValues>, tail)
 					)") :
-					"<abiEncode>(<memberValues>, add(pos, <encodingOffset>))"
-				);
+					Whiskers("<abiEncode>(<memberValues>, add(pos, <encodingOffset>))");
 				encodeTempl("memberValues", memberValues);
 				encodeTempl("encodingOffset", toCompactHexWithPrefix(encodingOffset));
 				encodingOffset += memberTypeTo->calldataHeadSize();
