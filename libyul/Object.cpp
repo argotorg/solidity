@@ -45,30 +45,60 @@ std::string Data::toString(DebugInfoSelection const&, CharStreamProvider const*)
 	return "data " + util::escapeAndQuoteString(name) + " hex\"" + util::toHex(data) + "\"";
 }
 
+namespace
+{
+
+/// Prints @a _object the way Object::toString() does, but as if it was nested @a _indentation levels deep,
+/// i.e. with every line except the first one indented by that many levels. Printing nested objects
+/// with the right indentation in the first place avoids re-indenting their text at every level.
+std::string formatObject(
+	Object const& _object,
+	DebugInfoSelection const& _debugInfoSelection,
+	CharStreamProvider const* _soliditySourceProvider,
+	size_t _indentation
+)
+{
+	yulAssert(_object.hasCode(), "No code");
+	yulAssert(_object.dialect(), "No dialect");
+	yulAssert(_object.debugData, "No debug data");
+
+	std::string const indentation(4 * _indentation, ' ');
+	std::string const innerIndentation = indentation + "    ";
+
+	std::string result = _object.debugData->formatUseSrcComment();
+	if (!result.empty())
+		result += indentation;
+	result +=
+		"object " + util::escapeAndQuoteString(_object.name) + " {\n" +
+		innerIndentation + "code " + AsmPrinter::format(
+			*_object.code(),
+			_object.debugData->sourceNames,
+			_debugInfoSelection,
+			_soliditySourceProvider,
+			_indentation + 1
+		);
+
+	for (auto const& node: _object.subObjects)
+	{
+		result += "\n" + innerIndentation;
+		// Data is printed on a single line, so only nested objects need the indentation.
+		if (auto const* subObject = dynamic_cast<Object const*>(node.get()))
+			result += formatObject(*subObject, _debugInfoSelection, _soliditySourceProvider, _indentation + 1);
+		else
+			result += node->toString(_debugInfoSelection, _soliditySourceProvider);
+	}
+
+	return result + "\n" + indentation + "}";
+}
+
+}
+
 std::string Object::toString(
 	DebugInfoSelection const& _debugInfoSelection,
 	CharStreamProvider const* _soliditySourceProvider
 ) const
 {
-	yulAssert(hasCode(), "No code");
-	yulAssert(dialect(), "No dialect");
-	yulAssert(debugData, "No debug data");
-
-	std::string inner = "code " + AsmPrinter::format(
-		*code(),
-		debugData->sourceNames,
-		_debugInfoSelection,
-		_soliditySourceProvider
-	);
-
-	for (auto const& obj: subObjects)
-		inner += "\n" + obj->toString(_debugInfoSelection, _soliditySourceProvider);
-
-	return
-		debugData->formatUseSrcComment() +
-		"object " + util::escapeAndQuoteString(name) + " {\n" +
-		indent(inner) + "\n" +
-		"}";
+	return formatObject(*this, _debugInfoSelection, _soliditySourceProvider, 0);
 }
 
 Json Data::toJson() const

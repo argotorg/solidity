@@ -46,11 +46,14 @@ class Dialect;
 class AsmPrinter
 {
 public:
+	/// @param _indentation nesting level (4 spaces each) of the line the code starts on.
+	/// Every subsequent line is indented relative to it.
 	static std::string format(
 		AST const& _ast,
 		std::optional<std::map<unsigned, std::shared_ptr<std::string const>>> const& _sourceIndexToName = {},
 		langutil::DebugInfoSelection const& _debugInfoSelection = langutil::DebugInfoSelection::Default(),
-		langutil::CharStreamProvider const* _soliditySourceProvider = nullptr
+		langutil::CharStreamProvider const* _soliditySourceProvider = nullptr,
+		size_t _indentation = 0
 	);
 
 	explicit AsmPrinter(
@@ -92,6 +95,9 @@ public:
 	);
 
 private:
+	/// Line break followed by the indentation of the current nesting level.
+	/// Nested blocks are indented while printing instead of re-indenting their text afterwards.
+	std::string newLine() const { return "\n" + std::string(4 * m_indentation, ' '); }
 	std::string formatNameWithDebugData(NameWithDebugData _variable);
 	std::string formatDebugData(langutil::DebugData::ConstPtr const& _debugData, bool _statement);
 	template <class T>
@@ -104,6 +110,7 @@ private:
 	Dialect const& m_dialect;
 	std::map<std::string, unsigned> m_nameToSourceIndex;
 	langutil::SourceLocation m_lastLocation = {};
+	size_t m_indentation = 0;
 	langutil::DebugInfoSelection m_debugInfoSelection = {};
 	langutil::CharStreamProvider const* m_soliditySourceProvider = nullptr;
 };
