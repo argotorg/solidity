@@ -20,11 +20,9 @@
 
 #include <libyul/ASTForward.h>
 
-#include <libsolutil/FixedHash.h>
-#include <libsolutil/Numeric.h>
+#include <libsolutil/CommonData.h>
 
 #include <cstddef>
-#include <map>
 #include <optional>
 #include <string>
 #include <vector>
@@ -37,16 +35,15 @@ class Dialect;
 namespace solidity::yul::test
 {
 
-/// Storage slot where a failing check stores its fact's index plus one (zero means none failed), then stops execution.
-inline u256 const factViolationSlot = u256(0xfac7) << 240;
-
 /// Inserts a runtime check of every fact the DataFlowAnalyzer claims before each statement of @a _ast.
+/// A failing check reverts with its fact's index as a single word of revert data, so the instrumented code itself
+/// must never revert with exactly 32 bytes.
 /// Requires disambiguated code with empty for-loop init blocks and no function definitions inside loops.
 /// @returns the facts, as Yul conditions.
 std::vector<std::string> instrumentWithFactChecks(Dialect const& _dialect, Block& _ast);
 
 /// @returns the index, into the vector returned by instrumentWithFactChecks, of the fact whose check failed, if any,
-/// given the storage after the run.
-std::optional<std::size_t> violatedFactIndex(std::map<util::h256, util::h256> const& _storage);
+/// given the data of the revert that ended the run.
+std::optional<std::size_t> violatedFactIndex(bytes const& _revertData);
 
 }

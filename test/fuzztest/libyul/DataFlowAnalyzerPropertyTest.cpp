@@ -122,8 +122,9 @@ struct Statistics: testing::Environment
 
 Statistics& statistics = *static_cast<Statistics*>(testing::AddGlobalTestEnvironment(new Statistics));
 
-/// @returns the final state, or nothing if a limit of the interpreter cut the run short.
-std::optional<InterpreterState> interpret(AST const& _ast, bytes const& _calldata)
+/// @returns the data of the revert that ended the run, empty if it did not end in a revert,
+/// or nothing if a limit of the interpreter cut the run short.
+std::optional<bytes> interpret(AST const& _ast, bytes const& _calldata)
 {
 	InterpreterState state;
 	state.calldata = _calldata;
@@ -133,15 +134,18 @@ std::optional<InterpreterState> interpret(AST const& _ast, bytes const& _calldat
 	{
 		Interpreter::run(state, _ast, /*disableExternalCalls=*/true, /*disableMemoryTracing=*/true);
 	}
+	catch (ExplicitlyTerminatedWithRevert const&)
+	{
+		return state.returndata;
+	}
 	catch (ExplicitlyTerminated const&)
 	{
-		// Ended by the program itself, e.g. by its return or by the stop of a failed check.
 	}
 	catch (InterpreterTerminatedGeneric const&)
 	{
 		return std::nullopt;
 	}
-	return state;
+	return bytes{};
 }
 
 /// Runs @a _steps on @a _source and asserts that all facts the analyzer claims about the result hold when
@@ -169,15 +173,15 @@ void checkFactsHold(
 	for (CalldataWords const& calldataWords: _calldataWordsPerRun)
 	{
 		bytes const calldata = toCalldata(calldataWords);
-		std::optional<InterpreterState> const state = interpret(instrumented, calldata);
-		ASSERT_TRUE(state.has_value()) << fmt::format(
+		std::optional<bytes> const revertData = interpret(instrumented, calldata);
+		ASSERT_TRUE(revertData.has_value()) << fmt::format(
 			"The interpreter hit a limit before all facts were checked, maxInterpreterSteps may need raising.\n"
 			"steps: {}\n"
 			"source:\n{}",
 			_steps,
 			_source
 		);
-		std::optional<std::size_t> const violated = violatedFactIndex(state->storage);
+		std::optional<std::size_t> const violated = violatedFactIndex(*revertData);
 		ASSERT_FALSE(violated.has_value()) << fmt::format(
 			"The analyzer claims a fact that does not hold at runtime: {}\n"
 			"fact number: {}\n"

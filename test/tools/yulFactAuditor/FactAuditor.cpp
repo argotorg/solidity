@@ -30,6 +30,8 @@
 #include <libyul/optimiser/KnowledgeBase.h>
 #include <libyul/optimiser/Semantics.h>
 
+#include <libsolutil/Numeric.h>
+
 #include <memory>
 #include <set>
 #include <string_view>
@@ -99,12 +101,10 @@ public:
 private:
 	void record(Expression _fact)
 	{
-		facts.push_back(std::visit(AsmPrinter{m_dialect}, _fact));
 		Block onViolation;
-		onViolation.statements.emplace_back(
-			ExpressionStatement{{}, call("sstore", number(factViolationSlot), number(facts.size()))}
-		);
-		onViolation.statements.emplace_back(ExpressionStatement{{}, call("stop")});
+		onViolation.statements.emplace_back(ExpressionStatement{{}, call("mstore", number(0), number(facts.size()))});
+		onViolation.statements.emplace_back(ExpressionStatement{{}, call("revert", number(0), number(32))});
+		facts.push_back(std::visit(AsmPrinter{m_dialect}, _fact));
 		m_checks.emplace_back(
 			If{{}, std::make_unique<Expression>(call("iszero", std::move(_fact))), std::move(onViolation)}
 		);
@@ -236,10 +236,9 @@ std::vector<std::string> solidity::yul::test::instrumentWithFactChecks(Dialect c
 	return std::move(recorder.facts);
 }
 
-std::optional<std::size_t> solidity::yul::test::violatedFactIndex(std::map<util::h256, util::h256> const& _storage)
+std::optional<std::size_t> solidity::yul::test::violatedFactIndex(bytes const& _revertData)
 {
-	auto const entry = _storage.find(util::h256(factViolationSlot));
-	if (entry == _storage.end() || entry->second == util::h256())
+	if (_revertData.size() != 32)
 		return std::nullopt;
-	return static_cast<std::size_t>(u256(entry->second)) - 1;
+	return static_cast<std::size_t>(fromBigEndian<u256>(_revertData));
 }
