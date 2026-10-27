@@ -266,7 +266,16 @@ void DataFlowAnalyzer::handleAssignment(boost::container::small_flat_set<YulName
 	auto const& referencedVariables = movableChecker.referencedVariables();
 	boost::container::small_vector<YulName, 2> const referencedVariablesSorted(referencedVariables.begin(), referencedVariables.end());
 	for (auto const& name: _variables)
+	{
 		m_state.sortedReferences[name] = referencedVariablesSorted;
+		for (auto const& referencedVariable: referencedVariablesSorted)
+		{
+			std::vector<YulName>& referencingVariables = m_state.referencedBy[referencedVariable];
+			// Avoid accumulating duplicates when the same variable is assigned repeatedly.
+			if (referencingVariables.empty() || referencingVariables.back() != name)
+				referencingVariables.emplace_back(name);
+		}
+	}
 
 	if (_value && _variables.size() == 1)
 	{
@@ -333,15 +342,26 @@ void DataFlowAnalyzer::clearValues(VariableSet const& _variablesToClear)
 	});
 
 	// Also clear variables that reference variables to be cleared.
-	std::vector const sortedVariablesToClear(_variablesToClear.begin(), _variablesToClear.end());
-	boost::unordered::erase_if(m_state.sortedReferences, mapTuple([&](auto&& referencingVariable, auto&& referencedVariables) {
-		// instead of checking each variable in `referencedVariables`, we check if there is any intersection making use of the
-		// sortedness of the vectors, which can increase performance by up to 50% in pathological cases
-		if (!hasNonemptyIntersectionSorted(referencedVariables, sortedVariablesToClear))
-			return false;
-		m_state.value.erase(referencingVariable);
-		return true;
-	}));
+	for (auto const& name: _variablesToClear)
+	{
+		auto referencedByIt = m_state.referencedBy.find(name);
+		if (referencedByIt == m_state.referencedBy.end())
+			continue;
+		for (YulName const referencingVariable: referencedByIt->second)
+		{
+			// Skip stale entries, i.e. variables that were reassigned or went out of scope since.
+			auto referencesIt = m_state.sortedReferences.find(referencingVariable);
+			if (
+				referencesIt == m_state.sortedReferences.end() ||
+				!std::ranges::binary_search(referencesIt->second, name)
+			)
+				continue;
+			m_state.value.erase(referencingVariable);
+			m_state.sortedReferences.erase(referencesIt);
+		}
+		// No variable references `name` anymore.
+		m_state.referencedBy.erase(referencedByIt);
+	}
 
 	// Clear the value and update the reference relation.
 	for (auto const& name: _variablesToClear)

@@ -187,6 +187,10 @@ private:
 		/// m_references[a].contains(b) <=> the current expression assigned to a references b
 		/// The mapped vectors _must always_ be sorted
 		util::unordered_flat_map<YulName, boost::container::small_vector<YulName, 2>> sortedReferences;
+		/// Reverse of sortedReferences: sortedReferences[a].contains(b) => referencedBy[b].contains(a)
+		/// The converse does not hold, the vectors may contain stale entries, which have to be
+		/// checked against sortedReferences on use.
+		util::unordered_flat_map<YulName, std::vector<YulName>> referencedBy;
 
 		Environment environment;
 	};
