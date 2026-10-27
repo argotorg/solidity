@@ -31,6 +31,7 @@
 #include <libsolutil/Keccak256.h>
 
 #include <range/v3/range/conversion.hpp>
+#include <range/v3/view/drop_while.hpp>
 #include <range/v3/view/tail.hpp>
 #include <range/v3/view/zip.hpp>
 
@@ -612,7 +613,7 @@ std::optional<FunctionDefinition const*> FunctionDefinition::superLookupTarget(
 {
 	FunctionType const* externalFunctionType = TypeProvider::function(*this)->asExternallyCallableFunction(false);
 
-    auto toSearch = _mostDerivedContract.annotation().linearizedBaseContracts | ranges::views::drop_while([&](auto const* contract) { return contract != &_searchStart; });
+	auto toSearch = _mostDerivedContract.annotation().linearizedBaseContracts | ranges::views::drop_while([&](auto const* contract) { return contract != &_searchStart; });
 	for (ContractDefinition const* c: toSearch)
 		for (FunctionDefinition const* function: c->definedFunctions(name()))
 			if (
