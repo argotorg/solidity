@@ -13,8 +13,9 @@ contract B is A {
 }
 
 
-// IX.f() is not implemented, so it is not a candidate at all and `super.f()` resolves
-// to A.f(). This is the common interface case and must compile.
+// IX.f() is not implemented, so it is not a candidate at all and `super.f()`
+// in `B.f` resolves to A.f(). This is the common interface case and must
+// compile.
 contract D is A, IX, B {
     function f() public override(A, IX, B) returns (uint256) { return super.f(); }
 }
