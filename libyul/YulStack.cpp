@@ -29,6 +29,7 @@
 #include <libyul/optimiser/Suite.h>
 #include <libevmasm/Assembly.h>
 #include <libevmasm/Ethdebug.h>
+#include <liblangutil/CodeSizeLimits.h>
 #include <liblangutil/Scanner.h>
 #include <liblangutil/SourceReferenceFormatter.h>
 
@@ -293,6 +294,17 @@ YulStack::assembleWithDeployed(std::optional<std::string_view> _deployName, bool
 		reportUnimplementedFeatureError(_error);
 		return {MachineAssemblyObject{}, MachineAssemblyObject{}};
 	}
+
+	yulAssert(creationObject.bytecode);
+
+	langutil::checkCodeSizeLimits(
+		m_errorReporter,
+		m_evmVersion,
+		SourceLocation{-1, -1, std::make_shared<std::string>(m_charStream->name())},
+		"Yul object",
+		creationObject.bytecode->bytecode.size(),
+		deployedObject.bytecode ? deployedObject.bytecode->bytecode.size() : 0
+	);
 
 	return {std::move(creationObject), std::move(deployedObject)};
 }
