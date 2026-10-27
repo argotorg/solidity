@@ -155,10 +155,11 @@ void PostTypeContractLevelChecker::checkSuperCallsResolvingToExternalFunctions(C
 				.append("The external function is declared here:", target.location())
 				.append("The linearization of this contract determines the target:", _contract.nameLocation()),
 			fmt::format(
-				"In contract \"{0}\", the \"super\" call resolves to external function \"{1}.{2}\", "
-				"which cannot be called internally. Make \"{1}.{2}\" public, or change the order of "
+				"In function \"{0}.{1}\", the \"super\" call resolves to external function \"{2}.{3}\", "
+				"which cannot be called internally. Make \"{2}.{3}\" public, or change the order of "
 				"base contracts in \"{0}\".",
 				_contract.name(),
+				memberAccess->memberName(),
 				target.annotation().contract->name(),
 				target.name()
 			)
