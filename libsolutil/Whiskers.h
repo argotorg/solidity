@@ -109,8 +109,6 @@ private:
 		StringListMap const& _listParameters = StringListMap()
 	);
 
-	static std::string paramRegex() { return "[a-zA-Z0-9_$-]+"; }
-
 	/// Joins the two maps throwing an exception if two keys are equal.
 	static StringMap joinMaps(StringMap const& _a, StringMap const& _b);
 

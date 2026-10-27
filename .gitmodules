@@ -13,3 +13,6 @@
 [submodule "deps/fuzztest"]
 	path = deps/fuzztest
 	url = https://github.com/google/fuzztest
+[submodule "deps/ctre"]
+	path = deps/ctre
+	url = https://github.com/hanickadot/compile-time-regular-expressions.git

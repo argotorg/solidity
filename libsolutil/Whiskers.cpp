@@ -26,9 +26,30 @@
 
 #include <libsolutil/Assertions.h>
 
-#include <regex>
+#include <ctre.hpp>
 
 using namespace solidity::util;
+
+namespace
+{
+// Parameter names. The trailing '-' must be escaped: unlike ECMAScript, CTRE rejects a bare '-' before ']'.
+#define WHISKERS_PARAM "[a-zA-Z0-9_$\\-]+"
+
+constexpr auto invalidTagRegex = ctll::fixed_string{
+	"<[#?!\\/]\\+{0,1}" WHISKERS_PARAM "(?:[^a-zA-Z0-9_$>\\-]|$)"
+};
+constexpr auto paramRegex = ctll::fixed_string{WHISKERS_PARAM};
+// The else-branch of a condition is written as an alternative rather than as an optional group:
+// CTRE never takes an optional group that follows a lazy repetition, so `(<!\4>...)?` would
+// leave the else-branch inside the then-branch.
+constexpr auto listOrTagRegex = ctll::fixed_string{
+	"<(" WHISKERS_PARAM ")>|"
+	"<#(" WHISKERS_PARAM ")>((?:.|\\r|\\n)*?)</\\2>|"
+	"<\\?(\\+?" WHISKERS_PARAM ")>((?:.|\\r|\\n)*?)(?:<!\\4>((?:.|\\r|\\n)*?)</\\4>|</\\4>)"
+};
+
+#undef WHISKERS_PARAM
+}
 
 Whiskers::Whiskers(std::string _template):
 	m_template(std::move(_template))
@@ -76,26 +97,18 @@ std::string Whiskers::render() const
 
 void Whiskers::checkTemplateValid() const
 {
-	static std::regex const validTemplate(
-		"<[#?!\\/]\\+{0,1}[a-zA-Z0-9_$-]+(?:[^a-zA-Z0-9_$>-]|$)",
-		std::regex_constants::ECMAScript | std::regex_constants::optimize
-	);
-	std::smatch match;
+	auto const match = ctre::search<invalidTagRegex>(m_template);
 	assertThrow(
-		!regex_search(m_template, match, validTemplate),
+		!match,
 		WhiskersError,
-		"Template contains an invalid/unclosed tag " + match.str()
+		"Template contains an invalid/unclosed tag " + match.to_string()
 	);
 }
 
 void Whiskers::checkParameterValid(std::string const& _parameter) const
 {
-	static std::regex const validParam(
-		"^" + paramRegex() + "$",
-		std::regex_constants::ECMAScript | std::regex_constants::optimize
-	);
 	assertThrow(
-		regex_match(_parameter, validParam),
+		ctre::match<paramRegex>(_parameter),
 		WhiskersError,
 		"Parameter" + _parameter + " contains invalid characters."
 	);
@@ -135,24 +148,16 @@ void Whiskers::checkTemplateContainsTags(std::string const& _parameter, std::vec
 
 namespace
 {
-template<class ReplaceCallback>
-std::string regex_replace(
-	std::string const& _source,
-	std::regex const& _pattern,
-	ReplaceCallback _replace,
-	std::regex_constants::match_flag_type _flags = std::regex_constants::match_default
-)
+template<auto Pattern, class ReplaceCallback>
+std::string regex_replace(std::string const& _source, ReplaceCallback _replace)
 {
-	std::sregex_iterator curMatch(_source.begin(), _source.end(), _pattern, _flags);
-	std::sregex_iterator matchEnd;
 	std::string::const_iterator lastMatchedPos(_source.cbegin());
 	std::string result;
-	while (curMatch != matchEnd)
+	for (auto const& match: ctre::search_all<Pattern>(_source))
 	{
-		result.append(curMatch->prefix().first, curMatch->prefix().second);
-		result.append(_replace(*curMatch));
-		lastMatchedPos = (*curMatch)[0].second;
-		++curMatch;
+		result.append(lastMatchedPos, match.begin());
+		result.append(_replace(match));
+		lastMatchedPos = match.end();
 	}
 	result.append(lastMatchedPos, _source.cend());
 	return result;
@@ -166,17 +171,12 @@ std::string Whiskers::replace(
 	std::map<std::string, std::vector<StringMap>> const& _listParameters
 )
 {
-	static std::regex listOrTag(
-		"<(" + paramRegex() + ")>|"
-		"<#(" + paramRegex() + ")>((?:.|\\r|\\n)*?)</\\2>|"
-		"<\\?(\\+?" + paramRegex() + ")>((?:.|\\r|\\n)*?)(<!\\4>((?:.|\\r|\\n)*?))?</\\4>",
-		std::regex_constants::ECMAScript | std::regex_constants::optimize
-	);
-	return regex_replace(_template, listOrTag, [&](std::match_results<std::string::const_iterator> _match) -> std::string
+	return regex_replace<listOrTagRegex>(_template, [&](auto const& _match) -> std::string
 	{
-		std::string tagName(_match[1]);
-		std::string listName(_match[2]);
-		std::string conditionName(_match[4]);
+		auto const& [whole, tag, list, listBody, condition, thenBody, elseBody] = _match;
+		std::string tagName = tag.to_string();
+		std::string listName = list.to_string();
+		std::string conditionName = condition.to_string();
 		if (!tagName.empty())
 		{
 			assertThrow(
@@ -190,7 +190,7 @@ std::string Whiskers::replace(
 		}
 		else if (!listName.empty())
 		{
-			std::string templ(_match[3]);
+			std::string templ = listBody.to_string();
 			assertThrow(
 				_listParameters.count(listName),
 				WhiskersError, "List parameter " + listName + " not set."
@@ -224,7 +224,7 @@ std::string Whiskers::replace(
 				conditionValue = _conditions.at(conditionName);
 			}
 			return replace(
-				conditionValue ? _match[5] : _match[7],
+				conditionValue ? thenBody.to_string() : elseBody.to_string(),
 				_parameters,
 				_conditions,
 				_listParameters
