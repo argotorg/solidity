@@ -159,7 +159,8 @@ std::optional<u256> erc7201CompileTimeValue(FunctionCall const& _erc7201Call)
 
 std::optional<bytes> keccak256CompileTimeValue(FunctionCall const& _keccakCall)
 {
-	auto const* keccakFunction = dynamic_cast<MagicVariableDeclaration const*>(ASTNode::referencedDeclaration(_keccakCall.expression()));
+	auto const* keccakFunction =
+		dynamic_cast<MagicVariableDeclaration const*>(ASTNode::referencedDeclaration(*resolveOuterUnaryTuples(&_keccakCall.expression())));
 	solAssert(keccakFunction);
 	solAssert(keccakFunction->functionType(true /* internal */)->kind() == FunctionType::Kind::KECCAK256);
 

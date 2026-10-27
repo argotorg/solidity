@@ -24,6 +24,7 @@
 #include <libsolidity/analysis/ConstantEvaluator.h>
 
 #include <libsolidity/ast/AST.h>
+#include <libsolidity/ast/ASTUtils.h>
 #include <libsolidity/ast/TypeProvider.h>
 #include <liblangutil/ErrorReporter.h>
 #include <libsolutil/Keccak256.h>
@@ -502,7 +503,8 @@ void ConstantEvaluator::endVisit(TupleExpression const& _tuple)
 
 void ConstantEvaluator::endVisit(FunctionCall const& _functionCall)
 {
-	auto const* builtinFunction = dynamic_cast<MagicVariableDeclaration const*>(ASTNode::referencedDeclaration(_functionCall.expression()));
+	auto const* builtinFunction =
+		dynamic_cast<MagicVariableDeclaration const*>(ASTNode::referencedDeclaration(*resolveOuterUnaryTuples(&_functionCall.expression())));
 	if (!builtinFunction)
 		return;
 
