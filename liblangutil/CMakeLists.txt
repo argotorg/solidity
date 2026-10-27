@@ -3,6 +3,8 @@ set(sources
 	Common.h
 	CharStream.cpp
 	CharStream.h
+	CodeSizeLimits.cpp
+	CodeSizeLimits.h
 	DebugData.h
 	DebugInfoSelection.cpp
 	DebugInfoSelection.h

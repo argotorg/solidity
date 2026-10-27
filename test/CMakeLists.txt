@@ -17,6 +17,7 @@ set(sources
     TestCase.h
     TestCaseReader.cpp
     TestCaseReader.h
+    TestCaseTest.cpp
 )
 detect_stray_source_files("${sources}" ".")
 
@@ -32,7 +33,6 @@ set(libsolutil_sources
     libsolutil/CommonData.cpp
     libsolutil/CommonIO.cpp
     libsolutil/DisjointSet.cpp
-    libsolutil/DominatorFinderTest.cpp
     libsolutil/FixedHash.cpp
     libsolutil/FunctionSelector.cpp
     libsolutil/IpfsHash.cpp
