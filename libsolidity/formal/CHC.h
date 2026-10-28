@@ -261,6 +261,7 @@ private:
 	/// @returns the summary predicate for the called function.
 	smtutil::Expression predicate(
 		FunctionDefinition const* _funDef,
+		ContractDefinition const* _contractDefinition,
 		std::optional<Expression const*> _boundArgumentCall,
 		FunctionType const* _funType,
 		std::vector<Expression const*> _arguments,

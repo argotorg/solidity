@@ -896,7 +896,7 @@ void CHC::internalFunctionCall(
 			m_callGraph[m_currentContract].insert(_funDef);
 	}
 
-	m_context.addAssertion(predicate(_funDef, _boundArgumentCall, _funType, _arguments, _contractAddressValue));
+	m_context.addAssertion(predicate(_funDef, m_currentContract, _boundArgumentCall, _funType, _arguments, _contractAddressValue));
 
 	solAssert(m_errorDest, "");
 	connectBlocks(
@@ -1084,6 +1084,15 @@ void CHC::externalFunctionCallToTrustedCode(FunctionCall const& _funCall)
 	if (!function)
 		return;
 
+	ContractDefinition const* targetContract = [&]()
+	{
+		auto const* access = dynamic_cast<MemberAccess const*>(callExpr);
+		solAssert(access);
+		auto const* calledContractType = dynamic_cast<ContractType const*>(access->expression().annotation().type);
+		solAssert(calledContractType);
+		return &calledContractType->contractDefinition();
+	}();
+
 	// Remember the external call in the call graph to properly detect verification targets for the current function
 	if (m_currentFunction && !m_currentFunction->isConstructor())
 		m_callGraph[m_currentFunction].insert(function);
@@ -1109,13 +1118,13 @@ void CHC::externalFunctionCallToTrustedCode(FunctionCall const& _funCall)
 		// Load the caller contract's state variables into the global state.
 		state().writeStateVars(*m_currentContract, state().thisAddress());
 		// Load the called contract's state variables from the global state.
-		state().readStateVars(*function->annotation().contract, contractAddressValue(_funCall));
+		state().readStateVars(*targetContract, contractAddressValue(_funCall));
 	}
 
 	std::vector<Expression const*> arguments;
 	for (auto& arg: _funCall.sortedArguments())
 		arguments.push_back(&(*arg));
-	smtutil::Expression pred = predicate(function, std::nullopt, &funType, arguments, calledAddress);
+	smtutil::Expression pred = predicate(function, targetContract, std::nullopt, &funType, arguments, calledAddress);
 
 	auto txConstraints = state().txTypeConstraints() && state().txFunctionConstraints(*function);
 	m_context.addAssertion(pred && txConstraints);
@@ -1820,6 +1829,7 @@ smtutil::Expression CHC::predicate(Predicate const& _block)
 
 smtutil::Expression CHC::predicate(
 	FunctionDefinition const* _funDef,
+	ContractDefinition const* _contractDefinition,
 	std::optional<Expression const*> _boundArgumentCall,
 	FunctionType const* _funType,
 	std::vector<Expression const*> _arguments,
@@ -1831,6 +1841,7 @@ smtutil::Expression CHC::predicate(
 	solAssert(kind == FunctionType::Kind::Internal || kind == FunctionType::Kind::External || kind == FunctionType::Kind::BareStaticCall, "");
 	if (!_funDef)
 		return smtutil::Expression(true);
+	solAssert(_contractDefinition);
 
 	errorFlag().increaseIndex();
 
@@ -1838,23 +1849,20 @@ smtutil::Expression CHC::predicate(
 		commonStateExpressions(errorFlag().currentValue(), _contractAddressValue) +
 		std::vector<smtutil::Expression>{state().tx(), state().state()};
 
-	auto const* contract = _funDef->annotation().contract;
+
 	auto const& hierarchy = m_currentContract->annotation().linearizedBaseContracts;
-	solAssert(kind != FunctionType::Kind::Internal || _funDef->isFree() || (contract && contract->isLibrary()) || util::contains(hierarchy, contract), "");
+	solAssert(kind != FunctionType::Kind::Internal || _funDef->isFree() || _contractDefinition->isLibrary() || util::contains(hierarchy, _contractDefinition));
 
-	if (kind == FunctionType::Kind::Internal)
-		contract = m_currentContract;
-
-	args += currentStateVariables(*contract);
+	args += currentStateVariables(*_contractDefinition);
 	args += symbolicArguments(_funDef->parameters(), _arguments, _boundArgumentCall);
 	if (!usesStaticCall(_funDef, _funType))
 	{
 		state().newState();
-		for (auto const& var: stateVariablesIncludingInheritedAndPrivate(*contract))
+		for (auto const& var: stateVariablesIncludingInheritedAndPrivate(*_contractDefinition))
 			m_context.variable(*var)->increaseIndex();
 	}
 	args += std::vector<smtutil::Expression>{state().state()};
-	args += currentStateVariables(*contract);
+	args += currentStateVariables(*_contractDefinition);
 
 	for (auto var: _funDef->parameters() + _funDef->returnParameters())
 	{
@@ -1865,14 +1873,14 @@ smtutil::Expression CHC::predicate(
 		args.push_back(currentValue(*var));
 	}
 
-	Predicate const& summary = *m_summaries.at(contract).at(_funDef);
-	auto from = smt::function(summary, contract, m_context);
+	Predicate const& summary = *m_summaries.at(_contractDefinition).at(_funDef);
+	auto from = smt::function(summary, _contractDefinition, m_context);
 	Predicate const& callPredicate = *createSummaryBlock(
 		*_funDef,
-		*contract,
+		*_contractDefinition,
 		kind == FunctionType::Kind::Internal ? PredicateType::InternalCall : PredicateType::ExternalCallTrusted
 	);
-	auto to = smt::function(callPredicate, contract, m_context);
+	auto to = smt::function(callPredicate, _contractDefinition, m_context);
 	addRule(smtutil::Expression::implies(from, to), to.name);
 
 	return callPredicate(args);
