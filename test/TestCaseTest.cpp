@@ -87,7 +87,7 @@ BOOST_AUTO_TEST_CASE(range_with_multiple_versions)
 
 BOOST_AUTO_TEST_CASE(range_with_all_versions)
 {
-	BOOST_CHECK(shouldRunWithEVMVersionSetting(">=tangerineWhistle,<=@future"));
+	BOOST_CHECK(shouldRunWithEVMVersionSetting(">=constantinople,<=@future"));
 }
 
 BOOST_AUTO_TEST_CASE(range_with_single_version)
@@ -109,7 +109,7 @@ BOOST_AUTO_TEST_CASE(empty_range)
 	BOOST_CHECK_THROW(shouldRunWithEVMVersionSetting(">=amsterdam,<=osaka"), std::runtime_error);
 	BOOST_CHECK_THROW(shouldRunWithEVMVersionSetting("=osaka,!osaka"), std::runtime_error);
 	BOOST_CHECK_THROW(shouldRunWithEVMVersionSetting("=osaka,=amsterdam"), std::runtime_error);
-	BOOST_CHECK_THROW(shouldRunWithEVMVersionSetting("<tangerineWhistle"), std::runtime_error);
+	BOOST_CHECK_THROW(shouldRunWithEVMVersionSetting("<constantinople"), std::runtime_error);
 }
 
 BOOST_AUTO_TEST_CASE(whitespace_around_commas)
