@@ -359,7 +359,6 @@ commands:
           paths:
             - solc/solc
             - test/soltest
-            - test/tools/solfuzzer
 
   persist_executables_to_workspace_arm:
     description: Persist compiled target executables to workspace on Linux arm64
@@ -369,7 +368,6 @@ commands:
           paths:
             - solc/solc-static-linux-arm
             - test/soltest-linux-arm
-            - test/tools/solfuzzer-linux-arm
 
   persist_executables_to_workspace_osx:
     description: Persist compiled target executables to workspace on macOS
@@ -379,7 +377,6 @@ commands:
           paths:
             - build/solc/solc
             - build/test/soltest
-            - build/test/tools/solfuzzer
 
   store_artifacts_test_results:
     description: Store test output dir as artifact
@@ -1059,7 +1056,6 @@ jobs:
           destination: solc-static-linux-arm
       - run: mv build/solc/solc build/solc/solc-static-linux-arm
       - run: mv build/test/soltest build/test/soltest-linux-arm
-      - run: mv build/test/tools/solfuzzer build/test/tools/solfuzzer-linux-arm
       - persist_executables_to_workspace_arm
       - matrix_notify_failure_unless_pr
 
@@ -1325,10 +1321,9 @@ jobs:
       - attach_workspace:
           at: build
       - run:
-          name: Create symbolic link with expected solc and solfuzzer binaries name
+          name: Create symbolic link with expected solc binary name
           command: |
             ln --symbolic --relative build/solc/solc-static-linux-arm build/solc/solc
-            ln --symbolic --relative build/test/tools/solfuzzer-linux-arm build/test/tools/solfuzzer
       - run_cmdline_tests
       - matrix_notify_failure_unless_pr
 
