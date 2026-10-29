@@ -1455,6 +1455,13 @@ jobs:
             cd edr
             pnpm install --no-frozen-lockfile
       - run:
+          name: Patch to allow 0.9 compiler. #TODO: Remove when EDR supports it properly
+          command: |
+            cd edr/hardhat-tests
+            sed -i 's/semver.satisfies(customSolcVersion, "^0.8.0")/semver.satisfies(customSolcVersion, ">=0.8.0")/' test/internal/hardhat-network/stack-traces/test.ts
+            find test/internal/hardhat-network/stack-traces/test-files/0_8 -name '*.sol' -exec sed -i 's/pragma solidity \^0\.8\./pragma solidity >=0.8./' {} +
+            find test/internal/hardhat-network/stack-traces/test-files/0_8 -name 'test.json' -exec sed -i '/"solc"/s/\^0\.8/>=0.8/' {} +
+      - run:
           name: Run hardhat-tests in EDR repo
           command: |
             EDR_TESTS_SOLC_VERSION=$(scripts/get_version.sh)

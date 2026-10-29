@@ -1,4 +1,4 @@
-## 0.9.0 (unreleased)
+### 0.9.0 (unreleased)
 
 Breaking Changes:
 * EVM: Drop support for EVM versions `homestead`, `tangerineWhistle`, `spuriousDragon` and `byzantium`.
