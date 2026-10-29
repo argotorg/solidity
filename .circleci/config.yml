@@ -782,7 +782,7 @@ defaults:
       # NOTE: test suite disabled due to dependence on a specific version of Hardhat
       # which does not support shanghai EVM.
       compile_only: 1
-      image: cimg/node:lts
+      image: cimg/node:24.22
 
   - job_native_test_ext_uniswap: &job_native_test_ext_uniswap
       <<: *requires_b_ubu_static
