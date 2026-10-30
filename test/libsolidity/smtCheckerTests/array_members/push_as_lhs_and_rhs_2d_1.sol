@@ -18,4 +18,3 @@ contract C {
 // ----
 // Warning 6328: (284-310): CHC: Assertion violation happens here.\nCounterexample:\nb = [[0], [0]]\n\nTransaction trace:\nC.constructor()\nState: b = []\nC.f()
 // Info 1391: CHC: 20 verification condition(s) proved safe! Enable the model checker option "show proved safe" to see all of them.
-// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

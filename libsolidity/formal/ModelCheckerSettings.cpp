@@ -60,7 +60,6 @@ bool ModelCheckerInvariants::setFromString(std::string const& _inv)
 
 using TargetType = VerificationTargetType;
 std::map<std::string, TargetType> const ModelCheckerTargets::targetStrings{
-	{"constantCondition", TargetType::ConstantCondition},
 	{"underflow", TargetType::Underflow},
 	{"overflow", TargetType::Overflow},
 	{"divByZero", TargetType::DivByZero},
@@ -71,7 +70,6 @@ std::map<std::string, TargetType> const ModelCheckerTargets::targetStrings{
 };
 
 std::map<TargetType, std::string> const ModelCheckerTargets::targetTypeToString{
-	{TargetType::ConstantCondition, "Constant condition"},
 	{TargetType::Underflow, "Underflow"},
 	{TargetType::Overflow, "Overflow"},
 	{TargetType::DivByZero, "Division by zero"},

@@ -28,6 +28,7 @@ interface, or how you analyze the output produced by it.
 * EVM versions ``homestead``, ``tangerineWhistle``, ``spuriousDragon`` and ``byzantium`` are no longer supported.
   CLI and JSON interfaces now reject them.
 
+* BMC engine of SMTChecker was removed. CLI and JSON interfaces now reject it.
 
 How to update your code
 =======================

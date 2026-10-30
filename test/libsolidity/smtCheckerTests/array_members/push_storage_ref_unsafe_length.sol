@@ -24,7 +24,7 @@ contract C {
 	}
 }
 // ====
-// SMTEngine: all
+// SMTEngine: chc
 // SMTIgnoreOS: macos
 // ----
 // Warning 6368: (238-242): CHC: Out of bounds access happens here.
@@ -38,4 +38,3 @@ contract C {
 // Warning 6368: (513-523): CHC: Out of bounds access happens here.\nCounterexample:\n\nb = [68, 68, 122, 68, 68, 105, 68, 68, 68, 68, 68, 125, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 116, 8]\n\nTransaction trace:\nC.constructor()\nState: a = [], c = [[[0]]], d = [0, 0]\nC.f()
 // Warning 6328: (506-530): CHC: Assertion violation happens here.\nCounterexample:\n\nb = [6, 6, 6, 6, 6, 6, 6, 111, 6, 6, 6, 6, 112, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 71, 6, 6, 110, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 72, 6, 8]\n\nTransaction trace:\nC.constructor()\nState: a = [], c = [[[0]]], d = [0, 0]\nC.f()
 // Info 1391: CHC: 1 verification condition(s) proved safe! Enable the model checker option "show proved safe" to see all of them.
-// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

@@ -29,12 +29,11 @@ The other verification targets that the SMTChecker checks at compile time are:
 
 - Arithmetic underflow and overflow.
 - Division by zero.
-- Trivial conditions and unreachable code.
 - Popping an empty array.
 - Out of bounds index access.
 - Insufficient funds for a transfer.
 
-All the targets above are automatically checked by default if all engines are
+All the targets above are automatically checked by default if SMTChecker is
 enabled, except underflow and overflow for Solidity >=0.8.7.
 
 The potential warnings that the SMTChecker reports are:
@@ -42,8 +41,8 @@ The potential warnings that the SMTChecker reports are:
 - ``<failing  property> happens here.``. This means that the SMTChecker proved that a certain property fails. A counterexample may be given, however in complex situations it may also not show a counterexample. This result may also be a false positive in certain cases, when the SMT encoding adds abstractions for Solidity code that is either hard or impossible to express.
 - ``<failing property> might happen here``. This means that the solver could not prove either case within the given timeout. Since the result is unknown, the SMTChecker reports the potential failure for soundness. This may be solved by increasing the query timeout, but the problem might also simply be too hard for the engine to solve.
 
-To enable the SMTChecker, you must select :ref:`which engine should run<smtchecker_engines>`,
-where the default is no engine. Selecting the engine enables the SMTChecker on all files.
+To enable the SMTChecker, :ref:`select the CHC engine explicitly<smtchecker_engines>`.
+Selecting the engine enables the SMTChecker on all files.
 
 .. note::
 
@@ -469,7 +468,6 @@ The keywords that represent the targets are:
 - Arithmetic underflow: ``underflow``.
 - Arithmetic overflow: ``overflow``.
 - Division by zero: ``divByZero``.
-- Trivial conditions and unreachable code: ``constantCondition``.
 - Popping an empty array: ``popEmptyArray``.
 - Out of bounds array/fixed bytes index access: ``outOfBounds``.
 - Insufficient funds for a transfer: ``balance``.
@@ -772,35 +770,13 @@ body of the function is not used, and when called, the function will:
 Model Checking Engines
 ======================
 
-The SMTChecker module implements two different reasoning engines, a Bounded
-Model Checker (BMC) and a system of Constrained Horn Clauses (CHC).  Both
-engines are currently under development, and have different characteristics.
-The engines are independent and every property warning states from which engine
-it came. Note that all the examples above with counterexamples were
-reported by CHC, the more powerful engine.
+The SMTChecker module implements a reasoning engine based on Constrained Horn Clauses (CHC).
+CHC engine must be explicitly enabled via the CLI option ``--model-checker-engine=chc``
+or the JSON option ``settings.modelChecker.engine=chc``.
 
-By default both engines are used, where CHC runs first, and every property that
-was not proven is passed over to BMC. You can choose a specific engine via the CLI
-option ``--model-checker-engine {all,bmc,chc,none}`` or the JSON option
-``settings.modelChecker.engine={all,bmc,chc,none}``.
-
-Bounded Model Checker (BMC)
----------------------------
-
-.. warning::
-    The BMC engine has been deprecated and will be removed in a future release.
-    Selecting it, either explicitly via ``bmc`` or implicitly via ``all``, emits a deprecation warning.
-    Please use the CHC engine instead.
-
-The BMC engine analyzes functions in isolation, that is, it does not take the
-overall behavior of the contract over multiple transactions into account when
-analyzing each function.  Loops are also ignored in this engine at the moment.
-Internal function calls are inlined as long as they are not recursive, directly
-or indirectly. External function calls are inlined if possible. Knowledge
-that is potentially affected by reentrancy is erased.
-
-The characteristics above make BMC prone to reporting false positives,
-but it is also lightweight and should be able to quickly find small local bugs.
+.. note::
+  Prior to ``0.9``, SMTChecker supported a second engine, one based on Bounded Model Checking (BMC).
+  Since BMC was less powerful than CHC and prone to false positives, it was removed in version ``0.9``.
 
 Constrained Horn Clauses (CHC)
 ------------------------------
@@ -813,29 +789,23 @@ is taken into account when analyzing any function. Loops are fully supported
 by this engine. Internal function calls are supported, and external function
 calls assume the called code is unknown and can do anything.
 
-The CHC engine is much more powerful than BMC in terms of what it can prove,
-and might require more computing resources.
-
-SMT and Horn solvers
+Horn solvers
 ====================
 
-The two engines detailed above use automated theorem provers as their logical
-backends.  BMC uses an SMT solver, whereas CHC uses a Horn solver. Often the
-same tool can act as both, as seen in `z3 <https://github.com/Z3Prover/z3>`_,
-which is primarily an SMT solver and makes `Spacer
-<https://spacer.bitbucket.io/>`_ available as a Horn solver, and `Eldarica
-<https://github.com/uuverifiers/eldarica>`_ which does both.
+CHC engine uses a Horn solver to check verification conditions.
+Currently, SMTChecker supports two Horn solvers:
+`z3 <https://github.com/Z3Prover/z3>`_,
+which relies on `Spacer <https://spacer.bitbucket.io/>`_
+internally and `Eldarica <https://github.com/uuverifiers/eldarica>`_.
 
 The user can choose which solvers should be used, if available, via the CLI
-option ``--model-checker-solvers {all,cvc5,eld,smtlib2,z3}`` or the JSON option
+option ``--model-checker-solvers {all,eld,smtlib2,z3}`` or the JSON option
 ``settings.modelChecker.solvers=[smtlib2,z3]``, where:
 
-- ``cvc5`` is used via its binary which must be installed in the system. Only BMC uses ``cvc5``.
 - ``eld`` is used via its binary which must be installed in the system. Only CHC uses ``eld``, and only if ``z3`` is not enabled.
-- ``smtlib2`` outputs SMT/Horn queries in the `smtlib2 <http://smtlib.cs.uiowa.edu/>`_ format.
+- ``smtlib2`` outputs Horn queries in the `smtlib2 <http://smtlib.cs.uiowa.edu/>`_ format.
   These can be used together with the compiler's `callback mechanism <https://github.com/argotorg/solc-js>`_ so that
   any solver binary from the system can be employed to synchronously return the results of the queries to the compiler.
-  This can be used by both BMC and CHC depending on which solvers are called.
 - ``z3`` is available statically in ``soljson.js`` (from Solidity 0.6.9), that is, the JavaScript binary of the compiler. Otherwise it is used via its binary which must be installed in the system.
 
 .. note::
@@ -844,13 +814,11 @@ option ``--model-checker-solvers {all,cvc5,eld,smtlib2,z3}`` or the JSON option
   >=0.8.14, and conversely, only use older z3 with older solc releases.
   We also recommend using the latest z3 release which is what SMTChecker also does.
 
-Since both BMC and CHC use ``z3``, and ``z3`` is available in a greater variety
+If the CHC engine is enabled, it uses ``z3`` by default.
+Since ``z3`` is available for a great variety
 of environments, including in the browser, most users will almost never need to be
 concerned about this option. More advanced users might apply this option to try
 alternative solvers on more complex problems.
-
-Please note that certain combinations of chosen engine and solver will lead to
-the SMTChecker doing nothing, for example choosing CHC and ``cvc5``.
 
 *******************************
 Abstraction and False Positives
@@ -899,11 +867,6 @@ For more details on how the SMT encoding works internally, see the paper
 Function Calls
 ==============
 
-In the BMC engine, function calls to the same contract (or base contracts) are
-inlined when possible, that is, when their implementation is available.  Calls
-to functions in other contracts are not inlined even if their code is
-available, since we cannot guarantee that the actual deployed code is the same.
-
 The CHC engine creates nonlinear Horn clauses that use summaries of the called
 functions to support internal function calls. External function calls are treated
 as calls to unknown code, including potential reentrant calls.
@@ -912,19 +875,15 @@ Complex pure functions are abstracted by an uninterpreted function (UF) over
 the arguments.
 
 +-----------------------------------+--------------------------------------+
-|Functions                          |BMC/CHC behavior                      |
+|Functions                          |CHC behavior                          |
 +===================================+======================================+
 |``assert``                         |Verification target.                  |
 +-----------------------------------+--------------------------------------+
 |``require``                        |Assumption.                           |
 +-----------------------------------+--------------------------------------+
-|internal call                      |BMC: Inline function call.            |
-|                                   |CHC: Function summaries.              |
+|internal call                      |Function summaries.                   |
 +-----------------------------------+--------------------------------------+
-|external call to known code        |BMC: Inline function call or          |
-|                                   |erase knowledge about state variables |
-|                                   |and local storage references.         |
-|                                   |CHC: Assume called code is unknown.   |
+|external call to known code        |Assume called code is unknown.        |
 |                                   |Try to infer invariants that hold     |
 |                                   |after the call returns.               |
 +-----------------------------------+--------------------------------------+
@@ -944,15 +903,9 @@ the arguments.
 |implementation (external or        |                                      |
 |complex)                           |                                      |
 +-----------------------------------+--------------------------------------+
-|external functions without         |BMC: Erase state knowledge and assume |
-|implementation                     |result is nondeterministic.           |
-|                                   |CHC: Nondeterministic summary.        |
-|                                   |Try to infer invariants that hold     |
+|external functions without         |Nondeterministic summary.             |
+|implementation                     |Try to infer invariants that hold     |
 |                                   |after the call returns.               |
-+-----------------------------------+--------------------------------------+
-|transfer                           |BMC: Checks whether the contract's    |
-|                                   |balance is sufficient.                |
-|                                   |CHC: does not yet perform the check.  |
 +-----------------------------------+--------------------------------------+
 |others                             |Currently unsupported                 |
 +-----------------------------------+--------------------------------------+

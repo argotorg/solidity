@@ -36,4 +36,3 @@ contract C
 // ----
 // Warning 5667: (125-140): Unused function parameter. Remove or comment out the variable name to silence this warning.
 // Warning 2018: (106-254): Function state mutability can be restricted to view
-// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.
