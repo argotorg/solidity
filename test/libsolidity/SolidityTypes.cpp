@@ -209,7 +209,7 @@ BOOST_AUTO_TEST_CASE(type_identifiers)
 	// TypeType is tested with contract
 
 	auto emptyParams = std::make_shared<ParameterList>(++id, SourceLocation(), std::vector<ASTPointer<VariableDeclaration>>());
-	ModifierDefinition mod(++id, SourceLocation{}, std::make_shared<std::string>("modif"), SourceLocation{}, {}, emptyParams, {}, {}, {});
+	ModifierDefinition mod(++id, SourceLocation{}, std::make_shared<std::string>("modif"), SourceLocation{}, {}, emptyParams, {});
 	BOOST_CHECK_EQUAL(ModifierType(mod).identifier(), "t_modifier$__$");
 
 	SourceUnit su(++id, {}, {}, {});

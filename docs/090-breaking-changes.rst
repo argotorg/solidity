@@ -17,6 +17,9 @@ the compiler notifying you about it.
 New Restrictions
 ================
 
+This section lists changes that might cause existing contracts to not compile anymore.
+
+* Virtual modifiers are disallowed.
 
 Interface Changes
 =================
@@ -33,5 +36,8 @@ interface, or how you analyze the output produced by it.
 
 How to update your code
 =======================
+
+* Virtual modifiers can, in most cases, be replaced by a non-virtual modifier and a virtual helper function.
+  Non-virtual modifier can delegate the work to the virtual helper that derived contracts can override.
 
 

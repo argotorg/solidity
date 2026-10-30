@@ -414,7 +414,7 @@ std::pair<std::vector<std::optional<std::string>>, std::vector<VariableDeclarati
 	auto const* function = programFunction();
 	solAssert(function, "");
 
-	auto const& localVars = SMTEncoder::localVariablesIncludingModifiers(*function, m_contractContext);
+	auto const& localVars = SMTEncoder::localVariablesIncludingModifiers(*function);
 	auto first = _args.end() - static_cast<int>(localVars.size());
 	std::vector<smtutil::Expression> outValues(first, _args.end());
 

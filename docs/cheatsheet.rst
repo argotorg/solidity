@@ -167,8 +167,7 @@ Modifiers
 - ``immutable`` for state variables: Allows assignment at construction time and is constant when deployed. Is stored in code.
 - ``anonymous`` for events: Does not store event signature as topic.
 - ``indexed`` for event parameters: Stores the parameter as topic.
-- ``virtual`` for functions and modifiers: Allows the function's or modifier's
-  behavior to be changed in derived contracts.
-- ``override``: States that this function, modifier or public state variable changes
-  the behavior of a function or modifier in a base contract.
+- ``virtual`` for functions: Allows the function's behavior to be changed in derived contracts.
+- ``override``: States that this function or public state variable changes
+  the behavior of a function in a base contract.
 

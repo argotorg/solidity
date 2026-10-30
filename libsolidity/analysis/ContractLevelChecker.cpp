@@ -315,9 +315,6 @@ void ContractLevelChecker::checkAbstractDefinitions(ContractDefinition const& _c
 		for (FunctionDefinition const* function: contract->definedFunctions())
 			if (!function->isConstructor())
 				registerProxy(OverrideProxy(function));
-
-		for (ModifierDefinition const* modifier: contract->functionModifiers())
-			registerProxy(OverrideProxy(modifier));
 	}
 
 	// Set to not fully implemented if at least one flag is false.

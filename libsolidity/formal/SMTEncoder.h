@@ -107,12 +107,12 @@ public:
 	static std::vector<VariableDeclaration const*> stateVariablesIncludingInheritedAndPrivate(ContractDefinition const& _contract);
 	static std::vector<VariableDeclaration const*> stateVariablesIncludingInheritedAndPrivate(FunctionDefinition const& _function);
 
-	static std::vector<VariableDeclaration const*> localVariablesIncludingModifiers(FunctionDefinition const& _function, ContractDefinition const* _contract);
-	static std::vector<VariableDeclaration const*> modifiersVariables(FunctionDefinition const& _function, ContractDefinition const* _contract);
+	static std::vector<VariableDeclaration const*> localVariablesIncludingModifiers(FunctionDefinition const& _function);
+	static std::vector<VariableDeclaration const*> modifiersVariables(FunctionDefinition const& _function);
 	static std::vector<VariableDeclaration const*> tryCatchVariables(FunctionDefinition const& _function);
 
 	/// @returns the ModifierDefinition of a ModifierInvocation if possible, or nullptr.
-	static ModifierDefinition const* resolveModifierInvocation(ModifierInvocation const& _invocation, ContractDefinition const* _contract);
+	static ModifierDefinition const* resolveModifierInvocation(ModifierInvocation const& _invocation);
 
 	/// @returns the arguments for each base constructor call in the hierarchy of @a _contract.
 	std::map<ContractDefinition const*, std::vector<ASTPointer<frontend::Expression>>> baseArguments(ContractDefinition const& _contract);
