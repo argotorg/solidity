@@ -180,7 +180,7 @@ void SMTEncoder::visitFunctionOrModifier()
 		auto refDecl = modifierInvocation->name().annotation().referencedDeclaration;
 		if (dynamic_cast<ContractDefinition const*>(refDecl))
 			visitFunctionOrModifier();
-		else if (auto modifier = resolveModifierInvocation(*modifierInvocation, m_currentContract))
+		else if (auto modifier = resolveModifierInvocation(*modifierInvocation))
 		{
 			m_scopes.push_back(modifier);
 			inlineModifierInvocation(modifierInvocation.get(), modifier);
@@ -214,8 +214,7 @@ void SMTEncoder::inlineModifierInvocation(ModifierInvocation const* _invocation,
 	pushInlineFrame(*_definition);
 	if (auto modifier = dynamic_cast<ModifierDefinition const*>(_definition))
 	{
-		if (modifier->isImplemented())
-			modifier->body().accept(*this);
+		modifier->body().accept(*this);
 		popCallStack();
 	}
 	else if (auto function = dynamic_cast<FunctionDefinition const*>(_definition))
@@ -2358,7 +2357,7 @@ void SMTEncoder::initializeFunctionCallParameters(CallableDeclaration const& _fu
 
 	std::vector<VariableDeclaration const*> localVars;
 	if (auto const* fun = dynamic_cast<FunctionDefinition const*>(&_function))
-		localVars = localVariablesIncludingModifiers(*fun, m_currentContract);
+		localVars = localVariablesIncludingModifiers(*fun);
 	else
 		localVars = _function.localVariables();
 	for (auto const& variable: localVars)
@@ -2401,7 +2400,7 @@ void SMTEncoder::initializeStateVariables(ContractDefinition const& _contract)
 
 void SMTEncoder::createLocalVariables(FunctionDefinition const& _function)
 {
-	for (auto const& variable: localVariablesIncludingModifiers(_function, m_currentContract))
+	for (auto const& variable: localVariablesIncludingModifiers(_function))
 		createVariable(*variable);
 
 	for (auto const& param: _function.parameters())
@@ -2414,7 +2413,7 @@ void SMTEncoder::createLocalVariables(FunctionDefinition const& _function)
 
 void SMTEncoder::initializeLocalVariables(FunctionDefinition const& _function)
 {
-	for (auto const& variable: localVariablesIncludingModifiers(_function, m_currentContract))
+	for (auto const& variable: localVariablesIncludingModifiers(_function))
 	{
 		solAssert(m_context.knownVariable(*variable), "");
 		m_context.setZeroValue(*variable);
@@ -2716,7 +2715,7 @@ void SMTEncoder::clearIndices(ContractDefinition const* _contract, FunctionDefin
 	{
 		for (auto const& var: _function->parameters() + _function->returnParameters())
 			m_context.variable(*var)->resetIndex();
-		for (auto const& var: localVariablesIncludingModifiers(*_function, _contract))
+		for (auto const& var: localVariablesIncludingModifiers(*_function))
 			m_context.variable(*var)->resetIndex();
 	}
 	state().reset();
@@ -2966,9 +2965,9 @@ std::vector<VariableDeclaration const*> SMTEncoder::stateVariablesIncludingInher
 	return {};
 }
 
-std::vector<VariableDeclaration const*> SMTEncoder::localVariablesIncludingModifiers(FunctionDefinition const& _function, ContractDefinition const* _contract)
+std::vector<VariableDeclaration const*> SMTEncoder::localVariablesIncludingModifiers(FunctionDefinition const& _function)
 {
-	return _function.localVariables() + tryCatchVariables(_function) + modifiersVariables(_function, _contract);
+	return _function.localVariables() + tryCatchVariables(_function) + modifiersVariables(_function);
 }
 
 std::vector<VariableDeclaration const*> SMTEncoder::tryCatchVariables(FunctionDefinition const& _function)
@@ -2993,7 +2992,7 @@ std::vector<VariableDeclaration const*> SMTEncoder::tryCatchVariables(FunctionDe
 	return tryCatchVarsVisitor.vars;
 }
 
-std::vector<VariableDeclaration const*> SMTEncoder::modifiersVariables(FunctionDefinition const& _function, ContractDefinition const* _contract)
+std::vector<VariableDeclaration const*> SMTEncoder::modifiersVariables(FunctionDefinition const& _function)
 {
 	struct BlockVars: ASTConstVisitor
 	{
@@ -3008,32 +3007,20 @@ std::vector<VariableDeclaration const*> SMTEncoder::modifiersVariables(FunctionD
 	{
 		if (!invok)
 			continue;
-		auto const* modifier = resolveModifierInvocation(*invok, _contract);
+		auto const* modifier = resolveModifierInvocation(*invok);
 		if (!modifier || visited.count(modifier))
 			continue;
 
 		visited.insert(modifier);
-		if (modifier->isImplemented())
-		{
-			vars += applyMap(modifier->parameters(), [](auto _var) { return _var.get(); });
-			vars += BlockVars(modifier->body()).vars;
-		}
+		vars += applyMap(modifier->parameters(), [](auto _var) { return _var.get(); });
+		vars += BlockVars(modifier->body()).vars;
 	}
 	return vars;
 }
 
-ModifierDefinition const* SMTEncoder::resolveModifierInvocation(ModifierInvocation const& _invocation, ContractDefinition const* _contract)
+ModifierDefinition const* SMTEncoder::resolveModifierInvocation(ModifierInvocation const& _invocation)
 {
-	auto const* modifier = dynamic_cast<ModifierDefinition const*>(_invocation.name().annotation().referencedDeclaration);
-	if (modifier)
-	{
-		VirtualLookup lookup = *_invocation.name().annotation().requiredLookup;
-		solAssert(lookup == VirtualLookup::Virtual || lookup == VirtualLookup::Static, "");
-		solAssert(_contract || lookup == VirtualLookup::Static, "No contract context provided for modifier lookup resolution!");
-		if (lookup == VirtualLookup::Virtual)
-			modifier = &modifier->resolveVirtual(*_contract);
-	}
-	return modifier;
+	return dynamic_cast<ModifierDefinition const*>(_invocation.name().annotation().referencedDeclaration);
 }
 
 std::set<FunctionDefinition const*, ASTNode::CompareByID> const& SMTEncoder::contractFunctions(ContractDefinition const& _contract)

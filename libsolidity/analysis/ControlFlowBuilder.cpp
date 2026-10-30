@@ -365,16 +365,6 @@ bool ControlFlowBuilder::visit(ModifierInvocation const& _modifierInvocation)
 	if (!modifierDefinition)
 		return false;
 
-	VirtualLookup const& requiredLookup = *_modifierInvocation.name().annotation().requiredLookup;
-
-	if (requiredLookup == VirtualLookup::Virtual)
-		modifierDefinition = &modifierDefinition->resolveVirtual(*m_contract);
-	else
-		solAssert(requiredLookup == VirtualLookup::Static);
-
-	if (!modifierDefinition->isImplemented())
-		return false;
-
 	solAssert(!!m_returnNode, "");
 
 	m_placeholderEntry = newLabel();

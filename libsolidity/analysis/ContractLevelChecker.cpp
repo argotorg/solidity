@@ -302,8 +302,7 @@ void ContractLevelChecker::checkAbstractDefinitions(ContractDefinition const& _c
 		proxies.insert(_overrideProxy);
 	};
 
-	// Search from base to derived, collect all functions and modifiers and
-	// update proxies.
+	// Search from base to derived, collect all functions and update proxies.
 	for (ContractDefinition const* contract: _contract.annotation().linearizedBaseContracts | ranges::views::reverse)
 	{
 		for (VariableDeclaration const* v: contract->stateVariables())
@@ -313,9 +312,6 @@ void ContractLevelChecker::checkAbstractDefinitions(ContractDefinition const& _c
 		for (FunctionDefinition const* function: contract->definedFunctions())
 			if (!function->isConstructor())
 				registerProxy(OverrideProxy(function));
-
-		for (ModifierDefinition const* modifier: contract->functionModifiers())
-			registerProxy(OverrideProxy(modifier));
 	}
 
 	// Set to not fully implemented if at least one flag is false.

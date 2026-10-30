@@ -209,11 +209,12 @@ BOOST_AUTO_TEST_CASE(type_identifiers)
 	// TypeType is tested with contract
 
 	auto emptyParams = std::make_shared<ParameterList>(++id, SourceLocation(), std::vector<ASTPointer<VariableDeclaration>>());
-	ModifierDefinition mod(++id, SourceLocation{}, std::make_shared<std::string>("modif"), SourceLocation{}, {}, emptyParams, {}, {}, {});
+	auto emptyBlock = std::make_shared<Block>(++id, SourceLocation{}, nullptr, false, std::vector<ASTPointer<Statement>>());
+	ModifierDefinition mod(++id, SourceLocation{}, std::make_shared<std::string>("modif"), SourceLocation{}, {}, emptyParams, emptyBlock);
 	BOOST_CHECK_EQUAL(ModifierType(mod).identifier(), "t_modifier$__$");
 
 	SourceUnit su(++id, {}, {}, {});
-	BOOST_CHECK_EQUAL(ModuleType(su).identifier(), "t_module_7");
+	BOOST_CHECK_EQUAL(ModuleType(su).identifier(), "t_module_8");
 	BOOST_CHECK_EQUAL(MagicType(MagicType::Kind::Block).identifier(), "t_magic_block");
 	BOOST_CHECK_EQUAL(MagicType(MagicType::Kind::Message).identifier(), "t_magic_message");
 	BOOST_CHECK_EQUAL(MagicType(MagicType::Kind::Transaction).identifier(), "t_magic_transaction");

@@ -1,11 +1,11 @@
 contract A {
     uint256 data;
 
-    constructor() mod1 {
+    constructor() m {
         data |= 2;
     }
 
-    modifier mod1 virtual {
+    modifier m {
         data |= 1;
         _;
     }
@@ -17,10 +17,9 @@ contract A {
 
 
 contract C is A {
-    modifier mod1 override {
+    constructor() {
         data |= 4;
-        _;
     }
 }
 // ----
-// getData() -> 6
+// getData() -> 7

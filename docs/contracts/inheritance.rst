@@ -373,64 +373,6 @@ of the variable:
   While public state variables can override external functions, they themselves cannot
   be overridden.
 
-.. index:: ! overriding;modifier
-
-.. _modifier-overriding:
-
-Modifier Overriding (deprecated)
-================================
-
-Function modifiers can override each other. This works in the same way as
-:ref:`function overriding <function-overriding>` (except that there is no overloading for modifiers). The
-``virtual`` keyword must be used on the overridden modifier
-and the ``override`` keyword must be used in the overriding modifier:
-
-.. code-block:: solidity
-
-    // SPDX-License-Identifier: GPL-3.0
-    pragma solidity >=0.6.0 <0.10.0;
-
-    contract Base
-    {
-        // This will report a warning (deprecation)
-        modifier foo() virtual {_;}
-    }
-
-    contract Inherited is Base
-    {
-        modifier foo() override {_;}
-    }
-
-
-In case of multiple inheritance, all direct base contracts must be specified
-explicitly:
-
-.. code-block:: solidity
-
-    // SPDX-License-Identifier: GPL-3.0
-    pragma solidity >=0.6.0 <0.10.0;
-
-    contract Base1
-    {
-        // This will report a warning (deprecation)
-        modifier foo() virtual {_;}
-    }
-
-    contract Base2
-    {
-        // This will report a warning (deprecation)
-        modifier foo() virtual {_;}
-    }
-
-    contract Inherited is Base1, Base2
-    {
-        modifier foo() override(Base1, Base2) {_;}
-    }
-
-.. warning::
-    ``virtual`` modifiers are deprecated and scheduled for removal.
-
-
 .. index:: ! constructor
 
 .. _constructor:
@@ -638,5 +580,4 @@ the same name are:
 - Overloading of functions.
 - Overriding of virtual functions.
 - Overriding of external virtual functions by state variable getters.
-- Overriding of virtual modifiers.
 - Overloading of events.

@@ -10,10 +10,8 @@ Modifiers can be used to change the behavior of functions in a declarative way.
 For example,
 you can use a modifier to automatically check a condition prior to executing the function.
 
-Modifiers are
-inheritable properties of contracts and may be overridden by derived contracts, but only
-if they are marked ``virtual``. For details, please see
-:ref:`Modifier Overriding <modifier-overriding>`.
+Modifiers are inheritable properties of contracts. A derived contract inherits
+modifiers from its base contracts.
 
 .. code-block:: solidity
 
@@ -94,7 +92,7 @@ if they are marked ``virtual``. For details, please see
     }
 
 If you want to access a modifier ``m`` defined in a contract ``C``, you can use ``C.m`` to
-reference it without virtual lookup. It is only possible to use modifiers defined in the current
+reference it. It is only possible to use modifiers defined in the current
 contract or its base contracts. Modifiers can also be defined in libraries but their use is
 limited to functions of the same library.
 
@@ -128,5 +126,4 @@ the function body, and the function returns the return value of the final occurr
 
 Arbitrary expressions are allowed for modifier arguments and in this context,
 all symbols visible from the function are visible in the modifier. Symbols
-introduced in the modifier are not visible in the function (as they might
-change by overriding).
+introduced in the modifier are not visible in the function.
