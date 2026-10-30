@@ -893,7 +893,7 @@ BOOST_AUTO_TEST_CASE(modifiers)
 		}
 
 		contract C {
-			modifier m1() virtual { _; }
+			modifier m1() { _; }
 
 			function q() m1 internal virtual { L.f(); }
 		}
@@ -906,7 +906,6 @@ BOOST_AUTO_TEST_CASE(modifiers)
 		}
 
 		contract E is D {
-			modifier m1() override { _; }
 			modifier m3() { p(); _; }
 
 			constructor() D() m1 E.m3 {}
@@ -924,9 +923,9 @@ BOOST_AUTO_TEST_CASE(modifiers)
 		{"L", {}},
 		{"E", {
 			{"Entry", "constructor of E"},
-			{"constructor of E", "modifier E.m1"},
+			{"constructor of E", "modifier C.m1"},
 			{"constructor of E", "modifier E.m3"},
-			{"function C.q()", "modifier E.m1"},
+			{"function C.q()", "modifier C.m1"},
 			{"function C.q()", "function L.f()"},
 			{"function D.p()", "modifier D.m2"},
 			{"function D.p()", "function C.q()"},
@@ -943,15 +942,15 @@ BOOST_AUTO_TEST_CASE(modifiers)
 		{"L", {}},
 		{"E", {
 			{"Entry", "function E.ext()"},
-			{"function C.q()", "modifier E.m1"},
+			{"function C.q()", "modifier C.m1"},
 			{"function C.q()", "function L.f()"},
 			{"function D.p()", "modifier D.m2"},
 			{"function D.p()", "function C.q()"},
 			{"function L.f()", "modifier L.m"},
 			{"function E.ext()", "function E.inr()"},
-			{"function E.ext()", "modifier E.m1"},
+			{"function E.ext()", "modifier C.m1"},
 			{"function E.ext()", "modifier E.m3"},
-			{"function E.inr()", "modifier E.m1"},
+			{"function E.inr()", "modifier C.m1"},
 			{"function E.inr()", "modifier E.m3"},
 			{"function E.inr()", "function L.f()"},
 			{"modifier L.m", "function L.g()"},
@@ -1126,7 +1125,7 @@ BOOST_AUTO_TEST_CASE(interfaces_and_abstract_contracts)
 		}
 
 		abstract contract C is J {
-			modifier m() virtual;
+			modifier m() { _; }
 
 			function ext3() external override virtual;
 			function ext4() external { inr2();}
@@ -1139,8 +1138,6 @@ BOOST_AUTO_TEST_CASE(interfaces_and_abstract_contracts)
 			function ext2() external override { I(this).ext1(); }
 			function ext3() external override {}
 			function inr1() internal override {}
-
-			modifier m() override { _; }
 		}
 	)"s);
 	std::tuple<CallGraphMap, CallGraphMap> graphs = collectGraphs(*compilerStack);
@@ -1178,7 +1175,7 @@ BOOST_AUTO_TEST_CASE(interfaces_and_abstract_contracts)
 			{"Entry", "function C.ext4()"},
 			{"function C.ext4()", "function C.inr2()"},
 			{"function C.inr2()", "function D.inr1()"},
-			{"function C.inr2()", "modifier D.m"},
+			{"function C.inr2()", "modifier C.m"},
 			{"function D.ext1()", "function D.inr1()"},
 			{"function D.ext1()", "function C.inr2()"},
 		}},

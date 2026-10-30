@@ -442,18 +442,7 @@ std::string IRGenerator::generateModifier(
 			dispenseLocationComment(m_context.mostDerivedContract())
 		);
 
-		switch (*_modifierInvocation.name().annotation().requiredLookup)
-		{
-		case VirtualLookup::Virtual:
-			modifier = &modifier->resolveVirtual(m_context.mostDerivedContract());
-			solAssert(modifier, "");
-			break;
-		case VirtualLookup::Static:
-			break;
-		case VirtualLookup::Super:
-			solAssert(false, "");
-		}
-
+		solAssert(*_modifierInvocation.name().annotation().requiredLookup == VirtualLookup::Static);
 		solAssert(
 			modifier->parameters().empty() ==
 			(!_modifierInvocation.arguments() || _modifierInvocation.arguments()->empty()),

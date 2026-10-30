@@ -623,8 +623,6 @@ ASTPointer<ModifierDefinition> ASTJsonImporter::createModifierDefinition(Json co
 		createNameSourceLocation(_node),
 		(_node.contains("documentation") && !_node["documentation"].is_null()) ? createDocumentation(member(_node, "documentation")) : nullptr,
 		createParameterList(member(_node, "parameters")),
-		memberAsBool(_node, "virtual"),
-		(_node.contains("overrides") && !_node["overrides"].is_null()) ? createOverrideSpecifier(member(_node, "overrides")) : nullptr,
 		(_node.contains("body") && !_node["body"].is_null()) ? createBlock(member(_node, "body"), false) : nullptr
 	);
 }

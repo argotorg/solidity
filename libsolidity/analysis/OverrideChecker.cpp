@@ -29,6 +29,7 @@
 #include <libsolutil/Visitor.h>
 
 #include <boost/algorithm/string/predicate.hpp>
+#include <range/v3/algorithm/find_if.hpp>
 
 
 using namespace solidity;
@@ -298,7 +299,7 @@ bool OverrideProxy::virtualSemantics() const
 {
 	return std::visit(GenericVisitor{
 		[&](FunctionDefinition const* _item) { return _item->virtualSemantics(); },
-		[&](ModifierDefinition const* _item) { return _item->virtualSemantics(); },
+		[&](ModifierDefinition const*) { return false; },
 		[&](VariableDeclaration const*) { return false; }
 	}, m_item);
 }
@@ -481,8 +482,9 @@ void OverrideChecker::checkIllegalOverrides(ContractDefinition const& _contract)
 				modifier->location(),
 				"Override changes function or public state variable to modifier."
 			);
-
-		checkOverrideList(OverrideProxy{modifier}, inheritedMods);
+		auto it = ranges::find_if(inheritedMods, MatchByName{modifier->name()});
+		if (it != inheritedMods.end())
+			overrideError(OverrideProxy(modifier), *it, 5827_error, "Cannot override modifiers.");
 	}
 
 	for (FunctionDefinition const* function: _contract.definedFunctions())
@@ -515,17 +517,11 @@ void OverrideChecker::checkIllegalOverrides(ContractDefinition const& _contract)
 
 void OverrideChecker::checkOverride(OverrideProxy const& _overriding, OverrideProxy const& _super)
 {
-	solAssert(_super.isModifier() == _overriding.isModifier(), "");
+	solAssert(!_super.isModifier());
+	solAssert(!_overriding.isModifier());
 
-	if (_super.isFunction() || _super.isModifier())
+	if (_super.isFunction())
 		_overriding.storeBaseFunction(_super);
-
-	if (_overriding.isModifier() && *_overriding.modifierType() != *_super.modifierType())
-		m_errorReporter.typeError(
-			1078_error,
-			_overriding.location(),
-			"Override changes modifier signature."
-		);
 
 	if (!_overriding.overrides() && !(_super.isFunction() && _super.contract().isInterface()))
 		overrideError(
