@@ -12,6 +12,5 @@ contract C
 // SMTEngine: all
 // SMTIgnoreCex: yes
 // ----
-// Warning 6328: (143-159): CHC: Assertion violation happens here.\nCounterexample:\n\nb = false\nc = [0, 14]\n\nTransaction trace:\nC.constructor()\nC.f(false, [21655, 14])
+// Warning 6328: (143-159): CHC: Assertion violation happens here.\nCounterexample:\n\nb = false\nc = [0, 14]\n\nTransaction trace:\nC.constructor()\nC.f(false, [25906, 14])
 // Info 1391: CHC: 3 verification condition(s) proved safe! Enable the model checker option "show proved safe" to see all of them.
-// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

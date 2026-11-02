@@ -1,0 +1,11 @@
+{
+    "errors": [
+        {
+            "component": "general",
+            "formattedMessage": "Unknown key \"bmcLoopIterations\"",
+            "message": "Unknown key \"bmcLoopIterations\"",
+            "severity": "error",
+            "type": "JSONError"
+        }
+    ]
+}

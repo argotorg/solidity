@@ -31,4 +31,3 @@ contract C
 // SMTIgnoreCex: yes
 // ----
 // Warning 2018: (486-665): Function state mutability can be restricted to view
-// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

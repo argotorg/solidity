@@ -15,4 +15,3 @@ contract C
 // Warning 6328: (58-96): CHC: Assertion violation happens here.\nCounterexample:\n\nprevrandao = 0\n\nTransaction trace:\nC.constructor()\nC.f(0){ block.prevrandao: 18446744073709551617 }
 // Warning 6328: (115-153): CHC: Assertion violation happens here.\nCounterexample:\n\nprevrandao = 0\n\nTransaction trace:\nC.constructor()\nC.f(0){ block.prevrandao: 18446744073709551617 }
 // Info 1391: CHC: 1 verification condition(s) proved safe! Enable the model checker option "show proved safe" to see all of them.
-// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.
