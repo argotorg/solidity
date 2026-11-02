@@ -24,8 +24,13 @@
 
 #include <libsmtutil/CHCSolverInterface.h>
 
+#include <libsmtutil/SMTLib2Context.h>
 #include <libsmtutil/SMTLib2Interface.h>
 #include <libsmtutil/SMTLib2Parser.h>
+
+#include <libsolidity/interface/ReadFile.h>
+
+#include <libsolutil/FixedHash.h>
 
 namespace solidity::smtutil
 {

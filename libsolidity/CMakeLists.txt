@@ -105,8 +105,6 @@ set(sources
 	formal/ArraySlicePredicate.h
 	formal/CHC.cpp
 	formal/CHC.h
-	formal/Cvc5SMTLib2Interface.cpp
-	formal/Cvc5SMTLib2Interface.h
 	formal/EldaricaCHCSmtLib2Interface.cpp
 	formal/EldaricaCHCSmtLib2Interface.h
 	formal/EncodingContext.cpp
@@ -135,8 +133,6 @@ set(sources
 	formal/SymbolicVariables.h
 	formal/Z3CHCSmtLib2Interface.cpp
 	formal/Z3CHCSmtLib2Interface.h
-	formal/Z3SMTLib2Interface.cpp
-	formal/Z3SMTLib2Interface.h
 	interface/ABI.cpp
 	interface/ABI.h
 	interface/CompilerStack.cpp
