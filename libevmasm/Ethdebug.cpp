@@ -127,7 +127,7 @@ std::string compilationID(std::vector<Source> const& _sources)
 {
 	// Keep this independent from VersionString build metadata.
 	// TODO: take compilation flags into account. Once compiler settings are threaded
-	// into ETHDebug resources, include a normalized settings object here.
+	// into the compilation record, include a normalized settings object here.
 	std::string rawIDInput = "ethdebug-solc-compilation-v1";
 	rawIDInput += lengthPrefixed(std::to_string(_sources.size()));
 
@@ -191,13 +191,13 @@ Json ethdebug::program(std::string_view _name, unsigned _sourceID, Assembly cons
 	};
 }
 
-Json ethdebug::resources(std::vector<Source> const& _sources, std::string_view _version)
+Json ethdebug::resources()
 {
-	schema::info::Resources result;
-	result.compilation = materialCompilation(_sources, _version);
-	result.types = Json::object();
-	result.pointers = Json::object();
-	return result;
+	return schema::info::Resources{
+		.compilation = std::nullopt,
+		.types = Json::object(),
+		.pointers = Json::object()
+	};
 }
 
 Json ethdebug::compilation(std::vector<Source> const& _sources, std::string_view _version)

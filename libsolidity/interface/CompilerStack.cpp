@@ -1155,7 +1155,7 @@ Json CompilerStack::interfaceSymbols(std::string const& _contractName) const
 Json CompilerStack::ethdebug() const
 {
 	solAssert(m_stackState >= AnalysisSuccessful, "Analysis was not successful.");
-	return evmasm::ethdebug::resources(ethdebugSources(), VersionString);
+	return evmasm::ethdebug::resources();
 }
 
 Json CompilerStack::ethdebugCompilation() const

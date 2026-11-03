@@ -2377,6 +2377,45 @@ BOOST_AUTO_TEST_CASE(ethdebug_program_output_rejects_ssa_cfg)
 	BOOST_CHECK(containsError(result, "UnimplementedFeatureError", "SSA CFG codegen does not yet support ethdebug."));
 }
 
+BOOST_AUTO_TEST_CASE(ethdebug_global_outputs_are_separate)
+{
+	frontend::StandardCompiler compiler;
+	for (Json input: {
+		generateExperimentalStandardJson(false, {}, Json::array()),
+		generateExperimentalStandardJson(false, {}, Json::array(), YulCode())
+	})
+		for (bool resourcesRequested: {false, true})
+			for (bool compilationRequested: {false, true})
+			{
+				if (!resourcesRequested && !compilationRequested)
+					continue;
+				Json selection = Json::array();
+				if (resourcesRequested)
+					selection.push_back("ethdebug.resources");
+				if (compilationRequested)
+					selection.push_back("ethdebug.compilation");
+				input["settings"]["outputSelection"]["*"]["*"] = selection;
+				BOOST_TEST_CONTEXT("language: " << input["language"] << ", selection: " << selection)
+				{
+					Json const result = compiler.compile(input);
+					BOOST_REQUIRE(containsAtMostWarnings(result));
+					Json const& ethdebug = result.at("ethdebug");
+					BOOST_CHECK_EQUAL(ethdebug.contains("resources"), resourcesRequested);
+					BOOST_CHECK_EQUAL(ethdebug.contains("compilation"), compilationRequested);
+					if (resourcesRequested)
+						BOOST_CHECK(!ethdebug["resources"].contains("compilation"));
+					if (compilationRequested)
+					{
+						Json const& compilation = ethdebug["compilation"];
+						BOOST_CHECK_EQUAL(compilation["compiler"]["name"], "solc");
+						BOOST_REQUIRE_EQUAL(compilation["sources"].size(), 1);
+						BOOST_CHECK(compilation["sources"][0]["language"] == input["language"]);
+						BOOST_CHECK(compilation["sources"][0]["contents"] == input["sources"]["fileA"]["content"]);
+					}
+				}
+			}
+}
+
 BOOST_AUTO_TEST_CASE(ethdebug_program_output_matches_two_stage_compilation)
 {
 	// The program output of a contract compiled from Solidity without the
