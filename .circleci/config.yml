@@ -712,8 +712,8 @@ defaults:
       project: colony
       binary_type: solcjs
       compile_only: 1
-      image: cimg/node:14.20
-      python2: true
+      image: cimg/node:20.11.0
+      resource_class: medium
 
   - job_native_compile_ext_gnosis: &job_native_compile_ext_gnosis
       <<: *requires_b_ubu_static
