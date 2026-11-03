@@ -51,7 +51,8 @@ The compiler currently uses the same number as the ``id`` of the source in the S
 The Resources
 =============
 
-The resources document carries its ``ethdebug`` stamp, two tables that the programs refer to, ``types`` and ``pointers``, and repeats the compilation, which ``ethdebug.compilation`` also provides on its own.
+The resources document carries its ``ethdebug`` stamp and two tables that the programs refer to: ``types`` and ``pointers``.
+Compiler information and sources are provided separately by ``ethdebug.compilation``.
 Both tables cover all contracts of the compilation.
 
 .. code-block:: json
@@ -60,16 +61,6 @@ Both tables cover all contracts of the compilation.
         "ethdebug": {
             "schema": "ethdebug/format/info/resources",
             "version": "0.1.0-draft.2"
-        },
-        "compilation": {
-            "id": "...",
-            "compiler": {
-                "name": "solc",
-                "version": "..."
-            },
-            "sources": [
-                "..."
-            ]
         },
         "types": {
             "t_uint256": {

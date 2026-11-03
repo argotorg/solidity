@@ -131,7 +131,7 @@ std::string compilationID(std::vector<Source> const& _sources)
 {
 	// Keep this independent from VersionString build metadata.
 	// TODO: take compilation flags into account. Once compiler settings are threaded
-	// into ETHDebug resources, include a normalized settings object here.
+	// into the compilation record, include a normalized settings object here.
 	std::string rawIDInput = "ethdebug-solc-compilation-v1";
 	rawIDInput += lengthPrefixed(std::to_string(_sources.size()));
 
@@ -157,7 +157,7 @@ schema::materials::Source materialSource(Source const& _source)
 	return result;
 }
 
-schema::materials::Compilation materialCompilation(std::vector<Source> const& _sources, std::string_view _version)
+schema::materials::Compilation materialCompilation(std::vector<Source> const& _sources, std::string_view _compilerVersion)
 {
 	std::vector<schema::materials::Source> sources;
 	sources.reserve(_sources.size());
@@ -167,7 +167,7 @@ schema::materials::Compilation materialCompilation(std::vector<Source> const& _s
 	schema::materials::Compilation result;
 	result.id = schema::materials::ID{compilationID(_sources)};
 	result.compiler.name = "solc";
-	result.compiler.version = std::string{_version};
+	result.compiler.version = std::string{_compilerVersion};
 	result.settings = std::nullopt;
 	result.sources = std::move(sources);
 	return result;
@@ -195,22 +195,19 @@ Json evmasm::ethdebug::program(std::string_view _name, unsigned _sourceID, Assem
 }
 
 Json evmasm::ethdebug::resources(
-	std::vector<Source> const& _sources,
-	std::string_view _version,
 	std::map<std::string, schema::Type> _types,
 	std::map<std::string, schema::Pointer::Template> _pointers
 )
 {
 	schema::info::Resources const result{
 		.ethdebug = schema::data::Stamp{"ethdebug/format/info/resources", std::string{SpecificationVersion}},
-		.compilation = materialCompilation(_sources, _version),
 		.types = std::move(_types),
 		.pointers = std::move(_pointers),
 	};
 	return Json(result);
 }
 
-Json evmasm::ethdebug::compilation(std::vector<Source> const& _sources, std::string_view _version)
+Json evmasm::ethdebug::compilation(std::vector<Source> const& _sources, std::string_view _compilerVersion)
 {
-	return Json(materialCompilation(_sources, _version));
+	return Json(materialCompilation(_sources, _compilerVersion));
 }

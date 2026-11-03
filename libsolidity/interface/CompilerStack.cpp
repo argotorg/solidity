@@ -1174,8 +1174,6 @@ Json CompilerStack::ethdebug() const
 			resources.merge(ethdebug::resources(*compiledContract.contract, sourceIndexMap));
 
 	return evmasm::ethdebug::resources(
-		ethdebugSources(),
-		VersionString,
 		std::move(resources.types),
 		std::move(resources.pointers)
 	);

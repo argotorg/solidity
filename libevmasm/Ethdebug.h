@@ -47,13 +47,11 @@ Json program(std::string_view _name, unsigned _sourceID, Assembly const& _assemb
 
 // returns ethdebug/format/info/resources, stamped with its schema and the specification version.
 Json resources(
-	std::vector<Source> const& _sources,
-	std::string_view _version,
 	std::map<std::string, langutil::ethdebug::schema::Type> _types = {},
 	std::map<std::string, langutil::ethdebug::schema::Pointer::Template> _pointers = {}
 );
 
-// returns the 'compilation' object from ethdebug/format/info/resources
-Json compilation(std::vector<Source> const& _sources, std::string_view _version);
+// returns ethdebug/format/materials/compilation
+Json compilation(std::vector<Source> const& _sources, std::string_view _compilerVersion);
 
 } // namespace solidity::evmasm::ethdebug
