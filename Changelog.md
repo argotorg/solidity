@@ -7,6 +7,7 @@ Compiler Features:
 * Yul: Warn when the assembled bytecode of a compiled Yul object exceeds the EIP-170 (runtime code) or EIP-3860 (initcode) size limit, matching the existing warnings for Solidity input.
 
 Bugfixes:
+* AST Import: Reject non-decimal or out-of-range source location fields instead of silently truncating them or crashing.
 * SMTChecker: Fix false negative in CHC engine when a function from abstract base is called externally using `this`.
 
 
