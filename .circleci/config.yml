@@ -1488,9 +1488,6 @@ jobs:
       resource_class:
         type: string
         default: small
-      python2:
-        type: boolean
-        default: false
     docker:
       - image: << parameters.image >>
     resource_class: << parameters.resource_class >>
@@ -1512,17 +1509,6 @@ jobs:
               # Pin to pnpm v9 as v10 introduces additional safe guards and causes failures
               sudo npm install -g pnpm@9
             fi
-      - when:
-          condition: << parameters.python2 >>
-          steps:
-            - run:
-                name: Install Python 2 and make it the default
-                command: |
-                  sudo apt update
-                  # python is used by node-gyp to build native modules (needed for Colony).
-                  # In the 14.x image node-gyp still requires Python 2.
-                  sudo apt install python2 --assume-yes --no-install-recommends
-                  sudo update-alternatives --install /usr/bin/python python /usr/bin/python2 1
       - when:
           condition:
             equal: [<< parameters.binary_type >>, "solcjs"]
