@@ -131,13 +131,6 @@ function download_project
     echo "Current commit hash: $(git rev-parse HEAD)"
 }
 
-function force_truffle_version
-{
-    local version="$1"
-
-    sed -i 's/"truffle":\s*".*"/"truffle": "'"$version"'"/g' package.json
-}
-
 function replace_version_pragmas
 {
     # Replace fixed-version pragmas (part of Consensys best practice).
@@ -176,7 +169,7 @@ function neutralize_packaged_contracts
     # part of the main project anyway) and trips up our version check because it won't use our
     # custom compiler binary.
     printLog "Removing framework config and artifacts from npm packages..."
-    find node_modules/ -type f '(' -name 'hardhat.config.*' -o -name 'truffle-config.*' ')' -delete
+    find node_modules/ -type f -name 'hardhat.config.*' -delete
 
     # Some npm packages also come packaged with pre-built artifacts.
     find node_modules/ -path '*artifacts/build-info/*.json' -delete
@@ -199,47 +192,6 @@ function force_solc_modules
         rm -r "$solc_module_path"
         ln -s "$custom_solcjs_path" "$solc_module_path"
     done
-}
-
-function force_truffle_compiler_settings
-{
-    local config_file="$1"
-    local binary_type="$2"
-    local solc_path="$3"
-    local preset="$4"
-    local evm_version="${5:-"$CURRENT_EVM_VERSION"}"
-    local extra_settings="$6"
-    local extra_optimizer_settings="$7"
-
-    [[ $binary_type == native || $binary_type == solcjs ]] || assertFail
-
-    [[ $binary_type == native ]] && local solc_path="native"
-
-    printLog "Forcing Truffle compiler settings..."
-    echo "-------------------------------------"
-    echo "Config file: $config_file"
-    echo "Binary type: $binary_type"
-    echo "Compiler path: $solc_path"
-    echo "Settings preset: ${preset}"
-    echo "Settings: $(settings_from_preset "$preset" "$evm_version" "$extra_settings" "$extra_optimizer_settings")"
-    echo "EVM version: $evm_version"
-    echo "Compiler version: ${SOLCVERSION_SHORT}"
-    echo "Compiler version (full): ${SOLCVERSION}"
-    echo "-------------------------------------"
-
-    local compiler_settings gas_reporter_settings
-    compiler_settings=$(truffle_compiler_settings "$solc_path" "$preset" "$evm_version" "$extra_settings" "$extra_optimizer_settings")
-    gas_reporter_settings=$(eth_gas_reporter_settings "$preset")
-
-    {
-        echo "require('eth-gas-reporter');"
-        echo "module.exports['mocha'] = {"
-        echo "    reporter: 'eth-gas-reporter',"
-        echo "    reporterOptions: ${gas_reporter_settings}"
-        echo "};"
-
-        echo "module.exports['compilers'] = ${compiler_settings};"
-    } >> "$config_file"
 }
 
 function name_hardhat_default_export
@@ -364,15 +316,6 @@ function force_hardhat_compiler_settings
     fi >> "$config_file"
 }
 
-function truffle_verify_compiler_version
-{
-    local solc_version="$1"
-    local full_solc_version="$2"
-
-    printLog "Verify that the correct version (${solc_version}/${full_solc_version}) of the compiler was used to compile the contracts..."
-    grep "$full_solc_version" --recursive --quiet build/contracts || fail "Wrong compiler version detected."
-}
-
 function hardhat_verify_compiler_version
 {
     local solc_version="$1"
@@ -385,11 +328,6 @@ function hardhat_verify_compiler_version
         grep '"solcVersion":[[:blank:]]*"'"${solc_version}"'"' --quiet "$build_info_file" || fail "Wrong compiler version detected in ${build_info_file}."
         grep '"solcLongVersion":[[:blank:]]*"'"${full_solc_version}"'"' --quiet "$build_info_file" || fail "Wrong compiler version detected in ${build_info_file}."
     done
-}
-
-function truffle_clean
-{
-    rm -rf build/
 }
 
 function hardhat_clean
@@ -445,22 +383,6 @@ function eth_gas_reporter_settings
     echo "    showMethodSig: true,"                   # Should make diffs more stable if there are overloaded functions
     echo "    reportFormat: 'legacy',"                # Use v1.x format for compatibility with parse_eth_gas_report.py
     echo "    outputFile: \"$(gas_report_path "$preset")\""
-    echo "}"
-}
-
-function truffle_compiler_settings
-{
-    local solc_path="$1"
-    local preset="$2"
-    local evm_version="$3"
-    local extra_settings="$4"
-    local extra_optimizer_settings="$5"
-
-    echo "{"
-    echo "    solc: {"
-    echo "        version: \"${solc_path}\","
-    echo "        settings: $(settings_from_preset "$preset" "$evm_version" "$extra_settings" "$extra_optimizer_settings")"
-    echo "    }"
     echo "}"
 }
 
@@ -535,23 +457,6 @@ function compile_and_run_test
     fi
 }
 
-function truffle_run_test
-{
-    local config_file="$1"
-    local binary_type="$2"
-    local solc_path="$3"
-    local preset="$4"
-    local compile_only_presets="$5"
-    local compile_fn="$6"
-    local test_fn="$7"
-    local extra_settings="$8"
-    local extra_optimizer_settings="$9"
-
-    truffle_clean
-    force_truffle_compiler_settings "$config_file" "$binary_type" "$solc_path" "$preset" "$CURRENT_EVM_VERSION" "$extra_settings" "$extra_optimizer_settings"
-    compile_and_run_test compile_fn test_fn truffle_verify_compiler_version "$preset" "$compile_only_presets"
-}
-
 function hardhat_run_test
 {
     local config_file="$1"
@@ -614,25 +519,6 @@ function detect_hardhat_artifact_dirs
     echo -n "${artifact_dir[@]}"
 }
 
-function bytecode_size_json_from_truffle_artifacts
-{
-    # NOTE: The output of this function is a series of concatenated JSON dicts rather than a list.
-
-    for artifact in build/contracts/*.json; do
-        if [[ $(jq '. | has("unlinked_binary")' "$artifact") == false ]]; then
-            # Each artifact represents compilation output for a single contract. Some top-level keys contain
-            # bits of Standard JSON output while others are generated by Truffle. Process it into a dict
-            # of the form `{"<file>": {"<contract>": <size>}}`.
-            # NOTE: The `bytecode` field starts with 0x, which is why we subtract 1 from size.
-            jq '{
-                (.ast.absolutePath): {
-                    (.contractName): (.bytecode | length / 2 - 1)
-                }
-            }' "$artifact"
-        fi
-    done
-}
-
 function bytecode_size_json_from_hardhat_artifacts
 {
     # NOTE: The output of this function is a series of concatenated JSON dicts rather than a list.
@@ -691,7 +577,7 @@ function store_benchmark_report
     local project_url="$3"
     local preset="$4"
 
-    [[ $framework == truffle || $framework == hardhat ]] || assertFail
+    [[ $framework == hardhat ]] || assertFail
     [[ " ${AVAILABLE_PRESETS[*]} " == *" $preset "* ]] || assertFail
 
     local report_dir="${REPO_ROOT}/reports/externalTests"
