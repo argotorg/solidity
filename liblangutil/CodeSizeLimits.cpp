@@ -35,6 +35,10 @@ constexpr size_t RUNTIME_CODE_SIZE_LIMIT_SPURIOUS_DRAGON = 24576;
 /// Initcode size limit (in bytes) introduced by EIP-3860 in the Shanghai release.
 constexpr size_t CREATION_CODE_SIZE_LIMIT_SHANGHAI = 49152;
 
+/// Initcode and runtime code size limits according to the Amsterdam fork, EIP-7954.
+constexpr size_t CREATION_CODE_SIZE_LIMIT_AMSTERDAM = 131072;
+constexpr size_t RUNTIME_CODE_SIZE_LIMIT_AMSTERDAM = 65536;
+
 struct CodeSizeLimit
 {
 	std::string forkName = {};
@@ -44,7 +48,13 @@ struct CodeSizeLimit
 
 CodeSizeLimit creationCodeSizeLimit(EVMVersion _evmVersion)
 {
-	if (_evmVersion >= EVMVersion::shanghai())
+	if (_evmVersion >= EVMVersion::amsterdam())
+		return {
+			"Amsterdam",
+			CREATION_CODE_SIZE_LIMIT_AMSTERDAM,
+			7868_error,
+		};
+	else if (_evmVersion >= EVMVersion::shanghai())
 		return {
 			"Shanghai",
 			CREATION_CODE_SIZE_LIMIT_SHANGHAI,
@@ -54,13 +64,20 @@ CodeSizeLimit creationCodeSizeLimit(EVMVersion _evmVersion)
 		return {};
 }
 
-CodeSizeLimit runtimeCodeSizeLimit()
+CodeSizeLimit runtimeCodeSizeLimit(EVMVersion _evmVersion)
 {
-	return {
-		"Spurious Dragon",
-		RUNTIME_CODE_SIZE_LIMIT_SPURIOUS_DRAGON,
-		5574_error,
-	};
+	if (_evmVersion >= EVMVersion::amsterdam())
+		return {
+			"Amsterdam",
+			RUNTIME_CODE_SIZE_LIMIT_AMSTERDAM,
+			5776_error,
+		};
+	else
+		return {
+			"Spurious Dragon",
+			RUNTIME_CODE_SIZE_LIMIT_SPURIOUS_DRAGON,
+			5574_error,
+		};
 }
 
 void reportCodeSizeLimitWarningIfExceeded(
@@ -98,7 +115,7 @@ void checkCodeSizeLimits(
 {
 	reportCodeSizeLimitWarningIfExceeded(
 		_errorReporter,
-		runtimeCodeSizeLimit(),
+		runtimeCodeSizeLimit(_evmVersion),
 		_runtimeCodeSize,
 		_codeSizeWarningSubject + " code",
 		_location
