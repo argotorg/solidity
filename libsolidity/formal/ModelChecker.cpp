@@ -52,14 +52,6 @@ ModelChecker::ModelChecker(
 {
 }
 
-// TODO This should be removed for 0.9.0.
-bool ModelChecker::isPragmaPresent(std::vector<std::shared_ptr<SourceUnit>> const& _sources)
-{
-	return ranges::any_of(_sources, [](auto _source) {
-		return _source && _source->annotation().experimentalFeatures.count(ExperimentalFeature::SMTChecker);
-	});
-}
-
 void ModelChecker::checkRequestedSourcesAndContracts(std::vector<std::shared_ptr<SourceUnit>> const& _sources)
 {
 	std::map<std::string, std::set<std::string>> exist;
@@ -94,30 +86,6 @@ void ModelChecker::checkRequestedSourcesAndContracts(std::vector<std::shared_ptr
 
 void ModelChecker::analyze(SourceUnit const& _source)
 {
-	// TODO This should be removed for 0.9.0.
-	if (_source.annotation().experimentalFeatures.count(ExperimentalFeature::SMTChecker))
-	{
-		PragmaDirective const* smtPragma = nullptr;
-		for (auto node: _source.nodes())
-			if (auto pragma = std::dynamic_pointer_cast<PragmaDirective>(node))
-				if (
-					pragma->literals().size() >= 2 &&
-					pragma->literals().at(1) == "SMTChecker"
-				)
-				{
-					smtPragma = pragma.get();
-					break;
-				}
-		solAssert(smtPragma, "");
-		m_uniqueErrorReporter.warning(
-			5523_error,
-			smtPragma->location(),
-			"The SMTChecker pragma has been deprecated and will be removed in the future. "
-			"Please use the \"model checker engine\" compiler setting to activate the SMTChecker instead. "
-			"If the pragma is enabled, all engines will be used."
-		);
-	}
-
 	if (m_settings.engine.none())
 		return;
 
