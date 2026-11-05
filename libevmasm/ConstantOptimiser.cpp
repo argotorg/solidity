@@ -252,6 +252,17 @@ AssemblyItems ComputeMethod::findRepresentation(u256 const& _value)
 		// Very small value, not worth computing
 		return AssemblyItems{_value};
 
+	AssemblyItems routine{_value};
+	bigint bestGas = gasNeeded(routine);
+	auto considerRoutine = [&](AssemblyItems _routine) {
+		bigint newGas = gasNeeded(_routine);
+		if (newGas < bestGas)
+		{
+			bestGas = std::move(newGas);
+			routine = std::move(_routine);
+		}
+	};
+
 	// A constant having a single contiguous run of ones, common in masking,
 	// can be efficiently created by first filling with 1's, then shifting
 	// left and/or right as needed to make the sides full of zeros.
@@ -301,75 +312,56 @@ AssemblyItems ComputeMethod::findRepresentation(u256 const& _value)
 		// 0x000000000000000000000000000000000000ffffffffffff0000000000000000
 		if (onesStart > 0)
 			newRoutine += AssemblyItems{u256(onesStart), Instruction::SHL};
-		return newRoutine;
+		considerRoutine(std::move(newRoutine));
 	}
 
-	// pure negation can sometimes produce bad results
-	// example: 0xff00000000000000000000000000000000000000000000000000000000000000
-	// 0xff at the most significant byte of u256
-	// without the extra condition: not(sub(shl(0xf8, 0x01), 0x01))
-	// the extra condition turns that into: shl(0xf8, 0xff)
-	if (
-		numberEncodingSize(~_value) < numberEncodingSize(_value) &&
-		(onesEnd < 256 || onesEnd - onesStart > 16)
-	)
-		// Negated is shorter to represent
-		return findRepresentation(~_value) + AssemblyItems{Instruction::NOT};
-	else
+	if (numberEncodingSize(~_value) < numberEncodingSize(_value))
+		considerRoutine(findRepresentation(~_value) + AssemblyItems{Instruction::NOT});
+
+	// Decompose value into a * 2**k + b where abs(b) << 2**k.
+	for (unsigned bits = 255; bits > 8 && m_maxSteps > 0; --bits)
 	{
-		// Decompose value into a * 2**k + b where abs(b) << 2**k
-		// Is not always better, try literal and decomposition method.
-		AssemblyItems routine{u256(_value)};
-		bigint bestGas = gasNeeded(routine);
-		for (unsigned bits = 255; bits > 8 && m_maxSteps > 0; --bits)
+		unsigned gapDetector = unsigned((_value >> (bits - 8)) & 0x1ff);
+		if (gapDetector != 0xff && gapDetector != 0x100)
+			continue;
+
+		u256 powerOfTwo = u256(1) << bits;
+		u256 upperPart = _value >> bits;
+		bigint lowerPart = _value & (powerOfTwo - 1);
+		if ((powerOfTwo - lowerPart) < lowerPart)
 		{
-			unsigned gapDetector = unsigned((_value >> (bits - 8)) & 0x1ff);
-			if (gapDetector != 0xff && gapDetector != 0x100)
-				continue;
-
-			u256 powerOfTwo = u256(1) << bits;
-			u256 upperPart = _value >> bits;
-			bigint lowerPart = _value & (powerOfTwo - 1);
-			if ((powerOfTwo - lowerPart) < lowerPart)
-			{
-				lowerPart = lowerPart - powerOfTwo; // make it negative
-				upperPart++;
-			}
-			if (upperPart == 0)
-				continue;
-			if (abs(lowerPart) >= (powerOfTwo >> 8))
-				continue;
-
-			AssemblyItems newRoutine;
-			if (lowerPart != 0)
-				newRoutine += findRepresentation(u256(abs(lowerPart)));
-			if (m_params.evmVersion.hasBitwiseShifting())
-			{
-				newRoutine += findRepresentation(upperPart);
-				newRoutine += AssemblyItems{u256(bits), Instruction::SHL};
-			}
-			else
-			{
-				newRoutine += AssemblyItems{u256(bits), u256(2), Instruction::EXP};
-				if (upperPart != 1)
-					newRoutine += findRepresentation(upperPart) + AssemblyItems{Instruction::MUL};
-			}
-			if (lowerPart > 0)
-				newRoutine += AssemblyItems{Instruction::ADD};
-			else if (lowerPart < 0)
-				newRoutine.push_back(Instruction::SUB);
-
-			if (m_maxSteps > 0)
-				m_maxSteps--;
-			bigint newGas = gasNeeded(newRoutine);
-			if (newGas < bestGas)
-			{
-				bestGas = std::move(newGas);
-				routine = std::move(newRoutine);
-			}
+			lowerPart = lowerPart - powerOfTwo; // make it negative
+			upperPart++;
 		}
-		return routine;
+		if (upperPart == 0)
+			continue;
+		if (abs(lowerPart) >= (powerOfTwo >> 8))
+			continue;
+
+		AssemblyItems newRoutine;
+		if (lowerPart != 0)
+			newRoutine += findRepresentation(u256(abs(lowerPart)));
+		if (m_params.evmVersion.hasBitwiseShifting())
+		{
+			newRoutine += findRepresentation(upperPart);
+			newRoutine += AssemblyItems{u256(bits), Instruction::SHL};
+		}
+		else
+		{
+			newRoutine += AssemblyItems{u256(bits), u256(2), Instruction::EXP};
+			if (upperPart != 1)
+				newRoutine += findRepresentation(upperPart) + AssemblyItems{Instruction::MUL};
+		}
+		if (lowerPart > 0)
+			newRoutine += AssemblyItems{Instruction::ADD};
+		else if (lowerPart < 0)
+			newRoutine.push_back(Instruction::SUB);
+
+		if (m_maxSteps > 0)
+			m_maxSteps--;
+		considerRoutine(std::move(newRoutine));
 	}
+	return routine;
 }
 
 bool ComputeMethod::checkRepresentation(u256 const& _value, AssemblyItems const& _routine) const
