@@ -62,7 +62,7 @@ BOOST_AUTO_TEST_CASE(value_types)
 			}
 		}
 	)";
-	BOTH_ENCODERS(
+	NEW_ENCODER(
 		compileAndRun(sourceCode);
 		callContractFunction("f()");
 		REQUIRE_LOG_DATA(encodeArgs(
@@ -81,7 +81,7 @@ BOOST_AUTO_TEST_CASE(string_literal)
 			}
 		}
 	)";
-	BOTH_ENCODERS(
+	NEW_ENCODER(
 		compileAndRun(sourceCode);
 		callContractFunction("f()");
 		REQUIRE_LOG_DATA(encodeArgs(
@@ -103,7 +103,7 @@ BOOST_AUTO_TEST_CASE(enum_type_cleanup)
 			}
 		}
 	)";
-	BOTH_ENCODERS(
+	NEW_ENCODER(
 		compileAndRun(sourceCode);
 		BOOST_CHECK(callContractFunction("f(uint256)", 0) == encodeArgs(0));
 		BOOST_CHECK(callContractFunction("f(uint256)", 1) == encodeArgs(1));
@@ -127,7 +127,7 @@ BOOST_AUTO_TEST_CASE(conversion)
 			}
 		}
 	)";
-	BOTH_ENCODERS(
+	NEW_ENCODER(
 		compileAndRun(sourceCode);
 		callContractFunction("f()");
 		REQUIRE_LOG_DATA(encodeArgs(
@@ -153,14 +153,6 @@ BOOST_AUTO_TEST_CASE(memory_array_one_dim)
 			}
 		}
 	)";
-
-	if (solidity::test::CommonOptions::get().useABIEncoderV1)
-	{
-		compileAndRun(sourceCode);
-		callContractFunction("f()");
-		// The old encoder does not clean array elements.
-		REQUIRE_LOG_DATA(encodeArgs(10, 0x60, 11, 3, u256("0xfffffffe"), u256("0xffffffff"), u256("0x100000000")));
-	}
 
 	NEW_ENCODER(
 		compileAndRun(sourceCode);
@@ -233,7 +225,7 @@ BOOST_AUTO_TEST_CASE(storage_byte_array)
 			}
 		}
 	)";
-	BOTH_ENCODERS(
+	NEW_ENCODER(
 		compileAndRun(sourceCode);
 		callContractFunction("f()");
 		REQUIRE_LOG_DATA(encodeArgs(
@@ -260,7 +252,7 @@ BOOST_AUTO_TEST_CASE(storage_array)
 			}
 		}
 	)";
-	BOTH_ENCODERS(
+	NEW_ENCODER(
 		compileAndRun(sourceCode);
 		callContractFunction("f()");
 		REQUIRE_LOG_DATA(encodeArgs(
@@ -285,7 +277,7 @@ BOOST_AUTO_TEST_CASE(storage_array_dyn)
 			}
 		}
 	)";
-	BOTH_ENCODERS(
+	NEW_ENCODER(
 		compileAndRun(sourceCode);
 		callContractFunction("f()");
 		REQUIRE_LOG_DATA(encodeArgs(
@@ -317,7 +309,7 @@ BOOST_AUTO_TEST_CASE(storage_array_compact)
 			}
 		}
 	)";
-	BOTH_ENCODERS(
+	NEW_ENCODER(
 		compileAndRun(sourceCode);
 		callContractFunction("f()");
 		REQUIRE_LOG_DATA(encodeArgs(
@@ -338,7 +330,7 @@ BOOST_AUTO_TEST_CASE(external_function)
 			}
 		}
 	)";
-	BOTH_ENCODERS(
+	NEW_ENCODER(
 		compileAndRun(sourceCode);
 		callContractFunction("f(uint256)", u256(0));
 		std::string functionIdF = asString(m_contractAddress.ref()) + asString(util::selectorFromSignatureH32("f(uint256)").ref());
@@ -360,7 +352,7 @@ BOOST_AUTO_TEST_CASE(external_function_cleanup)
 			}
 		}
 	)";
-	BOTH_ENCODERS(
+	NEW_ENCODER(
 		compileAndRun(sourceCode);
 		callContractFunction("f(uint256)", u256(0));
 		REQUIRE_LOG_DATA(encodeArgs(std::string(24, char(-1)), std::string(24, char(-1))));
@@ -379,7 +371,7 @@ BOOST_AUTO_TEST_CASE(calldata)
 	)";
 	std::string s("abcdef");
 	std::string t("abcdefgggggggggggggggggggggggggggggggggggggggghhheeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeggg");
-	BOTH_ENCODERS(
+	NEW_ENCODER(
 		compileAndRun(sourceCode);
 		callContractFunction("f(bytes)", 0x20, s.size(), s);
 		REQUIRE_LOG_DATA(encodeArgs(0x20, s.size(), s));
@@ -407,7 +399,7 @@ BOOST_AUTO_TEST_CASE(function_name_collision)
 			}
 		}
 	)";
-	BOTH_ENCODERS(
+	NEW_ENCODER(
 		compileAndRun(sourceCode);
 		BOOST_CHECK(callContractFunction("f(uint256)", encodeArgs(0)) == encodeArgs(7));
 		BOOST_CHECK(callContractFunction("f(uint256)", encodeArgs(1)) == encodeArgs(1));
@@ -536,7 +528,7 @@ BOOST_AUTO_TEST_CASE(bool_arrays)
 		}
 	)";
 
-	BOTH_ENCODERS(
+	NEW_ENCODER(
 		compileAndRun(sourceCode, 0, "C");
 		bytes encoded = encodeArgs(
 			0xa0, 1, 0, 1, 0,
@@ -571,7 +563,7 @@ BOOST_AUTO_TEST_CASE(bool_arrays_split)
 		}
 	)";
 
-	BOTH_ENCODERS(
+	NEW_ENCODER(
 		compileAndRun(sourceCode, 0, "C");
 		bytes encoded = encodeArgs(
 			0xa0, 1, 0, 1, 0,
@@ -604,7 +596,7 @@ BOOST_AUTO_TEST_CASE(bytesNN_arrays)
 		}
 	)";
 
-	BOTH_ENCODERS(
+	NEW_ENCODER(
 		for (size_t size = 1; size < 15; size++)
 		{
 			for (size_t width: {1u, 2u, 4u, 5u, 7u, 15u, 16u, 17u, 31u, 32u})
@@ -649,7 +641,7 @@ BOOST_AUTO_TEST_CASE(bytesNN_arrays_dyn)
 		}
 	)";
 
-	BOTH_ENCODERS(
+	NEW_ENCODER(
 		for (size_t size = 0; size < 15; size++)
 		{
 			for (size_t width: {1u, 2u, 4u, 5u, 7u, 15u, 16u, 17u, 31u, 32u})

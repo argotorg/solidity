@@ -120,7 +120,6 @@ void CommonOptions::addOptions()
 		("optimize", po::bool_switch(&optimize)->default_value(optimize), "enables optimization")
 		("enforce-gas-cost", po::value<bool>(&enforceGasTest)->default_value(enforceGasTest)->implicit_value(true), "Enforce checking gas cost in semantic tests.")
 		("enforce-gas-cost-min-value", po::value(&enforceGasTestMinValue)->default_value(enforceGasTestMinValue), "Threshold value to enforce adding gas checks to a test.")
-		("abiencoderv1", po::bool_switch(&useABIEncoderV1)->default_value(useABIEncoderV1), "enables abi encoder v1")
 		("show-messages", po::bool_switch(&showMessages)->default_value(showMessages), "enables message output")
 		("show-metadata", po::bool_switch(&showMetadata)->default_value(showMetadata), "enables metadata output");
 }
@@ -150,13 +149,10 @@ void CommonOptions::validate() const
 
 	if (!enforceGasTest)
 		std::cout << std::endl << "WARNING :: Gas cost expectations are not being enforced" << std::endl << std::endl;
-	else if (evmVersion() != langutil::EVMVersion{} || useABIEncoderV1)
+	else if (evmVersion() != langutil::EVMVersion{})
 	{
 		std::cout << std::endl << "WARNING :: Enforcing gas cost expectations with non-standard settings:" << std::endl;
-		if (evmVersion() != langutil::EVMVersion{})
-			std::cout << "- EVM version: " << evmVersion().name() << " (default: " << langutil::EVMVersion{}.name() << ")" << std::endl;
-		if (useABIEncoderV1)
-			std::cout << "- ABI coder: v1 (default: v2)" << std::endl;
+		std::cout << "- EVM version: " << evmVersion().name() << " (default: " << langutil::EVMVersion{}.name() << ")" << std::endl;
 		std::cout << std::endl << "DO NOT COMMIT THE UPDATED EXPECTATIONS." << std::endl << std::endl;
 	}
 }
@@ -217,7 +213,6 @@ std::string CommonOptions::toString(std::vector<std::string> const& _selectedOpt
 	std::map<std::string, std::string> optionValueMap = {
 		{"evmVersion", evmVersion().name()},
 		{"optimize", boolToString(optimize)},
-		{"useABIEncoderV1", boolToString(useABIEncoderV1)},
 		{"batch", std::to_string(selectedBatch + 1) + "/" + std::to_string(batches)},
 		{"enforceGasTest", boolToString(enforceGasTest)},
 		{"enforceGasTestMinValue", enforceGasTestMinValue.str()},

@@ -158,7 +158,6 @@ BOOST_AUTO_TEST_SUITE(Assembly)
 BOOST_AUTO_TEST_CASE(location_test)
 {
 	std::string sourceCode = R"(
-	pragma abicoder v1;
 	contract test {
 		function f() public returns (uint256 a) {
 			return 16;
@@ -173,18 +172,50 @@ BOOST_AUTO_TEST_CASE(location_test)
 	std::vector<SourceLocation> locations;
 	if (solidity::test::CommonOptions::get().optimize)
 		locations =
-			std::vector<SourceLocation>(31, SourceLocation{23, 103, sourceName}) +
-			std::vector<SourceLocation>(1, SourceLocation{41, 100, sourceName}) +
-			std::vector<SourceLocation>(1, SourceLocation{93, 95, sourceName}) +
-			std::vector<SourceLocation>(15, SourceLocation{41, 100, sourceName});
+			std::vector<SourceLocation>(31, SourceLocation{2, 82, sourceName}) +
+			std::vector<SourceLocation>(1, SourceLocation{20, 79, sourceName}) +
+			std::vector<SourceLocation>(1, SourceLocation{72, 74, sourceName}) +
+			std::vector<SourceLocation>(2, SourceLocation{20, 79, sourceName}) +
+			// ABI coder helpers, locations refer to #utility.yul
+			std::vector<SourceLocation>(3, SourceLocation{160, 185, sourceName}) +
+			std::vector<SourceLocation>(1, SourceLocation{148, 150, sourceName}) +
+			std::vector<SourceLocation>(1, SourceLocation{133, 151, sourceName}) +
+			// back in the contract source
+			std::vector<SourceLocation>(7, SourceLocation{20, 79, sourceName});
 	else
 		locations =
-			std::vector<SourceLocation>(31, SourceLocation{23, 103, sourceName}) +
-			std::vector<SourceLocation>(24, SourceLocation{41, 100, sourceName}) +
-			std::vector<SourceLocation>(1, SourceLocation{70, 79, sourceName}) +
-			std::vector<SourceLocation>(1, SourceLocation{93, 95, sourceName}) +
-			std::vector<SourceLocation>(2, SourceLocation{86, 95, sourceName}) +
-			std::vector<SourceLocation>(2, SourceLocation{41, 100, sourceName});
+			std::vector<SourceLocation>(31, SourceLocation{2, 82, sourceName}) +
+			std::vector<SourceLocation>(21, SourceLocation{20, 79, sourceName}) +
+			std::vector<SourceLocation>(1, SourceLocation{49, 58, sourceName}) +
+			std::vector<SourceLocation>(1, SourceLocation{72, 74, sourceName}) +
+			std::vector<SourceLocation>(2, SourceLocation{65, 74, sourceName}) +
+			std::vector<SourceLocation>(2, SourceLocation{20, 79, sourceName}) +
+			// ABI coder helpers, locations refer to #utility.yul
+			std::vector<SourceLocation>(1, SourceLocation{7, 84, sourceName}) +
+			std::vector<SourceLocation>(1, SourceLocation{44, 51, sourceName}) +
+			std::vector<SourceLocation>(1, SourceLocation{73, 78, sourceName}) +
+			std::vector<SourceLocation>(2, SourceLocation{62, 78, sourceName}) +
+			std::vector<SourceLocation>(4, SourceLocation{7, 84, sourceName}) +
+			std::vector<SourceLocation>(1, SourceLocation{90, 208, sourceName}) +
+			std::vector<SourceLocation>(1, SourceLocation{177, 201, sourceName}) +
+			std::vector<SourceLocation>(1, SourceLocation{195, 200, sourceName}) +
+			std::vector<SourceLocation>(3, SourceLocation{177, 201, sourceName}) +
+			std::vector<SourceLocation>(1, SourceLocation{172, 175, sourceName}) +
+			std::vector<SourceLocation>(1, SourceLocation{165, 202, sourceName}) +
+			std::vector<SourceLocation>(3, SourceLocation{90, 208, sourceName}) +
+			std::vector<SourceLocation>(1, SourceLocation{214, 436, sourceName}) +
+			std::vector<SourceLocation>(1, SourceLocation{307, 311, sourceName}) +
+			std::vector<SourceLocation>(1, SourceLocation{345, 347, sourceName}) +
+			std::vector<SourceLocation>(1, SourceLocation{334, 343, sourceName}) +
+			std::vector<SourceLocation>(1, SourceLocation{330, 348, sourceName}) +
+			std::vector<SourceLocation>(2, SourceLocation{322, 348, sourceName}) +
+			std::vector<SourceLocation>(1, SourceLocation{358, 429, sourceName}) +
+			std::vector<SourceLocation>(1, SourceLocation{426, 427, sourceName}) +
+			std::vector<SourceLocation>(1, SourceLocation{415, 424, sourceName}) +
+			std::vector<SourceLocation>(1, SourceLocation{411, 428, sourceName}) +
+			std::vector<SourceLocation>(1, SourceLocation{402, 408, sourceName}) +
+			std::vector<SourceLocation>(3, SourceLocation{358, 429, sourceName}) +
+			std::vector<SourceLocation>(5, SourceLocation{214, 436, sourceName});
 	checkAssemblyLocations(items, locations);
 }
 
@@ -192,7 +223,6 @@ BOOST_AUTO_TEST_CASE(location_test)
 BOOST_AUTO_TEST_CASE(jump_type)
 {
 	auto sourceCode = std::make_shared<CharStream>(R"(
-	pragma abicoder v1;
 	contract C {
 		function f(uint a) public pure returns (uint t) {
 			assembly {
@@ -210,9 +240,9 @@ BOOST_AUTO_TEST_CASE(jump_type)
 			jumpTypes += item.getJumpTypeAsString() + "\n";
 
 	if (solidity::test::CommonOptions::get().optimize)
-		BOOST_CHECK_EQUAL(jumpTypes, "[in]\n[out]\n[out]\n[in]\n[out]\n");
+		BOOST_CHECK_EQUAL(jumpTypes, "[in]\n[in]\n[out]\n[out]\n[in]\n[out]\n[out]\n");
 	else
-		BOOST_CHECK_EQUAL(jumpTypes, "[in]\n[out]\n[in]\n[out]\n");
+		BOOST_CHECK_EQUAL(jumpTypes, "[in]\n[in]\n[in]\n[out]\n[in]\n[out]\n[out]\n[in]\n[out]\n[in]\n[out]\n[in]\n[in]\n[out]\n[in]\n[out]\n[in]\n[out]\n");
 }
 
 

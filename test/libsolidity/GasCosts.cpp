@@ -97,59 +97,43 @@ BOOST_AUTO_TEST_CASE(string_storage)
 	auto evmVersion = solidity::test::CommonOptions::get().evmVersion();
 
 
-	if (!CommonOptions::get().useABIEncoderV1)
+	if (CommonOptions::get().optimize)
 	{
-		if (CommonOptions::get().optimize)
-		{
-			// Costs with 0 are cases which cannot be triggered in tests.
-			if (evmVersion < EVMVersion::istanbul())
-				CHECK_DEPLOY_GAS(0, 109237, evmVersion);
-			else if (evmVersion < EVMVersion::shanghai())
-				CHECK_DEPLOY_GAS(0, 97693, evmVersion);
-			// Shanghai is cheaper due to `push0`
-			else
-				CHECK_DEPLOY_GAS(0, 97067, evmVersion);
-		}
+		// Costs with 0 are cases which cannot be triggered in tests.
+		if (evmVersion < EVMVersion::istanbul())
+			CHECK_DEPLOY_GAS(0, 109237, evmVersion);
+		else if (evmVersion < EVMVersion::shanghai())
+			CHECK_DEPLOY_GAS(0, 97693, evmVersion);
+		// Shanghai is cheaper due to `push0`
 		else
-		{
-			if (evmVersion < EVMVersion::istanbul())
-				CHECK_DEPLOY_GAS(139009, 123969, evmVersion);
-			else if (evmVersion < EVMVersion::shanghai())
-				CHECK_DEPLOY_GAS(123357, 110969, evmVersion);
-			// Shanghai is cheaper due to `push0`
-			else
-				CHECK_DEPLOY_GAS(121489, 110969, evmVersion);
-		}
+			CHECK_DEPLOY_GAS(0, 97067, evmVersion);
 	}
-	else if (evmVersion < EVMVersion::istanbul())
-		CHECK_DEPLOY_GAS(125829, 118559, evmVersion);
-	else if (evmVersion < EVMVersion::shanghai())
-		CHECK_DEPLOY_GAS(114077, 96461, evmVersion);
 	else
-		CHECK_DEPLOY_GAS(114077, 95831, evmVersion);
+	{
+		if (evmVersion < EVMVersion::istanbul())
+			CHECK_DEPLOY_GAS(139009, 123969, evmVersion);
+		else if (evmVersion < EVMVersion::shanghai())
+			CHECK_DEPLOY_GAS(123357, 110969, evmVersion);
+		// Shanghai is cheaper due to `push0`
+		else
+			CHECK_DEPLOY_GAS(121489, 110969, evmVersion);
+	}
 
 	callContractFunction("f()");
-	if (!CommonOptions::get().useABIEncoderV1)
+	if (CommonOptions::get().optimize)
 	{
-		if (CommonOptions::get().optimize)
-		{
-			if (evmVersion < EVMVersion::istanbul())
-				CHECK_GAS(0, 21526, 20);
-			else
-				CHECK_GAS(0, 21318, 20);
-		}
+		if (evmVersion < EVMVersion::istanbul())
+			CHECK_GAS(0, 21526, 20);
 		else
-		{
-			if (evmVersion < EVMVersion::istanbul())
-				CHECK_GAS(21736, 21559, 20);
-			else
-				CHECK_GAS(21528, 21351, 20);
-		}
+			CHECK_GAS(0, 21318, 20);
 	}
-	else if (evmVersion < EVMVersion::istanbul())
-		CHECK_GAS(21546, 21526, 20);
 	else
-		CHECK_GAS(21332, 21322, 20);
+	{
+		if (evmVersion < EVMVersion::istanbul())
+			CHECK_GAS(21736, 21559, 20);
+		else
+			CHECK_GAS(21528, 21351, 20);
+	}
 }
 
 BOOST_AUTO_TEST_CASE(single_callvaluecheck)

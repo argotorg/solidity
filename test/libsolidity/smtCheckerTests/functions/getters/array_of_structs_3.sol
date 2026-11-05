@@ -1,4 +1,3 @@
-pragma abicoder v1;
 struct Item {
 	uint x;
 	uint y;
@@ -21,6 +20,5 @@ contract D {
 // ====
 // SMTEngine: all
 // ----
-// Warning 9511: (0-19): ABI coder v1 is deprecated and scheduled for removal. Use ABI coder v2 instead.
-// Warning 6328: (322-336): CHC: Assertion violation happens here.\nCounterexample:\nitems = [{x: 42, y: 43, arr: [0]}]\ntmp = [0]\na = 42\nb = 43\n\nTransaction trace:\nD.constructor()\nState: items = []\nD.test()
+// Warning 6328: (302-316): CHC: Assertion violation happens here.\nCounterexample:\nitems = [{x: 42, y: 43, arr: [0]}]\ntmp = [0]\na = 42\nb = 43\n\nTransaction trace:\nD.constructor()\nState: items = []\nD.test()
 // Info 1391: CHC: 2 verification condition(s) proved safe! Enable the model checker option "show proved safe" to see all of them.

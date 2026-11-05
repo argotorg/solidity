@@ -26,11 +26,10 @@ namespace solidity::frontend::test
 {
 
 /// @returns @p _sourceCode prefixed with the version pragma and the SPDX license identifier.
-/// Can optionally also insert an abicoder pragma when missing.
-std::string withPreamble(std::string const& _sourceCode, bool _addAbicoderV1Pragma = false);
+std::string withPreamble(std::string const& _sourceCode);
 
 /// @returns a copy of @p _sources with preamble prepended to all sources.
-StringMap withPreamble(StringMap _sources, bool _addAbicoderV1Pragma = false);
+StringMap withPreamble(StringMap _sources);
 
 std::string stripPreReleaseWarning(std::string const& _stderrContent);
 

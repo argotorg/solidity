@@ -1,5 +1,3 @@
-pragma abicoder v1;
-
 contract C {
     function f(uint256[] memory a, bytes calldata b) public returns (bytes memory) {
         return abi.encode(a, b);
