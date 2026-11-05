@@ -61,7 +61,7 @@ protected:
 		Set in m_modelCheckerSettings.
 	SMTShowUnproved: `yes`, `no`, where the default is `yes`.
 		Set in m_modelCheckerSettings.
-	SMTSolvers: `all`, `cvc5`, `z3`, `eld`, `none`, where the default is `z3`.
+	SMTSolvers: `all`, `z3`, `eld`, `none`, where the default is `z3`.
 		Set in m_modelCheckerSettings.
 	*/
 

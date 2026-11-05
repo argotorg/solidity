@@ -3,6 +3,7 @@
 Breaking Changes:
 * EVM: Drop support for EVM versions `homestead`, `tangerineWhistle`, `spuriousDragon` and `byzantium`.
 * SMTChecker: Remove BMC engine.
+* SMTChecker: Drop support for cvc5 as the backend SMT solver.
 
 
 ### 0.8.39 (unreleased)
