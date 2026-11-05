@@ -92,8 +92,8 @@ class FileReport:
     def format_summary(self, verbose: bool) -> str:
         error = (self.contract_reports is None)
         contract_reports = self.contract_reports if self.contract_reports is not None else []
-        no_bytecode = any(bytecode is None for bytecode in contract_reports)
-        no_metadata = any(metadata is None for metadata in contract_reports)
+        no_bytecode = any(contract_report.bytecode is None for contract_report in contract_reports)
+        no_metadata = any(contract_report.metadata is None for contract_report in contract_reports)
 
         if verbose:
             flags = ('E' if error else ' ') + ('B' if no_bytecode else ' ') + ('M' if no_metadata else ' ')
