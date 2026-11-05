@@ -1,6 +1,7 @@
 ### 0.9.0 (unreleased)
 
 Breaking Changes:
+* Code Generator: Remove ABIEncoderV1.
 * EVM: Drop support for EVM versions `homestead`, `tangerineWhistle`, `spuriousDragon` and `byzantium`.
 * SMTChecker: Remove BMC engine.
 * SMTChecker: Drop support for cvc5 as the backend SMT solver.

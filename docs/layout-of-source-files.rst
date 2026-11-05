@@ -97,40 +97,22 @@ these follow the same syntax used by `npm <https://docs.npmjs.com/cli/v6/using-n
 ABI Coder Pragma
 ----------------
 
-By using ``pragma abicoder v1`` or ``pragma abicoder v2`` you can
-select between the two implementations of the ABI encoder and decoder.
+The ABI coder pragma selects the implementation of the ABI encoder and decoder.
+ABI coder v2 is the only available implementation and is always enabled,
+which means that ``pragma abicoder v2;`` is accepted but has no effect.
 
-The new ABI coder (v2) is able to encode and decode arbitrarily nested
-arrays and structs. Apart from supporting more types, it involves more extensive
-validation and safety checks, which may result in higher gas costs, but also heightened
-security.
-It is considered non-experimental as of Solidity 0.6.0 and it is enabled by default starting
-with Solidity 0.8.0. The old ABI coder can still be selected using ``pragma abicoder v1;``.
-
-.. warning::
-  The ABI coder v1 is deprecated and scheduled for removal.
-  Use ABI coder v2 instead.
-
-The set of types supported by the new encoder is a strict superset of
-the ones supported by the old one. Contracts that use it can interact with ones
-that do not without limitations. The reverse is possible only as long as the
-non-``abicoder v2`` contract does not try to make calls that would require
-decoding types only supported by the new encoder. The compiler can detect this
-and will issue an error. Simply enabling ``abicoder v2`` for your contract is
-enough to make the error go away.
+ABI coder v2 is able to encode and decode arbitrarily nested arrays and structs.
+It is considered non-experimental as of Solidity 0.6.0 and has been enabled by default
+since Solidity 0.8.0.
 
 .. note::
-  This pragma applies to all the code defined in the file where it is activated,
-  regardless of where that code ends up eventually. This means that a contract
-  whose source file is selected to compile with ABI coder v1
-  can still contain code that uses the new encoder
-  by inheriting it from another contract. This is allowed if the new types are only
-  used internally and not in external function signatures.
+  The old ABI coder (v1) was removed in Solidity 0.9.0 and ``pragma abicoder v1;`` is no longer accepted.
+  Compared to it, ABI coder v2 supports more types and involves more extensive
+  validation and safety checks, which may result in higher gas costs, but also heightened
+  security.
 
 .. note::
-  Up to Solidity 0.7.4, it was possible to select the ABI coder v2
-  by using ``pragma experimental ABIEncoderV2``, but it was not possible
-  to explicitly select coder v1 because it was the default.
+  Up to Solidity 0.7.4, the ABI coder v2 was selected by using ``pragma experimental ABIEncoderV2``.
 
 .. index:: ! pragma; experimental
 .. _experimental_pragma:
