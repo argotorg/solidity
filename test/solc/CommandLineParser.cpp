@@ -225,7 +225,7 @@ BOOST_AUTO_TEST_CASE(cli_mode_options)
 			true,
 			true,
 			true,
-			{false, false, true, true},
+			{false, true, true},
 			{{VerificationTargetType::Underflow, VerificationTargetType::DivByZero}},
 			5,
 		};

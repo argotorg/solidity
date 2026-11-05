@@ -170,7 +170,6 @@ SMTSolverChoice ModelChecker::availableSolvers()
 	available.z3 = true;
 #else
 	available.eld = !boost::process::search_path("eld").empty();
-	available.cvc5 = !boost::process::search_path("cvc5").empty();
 	available.z3 = !boost::process::search_path("z3").empty();
 #endif
 	return available;
@@ -179,16 +178,6 @@ SMTSolverChoice ModelChecker::availableSolvers()
 SMTSolverChoice ModelChecker::checkRequestedSolvers(SMTSolverChoice _enabled, ErrorReporter& _errorReporter)
 {
 	SMTSolverChoice availableSolvers{ModelChecker::availableSolvers()};
-
-	if (_enabled.cvc5 && !availableSolvers.cvc5)
-	{
-		_enabled.cvc5 = false;
-		_errorReporter.warning(
-			4902_error,
-			SourceLocation(),
-			"Solver cvc5 was selected for SMTChecker but it is not available."
-		);
-	}
 
 	if (_enabled.eld && !availableSolvers.eld)
 	{
