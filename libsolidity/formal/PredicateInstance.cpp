@@ -187,7 +187,7 @@ std::vector<smtutil::Expression> currentBlockVariables(FunctionDefinition const&
 {
 	return currentFunctionVariablesForDefinition(_function, _contract, _context) +
 		applyMap(
-			SMTEncoder::localVariablesIncludingModifiers(_function, _contract),
+			SMTEncoder::localVariablesIncludingModifiers(_function),
 			[&](auto _var) { return _context.variable(*_var)->currentValue(); }
 		);
 }

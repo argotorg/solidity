@@ -152,7 +152,7 @@ locals[boolean payableSet = false, boolean visibilitySet = false]
  */
 stateMutability: Pure | View | Payable;
 /**
- * An override specifier used for functions, modifiers or state variables.
+ * An override specifier used for functions, or state variables.
  * In cases where there are ambiguous declarations in several base contracts being overridden,
  * a complete list of base contracts has to be given.
  */
@@ -187,18 +187,9 @@ locals[
  * Note that within the body block of a modifier, the underscore cannot be used as identifier,
  * but is used as placeholder statement for the body of a function to which the modifier is applied.
  */
-modifierDefinition
-locals[
-	boolean virtualSet = false,
-	boolean overrideSpecifierSet = false
-]
-:
+modifierDefinition:
 	Modifier name=identifier
 	(LParen (arguments=parameterList)? RParen)?
-	(
-		{!$virtualSet}? Virtual {$virtualSet = true;}
-		| {!$overrideSpecifierSet}? overrideSpecifier {$overrideSpecifierSet = true;}
-	)*
 	(Semicolon | body=block);
 
 /**

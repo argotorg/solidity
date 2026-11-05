@@ -3,6 +3,7 @@
 Breaking Changes:
 * EVM: Drop support for EVM versions `homestead`, `tangerineWhistle`, `spuriousDragon` and `byzantium`.
 * SMTChecker: Remove BMC engine.
+* Type System: Disallow virtual modifiers.
 
 
 ### 0.8.39 (unreleased)

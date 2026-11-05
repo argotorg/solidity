@@ -1323,7 +1323,7 @@ void CHC::clearIndices(ContractDefinition const* _contract, FunctionDefinition c
 	{
 		for (auto const& var: _function->parameters() + _function->returnParameters())
 			m_context.variable(*var)->increaseIndex();
-		for (auto const& var: localVariablesIncludingModifiers(*_function, _contract))
+		for (auto const& var: localVariablesIncludingModifiers(*_function))
 			m_context.variable(*var)->increaseIndex();
 	}
 
@@ -1458,7 +1458,7 @@ void CHC::defineInterfacesAndSummaries(SourceUnit const& _source)
 					createVariable(*var);
 				for (auto var: function->returnParameters())
 					createVariable(*var);
-				for (auto const* var: localVariablesIncludingModifiers(*function, contract))
+				for (auto const* var: localVariablesIncludingModifiers(*function))
 					createVariable(*var);
 
 				m_summaries[contract].emplace(function, createSummaryBlock(*function, *contract));

@@ -958,10 +958,10 @@ public:
 
 	CallableDeclarationAnnotation& annotation() const override = 0;
 
-	/// Performs virtual or super function/modifier lookup:
+	/// Performs virtual or super function lookup:
 	/// If @a _searchStart is nullptr, performs virtual function lookup, i.e.
 	/// searches the inheritance hierarchy of @a _mostDerivedContract towards the base
-	/// and returns the first function/modifier definition that
+	/// and returns the first function definition that
 	/// is overwritten by this callable.
 	/// If @a _searchStart is non-null, starts searching only from that contract, but
 	/// still in the hierarchy of @a _mostDerivedContract.
@@ -1234,11 +1234,9 @@ public:
 		SourceLocation _nameLocation,
 		ASTPointer<StructuredDocumentation> const& _documentation,
 		ASTPointer<ParameterList> const& _parameters,
-		bool _isVirtual,
-		ASTPointer<OverrideSpecifier> const& _overrides,
 		ASTPointer<Block> const& _body
 	):
-		CallableDeclaration(_id, _location, _name, std::move(_nameLocation), Visibility::Internal, _parameters, _isVirtual, _overrides),
+		CallableDeclaration(_id, _location, _name, std::move(_nameLocation), Visibility::Internal, _parameters),
 		StructurallyDocumented(_documentation),
 		ImplementationOptional(_body != nullptr),
 		m_body(_body)
@@ -1257,9 +1255,12 @@ public:
 	ModifierDefinitionAnnotation& annotation() const override;
 
 	ModifierDefinition const& resolveVirtual(
-		ContractDefinition const& _mostDerivedContract,
-		ContractDefinition const* _searchStart = nullptr
-	) const override;
+		ContractDefinition const&,
+		ContractDefinition const*
+	) const override
+	{
+		return *this;
+	}
 
 
 private:
