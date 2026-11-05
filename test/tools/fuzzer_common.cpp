@@ -65,20 +65,10 @@ void FuzzerUtil::testCompilerJsonInterface(std::string const& _input, bool _opti
 	runCompiler(jsonCompactPrint(config), _quiet);
 }
 
-void FuzzerUtil::forceSMT(StringMap& _input)
-{
-	// Add SMT checker pragma if not already present in source
-	static auto constexpr smtPragma = "pragma experimental SMTChecker;";
-	for (auto &sourceUnit: _input)
-		if (sourceUnit.second.find(smtPragma) == std::string::npos)
-			sourceUnit.second += smtPragma;
-}
-
 void FuzzerUtil::testCompiler(
 	StringMap& _input,
 	bool _optimize,
 	unsigned _rand,
-	bool _forceSMT,
 	bool _compileViaYul
 )
 {
@@ -89,24 +79,6 @@ void FuzzerUtil::testCompiler(
 		optimiserSettings = frontend::OptimiserSettings::standard();
 	else
 		optimiserSettings = frontend::OptimiserSettings::minimal();
-	if (_forceSMT)
-	{
-		forceSMT(_input);
-		compiler.setModelCheckerSettings({
-			frontend::ModelCheckerContracts::Default(),
-			/*divModWithSlacks*/true,
-			frontend::ModelCheckerEngine::CHC(),
-			frontend::ModelCheckerExtCalls{},
-			frontend::ModelCheckerInvariants::All(),
-			/*printQuery=*/false,
-			/*showProvedSafe=*/false,
-			/*showUnproved=*/false,
-			/*showUnsupported=*/false,
-			smtutil::SMTSolverChoice::All(),
-			frontend::ModelCheckerTargets::Default(),
-			/*timeout=*/1
-		});
-	}
 	compiler.setSources(_input);
 	compiler.setEVMVersion(evmVersion);
 	compiler.setOptimiserSettings(optimiserSettings);
