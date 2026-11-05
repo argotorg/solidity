@@ -11,7 +11,6 @@
 #
 #     EVM=version_string      Specifies EVM version to compile for (such as homestead, etc)
 #     OPTIMIZE=1              Enables backend optimizer
-#     ABI_ENCODER_V1=1        Forcibly enables ABI coder version 1
 #     SOLTEST_FLAGS=<flags>   Appends <flags> to default SOLTEST_ARGS
 #
 # ------------------------------------------------------------------------------
@@ -54,7 +53,6 @@ get_logfile_basename() {
     local run="$1"
     local filename="${EVM}"
     test "${OPTIMIZE}" = "1" && filename="${filename}_opt"
-    test "${ABI_ENCODER_V1}" = "1" && filename="${filename}_abiv1"
     filename="${filename}_${run}"
 
     echo -ne "${filename}"
@@ -81,7 +79,6 @@ do
     SOLTEST_ARGS=("--evm-version=$EVM" "${SOLTEST_FLAGS[@]}")
 
     test "${OPTIMIZE}" = "1" && SOLTEST_ARGS+=(--optimize)
-    test "${ABI_ENCODER_V1}" = "1" && SOLTEST_ARGS+=(--abiencoderv1)
 
     BATCH_ARGS=("--batches" "$((CPUs * CIRCLE_NODE_TOTAL))" "--selected-batch" "$((CPUs * CIRCLE_NODE_INDEX + run))")
 
