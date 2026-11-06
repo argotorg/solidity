@@ -22,12 +22,12 @@ contract D {
 // EVMVersion: >=constantinople
 // ----
 // f() -> 1
-// gas irOptimized: 54008
+// gas irOptimized: 54020
 // gas irOptimized code: 20000
 // gas legacy: 54553
 // gas legacy code: 57800
 // g() -> 5
-// gas irOptimized: 54036
+// gas irOptimized: 54048
 // gas irOptimized code: 20000
 // gas legacy: 55090
 // gas legacy code: 57800

@@ -64,6 +64,7 @@ public:
 		std::optional<BuiltinHandle> mul;
 		std::optional<BuiltinHandle> not_;
 		std::optional<BuiltinHandle> shl;
+		std::optional<BuiltinHandle> shr;
 		std::optional<BuiltinHandle> sub;
 	};
 	/// Constructor, should only be used internally. Use the factory functions below.

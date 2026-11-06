@@ -38,14 +38,14 @@ contract c {
 // compileViaYul: true
 // ----
 // test1(uint256[][]): 0x20, 2, 0x40, 0x40, 2, 23, 42 -> 2, 65
-// gas irOptimized: 180915
-// gas ssaCFGOptimized: 180894
+// gas irOptimized: 180979
+// gas ssaCFGOptimized: 180958
 // test2(uint256[][2]): 0x20, 0x40, 0x40, 2, 23, 42 -> 2, 65
-// gas irOptimized: 157601
-// gas ssaCFGOptimized: 157569
+// gas irOptimized: 157657
+// gas ssaCFGOptimized: 157625
 // test3(uint256[2][]): 0x20, 2, 23, 42, 23, 42 -> 2, 65
-// gas irOptimized: 134682
-// gas ssaCFGOptimized: 134699
+// gas irOptimized: 134698
+// gas ssaCFGOptimized: 134715
 // test4(uint256[2][2]): 23, 42, 23, 42 -> 65
 // gas irOptimized: 111174
 // gas ssaCFGOptimized: 111193

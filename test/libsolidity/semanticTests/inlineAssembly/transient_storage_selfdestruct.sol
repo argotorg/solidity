@@ -40,17 +40,17 @@ contract D {
 // EVMVersion: >=cancun
 // ----
 // constructor() ->
-// gas irOptimized: 127548
-// gas irOptimized code: 220400
+// gas irOptimized: 126737
+// gas irOptimized code: 214200
 // gas legacy: 149480
 // gas legacy code: 501200
-// gas legacyOptimized: 125846
-// gas legacyOptimized code: 203400
-// gas ssaCFGOptimized: 126176
-// gas ssaCFGOptimized code: 204200
+// gas legacyOptimized: 125119
+// gas legacyOptimized code: 196000
+// gas ssaCFGOptimized: 125383
+// gas ssaCFGOptimized code: 198000
 // destroy() ->
 // createAndDestroy() ->
 // gas legacy: 67048
 // gas legacy code: 92600
-// gas legacyOptimized: 65677
-// gas legacyOptimized code: 39400
+// gas legacyOptimized: 65640
+// gas legacyOptimized code: 38200

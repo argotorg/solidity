@@ -478,7 +478,7 @@
 //             let i_1 := 0
 //             for { } lt(i_1, 0x3) { i_1 := add(i_1, 1) }
 //             {
-//                 mstore(pos_1, and(mload(srcPtr_1), sub(shl(160, 1), 1)))
+//                 mstore(pos_1, and(mload(srcPtr_1), shr(96, not(0))))
 //                 srcPtr_1 := add(srcPtr_1, 0x20)
 //                 pos_1 := add(pos_1, 0x20)
 //             }

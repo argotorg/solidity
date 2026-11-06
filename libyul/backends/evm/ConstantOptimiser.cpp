@@ -27,6 +27,7 @@
 #include <libyul/Utilities.h>
 
 #include <libsolutil/CommonData.h>
+#include <libsolutil/Numeric.h>
 
 #include <variant>
 
@@ -64,6 +65,8 @@ struct MiniEVMInterpreter
 			return exp256(args.at(0), args.at(1));
 		case evmasm::Instruction::SHL:
 			return args.at(0) > 255 ? 0 : (args.at(1) << unsigned(args.at(0)));
+		case evmasm::Instruction::SHR:
+			return args.at(0) > 255 ? 0 : (args.at(1) >> unsigned(args.at(0)));
 		case evmasm::Instruction::NOT:
 			return ~args.at(0);
 		default:
@@ -134,6 +137,25 @@ Representation const& RepresentationFinder::findRepresentation(u256 const& _valu
 	auto const& auxHandles = m_dialect.auxiliaryBuiltinHandles();
 
 	Representation routine = represent(_value);
+
+	std::optional<BitRange> const ones = contiguousOnes(_value);
+	if (
+		ones &&
+		m_dialect.evmVersion().hasBitwiseShifting() &&
+		ones->end - ones->start > 32 && // push would be more efficient otherwise
+		(ones->end < 256 || ones->start > 16) // negation more effective for 0xFF..FFFF00
+	)
+	{
+		// Construct the mask by shifting an all-ones word.
+		Representation newRoutine = represent(*auxHandles.not_, represent(0));
+
+		// Left-aligned masks only need a left shift.
+		if (ones->end != 256)
+			newRoutine = represent(*auxHandles.shr, represent(256 - (ones->end - ones->start)), newRoutine);
+		if (ones->start > 0)
+			newRoutine = represent(*auxHandles.shl, represent(ones->start), newRoutine);
+		routine = min(std::move(routine), std::move(newRoutine));
+	}
 
 	if (numberEncodingSize(~_value) < numberEncodingSize(_value))
 		// Negated is shorter to represent

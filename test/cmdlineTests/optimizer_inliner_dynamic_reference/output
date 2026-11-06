@@ -84,7 +84,7 @@ sub_0: assembly {
         /* "input.sol":147:152  x = f */
       dup1
       sload
-      not(0xffffffffffffffff)
+      shl(0x40, not(0x00))
       and
         /* "input.sol":151:152  f */
       tag_17

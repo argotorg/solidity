@@ -45,8 +45,8 @@ contract C {
 }
 // ----
 // copyExternalStorageArrayOfFunctionType() -> true
-// gas irOptimized: 104626
+// gas irOptimized: 104714
 // gas legacy: 111170
-// gas legacyOptimized: 104620
-// gas ssaCFGOptimized: 104626
+// gas legacyOptimized: 104664
+// gas ssaCFGOptimized: 104714
 // copyInternalArrayOfFunctionType() -> true

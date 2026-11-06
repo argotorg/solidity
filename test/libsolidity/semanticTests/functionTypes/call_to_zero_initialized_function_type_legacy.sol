@@ -27,5 +27,5 @@ contract C {
 // t() -> FAILURE, hex"4e487b71", 0x51
 // gas legacy: 77534
 // gas legacy code: 69600
-// gas legacyOptimized: 76677
+// gas legacyOptimized: 76659
 // gas legacyOptimized code: 28600

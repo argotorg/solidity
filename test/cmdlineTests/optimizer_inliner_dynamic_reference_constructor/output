@@ -17,11 +17,11 @@ tag_1:
     /* "input.sol":93:98  x = f */
   dup1
   sload
-  not(sub(shl(0x40, 0x01), 0x01))
+  shl(0x40, not(0x00))
   and
     /* "input.sol":97:98  f */
   or(tag_0_12, shl(0x20, tag_4))
-  sub(shl(0x40, 0x01), 0x01)
+  shr(0xc0, not(0x00))
     /* "input.sol":93:98  x = f */
   and
   or
