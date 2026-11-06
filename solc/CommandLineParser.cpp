@@ -32,6 +32,8 @@
 
 #include <fmt/format.h>
 
+#include <charconv>
+
 using namespace solidity::langutil;
 using namespace solidity::yul;
 
@@ -64,6 +66,12 @@ static std::string const g_strLicense = "license";
 static std::string const g_strLibraries = "libraries";
 static std::string const g_strLink = "link";
 static std::string const g_strLSP = "lsp";
+static std::string const g_strLogLevel = "log-level";
+static std::string const g_strLog = "log";
+static std::string const g_strLogFile = "log-file";
+static std::string const g_strLogFileStderr = "stderr";
+static std::string const g_strLogFileStdout = "stdout";
+static std::string const g_strLogListCategories = "log-list-categories";
 static std::string const g_strMachine = "machine";
 static std::string const g_strNoCBORMetadata = "no-cbor-metadata";
 static std::string const g_strMetadataHash = "metadata-hash";
@@ -143,6 +151,7 @@ static std::map<InputMode, std::string> const g_inputModeName = {
 	{InputMode::StandardJson, "standard JSON"},
 	{InputMode::Linker, "linker"},
 	{InputMode::EVMAssemblerJSON, "EVM assembler (JSON format)"},
+	{InputMode::LogListCategories, "log category listing"},
 };
 
 void CommandLineParser::checkMutuallyExclusive(std::vector<std::string> const& _optionNames)
@@ -486,6 +495,7 @@ void CommandLineParser::parseOutputSelection()
 		case InputMode::Help:
 		case InputMode::License:
 		case InputMode::Version:
+		case InputMode::LogListCategories:
 			solAssert(false);
 		case InputMode::Compiler:
 		case InputMode::CompilerWithASTImport:
@@ -650,6 +660,32 @@ General Information)").c_str(),
 		)
 	;
 	desc.add(outputOptions);
+
+	po::options_description loggingOptions("Logging Options (for compiler developers, output format is not stable)");
+	loggingOptions.add_options()
+		(
+			g_strLogLevel.c_str(),
+			po::value<std::string>()->value_name("0-" + std::to_string(log::maxLevel)),
+			"Set the global default log level. 0 is off (the default), higher is more verbose."
+		)
+		(
+			g_strLog.c_str(),
+			po::value<std::vector<std::string>>()->value_name("<prefix>=<level>[,...]"),
+			("Per-category log level overrides. The level applies to every category matching the given "
+			"dot-separated prefix; the longest matching prefix wins. Can be given multiple times and "
+			"supersedes --" + g_strLogLevel + ".").c_str()
+		)
+		(
+			g_strLogFile.c_str(),
+			po::value<std::string>()->value_name(g_strLogFileStderr + "|" + g_strLogFileStdout + "|<path>"),
+			"Where log lines are written. Default: stderr."
+		)
+		(
+			g_strLogListCategories.c_str(),
+			"Print all known log categories and exit."
+		)
+	;
+	desc.add(loggingOptions);
 
 	po::options_description alternativeInputModes("Alternative Input Modes");
 	alternativeInputModes.add_options()
@@ -968,6 +1004,65 @@ void CommandLineParser::parseArgs(int _argc, char const* const* _argv)
 	po::notify(m_args);
 }
 
+log::Level CommandLineParser::parseLogLevel(std::string const& _levelString, std::string const& _context)
+{
+	char const* const end = _levelString.data() + _levelString.size();
+	unsigned level = 0;
+	auto const [parsedEnd, error] = std::from_chars(_levelString.data(), end, level);
+	if (error != std::errc{} || parsedEnd != end || level > log::maxLevel)
+		solThrow(
+			CommandLineValidationError,
+			fmt::format("Invalid log level '{}' {}. Expected a number from 0 to {}.", _levelString, _context, unsigned{log::maxLevel})
+		);
+	return static_cast<log::Level>(level);
+}
+
+void CommandLineParser::parseLoggingOptions()
+{
+	if (m_args.contains(g_strLogLevel))
+		m_options.logging.globalLevel = parseLogLevel(m_args[g_strLogLevel].as<std::string>(), "for --" + g_strLogLevel);
+
+	if (m_args.contains(g_strLog))
+		for (std::string const& specs: m_args[g_strLog].as<std::vector<std::string>>())
+		{
+			std::vector<std::string> splitSpecs;
+			for (std::string const& spec: boost::split(splitSpecs, specs, boost::is_any_of(",")))
+			{
+				auto const separator = spec.find('=');
+				if (separator == std::string::npos)
+					solThrow(
+						CommandLineValidationError,
+						"Invalid log spec '" + spec + "' for --" + g_strLog + ". Expected <prefix>=<level>."
+					);
+
+				std::string const prefix = spec.substr(0, separator);
+				log::Level const level = parseLogLevel(spec.substr(separator + 1), "in --" + g_strLog + " spec '" + spec + "'");
+				if (!log::LoggerRegistry::singleton().matchesAnyCategory(prefix))
+					solThrow(
+						CommandLineValidationError,
+						"Log category prefix '" + prefix + "' in --" + g_strLog + " does not match any known category. "
+						"Use --" + g_strLogListCategories + " to list them."
+					);
+				m_options.logging.categoryLevels.emplace_back(prefix, level);
+			}
+		}
+
+	if (m_args.contains(g_strLogFile))
+	{
+		std::string const logFile = m_args[g_strLogFile].as<std::string>();
+		if (logFile.empty())
+			solThrow(CommandLineValidationError, "Empty file name given for --" + g_strLogFile + ".");
+		if (logFile == g_strLogFileStdout && m_options.input.mode == InputMode::StandardJson)
+			solThrow(
+				CommandLineValidationError,
+				"--" + g_strLogFile + " " + g_strLogFileStdout + " is not supported in " +
+				g_inputModeName.at(m_options.input.mode) + " mode, which uses the standard output."
+			);
+		if (logFile != g_strLogFileStderr)
+			m_options.logging.file = logFile;
+	}
+}
+
 void CommandLineParser::processArgs()
 {
 	if (m_args.count(g_strNoColor) > 0)
@@ -987,6 +1082,7 @@ void CommandLineParser::processArgs()
 		g_strStrictAssembly,
 		g_strImportAst,
 		g_strImportEvmAssemblerJson,
+		g_strLogListCategories,
 	});
 
 	checkExperimental(experimentalOptionNames());
@@ -997,6 +1093,8 @@ void CommandLineParser::processArgs()
 		m_options.input.mode = InputMode::License;
 	else if (m_args.count(g_strVersion) > 0)
 		m_options.input.mode = InputMode::Version;
+	else if (m_args.contains(g_strLogListCategories))
+		m_options.input.mode = InputMode::LogListCategories;
 	else if (m_args.count(g_strStandardJSON) > 0)
 		m_options.input.mode = InputMode::StandardJson;
 	else if (m_args.contains(g_strStrictAssembly))
@@ -1013,7 +1111,8 @@ void CommandLineParser::processArgs()
 	if (
 		m_options.input.mode == InputMode::Help ||
 		m_options.input.mode == InputMode::License ||
-		m_options.input.mode == InputMode::Version
+		m_options.input.mode == InputMode::Version ||
+		m_options.input.mode == InputMode::LogListCategories
 	)
 		return;
 
@@ -1085,6 +1184,8 @@ void CommandLineParser::processArgs()
 			joinOptionNames(invalidOptionsForCurrentInputMode)
 		);
 
+	parseLoggingOptions();
+
 	checkMutuallyExclusive({g_strColor, g_strNoColor});
 	checkMutuallyExclusive({g_strStopAfter, g_strGas});
 
@@ -1109,6 +1210,9 @@ void CommandLineParser::processArgs()
 			"srcmap",
 			"srcmap-runtime",
 			g_strExperimental,
+			g_strLog,
+			g_strLogFile,
+			g_strLogLevel,
 		};
 
 		for (auto const& [optionName, optionValue]: m_args)

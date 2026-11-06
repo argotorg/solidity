@@ -33,6 +33,7 @@
 #include <libsolidity/interface/UniversalCallback.h>
 #include <libyul/YulStack.h>
 
+#include <fstream>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -54,6 +55,10 @@ public:
 		m_serr(_serr),
 		m_options(_options)
 	{}
+
+	/// Resets the process-wide log::LoggerRegistry, which may refer to this object's log file.
+	/// Runs before the members are destroyed, so the registry never refers to a dead stream.
+	~CommandLineInterface();
 
 	/// Parses command-line arguments, executes the requested operation and handles validation and
 	/// execution errors.
@@ -83,6 +88,9 @@ public:
 	std::optional<std::string> const& standardJsonInput() const { return m_standardJsonInput; }
 
 private:
+	/// @throws CommandLineOutputError if the log file cannot be opened.
+	void applyLoggingOptions();
+	void printLogCategories();
 	void printVersion();
 	void printLicense();
 	void compile();
@@ -156,6 +164,8 @@ private:
 	std::unique_ptr<evmasm::EVMAssemblyStack> m_evmAssemblyStack;
 	evmasm::AbstractAssemblyStack* m_assemblyStack = nullptr;
 	CommandLineOptions m_options;
+	/// Log file opened for --log-file, if it names a file. log::LoggerRegistry writes to it.
+	std::unique_ptr<std::ofstream> m_logFile;
 };
 
 }
