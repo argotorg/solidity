@@ -56,9 +56,6 @@ public:
 		ReadCallback::Callback const& _smtCallback = ReadCallback::Callback()
 	);
 
-	// TODO This should be removed for 0.9.0.
-	static bool isPragmaPresent(std::vector<std::shared_ptr<SourceUnit>> const& _sources);
-
 	/// Generates error messages if the requested sources and contracts
 	/// do not exist.
 	void checkRequestedSourcesAndContracts(std::vector<std::shared_ptr<SourceUnit>> const& _sources);

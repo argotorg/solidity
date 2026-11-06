@@ -46,15 +46,6 @@ Selecting the engine enables the SMTChecker on all files.
 
 .. note::
 
-    Prior to Solidity 0.8.4, the default way to enable the SMTChecker was via
-    ``pragma experimental SMTChecker;`` and only the contracts containing the
-    pragma would be analyzed. That pragma has been deprecated, and although it
-    still enables the SMTChecker for backwards compatibility, it will be removed
-    in Solidity 0.9.0. Note also that now using the pragma even in a single file
-    enables the SMTChecker for all files.
-
-.. note::
-
     The lack of warnings for a verification target represents an undisputed
     mathematical proof of correctness, assuming no bugs in the SMTChecker and
     the underlying solver. Keep in mind that these problems are
