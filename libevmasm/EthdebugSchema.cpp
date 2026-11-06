@@ -169,7 +169,8 @@ void schema::to_json(Json& _json, Program::Environment const& _environment)
 
 void schema::info::to_json(Json& _json, Resources const& _resources)
 {
-	_json["compilation"] = _resources.compilation;
+	if (_resources.compilation)
+		_json["compilation"] = *_resources.compilation;
 	_json["types"] = _resources.types;
 	_json["pointers"] = _resources.pointers;
 }

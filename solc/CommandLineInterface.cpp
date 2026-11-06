@@ -1322,10 +1322,7 @@ void CommandLineInterface::assembleYul(yul::YulStack::Machine _targetMachine)
 		{
 			sout() << "======= Debug Data (ethdebug/format/info/resources) =======" << std::endl;
 			sout() << util::jsonPrint(
-					evmasm::ethdebug::resources(
-						{{.id = 0, .path = sourceUnitName, .contents = yulSource, .language = "Yul"}},
-						VersionString
-					),
+					evmasm::ethdebug::resources(),
 					m_options.formatting.json
 			) << std::endl;
 		}

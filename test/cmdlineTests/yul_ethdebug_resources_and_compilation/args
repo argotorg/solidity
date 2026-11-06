@@ -1,0 +1,1 @@
+--strict-assembly --experimental --ethdebug-resources --ethdebug-compilation --pretty-json --json-indent 4

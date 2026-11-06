@@ -1,0 +1,23 @@
+======= Debug Data (ethdebug/format/info/resources) =======
+{
+    "pointers": {},
+    "types": {}
+}
+======= Debug Data (ethdebug compilation) =======
+{
+    "compiler": {
+        "name": "solc",
+        "version": "<VERSION REMOVED>"
+    },
+    "id": "solc-4f70e6e99a9743d8258d2179b96b054c1e2761c3820bdfc00eaa2ec23d7350c2",
+    "sources": [
+        {
+            "contents": "object \"C\" {\n    code { stop() }\n}\n",
+            "id": 0,
+            "language": "Yul",
+            "path": "input.yul"
+        }
+    ]
+}
+
+======= input.yul (EVM) =======

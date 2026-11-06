@@ -172,7 +172,7 @@ namespace info
 
 struct Resources
 {
-	materials::Compilation compilation;
+	std::optional<materials::Compilation> compilation;
 	Json types;
 	Json pointers;
 };
