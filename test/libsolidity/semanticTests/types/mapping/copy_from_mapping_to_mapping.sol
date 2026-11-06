@@ -29,7 +29,7 @@ contract C {
 }
 // ----
 // f() -> 0x20, 7, 8, 9, 0xa0, 13, 2, 0x40, 0xa0, 2, 3, 4, 2, 3, 4
-// gas irOptimized: 197099
+// gas irOptimized: 197179
 // gas legacy: 205706
 // gas legacyOptimized: 196739
-// gas ssaCFGOptimized: 196897
+// gas ssaCFGOptimized: 196977

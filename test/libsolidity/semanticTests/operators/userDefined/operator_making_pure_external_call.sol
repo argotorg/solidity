@@ -54,16 +54,16 @@ contract C {
 // EVMVersion: >=constantinople
 // ----
 // testMul(int32,int32): 42, 10 -> 420
-// gas irOptimized: 54778
+// gas irOptimized: 54790
 // gas irOptimized code: 40400
 // gas legacy: 57117
 // gas legacy code: 127000
-// gas legacyOptimized: 55246
+// gas legacyOptimized: 55242
 // gas legacyOptimized code: 68400
 // testInc(int32): 42 -> 43
-// gas irOptimized: 54615
+// gas irOptimized: 54627
 // gas irOptimized code: 40400
 // gas legacy: 56378
 // gas legacy code: 127000
-// gas legacyOptimized: 54943
+// gas legacyOptimized: 54939
 // gas legacyOptimized code: 68400

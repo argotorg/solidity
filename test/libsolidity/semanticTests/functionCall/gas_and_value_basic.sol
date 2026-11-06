@@ -36,14 +36,14 @@ contract test {
 }
 // ----
 // constructor(), 20 wei ->
-// gas irOptimized: 120186
-// gas irOptimized code: 131600
+// gas irOptimized: 119715
+// gas irOptimized code: 129800
 // gas legacy: 130583
 // gas legacy code: 261200
-// gas legacyOptimized: 121069
-// gas legacyOptimized code: 147000
-// gas ssaCFGOptimized: 119450
-// gas ssaCFGOptimized code: 122600
+// gas legacyOptimized: 120706
+// gas legacyOptimized code: 144000
+// gas ssaCFGOptimized: 118998
+// gas ssaCFGOptimized code: 120800
 // sendAmount(uint256): 5 -> 5
 // outOfGas() -> FAILURE # call to helper should not succeed but amount should be transferred anyway #
 // checkState() -> false, 15

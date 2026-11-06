@@ -45,22 +45,22 @@ contract C {
 }
 // ----
 // from_state() -> 0x20, 0x60, 0xa0, 21, 3, 0x666F6F0000000000000000000000000000000000000000000000000000000000, 2, 13, 14
-// gas irOptimized: 121512
+// gas irOptimized: 121560
 // gas legacy: 125554
-// gas legacyOptimized: 121747
-// gas ssaCFGOptimized: 121445
+// gas legacyOptimized: 121763
+// gas ssaCFGOptimized: 121493
 // from_storage() -> 0x20, 0x60, 0xa0, 21, 3, 0x666F6F0000000000000000000000000000000000000000000000000000000000, 2, 13, 14
-// gas irOptimized: 121556
+// gas irOptimized: 121604
 // gas legacy: 125612
-// gas legacyOptimized: 121799
-// gas ssaCFGOptimized: 121489
+// gas legacyOptimized: 121815
+// gas ssaCFGOptimized: 121537
 // from_memory() -> 0x20, 0x60, 0xa0, 21, 3, 0x666F6F0000000000000000000000000000000000000000000000000000000000, 2, 13, 14
-// gas irOptimized: 122737
+// gas irOptimized: 122809
 // gas legacy: 125423
-// gas legacyOptimized: 123323
-// gas ssaCFGOptimized: 122634
+// gas legacyOptimized: 123339
+// gas ssaCFGOptimized: 122706
 // from_calldata((bytes,uint16[],uint16)): 0x20, 0x60, 0xa0, 21, 3, 0x666F6F0000000000000000000000000000000000000000000000000000000000, 2, 13, 14 -> 0x20, 0x60, 0xa0, 21, 3, 0x666f6f0000000000000000000000000000000000000000000000000000000000, 2, 13, 14
-// gas irOptimized: 114821
+// gas irOptimized: 114877
 // gas legacy: 118207
-// gas legacyOptimized: 115327
-// gas ssaCFGOptimized: 114745
+// gas legacyOptimized: 115359
+// gas ssaCFGOptimized: 114801

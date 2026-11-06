@@ -33,14 +33,14 @@ contract test {
 // EVMVersion: >=constantinople
 // ----
 // constructor()
-// gas irOptimized: 79072
-// gas irOptimized code: 321800
+// gas irOptimized: 78750
+// gas irOptimized code: 318000
 // gas legacy: 102214
 // gas legacy code: 629800
-// gas legacyOptimized: 87926
-// gas legacyOptimized code: 429800
-// gas ssaCFGOptimized: 79879
-// gas ssaCFGOptimized code: 331800
+// gas legacyOptimized: 86977
+// gas legacyOptimized code: 418400
+// gas ssaCFGOptimized: 79364
+// gas ssaCFGOptimized code: 325600
 // encode_inline_asm(bytes): 0x20, 0 -> 0x20, 0
 // encode_inline_asm(bytes): 0x20, 1, "f" -> 0x20, 4, "Zg=="
 // encode_inline_asm(bytes): 0x20, 2, "fo" -> 0x20, 4, "Zm8="
@@ -56,12 +56,12 @@ contract test {
 // encode_no_asm(bytes): 0x20, 5, "fooba" -> 0x20, 8, "Zm9vYmE="
 // encode_no_asm(bytes): 0x20, 6, "foobar" -> 0x20, 8, "Zm9vYmFy"
 // encode_inline_asm_large()
-// gas irOptimized: 1406022
+// gas irOptimized: 1442022
 // gas legacy: 1554038
-// gas legacyOptimized: 1132031
-// gas ssaCFGOptimized: 1386022
+// gas legacyOptimized: 1140031
+// gas ssaCFGOptimized: 1422022
 // encode_no_asm_large()
-// gas irOptimized: 3512078
+// gas irOptimized: 3485078
 // gas legacy: 4600082
-// gas legacyOptimized: 2813075
+// gas legacyOptimized: 2769075
 // gas ssaCFGOptimized: 3077078

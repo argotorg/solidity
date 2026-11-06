@@ -18,7 +18,7 @@ EVM assembly:
   dup4
   add
   swap2
-  sub(shl(0x40, 0x01), 0x01)
+  shr(0xc0, not(0x00))
   dup4
   gt
   dup5
@@ -223,7 +223,7 @@ sub_0: assembly {
           dup4
           add
           swap2
-          sub(shl(0x40, 0x01), 0x01)
+          shr(0xc0, not(0x00))
           dup4
           gt
           dup5

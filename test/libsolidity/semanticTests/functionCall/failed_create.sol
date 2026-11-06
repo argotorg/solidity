@@ -17,14 +17,14 @@ contract C {
 // EVMVersion: >=constantinople
 // ----
 // constructor(), 20 wei
-// gas irOptimized: 59672
-// gas irOptimized code: 81600
+// gas irOptimized: 59480
+// gas irOptimized code: 79200
 // gas legacy: 64468
 // gas legacy code: 145400
 // gas legacyOptimized: 60443
 // gas legacyOptimized code: 91200
-// gas ssaCFGOptimized: 59523
-// gas ssaCFGOptimized code: 79800
+// gas ssaCFGOptimized: 59331
+// gas ssaCFGOptimized code: 77400
 // f(uint256): 20 ->
 // x() -> 1
 // f(uint256): 20 -> FAILURE
