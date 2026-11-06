@@ -603,11 +603,13 @@ defaults:
   - base_win: &base_win
       executor:
         name: win/default
+        version: "2026.05.1"
         shell: bash.exe
 
   - base_win_large: &base_win_large
       executor:
         name: win/default
+        version: "2026.05.1"
         size: large
         shell: bash.exe
 
