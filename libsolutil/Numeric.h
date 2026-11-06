@@ -40,6 +40,7 @@
 #endif
 
 #include <limits>
+#include <optional>
 
 namespace solidity
 {
@@ -84,6 +85,17 @@ inline u256 exp256(u256 _base, u256 _exponent)
 	}
 	return result;
 }
+
+/// A range of bit indices [start, end), with bit zero being the least significant bit.
+struct BitRange
+{
+	unsigned start = 0;
+	unsigned end = 0;
+};
+
+/// @returns the range of the single contiguous run of ones in @a _value,
+/// or nullopt if @a _value is zero or contains multiple runs.
+std::optional<BitRange> contiguousOnes(u256 const& _value);
 
 /// Checks whether _mantissa * (X ** _exp) fits into 4096 bits,
 /// where X is given indirectly via _log2OfBase = log2(X).

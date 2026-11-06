@@ -263,55 +263,22 @@ AssemblyItems ComputeMethod::findRepresentation(u256 const& _value)
 		}
 	};
 
-	// A constant having a single contiguous run of ones, common in masking,
-	// can be efficiently created by first filling with 1's, then shifting
-	// left and/or right as needed to make the sides full of zeros.
-	//
-	//                                  onesEnd     onesStart
-	//                                      v           v
-	// 0x000000000000000000000000000000000000ffffffffffff0000000000000000
-	//
-	// If the value is all zeros, both onesEnd and onesStart will be 256.
-
-	// Find the index of the lowest one 1 bit
-	unsigned onesStart;
-	for (onesStart = 0; onesStart < 256; ++onesStart)
-		if (((_value >> onesStart) & 1) != 0)
-			break;
-
-	// Find the index after the highest one 1 bit in the run of 1's.
-	unsigned onesEnd;
-	for (onesEnd = onesStart; onesEnd < 256; ++onesEnd)
-		if (((_value >> onesEnd) & 1) == 0)
-			break;
-
-	// Check that there are no ones after onesEnd
-	bool const isOnlyContiguousOnes = (onesEnd == 256 || (_value >> onesEnd) == 0);
-
-	bool const worthTrying =
-		_value != 0 && // defensive check
+	std::optional<BitRange> const ones = contiguousOnes(_value);
+	if (
+		ones &&
 		m_params.evmVersion.hasBitwiseShifting() &&
-		onesEnd - onesStart > 32 && // push would be more efficient otherwise
-		(onesEnd < 256 || onesStart > 16); // negation more effective for 0xFF..FFFF00
-
-	if (isOnlyContiguousOnes && worthTrying)
+		ones->end - ones->start > 32 && // push would be more efficient otherwise
+		(ones->end < 256 || ones->start > 16) // negation more effective for 0xFF..FFFF00
+	)
 	{
-		// Build up the code, starting with a negated 0 to produce all ones.
-		// 0x00 ! ==
-		// 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+		// Construct the mask by shifting an all-ones word.
 		AssemblyItems newRoutine = AssemblyItems{u256(0), Instruction::NOT};
 
-		// Shift right as needed to create the correct number of 1 bits.
-		// 0x0000000000000000000000000000000000000000000000000000ffffffffffff
-		// If left aligned, we only need a left shift, and skip the right shift.
-		if (onesEnd != 256)
-			newRoutine += AssemblyItems{u256(256 - (onesEnd - onesStart)), Instruction::SHR};
-
-		// If needed, shift left to position the bits in the correct place
-		// or to setup a left aligned mask
-		// 0x000000000000000000000000000000000000ffffffffffff0000000000000000
-		if (onesStart > 0)
-			newRoutine += AssemblyItems{u256(onesStart), Instruction::SHL};
+		// Left-aligned masks only need a left shift.
+		if (ones->end != 256)
+			newRoutine += AssemblyItems{u256(256 - (ones->end - ones->start)), Instruction::SHR};
+		if (ones->start > 0)
+			newRoutine += AssemblyItems{u256(ones->start), Instruction::SHL};
 		considerRoutine(std::move(newRoutine));
 	}
 

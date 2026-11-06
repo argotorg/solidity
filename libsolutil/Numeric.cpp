@@ -22,6 +22,19 @@
 
 using namespace solidity;
 
+std::optional<BitRange> solidity::contiguousOnes(u256 const& _value)
+{
+	if (_value == 0)
+		return std::nullopt;
+
+	unsigned const start = static_cast<unsigned>(boost::multiprecision::lsb(_value));
+	unsigned const end = static_cast<unsigned>(boost::multiprecision::msb(_value)) + 1;
+	u256 const expected = (~u256(0) >> (256 - (end - start))) << start;
+	if (_value != expected)
+		return std::nullopt;
+	return BitRange{start, end};
+}
+
 bool solidity::fitsPrecisionBaseX(bigint const& _mantissa, double _log2OfBase, uint32_t _exp)
 {
 	if (_mantissa == 0)
