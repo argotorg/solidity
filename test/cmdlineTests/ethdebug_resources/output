@@ -15,8 +15,17 @@
             }
         ]
     },
+    "ethdebug": {
+        "schema": "ethdebug/format/info/resources",
+        "version": "0.1.0-draft.2"
+    },
     "pointers": {},
-    "types": {}
+    "types": {
+        "t_tuple$__$": {
+            "contains": [],
+            "kind": "tuple"
+        }
+    }
 }
 
 ======= input.sol:C =======

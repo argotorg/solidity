@@ -1,0 +1,429 @@
+{
+    "pointer": {},
+    "pointer/collection": {},
+    "pointer/collection/conditional": {
+        "/properties": [
+            "else",
+            "if",
+            "then"
+        ]
+    },
+    "pointer/collection/group": {
+        "/properties": [
+            "group"
+        ]
+    },
+    "pointer/collection/list": {
+        "/properties": [
+            "list"
+        ],
+        "/properties/list/properties": [
+            "count",
+            "each",
+            "is"
+        ]
+    },
+    "pointer/collection/reference": {
+        "/properties": [
+            "template",
+            "yields"
+        ]
+    },
+    "pointer/collection/scope": {
+        "/properties": [
+            "define",
+            "in"
+        ]
+    },
+    "pointer/collection/templates": {
+        "/properties": [
+            "in",
+            "templates"
+        ]
+    },
+    "pointer/expression": {
+        "/$defs/Arithmetic/properties": [
+            "~difference",
+            "~product",
+            "~quotient",
+            "~remainder",
+            "~sum"
+        ],
+        "/$defs/Concat/properties": [
+            "~concat"
+        ],
+        "/$defs/Keccak256/properties": [
+            "~keccak256"
+        ],
+        "/$defs/Lookup/patternProperties": [
+            "^\\.(offset|length|slot)$"
+        ],
+        "/$defs/Read/properties": [
+            "~read"
+        ],
+        "/$defs/Resize/oneOf/0/patternProperties": [
+            "^~sized([1-9]+[0-9]*)$"
+        ],
+        "/$defs/Resize/oneOf/1/patternProperties": [
+            "^~wordsized$"
+        ]
+    },
+    "pointer/identifier": {},
+    "pointer/region": {
+        "/allOf/0/if/properties": [
+            "location"
+        ],
+        "/allOf/1/if/properties": [
+            "location"
+        ],
+        "/allOf/2/if/properties": [
+            "location"
+        ],
+        "/allOf/3/if/properties": [
+            "location"
+        ],
+        "/allOf/4/if/properties": [
+            "location"
+        ],
+        "/allOf/5/if/properties": [
+            "location"
+        ],
+        "/allOf/6/if/properties": [
+            "location"
+        ],
+        "/properties": [
+            "location"
+        ]
+    },
+    "pointer/region/base": {
+        "/properties": [
+            "location",
+            "name"
+        ]
+    },
+    "pointer/region/calldata": {
+        "/allOf/0/properties": [
+            "location"
+        ]
+    },
+    "pointer/region/code": {
+        "/allOf/0/properties": [
+            "location"
+        ]
+    },
+    "pointer/region/memory": {
+        "/allOf/0/properties": [
+            "location"
+        ]
+    },
+    "pointer/region/returndata": {
+        "/allOf/0/properties": [
+            "location"
+        ]
+    },
+    "pointer/region/stack": {
+        "/allOf/0/properties": [
+            "location"
+        ]
+    },
+    "pointer/region/storage": {
+        "/allOf/0/properties": [
+            "location"
+        ]
+    },
+    "pointer/region/transient": {
+        "/allOf/0/properties": [
+            "location"
+        ]
+    },
+    "pointer/scheme/segment": {
+        "/properties": [
+            "length",
+            "offset",
+            "slot"
+        ]
+    },
+    "pointer/scheme/slice": {
+        "/properties": [
+            "length",
+            "offset"
+        ]
+    },
+    "pointer/template": {
+        "/properties": [
+            "expect",
+            "for"
+        ]
+    },
+    "type": {
+        "/else/allOf/2/if/properties": [
+            "class"
+        ],
+        "/else/allOf/2/then/properties": [
+            "contains"
+        ],
+        "/if/properties": [
+            "kind"
+        ],
+        "/then/allOf/0/if/properties": [
+            "kind"
+        ],
+        "/then/allOf/1/if/properties": [
+            "kind"
+        ]
+    },
+    "type/base": {
+        "/$defs/ComplexType/properties": [
+            "class",
+            "contains",
+            "kind"
+        ],
+        "/$defs/ElementaryType/properties": [
+            "class",
+            "contains",
+            "kind"
+        ],
+        "/$defs/TypeWrapper/properties": [
+            "type"
+        ]
+    },
+    "type/complex": {
+        "/allOf/0/if/properties": [
+            "kind"
+        ],
+        "/allOf/1/if/properties": [
+            "kind"
+        ],
+        "/allOf/2/if/properties": [
+            "kind"
+        ],
+        "/allOf/3/if/properties": [
+            "kind"
+        ],
+        "/allOf/4/if/properties": [
+            "kind"
+        ],
+        "/allOf/5/if/properties": [
+            "kind"
+        ],
+        "/properties": [
+            "kind"
+        ]
+    },
+    "type/complex/alias": {
+        "/properties": [
+            "class",
+            "contains",
+            "definition",
+            "kind"
+        ]
+    },
+    "type/complex/array": {
+        "/properties": [
+            "class",
+            "contains",
+            "count",
+            "kind"
+        ]
+    },
+    "type/complex/function": {
+        "/$defs/Parameters/allOf/1/properties": [
+            "type"
+        ],
+        "/oneOf/0/properties": [
+            "contains",
+            "external",
+            "internal"
+        ],
+        "/oneOf/0/properties/contains/properties": [
+            "contract"
+        ],
+        "/oneOf/0/properties/contains/properties/contract/allOf/1/properties": [
+            "type"
+        ],
+        "/oneOf/1/properties": [
+            "external",
+            "internal"
+        ],
+        "/properties": [
+            "class",
+            "contains",
+            "definition",
+            "kind"
+        ],
+        "/properties/contains/properties": [
+            "parameters",
+            "returns"
+        ]
+    },
+    "type/complex/mapping": {
+        "/properties": [
+            "class",
+            "contains",
+            "kind"
+        ],
+        "/properties/contains/properties": [
+            "key",
+            "value"
+        ]
+    },
+    "type/complex/struct": {
+        "/$defs/MemberField/allOf/1/properties": [
+            "name"
+        ],
+        "/properties": [
+            "class",
+            "contains",
+            "definition",
+            "kind"
+        ]
+    },
+    "type/complex/tuple": {
+        "/$defs/Element/allOf/1/properties": [
+            "name"
+        ],
+        "/properties": [
+            "class",
+            "contains",
+            "kind"
+        ]
+    },
+    "type/definition": {
+        "/properties": [
+            "location",
+            "name"
+        ]
+    },
+    "type/elementary": {
+        "/allOf/0/if/properties": [
+            "kind"
+        ],
+        "/allOf/1/if/properties": [
+            "kind"
+        ],
+        "/allOf/2/if/properties": [
+            "kind"
+        ],
+        "/allOf/3/if/properties": [
+            "kind"
+        ],
+        "/allOf/4/if/properties": [
+            "kind"
+        ],
+        "/allOf/5/if/properties": [
+            "kind"
+        ],
+        "/allOf/6/if/properties": [
+            "kind"
+        ],
+        "/allOf/7/if/properties": [
+            "kind"
+        ],
+        "/allOf/8/if/properties": [
+            "kind"
+        ],
+        "/allOf/9/if/properties": [
+            "kind"
+        ],
+        "/properties": [
+            "contains",
+            "kind"
+        ]
+    },
+    "type/elementary/address": {
+        "/properties": [
+            "class",
+            "kind",
+            "payable"
+        ]
+    },
+    "type/elementary/bool": {
+        "/properties": [
+            "class",
+            "kind"
+        ]
+    },
+    "type/elementary/bytes": {
+        "/properties": [
+            "class",
+            "kind",
+            "size"
+        ]
+    },
+    "type/elementary/contract": {
+        "/oneOf/0/properties": [
+            "interface",
+            "library"
+        ],
+        "/oneOf/1/properties": [
+            "library"
+        ],
+        "/oneOf/2/properties": [
+            "interface"
+        ],
+        "/properties": [
+            "class",
+            "definition",
+            "interface",
+            "kind",
+            "library",
+            "payable"
+        ]
+    },
+    "type/elementary/enum": {
+        "/properties": [
+            "class",
+            "definition",
+            "kind",
+            "values"
+        ]
+    },
+    "type/elementary/fixed": {
+        "/properties": [
+            "bits",
+            "class",
+            "kind",
+            "places"
+        ]
+    },
+    "type/elementary/int": {
+        "/properties": [
+            "bits",
+            "class",
+            "kind"
+        ]
+    },
+    "type/elementary/string": {
+        "/properties": [
+            "class",
+            "encoding",
+            "kind"
+        ]
+    },
+    "type/elementary/ufixed": {
+        "/properties": [
+            "bits",
+            "class",
+            "kind",
+            "places"
+        ]
+    },
+    "type/elementary/uint": {
+        "/properties": [
+            "bits",
+            "class",
+            "kind"
+        ]
+    },
+    "type/reference": {
+        "/properties": [
+            "id"
+        ]
+    },
+    "type/specifier": {},
+    "type/wrapper": {
+        "/properties": [
+            "type"
+        ]
+    }
+}

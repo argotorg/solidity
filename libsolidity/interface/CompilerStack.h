@@ -295,6 +295,7 @@ public:
 	/// @returns the list of sources (paths) used
 	virtual std::vector<std::string> sourceNames() const override;
 
+	// TODO: Use a fixed-width type such as int64_t for source indices throughout the compiler.
 	/// @returns a mapping assigning each source name its index inside the vector returned
 	/// by sourceNames().
 	std::map<std::string, unsigned> sourceIndices() const;
