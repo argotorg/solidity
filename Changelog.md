@@ -8,6 +8,7 @@ Compiler Features:
 
 Bugfixes:
 * SMTChecker: Fix false negative in CHC engine when a function from abstract base is called externally using `this`.
+* Yul Optimizer: Fix an internal compiler error when the constant optimizer rewrites a large literal argument of `memoryguard`.
 
 
 ### 0.8.38 (2026-10-22)
