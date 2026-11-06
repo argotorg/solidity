@@ -120,13 +120,10 @@ BOOST_AUTO_TEST_CASE(simple_contract)
 BOOST_AUTO_TEST_CASE(store_keccak256)
 {
 	char const* sourceCode = R"(
-		// TODO: We should enable v2 again once the yul optimizer is activated.
-		pragma abicoder v1;
-
 		contract test {
 			bytes32 public shaValue;
 			constructor() {
-				shaValue = keccak256(abi.encodePacked(this));
+				shaValue = keccak256(abi.encodePacked(address(this)));
 			}
 		}
 	)";
@@ -199,9 +196,8 @@ BOOST_AUTO_TEST_CASE(function_calls)
 BOOST_AUTO_TEST_CASE(multiple_external_functions)
 {
 	char const* sourceCode = R"(
-		// TODO: We should enable v2 again once the yul optimizer is activated.
-		pragma abicoder v1;
-
+		// The return type differs from the parameter type because PathGasMeter reports infinite gas
+		// when the same ABI coder helper is entered twice on one path.
 		contract test {
 			uint data;
 			uint data2;
@@ -211,8 +207,8 @@ BOOST_AUTO_TEST_CASE(multiple_external_functions)
 				else
 					data = 1;
 			}
-			function g(uint x) public returns (uint) {
-				return data2;
+			function g(uint x) public returns (uint128) {
+				return uint128(data2);
 			}
 		}
 	)";
@@ -233,18 +229,17 @@ BOOST_AUTO_TEST_CASE(multiple_external_functions)
 BOOST_AUTO_TEST_CASE(exponent_size)
 {
 	char const* sourceCode = R"(
-		// TODO: We should enable v2 again once the yul optimizer is activated.
-		pragma abicoder v1;
-
+		// The return type differs from the parameter type because PathGasMeter reports infinite gas
+		// when the same ABI coder helper is entered twice on one path.
 		contract A {
-			function f(uint x) public returns (uint) {
-				unchecked { return x ** 0; }
+			function f(uint x) public returns (uint128) {
+				unchecked { return uint128(x ** 0); }
 			}
-			function g(uint x) public returns (uint) {
-				unchecked { return x ** 0x100; }
+			function g(uint x) public returns (uint128) {
+				unchecked { return uint128(x ** 0x100); }
 			}
-			function h(uint x) public returns (uint) {
-				unchecked { return x ** 0x10000; }
+			function h(uint x) public returns (uint128) {
+				unchecked { return uint128(x ** 0x10000); }
 			}
 		}
 	)";
@@ -302,11 +297,10 @@ BOOST_AUTO_TEST_CASE(complex_control_flow)
 	// Now we do not follow branches if they start out with lower gas costs than the ones
 	// we previously considered. This of course reduces accuracy.
 	char const* sourceCode = R"(
-		// TODO: We should enable v2 again once the yul optimizer is activated.
-		pragma abicoder v1;
-
+		// The return type differs from the parameter type because PathGasMeter reports infinite gas
+		// when the same ABI coder helper is entered twice on one path.
 		contract log {
-			function ln(int128 x) public pure returns (int128 result) {
+			function ln(int128 x) public pure returns (int256 result) {
 				unchecked {
 					int128 t = x / 256;
 					int128 y = 5545177;

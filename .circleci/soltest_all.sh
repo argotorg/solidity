@@ -53,13 +53,6 @@ IFS=" " read -ra EVM_VALUES <<< "${1:-${DEFAULT_EVM_VALUES[@]}}"
 DEFAULT_EVM=osaka
 OPTIMIZE_VALUES=(0 1)
 
-# Run for ABI encoder v1, without SMTChecker tests.
-EVM="${DEFAULT_EVM}" \
-OPTIMIZE=1 \
-ABI_ENCODER_V1=1 \
-BOOST_TEST_ARGS="-t !smtCheckerTests" \
-"${REPODIR}/.circleci/soltest.sh"
-
 # We shift the batch index so that long-running tests
 # do not always run in the same executor for all EVM versions
 INDEX_SHIFT=0
@@ -72,11 +65,16 @@ do
         # Run SMTChecker tests only when OPTIMIZE == 0
         DISABLE_SMTCHECKER=""
         [ "${OPTIMIZE}" != "0" ] && DISABLE_SMTCHECKER="-t !smtCheckerTests"
+        # Tests that do not depend on any options, such as the Keccak256 suite, are ran only
+        # once on the first iteration of this loop as they produce deterministic results regardless
+        # of the EVM version, or any other inputs.
+        DISABLE_NOOPTIONS=""
+        [ "${INDEX_SHIFT}" != "0" ] && DISABLE_NOOPTIONS="-t !@nooptions"
 
         EVM="$EVM" \
         OPTIMIZE="$OPTIMIZE" \
         SOLTEST_FLAGS="$SOLTEST_FLAGS $ENFORCE_GAS_ARGS" \
-        BOOST_TEST_ARGS="-t !@nooptions $DISABLE_SMTCHECKER" \
+        BOOST_TEST_ARGS="$DISABLE_NOOPTIONS $DISABLE_SMTCHECKER" \
         INDEX_SHIFT="$INDEX_SHIFT" \
         "${REPODIR}/.circleci/soltest.sh"
 

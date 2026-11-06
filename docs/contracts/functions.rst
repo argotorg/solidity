@@ -134,9 +134,7 @@ you must provide return values together with the return statement.
 
     - mappings,
     - internal function types,
-    - reference types with location set to ``storage``,
-    - multi-dimensional arrays (applies only to :ref:`ABI coder v1 <abi_coder>`),
-    - structs (applies only to :ref:`ABI coder v1 <abi_coder>`).
+    - reference types with location set to ``storage``.
 
     This restriction does not apply to library functions because of their different :ref:`internal ABI <library-selectors>`.
 

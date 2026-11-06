@@ -131,14 +131,7 @@ bool SyntaxChecker::visit(PragmaDirective const& _pragma)
 						"Experimental pragma ABIEncoderV2 is deprecated and will be removed in a future release."
 					);
 					if (m_sourceUnit->annotation().useABICoderV2.set())
-					{
-						if (!*m_sourceUnit->annotation().useABICoderV2)
-							m_errorReporter.syntaxError(
-								8273_error,
-								_pragma.location(),
-								"ABI coder v1 has already been selected through \"pragma abicoder v1\"."
-							);
-					}
+						solAssert(*m_sourceUnit->annotation().useABICoderV2);
 					else
 						m_sourceUnit->annotation().useABICoderV2 = true;
 				}
@@ -150,12 +143,12 @@ bool SyntaxChecker::visit(PragmaDirective const& _pragma)
 		solAssert(m_sourceUnit, "");
 		if (
 			_pragma.literals().size() != 2 ||
-			!std::set<std::string>{"v1", "v2"}.count(_pragma.literals()[1])
+			_pragma.literals()[1] != "v2"
 		)
 			m_errorReporter.syntaxError(
 				2745_error,
 				_pragma.location(),
-				"Expected either \"pragma abicoder v1\" or \"pragma abicoder v2\"."
+				"Expected \"pragma abicoder v2\"."
 			);
 		else if (m_sourceUnit->annotation().useABICoderV2.set())
 			m_errorReporter.syntaxError(
@@ -165,16 +158,6 @@ bool SyntaxChecker::visit(PragmaDirective const& _pragma)
 			);
 		else
 			m_sourceUnit->annotation().useABICoderV2 = (_pragma.literals()[1] == "v2");
-
-		if (
-			_pragma.literals().size() > 1 &&
-			_pragma.literals()[1] == "v1"
-		)
-			m_errorReporter.warning(
-				9511_error,
-				_pragma.location(),
-				"ABI coder v1 is deprecated and scheduled for removal. Use ABI coder v2 instead."
-			);
 	}
 	else if (_pragma.literals()[0] == "solidity")
 	{

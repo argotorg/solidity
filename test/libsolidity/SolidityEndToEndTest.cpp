@@ -1257,28 +1257,23 @@ BOOST_AUTO_TEST_CASE(generic_delegatecall)
 			}
 	)**";
 
-	for (auto v2: {false, true})
-	{
-		std::string source = "pragma abicoder " + std::string(v2 ? "v2" : "v1") + ";\n" + std::string(sourceCode);
-
-		compileAndRun(source, 0, "Receiver");
-		h160 const c_receiverAddress = m_contractAddress;
-		compileAndRun(source, 50, "Sender");
-		h160 const c_senderAddress = m_contractAddress;
-		BOOST_CHECK(m_sender != c_senderAddress); // just for sanity
-		ABI_CHECK(callContractFunctionWithValue("doSend(address)", 11, c_receiverAddress), encodeArgs());
-		ABI_CHECK(callContractFunction("received()"), encodeArgs(u256(23)));
-		ABI_CHECK(callContractFunction("sender()"), encodeArgs(m_sender));
-		ABI_CHECK(callContractFunction("value()"), encodeArgs(u256(11)));
-		m_contractAddress = c_receiverAddress;
-		ABI_CHECK(callContractFunction("received()"), encodeArgs(u256(0)));
-		ABI_CHECK(callContractFunction("sender()"), encodeArgs(u256(0)));
-		ABI_CHECK(callContractFunction("value()"), encodeArgs(u256(0)));
-		BOOST_CHECK(storageEmpty(c_receiverAddress));
-		BOOST_CHECK(!storageEmpty(c_senderAddress));
-		BOOST_CHECK_EQUAL(balanceAt(c_receiverAddress), 0);
-		BOOST_CHECK_EQUAL(balanceAt(c_senderAddress), 50 + 11);
-	}
+	compileAndRun(sourceCode, 0, "Receiver");
+	h160 const c_receiverAddress = m_contractAddress;
+	compileAndRun(sourceCode, 50, "Sender");
+	h160 const c_senderAddress = m_contractAddress;
+	BOOST_CHECK(m_sender != c_senderAddress); // just for sanity
+	ABI_CHECK(callContractFunctionWithValue("doSend(address)", 11, c_receiverAddress), encodeArgs());
+	ABI_CHECK(callContractFunction("received()"), encodeArgs(u256(23)));
+	ABI_CHECK(callContractFunction("sender()"), encodeArgs(m_sender));
+	ABI_CHECK(callContractFunction("value()"), encodeArgs(u256(11)));
+	m_contractAddress = c_receiverAddress;
+	ABI_CHECK(callContractFunction("received()"), encodeArgs(u256(0)));
+	ABI_CHECK(callContractFunction("sender()"), encodeArgs(u256(0)));
+	ABI_CHECK(callContractFunction("value()"), encodeArgs(u256(0)));
+	BOOST_CHECK(storageEmpty(c_receiverAddress));
+	BOOST_CHECK(!storageEmpty(c_senderAddress));
+	BOOST_CHECK_EQUAL(balanceAt(c_receiverAddress), 0);
+	BOOST_CHECK_EQUAL(balanceAt(c_senderAddress), 50 + 11);
 }
 
 BOOST_AUTO_TEST_CASE(generic_staticcall)
@@ -2306,13 +2301,9 @@ BOOST_AUTO_TEST_CASE(using_library_mappings_external)
 				}
 			}
 		)";
-	for (auto v2: {false, true})
-	{
-		std::string prefix = "pragma abicoder " + std::string(v2 ? "v2" : "v1") + ";\n";
-		compileAndRun(prefix + libSourceCode, 0, "Lib");
-		compileAndRun(prefix + sourceCode, 0, "Test", bytes(), std::map<std::string, h160>{{":Lib", m_contractAddress}});
-		ABI_CHECK(callContractFunction("f()"), encodeArgs(u256(2), u256(0), u256(84), u256(46), u256(0), u256(198)));
-	}
+	compileAndRun(libSourceCode, 0, "Lib");
+	compileAndRun(sourceCode, 0, "Test", bytes(), std::map<std::string, h160>{{":Lib", m_contractAddress}});
+	ABI_CHECK(callContractFunction("f()"), encodeArgs(u256(2), u256(0), u256(84), u256(46), u256(0), u256(198)));
 }
 
 BOOST_AUTO_TEST_CASE(short_strings)
@@ -3282,20 +3273,16 @@ BOOST_AUTO_TEST_CASE(abi_encodePacked)
 			}
 		}
 	)";
-	for (auto v2: {false, true})
-	{
-		ALSO_VIA_YUL(
-			std::string prefix = "pragma abicoder " + std::string(v2 ? "v2" : "v1") + ";\n";
-			compileAndRun(prefix + sourceCode, 0, "C");
-			ABI_CHECK(callContractFunction("f0()"), encodeArgs(0x20, 0));
-			ABI_CHECK(callContractFunction("f1()"), encodeArgs(0x20, 2, "\x01\x02"));
-			ABI_CHECK(callContractFunction("f2()"), encodeArgs(0x20, 5, "\x01" "abc" "\x02"));
-			ABI_CHECK(callContractFunction("f3()"), encodeArgs(0x20, 5, "\x01" "abc" "\x02"));
-			ABI_CHECK(callContractFunction("f4()"), encodeArgs(0x20, 2 + 26 + 26 + 2, "\x07\x01" "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz" "\x12\x01"));
-			ABI_CHECK(callContractFunction("f_literal()"), encodeArgs(0x20, 5, "\x01" "abc" "\x02"));
-			ABI_CHECK(callContractFunction("f_calldata()"), encodeArgs(0x20, 6, "\x01" "\xa5\xbf\xa1\xee" "\x02"));
-		)
-	}
+	ALSO_VIA_YUL(
+		compileAndRun(sourceCode, 0, "C");
+		ABI_CHECK(callContractFunction("f0()"), encodeArgs(0x20, 0));
+		ABI_CHECK(callContractFunction("f1()"), encodeArgs(0x20, 2, "\x01\x02"));
+		ABI_CHECK(callContractFunction("f2()"), encodeArgs(0x20, 5, "\x01" "abc" "\x02"));
+		ABI_CHECK(callContractFunction("f3()"), encodeArgs(0x20, 5, "\x01" "abc" "\x02"));
+		ABI_CHECK(callContractFunction("f4()"), encodeArgs(0x20, 2 + 26 + 26 + 2, "\x07\x01" "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz" "\x12\x01"));
+		ABI_CHECK(callContractFunction("f_literal()"), encodeArgs(0x20, 5, "\x01" "abc" "\x02"));
+		ABI_CHECK(callContractFunction("f_calldata()"), encodeArgs(0x20, 6, "\x01" "\xa5\xbf\xa1\xee" "\x02"));
+	)
 }
 
 BOOST_AUTO_TEST_CASE(abi_encodePacked_from_storage)
@@ -3359,31 +3346,27 @@ BOOST_AUTO_TEST_CASE(abi_encodePacked_from_storage)
 			}
 		}
 	)";
-	for (auto v2: {false, true})
-	{
-		ALSO_VIA_YUL(
-			std::string prefix = "pragma abicoder " + std::string(v2 ? "v2" : "v1") + ";\n";
-			compileAndRun(prefix + sourceCode, 0, "C");
-			bytes payload = encodeArgs(0xfffff1, 0, 0xfffff2, 0, 0, 0xfffff3, 0, 0, 0xfffff4);
-			bytes encoded = encodeArgs(0x20, 0x122, "\x01" + asString(payload) + "\x02");
-			ABI_CHECK(callContractFunction("sf()"), encoded);
-			ABI_CHECK(callContractFunction("sd()"), encoded);
-			ABI_CHECK(callContractFunction("sfs()"), encodeArgs(0x20, 0x122, "\x01" + asString(encodeArgs(
-				u256(-2), 0, 0xffff2, 0, 0, u256(-200), 0, 0, 0xffff4
-			)) + "\x02"));
-			payload = encodeArgs(
-				u256("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"),
-				0xfffff2,
-				u256("0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe"),
-				0,
-				0xfffff4
-			);
-			ABI_CHECK(callContractFunction("lf()"), encodeArgs(0x20, 5 * 32 + 2, "\x01" + asString(encodeArgs(payload)) + "\x02"));
-			ABI_CHECK(callContractFunction("ld()"), encodeArgs(0x20, 5 * 32 + 2, "\x01" + asString(encodeArgs(payload)) + "\x02"));
-			ABI_CHECK(callContractFunction("bytes_short()"), encodeArgs(0x20, 6, "\x01" "abcd\x02"));
-			ABI_CHECK(callContractFunction("bytes_long()"), encodeArgs(0x20, 42, "\x01" "0123456789012345678901234567890123456789\x02"));
-		)
-	}
+	ALSO_VIA_YUL(
+		compileAndRun(sourceCode, 0, "C");
+		bytes payload = encodeArgs(0xfffff1, 0, 0xfffff2, 0, 0, 0xfffff3, 0, 0, 0xfffff4);
+		bytes encoded = encodeArgs(0x20, 0x122, "\x01" + asString(payload) + "\x02");
+		ABI_CHECK(callContractFunction("sf()"), encoded);
+		ABI_CHECK(callContractFunction("sd()"), encoded);
+		ABI_CHECK(callContractFunction("sfs()"), encodeArgs(0x20, 0x122, "\x01" + asString(encodeArgs(
+			u256(-2), 0, 0xffff2, 0, 0, u256(-200), 0, 0, 0xffff4
+		)) + "\x02"));
+		payload = encodeArgs(
+			u256("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"),
+			0xfffff2,
+			u256("0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe"),
+			0,
+			0xfffff4
+		);
+		ABI_CHECK(callContractFunction("lf()"), encodeArgs(0x20, 5 * 32 + 2, "\x01" + asString(encodeArgs(payload)) + "\x02"));
+		ABI_CHECK(callContractFunction("ld()"), encodeArgs(0x20, 5 * 32 + 2, "\x01" + asString(encodeArgs(payload)) + "\x02"));
+		ABI_CHECK(callContractFunction("bytes_short()"), encodeArgs(0x20, 6, "\x01" "abcd\x02"));
+		ABI_CHECK(callContractFunction("bytes_long()"), encodeArgs(0x20, 42, "\x01" "0123456789012345678901234567890123456789\x02"));
+	)
 }
 
 BOOST_AUTO_TEST_CASE(abi_encodePacked_from_memory)
@@ -3432,29 +3415,25 @@ BOOST_AUTO_TEST_CASE(abi_encodePacked_from_memory)
 			}
 		}
 	)";
-	for (auto v2: {false, true})
-	{
-		ALSO_VIA_YUL(
-			std::string prefix = "pragma abicoder " + std::string(v2 ? "v2" : "v1") + ";\n";
-			compileAndRun(prefix + sourceCode, 0, "C");
-			bytes payload = encodeArgs(0xfffff1, 0, 0xfffff2, 0, 0, 0xfffff3, 0, 0, 0xfffff4);
-			bytes encoded = encodeArgs(0x20, 0x122, "\x01" + asString(payload) + "\x02");
-			ABI_CHECK(callContractFunction("sf()"), encoded);
-			ABI_CHECK(callContractFunction("sd()"), encoded);
-			ABI_CHECK(callContractFunction("sfs()"), encodeArgs(0x20, 0x122, "\x01" + asString(encodeArgs(
-				u256(-2), 0, 0xffff2, 0, 0, u256(-200), 0, 0, 0xffff4
-			)) + "\x02"));
-			payload = encodeArgs(
-				u256("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"),
-				0xfffff2,
-				u256("0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe"),
-				0,
-				0xfffff4
-			);
-			ABI_CHECK(callContractFunction("lf()"), encodeArgs(0x20, 5 * 32 + 2, "\x01" + asString(encodeArgs(payload)) + "\x02"));
-			ABI_CHECK(callContractFunction("ld()"), encodeArgs(0x20, 5 * 32 + 2, "\x01" + asString(encodeArgs(payload)) + "\x02"));
-		)
-	}
+	ALSO_VIA_YUL(
+		compileAndRun(sourceCode, 0, "C");
+		bytes payload = encodeArgs(0xfffff1, 0, 0xfffff2, 0, 0, 0xfffff3, 0, 0, 0xfffff4);
+		bytes encoded = encodeArgs(0x20, 0x122, "\x01" + asString(payload) + "\x02");
+		ABI_CHECK(callContractFunction("sf()"), encoded);
+		ABI_CHECK(callContractFunction("sd()"), encoded);
+		ABI_CHECK(callContractFunction("sfs()"), encodeArgs(0x20, 0x122, "\x01" + asString(encodeArgs(
+			u256(-2), 0, 0xffff2, 0, 0, u256(-200), 0, 0, 0xffff4
+		)) + "\x02"));
+		payload = encodeArgs(
+			u256("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"),
+			0xfffff2,
+			u256("0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe"),
+			0,
+			0xfffff4
+		);
+		ABI_CHECK(callContractFunction("lf()"), encodeArgs(0x20, 5 * 32 + 2, "\x01" + asString(encodeArgs(payload)) + "\x02"));
+		ABI_CHECK(callContractFunction("ld()"), encodeArgs(0x20, 5 * 32 + 2, "\x01" + asString(encodeArgs(payload)) + "\x02"));
+	)
 }
 
 BOOST_AUTO_TEST_CASE(abi_encodePacked_functionPtr)
@@ -3478,18 +3457,14 @@ BOOST_AUTO_TEST_CASE(abi_encodePacked_functionPtr)
 			function f() public pure returns (bytes memory) {}
 		}
 	)";
-	for (auto v2: {false, true})
-	{
-		ALSO_VIA_YUL(
-			std::string prefix = "pragma abicoder " + std::string(v2 ? "v2" : "v1") + ";\n";
-			compileAndRun(prefix + sourceCode, 0, "C");
-			std::string directEncoding = asString(fromHex("08" "1112131400000000000011121314000000000087" "26121ff0" "02"));
-			ABI_CHECK(callContractFunction("testDirect()"), encodeArgs(0x20, directEncoding.size(), directEncoding));
-			std::string arrayEncoding = asString(fromHex("08" "1112131400000000000011121314000000000087" "26121ff0" "0000000000000000" "02"));
-			ABI_CHECK(callContractFunction("testFixedArray()"), encodeArgs(0x20, arrayEncoding.size(), arrayEncoding));
-			ABI_CHECK(callContractFunction("testDynamicArray()"), encodeArgs(0x20, arrayEncoding.size(), arrayEncoding));
-		)
-	}
+	ALSO_VIA_YUL(
+		compileAndRun(sourceCode, 0, "C");
+		std::string directEncoding = asString(fromHex("08" "1112131400000000000011121314000000000087" "26121ff0" "02"));
+		ABI_CHECK(callContractFunction("testDirect()"), encodeArgs(0x20, directEncoding.size(), directEncoding));
+		std::string arrayEncoding = asString(fromHex("08" "1112131400000000000011121314000000000087" "26121ff0" "0000000000000000" "02"));
+		ABI_CHECK(callContractFunction("testFixedArray()"), encodeArgs(0x20, arrayEncoding.size(), arrayEncoding));
+		ABI_CHECK(callContractFunction("testDynamicArray()"), encodeArgs(0x20, arrayEncoding.size(), arrayEncoding));
+	)
 }
 
 BOOST_AUTO_TEST_CASE(abi_encodePackedV2_structs)

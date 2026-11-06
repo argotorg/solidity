@@ -381,10 +381,6 @@ Array Members
     elements similar to calling :ref:`delete<delete>` on them.
 
 .. note::
-    To use arrays of arrays in external (instead of public) functions, you need to
-    activate ABI coder v2.
-
-.. note::
     In EVM versions before Byzantium, it was not possible to access
     dynamic arrays returned from function calls. If you call functions
     that return dynamic arrays, make sure to use an EVM that is set to

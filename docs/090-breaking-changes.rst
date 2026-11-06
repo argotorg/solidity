@@ -17,6 +17,9 @@ the compiler notifying you about it.
 New Restrictions
 ================
 
+* ABI coder v1 has been removed and ``pragma abicoder v1;`` is no longer accepted.
+  ABI coder v2, which has been the default since Solidity 0.8.0, is now the only implementation.
+
 
 Interface Changes
 =================
@@ -36,4 +39,8 @@ interface, or how you analyze the output produced by it.
 How to update your code
 =======================
 
+* Remove ``pragma abicoder v1;``.
+  Note that ABI coder v2 performs more validation on the inputs, which makes some function calls more expensive
+  and can make calls revert that did not revert with ABI coder v1 when they contain data that does not conform
+  to the parameter types.
 
