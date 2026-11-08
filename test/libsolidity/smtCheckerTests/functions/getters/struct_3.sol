@@ -19,6 +19,7 @@ contract C {
 	}
 }
 // ====
+// EVMVersion: >=byzantium
 // SMTEngine: all
 // ----
 // Warning 6328: (307-326): CHC: Assertion violation happens here.\nCounterexample:\nm = {s: [0x66, 0x6f, 0x6f], b: [0x62, 0x61, 0x72]}\ns = [0x66, 0x6f, 0x6f]\nb = [0x62, 0x61, 0x72]\n\nTransaction trace:\nC.constructor()\nState: m = {s: [0x66, 0x6f, 0x6f], b: [0x62, 0x61, 0x72]}\nC.f()

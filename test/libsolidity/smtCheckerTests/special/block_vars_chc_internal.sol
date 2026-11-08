@@ -34,6 +34,7 @@ contract C {
 	}
 }
 // ====
+// EVMVersion: >=paris
 // SMTEngine: chc
 // SMTIgnoreOS: macos
 // ----

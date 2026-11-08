@@ -26,6 +26,7 @@ contract C {
     }
 }
 // ====
+// EVMVersion: >=byzantium
 // SMTEngine: all
 // ----
 // Warning 8729: (231-245): Contract deployment is only supported in the trusted mode for external calls with the CHC engine.

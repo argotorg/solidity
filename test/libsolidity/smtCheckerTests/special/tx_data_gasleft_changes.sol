@@ -15,6 +15,7 @@ contract C {
 	}
 }
 // ====
+// EVMVersion: <amsterdam
 // SMTEngine: all
 // SMTIgnoreCex: yes
 // ----

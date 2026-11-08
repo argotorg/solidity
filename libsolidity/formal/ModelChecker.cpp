@@ -41,6 +41,7 @@ ModelChecker::ModelChecker(
 	ErrorReporter& _errorReporter,
 	langutil::CharStreamProvider const& _charStreamProvider,
 	std::map<h256, std::string> const& _smtlib2Responses,
+	EVMVersion _evmVersion,
 	ModelCheckerSettings _settings,
 	ReadCallback::Callback const& _smtCallback
 ):
@@ -48,8 +49,8 @@ ModelChecker::ModelChecker(
 	m_provedSafeReporter(m_provedSafeLogs),
 	m_settings(std::move(_settings)),
 	m_context(),
-	m_bmc(m_context, m_uniqueErrorReporter, m_unsupportedErrorReporter, m_provedSafeReporter, _smtlib2Responses, _smtCallback, m_settings, _charStreamProvider),
-	m_chc(m_context, m_uniqueErrorReporter, m_unsupportedErrorReporter, m_provedSafeReporter, _smtlib2Responses, _smtCallback, m_settings, _charStreamProvider)
+	m_bmc(m_context, m_uniqueErrorReporter, m_unsupportedErrorReporter, m_provedSafeReporter, _smtlib2Responses, _smtCallback, m_settings, _evmVersion, _charStreamProvider),
+	m_chc(m_context, m_uniqueErrorReporter, m_unsupportedErrorReporter, m_provedSafeReporter, _smtlib2Responses, _smtCallback, m_settings, _evmVersion, _charStreamProvider)
 {
 }
 

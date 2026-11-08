@@ -9,6 +9,7 @@ Compiler Features:
 * Yul: Warn when the assembled bytecode of a compiled Yul object exceeds the EIP-170 (runtime code) or EIP-3860 (initcode) size limit, matching the existing warnings for Solidity input.
 
 Bugfixes:
+* SMTChecker: Do not assume that the value returned by `gasleft()` never increases within a transaction when compiling for the Amsterdam EVM version or newer, where state gas can be refilled ([EIP-8037](https://eips.ethereum.org/EIPS/eip-8037)).
 * SMTChecker: Fix false negative in CHC engine when a function from abstract base is called externally using `this`.
 
 

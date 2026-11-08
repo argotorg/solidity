@@ -671,7 +671,7 @@ bool CompilerStack::analyzeLegacy(bool _noErrorsSoFar)
 		if (m_modelCheckerSettings.engine.any())
 			m_modelCheckerSettings.solvers = ModelChecker::checkRequestedSolvers(m_modelCheckerSettings.solvers, m_errorReporter);
 
-		ModelChecker modelChecker(m_errorReporter, *this, m_smtlib2Responses, m_modelCheckerSettings, m_readFile);
+		ModelChecker modelChecker(m_errorReporter, *this, m_smtlib2Responses, m_evmVersion, m_modelCheckerSettings, m_readFile);
 		modelChecker.checkRequestedSourcesAndContracts(allSources);
 		for (Source const* source: m_sourceOrder)
 			if (source->ast)

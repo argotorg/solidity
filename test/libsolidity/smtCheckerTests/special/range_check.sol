@@ -56,6 +56,7 @@ contract D {
 	}
 }
 // ====
+// EVMVersion: >=paris
 // SMTEngine: all
 // ----
 // Warning 8417: (565-581): Since the VM version paris, "difficulty" was replaced by "prevrandao", which now returns a random number based on the beacon chain.

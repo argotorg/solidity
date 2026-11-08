@@ -74,6 +74,7 @@ contract C {
 	}
 }
 // ====
+// EVMVersion: >=cancun
 // SMTEngine: all
 // SMTIgnoreCex: yes
 // ----

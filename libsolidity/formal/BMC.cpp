@@ -45,9 +45,10 @@ BMC::BMC(
 	std::map<h256, std::string> const& _smtlib2Responses,
 	ReadCallback::Callback const& _smtCallback,
 	ModelCheckerSettings _settings,
+	EVMVersion _evmVersion,
 	CharStreamProvider const& _charStreamProvider
 ):
-	SMTEncoder(_context, _settings, _errorReporter, _unsupportedErrorReporter, _provedSafeReporter, _charStreamProvider)
+	SMTEncoder(_context, _settings, _evmVersion, _errorReporter, _unsupportedErrorReporter, _provedSafeReporter, _charStreamProvider)
 {
 	std::vector<std::unique_ptr<BMCSolverInterface>> solvers;
 	if (_settings.solvers.smtlib2)

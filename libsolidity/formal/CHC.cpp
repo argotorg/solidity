@@ -58,9 +58,10 @@ CHC::CHC(
 	std::map<util::h256, std::string> const& _smtlib2Responses,
 	ReadCallback::Callback const& _smtCallback,
 	ModelCheckerSettings _settings,
+	EVMVersion _evmVersion,
 	CharStreamProvider const& _charStreamProvider
 ):
-	SMTEncoder(_context, _settings, _errorReporter, _unsupportedErrorReporter, _provedSafeReporter, _charStreamProvider),
+	SMTEncoder(_context, _settings, _evmVersion, _errorReporter, _unsupportedErrorReporter, _provedSafeReporter, _charStreamProvider),
 	m_smtlib2Responses(_smtlib2Responses),
 	m_smtCallback(_smtCallback)
 {}

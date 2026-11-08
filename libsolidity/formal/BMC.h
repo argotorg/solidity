@@ -64,6 +64,7 @@ public:
 		std::map<util::h256, std::string> const& _smtlib2Responses,
 		ReadCallback::Callback const& _smtCallback,
 		ModelCheckerSettings _settings,
+		langutil::EVMVersion _evmVersion,
 		langutil::CharStreamProvider const& _charStreamProvider
 	);
 

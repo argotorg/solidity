@@ -20,6 +20,7 @@ contract C {
 	}
 }
 // ====
+// EVMVersion: >=byzantium
 // SMTEngine: all
 // ----
 // Warning 9302: (218-240): Return value of low-level calls not used.

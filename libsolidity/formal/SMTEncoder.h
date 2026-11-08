@@ -31,6 +31,7 @@
 #include <libsolidity/ast/AST.h>
 #include <libsolidity/ast/ASTVisitor.h>
 #include <libsolidity/interface/ReadFile.h>
+#include <liblangutil/EVMVersion.h>
 #include <liblangutil/UniqueErrorReporter.h>
 
 #include <string>
@@ -54,6 +55,7 @@ public:
 	SMTEncoder(
 		smt::EncodingContext& _context,
 		ModelCheckerSettings _settings,
+		langutil::EVMVersion _evmVersion,
 		langutil::UniqueErrorReporter& _errorReporter,
 		langutil::UniqueErrorReporter& _unsupportedErrorReporter,
 		langutil::ErrorReporter& _provedSafeReporter,
@@ -514,6 +516,10 @@ protected:
 	smt::EncodingContext& m_context;
 
 	ModelCheckerSettings m_settings;
+
+	/// The EVM version the analyzed sources are compiled for.
+	/// Needed because the semantics of some constructs depend on it.
+	langutil::EVMVersion m_evmVersion;
 
 	/// Character stream for each source,
 	/// used for retrieving source text of expressions for e.g. counter-examples.

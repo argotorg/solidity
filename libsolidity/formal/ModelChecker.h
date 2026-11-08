@@ -53,6 +53,7 @@ public:
 		langutil::ErrorReporter& _errorReporter,
 		langutil::CharStreamProvider const& _charStreamProvider,
 		std::map<solidity::util::h256, std::string> const& _smtlib2Responses,
+		langutil::EVMVersion _evmVersion,
 		ModelCheckerSettings _settings = ModelCheckerSettings{},
 		ReadCallback::Callback const& _smtCallback = ReadCallback::Callback()
 	);

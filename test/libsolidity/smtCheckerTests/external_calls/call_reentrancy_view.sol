@@ -9,6 +9,7 @@ contract C {
 	}
 }
 // ====
+// EVMVersion: >=byzantium
 // SMTEngine: all
 // SMTIgnoreOS: macos
 // ----

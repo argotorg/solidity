@@ -37,9 +37,9 @@ class SMTCheckerTest: public SyntaxTest
 public:
 	static std::unique_ptr<TestCase> create(Config const& _config)
 	{
-		return std::make_unique<SMTCheckerTest>(_config.filename);
+		return std::make_unique<SMTCheckerTest>(_config.filename, _config.evmVersion);
 	}
-	explicit SMTCheckerTest(std::string const& _filename);
+	SMTCheckerTest(std::string const& _filename, langutil::EVMVersion _evmVersion);
 
 	void setupCompiler(CompilerStack& _compiler) override;
 	void filterObtainedErrors() override;

@@ -9,6 +9,7 @@ contract C {
 	}
 }
 // ====
+// EVMVersion: >=byzantium
 // SMTEngine: all
 // ----
 // Warning 2519: (106-112): This declaration shadows an existing declaration.

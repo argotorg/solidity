@@ -7,6 +7,7 @@ contract C {
 	}
 }
 // ====
+// EVMVersion: >=byzantium
 // SMTEngine: bmc
 // ----
 // Warning 9302: (66-83): Return value of low-level calls not used.

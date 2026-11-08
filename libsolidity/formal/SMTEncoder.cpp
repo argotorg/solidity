@@ -49,6 +49,7 @@ using namespace std::string_literals;
 SMTEncoder::SMTEncoder(
 	smt::EncodingContext& _context,
 	ModelCheckerSettings _settings,
+	langutil::EVMVersion _evmVersion,
 	UniqueErrorReporter& _errorReporter,
 	UniqueErrorReporter& _unsupportedErrorReporter,
 	ErrorReporter& _provedSafeReporter,
@@ -59,6 +60,7 @@ SMTEncoder::SMTEncoder(
 	m_provedSafeReporter(_provedSafeReporter),
 	m_context(_context),
 	m_settings(std::move(_settings)),
+	m_evmVersion(_evmVersion),
 	m_charStreamProvider(_charStreamProvider)
 {
 }
@@ -892,7 +894,9 @@ void SMTEncoder::visitGasLeft(FunctionCall const& _funCall)
 	unsigned index = symbolicVar->index();
 	// We set the current value to unknown anyway to add type constraints.
 	m_context.setUnknownValue(*symbolicVar);
-	if (index > 0)
+	// Since EIP-8037, state gas can be refilled inside a frame,
+	// so gasleft() may also grow during a tx.
+	if (index > 0 && m_evmVersion.hasMonotonicGasLeft())
 		m_context.addAssertion(symbolicVar->currentValue() <= symbolicVar->valueAtIndex(index - 1));
 }
 

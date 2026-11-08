@@ -144,6 +144,9 @@ public:
 	bool hasMcopy() const { return *this >= cancun(); }
 	bool supportsTransientStorage() const { return *this >= cancun(); }
 	bool hasSlotNum() const { return *this >= amsterdam(); }
+	/// Whether the result of GAS is always at most the result of a preceding GAS in the same frame.
+	/// EIP-8037 refills state gas mid-frame, which makes the remaining gas grow again.
+	bool hasMonotonicGasLeft() const { return *this < amsterdam(); }
 	constexpr size_t reachableStackDepth() const { return 16; }
 
 	bool hasOpcode(evmasm::Instruction _opcode) const;

@@ -15,6 +15,7 @@ contract C
 	}
 }
 // ====
+// EVMVersion: >=paris
 // SMTEngine: all
 // SMTIgnoreCex: yes
 // ----

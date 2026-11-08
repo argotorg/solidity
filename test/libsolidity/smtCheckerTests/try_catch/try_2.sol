@@ -15,6 +15,7 @@ contract C {
 	}
 }
 // ====
+// EVMVersion: >=byzantium
 // SMTEngine: all
 // ----
 // Warning 5667: (155-169): Unused try/catch parameter. Remove or comment out the variable name to silence this warning.

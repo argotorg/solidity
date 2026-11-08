@@ -8,6 +8,7 @@ contract C
 	}
 }
 // ====
+// EVMVersion: <amsterdam
 // SMTEngine: all
 // ----
 // Warning 6328: (43-64): CHC: Assertion violation happens here.\nCounterexample:\n\ng = 0\n\nTransaction trace:\nC.constructor()\nC.f()
