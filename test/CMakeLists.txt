@@ -80,6 +80,7 @@ set(libsolidity_sources
     libsolidity/ASTJSONTest.h
     libsolidity/ErrorCheck.cpp
     libsolidity/ErrorCheck.h
+    libsolidity/EthdebugResources.cpp
     libsolidity/EthdebugTest.cpp
     libsolidity/EthdebugTest.h
     libsolidity/GasCosts.cpp

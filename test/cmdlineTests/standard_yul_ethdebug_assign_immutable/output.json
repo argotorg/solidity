@@ -8,12 +8,17 @@
                             "contract": {
                                 "definition": {
                                     "source": {
-                                        "id": 0
+                                        "id": 0,
+                                        "type": "source"
                                     }
                                 },
                                 "name": ""
                             },
                             "environment": "create",
+                            "ethdebug": {
+                                "schema": "ethdebug/format/program",
+                                "version": "0.1.0-draft.2"
+                            },
                             "instructions": [
                                 {
                                     "context": {
@@ -23,7 +28,8 @@
                                                 "offset": 165
                                             },
                                             "source": {
-                                                "id": 0
+                                                "id": 0,
+                                                "type": "source"
                                             }
                                         }
                                     },
@@ -43,7 +49,8 @@
                                                 "offset": 81
                                             },
                                             "source": {
-                                                "id": 0
+                                                "id": 0,
+                                                "type": "source"
                                             }
                                         }
                                     },
@@ -60,7 +67,8 @@
                                                 "offset": 68
                                             },
                                             "source": {
-                                                "id": 0
+                                                "id": 0,
+                                                "type": "source"
                                             }
                                         }
                                     },
@@ -77,7 +85,8 @@
                                                 "offset": 68
                                             },
                                             "source": {
-                                                "id": 0
+                                                "id": 0,
+                                                "type": "source"
                                             }
                                         }
                                     },
@@ -94,7 +103,8 @@
                                                 "offset": 44
                                             },
                                             "source": {
-                                                "id": 0
+                                                "id": 0,
+                                                "type": "source"
                                             }
                                         }
                                     },
@@ -132,6 +142,10 @@
                         "path": "C"
                     }
                 ]
+            },
+            "ethdebug": {
+                "schema": "ethdebug/format/info/resources",
+                "version": "0.1.0-draft.2"
             },
             "pointers": {},
             "types": {}

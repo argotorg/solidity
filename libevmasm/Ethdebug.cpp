@@ -27,6 +27,8 @@
 #include <range/v3/algorithm/any_of.hpp>
 
 using namespace solidity;
+using namespace solidity::util;
+using namespace solidity::langutil;
 using namespace solidity::evmasm;
 using namespace solidity::evmasm::ethdebug;
 
@@ -52,11 +54,11 @@ schema::program::Instruction::Operation instructionOperation(Assembly const& _as
 	return operation;
 }
 
-schema::materials::SourceRange::Range locationRange(langutil::SourceLocation const& _location)
+schema::materials::SourceRange::Range locationRange(SourceLocation const& _location)
 {
 	return {
 		.length = schema::data::Unsigned{_location.end - _location.start},
-		.offset = schema::data::Unsigned{_location.start}
+		.offset = schema::data::Unsigned{_location.start},
 	};
 }
 
@@ -64,24 +66,24 @@ schema::materials::Reference sourceReference(unsigned _sourceID)
 {
 	return {
 		.id = schema::materials::ID{_sourceID},
-		.type = std::nullopt
+		.type = schema::materials::Reference::Type::Source,
 	};
 }
 
 std::optional<schema::program::Context> instructionContext(AssemblyItems const& _codeSection, size_t _assemblyItemIndex, unsigned _sourceID)
 {
 	solAssert(_assemblyItemIndex < _codeSection.size());
-	langutil::SourceLocation const& location = _codeSection.at(_assemblyItemIndex).location();
+	SourceLocation const& location = _codeSection.at(_assemblyItemIndex).location();
 	if (!location.isValid())
 		return std::nullopt;
 
 	return schema::program::Context{
 		schema::materials::SourceRange{
 			.source = sourceReference(_sourceID),
-			.range = locationRange(location)
+			.range = locationRange(location),
 		},
 		std::nullopt,
-		std::nullopt
+		std::nullopt,
 	};
 }
 
@@ -111,7 +113,7 @@ std::vector<schema::program::Instruction> programInstructions(Assembly const& _a
 		instructions.emplace_back(schema::program::Instruction{
 			.offset = schema::data::Unsigned{start},
 			.operation = instructionOperation(_assembly, _linkerObject, start, end),
-			.context = instructionContext(items, currentInstruction.assemblyItemIndex, _sourceID)
+			.context = instructionContext(items, currentInstruction.assemblyItemIndex, _sourceID),
 		});
 	}
 
@@ -139,7 +141,7 @@ std::string compilationID(std::vector<Source> const& _sources)
 		rawIDInput += lengthPrefixed(source.language);
 	}
 
-	return fmt::format("solc-{}", util::keccak256(rawIDInput).hex());
+	return fmt::format("solc-{}", keccak256(rawIDInput).hex());
 }
 
 schema::materials::Source materialSource(Source const& _source)
@@ -173,34 +175,40 @@ schema::materials::Compilation materialCompilation(std::vector<Source> const& _s
 
 Json ethdebug::program(std::string_view _name, unsigned _sourceID, Assembly const& _assembly, LinkerObject const& _linkerObject)
 {
-	return schema::Program{
+	schema::Program const result{
+		.ethdebug = schema::data::Stamp{"ethdebug/format/program", std::string{SpecificationVersion}},
 		.compilation = std::nullopt,
 		.contract = {
 			.name = std::string{_name},
 			.definition = {
-				.source = {
-					.id = {_sourceID},
-					.type = std::nullopt
-				},
-				.range = std::nullopt
-			}
+				.source = sourceReference(_sourceID),
+				.range = std::nullopt,
+			},
 		},
 		.environment = _assembly.isCreation() ? schema::Program::Environment::CREATE : schema::Program::Environment::CALL,
 		.context = std::nullopt,
-		.instructions = programInstructions(_assembly, _linkerObject, _sourceID)
+		.instructions = programInstructions(_assembly, _linkerObject, _sourceID),
 	};
+	return Json(result);
 }
 
-Json ethdebug::resources(std::vector<Source> const& _sources, std::string_view _version)
+Json ethdebug::resources(
+	std::vector<Source> const& _sources,
+	std::string_view _version,
+	std::map<std::string, schema::Type> _types,
+	std::map<std::string, schema::Pointer::Template> _pointers
+)
 {
-	schema::info::Resources result;
-	result.compilation = materialCompilation(_sources, _version);
-	result.types = Json::object();
-	result.pointers = Json::object();
-	return result;
+	schema::info::Resources const result{
+		.ethdebug = schema::data::Stamp{"ethdebug/format/info/resources", std::string{SpecificationVersion}},
+		.compilation = materialCompilation(_sources, _version),
+		.types = std::move(_types),
+		.pointers = std::move(_pointers),
+	};
+	return Json(result);
 }
 
 Json ethdebug::compilation(std::vector<Source> const& _sources, std::string_view _version)
 {
-	return materialCompilation(_sources, _version);
+	return Json(materialCompilation(_sources, _version));
 }
