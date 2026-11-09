@@ -25,7 +25,6 @@
 #include <libsolidity/ast/AST.h>
 #include <libsolidity/ast/ASTUtils.h>
 #include <libsolidity/ast/TypeProvider.h>
-#include <libsolidity/analysis/TypeChecker.h>
 #include <libsolutil/FunctionSelector.h>
 #include <liblangutil/ErrorReporter.h>
 
@@ -96,7 +95,6 @@ bool ContractLevelChecker::check(ContractDefinition const& _contract)
 	checkExternalTypeClashes(_contract);
 	checkHashCollisions(_contract);
 	checkLibraryRequirements(_contract);
-	checkBaseABICompatibility(_contract);
 	checkPayableFallbackWithoutReceive(_contract);
 	checkStorageSize(_contract);
 	checkStorageLayoutSpecifier(_contract);
@@ -527,54 +525,6 @@ void ContractLevelChecker::checkLibraryRequirements(ContractDefinition const& _c
 	for (auto const& var: _contract.stateVariables())
 		if (!var->isConstant())
 			m_errorReporter.typeError(9957_error, var->location(), "Library cannot have non-constant state variables");
-}
-
-void ContractLevelChecker::checkBaseABICompatibility(ContractDefinition const& _contract)
-{
-	if (*_contract.sourceUnit().annotation().useABICoderV2)
-		return;
-
-	if (_contract.isLibrary())
-	{
-		solAssert(
-			_contract.baseContracts().empty() || m_errorReporter.hasErrors(),
-			"Library is not allowed to inherit"
-		);
-		return;
-	}
-
-	SecondarySourceLocation errors;
-
-	// interfaceFunctionList contains all inherited functions as well
-	for (auto const& func: _contract.interfaceFunctionList())
-	{
-		solAssert(func.second->hasDeclaration(), "Function has no declaration?!");
-
-		if (!*func.second->declaration().sourceUnit().annotation().useABICoderV2)
-			continue;
-
-		auto const& currentLoc = func.second->declaration().location();
-
-		for (Type const* paramType: func.second->parameterTypes() + func.second->returnParameterTypes())
-			if (!TypeChecker::typeSupportedByOldABIEncoder(*paramType, false))
-			{
-				errors.append("Type only supported by ABIEncoderV2", currentLoc);
-				break;
-			}
-	}
-
-	if (!errors.infos.empty())
-		m_errorReporter.fatalTypeError(
-			6594_error,
-			_contract.location(),
-			errors,
-			std::string("Contract \"") +
-			_contract.name() +
-			"\" does not use ABI coder v2 but wants to inherit from a contract " +
-			"which uses types that require it. " +
-			"Use \"pragma abicoder v2;\" for the inheriting contract as well to enable the feature."
-		);
-
 }
 
 void ContractLevelChecker::checkPayableFallbackWithoutReceive(ContractDefinition const& _contract)

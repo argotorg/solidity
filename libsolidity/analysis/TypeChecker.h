@@ -56,8 +56,6 @@ public:
 	/// @returns true iff all checks passed. Note even if all checks passed, errors() can still contain warnings
 	bool checkTypeRequirements(SourceUnit const& _source);
 
-	static bool typeSupportedByOldABIEncoder(Type const& _type, bool _isLibraryCall);
-
 private:
 
 	bool visit(ContractDefinition const& _contract) override;
@@ -68,10 +66,7 @@ private:
 	/// Performs type checks for ``abi.decode(bytes memory, (...))`` and returns the
 	/// vector of return types (which is basically the second argument) if successful. It returns
 	/// the empty vector on error.
-	TypePointers typeCheckABIDecodeAndRetrieveReturnType(
-		FunctionCall const& _functionCall,
-		bool _abiEncoderV2
-	);
+	TypePointers typeCheckABIDecodeAndRetrieveReturnType(FunctionCall const& _functionCall);
 
 	TypePointers typeCheckMetaTypeFunctionAndRetrieveReturnType(FunctionCall const& _functionCall);
 
@@ -178,7 +173,7 @@ private:
 	/// Runs type checks on @a _expression to infer its type and then checks that it is an LValue.
 	void requireLValue(Expression const& _expression);
 
-	bool useABICoderV2() const;
+	static bool typeSupportedByPackedEncoder(Type const& _type);
 
 	/// @returns the current scope that can have function or type definitions.
 	/// This is either a contract or a source unit.

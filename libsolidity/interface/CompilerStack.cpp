@@ -1494,14 +1494,6 @@ void CompilerStack::generateIR(ContractDefinition const& _contract, bool _unopti
 		return;
 	}
 
-	if (!*_contract.sourceUnit().annotation().useABICoderV2)
-		m_errorReporter.warning(
-			2066_error,
-			_contract.location(),
-			"Contract requests the ABI coder v1, which is incompatible with the IR. "
-			"Using ABI coder v2 instead."
-		);
-
 	std::string dependenciesSource;
 	for (auto const& [dependency, referencee]: _contract.annotation().contractDependencies)
 		generateIR(*dependency, _unoptimizedOnly);

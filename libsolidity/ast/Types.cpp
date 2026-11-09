@@ -312,30 +312,13 @@ MemberList const& Type::members(ASTNode const* _currentScope) const
 	return *m_members[_currentScope];
 }
 
-Type const* Type::fullEncodingType(bool _inLibraryCall, bool _encoderV2, bool) const
+Type const* Type::fullEncodingType(bool _inLibraryCall) const
 {
 	Type const* encodingType = mobileType();
 	if (encodingType)
 		encodingType = encodingType->interfaceType(_inLibraryCall);
 	if (encodingType)
 		encodingType = encodingType->encodingType();
-	// Structs are fine in the following circumstances:
-	// - ABIv2 or,
-	// - storage struct for a library
-	if (_inLibraryCall && encodingType && encodingType->dataStoredIn(DataLocation::Storage))
-		return encodingType;
-	Type const* baseType = encodingType;
-	while (auto const* arrayType = dynamic_cast<ArrayType const*>(baseType))
-	{
-		baseType = arrayType->baseType();
-
-		auto const* baseArrayType = dynamic_cast<ArrayType const*>(baseType);
-		if (!_encoderV2 && baseArrayType && baseArrayType->isDynamicallySized())
-			return nullptr;
-	}
-	if (!_encoderV2 && dynamic_cast<StructType const*>(baseType))
-		return nullptr;
-
 	return encodingType;
 }
 

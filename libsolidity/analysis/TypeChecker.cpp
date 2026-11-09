@@ -52,17 +52,15 @@ using namespace solidity::util;
 using namespace solidity::langutil;
 using namespace solidity::frontend;
 
-bool TypeChecker::typeSupportedByOldABIEncoder(Type const& _type, bool _isLibraryCall)
+bool TypeChecker::typeSupportedByPackedEncoder(Type const& _type)
 {
-	if (_isLibraryCall && _type.dataStoredIn(DataLocation::Storage))
-		return true;
 	if (_type.category() == Type::Category::Struct)
 		return false;
 	if (_type.category() == Type::Category::Array)
 	{
 		auto const& arrayType = dynamic_cast<ArrayType const&>(_type);
 		auto base = arrayType.baseType();
-		if (!typeSupportedByOldABIEncoder(*base, _isLibraryCall) || (base->category() == Type::Category::Array && base->isDynamicallySized()))
+		if (!typeSupportedByPackedEncoder(*base) || (base->category() == Type::Category::Array && base->isDynamicallySized()))
 			return false;
 	}
 	return true;
@@ -93,7 +91,7 @@ bool TypeChecker::visit(ContractDefinition const& _contract)
 	return false;
 }
 
-TypePointers TypeChecker::typeCheckABIDecodeAndRetrieveReturnType(FunctionCall const& _functionCall, bool _abiEncoderV2)
+TypePointers TypeChecker::typeCheckABIDecodeAndRetrieveReturnType(FunctionCall const& _functionCall)
 {
 	std::vector<ASTPointer<Expression const>> arguments = _functionCall.arguments();
 	if (arguments.size() != 2)
@@ -155,7 +153,7 @@ TypePointers TypeChecker::typeCheckABIDecodeAndRetrieveReturnType(FunctionCall c
 				!actualType->dataStoredIn(DataLocation::Storage),
 				""
 			);
-			if (!actualType->fullEncodingType(false, _abiEncoderV2, false))
+			if (!actualType->fullEncodingType(false))
 				m_errorReporter.typeError(
 					9611_error,
 					typeArgument->location(),
@@ -368,24 +366,6 @@ bool TypeChecker::visit(FunctionDefinition const& _function)
 					message += " You can make the contract abstract to avoid this problem.";
 				m_errorReporter.fatalTypeError(4103_error, _var.location(), message);
 			}
-			else if (
-				!useABICoderV2() &&
-				!typeSupportedByOldABIEncoder(*type(_var), _function.libraryFunction())
-			)
-			{
-				std::string message =
-					"This type is only supported in ABI coder v2. "
-					"Use \"pragma abicoder v2;\" to enable the feature.";
-				if (_function.isConstructor())
-					message +=
-						" Alternatively, make the contract abstract and supply the "
-						"constructor arguments from a derived contract.";
-				m_errorReporter.typeError(
-					4957_error,
-					_var.location(),
-					message
-				);
-			}
 		}
 	};
 	for (ASTPointer<VariableDeclaration> const& var: _function.parameters())
@@ -530,21 +510,6 @@ bool TypeChecker::visit(VariableDeclaration const& _variable)
 	else if (_variable.visibility() >= Visibility::Public)
 	{
 		FunctionType getter(_variable);
-		if (!useABICoderV2())
-		{
-			std::vector<std::string> unsupportedTypes;
-			for (auto const& param: getter.parameterTypes() + getter.returnParameterTypes())
-				if (!typeSupportedByOldABIEncoder(*param, false /* isLibrary */))
-					unsupportedTypes.emplace_back(param->humanReadableName());
-			if (!unsupportedTypes.empty())
-				m_errorReporter.typeError(
-					2763_error,
-					_variable.location(),
-					"The following types are only supported for getters in ABI coder v2: " +
-					joinHumanReadable(unsupportedTypes) +
-					". Either remove \"public\" or use \"pragma abicoder v2;\" to enable the feature."
-				);
-		}
 		if (!getter.interfaceFunctionType())
 		{
 			solAssert(getter.returnParameterNames().size() == getter.returnParameterTypes().size());
@@ -2079,8 +2044,6 @@ void TypeChecker::typeCheckABIEncodeFunctions(
 	bool const isPacked = _functionType->kind() == FunctionType::Kind::ABIEncodePacked;
 	solAssert(_functionType->padArguments() != isPacked, "ABI function with unexpected padding");
 
-	bool const abiEncoderV2 = useABICoderV2();
-
 	// Check for named arguments
 	if (!_functionCall.names().empty())
 	{
@@ -2141,7 +2104,7 @@ void TypeChecker::typeCheckABIEncodeFunctions(
 			}
 		}
 
-		if (isPacked && !typeSupportedByOldABIEncoder(*argType, false /* isLibrary */))
+		if (isPacked && !typeSupportedByPackedEncoder(*argType))
 		{
 			m_errorReporter.typeError(
 				9578_error,
@@ -2151,7 +2114,7 @@ void TypeChecker::typeCheckABIEncodeFunctions(
 			continue;
 		}
 
-		if (!argType->fullEncodingType(false, abiEncoderV2, !_functionType->padArguments()))
+		if (!argType->fullEncodingType(false))
 			m_errorReporter.typeError(
 				2056_error,
 				arguments[i]->location(),
@@ -2616,53 +2579,6 @@ void TypeChecker::typeCheckFunctionGeneralChecks(
 			m_errorReporter.typeError(errorId, paramArgMap[i]->location(), description);
 		}
 	}
-
-	TypePointers const& returnParameterTypes = _functionType->returnParameterTypes();
-	bool isLibraryCall = (_functionType->kind() == FunctionType::Kind::DelegateCall);
-	bool callRequiresABIEncoding =
-		// ABIEncode/ABIDecode calls not included because they should have been already validated
-		// at this point and they have variadic arguments so they need special handling.
-		_functionType->kind() == FunctionType::Kind::DelegateCall ||
-		_functionType->kind() == FunctionType::Kind::External ||
-		_functionType->kind() == FunctionType::Kind::Creation ||
-		_functionType->kind() == FunctionType::Kind::Event ||
-		_functionType->kind() == FunctionType::Kind::Error;
-
-	if (callRequiresABIEncoding && !useABICoderV2())
-	{
-		solAssert(!isVariadic, "");
-		solAssert(parameterTypes.size() == arguments.size(), "");
-		solAssert(!_functionType->isBareCall(), "");
-		solAssert(*_functionCall.annotation().kind == FunctionCallKind::FunctionCall, "");
-
-		for (size_t i = 0; i < parameterTypes.size(); ++i)
-		{
-			solAssert(parameterTypes[i], "");
-
-			if (!typeSupportedByOldABIEncoder(*parameterTypes[i], isLibraryCall))
-				m_errorReporter.typeError(
-					2443_error,
-					paramArgMap[i]->location(),
-					"The type of this parameter, " + parameterTypes[i]->humanReadableName() + ", "
-					"is only supported in ABI coder v2. "
-					"Use \"pragma abicoder v2;\" to enable the feature."
-				);
-		}
-
-		for (size_t i = 0; i < returnParameterTypes.size(); ++i)
-		{
-			solAssert(returnParameterTypes[i], "");
-
-			if (!typeSupportedByOldABIEncoder(*returnParameterTypes[i], isLibraryCall))
-				m_errorReporter.typeError(
-					2428_error,
-					_functionCall.location(),
-					"The type of return parameter " + toString(i + 1) + ", " + returnParameterTypes[i]->humanReadableName() + ", "
-					"is only supported in ABI coder v2. "
-					"Use \"pragma abicoder v2;\" to enable the feature."
-				);
-		}
-	}
 }
 
 bool TypeChecker::visit(FunctionCall const& _functionCall)
@@ -2788,10 +2704,7 @@ bool TypeChecker::visit(FunctionCall const& _functionCall)
 		{
 		case FunctionType::Kind::ABIDecode:
 		{
-			returnTypes = typeCheckABIDecodeAndRetrieveReturnType(
-				_functionCall,
-				useABICoderV2()
-			);
+			returnTypes = typeCheckABIDecodeAndRetrieveReturnType(_functionCall);
 			break;
 		}
 		case FunctionType::Kind::ABIEncode:
@@ -4227,16 +4140,6 @@ void TypeChecker::checkErrorAndEventParameters(CallableDeclaration const& _calla
 			);
 		if (!type(*var)->interfaceType(false))
 			m_errorReporter.typeError(3417_error, var->location(), "Internal or recursive type is not allowed as " + kind + " parameter type.");
-		if (
-			!useABICoderV2() &&
-			!typeSupportedByOldABIEncoder(*type(*var), false /* isLibrary */)
-		)
-			m_errorReporter.typeError(
-				3061_error,
-				var->location(),
-				"This type is only supported in ABI coder v2. "
-				"Use \"pragma abicoder v2;\" to enable the feature."
-			);
 	}
 }
 
@@ -4339,13 +4242,4 @@ void TypeChecker::requireLValue(Expression const& _expression)
 	}();
 
 	m_errorReporter.typeError(errorId, _expression.location(), description);
-}
-
-bool TypeChecker::useABICoderV2() const
-{
-	solAssert(m_currentSourceUnit, "");
-	if (m_currentContract)
-		solAssert(m_currentSourceUnit == &m_currentContract->sourceUnit(), "");
-	return *m_currentSourceUnit->annotation().useABICoderV2;
-
 }

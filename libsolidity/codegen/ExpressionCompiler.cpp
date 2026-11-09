@@ -2095,7 +2095,7 @@ bool ExpressionCompiler::visit(MemberAccess const& _memberAccess)
 				{
 					solAssert(memberType->calldataEncodedSize() > 0, "");
 					solAssert(memberType->storageBytes() <= 32, "");
-					if (memberType->storageBytes() < 32 && m_context.useABICoderV2())
+					if (memberType->storageBytes() < 32)
 					{
 						m_context << u256(32);
 						CompilerUtils(m_context).abiDecodeV2({memberType}, false);
@@ -2925,19 +2925,6 @@ void ExpressionCompiler::appendExternalFunctionCall(
 	{
 		utils().fetchFreeMemoryPointer();
 		// Stack: return_data_start
-
-		// The old decoder did not allocate any memory (i.e. did not touch the free
-		// memory pointer), but kept references to the return data for
-		// (statically-sized) arrays
-		bool needToUpdateFreeMemoryPtr = false;
-		if (dynamicReturnSize || m_context.useABICoderV2())
-			needToUpdateFreeMemoryPtr = true;
-		else
-			for (auto const& retType: returnTypes)
-				if (dynamic_cast<ReferenceType const*>(retType))
-					needToUpdateFreeMemoryPtr = true;
-
-		// Stack: return_data_start
 		if (dynamicReturnSize)
 		{
 			m_context.appendInlineAssembly("{ returndatacopy(return_data_start, 0, returndatasize()) }", {"return_data_start"});
@@ -2948,12 +2935,11 @@ void ExpressionCompiler::appendExternalFunctionCall(
 		// This ensures it can catch badly formatted input from external calls.
 		m_context << evmasm::AssemblyItem(Instruction::RETURNDATASIZE);
 		// Stack: return_data_start return_data_size
-		if (needToUpdateFreeMemoryPtr)
-			m_context.appendInlineAssembly(R"({
-				// round size to the next multiple of 32
-				let newMem := add(start, and(add(size, 0x1f), not(0x1f)))
-				mstore(0x40, newMem)
-			})", {"start", "size"});
+		m_context.appendInlineAssembly(R"({
+			// round size to the next multiple of 32
+			let newMem := add(start, and(add(size, 0x1f), not(0x1f)))
+			mstore(0x40, newMem)
+		})", {"start", "size"});
 
 		utils().abiDecode(returnTypes, true);
 	}

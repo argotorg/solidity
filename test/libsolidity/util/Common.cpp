@@ -28,7 +28,7 @@ std::string test::withPreamble(std::string const& _sourceCode)
 	static std::string const versionPragma = "pragma solidity >=0.0;\n";
 	static std::string const licenseComment = "// SPDX-License-Identifier: GPL-3.0\n";
 
-	// NOTE: These checks are intentionally loose to match weird cases.
+	// NOTE: This check is intentionally loose to match weird cases.
 	// We can manually adjust a test case where this causes problem.
 	bool licenseMissing = _sourceCode.find("SPDX-License-Identifier:") == std::string::npos;
 
