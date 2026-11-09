@@ -38,7 +38,7 @@ using namespace solidity::util;
 using namespace solidity::frontend;
 using namespace solidity::frontend::ethdebug;
 
-namespace schema = solidity::evmasm::ethdebug::schema;
+namespace schema = solidity::langutil::ethdebug::schema;
 
 namespace
 {

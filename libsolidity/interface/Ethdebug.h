@@ -22,7 +22,7 @@
 
 #include <libsolidity/ast/ASTForward.h>
 
-#include <libevmasm/EthdebugSchema.h>
+#include <liblangutil/EthdebugSchema.h>
 
 #include <map>
 #include <string>
@@ -35,11 +35,11 @@ struct Resources
 {
 	/// Type documents keyed by the compiler's type identifier. Composed types
 	/// reference their component types by that identifier.
-	std::map<std::string, evmasm::ethdebug::schema::Type> types;
+	std::map<std::string, langutil::ethdebug::schema::Type> types;
 	/// Pointer templates keyed by layout and canonical type identifier.
 	/// Reference types use their declared location; value types have storage,
 	/// transient, memory and, when ABI-encodable, calldata templates.
-	std::map<std::string, evmasm::ethdebug::schema::Pointer::Template> pointers;
+	std::map<std::string, langutil::ethdebug::schema::Pointer::Template> pointers;
 
 	/// Adds the tables of @a _other. Entries with the same key must serialize identically.
 	/// @warning Within a compilation, the key-to-type and key-to-pointer mappings must

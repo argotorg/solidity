@@ -30,7 +30,7 @@ using namespace solidity::langutil;
 using namespace solidity::frontend;
 using namespace solidity::frontend::ethdebug;
 
-namespace schema = solidity::evmasm::ethdebug::schema;
+namespace schema = solidity::langutil::ethdebug::schema;
 
 TypeRegistry::TypeRegistry(std::map<std::string, unsigned> const& _sourceIndices):
 	m_sourceIndices(_sourceIndices)
