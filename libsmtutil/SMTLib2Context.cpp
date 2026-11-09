@@ -215,7 +215,17 @@ std::string SMTLib2Context::toSmtLibSort(solidity::smtutil::SortPointer const& _
 std::string SMTLib2Context::toSExpr(Expression const& _expr)
 {
 	if (_expr.arguments.empty())
+	{
+		// An empty tuple is a nullary constructor of its datatype, so it has to be printed as
+		// the constructor name, which is not what `_expr.name` carries.
+		if (_expr.name == "tuple_constructor")
+		{
+			auto tupleSort = std::dynamic_pointer_cast<TupleSort>(_expr.sort);
+			smtAssert(tupleSort, "");
+			return "|" + tupleSort->name + "|";
+		}
 		return _expr.name;
+	}
 
 	std::string sexpr = "(";
 	if (_expr.name == "int2bv")
