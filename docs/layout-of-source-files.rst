@@ -133,24 +133,6 @@ Because the ABI coder v2 is not considered experimental anymore,
 it can be selected via ``pragma abicoder v2`` (please see above)
 since Solidity 0.7.4.
 
-.. index:: ! pragma; SMTChecker
-.. _smt_checker:
-
-SMTChecker
-~~~~~~~~~~
-
-If you use ``pragma experimental SMTChecker;``, then you get additional
-:ref:`safety warnings<formal_verification>` which are obtained by querying an
-SMT solver.
-The component does not yet support all features of the Solidity language and
-likely outputs many warnings. In case it reports unsupported features, the
-analysis may not be fully sound.
-
-.. note::
-
-    The ``SMTChecker`` pragma is deprecated and will be removed.
-    To enable SMTChecker, simply select :ref:`select an engine<smtchecker_engines>` when invoking the compiler.
-
 .. index:: source file, ! import, module, source unit
 
 .. _import:

@@ -661,8 +661,6 @@ bool CompilerStack::analyzeLegacy(bool _noErrorsSoFar)
 		// Run SMTChecker
 
 		auto allSources = util::applyMap(m_sourceOrder, [](Source const* _source) { return _source->ast; });
-		if (ModelChecker::isPragmaPresent(allSources))
-			m_modelCheckerSettings.engine = ModelCheckerEngine::All();
 
 		// m_modelCheckerSettings is spread to engines and solver interfaces,
 		// so we need to check whether the enabled ones are available before building the classes.
