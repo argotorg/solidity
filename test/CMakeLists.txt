@@ -159,6 +159,7 @@ set(libyul_sources
     libyul/ControlFlowGraphTest.h
     libyul/ControlFlowSideEffectsTest.cpp
     libyul/ControlFlowSideEffectsTest.h
+    libyul/DebugData.cpp
     libyul/EVMCodeTransformTest.cpp
     libyul/EVMCodeTransformTest.h
     libyul/EVMDialectCompatibility.cpp

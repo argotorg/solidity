@@ -7,6 +7,7 @@ Compiler Features:
 * Standard JSON Interface: Remove the experimental `ethdebug.resources` and `ethdebug.compilation` outputs for Yul input.
 * ethdebug: Include storage and transient state variables in the program-level context (experimental).
 * ethdebug: Include immutables in the deployed program context (experimental).
+* Yul: Preserve scope instances with the `@ast-id-instance` debug annotation.
 
 Bugfixes:
 

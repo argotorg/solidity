@@ -21,6 +21,7 @@
 #include <liblangutil/SourceLocation.h>
 #include <optional>
 #include <memory>
+#include <utility>
 
 namespace solidity::langutil
 {
@@ -32,23 +33,27 @@ struct DebugData
 	explicit DebugData(
 		langutil::SourceLocation _nativeLocation = {},
 		langutil::SourceLocation _originLocation = {},
-		std::optional<int64_t> _astID = {}
+		std::optional<int64_t> _astID = {},
+		std::optional<int64_t> _astIDInstance = {}
 	):
 		nativeLocation(std::move(_nativeLocation)),
 		originLocation(std::move(_originLocation)),
-		astID(_astID)
+		astID(_astID),
+		astIDInstance(_astIDInstance)
 	{}
 
 	static DebugData::ConstPtr create(
 		langutil::SourceLocation _nativeLocation,
 		langutil::SourceLocation _originLocation = {},
-		std::optional<int64_t> _astID = {}
+		std::optional<int64_t> _astID = {},
+		std::optional<int64_t> _astIDInstance = {}
 	)
 	{
 		return std::make_shared<DebugData>(
 			std::move(_nativeLocation),
 			std::move(_originLocation),
-			_astID
+			_astID,
+			_astIDInstance
 		);
 	}
 
@@ -65,6 +70,10 @@ struct DebugData
 	langutil::SourceLocation originLocation;
 	/// ID in the (Solidity) source AST.
 	std::optional<int64_t> astID;
+	/// Discriminator of the generated scope instance among those sharing
+	/// @a astID, carried in Yul text by the `@ast-id-instance` annotation.
+	/// Unset or zero for code that has not been cloned.
+	std::optional<int64_t> astIDInstance;
 };
 
 } // namespace solidity::langutil
