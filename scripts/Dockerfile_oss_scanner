@@ -1,0 +1,27 @@
+# OSS Scanner build image for the Solidity compiler.
+# Template: https://github.com/anthropics/oss-scanner/blob/0657a235155212be65d690f5275fc88c2ba8f90c/templates/Dockerfile
+
+# Base image: same as the CI builds and tests with, i.e. the published build of
+# scripts/docker/buildpack-deps/Dockerfile.ubuntu2604 (tag: ghcr.io/argotorg/solidity-buildpack-deps:ubuntu2604-1).
+# Bump it together with CI.
+FROM ghcr.io/argotorg/solidity-buildpack-deps@sha256:468f50517423ebd371500bc6ebd30a92857170938743af1c71b6678aa3030bb1
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    TERM=xterm \
+    # Where soltest finds the EVMC VM for semantic tests (shipped in the base image).
+    ETH_EVMONE=/usr/lib/libevmone.so
+
+# Scanner contract: the checkout lives inside the image, at /src.
+COPY . /src
+WORKDIR /src
+
+# Build solc, the test drivers (soltest, isoltest, solfuzzer, yulrun, ...) the way CI does (scripts/ci/build.sh, PEDANTIC on).
+RUN cmake -S /src -B /src/build -G Ninja \
+      -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+      -DCMAKE_CXX_FLAGS="-fno-omit-frame-pointer" \
+    && cmake --build /src/build -j"$(nproc)"
+
+# Cheap smoke tests so we know the image works; failures do not abort the build.
+RUN cd /src/build \
+    && { ./solc/solc --version || echo "WARNING: solc --version failed"; } \
+    && { ./test/soltest -t 'syntaxTests/*' -t 'semanticTests/smoke/*' -- --no-smt || echo "WARNING: soltest reported failures"; }
