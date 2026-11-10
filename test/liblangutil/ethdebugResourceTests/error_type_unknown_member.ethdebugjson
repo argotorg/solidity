@@ -1,5 +1,7 @@
 {
-    "t": { "kind": "uint", "bits": 256, "signed": false }
+    "types": {
+        "t": { "kind": "uint", "bits": 256, "signed": false }
+    }
 }
 // ----
-// Error: types.t has an unknown member "signed".
+// Error: resources.types.t has an unknown member "signed".

@@ -1,8 +1,10 @@
 {
-    "T": {
-        "kind": "contract",
-        "definition": { "location": { "source": { "id": "a.sol", "type": "contract" } } }
+    "types": {
+        "T": {
+            "kind": "contract",
+            "definition": { "location": { "source": { "id": "a.sol", "type": "contract" } } }
+        }
     }
 }
 // ----
-// Error: types.T.definition.location.source.type has the unknown value "contract".
+// Error: resources.types.T.definition.location.source.type has the unknown value "contract".

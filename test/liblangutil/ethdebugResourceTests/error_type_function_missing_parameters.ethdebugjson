@@ -1,5 +1,7 @@
 {
-    "t": { "kind": "function", "internal": true, "contains": {} }
+    "types": {
+        "t": { "kind": "function", "internal": true, "contains": {} }
+    }
 }
 // ----
-// Error: types.t.contains.parameters is required.
+// Error: resources.types.t.contains.parameters is required.

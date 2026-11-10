@@ -1,0 +1,3 @@
+{"pointers": {"p": {"expect": [], "for": {"list": {"count": 1, "is": {"location": "storage", "slot": 0}}}}}}
+// ----
+// Error: resources.pointers.p.for.list.each is required.

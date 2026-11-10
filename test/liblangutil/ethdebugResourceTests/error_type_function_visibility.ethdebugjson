@@ -1,5 +1,7 @@
 {
-    "t": { "kind": "function", "contains": { "parameters": { "type": { "kind": "tuple", "contains": [] } } } }
+    "types": {
+        "t": { "kind": "function", "contains": { "parameters": { "type": { "kind": "tuple", "contains": [] } } } }
+    }
 }
 // ----
-// Error: types.t must be either internal or external.
+// Error: resources.types.t must be either internal or external.
