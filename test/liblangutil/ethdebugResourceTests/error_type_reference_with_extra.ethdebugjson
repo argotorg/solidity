@@ -1,5 +1,7 @@
 {
-    "t": { "kind": "array", "contains": { "type": { "id": "x", "kind": "uint" } } }
+    "types": {
+        "t": { "kind": "array", "contains": { "type": { "id": "x", "kind": "uint" } } }
+    }
 }
 // ----
-// Error: types.t.contains.type has an unknown member "kind".
+// Error: resources.types.t.contains.type has an unknown member "kind".

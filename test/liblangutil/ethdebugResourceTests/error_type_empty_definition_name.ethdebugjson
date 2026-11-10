@@ -1,5 +1,7 @@
 {
-    "T": { "kind": "struct", "contains": [], "definition": { "name": "" } }
+    "types": {
+        "T": { "kind": "struct", "contains": [], "definition": { "name": "" } }
+    }
 }
 // ----
-// Error: types.T.definition.name must not be empty.
+// Error: resources.types.T.definition.name must not be empty.

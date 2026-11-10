@@ -713,6 +713,20 @@ void requireDepthBelow(size_t _depth, std::string_view _path)
 	solRequire(_depth < maximumNestingDepth, JsonValidationError, std::string(_path) + " is nested too deeply.");
 }
 
+std::string identifierFromJSON(Json const& _json, std::string_view _path)
+{
+	std::string identifier = requireValueOfType<std::string>(_json, _path);
+	if (!schema::Pointer::isIdentifier(identifier))
+		solThrow(JsonValidationError, std::string(_path) + " must be an identifier.");
+	return identifier;
+}
+
+void requireIdentifierKey(std::string const& _key, std::string_view _path)
+{
+	if (!schema::Pointer::isIdentifier(_key))
+		solThrow(JsonValidationError, std::string(_path) + " has the member \"" + _key + "\", which is not an identifier.");
+}
+
 /// A `0x`-prefixed string of at least one hex digit.
 bool isHexString(std::string_view _text)
 {
@@ -720,6 +734,17 @@ bool isHexString(std::string_view _text)
 		return false;
 	for (char const c: _text.substr(2))
 		if (!std::isxdigit(static_cast<unsigned char>(c)))
+			return false;
+	return true;
+}
+
+/// A decimal number without leading zeros.
+bool isCanonicalDecimal(std::string_view _text)
+{
+	if (_text.empty() || (_text.size() > 1 && _text.front() == '0'))
+		return false;
+	for (char const c: _text)
+		if (!std::isdigit(static_cast<unsigned char>(c)))
 			return false;
 	return true;
 }
@@ -952,6 +977,255 @@ schema::Type typeFromJSON(Json const& _json, std::string_view _path, size_t _dep
 	solThrow(JsonValidationError, appendMemberToPath(_path, "kind") + " has the unknown value \"" + kind + "\".");
 }
 
+schema::Pointer::Expression expressionFromJSON(Json const& _json, std::string_view _path, size_t _depth);
+schema::Pointer pointerFromJSON(Json const& _json, std::string_view _path, size_t _depth);
+schema::Pointer::Template templateFromJSON(Json const& _json, std::string_view _path, size_t _depth);
+
+std::string regionReferenceFromJSON(Json const& _json, std::string_view _path)
+{
+	std::string reference = requireValueOfType<std::string>(_json, _path);
+	if (reference != "~this" && !schema::Pointer::isIdentifier(reference))
+		solThrow(JsonValidationError, std::string(_path) + " must name a region.");
+	return reference;
+}
+
+schema::Pointer::Operands operandsFromJSON(Json const& _json, std::string_view _path, size_t _depth, std::optional<size_t> _arity)
+{
+	requireArray(_json, _path);
+	if (_arity.has_value() && _json.size() != *_arity)
+		solThrow(JsonValidationError, std::string(_path) + " must have exactly " + std::to_string(*_arity) + " operands.");
+	schema::Pointer::Operands operands;
+	for (size_t index = 0; index < _json.size(); ++index)
+		operands.emplace_back(expressionFromJSON(_json.at(index), appendIndexToPath(_path, index), _depth + 1));
+	return operands;
+}
+
+schema::Pointer::Expression expressionFromJSON(Json const& _json, std::string_view _path, size_t _depth)
+{
+	using Pointer = schema::Pointer;
+	requireDepthBelow(_depth, _path);
+
+	if (_json.is_number_integer() || _json.is_string())
+	{
+		if (_json.is_string())
+			if (std::optional<Pointer::Constant> constant = findValueByName(Pointer::constantNames, _json.get<std::string>());
+				constant.has_value()
+			)
+				return Pointer::Expression{*constant};
+		if (_json.is_string() && schema::Pointer::isIdentifier(_json.get<std::string>()))
+			return Pointer::Expression{Pointer::Variable{_json.get<std::string>()}};
+		return Pointer::Expression{Pointer::Literal{schema::data::unsignedFromJSON(_json, _path)}};
+	}
+
+	requireObject(_json, _path);
+	if (_json.size() != 1)
+		solThrow(JsonValidationError, std::string(_path) + " must have exactly one member.");
+	std::string const key = _json.begin().key();
+	Json const& value = _json.begin().value();
+	std::string const valuePath = appendMemberToPath(_path, key);
+
+	if (std::optional<Pointer::Lookup::Property> property = findValueByName(Pointer::Lookup::propertyNames, key);
+		property.has_value()
+	)
+		return Pointer::Expression{Pointer::Lookup{*property, regionReferenceFromJSON(value, valuePath)}};
+	if (key == "~read")
+		return Pointer::Expression{Pointer::Read{regionReferenceFromJSON(value, valuePath)}};
+	if (std::optional<Pointer::Arithmetic::Operator> op = findValueByName(Pointer::Arithmetic::operatorNames, key);
+		op.has_value()
+	)
+	{
+		using Operator = Pointer::Arithmetic::Operator;
+		bool const binary = *op == Operator::Difference || *op == Operator::Quotient || *op == Operator::Remainder;
+		std::optional<size_t> const arity = binary ? std::optional<size_t>{2} : std::nullopt;
+		return Pointer::Expression{Pointer::Arithmetic{*op, operandsFromJSON(value, valuePath, _depth, arity)}};
+	}
+	if (key == "~keccak256")
+		return Pointer::Expression{Pointer::Keccak256{operandsFromJSON(value, valuePath, _depth, std::nullopt)}};
+	if (key == "~concat")
+		return Pointer::Expression{Pointer::Concat{operandsFromJSON(value, valuePath, _depth, std::nullopt)}};
+	if (key == "~wordsized")
+		return Pointer::Expression{Pointer::Resize{std::nullopt, std::make_unique<Pointer::Expression const>(expressionFromJSON(value, valuePath, _depth + 1))}};
+	if (key.starts_with("~sized"))
+	{
+		std::string const width = key.substr(6);
+		if (!isCanonicalDecimal(width) || width == "0")
+			solThrow(JsonValidationError, std::string(_path) + " has the malformed resize key \"" + key + "\".");
+		std::uint64_t size = 0;
+		try
+		{
+			size = std::stoull(width);
+		}
+		catch (std::out_of_range const&)
+		{
+			solThrow(JsonValidationError, std::string(_path) + " has the malformed resize key \"" + key + "\".");
+		}
+		return Pointer::Expression{Pointer::Resize{size, std::make_unique<Pointer::Expression const>(expressionFromJSON(value, valuePath, _depth + 1))}};
+	}
+	solThrow(JsonValidationError, std::string(_path) + " has the unknown expression key \"" + key + "\".");
+}
+
+std::optional<schema::Pointer::Expression> optionalExpression(Json const& _json, std::string_view _name, std::string_view _path, size_t _depth)
+{
+	if (Json const* value = checkAndFindMember(_json, _name, _path))
+		return expressionFromJSON(*value, appendMemberToPath(_path, _name), _depth + 1);
+	return std::nullopt;
+}
+
+schema::Pointer::Region regionFromJSON(Json const& _json, std::string_view _path, size_t _depth)
+{
+	using Location = schema::Pointer::Location;
+	requireOnlyMembers(_json, {"name", "location", "slot", "offset", "length"}, _path);
+	std::optional<std::string> name;
+	if (Json const* nameJson = checkAndFindMember(_json, "name", _path))
+		name = identifierFromJSON(*nameJson, appendMemberToPath(_path, "name"));
+	std::string const locationName = requireMemberOfType<std::string>(_json, "location", _path);
+	std::optional<Location> const location = findValueByName(schema::Pointer::locationNames, locationName);
+	if (!location.has_value())
+		solThrow(JsonValidationError, appendMemberToPath(_path, "location") + " has the unknown value \"" + locationName + "\".");
+	bool const wordOriented = *location == Location::Stack || *location == Location::Storage || *location == Location::Transient;
+	std::optional<schema::Pointer::Expression> slot = optionalExpression(_json, "slot", _path, _depth);
+	std::optional<schema::Pointer::Expression> offset = optionalExpression(_json, "offset", _path, _depth);
+	std::optional<schema::Pointer::Expression> length = optionalExpression(_json, "length", _path, _depth);
+	// Word-oriented locations address by slot, byte-oriented ones by offset and length.
+	if (wordOriented && !slot.has_value())
+		solThrow(JsonValidationError, std::string(_path) + " must address its slot.");
+	if (!wordOriented && (slot.has_value() || !offset.has_value() || !length.has_value()))
+		solThrow(JsonValidationError, std::string(_path) + " must address its offset and length, and has no slot.");
+	return schema::Pointer::Region{std::move(name), *location, std::move(slot), std::move(offset), std::move(length)};
+}
+
+schema::Pointer pointerFromJSON(Json const& _json, std::string_view _path, size_t _depth)
+{
+	using Pointer = schema::Pointer;
+	requireDepthBelow(_depth, _path);
+	requireObject(_json, _path);
+	auto const subPointer = [&](Json const& _sub, std::string const& _subPath) {
+		return std::make_unique<Pointer const>(pointerFromJSON(_sub, _subPath, _depth + 1));
+	};
+
+	if (_json.contains("location"))
+		return Pointer{regionFromJSON(_json, _path, _depth)};
+	if (_json.contains("group"))
+	{
+		requireOnlyMembers(_json, {"group"}, _path);
+		Json const& members = _json.at("group");
+		std::string const groupPath = appendMemberToPath(_path, "group");
+		requireArray(members, groupPath);
+		if (members.empty())
+			solThrow(JsonValidationError, groupPath + " must have at least one member.");
+		std::vector<Pointer> groupMembers;
+		for (size_t index = 0; index < members.size(); ++index)
+			groupMembers.emplace_back(pointerFromJSON(members.at(index), appendIndexToPath(groupPath, index), _depth + 1));
+		return Pointer{Pointer::Group{std::move(groupMembers)}};
+	}
+	if (_json.contains("list"))
+	{
+		requireOnlyMembers(_json, {"list"}, _path);
+		std::string const listPath = appendMemberToPath(_path, "list");
+		Json const& list = _json.at("list");
+		requireOnlyMembers(list, {"count", "each", "is"}, listPath);
+		return Pointer{Pointer::List{
+			expressionFromJSON(requireMember(list, "count", listPath), appendMemberToPath(listPath, "count"), _depth + 1),
+			identifierFromJSON(requireMember(list, "each", listPath), appendMemberToPath(listPath, "each")),
+			subPointer(requireMember(list, "is", listPath), appendMemberToPath(listPath, "is")),
+		}};
+	}
+	if (_json.contains("if"))
+	{
+		requireOnlyMembers(_json, {"if", "then", "else"}, _path);
+		Pointer::Conditional conditional{
+			expressionFromJSON(_json.at("if"), appendMemberToPath(_path, "if"), _depth + 1),
+			subPointer(requireMember(_json, "then", _path), appendMemberToPath(_path, "then")),
+			nullptr,
+		};
+		if (Json const* otherwise = checkAndFindMember(_json, "else", _path))
+			conditional.otherwise = subPointer(*otherwise, appendMemberToPath(_path, "else"));
+		return Pointer{std::move(conditional)};
+	}
+	if (_json.contains("define"))
+	{
+		// A define/in chain is folded into one ordered definition list. The
+		// members of one define object cannot reference each other, so their
+		// order within that object does not matter.
+		std::vector<std::pair<std::string, Pointer::Expression>> definitions;
+		Json const* current = &_json;
+		std::string path(_path);
+		size_t depth = _depth;
+		while (current->contains("define"))
+		{
+			requireDepthBelow(depth, path);
+			requireOnlyMembers(*current, {"define", "in"}, path);
+			Json const& define = current->at("define");
+			std::string const definePath = appendMemberToPath(path, "define");
+			requireObject(define, definePath);
+			if (define.empty())
+				solThrow(JsonValidationError, definePath + " must define at least one variable.");
+			for (auto const& [name, value]: define.items())
+			{
+				requireIdentifierKey(name, definePath);
+				definitions.emplace_back(name, expressionFromJSON(value, appendMemberToPath(definePath, name), depth + 1));
+			}
+			current = &requireMember(*current, "in", path);
+			path = appendMemberToPath(path, "in");
+			++depth;
+		}
+		return Pointer{Pointer::Scope{std::move(definitions), std::make_unique<Pointer const>(pointerFromJSON(*current, path, depth))}};
+	}
+	if (_json.contains("template"))
+	{
+		requireOnlyMembers(_json, {"template", "yields"}, _path);
+		std::string name = identifierFromJSON(_json.at("template"), appendMemberToPath(_path, "template"));
+		std::vector<std::pair<std::string, std::string>> yields;
+		if (Json const* yieldsJson = checkAndFindMember(_json, "yields", _path))
+		{
+			requireObject(*yieldsJson, appendMemberToPath(_path, "yields"));
+			for (auto const& [producedName, newName]: yieldsJson->items())
+			{
+				requireIdentifierKey(producedName, appendMemberToPath(_path, "yields"));
+				yields.emplace_back(producedName, identifierFromJSON(newName, appendMemberToPath(appendMemberToPath(_path, "yields"), producedName)));
+			}
+		}
+		return Pointer{Pointer::TemplateReference{std::move(name), std::move(yields)}};
+	}
+	if (_json.contains("templates"))
+	{
+		requireOnlyMembers(_json, {"templates", "in"}, _path);
+		std::vector<std::pair<std::string, Pointer::Template>> templates;
+		Json const& definitions = _json.at("templates");
+		std::string const templatesPath = appendMemberToPath(_path, "templates");
+		requireObject(definitions, templatesPath);
+		for (auto const& [templateName, definition]: definitions.items())
+		{
+			requireIdentifierKey(templateName, templatesPath);
+			templates.emplace_back(templateName, templateFromJSON(definition, appendMemberToPath(templatesPath, templateName), _depth + 1));
+		}
+		return Pointer{Pointer::Templates{std::move(templates), subPointer(requireMember(_json, "in", _path), appendMemberToPath(_path, "in"))}};
+	}
+	solThrow(JsonValidationError, std::string(_path) + " is not a pointer: expected one of location, group, list, if, define, template or templates.");
+}
+
+schema::Pointer::Template templateFromJSON(Json const& _json, std::string_view _path, size_t _depth)
+{
+	requireDepthBelow(_depth, _path);
+	requireOnlyMembers(_json, {"expect", "for"}, _path);
+	std::vector<std::string> expect;
+	std::set<std::string> parameters;
+	Json const& expectJson = requireMember(_json, "expect", _path);
+	std::string const expectPath = appendMemberToPath(_path, "expect");
+	requireArray(expectJson, expectPath);
+	for (size_t index = 0; index < expectJson.size(); ++index)
+	{
+		std::string parameter = identifierFromJSON(expectJson.at(index), appendIndexToPath(expectPath, index));
+		if (!parameters.insert(parameter).second)
+			solThrow(JsonValidationError, expectPath + " has the duplicate parameter " + parameter + ".");
+		expect.emplace_back(std::move(parameter));
+	}
+	return schema::Pointer::Template{
+		std::move(expect),
+		std::make_unique<schema::Pointer const>(pointerFromJSON(requireMember(_json, "for", _path), appendMemberToPath(_path, "for"), _depth + 1)),
+	};
+}
+
 }
 
 schema::data::Unsigned schema::data::unsignedFromJSON(Json const& _json, std::string_view _path)
@@ -1009,6 +1283,21 @@ schema::Type::Wrapper schema::wrapperFromJSON(Json const& _json, std::string_vie
 	return ::wrapperFromJSON(_json, _path, 0);
 }
 
+schema::Pointer::Expression schema::expressionFromJSON(Json const& _json, std::string_view _path)
+{
+	return ::expressionFromJSON(_json, _path, 0);
+}
+
+schema::Pointer schema::pointerFromJSON(Json const& _json, std::string_view _path)
+{
+	return ::pointerFromJSON(_json, _path, 0);
+}
+
+schema::Pointer::Template schema::templateFromJSON(Json const& _json, std::string_view _path)
+{
+	return ::templateFromJSON(_json, _path, 0);
+}
+
 std::map<std::string, schema::Type> schema::info::typesFromJSON(Json const& _json, std::string_view _path)
 {
 	requireObject(_json, _path);
@@ -1016,4 +1305,16 @@ std::map<std::string, schema::Type> schema::info::typesFromJSON(Json const& _jso
 	for (auto const& [id, document]: _json.items())
 		types.emplace(id, ::typeFromJSON(document, appendMemberToPath(_path, id), 0));
 	return types;
+}
+
+std::map<std::string, schema::Pointer::Template> schema::info::pointersFromJSON(Json const& _json, std::string_view _path)
+{
+	requireObject(_json, _path);
+	std::map<std::string, Pointer::Template> pointers;
+	for (auto const& [name, definition]: _json.items())
+	{
+		requireIdentifierKey(name, _path);
+		pointers.emplace(name, ::templateFromJSON(definition, appendMemberToPath(_path, name), 0));
+	}
+	return pointers;
 }

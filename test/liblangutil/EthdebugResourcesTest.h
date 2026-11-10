@@ -27,7 +27,7 @@
 namespace solidity::langutil::test
 {
 
-/// Reads an ETHDebug type table and reports changes after serialization.
+/// Reads the type and pointer tables in ETHDebug resources and reports changes after serialization.
 class EthdebugResourcesTest: public frontend::test::TestCase
 {
 public:

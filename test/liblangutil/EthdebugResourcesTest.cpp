@@ -58,7 +58,12 @@ TestCase::TestResult EthdebugResourcesTest::run(std::ostream& _stream, std::stri
 
 	try
 	{
-		Json const output = schema::info::typesFromJSON(input, "types");
+		requireOnlyMembers(input, {"types", "pointers"}, "resources");
+		Json output = Json::object();
+		if (Json const* types = checkAndFindMember(input, "types", "resources"))
+			output["types"] = schema::info::typesFromJSON(*types, "resources.types");
+		if (Json const* pointers = checkAndFindMember(input, "pointers", "resources"))
+			output["pointers"] = schema::info::pointersFromJSON(*pointers, "resources.pointers");
 		Json const changes = Json::diff(input, output);
 		m_obtainedResult = changes.empty() ?
 			"Input and output are identical.\n" :
