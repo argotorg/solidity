@@ -54,8 +54,8 @@ Json program(
 
 // returns ethdebug/format/info/resources, stamped with its schema and the specification version.
 Json resources(
-	std::map<std::string, langutil::ethdebug::schema::Type> _types = {},
-	std::map<std::string, langutil::ethdebug::schema::Pointer::Template> _pointers = {}
+	std::map<std::string, langutil::ethdebug::schema::Type> _types,
+	std::map<std::string, langutil::ethdebug::schema::Pointer::Template> _pointers
 );
 
 // returns ethdebug/format/materials/compilation
