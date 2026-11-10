@@ -10,6 +10,8 @@ set(sources
 	DebugInfoSelection.h
 	ErrorReporter.cpp
 	ErrorReporter.h
+	EthdebugJson.cpp
+	EthdebugJson.h
 	EthdebugSchema.cpp
 	EthdebugSchema.h
 	EVMVersion.h
