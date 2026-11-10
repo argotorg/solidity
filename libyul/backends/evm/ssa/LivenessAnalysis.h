@@ -21,6 +21,7 @@
 #include <libyul/backends/evm/ssa/analysis/DepthFirstSpanningTree.h>
 #include <libyul/backends/evm/ssa/SSACFG.h>
 #include <libyul/backends/evm/ssa/SSACFGLoopNestingForest.h>
+#include <libyul/backends/evm/ssa/ShadowLiveness.h>
 #include <libyul/backends/evm/ssa/util/UseCountSet.h>
 
 #include <boost/container/flat_map.hpp>
@@ -46,6 +47,12 @@ public:
 	LivenessData const& liveOut(SSACFG::BlockId const _blockId) const { return m_liveOuts[_blockId.value]; }
 	LivenessData used(SSACFG::BlockId _blockId) const;
 	LivenessData const& operationLiveOut(InstId const _id) const { return m_operationLiveOutByInst.at(_id.value); }
+
+	/// The phis whose shadows are live on entry of a block
+	ShadowLiveness::ShadowSet const& liveInShadows(SSACFG::BlockId const _blockId) const { return m_shadows.liveIns(_blockId); }
+	/// The phis whose shadows are live on exit of a block
+	ShadowLiveness::ShadowSet const& liveOutShadows(SSACFG::BlockId const _blockId) const { return m_shadows.liveOuts(_blockId); }
+
 	analysis::DepthFirstSpanningTree const& dfsTree() const { return m_dfsTree; }
 	SSACFG const& cfg() const { return m_cfg; }
 
@@ -66,6 +73,7 @@ private:
 	SSACFG const& m_cfg;
 	analysis::DepthFirstSpanningTree m_dfsTree;
 	SSACFGLoopNestingForest m_loopNestingForest;
+	ShadowLiveness m_shadows;
 	std::vector<LivenessData> m_liveIns;
 	std::vector<LivenessData> m_liveOuts;
 	boost::container::flat_map<InstId::ValueType, LivenessData> m_operationLiveOutByInst;
