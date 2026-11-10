@@ -10,6 +10,7 @@ Compiler Features:
 
 Bugfixes:
 * SMTChecker: Fix false negative in CHC engine when a function from abstract base is called externally using `this`.
+* SMTChecker: Fix empty tuples being printed as an undeclared constant in SMT-LIB queries, which made the solver reject every query of the affected contract.
 
 
 ### 0.8.38 (2026-10-22)
