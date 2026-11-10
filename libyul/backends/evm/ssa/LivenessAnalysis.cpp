@@ -80,6 +80,7 @@ LivenessAnalysis::LivenessAnalysis(SSACFG const& _cfg):
 	m_cfg(_cfg),
 	m_dfsTree(_cfg),
 	m_loopNestingForest(m_dfsTree),
+	m_shadows(m_dfsTree),
 	m_liveIns(_cfg.numBlocks()),
 	m_liveOuts(_cfg.numBlocks())
 {
