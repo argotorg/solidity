@@ -28,11 +28,13 @@
 
 #include <compare>
 #include <concepts>
+#include <cstddef>
+#include <limits>
+#include <optional>
 #include <string>
 #include <string_view>
+#include <type_traits>
 #include <utility>
-#include <optional>
-#include <limits>
 
 namespace solidity
 {
@@ -93,6 +95,29 @@ bool jsonParseStrict(std::string const& _input, Json& _json, std::string* _errs 
 std::optional<Json> jsonValueByPath(Json const& _node, std::string_view _jsonPath);
 
 std::string removeNlohmannInternalErrorIdentifier(std::string const& _input);
+
+/// Name of the JSON type represented by @a T, without an article.
+template<typename T>
+constexpr std::string_view jsonTypeName()
+{
+	if constexpr (std::is_same_v<T, Json::object_t>)
+		return "object";
+	else if constexpr (std::is_same_v<T, Json::array_t>)
+		return "array";
+	else if constexpr (std::is_same_v<T, Json::string_t>)
+		return "string";
+	else if constexpr (std::is_same_v<T, Json::boolean_t>)
+		return "boolean";
+	else if constexpr (std::is_same_v<T, std::nullptr_t>)
+		return "null";
+	else if constexpr (std::is_floating_point_v<T>)
+		return "number";
+	else
+	{
+		static_assert(std::is_integral_v<T>, "Unsupported JSON type.");
+		return std::is_unsigned_v<T> ? "unsigned integer" : "integer";
+	}
+}
 
 namespace detail
 {

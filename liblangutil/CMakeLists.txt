@@ -16,6 +16,8 @@ set(sources
 	EVMVersion.cpp
 	Exceptions.cpp
 	Exceptions.h
+	JSONValidation.cpp
+	JSONValidation.h
 	ParserBase.cpp
 	ParserBase.h
 	Scanner.cpp
