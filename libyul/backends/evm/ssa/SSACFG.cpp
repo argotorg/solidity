@@ -83,18 +83,29 @@ protected:
 				m_liveness->dfsTree().preOrderIndexOf(_blockId),
 				m_liveness->dfsTree().maxSubtreePreOrderIndexOf(_blockId)
 			);
+			auto const livenessToString = [&](LivenessAnalysis::LivenessData const& _values, ShadowLiveness::ShadowSet const& _shadows) {
+				std::vector<std::string> entries;
+				for (auto const& [value, count]: _values)
+					entries.push_back(valueToString(value) + fmt::format("[{}]", count));
+				for (InstId const phi: _shadows)
+					entries.push_back(fmt::format("^{}[1]", valueToString(phi)));
+				return fmt::format("{}", fmt::join(entries, ", "));
+			};
+			ShadowLiveness::ShadowSet usedShadows;
+			for (InstId const phi: m_liveness->liveInShadows(_blockId))
+				if (!m_liveness->liveOutShadows(_blockId).contains(phi))
+					usedShadows.insert(phi);
 			_out << fmt::format(
 				"LiveIn: {}\\l\\\n",
-				fmt::join(m_liveness->liveIn(_blockId) | ranges::views::transform([&](auto const& liveIn) { return valueToString(liveIn.first) + fmt::format("[{}]", liveIn.second); }), ", ")
+				livenessToString(m_liveness->liveIn(_blockId), m_liveness->liveInShadows(_blockId))
 			);
 			_out << fmt::format(
 				"LiveOut: {}\\l\\n",
-				fmt::join(m_liveness->liveOut(_blockId) | ranges::views::transform([&](auto const& liveOut) { return valueToString(liveOut.first) + fmt::format("[{}]", liveOut.second); }), ", ")
+				livenessToString(m_liveness->liveOut(_blockId), m_liveness->liveOutShadows(_blockId))
 			);
-			auto const usedVariables = m_liveness->used(_blockId);
 			_out << fmt::format(
 				"Used: {}\\l\\n",
-				fmt::join(usedVariables | ranges::views::transform([&](auto const& used) { return valueToString(used.first) + fmt::format("[{}]", used.second); }), ", ")
+				livenessToString(m_liveness->used(_blockId), usedShadows)
 			);
 		}
 		else
