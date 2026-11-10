@@ -708,10 +708,16 @@ SourceRange sourceRangeFromJson(Json const& _json, std::string_view _path);
 Type typeFromJson(Json const& _json, std::string_view _path);
 Type::Wrapper wrapperFromJson(Json const& _json, std::string_view _path);
 
+Pointer::Expression expressionFromJson(Json const& _json, std::string_view _path);
+Pointer pointerFromJson(Json const& _json, std::string_view _path);
+Pointer::Template templateFromJson(Json const& _json, std::string_view _path);
+
 namespace info
 {
 /// The type table of a resources object, keyed by type ID.
 std::map<std::string, Type> typesFromJson(Json const& _json, std::string_view _path);
+/// The pointer table of a resources object, keyed by template name.
+std::map<std::string, Pointer::Template> pointersFromJson(Json const& _json, std::string_view _path);
 }
 
 }

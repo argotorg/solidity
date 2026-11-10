@@ -1,0 +1,3 @@
+{"pointers": {"p": {"expect": []}}}
+// ----
+// Error: resources.pointers.p.for is required.

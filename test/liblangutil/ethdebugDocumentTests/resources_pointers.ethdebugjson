@@ -1,0 +1,247 @@
+{
+    "types": {},
+    "pointers": {
+        "value": {
+            "expect": [],
+            "for": {"name": "value", "location": "storage", "slot": 0, "offset": "0x10", "length": 16}
+        },
+        "stack-and-memory": {
+            "expect": ["depth"],
+            "for": {
+                "group": [
+                    {"name": "pointer", "location": "stack", "slot": "depth"},
+                    {"name": "data", "location": "memory", "offset": {"~read": "pointer"}, "length": "~wordsize"},
+                    {"location": "calldata", "offset": {"~sum": [4, {"~product": ["depth", "~wordsize"]}]}, "length": {"~difference": [{".length": "data"}, 1]}},
+                    {"location": "returndata", "offset": {"~quotient": [{".offset": "~this"}, 2]}, "length": {"~remainder": [{".slot": "pointer"}, "~wordsize"]}},
+                    {"location": "code", "offset": {"~sized4": {"~keccak256": [{"~wordsized": "depth"}, "0x00"]}}, "length": {"~concat": ["0xdead", "0xbeef"]}},
+                    {"location": "transient", "slot": {"~concat": []}}
+                ]
+            }
+        },
+        "array": {
+            "expect": [],
+            "for": {
+                "define": {"array-slot": 5},
+                "in": {
+                    "define": {"data-start": {"~keccak256": [{"~wordsized": "array-slot"}]}, "count": {"~read": "array-length"}},
+                    "in": {
+                        "group": [
+                            {"name": "array-length", "location": "storage", "slot": "array-slot"},
+                            {
+                                "list": {
+                                    "count": "count",
+                                    "each": "i",
+                                    "is": {
+                                        "if": {"~remainder": ["i", 2]},
+                                        "then": {"name": "odd", "location": "storage", "slot": {"~sum": ["data-start", "i"]}},
+                                        "else": {"template": "even-item", "yields": {"item": "even"}}
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        "with-local-templates": {
+            "expect": ["base"],
+            "for": {
+                "templates": {
+                    "word": {"expect": ["at"], "for": {"name": "word", "location": "storage", "slot": "at"}}
+                },
+                "in": {"template": "word"}
+            }
+        }
+    }
+}
+// ----
+// {
+//     "pointers": {
+//         "array": {
+//             "expect": [],
+//             "for": {
+//                 "define": {
+//                     "array-slot": 5
+//                 },
+//                 "in": {
+//                     "define": {
+//                         "count": {
+//                             "~read": "array-length"
+//                         }
+//                     },
+//                     "in": {
+//                         "define": {
+//                             "data-start": {
+//                                 "~keccak256": [
+//                                     {
+//                                         "~wordsized": "array-slot"
+//                                     }
+//                                 ]
+//                             }
+//                         },
+//                         "in": {
+//                             "group": [
+//                                 {
+//                                     "location": "storage",
+//                                     "name": "array-length",
+//                                     "slot": "array-slot"
+//                                 },
+//                                 {
+//                                     "list": {
+//                                         "count": "count",
+//                                         "each": "i",
+//                                         "is": {
+//                                             "else": {
+//                                                 "template": "even-item",
+//                                                 "yields": {
+//                                                     "item": "even"
+//                                                 }
+//                                             },
+//                                             "if": {
+//                                                 "~remainder": [
+//                                                     "i",
+//                                                     2
+//                                                 ]
+//                                             },
+//                                             "then": {
+//                                                 "location": "storage",
+//                                                 "name": "odd",
+//                                                 "slot": {
+//                                                     "~sum": [
+//                                                         "data-start",
+//                                                         "i"
+//                                                     ]
+//                                                 }
+//                                             }
+//                                         }
+//                                     }
+//                                 }
+//                             ]
+//                         }
+//                     }
+//                 }
+//             }
+//         },
+//         "stack-and-memory": {
+//             "expect": [
+//                 "depth"
+//             ],
+//             "for": {
+//                 "group": [
+//                     {
+//                         "location": "stack",
+//                         "name": "pointer",
+//                         "slot": "depth"
+//                     },
+//                     {
+//                         "length": "~wordsize",
+//                         "location": "memory",
+//                         "name": "data",
+//                         "offset": {
+//                             "~read": "pointer"
+//                         }
+//                     },
+//                     {
+//                         "length": {
+//                             "~difference": [
+//                                 {
+//                                     ".length": "data"
+//                                 },
+//                                 1
+//                             ]
+//                         },
+//                         "location": "calldata",
+//                         "offset": {
+//                             "~sum": [
+//                                 4,
+//                                 {
+//                                     "~product": [
+//                                         "depth",
+//                                         "~wordsize"
+//                                     ]
+//                                 }
+//                             ]
+//                         }
+//                     },
+//                     {
+//                         "length": {
+//                             "~remainder": [
+//                                 {
+//                                     ".slot": "pointer"
+//                                 },
+//                                 "~wordsize"
+//                             ]
+//                         },
+//                         "location": "returndata",
+//                         "offset": {
+//                             "~quotient": [
+//                                 {
+//                                     ".offset": "~this"
+//                                 },
+//                                 2
+//                             ]
+//                         }
+//                     },
+//                     {
+//                         "length": {
+//                             "~concat": [
+//                                 "0xdead",
+//                                 "0xbeef"
+//                             ]
+//                         },
+//                         "location": "code",
+//                         "offset": {
+//                             "~sized4": {
+//                                 "~keccak256": [
+//                                     {
+//                                         "~wordsized": "depth"
+//                                     },
+//                                     "0x00"
+//                                 ]
+//                             }
+//                         }
+//                     },
+//                     {
+//                         "location": "transient",
+//                         "slot": {
+//                             "~concat": []
+//                         }
+//                     }
+//                 ]
+//             }
+//         },
+//         "value": {
+//             "expect": [],
+//             "for": {
+//                 "length": 16,
+//                 "location": "storage",
+//                 "name": "value",
+//                 "offset": "0x10",
+//                 "slot": 0
+//             }
+//         },
+//         "with-local-templates": {
+//             "expect": [
+//                 "base"
+//             ],
+//             "for": {
+//                 "in": {
+//                     "template": "word"
+//                 },
+//                 "templates": {
+//                     "word": {
+//                         "expect": [
+//                             "at"
+//                         ],
+//                         "for": {
+//                             "location": "storage",
+//                             "name": "word",
+//                             "slot": "at"
+//                         }
+//                     }
+//                 }
+//             }
+//         }
+//     },
+//     "types": {}
+// }
