@@ -1,0 +1,13 @@
+{
+    "contracts": {
+        "input.yul": {
+            "C": {
+                "evm": {
+                    "bytecode": {
+                        "object": "<BYTECODE REMOVED>"
+                    }
+                }
+            }
+        }
+    }
+}
