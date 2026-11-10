@@ -1,0 +1,5 @@
+{
+    "t": { "kind": "function", "internal": true, "contains": {} }
+}
+// ----
+// Error: types.t.contains.parameters is required.

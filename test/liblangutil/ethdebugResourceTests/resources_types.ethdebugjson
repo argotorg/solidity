@@ -1,0 +1,24 @@
+{
+    "t_uint256": { "kind": "uint", "bits": 256 },
+    "t_int8": { "kind": "int", "bits": 8 },
+    "t_bool": { "kind": "bool" },
+    "t_bytes4": { "kind": "bytes", "size": 4 },
+    "t_bytes": { "kind": "bytes" },
+    "t_string": { "kind": "string", "encoding": "utf-8" },
+    "t_fixed128x18": { "kind": "fixed", "bits": 128, "places": 18 },
+    "t_ufixed": { "kind": "ufixed", "bits": 256, "places": 1 },
+    "t_address_payable": { "kind": "address", "payable": true },
+    "t_library": { "kind": "contract", "library": true, "definition": { "name": "L" } },
+    "t_interface": { "kind": "contract", "interface": true, "payable": false, "definition": { "location": { "source": { "id": 1, "type": "source" }, "range": { "offset": 10, "length": 20 } } } },
+    "t_color": { "kind": "enum", "values": [ "Red", "Green" ], "definition": { "name": "Color", "location": { "source": { "id": "a.sol" } } } },
+    "t_price": { "kind": "alias", "contains": { "type": { "id": "t_uint256" } }, "definition": { "name": "Price" } },
+    "t_static": { "kind": "array", "contains": { "type": { "id": "t_uint256" } }, "count": "0x02" },
+    "t_dynamic": { "kind": "array", "contains": { "type": { "id": "t_uint256" } }, "count": 3 },
+    "t_mapping": { "kind": "mapping", "contains": { "key": { "type": { "id": "t_address_payable" } }, "value": { "type": { "kind": "bool" } } } },
+    "t_point": { "kind": "struct", "contains": [ { "name": "x", "type": { "id": "t_uint256" } }, { "type": { "id": "t_bool" } } ], "definition": { "name": "Point" } },
+    "t_pair": { "kind": "tuple", "contains": [ { "type": { "id": "t_uint256" } }, { "name": "second", "type": { "id": "t_bool" } } ] },
+    "t_internal": { "kind": "function", "internal": true, "contains": { "parameters": { "type": { "kind": "tuple", "contains": [ { "type": { "id": "t_uint256" } } ] } } } },
+    "t_external": { "kind": "function", "external": true, "contains": { "parameters": { "type": { "kind": "tuple", "contains": [] } }, "returns": { "type": { "id": "t_bool" } } }, "definition": { "name": "f" } }
+}
+// ----
+// Input and output are identical.

@@ -1,0 +1,5 @@
+{
+    "t": { "kind": "matrix" }
+}
+// ----
+// Error: types.t.kind has the unknown value "matrix".
