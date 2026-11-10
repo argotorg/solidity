@@ -1,0 +1,5 @@
+{
+    "t": { "kind": "array", "contains": { "type": { "kind": "bool" } }, "count": null }
+}
+// ----
+// Error: types.t.count must be an unsigned number or a 0x-prefixed hex string.

@@ -27,7 +27,7 @@
 namespace solidity::langutil::test
 {
 
-/// Runs a JSON round trip for a fixture and reports changes to the document.
+/// Reads an ETHDebug type table and reports changes after serialization.
 class EthdebugResourcesTest: public frontend::test::TestCase
 {
 public:

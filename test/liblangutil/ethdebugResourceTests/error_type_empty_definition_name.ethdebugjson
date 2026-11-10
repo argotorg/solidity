@@ -1,0 +1,5 @@
+{
+    "T": { "kind": "struct", "contains": [], "definition": { "name": "" } }
+}
+// ----
+// Error: types.T.definition.name must not be empty.

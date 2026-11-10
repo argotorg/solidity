@@ -689,4 +689,28 @@ namespace info
 void to_json(Json& _json, Resources const& _resources);
 }
 
+// Reading. Every function throws ethdebug::JsonValidationError, whose message
+// names the offending location, for input that does not follow the schema.
+
+namespace data
+{
+/// ethdebug/format/data/value: an unsigned number or a `0x`-prefixed hex string.
+Unsigned unsignedFromJSON(Json const& _json, std::string_view _path);
+}
+
+namespace materials
+{
+ID idFromJSON(Json const& _json, std::string_view _path);
+SourceRange sourceRangeFromJSON(Json const& _json, std::string_view _path);
+}
+
+Type typeFromJSON(Json const& _json, std::string_view _path);
+Type::Wrapper wrapperFromJSON(Json const& _json, std::string_view _path);
+
+namespace info
+{
+/// The type table of a resources object, keyed by type ID.
+std::map<std::string, Type> typesFromJSON(Json const& _json, std::string_view _path);
+}
+
 }

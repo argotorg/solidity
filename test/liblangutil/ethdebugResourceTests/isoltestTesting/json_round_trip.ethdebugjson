@@ -1,6 +1,0 @@
-{
-    "message": "hello",
-    "items": [1, true, null]
-}
-// ----
-// Input and output are identical.

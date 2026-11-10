@@ -18,6 +18,10 @@
 
 #include <test/liblangutil/EthdebugResourcesTest.h>
 
+#include <liblangutil/EthdebugJson.h>
+#include <liblangutil/EthdebugSchema.h>
+
+#include <libsolutil/CommonData.h>
 #include <libsolutil/JSON.h>
 
 #include <boost/throw_exception.hpp>
@@ -27,8 +31,9 @@
 
 using namespace solidity;
 using namespace solidity::frontend::test;
-using namespace solidity::util;
+using namespace solidity::langutil::ethdebug;
 using namespace solidity::langutil::test;
+using namespace solidity::util;
 
 EthdebugResourcesTest::EthdebugResourcesTest(std::string const& _filename):
 	TestCase(_filename)
@@ -51,8 +56,18 @@ TestCase::TestResult EthdebugResourcesTest::run(std::ostream& _stream, std::stri
 		return TestResult::FatalError;
 	}
 
-	std::string const serialized = jsonPrint(input, JsonFormat{JsonFormat::Pretty, 4});
-	m_obtainedResult = Json::parse(serialized) == input ? "Input and output are identical.\n" : serialized + '\n';
+	try
+	{
+		Json const output = schema::info::typesFromJSON(input, "types");
+		Json const changes = Json::diff(input, output);
+		m_obtainedResult = changes.empty() ?
+			"Input and output are identical.\n" :
+			jsonPrint(changes, JsonFormat{JsonFormat::Pretty, 4}) + '\n';
+	}
+	catch (JsonValidationError const& _error)
+	{
+		m_obtainedResult = "Error: " + stringOrDefault(_error.comment()) + '\n';
+	}
 
 	return checkResult(_stream, _linePrefix, _formatted);
 }

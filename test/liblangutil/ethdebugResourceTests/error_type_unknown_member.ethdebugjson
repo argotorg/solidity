@@ -1,0 +1,5 @@
+{
+    "t": { "kind": "uint", "bits": 256, "signed": false }
+}
+// ----
+// Error: types.t has an unknown member "signed".
