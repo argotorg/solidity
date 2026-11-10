@@ -1,0 +1,12 @@
+{"message":"hello","items":[1,true,null]}
+// ====
+// document: json
+// ----
+// {
+//     "items": [
+//         1,
+//         true,
+//         null
+//     ],
+//     "message": "hello"
+// }
