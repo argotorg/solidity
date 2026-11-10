@@ -18,6 +18,7 @@
 
 #pragma once
 
+#include <libyul/backends/evm/ssa/ShadowLiveness.h>
 #include <libyul/backends/evm/ssa/ShuffleTrace.h>
 
 #include <utility>
@@ -36,7 +37,8 @@ struct BlockLayout
 	/// Transforms the stack after the last operation into the block's exit state (for conditional jumps: condition on top, pre-JUMPI)
 	ShuffleTrace exitShuffle;
 	/// Per predecessor edge: transforms the predecessor's post-exit stack (for conditional jumps: after
-	/// popping the condition) into the phi preimage of `stackIn` under that edge
+	/// popping the condition) into `stackIn`, concluding with the renames by which the upsilons lowered on the edge
+	/// write their shadow slots
 	std::vector<std::pair<SSACFG::BlockId, ShuffleTrace>> tracesForStackIn;
 
 	/// The recorded shuffle for the edge from `_predecessor` into this block
@@ -49,9 +51,24 @@ struct BlockLayout
 		solidity::util::unreachable();
 	}
 
-	/// Records the shuffle for the edge from `_predecessor` into this block
-	void addTraceForStackIn(SSACFG::BlockId const& _predecessor, ShuffleTrace&& _trace)
+	/// The phis whose shadow slots the incoming edges write
+	ShadowLiveness::ShadowSet shadowsWrittenOnEntry;
+
+	/// Whether an incoming edge writes the shadow slot `_shadow`
+	bool writesOnEntry(StackSlot const& _shadow) const
 	{
+		return shadowsWrittenOnEntry.contains(_shadow.shadowPhi());
+	}
+
+	/// Records the shuffle for the edge from `_predecessor` into this block and what it writes
+	void addTraceForStackIn(
+		SSACFG::BlockId const& _predecessor,
+		ShuffleTrace&& _trace,
+		ShadowLiveness::Writes const& _writes
+	)
+	{
+		for (auto const& [phi, input]: _writes)
+			shadowsWrittenOnEntry.insert(phi);
 		for (auto const& [parent, trace]: tracesForStackIn)
 			if (parent == _predecessor)
 			{
