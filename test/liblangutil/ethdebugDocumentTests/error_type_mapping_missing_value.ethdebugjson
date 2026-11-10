@@ -1,0 +1,7 @@
+{
+    "t": { "kind": "mapping", "contains": { "key": { "type": { "kind": "bool" } } } }
+}
+// ====
+// document: types
+// ----
+// Error: types.t.contains.value is required.

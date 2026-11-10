@@ -1,0 +1,35 @@
+{
+    "t_array_dynamic": { "kind": "array", "contains": { "type": { "kind": "bool" } } },
+    "t_array_zero": { "kind": "array", "contains": { "type": { "kind": "bool" } }, "count": 0 },
+    "t_bytes_hex": { "kind": "bytes", "size": "0x04" },
+    "t_bytes_unsized": { "kind": "bytes" }
+}
+// ====
+// document: types
+// ----
+// {
+//     "t_array_dynamic": {
+//         "contains": {
+//             "type": {
+//                 "kind": "bool"
+//             }
+//         },
+//         "kind": "array"
+//     },
+//     "t_array_zero": {
+//         "contains": {
+//             "type": {
+//                 "kind": "bool"
+//             }
+//         },
+//         "count": 0,
+//         "kind": "array"
+//     },
+//     "t_bytes_hex": {
+//         "kind": "bytes",
+//         "size": "0x04"
+//     },
+//     "t_bytes_unsized": {
+//         "kind": "bytes"
+//     }
+// }
