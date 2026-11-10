@@ -18,6 +18,8 @@
 
 #include <test/liblangutil/EthdebugDocumentTest.h>
 
+#include <liblangutil/EthdebugSchema.h>
+
 #include <libsolutil/JSON.h>
 
 #include <boost/throw_exception.hpp>
@@ -30,6 +32,8 @@ using namespace solidity::util;
 using namespace solidity::langutil;
 using namespace solidity::langutil::test;
 
+namespace schema = solidity::langutil::ethdebug::schema;
+
 EthdebugDocumentTest::EthdebugDocumentTest(std::string const& _filename):
 	TestCase(_filename)
 {
@@ -37,7 +41,8 @@ EthdebugDocumentTest::EthdebugDocumentTest(std::string const& _filename):
 	m_expectation = m_reader.simpleExpectations();
 	m_document = m_reader.enumSetting<Document>("document", {
 		{"json", Document::JSON},
-	}, "json");
+		{"types", Document::Types},
+	}, "types");
 	if (!_filename.ends_with(".ethdebugjson"))
 		BOOST_THROW_EXCEPTION(std::runtime_error("Not an ethdebug document test: \"" + _filename + "\". Expected extension: .ethdebugjson."));
 }
@@ -52,14 +57,24 @@ frontend::test::TestCase::TestResult EthdebugDocumentTest::run(std::ostream& _st
 		return checkResult(_stream, _linePrefix, _formatted);
 	}
 
-	Json output;
-	switch (m_document)
+	try
 	{
-	case Document::JSON:
-		output = input;
-		break;
+		Json output;
+		switch (m_document)
+		{
+		case Document::JSON:
+			output = input;
+			break;
+		case Document::Types:
+			output = schema::info::typesFromJson(input, "types");
+			break;
+		}
+		m_obtainedResult = jsonPrint(output, JsonFormat{JsonFormat::Pretty, 4}) + "\n";
 	}
-	m_obtainedResult = jsonPrint(output, JsonFormat{JsonFormat::Pretty, 4}) + "\n";
+	catch (JsonValidationError const& _error)
+	{
+		m_obtainedResult = "Error: " + stringOrDefault(_error.comment()) + "\n";
+	}
 
 	return checkResult(_stream, _linePrefix, _formatted);
 }

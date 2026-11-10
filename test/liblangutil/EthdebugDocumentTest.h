@@ -32,7 +32,9 @@ namespace solidity::langutil::test
 /// with the expectation. Document kinds select the reader to test.
 ///
 /// Available settings:
-/// - document: The document kind. `json` (the default) parses and formats JSON.
+/// - document: The document kind.
+///     - `json` parses and formats JSON.
+///     - `types` (the default) reads an ethdebug type table.
 class EthdebugDocumentTest: public frontend::test::TestCase
 {
 public:
@@ -48,9 +50,10 @@ private:
 	enum class Document
 	{
 		JSON,
+		Types,
 	};
 
-	Document m_document = Document::JSON;
+	Document m_document = Document::Types;
 };
 
 }

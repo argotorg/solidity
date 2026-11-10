@@ -1,0 +1,7 @@
+{
+    "t": { "class": "complex", "kind": "uint", "bits": 8 }
+}
+// ====
+// document: types
+// ----
+// Error: types.t.class must be "elementary" for kind "uint".

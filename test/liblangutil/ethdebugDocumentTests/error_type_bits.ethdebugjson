@@ -1,0 +1,7 @@
+{
+    "t": { "kind": "uint", "bits": 12 }
+}
+// ====
+// document: types
+// ----
+// Error: types.t.bits must be a multiple of 8 between 8 and 256.
