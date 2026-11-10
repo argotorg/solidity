@@ -42,7 +42,8 @@ EthdebugDocumentTest::EthdebugDocumentTest(std::string const& _filename):
 	m_document = m_reader.enumSetting<Document>("document", {
 		{"json", Document::JSON},
 		{"types", Document::Types},
-	}, "types");
+		{"resources", Document::Resources},
+	}, "resources");
 	if (!_filename.ends_with(".ethdebugjson"))
 		BOOST_THROW_EXCEPTION(std::runtime_error("Not an ethdebug document test: \"" + _filename + "\". Expected extension: .ethdebugjson."));
 }
@@ -67,6 +68,14 @@ frontend::test::TestCase::TestResult EthdebugDocumentTest::run(std::ostream& _st
 			break;
 		case Document::Types:
 			output = schema::info::typesFromJson(input, "types");
+			break;
+		case Document::Resources:
+			requireOnlyMembers(input, {"types", "pointers"}, "resources");
+			output = Json{{"types", Json::object()}, {"pointers", Json::object()}};
+			if (input.contains("types"))
+				output["types"] = schema::info::typesFromJson(input.at("types"), "resources.types");
+			if (input.contains("pointers"))
+				output["pointers"] = schema::info::pointersFromJson(input.at("pointers"), "resources.pointers");
 			break;
 		}
 		m_obtainedResult = jsonPrint(output, JsonFormat{JsonFormat::Pretty, 4}) + "\n";

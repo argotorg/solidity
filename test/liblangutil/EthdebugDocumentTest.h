@@ -34,7 +34,9 @@ namespace solidity::langutil::test
 /// Available settings:
 /// - document: The document kind.
 ///     - `json` parses and formats JSON.
-///     - `types` (the default) reads an ethdebug type table.
+///     - `types` reads an ethdebug type table.
+///     - `resources` (the default) reads the type and pointer tables of
+///       ethdebug/format/info/resources.
 class EthdebugDocumentTest: public frontend::test::TestCase
 {
 public:
@@ -51,9 +53,10 @@ private:
 	{
 		JSON,
 		Types,
+		Resources,
 	};
 
-	Document m_document = Document::Types;
+	Document m_document = Document::Resources;
 };
 
 }
