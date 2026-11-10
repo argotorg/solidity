@@ -96,6 +96,8 @@ add_library(yul
 	backends/evm/ssa/SSACFGDebugInfo.h
 	backends/evm/ssa/SSACFGTypes.cpp
 	backends/evm/ssa/SSACFGTypes.h
+	backends/evm/ssa/ShadowLiveness.cpp
+	backends/evm/ssa/ShadowLiveness.h
 	backends/evm/ssa/ShuffleTrace.cpp
 	backends/evm/ssa/ShuffleTrace.h
 	backends/evm/ssa/Stack.h

@@ -23,19 +23,19 @@
 // Block0_0Exit:1 -> Block0_1 [style="solid"];
 // Block0_1 [label="\
 // Block 1; (1, max 2)\nLiveIn: \l\
-// LiveOut: \l\nUsed: \l\n"];
+// LiveOut: ^phi4[1]\l\nUsed: \l\n"];
 // Block0_1 -> Block0_1Exit [arrowhead=none];
 // Block0_1Exit [label="Jump" shape=oval];
 // Block0_1Exit -> Block0_2 [style="solid"];
 // Block0_3 [label="\
 // Block 3; (3, max 3)\nLiveIn: \l\
-// LiveOut: \l\nUsed: \l\n"];
+// LiveOut: ^phi4[1]\l\nUsed: \l\n"];
 // Block0_3 -> Block0_3Exit [arrowhead=none];
 // Block0_3Exit [label="Jump" shape=oval];
 // Block0_3Exit -> Block0_2 [style="solid"];
 // Block0_2 [label="\
-// Block 2; (2, max 2)\nLiveIn: phi4[3]\l\
-// LiveOut: \l\nUsed: phi4[3]\l\nphi4 := φ(\l\
+// Block 2; (2, max 2)\nLiveIn: phi4[3], ^phi4[1]\l\
+// LiveOut: \l\nUsed: phi4[3], ^phi4[1]\l\nphi4 := φ(\l\
 // 	Block 1 => 0x05,\l\
 // 	Block 3 => 0x00\l\
 // )\l\

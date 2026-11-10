@@ -77,20 +77,20 @@
 // Block3_0Exit:1 -> Block3_1 [style="solid"];
 // Block3_1 [label="\
 // Block 1; (1, max 2)\nLiveIn: \l\
-// LiveOut: v3[1]\l\nUsed: \l\nv3 := cycle2()\l\
+// LiveOut: v3[1], ^phi4[1]\l\nUsed: \l\nv3 := cycle2()\l\
 // "];
 // Block3_1 -> Block3_1Exit [arrowhead=none];
 // Block3_1Exit [label="Jump" shape=oval];
 // Block3_1Exit -> Block3_2 [style="solid"];
 // Block3_3 [label="\
 // Block 3; (3, max 3)\nLiveIn: \l\
-// LiveOut: \l\nUsed: \l\n"];
+// LiveOut: ^phi4[1]\l\nUsed: \l\n"];
 // Block3_3 -> Block3_3Exit [arrowhead=none];
 // Block3_3Exit [label="Jump" shape=oval];
 // Block3_3Exit -> Block3_2 [style="solid"];
 // Block3_2 [label="\
-// Block 2; (2, max 2)\nLiveIn: phi4[3]\l\
-// LiveOut: phi4[1]\l\nUsed: phi4[2]\l\nphi4 := φ(\l\
+// Block 2; (2, max 2)\nLiveIn: phi4[3], ^phi4[1]\l\
+// LiveOut: phi4[1]\l\nUsed: phi4[2], ^phi4[1]\l\nphi4 := φ(\l\
 // 	Block 1 => v3,\l\
 // 	Block 3 => 0x00\l\
 // )\l\
@@ -110,20 +110,20 @@
 // Block4_0Exit:1 -> Block4_1 [style="solid"];
 // Block4_1 [label="\
 // Block 1; (1, max 2)\nLiveIn: \l\
-// LiveOut: v3[1]\l\nUsed: \l\nv3 := cycle1()\l\
+// LiveOut: v3[1], ^phi4[1]\l\nUsed: \l\nv3 := cycle1()\l\
 // "];
 // Block4_1 -> Block4_1Exit [arrowhead=none];
 // Block4_1Exit [label="Jump" shape=oval];
 // Block4_1Exit -> Block4_2 [style="solid"];
 // Block4_3 [label="\
 // Block 3; (3, max 3)\nLiveIn: \l\
-// LiveOut: \l\nUsed: \l\n"];
+// LiveOut: ^phi4[1]\l\nUsed: \l\n"];
 // Block4_3 -> Block4_3Exit [arrowhead=none];
 // Block4_3Exit [label="Jump" shape=oval];
 // Block4_3Exit -> Block4_2 [style="solid"];
 // Block4_2 [label="\
-// Block 2; (2, max 2)\nLiveIn: phi4[3]\l\
-// LiveOut: phi4[1]\l\nUsed: phi4[2]\l\nphi4 := φ(\l\
+// Block 2; (2, max 2)\nLiveIn: phi4[3], ^phi4[1]\l\
+// LiveOut: phi4[1]\l\nUsed: phi4[2], ^phi4[1]\l\nphi4 := φ(\l\
 // 	Block 1 => v3,\l\
 // 	Block 3 => 0x00\l\
 // )\l\
