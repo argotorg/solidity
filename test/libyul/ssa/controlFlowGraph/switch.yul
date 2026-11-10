@@ -48,8 +48,8 @@
 // Block0_3Exit:0 -> Block0_5 [style="solid"];
 // Block0_3Exit:1 -> Block0_4 [style="solid"];
 // Block0_1 [label="\
-// Block 1; (2, max 2)\nLiveIn: phi13[2], ^phi13[1]\l\
-// LiveOut: \l\nUsed: phi13[2], ^phi13[1]\l\nphi13 := φ(^phi13)\l\
+// Block 1; (2, max 2)\nLiveIn: ^phi13[1]\l\
+// LiveOut: \l\nUsed: ^phi13[1]\l\nphi13 := φ(^phi13)\l\
 // sstore(phi13, 0x00)\l\
 // "];
 // Block0_1Exit [label="MainExit"];

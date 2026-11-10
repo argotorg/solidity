@@ -39,8 +39,8 @@
 // Block0_3Exit [label="Jump" shape=oval];
 // Block0_3Exit -> Block0_2 [style="solid"];
 // Block0_2 [label="\
-// Block 2; (2, max 2)\nLiveIn: phi6[2], ^phi6[1]\l\
-// LiveOut: \l\nUsed: phi6[2], ^phi6[1]\l\nphi6 := φ(^phi6)\l\
+// Block 2; (2, max 2)\nLiveIn: ^phi6[1]\l\
+// LiveOut: \l\nUsed: ^phi6[1]\l\nphi6 := φ(^phi6)\l\
 // v9 := calldataload(phi6)\l\
 // sstore(v9, 0x00)\l\
 // "];

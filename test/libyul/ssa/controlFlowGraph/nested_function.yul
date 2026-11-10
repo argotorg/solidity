@@ -91,8 +91,8 @@
 // Block3_3Exit [label="Jump" shape=oval];
 // Block3_3Exit -> Block3_2 [style="solid"];
 // Block3_2 [label="\
-// Block 2; (2, max 2)\nLiveIn: phi4[3], ^phi4[1]\l\
-// LiveOut: phi4[1]\l\nUsed: phi4[2], ^phi4[1]\l\nphi4 := φ(^phi4)\l\
+// Block 2; (2, max 2)\nLiveIn: ^phi4[1]\l\
+// LiveOut: phi4[1]\l\nUsed: ^phi4[1]\l\nphi4 := φ(^phi4)\l\
 // "];
 // Block3_2Exit [label="FunctionReturn[phi4]"];
 // Block3_2 -> Block3_2Exit;
@@ -123,8 +123,8 @@
 // Block4_3Exit [label="Jump" shape=oval];
 // Block4_3Exit -> Block4_2 [style="solid"];
 // Block4_2 [label="\
-// Block 2; (2, max 2)\nLiveIn: phi4[3], ^phi4[1]\l\
-// LiveOut: phi4[1]\l\nUsed: phi4[2], ^phi4[1]\l\nphi4 := φ(^phi4)\l\
+// Block 2; (2, max 2)\nLiveIn: ^phi4[1]\l\
+// LiveOut: phi4[1]\l\nUsed: ^phi4[1]\l\nphi4 := φ(^phi4)\l\
 // "];
 // Block4_2Exit [label="FunctionReturn[phi4]"];
 // Block4_2 -> Block4_2Exit;

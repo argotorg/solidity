@@ -164,11 +164,11 @@ object "C" {
 //   spilled:
 //     v33 -> mem 0x80
 //   mstore schedule:
-//     mstore addr(v33) <- v33 (B#0)
+//     mstore addr(v33) <- v33 (behind v33 in B#0)
 // CFG[1] f
 //   spilled:
 //     v0 -> mem 0xa0
 //     phi19 -> mem 0xc0
 //   mstore schedule:
-//     mstore addr(v0) <- v0 (B#0)
-//     mstore addr(phi19) <- phi19 (B#1)
+//     mstore addr(phi19) <- ^phi19 (on entry of B#1)
+//     mstore addr(v0) <- v0 (behind v0 in B#0)

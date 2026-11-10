@@ -60,6 +60,8 @@ public:
 	ShadowLiveness::ShadowSet const& liveOutShadows(SSACFG::BlockId const _blockId) const { return m_shadows.liveOuts(_blockId); }
 	/// The writes of a block's upsilons that reach a phi, as phi -> input. They take effect at the block's exit.
 	ShadowLiveness::Writes liveWrites(SSACFG::BlockId const _blockId) const { return m_shadows.liveWrites(_blockId); }
+	/// Whether the shadow of `_phi` is still live behind the phi, which then reads the same value again
+	bool shadowLiveBehind(InstId const _phi) const { return m_shadows.liveBehind(_phi); }
 
 	analysis::DepthFirstSpanningTree const& dfsTree() const { return m_dfsTree; }
 	SSACFG const& cfg() const { return m_cfg; }

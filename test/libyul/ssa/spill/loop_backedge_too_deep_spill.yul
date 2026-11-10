@@ -209,11 +209,11 @@ code {
 //     v59 -> mem 0x0140
 //     phi60 -> mem 0x0160
 //   mstore schedule:
-//     mstore addr(phi52) <- phi52 (B#1)
-//     mstore addr(phi54) <- phi54 (B#1)
-//     mstore addr(v55) <- v55 (B#2)
-//     mstore addr(phi56) <- phi56 (B#1)
-//     mstore addr(v57) <- v57 (B#2)
-//     mstore addr(phi58) <- phi58 (B#1)
-//     mstore addr(v59) <- v59 (B#2)
-//     mstore addr(phi60) <- phi60 (B#1)
+//     mstore addr(phi52) <- ^phi52 (on entry of B#1)
+//     mstore addr(phi54) <- ^phi54 (on entry of B#1)
+//     mstore addr(phi56) <- ^phi56 (on entry of B#1)
+//     mstore addr(phi58) <- ^phi58 (on entry of B#1)
+//     mstore addr(phi60) <- ^phi60 (on entry of B#1)
+//     mstore addr(v55) <- v55 (behind v55 in B#2)
+//     mstore addr(v57) <- v57 (behind v57 in B#2)
+//     mstore addr(v59) <- v59 (behind v59 in B#2)

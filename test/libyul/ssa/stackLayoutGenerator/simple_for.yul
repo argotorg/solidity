@@ -26,7 +26,15 @@
 // Block0_0Exit [label="Jump" shape=oval];
 // Block0_0Exit -> Block0_1 [style="solid"];
 // Block0_1 [label="\
-// IN: [phi1, phi2]\l\
+// IN: [^phi1, ^phi2]\l\
+// \l\
+// [^phi1, ^phi2]\l\
+// phi1 := ^phi1\l\
+// [phi1, ^phi2]\l\
+// \l\
+// [phi1, ^phi2]\l\
+// phi2 := ^phi2\l\
+// [phi1, phi2]\l\
 // \l\
 // OUT: [phi1, phi2, phi1]\l\
 // "];
@@ -87,7 +95,11 @@
 // Block0_3Exit [label="Jump" shape=oval];
 // Block0_3Exit -> Block0_6 [style="solid"];
 // Block0_6 [label="\
-// IN: [phi2, phi14]\l\
+// IN: [phi2, ^phi14]\l\
+// \l\
+// [phi2, ^phi14]\l\
+// phi14 := ^phi14\l\
+// [phi2, phi14]\l\
 // \l\
 // [phi14, lit8, phi2]\l\
 // add\l\
