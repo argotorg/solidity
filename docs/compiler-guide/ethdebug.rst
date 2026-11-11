@@ -18,7 +18,8 @@ Resource Collection
 
 ``CompilerStack::ethdebug()`` calls ``frontend::ethdebug::resources()`` in ``libsolidity/interface/Ethdebug.cpp`` for each analyzed contract and merges the returned tables.
 The merged tables are passed to ``evmasm::ethdebug::resources()``, which adds the compilation record and schema stamp.
-``liblangutil/EthdebugSchema.h`` models the public schemas; the ``to_json()`` overloads in ``EthdebugSchema.cpp`` serialize those structures.
+``liblangutil/EthdebugSchema.h`` models the public schemas.
+The ``to_json()`` overloads in ``EthdebugSchema.cpp`` serialize those structures.
 
 ``CompilerStack::ethdebug()`` registers file-level variable declarations from the analyzed source units.
 ``frontend::ethdebug::resources()`` reads state-variable declarations from ``ContractDefinitionAnnotation::linearizedBaseContracts`` for type collection, including constants and immutables.
@@ -57,7 +58,8 @@ Pointer Template Construction
 Its keys combine the layout with ``TypeRegistry::canonicalizeType()``'s type identifier.
 ``registerVariableTypes()`` skips declarations without an implementation and registers reference and mapping variables in their annotated locations.
 Scalar declarations in callable bodies are skipped because their type annotations do not specify a data location.
-``collectTemplateTypes()`` follows component types in the same location as their enclosing type; it does not add layouts for other locations.
+``collectTemplateTypes()`` follows component types in the same location as their enclosing type.
+It does not add layouts for other locations.
 ``registerType()`` always selects the next pending layout by pointer ID, including in recursive calls.
 This keeps recursive templates independent of the order in which a contract's state variables register their types.
 
@@ -69,7 +71,8 @@ For a reference to a template still being built, the names are not known yet and
 
 ``buildStructTemplate()`` obtains each member's slot offset and little-endian byte offset from ``StructType::storageOffsetsOfMember()`` and passes the member to ``buildStorageComponentPointer()``.
 ``buildStorageComponentPointer()`` chooses between a value region and a template reference, binding the member's slot when needed.
-Its mapping branch stops at a base-slot region; entry expansion is handled by ``buildMappingTemplate()``, which passes the mapping's value type back to ``buildStorageComponentPointer()``.
+Its mapping branch stops at a base-slot region.
+Entry expansion is handled by ``buildMappingTemplate()``, which passes the mapping's value type back to ``buildStorageComponentPointer()``.
 
 ``buildArrayTemplate()`` dispatches to ``buildBytesOrStringPointer()`` for the short and long byte-array encodings and otherwise to the static or dynamic array builders.
 Both array builders use ``buildArrayElementListPointer()`` for the element pointer.
