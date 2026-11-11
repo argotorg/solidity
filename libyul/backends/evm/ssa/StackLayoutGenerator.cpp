@@ -85,7 +85,8 @@ StackLayoutGenerator::Result StackLayoutGenerator::generate(
 	LivenessAnalysis const& _liveness,
 	CallSites const& _callSites,
 	ControlFlowGraphs::FunctionGraphID const _graphID,
-	bool const _spillingAllowed
+	bool const _spillingAllowed,
+	ShuffleRecording const _shuffleRecording
 )
 {
 	spill::SpillSet spillSet;
@@ -93,12 +94,17 @@ StackLayoutGenerator::Result StackLayoutGenerator::generate(
 	while (true)
 	{
 		auto const spillCountBefore = spillSet.numSpilled();
-		StackLayoutGenerator generator(_liveness, _callSites, _graphID, _spillingAllowed, std::move(spillSet));
+		StackLayoutGenerator generator(_liveness, _callSites, _graphID, _spillingAllowed, std::move(spillSet), _shuffleRecording);
 		spillSet = std::move(generator.m_spillSet);
 		spillSet.closeUnderReachabilityConstraints(_liveness.cfg(), generator.m_resultLayout, &spillStoreTraces);
 		// only the traces of the final iteration survive; they are recorded against the stable spill set
 		if (spillSet.numSpilled() == spillCountBefore)
-			return Result{std::move(generator.m_resultLayout), std::move(spillSet), std::move(spillStoreTraces)};
+			return Result{
+				std::move(generator.m_resultLayout),
+				std::move(spillSet),
+				std::move(spillStoreTraces),
+				std::move(generator.m_shuffleRecords)
+			};
 
 		// there is an upper bound to how much can be spilled (number of variables). this assert ensures termination.
 		yulAssert(spillSet.numSpilled() > spillCountBefore, "spill set cannot shrink");
@@ -110,7 +116,8 @@ StackLayoutGenerator::StackLayoutGenerator(
 	CallSites const& _callSites,
 	ControlFlowGraphs::FunctionGraphID const _graphID,
 	bool const _spillingAllowed,
-	spill::SpillSet _initialSpillSet
+	spill::SpillSet _initialSpillSet,
+	ShuffleRecording const _shuffleRecording
 ):
 	m_cfg(_liveness.cfg()),
 	m_liveness(_liveness),
@@ -121,7 +128,8 @@ StackLayoutGenerator::StackLayoutGenerator(
 	m_junkAdmittingBlocksFinder(std::make_unique<JunkAdmittingBlocksFinder>(_liveness.cfg(), _liveness.dfsTree())),
 	m_inputStackProposalsPerBlock(m_cfg.numBlocks()),
 	m_resultLayout(m_cfg.numBlocks()),
-	m_spillSet(std::move(_initialSpillSet))
+	m_spillSet(std::move(_initialSpillSet)),
+	m_shuffleRecording(_shuffleRecording)
 {
 	// traverse the cfg layer-wise using Kahn's algorithm:
 	// if a block is visited, the predecessors of that block have already their exit layouts defined
@@ -154,6 +162,23 @@ StackLayoutGenerator::StackLayoutGenerator(
 		}
 		yulAssert(numVisited == m_liveness.dfsTree().preOrder().size());
 	}
+}
+
+stack::ShuffleResult StackLayoutGenerator::shuffle(
+	ShuffleRecord _record,
+	StackData& _source,
+	StackData const& _target
+)
+{
+	if (m_shuffleRecording == ShuffleRecording::Off)
+		return stack::shuffle(_source, _target, m_spillSet, m_spillingAllowed);
+
+	_record.initial = _source;
+	_record.target = _target;
+	stack::ShuffleResult result = stack::shuffle(_source, _target, m_spillSet, m_spillingAllowed);
+	_record.trace = result.trace;
+	m_shuffleRecords.push_back(std::move(_record));
+	return result;
 }
 
 void StackLayoutGenerator::defineStackIn(SSACFG::BlockId const& _blockId)
@@ -246,11 +271,10 @@ void StackLayoutGenerator::defineStackIn(SSACFG::BlockId const& _blockId)
 	for (auto const& [parentBlockId, parentExitStack]: stackInProposals)
 	{
 		StackData edgeStack = parentExitStack;
-		auto shuffleResult = stack::shuffle(
+		auto shuffleResult = shuffle(
+			{.kind = ShuffleRecord::Kind::Edge, .block = parentBlockId, .successor = _blockId},
 			edgeStack,
-			stackPreImage(m_cfg, blockLayout.stackIn, PhiInverse(m_cfg, parentBlockId, _blockId)),
-			m_spillSet,
-			m_spillingAllowed
+			stackPreImage(m_cfg, blockLayout.stackIn, PhiInverse(m_cfg, parentBlockId, _blockId))
 		);
 		yulAssert(
 			shuffleResult.status == stack::ShuffleResult::Status::Admissible,
@@ -299,7 +323,11 @@ void StackLayoutGenerator::visitBlock(SSACFG::BlockId const& _blockId)
 			StackSlotLiveness const opLiveOutSlots = toStackSlotLiveness(m_cfg, opLiveOutWithoutOutputs);
 			auto const target = stack::buildInstructionStackIn(stack.data(), requiredStackTop, opLiveOutSlots, m_spillSet);
 			auto const spillCountBefore = m_spillSet.numSpilled();
-			auto shuffleResult = stack::shuffle(currentStackData, target, m_spillSet, m_spillingAllowed);
+			auto shuffleResult = shuffle(
+				{.kind = ShuffleRecord::Kind::Operation, .block = _blockId, .operation = _instId},
+				currentStackData,
+				target
+			);
 			yulAssert(shuffleResult.status == stack::ShuffleResult::Status::Admissible, "Spilling not allowed, stack too deep.");
 			yulAssert(m_spillingAllowed || m_spillSet.numSpilled() == spillCountBefore, "Spilling not allowed, stack too deep.");
 			blockLayout.operationShuffles.push_back(std::move(shuffleResult.trace));
@@ -328,7 +356,11 @@ void StackLayoutGenerator::visitBlock(SSACFG::BlockId const& _blockId)
 		yulAssert(m_resultLayout[_target], "Back-edge target must have its stackIn defined already.");
 		StackData const target = stackPreImage(m_cfg, m_resultLayout[_target]->stackIn, PhiInverse(m_cfg, _blockId, _target));
 		StackData exitStack = currentStackData;
-		auto shuffleResult = stack::shuffle(exitStack, target, m_spillSet, m_spillingAllowed);
+		auto shuffleResult = shuffle(
+			{.kind = ShuffleRecord::Kind::Edge, .block = _blockId, .successor = _target},
+			exitStack,
+			target
+		);
 		yulAssert(
 			shuffleResult.status == stack::ShuffleResult::Status::Admissible,
 			"Stack too deep, but spilling is disabled because the function is part of a recursive call chain."
@@ -352,7 +384,11 @@ void StackLayoutGenerator::visitBlock(SSACFG::BlockId const& _blockId)
 					StackSlotLiveness const blockLiveOutSlots = toStackSlotLiveness(m_cfg, blockLiveOut);
 					auto const target = stack::buildInstructionStackIn(stack.data(), {condition}, blockLiveOutSlots, m_spillSet);
 					auto const spillCountBefore = m_spillSet.numSpilled();
-					auto shuffleResult = stack::shuffle(currentStackData, target, m_spillSet, m_spillingAllowed);
+					auto shuffleResult = shuffle(
+						{.kind = ShuffleRecord::Kind::ConditionalJump, .block = _blockId},
+						currentStackData,
+						target
+					);
 					yulAssert(shuffleResult.status == stack::ShuffleResult::Status::Admissible, "Spilling not allowed, stack too deep.");
 					yulAssert(m_spillingAllowed || m_spillSet.numSpilled() == spillCountBefore, "Spilling not allowed, stack too deep.");
 					blockLayout.exitShuffle = std::move(shuffleResult.trace);
@@ -376,7 +412,11 @@ void StackLayoutGenerator::visitBlock(SSACFG::BlockId const& _blockId)
 				// in case there are return values, let's bring the function return label to the top
 				StackData returnStack = _functionReturn.returnValues | ranges::views::transform([this](InstId const _id) { return StackSlot::makeValue(m_cfg, _id); }) | ranges::to<std::vector>;
 				returnStack.push_back(StackSlot::makeFunctionReturnLabel(m_graphID));
-				auto shuffleResult = stack::shuffle(currentStackData, returnStack, m_spillSet, m_spillingAllowed);
+				auto shuffleResult = shuffle(
+					{.kind = ShuffleRecord::Kind::FunctionReturn, .block = _blockId},
+					currentStackData,
+					returnStack
+				);
 				yulAssert(shuffleResult.status == stack::ShuffleResult::Status::Admissible, "Spilling not allowed, stack too deep.");
 				blockLayout.exitShuffle = std::move(shuffleResult.trace);
 			},

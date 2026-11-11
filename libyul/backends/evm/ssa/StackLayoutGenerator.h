@@ -24,9 +24,15 @@
 #include <libyul/backends/evm/ssa/StackLayout.h>
 
 #include <memory>
+#include <vector>
 
 namespace solidity::yul::ssa
 {
+
+namespace stack
+{
+struct ShuffleResult;
+}
 
 class JunkAdmittingBlocksFinder;
 
@@ -35,6 +41,24 @@ class StackLayoutGenerator
 public:
 	using Slot = StackSlot;
 
+	enum class ShuffleRecording { Off, On };
+
+	/// A shuffle of the final layout from `initial` to `target`, realized by `trace`
+	struct ShuffleRecord
+	{
+		enum class Kind { Operation, ConditionalJump, FunctionReturn, Edge };
+		Kind kind = Kind::Operation;
+		/// the block performing the shuffle; for edges the predecessor
+		SSACFG::BlockId block{};
+		/// for operations: the operation the shuffle prepares the stack for
+		InstId operation{};
+		/// for edges: the successor
+		SSACFG::BlockId successor{};
+		StackData initial{};
+		StackData target{};
+		ShuffleTrace trace{};
+	};
+
 	/// the per-block stack layout plus the set of values the layout generator decided to spill to memory
 	/// and the recorded def-site store trace of each spilled value
 	struct Result
@@ -42,6 +66,8 @@ public:
 		SSACFGStackLayout layout;
 		spill::SpillSet spillSet;
 		spill::SpillStoreTraces spillStoreTraces;
+		/// the transitions of the final layout, only populated with `ShuffleRecording::On`
+		std::vector<ShuffleRecord> shuffleRecords;
 	};
 
 	/// Generates the stack layout for the function graph together with the set of values that have to be spilled
@@ -50,7 +76,8 @@ public:
 		LivenessAnalysis const& _liveness,
 		CallSites const& _callSites,
 		ControlFlowGraphs::FunctionGraphID _graphID,
-		bool _spillingAllowed
+		bool _spillingAllowed,
+		ShuffleRecording _shuffleRecording = ShuffleRecording::Off
 	);
 
 private:
@@ -59,11 +86,16 @@ private:
 		CallSites const& _callSites,
 		ControlFlowGraphs::FunctionGraphID _graphID,
 		bool _spillingAllowed,
-		spill::SpillSet _initialSpillSet
+		spill::SpillSet _initialSpillSet,
+		ShuffleRecording _shuffleRecording
 	);
 
 	void defineStackIn(SSACFG::BlockId const& _blockId);
 	void visitBlock(SSACFG::BlockId const& _blockId);
+
+	/// Invokes the shuffler for a shuffle of the layout and, if recording is enabled, records it completing
+	/// `_record`, which identifies the shuffle
+	stack::ShuffleResult shuffle(ShuffleRecord _record, StackData& _source, StackData const& _target);
 
 	SSACFG const& m_cfg;
 	LivenessAnalysis const& m_liveness;
@@ -79,6 +111,8 @@ private:
 	std::vector<std::vector<std::pair<SSACFG::BlockId, StackData>>> m_inputStackProposalsPerBlock;
 	SSACFGStackLayout m_resultLayout;
 	spill::SpillSet m_spillSet;
+	ShuffleRecording m_shuffleRecording;
+	std::vector<ShuffleRecord> m_shuffleRecords;
 };
 
 }

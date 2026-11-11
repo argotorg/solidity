@@ -30,7 +30,14 @@
 #include <libsolutil/Visitor.h>
 
 #include <range/v3/view/take_last.hpp>
+#include <range/v3/view/transform.hpp>
 #include <range/v3/view/zip.hpp>
+
+#include <fmt/ranges.h>
+
+#include <cstdlib>
+#include <fstream>
+#include <memory>
 
 using namespace solidity::yul;
 using namespace solidity::yul::ssa;
@@ -41,6 +48,91 @@ void assertLayoutCompatibility(StackData const& _layout1, StackData const& _layo
 {
 	auto const compatibility = checkLayoutCompatibility(_layout1, _layout2);
 	yulAssert(compatibility.ok(), compatibility.formatErrors());
+}
+
+/// Debugging aid: if the environment variable SOLC_SSACFG_DUMP_STACK_LAYOUTS names a file, the shuffles
+/// of the stack layouts of every compiled object are written to it as a YAML list with one entry per
+/// object and no code is emitted.
+std::ofstream* stackLayoutDump()
+{
+	static std::unique_ptr<std::ofstream> const dump = []() -> std::unique_ptr<std::ofstream> {
+		char const* path = std::getenv("SOLC_SSACFG_DUMP_STACK_LAYOUTS");
+		if (!path || !*path)
+			return nullptr;
+		auto stream = std::make_unique<std::ofstream>(path);
+		yulAssert(stream->good(), fmt::format("Could not open stack layout dump file {}", path));
+		return stream;
+	}();
+	return dump.get();
+}
+
+/// Renders `_value` as a YAML scalar, quoted if it contains characters special in YAML flow context
+std::string yamlScalar(std::string const& _value)
+{
+	if (_value.empty() || _value.find_first_of("[]{},:#") != std::string::npos)
+		return fmt::format("\"{}\"", _value);
+	return _value;
+}
+
+template<typename Range>
+std::string yamlList(Range const& _values)
+{
+	auto const toScalar = [](auto const& _value) { return yamlScalar(fmt::format("{}", _value)); };
+	return fmt::format("[{}]", fmt::join(_values | ranges::views::transform(toScalar), ", "));
+}
+
+/// Writes the shuffles of the function graph's stack layout as an entry of the object's `graphs` list,
+/// walking the blocks in DFS pre-order. Per block: the shuffles before each operation, the shuffle of
+/// the block exit and the shuffles of the edges to its successors.
+void dumpStackLayout(
+	std::ostream& _out,
+	ControlFlowGraphs::FunctionGraphID const _graphID,
+	SSACFG const& _cfg,
+	std::vector<SSACFG::BlockId> const& _blockOrder,
+	bool const _spillingAllowed,
+	StackLayoutGenerator::Result const& _result
+)
+{
+	using Kind = StackLayoutGenerator::ShuffleRecord::Kind;
+	std::vector<std::vector<StackLayoutGenerator::ShuffleRecord const*>> recordsPerBlock(_cfg.numBlocks());
+	for (auto const& record: _result.shuffleRecords)
+		recordsPerBlock[record.block.value].push_back(&record);
+
+	_out << "    - graph: " << _graphID << "\n";
+	_out << "      function: " << yamlScalar(_cfg.isMainGraph() ? "<main>" : _cfg.name) << "\n";
+	_out << "      allowSpilling: " << (_spillingAllowed ? "true" : "false") << "\n";
+	_out << "      spilled: " << yamlList(_result.spillSet.spilledValues()) << "\n";
+	_out << "      blocks:\n";
+	for (SSACFG::BlockId const blockId: _blockOrder)
+	{
+		auto const& records = recordsPerBlock[blockId.value];
+		_out << "        - block: " << blockId.value << "\n";
+		_out << "          shuffles:" << (records.empty() ? " []" : "") << "\n";
+		for (auto const* record: records)
+		{
+			switch (record->kind)
+			{
+			case Kind::Operation:
+				_out << "            - kind: operation\n";
+				_out << "              operation: " << fmt::format("{}", record->operation) << "\n";
+				break;
+			case Kind::ConditionalJump:
+				_out << "            - kind: conditionalJump\n";
+				break;
+			case Kind::FunctionReturn:
+				_out << "            - kind: functionReturn\n";
+				break;
+			case Kind::Edge:
+				_out << "            - kind: edge\n";
+				_out << "              successor: " << record->successor.value << "\n";
+				break;
+			}
+			_out << "              initial: " << yamlList(record->initial) << "\n";
+			_out << "              target: " << yamlList(record->target) << "\n";
+			_out << "              trace: " << yamlList(record->trace) << "\n";
+		}
+	}
+	_out.flush();
 }
 }
 
@@ -68,6 +160,11 @@ void CodeTransform::run
 	spillSetsPerCFG.reserve(numCFGs);
 	spillStoreTracesPerCFG.reserve(numCFGs);
 
+	std::ofstream* const dump = stackLayoutDump();
+	static std::size_t dumpedObjects = 0;
+	if (dump)
+		*dump << "- object: " << dumpedObjects << "\n" << "  graphs:\n";
+
 	for (std::size_t functionIndex = 0; functionIndex < numCFGs; ++functionIndex)
 	{
 		std::unique_ptr<SSACFG> const& functionGraphPtr = _controlFlowGraphs.functionGraphs[functionIndex];
@@ -78,10 +175,24 @@ void CodeTransform::run
 		auto const graphID = static_cast<ControlFlowGraphs::FunctionGraphID>(functionIndex);
 		callSitesPerCFG.push_back(gatherCallSites(cfg));
 		bool const spillingAllowed = !callGraph.isRecursive(graphID);
-		auto [layout, spillSet, spillStoreTraces] = StackLayoutGenerator::generate(*liveness, callSitesPerCFG.back(), graphID, spillingAllowed);
-		layouts.push_back(std::move(layout));
-		spillSetsPerCFG.push_back(std::move(spillSet));
-		spillStoreTracesPerCFG.push_back(std::move(spillStoreTraces));
+		auto result = StackLayoutGenerator::generate(
+			*liveness,
+			callSitesPerCFG.back(),
+			graphID,
+			spillingAllowed,
+			dump ? StackLayoutGenerator::ShuffleRecording::On : StackLayoutGenerator::ShuffleRecording::Off
+		);
+		if (dump)
+			dumpStackLayout(*dump, graphID, cfg, liveness->dfsTree().preOrder(), spillingAllowed, result);
+		layouts.push_back(std::move(result.layout));
+		spillSetsPerCFG.push_back(std::move(result.spillSet));
+		spillStoreTracesPerCFG.push_back(std::move(result.spillStoreTraces));
+	}
+
+	if (dump)
+	{
+		++dumpedObjects;
+		return;
 	}
 
 	// build up global addressing based on the spill sets
