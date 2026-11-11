@@ -392,12 +392,12 @@ Input Description
           //     - `<end>` is the index of the first byte after that location.
           // - `snippet`: A single-line code snippet from the location indicated by `@src`.
           //     The snippet is quoted and follows the corresponding `@src` annotation.
-          //     Depends on `location`; selecting `snippet` without it is an error.
+          //     Depends on `location`. Selecting `snippet` without it is an error.
           // - `ast-id`: Annotations of the form `@ast-id <id>` over elements that can be mapped back to a definition in the original Solidity file.
           //   `<id>` is a node ID in the Solidity AST ('ast' output).
-          // - `ethdebug`: Ethdebug annotations (experimental). Depends on `ast-id`; selecting
+          // - `ethdebug`: Ethdebug annotations (experimental). Depends on `ast-id`. Selecting
           //   `ethdebug` without `ast-id` is an error. Requesting an ethdebug output does not
-          //   change this selection; without `ethdebug` in it the `evm.bytecode.ethdebug` and
+          //   change this selection. Without `ethdebug` in it the `evm.bytecode.ethdebug` and
           //   `evm.deployedBytecode.ethdebug` outputs carry none of the semantic debug info
           //   this component adds.
           // - `*`: Wildcard value that can be used to request all non-experimental components.
@@ -710,7 +710,6 @@ Output Description
         "compilation": {/* ... */}
       }
     }
-
 
 Error Types
 ~~~~~~~~~~~

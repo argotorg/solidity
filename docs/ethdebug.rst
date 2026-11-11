@@ -121,10 +121,12 @@ Taking an external function's ``selector`` or ``address`` does not add its varia
 
 Event and error parameters do not independently contribute types.
 Neither do unused type definitions or types mentioned only in expressions, such as conversions, ``new``, struct constructors, builtins like ``bytes.concat()`` or parameters of ``abi.decode()``.
-A ``using for`` directive alone does not contribute types; its internal functions contribute variable types when called or evaluated as function values, not merely because the directive names them.
+A ``using for`` directive alone does not contribute types.
+Its internal functions contribute variable types when called or evaluated as function values, not merely because the directive names them.
 Every collected type also brings in its component types, recursively.
 The parameter lists and non-empty return lists of included functions and modifiers also have tuple documents, using the same representation as the lists in function types.
-Each parameter and return variable still has its own type; the tuple describes the list, not an extra variable.
+Each parameter and return variable still has its own type.
+The tuple describes the list, not an extra variable.
 Including a type does not imply that a variable's runtime location or value is available in the program output.
 Unnameable types have no document.
 These include literal types, array slice types, types of types, modifier types, magic types (such as those of ``msg`` and ``abi``), module types, inaccessible dynamic types and function types other than internal and external ones.
@@ -167,19 +169,24 @@ Library names cannot be used as variable types, so no library type document is e
 Composite types reference their components by identifier, so that the table is closed:
 an array, a mapping or a user-defined value type refers to its element, key, value or underlying type as ``{"type": {"id": "<id>"}}`` and a struct lists its members with their ``name`` and such a reference.
 In a function type, ``contains.parameters`` always references the tuple of parameter types in declaration order.
-No parameters means an empty tuple; one parameter means a one-element tuple, not the parameter's type on its own.
+No parameters means an empty tuple.
+One parameter means a one-element tuple, not the parameter's type on its own.
 ``contains.returns`` follows the same convention for return types, but is omitted when there are no return values.
 The outer tuple groups the list.
-Classic Solidity does not support tuple-valued parameters or return variables; such a parameter or return variable would occupy one element referencing another tuple rather than being flattened into the list.
-The tuple documents themselves also reference their components by identifier; neither the parameter nor return types are inlined.
+Classic Solidity does not support tuple-valued parameters or return variables.
+Such a parameter or return variable would occupy one element referencing another tuple rather than being flattened into the list.
+The tuple documents themselves also reference their components by identifier.
+Neither the parameter nor return types are inlined.
 
 Structs, enums, contracts and user-defined value types carry a ``definition`` with the ``name`` of the definition and its ``location`` in the source: the source ``id`` and the ``offset`` and ``length`` of the definition.
 Function types in the table are types of variables, such as ``function (uint256) external returns (bool) f``, and are not associated with a fixed function definition, so they have no ``definition``.
 Like in source mappings, and as the schema of source ranges specifies, the offset and the length count bytes of the UTF-8 encoded source, not characters.
 
-A type document does not depend on where a value is stored; that is what the pointer describes.
+A type document does not depend on where a value is stored.
+That is what the pointer describes.
 The variants of a reference type in different data locations therefore share one document: a ``string memory`` parameter and a ``string`` state variable both refer to the same entry.
-An import alias also refers to the original type document; it does not introduce another type or change the name in its ``definition``.
+An import alias also refers to the original type document.
+It does not introduce another type or change the name in its ``definition``.
 
 Pointer Templates
 -----------------
@@ -199,7 +206,8 @@ Storage and transient-storage templates expect ``slot`` as a parameter: the base
 Value-type templates additionally expect ``offset`` as a parameter: the *little-endian offset*, counted in bytes from the least significant byte, as in Solidity's storage layout.
 For an *n*-byte value, this offset must be between 0 and ``32 - n``.
 Memory and calldata templates instead expect ``offset`` as a parameter: the byte address at which the value begins.
-For a dynamic array, ``bytes`` or ``string``, this includes the length word; for a static array or struct it is the start of the first element or member.
+For a dynamic array, ``bytes`` or ``string``, this includes the length word.
+For a static array or struct it is the start of the first element or member.
 For an ABI-encoded dynamic value, bind the address of its tail, not the address of the head word containing the relative offset.
 
 Memory templates follow the absolute pointers stored in reference-type members and array elements.
@@ -218,7 +226,8 @@ A ``bytes4`` key needs padding on the right and a negative ``int8`` key needs si
 A ``bytes`` or ``string`` key is bound to its bytes, which are hashed as they are.
 A recursive type (one nested in itself, through an array or through a mapping) references its own template, which a debugger follows as far as the data reaches: one element per list entry, one key per mapping level.
 
-The choice of region names and pointer expressions can change between compiler versions; consumers should read them from the templates.
+The choice of region names and pointer expressions can change between compiler versions.
+Consumers should read them from the templates.
 The compiler currently names regions relative to the value a template describes:
 
 - the members of a struct: their names,
@@ -251,7 +260,8 @@ The storage layout puts ``total`` at slot 0, with little-endian offset 0.
 A region's ``offset`` is a *big-endian offset*, counted from the most significant byte of its slot.
 The two members of ``Point`` share a slot, with ``x`` at big-endian offset 31 and ``y`` at 30.
 A debugger instantiates the ``Point`` template with ``slot`` bound to 1, where the layout puts ``origin``, and the mapping's template with ``slot`` bound to 2 and ``key`` to the address of the entry it wants to see.
-The ``Line`` template is instantiated with ``slot`` bound to 3; its ``yields`` maps distinguish ``from-x`` and ``from-y`` from ``to-x`` and ``to-y``.
+The ``Line`` template is instantiated with ``slot`` bound to 3.
+Its ``yields`` maps distinguish ``from-x`` and ``from-y`` from ``to-x`` and ``to-y``.
 
 .. code-block:: json
 
