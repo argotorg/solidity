@@ -1,0 +1,1 @@
+Error: Stack too deep. Spilling variables to memory is not supported in functions that are part of a recursive call chain. Try removing local variables.

@@ -26,6 +26,8 @@
 #include <libyul/backends/evm/ssa/ShuffleTrace.h>
 #include <libyul/backends/evm/ssa/StackUtils.h>
 
+#include <libyul/Exceptions.h>
+
 #include <libsolutil/Visitor.h>
 
 #include <range/v3/algorithm/count.hpp>
@@ -67,6 +69,23 @@ void handlePhiFunctions(StackData& _stackData, PhiInverse const& _phiInverse, Li
 				_stackData.emplace_back(phiSlot);
 		}
 	}
+}
+
+/// Raises a stack-too-deep error if a required stack layout could not be realized. This can only happen if spilling
+/// to memory is disabled, i.e., if the function is part of a recursive call chain.
+void requireRealizableLayout(bool const _realizable, bool const _spillingAllowed, SSACFG const& _cfg)
+{
+	if (_realizable)
+		return;
+	yulAssert(!_spillingAllowed, "Stack layout must be realizable when spilling is allowed.");
+	BOOST_THROW_EXCEPTION(solidity::yul::StackTooDeepError(
+		solidity::yul::YulName{_cfg.name},
+		solidity::yul::YulName{},
+		0,
+		"Stack too deep. "
+		"Spilling variables to memory is not supported in functions that are part of a recursive call chain. "
+		"Try removing local variables."
+	));
 }
 
 void declareJunk(Stack& _stack, LivenessAnalysis::LivenessData const& _live)
@@ -221,7 +240,7 @@ void StackLayoutGenerator::defineStackIn(SSACFG::BlockId const& _blockId)
 					candidateSpillSet,
 					m_spillingAllowed
 				);
-				yulAssert(result.status == stack::ShuffleResult::Status::Admissible);
+				requireRealizableLayout(result.status == stack::ShuffleResult::Status::Admissible, m_spillingAllowed, m_cfg);
 				cumulativeGas[i] += stackOpsGas(m_cfg, result.trace);
 			}
 			candidateSpillSets[i] = std::move(candidateSpillSet);
@@ -234,9 +253,10 @@ void StackLayoutGenerator::defineStackIn(SSACFG::BlockId const& _blockId)
 		for (std::size_t i = 1; i < stackInProposals.size(); ++i)
 			if (candidateCost(i) < candidateCost(best))
 				best = i;
-		yulAssert(
+		requireRealizableLayout(
 			m_spillingAllowed || candidateSpillSets[best].numSpilled() == m_spillSet.numSpilled(),
-			"Stack too deep, but spilling is disabled because the function is part of a recursive call chain."
+			m_spillingAllowed,
+			m_cfg
 		);
 		m_spillSet = std::move(candidateSpillSets[best]);
 		blockLayout.stackIn = std::move(proposals[best]);
@@ -252,10 +272,7 @@ void StackLayoutGenerator::defineStackIn(SSACFG::BlockId const& _blockId)
 			m_spillSet,
 			m_spillingAllowed
 		);
-		yulAssert(
-			shuffleResult.status == stack::ShuffleResult::Status::Admissible,
-			"Stack too deep, but spilling is disabled because the function is part of a recursive call chain."
-		);
+		requireRealizableLayout(shuffleResult.status == stack::ShuffleResult::Status::Admissible, m_spillingAllowed, m_cfg);
 		blockLayout.addTraceForStackIn(parentBlockId, std::move(shuffleResult.trace));
 	}
 
@@ -300,8 +317,8 @@ void StackLayoutGenerator::visitBlock(SSACFG::BlockId const& _blockId)
 			auto const target = stack::buildInstructionStackIn(stack.data(), requiredStackTop, opLiveOutSlots, m_spillSet);
 			auto const spillCountBefore = m_spillSet.numSpilled();
 			auto shuffleResult = stack::shuffle(currentStackData, target, m_spillSet, m_spillingAllowed);
-			yulAssert(shuffleResult.status == stack::ShuffleResult::Status::Admissible, "Spilling not allowed, stack too deep.");
-			yulAssert(m_spillingAllowed || m_spillSet.numSpilled() == spillCountBefore, "Spilling not allowed, stack too deep.");
+			requireRealizableLayout(shuffleResult.status == stack::ShuffleResult::Status::Admissible, m_spillingAllowed, m_cfg);
+			requireRealizableLayout(m_spillingAllowed || m_spillSet.numSpilled() == spillCountBefore, m_spillingAllowed, m_cfg);
 			blockLayout.operationShuffles.push_back(std::move(shuffleResult.trace));
 		}
 		for (std::size_t i = 0; i < requiredStackTop.size(); ++i)
@@ -329,10 +346,7 @@ void StackLayoutGenerator::visitBlock(SSACFG::BlockId const& _blockId)
 		StackData const target = stackPreImage(m_cfg, m_resultLayout[_target]->stackIn, PhiInverse(m_cfg, _blockId, _target));
 		StackData exitStack = currentStackData;
 		auto shuffleResult = stack::shuffle(exitStack, target, m_spillSet, m_spillingAllowed);
-		yulAssert(
-			shuffleResult.status == stack::ShuffleResult::Status::Admissible,
-			"Stack too deep, but spilling is disabled because the function is part of a recursive call chain."
-		);
+		requireRealizableLayout(shuffleResult.status == stack::ShuffleResult::Status::Admissible, m_spillingAllowed, m_cfg);
 		m_resultLayout[_target]->addTraceForStackIn(_blockId, std::move(shuffleResult.trace));
 	};
 
@@ -353,8 +367,8 @@ void StackLayoutGenerator::visitBlock(SSACFG::BlockId const& _blockId)
 					auto const target = stack::buildInstructionStackIn(stack.data(), {condition}, blockLiveOutSlots, m_spillSet);
 					auto const spillCountBefore = m_spillSet.numSpilled();
 					auto shuffleResult = stack::shuffle(currentStackData, target, m_spillSet, m_spillingAllowed);
-					yulAssert(shuffleResult.status == stack::ShuffleResult::Status::Admissible, "Spilling not allowed, stack too deep.");
-					yulAssert(m_spillingAllowed || m_spillSet.numSpilled() == spillCountBefore, "Spilling not allowed, stack too deep.");
+					requireRealizableLayout(shuffleResult.status == stack::ShuffleResult::Status::Admissible, m_spillingAllowed, m_cfg);
+					requireRealizableLayout(m_spillingAllowed || m_spillSet.numSpilled() == spillCountBefore, m_spillingAllowed, m_cfg);
 					blockLayout.exitShuffle = std::move(shuffleResult.trace);
 				}
 
@@ -377,7 +391,7 @@ void StackLayoutGenerator::visitBlock(SSACFG::BlockId const& _blockId)
 				StackData returnStack = _functionReturn.returnValues | ranges::views::transform([this](InstId const _id) { return StackSlot::makeValue(m_cfg, _id); }) | ranges::to<std::vector>;
 				returnStack.push_back(StackSlot::makeFunctionReturnLabel(m_graphID));
 				auto shuffleResult = stack::shuffle(currentStackData, returnStack, m_spillSet, m_spillingAllowed);
-				yulAssert(shuffleResult.status == stack::ShuffleResult::Status::Admissible, "Spilling not allowed, stack too deep.");
+				requireRealizableLayout(shuffleResult.status == stack::ShuffleResult::Status::Admissible, m_spillingAllowed, m_cfg);
 				blockLayout.exitShuffle = std::move(shuffleResult.trace);
 			},
 			[&](SSACFG::BasicBlock::Jump const& _jump) {
