@@ -664,7 +664,6 @@ void schema::info::to_json(Json& _json, Resources const& _resources)
 {
 	if (_resources.ethdebug.has_value())
 		_json["ethdebug"] = *_resources.ethdebug;
-	_json["compilation"] = _resources.compilation;
 	_json["types"] = Json::object();
 	for (auto const& [id, typeDocument]: _resources.types)
 		_json["types"][id] = typeDocument;

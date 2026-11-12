@@ -4,7 +4,7 @@ contract C {
     }
 }
 // ----
-// .resources.compilation.sources | length: 1
+// .compilation.sources | length: 1
 // C.contract | type: object
 // C.contract | keys: ["definition", "name"]
 // C.creation.instructions | type: array

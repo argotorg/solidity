@@ -234,9 +234,7 @@ EOF
                 ' "$stdout_path" > "$temporary_file"
             else
                 jq --indent 4 '
-                    if .ethdebug.resources.compilation.compiler.version? != null then
-                        .ethdebug.resources.compilation.compiler.version = "<VERSION REMOVED>"
-                    elif .ethdebug.compilation.compiler.version? != null then
+                    if .ethdebug.compilation.compiler.version? != null then
                         .ethdebug.compilation.compiler.version = "<VERSION REMOVED>"
                     else
                         .
