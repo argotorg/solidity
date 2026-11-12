@@ -63,16 +63,14 @@
 // FunctionEntry_f_0 -> Block1_0;
 // Block1_0 [label="\
 // Block 0; (0, max 16)\nLiveIn: v1[1], v0[1]\l\
-// LiveOut: v1[1], v0[1], ^phi5[1]\l\nUsed: \l\n"];
+// LiveOut: v1[1], v0[1], ^phi5[1]\l\nUsed: \l\n^phi5 := 0x2a\l\
+// "];
 // Block1_0 -> Block1_0Exit [arrowhead=none];
 // Block1_0Exit [label="Jump" shape=oval];
 // Block1_0Exit -> Block1_1 [style="solid"];
 // Block1_1 [label="\
 // Block 1; (1, max 16)\nLiveIn: phi5[4], v1[1], v0[1], ^phi5[1]\l\
-// LiveOut: phi5[2], v1[1], v0[1]\l\nUsed: phi5[2], ^phi5[1]\l\nphi5 := φ(\l\
-// 	Block 0 => 0x2a,\l\
-// 	Block 21 => v63\l\
-// )\l\
+// LiveOut: phi5[2], v1[1], v0[1]\l\nUsed: phi5[2], ^phi5[1]\l\nphi5 := φ(^phi5)\l\
 // v6 := lt(phi5, v0)\l\
 // "];
 // Block1_1 -> Block1_1Exit;
@@ -185,6 +183,7 @@
 // Block1_21 [label="\
 // Block 21; (13, max 13)\nLiveIn: v63[1], v1[1], v0[1]\l\
 // LiveOut: v63[1], v1[1], v0[1], ^phi5[1]\l\nUsed: \l\nsstore(0xff, 0xffff)\l\
+// ^phi5 := v63\l\
 // "];
 // Block1_21 -> Block1_21Exit [arrowhead=none];
 // Block1_21Exit [label="Jump" shape=oval];
