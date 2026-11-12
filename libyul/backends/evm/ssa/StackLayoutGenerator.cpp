@@ -445,6 +445,12 @@ void StackLayoutGenerator::visitBlock(SSACFG::BlockId const& _blockId)
 	std::visit(
 		solidity::util::GenericVisitor{
 			[&](SSACFG::BasicBlock::ConditionalJump const& _cJump) {
+				// The writes of a block are realized on its out-edge. A conditional jump has two, and the one into
+				// the nonZero target cannot carry code.
+				yulAssert(
+					m_liveness.liveWrites(_blockId).empty(),
+					fmt::format("block {} writes a shadow on the edges of a conditional jump", _blockId)
+				);
 				auto const& blockLiveOut = m_liveness.liveOut(_blockId);
 
 				// check if we have to do anything (dup the condition, bring it to the top etc)
