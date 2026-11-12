@@ -274,3 +274,59 @@ add_library(yul
 )
 
 target_link_libraries(yul PUBLIC evmasm solutil langutil smtutil fmt::fmt-header-only)
+
+if (ZIG_SHUFFLER)
+	# shuffler.zig is compiled to assembly text, and the object that is linked is assembled from that text.
+	# Zig prints assembly in Intel syntax only, so it emits LLVM bitcode, and its clang prints that as
+	# assembly (in AT&T syntax on x86) without running further LLVM passes on it.
+	set(shufflerSource "${CMAKE_CURRENT_SOURCE_DIR}/backends/evm/ssa/stack/shuffler.zig")
+	set(shufflerBitcode "${CMAKE_CURRENT_BINARY_DIR}/shuffler.bc")
+	set(shufflerAssembly "${CMAKE_CURRENT_BINARY_DIR}/shuffler.s")
+	set(shufflerObject "${CMAKE_CURRENT_BINARY_DIR}/shuffler${CMAKE_CXX_OUTPUT_EXTENSION}")
+	# Zig keeps its caches in the build directory
+	set(zig
+		"${CMAKE_COMMAND}" -E env
+		"ZIG_LOCAL_CACHE_DIR=${CMAKE_CURRENT_BINARY_DIR}/zig-cache/local"
+		"ZIG_GLOBAL_CACHE_DIR=${CMAKE_CURRENT_BINARY_DIR}/zig-cache/global"
+		"${ZIG_EXECUTABLE}"
+	)
+	set(zigTargetFlags -target "${ZIG_SHUFFLER_TARGET}" "-mcpu=${ZIG_SHUFFLER_CPU}")
+	add_custom_command(
+		OUTPUT "${shufflerAssembly}"
+		BYPRODUCTS "${shufflerBitcode}"
+		# -fno-builtin, -fno-compiler-rt, -fno-ubsan-rt: the code calls no memcpy and no runtime
+		COMMAND ${zig} build-obj "${shufflerSource}" ${zigTargetFlags} -O "${ZIG_SHUFFLER_OPTIMIZE}"
+			-fPIC -fstrip -fsingle-threaded -fomit-frame-pointer
+			-fno-unwind-tables -fno-stack-check -fno-stack-protector
+			-fno-builtin -fno-compiler-rt -fno-ubsan-rt
+			-fno-emit-bin "-femit-llvm-bc=${shufflerBitcode}"
+		# -O2 is the level of the code generator; -disable-llvm-passes leaves the bitcode as Zig optimized it
+		COMMAND ${zig} cc ${zigTargetFlags}
+			-S -O2 -Xclang -disable-llvm-passes -fPIC -fno-verbose-asm -fno-addrsig
+			-Wno-override-module -Wno-unused-command-line-argument
+			"${shufflerBitcode}" -o "${shufflerAssembly}"
+		DEPENDS "${shufflerSource}"
+		COMMENT "Compiling the Zig stack shuffler to ${shufflerAssembly}"
+		VERBATIM
+	)
+	add_custom_command(
+		OUTPUT "${shufflerObject}"
+		COMMAND ${zig} cc ${zigTargetFlags} -c -g0 "${shufflerAssembly}" -o "${shufflerObject}"
+		DEPENDS "${shufflerAssembly}"
+		COMMENT "Assembling the Zig stack shuffler"
+		VERBATIM
+	)
+	# The stack shuffler as assembly text
+	add_custom_target(shuffler_assembly DEPENDS "${shufflerAssembly}")
+
+	target_sources(yul PRIVATE
+		backends/evm/ssa/stack/ZigShuffler.cpp
+		backends/evm/ssa/stack/ZigShuffler.h
+		"${shufflerObject}"
+	)
+	# only for the file that calls it: a change of the options does not rebuild the library
+	set_property(SOURCE backends/evm/ssa/stack/Shuffler.cpp APPEND PROPERTY COMPILE_DEFINITIONS
+		YUL_ZIG_SHUFFLER
+		$<$<BOOL:${ZIG_SHUFFLER_CROSSCHECK}>:YUL_ZIG_SHUFFLER_CROSSCHECK>
+	)
+endif()

@@ -18,6 +18,10 @@
 
 #include <libyul/backends/evm/ssa/stack/Shuffler.h>
 
+#if defined(YUL_ZIG_SHUFFLER)
+#include <libyul/backends/evm/ssa/stack/ZigShuffler.h>
+#endif
+
 #include <libyul/backends/evm/ssa/spill/SpillSet.h>
 
 #include <libyul/backends/evm/ssa/ShuffleTrace.h>
@@ -1098,5 +1102,24 @@ ShuffleResult stack::shuffle(
 	yulAssert(
 		ranges::all_of(_target, [&](StackSlot const& _slot) { return isAvailable(_slot, _source, _spills); })
 	);
+#if defined(YUL_ZIG_SHUFFLER_CROSSCHECK)
+	StackData referenceSource = _source;
+	spill::SpillSet referenceSpills = _spills;
+	ShuffleResult const reference =
+		Shuffle{referenceSource, _target, referenceSpills, _spillingAllowed, _reachableStackDepth}.run();
+	ShuffleResult result = zigShuffle(_source, _target, _spills, _spillingAllowed, _reachableStackDepth);
+	yulAssert(
+		result.status == reference.status &&
+		result.trace == reference.trace &&
+		result.sourceOf == reference.sourceOf &&
+		_source == referenceSource &&
+		_spills.spilledValues() == referenceSpills.spilledValues(),
+		"The Zig stack shuffler and the C++ stack shuffler disagree"
+	);
+	return result;
+#elif defined(YUL_ZIG_SHUFFLER)
+	return zigShuffle(_source, _target, _spills, _spillingAllowed, _reachableStackDepth);
+#else
 	return Shuffle{_source, _target, _spills, _spillingAllowed, _reachableStackDepth}.run();
+#endif
 }

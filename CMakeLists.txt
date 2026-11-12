@@ -52,6 +52,7 @@ option(
 mark_as_advanced(PROFILE_OPTIMIZER_STEPS)
 mark_as_advanced(IGNORE_VENDORED_DEPENDENCIES)
 mark_as_advanced(ONLY_BUILD_SOLIDITY_LIBRARIES)
+include(ZigShuffler)
 
 # Setup cccache.
 include(EthCcache)
