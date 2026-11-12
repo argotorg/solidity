@@ -28,11 +28,8 @@
 #include <range/v3/algorithm/any_of.hpp>
 #include <range/v3/algorithm/contains.hpp>
 #include <range/v3/algorithm/count_if.hpp>
-#include <range/v3/algorithm/set_algorithm.hpp>
 #include <range/v3/algorithm/sort.hpp>
-#include <range/v3/algorithm/stable_sort.hpp>
 #include <range/v3/range/conversion.hpp>
-#include <range/v3/view/chunk_by.hpp>
 #include <range/v3/view/drop.hpp>
 #include <range/v3/view/iota.hpp>
 #include <range/v3/view/reverse.hpp>
@@ -41,7 +38,6 @@
 
 #include <algorithm>
 #include <cstdint>
-#include <iterator>
 #include <limits>
 #include <optional>
 #include <utility>
@@ -651,51 +647,42 @@ private:
 
 	[[nodiscard]] std::optional<Blocked> permute(std::vector<std::size_t> _permutation)
 	{
-		// Equal slots are interchangeable: among them, those already at one of their desired offsets stay, the
-		// others take the remaining offsets. Otherwise equal slots would pass each other in cycles.
+		// Equal slots are interchangeable, so two equal slots may exchange their destinations.
+		// Slot already holding its target value stays; the slot bound for its offset takes over
+		// its destination
+		auto minimizePermutationSupport = [&]
 		{
-			std::vector<std::size_t> positions = ranges::views::iota(std::size_t{0}, m_data.size()) | ranges::to<std::vector>;
-			// stability needed for reproducibility across platforms (sort doesn't guarantee order for ties)
-			// also it keeps chunks of positions that belong to same data in ascending order
-			ranges::stable_sort(
-				positions,
-				[&](std::size_t const _a, std::size_t const _b) { return m_data[_a] < m_data[_b]; }
-			);
-			for (ranges::subrange const group: positions | ranges::views::chunk_by(
-				[&](std::size_t const _a, std::size_t const _b) { return m_data[_a] == m_data[_b]; }
-			))
+			for (std::size_t position = 0; position < m_data.size(); /*increment in the loop body*/)
 			{
-				// the group is empty or contains only a single element (ie no second, equal slot exists)
-				if (ranges::distance(group) < 2)
-					continue;
-				// the group's desired offsets
-				std::vector<std::size_t> desired =
-					group |
-					ranges::views::transform([&_permutation](std::size_t const _pos) { return _permutation[_pos]; }) |
-					ranges::to<std::vector>;
-				// sorted needed for set operations
-				ranges::sort(desired);
-				// slots already standing on one of the group's desired offsets stay put
-				// stayers = group \cap desired => _permutation[pos] = pos
-				std::vector<std::size_t> stayers;
-				ranges::set_intersection(group, desired, std::back_inserter(stayers));
-				for (std::size_t const pos: stayers)
-					_permutation[pos] = pos;
-				// the others take the vacant offsets, both sides ascending, so nothing crosses
-				// movers = group ∖ desired
-				std::vector<std::size_t> movers;
-				ranges::set_difference(group, desired, std::back_inserter(movers));
-				// vacant = desired ∖ group => _permutation[movers[i]] = vacant[i]
-				std::vector<std::size_t> vacant;
-				ranges::set_difference(desired, group, std::back_inserter(vacant));
-
-				// desired is built with exactly one entry per group member, so |G| = |D|, i.e.,
-				// |movers| =  |G ∖ D| = |G| − |G \cap D| and |vacant| = |D ∖ G| = |D| − |D \cap G|
-				yulAssert(movers.size() == vacant.size());
-				for (std::size_t i = 0; i < movers.size(); ++i)
-					_permutation[movers[i]] = vacant[i];
+				std::size_t const destination = _permutation[position];
+				if (destination != position && m_data[destination] == m_data[position])
+					std::swap(_permutation[destination], _permutation[position]);
+				else
+					++position;
 			}
-		}
+		};
+		// Join all cycles that share a value by exchanging the destinations of equal slots. Each join saves the swap
+		// that enters a cycle without the top. The top takes part even when it stays in place.
+		auto minimizeCyclesWithoutTop = [&]
+		{
+			auto const isFixed = [&](std::size_t const _pos) { return _permutation[_pos] == _pos; };
+			auto const isTop = [&](std::size_t const _pos) { return _pos == m_data.size() - 1; };
+			auto const sameCycle = [&_permutation](std::size_t const _a, std::size_t const _b)
+			{
+				std::size_t pos = _permutation[_a];
+				while (pos != _a && pos != _b)
+					pos = _permutation[pos];
+				return pos == _b;
+			};
+			for (std::size_t a = 0; a < m_data.size(); ++a)
+				if (!isFixed(a))
+					for (std::size_t b = a + 1; b < m_data.size(); ++b)
+						if (m_data[a] == m_data[b] && (isFixed(b) ? isTop(b) : !sameCycle(a, b)))
+							std::swap(_permutation[a], _permutation[b]);
+		};
+
+		minimizePermutationSupport();
+		minimizeCyclesWithoutTop();
 
 		auto exchangeWithTop = [this, &_permutation](StackOffset const _pos) -> std::optional<Blocked>
 		{
