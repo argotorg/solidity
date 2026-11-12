@@ -191,15 +191,9 @@ bool SyntaxChecker::visit(ModifierDefinition const&)
 
 void SyntaxChecker::endVisit(ModifierDefinition const& _modifier)
 {
-	if (_modifier.isImplemented() && !m_placeholderFound)
+	solAssert(!_modifier.markedVirtual(), "Virtual modifiers have been removed.");
+	if (!m_placeholderFound)
 		m_errorReporter.syntaxError(2883_error, _modifier.body().location(), "Modifier body does not contain '_'.");
-
-	if (_modifier.markedVirtual())
-		m_errorReporter.warning(
-			8429_error,
-			_modifier.location(),
-			"Virtual modifiers are deprecated and scheduled for removal."
-		);
 
 	m_placeholderFound = false;
 }

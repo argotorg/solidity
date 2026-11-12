@@ -267,8 +267,6 @@ struct IdentifierPathAnnotation: ASTAnnotation
 {
 	/// Referenced declaration, set during reference resolution stage.
 	Declaration const* referencedDeclaration = nullptr;
-	/// What kind of lookup needs to be done (static, virtual, super) find the declaration.
-	util::SetOnce<VirtualLookup> requiredLookup;
 
 	/// Declaration of each path element.
 	std::vector<Declaration const*> pathDeclarations;

@@ -29,6 +29,8 @@
 #include <libsolutil/Visitor.h>
 
 #include <boost/algorithm/string/predicate.hpp>
+#include <range/v3/algorithm/find_if.hpp>
+#include <range/v3/view/chunk_by.hpp>
 
 
 using namespace solidity;
@@ -246,9 +248,7 @@ void OverrideProxy::storeBaseFunction(OverrideProxy const& _base) const
 		[&](FunctionDefinition const* _item) {
 			_item->annotation().baseFunctions.emplace(std::get<FunctionDefinition const*>(_base.m_item));
 		},
-		[&](ModifierDefinition const* _item) {
-			_item->annotation().baseFunctions.emplace(std::get<ModifierDefinition const*>(_base.m_item));
-		},
+		[&](ModifierDefinition const*) { solAssert(false, "Modifiers cannot be virtual and cannot override"); },
 		[&](VariableDeclaration const* _item) {
 			_item->annotation().baseFunctions.emplace(std::get<FunctionDefinition const*>(_base.m_item));
 		}
@@ -298,7 +298,7 @@ bool OverrideProxy::virtualSemantics() const
 {
 	return std::visit(GenericVisitor{
 		[&](FunctionDefinition const* _item) { return _item->virtualSemantics(); },
-		[&](ModifierDefinition const* _item) { return _item->virtualSemantics(); },
+		[&](ModifierDefinition const*) { return false; },
 		[&](VariableDeclaration const*) { return false; }
 	}, m_item);
 }
@@ -329,16 +329,6 @@ FunctionType const* OverrideProxy::originalFunctionType() const
 		[&](ModifierDefinition const*) -> FunctionType const* { solAssert(false, "Requested specific function type of modifier."); return nullptr; }
 	}, m_item);
 }
-
-ModifierType const* OverrideProxy::modifierType() const
-{
-	return std::visit(GenericVisitor{
-		[&](FunctionDefinition const*) -> ModifierType const* { solAssert(false, "Requested modifier type of function."); return nullptr; },
-		[&](VariableDeclaration const*) -> ModifierType const* { solAssert(false, "Requested modifier type of variable."); return nullptr; },
-		[&](ModifierDefinition const* _modifier) -> ModifierType const* { return TypeProvider::modifier(*_modifier); }
-	}, m_item);
-}
-
 
 Declaration const* OverrideProxy::declaration() const
 {
@@ -387,7 +377,7 @@ bool OverrideProxy::unimplemented() const
 {
 	return std::visit(GenericVisitor{
 		[&](FunctionDefinition const* _item) { return !_item->isImplemented(); },
-		[&](ModifierDefinition const* _item) { return !_item->isImplemented(); },
+		[&](ModifierDefinition const*) { return false; },
 		[&](VariableDeclaration const*) { return false; }
 	}, m_item);
 }
@@ -481,8 +471,14 @@ void OverrideChecker::checkIllegalOverrides(ContractDefinition const& _contract)
 				modifier->location(),
 				"Override changes function or public state variable to modifier."
 			);
-
-		checkOverrideList(OverrideProxy{modifier}, inheritedMods);
+		auto it = ranges::find_if(inheritedMods, MatchByName{modifier->name()});
+		if (it != inheritedMods.end())
+			overrideError(
+				OverrideProxy(modifier),
+				*it,
+				5827_error,
+				"Modifier '" + modifier->name() + "' is already defined in a base contract. Modifiers cannot be overridden."
+			);
 	}
 
 	for (FunctionDefinition const* function: _contract.definedFunctions())
@@ -515,17 +511,11 @@ void OverrideChecker::checkIllegalOverrides(ContractDefinition const& _contract)
 
 void OverrideChecker::checkOverride(OverrideProxy const& _overriding, OverrideProxy const& _super)
 {
-	solAssert(_super.isModifier() == _overriding.isModifier(), "");
+	solAssert(!_super.isModifier());
+	solAssert(!_overriding.isModifier());
 
-	if (_super.isFunction() || _super.isModifier())
+	if (_super.isFunction())
 		_overriding.storeBaseFunction(_super);
-
-	if (_overriding.isModifier() && *_overriding.modifierType() != *_super.modifierType())
-		m_errorReporter.typeError(
-			1078_error,
-			_overriding.location(),
-			"Override changes modifier signature."
-		);
 
 	if (!_overriding.overrides() && !(_super.isFunction() && _super.contract().isInterface()))
 		overrideError(
@@ -752,16 +742,22 @@ void OverrideChecker::checkAmbiguousOverrides(ContractDefinition const& _contrac
 		OverrideProxyBySignatureMultiSet modifiers = inheritedModifiers(_contract);
 		for (ModifierDefinition const* mod: _contract.functionModifiers())
 			modifiers.erase(OverrideProxy{mod});
-
-		for (auto it = modifiers.cbegin(); it != modifiers.cend();)
+		static auto constexpr sameName = [](OverrideProxy const& _proxy1, OverrideProxy const& _proxy2) { return _proxy1.name() == _proxy2.name(); };
+		for (auto&& sameNameGroup: modifiers | ranges::views::chunk_by(sameName))
 		{
-			std::set<OverrideProxy> baseModifiers;
-			for (auto next = modifiers.upper_bound(*it); it != next; ++it)
-				baseModifiers.insert(*it);
+			auto const definitions = sameNameGroup | ranges::to<std::set>;
+			if (definitions.size() <= 1) continue;
+			SecondarySourceLocation ssl;
+			for (auto const& proxy: definitions)
+				ssl.append("Definition in \"" + proxy.contractName() + "\": ", proxy.declaration()->location());
 
-			checkAmbiguousOverridesInternal(std::move(baseModifiers), _contract.location());
+			m_errorReporter.typeError(
+				3412_error,
+				_contract.location(),
+				ssl,
+				"Two or more base classes define modifier with the same name: '" + definitions.begin()->name() + "'."
+			);
 		}
-
 	}
 }
 

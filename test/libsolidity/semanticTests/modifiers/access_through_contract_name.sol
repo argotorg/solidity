@@ -1,14 +1,14 @@
 contract A {
     uint public x = 7;
-    modifier m virtual { x = 2; _; }
+    modifier m { x = 2; _; }
 }
 contract C is A {
-    modifier m override { x = 1; _; }
+    modifier n { x = 1; _; }
 
     function f() public A.m returns (uint) {
         return 9;
     }
-    function g() public m returns (uint) {
+    function g() public n returns (uint) {
         return 10;
     }
 }

@@ -278,25 +278,16 @@ void TypeChecker::endVisit(InheritanceSpecifier const& _inheritance)
 
 void TypeChecker::endVisit(ModifierDefinition const& _modifier)
 {
+	solAssert(!_modifier.virtualSemantics());
 	if (auto const* contractDef = dynamic_cast<ContractDefinition const*>(_modifier.scope()))
 	{
-		if (_modifier.virtualSemantics() && contractDef->isLibrary())
-			m_errorReporter.typeError(
-				3275_error,
-				_modifier.location(),
-				"Modifiers in a library cannot be virtual."
-			);
-
 		if (contractDef->isInterface())
 			m_errorReporter.typeError(
 				6408_error,
 				_modifier.location(),
-				"Modifiers cannot be defined or declared in interfaces."
+				"Modifiers cannot be defined in interfaces."
 			);
 	}
-
-	if (!_modifier.isImplemented() && !_modifier.virtualSemantics())
-		m_errorReporter.typeError(8063_error, _modifier.location(), "Modifiers without implementation must be marked virtual.");
 }
 
 bool TypeChecker::visit(FunctionDefinition const& _function)
@@ -576,8 +567,6 @@ void TypeChecker::visitManually(
 	for (ASTPointer<Expression> const& argument: arguments)
 		argument->accept(*this);
 
-	_modifier.name().accept(*this);
-
 	auto const* declaration = &dereference(_modifier.name());
 	std::vector<ASTPointer<VariableDeclaration>> emptyParameterList;
 	std::vector<ASTPointer<VariableDeclaration>> const* parameters = nullptr;
@@ -594,15 +583,6 @@ void TypeChecker::visitManually(
 						"Can only use modifiers defined in the current contract or in base contracts."
 					);
 			}
-		if (
-			*_modifier.name().annotation().requiredLookup == VirtualLookup::Static &&
-			!modifierDecl->isImplemented()
-		)
-			m_errorReporter.typeError(
-				1835_error,
-				_modifier.location(),
-				"Cannot call unimplemented modifier. The modifier has no implementation in the referenced contract. Refer to it by its unqualified name if you want to call the implementation from the most derived contract."
-			);
 	}
 	else
 		// check parameters for Base constructors
@@ -3783,17 +3763,6 @@ bool TypeChecker::visit(Identifier const& _identifier)
 		}
 
 	return false;
-}
-
-void TypeChecker::endVisit(IdentifierPath const& _identifierPath)
-{
-	if (
-		dynamic_cast<CallableDeclaration const*>(_identifierPath.annotation().referencedDeclaration) &&
-		_identifierPath.path().size() == 1
-	)
-		_identifierPath.annotation().requiredLookup = VirtualLookup::Virtual;
-	else
-		_identifierPath.annotation().requiredLookup = VirtualLookup::Static;
 }
 
 void TypeChecker::endVisit(UserDefinedTypeName const& _userDefinedTypeName)

@@ -961,40 +961,16 @@ ASTPointer<ModifierDefinition> Parser::parseModifierDefinition()
 	else
 		parameters = createEmptyParameterList();
 
-	ASTPointer<OverrideSpecifier> overrides;
-	bool isVirtual = false;
+	if (m_scanner->currentToken() == Token::Virtual || m_scanner->currentToken() == Token::Override)
+		fatalParserError(2785_error, "Modifiers cannot be marked 'virtual' or 'override'. Virtual modifiers have been removed.");
 
-	while (true)
-	{
-		if (m_scanner->currentToken() == Token::Override)
-		{
-			if (overrides)
-				parserError(9102_error, "Override already specified.");
-			overrides = parseOverrideSpecifier();
-		}
-		else if (m_scanner->currentToken() == Token::Virtual)
-		{
-			if (isVirtual)
-				parserError(2662_error, "Virtual already specified.");
+	if (m_scanner->currentToken() == Token::Semicolon)
+		fatalParserError(8063_error, "Modifiers without implementation are not allowed.");
 
-			isVirtual = true;
-			advance();
-		}
-		else
-			break;
-	}
+	ASTPointer<Block> block = parseBlock();
+	nodeFactory.setEndPositionFromNode(block);
 
-	ASTPointer<Block> block;
-	nodeFactory.markEndPosition();
-	if (m_scanner->currentToken() != Token::Semicolon)
-	{
-		block = parseBlock();
-		nodeFactory.setEndPositionFromNode(block);
-	}
-	else
-		advance(); // just consume the ';'
-
-	return nodeFactory.createNode<ModifierDefinition>(name, nameLocation, documentation, parameters, isVirtual, overrides, block);
+	return nodeFactory.createNode<ModifierDefinition>(name, nameLocation, documentation, parameters, block);
 }
 
 std::pair<ASTPointer<ASTString>, SourceLocation> Parser::expectIdentifierWithLocation()

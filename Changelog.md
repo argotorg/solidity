@@ -6,6 +6,11 @@ Breaking Changes:
 * SMTChecker: Remove BMC engine.
 * SMTChecker: Drop support for cvc5 as the backend SMT solver.
 * SMTChecker: Drop `pragma experimental SMTChecker;`. SMTChecker can be enabled by setting model checker engine to `chc`.
+* Type System: Disallow virtual modifiers.
+
+AST Changes:
+* AST: Remove the `virtual`, `overrides`, and `baseModifiers` fields from `ModifierDefinition` nodes.
+
 
 ### 0.8.39 (unreleased)
 

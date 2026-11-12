@@ -15,7 +15,7 @@ contract A {
 
     function f3() public virtual {}
 
-    modifier mod1 virtual {
+    modifier mod1 {
         f2();
         _;
     }
@@ -31,9 +31,8 @@ contract A {
 
 
 contract C is A {
-    modifier mod1 override {
+    constructor() {
         f4();
-        _;
     }
 
     function f3() public override {
@@ -45,4 +44,4 @@ contract C is A {
     }
 }
 // ----
-// getData() -> 0x4300
+// getData() -> 0x4320

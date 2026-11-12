@@ -17,12 +17,18 @@ the compiler notifying you about it.
 New Restrictions
 ================
 
+This section lists changes that might cause existing contracts to not compile anymore.
+
 * ABI coder v1 has been removed and ``pragma abicoder v1;`` is no longer accepted.
   ABI coder v2, which has been the default since Solidity 0.8.0, is now the only implementation.
 
 * Deprecated ``pragma experimental SMTChecker;`` is no longer accepted.
   SMTChecker can be enabled by setting model checker engine to ``chc``.
 
+* Virtual modifiers have been removed.
+  Modifiers can no longer be marked ``virtual`` or ``override`` and every modifier must have a body.
+  A derived contract cannot define a modifier with the same name as a modifier of one of its base contracts,
+  and it cannot inherit two different modifiers with the same name.
 
 Interface Changes
 =================
@@ -39,6 +45,8 @@ interface, or how you analyze the output produced by it.
 
 * cvc5 can no longer be selected as the SMT solver to be used by SMTChecker.
 
+* ``ModifierDefinition`` nodes in the JSON AST no longer have the ``virtual``, ``overrides``, and ``baseModifiers`` fields.
+
 How to update your code
 =======================
 
@@ -48,4 +56,8 @@ How to update your code
   to the parameter types.
 
 * Remove ``pragma experimental SMTChecker;``.
+
+* Remove ``virtual`` and ``override`` from modifiers.
+  A virtual modifier can be, in most cases, replaced by a non-virtual modifier and a virtual helper function.
+  The non-virtual modifier can delegate the work to the virtual helper that derived contracts can override.
 
