@@ -12,5 +12,6 @@ contract B is A {
     }
 }
 // ----
-// Warning 2519: (79-85): This declaration shadows an existing declaration.
 // DeclarationError 7576: (198-199): Undeclared identifier.
+// Warning 2519: (79-85): This declaration shadows an existing declaration.
+// Warning 2519: (189-195): This declaration shadows an existing declaration.

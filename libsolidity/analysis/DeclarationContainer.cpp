@@ -103,7 +103,8 @@ bool DeclarationContainer::registerDeclaration(
 	ASTString const* _name,
 	langutil::SourceLocation const* _location,
 	bool _invisible,
-	bool _update
+	bool _update,
+	bool _ignoreHomonym
 )
 {
 	if (!_name)
@@ -122,7 +123,7 @@ bool DeclarationContainer::registerDeclaration(
 		if (conflictingDeclaration(_declaration, _name))
 			return false;
 
-		if (m_enclosingContainer && _declaration.isVisibleAsUnqualifiedName())
+		if (m_enclosingContainer && _declaration.isVisibleAsUnqualifiedName() && !_ignoreHomonym)
 			m_homonymCandidates.emplace_back(*_name, _location ? _location : &_declaration.location());
 	}
 
@@ -135,10 +136,11 @@ bool DeclarationContainer::registerDeclaration(
 bool DeclarationContainer::registerDeclaration(
 	Declaration const& _declaration,
 	bool _invisible,
-	bool _update
+	bool _update,
+	bool _ignoreHomonym
 )
 {
-	return registerDeclaration(_declaration, nullptr, nullptr, _invisible, _update);
+	return registerDeclaration(_declaration, nullptr, nullptr, _invisible, _update, _ignoreHomonym);
 }
 
 std::vector<Declaration const*> DeclarationContainer::resolveName(

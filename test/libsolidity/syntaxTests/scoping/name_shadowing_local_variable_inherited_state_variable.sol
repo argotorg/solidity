@@ -27,3 +27,6 @@ contract C is B {
     }
 }
 // ----
+// Warning 2519: (155-168): This declaration shadows an existing declaration.
+// Warning 2519: (373-388): This declaration shadows an existing declaration.
+// Warning 2519: (576-585): This declaration shadows an existing declaration.

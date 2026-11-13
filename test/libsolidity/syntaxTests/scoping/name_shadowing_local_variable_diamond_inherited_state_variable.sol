@@ -15,3 +15,4 @@ contract D is B, C {
 }
 // ----
 // Warning 2319: (29-43): This declaration shadows a builtin symbol.
+// Warning 2519: (163-169): This declaration shadows an existing declaration.

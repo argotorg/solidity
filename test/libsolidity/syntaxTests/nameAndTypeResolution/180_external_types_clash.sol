@@ -6,4 +6,5 @@ contract test is base {
     function f(uint8 a) public { }
 }
 // ----
+// Warning 2519: (103-110): This declaration shadows an existing declaration.
 // TypeError 9914: (37-61): Function overload clash during conversion to external types for arguments.

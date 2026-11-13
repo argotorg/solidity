@@ -493,8 +493,6 @@ bool CompilerStack::analyze()
 			if (source->ast && !resolver.performImports(*source->ast, sourceUnitsByName))
 				return false;
 
-		resolver.warnHomonymDeclarations();
-
 		{
 			DocStringTagParser docStringTagParser(m_errorReporter);
 			for (Source const* source: m_sourceOrder)
@@ -503,9 +501,19 @@ bool CompilerStack::analyze()
 		}
 
 		// Requires DocStringTagParser
+		bool nameResolutionFailed = false;
 		for (Source const* source: m_sourceOrder)
 			if (source->ast && !resolver.resolveNamesAndTypes(*source->ast))
-				return false;
+			{
+				nameResolutionFailed = true;
+				break;
+			}
+
+		// Trigger homonym warnings even if names and types resolving failed.
+		// Performed after because it needs name resolution to see inherited members.
+		resolver.warnHomonymDeclarations();
+		if (nameResolutionFailed)
+			return false;
 
 		if (!analyzeLegacy(noErrors))
 			noErrors = false;
