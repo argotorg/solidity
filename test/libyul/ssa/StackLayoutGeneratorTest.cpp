@@ -108,19 +108,7 @@ protected:
 				_out << escapeLabel(m_cfg.evmDialect.builtin(m_cfg.builtinPayload(instId).builtin).name);
 			_out << "\\l\\\n";
 
-			yulAssert(inst.inputs.size() <= operationStack.size());
-			for (std::size_t j = 0; j < inst.inputs.size(); ++j)
-				operationStack.pop_back();
-			// A continuing function call's return label is not an SSA input but is consumed by the
-			// callee's return jump, so drop it to reflect the actual post-call stack.
-			if (inst.opcode == InstOpcode::Call && m_cfg.callPayload(instId).canContinue)
-			{
-				yulAssert(!operationStack.empty() && operationStack.back().isFunctionCallReturnLabel());
-				operationStack.pop_back();
-			}
-			m_cfg.forEachOutput(instId, [&](InstId const output) {
-				operationStack.push_back(StackSlot::makeValue(m_cfg, output));
-			});
+			applyOperation(m_cfg, instId, operationStack);
 			_out << stackToString(operationStack) << "\\l\\\n";
 		}
 

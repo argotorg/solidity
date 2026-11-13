@@ -22,6 +22,7 @@
 
 #include <libyul/backends/evm/ssa/Stack.h>
 #include <libyul/backends/evm/ssa/StackLayout.h>
+#include <libyul/backends/evm/ssa/StackUtils.h>
 
 #include <range/v3/view/zip.hpp>
 
@@ -56,17 +57,7 @@ StackData computeOperationOut(
 			continue;
 		replay(opOutStack, shuffle);
 
-		SSACFG::Inst const& inst = _cfg.inst(id);
-		// a call that can continue also consumes its return label, which sits right below the inputs
-		std::size_t consumedSlots = inst.inputs.size();
-		if (inst.opcode == InstOpcode::Call && _cfg.callPayload(id).canContinue)
-			++consumedSlots;
-		yulAssert(opOutStack.size() >= consumedSlots, "operation input layout smaller than consumed slot count");
-		for (std::size_t i = 0; i < consumedSlots; ++i)
-			opOutStack.pop_back();
-		_cfg.forEachOutput(id, [&](InstId const output) {
-			opOutStack.push_back(StackSlot::makeValue(_cfg, output));
-		});
+		applyOperation(_cfg, id, opOutStack);
 
 		if (id == producer)
 			return opOutStack;
