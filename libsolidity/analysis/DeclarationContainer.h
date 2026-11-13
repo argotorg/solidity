@@ -70,9 +70,10 @@ public:
 	/// @param _location alternative location, used to point at homonymous declarations.
 	/// @param _invisible if true, registers the declaration, reports name clashes but does not return it in @a resolveName.
 	/// @param _update if true, replaces a potential declaration that is already present.
+	/// @param _ignoreHomonym if true, does register declarations inherited from base contracts as homonym candidates.
 	/// @returns false if the name was already declared.
-	bool registerDeclaration(Declaration const& _declaration, ASTString const* _name, langutil::SourceLocation const* _location, bool _invisible, bool _update);
-	bool registerDeclaration(Declaration const& _declaration, bool _invisible, bool _update);
+	bool registerDeclaration(Declaration const& _declaration, ASTString const* _name, langutil::SourceLocation const* _location, bool _invisible, bool _update, bool _ignoreHomonym = false);
+	bool registerDeclaration(Declaration const& _declaration, bool _invisible, bool _update, bool _ignoreHomonym = false);
 
 	/// Finds all declarations that in the current scope can be referred to using specified name.
 	/// @param _name the name to look for.

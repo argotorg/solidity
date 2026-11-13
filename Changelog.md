@@ -11,6 +11,7 @@ Compiler Features:
 * Yul: Warn when the assembled bytecode of a compiled Yul object exceeds the EIP-170 (runtime code) or EIP-3860 (initcode) size limit, matching the existing warnings for Solidity input.
 
 Bugfixes:
+* Name Resolver: Fix shadowing warning not being emitted for declarations shadowing inherited members.
 * SMTChecker: Fix false negative in CHC engine when a function from abstract base is called externally using `this`.
 * SMTChecker: Fix empty tuples being printed as an undeclared constant in SMT-LIB queries, which made the solver reject every query of the affected contract.
 

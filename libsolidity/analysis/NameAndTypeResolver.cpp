@@ -373,7 +373,7 @@ void NameAndTypeResolver::importInheritedScope(ContractDefinition const& _base)
 		for (auto const& declaration: nameAndDeclaration.second)
 			// Import if it was declared in the base, is not the constructor and is visible in derived classes
 			if (declaration->scope() == &_base && declaration->isVisibleInDerivedContracts())
-				if (!m_currentScope->registerDeclaration(*declaration, false, false))
+				if (!m_currentScope->registerDeclaration(*declaration, false, false, true /* _ignoreInherited */))
 				{
 					SourceLocation firstDeclarationLocation;
 					SourceLocation secondDeclarationLocation;
