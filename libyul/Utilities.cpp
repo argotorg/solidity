@@ -34,8 +34,7 @@
 #include <boost/algorithm/string.hpp>
 
 #include <algorithm>
-#include <sstream>
-#include <vector>
+#include <string_view>
 
 using namespace solidity;
 using namespace solidity::yul;
@@ -45,49 +44,57 @@ std::string solidity::yul::reindent(std::string const& _code)
 {
 	int constexpr indentationWidth = 4;
 
-	auto constexpr static countBraces = [](std::string const& _s) noexcept -> int
+	auto constexpr static countBraces = [](std::string_view _s) noexcept -> int
 	{
 		auto const i = _s.find("//");
-		auto const e = i == _s.npos ? end(_s) : next(begin(_s), static_cast<ptrdiff_t>(i));
-		auto const opening = count_if(begin(_s), e, [](auto ch) { return ch == '{' || ch == '('; });
-		auto const closing = count_if(begin(_s), e, [](auto ch) { return ch == '}' || ch == ')'; });
+		auto const e = i == _s.npos ? end(_s) : std::next(begin(_s), static_cast<ptrdiff_t>(i));
+		auto const opening = std::count_if(begin(_s), e, [](auto ch) { return ch == '{' || ch == '('; });
+		auto const closing = std::count_if(begin(_s), e, [](auto ch) { return ch == '}' || ch == ')'; });
 		return int(opening - closing);
 	};
+	// Same predicate as boost::trim().
+	auto const isSpace = boost::algorithm::is_space();
 
-	std::vector<std::string> lines;
-	boost::split(lines, _code, boost::is_any_of("\n"));
-	for (std::string& line: lines)
-		boost::trim(line);
-
-	// Reduce multiple consecutive empty lines.
-	lines = fold(lines, std::vector<std::string>{}, [](auto&& _lines, auto&& _line) {
-		if (!(_line.empty() && !_lines.empty() && _lines.back().empty()))
-			_lines.emplace_back(std::move(_line));
-		return std::move(_lines);
-	});
-
-	std::stringstream out;
+	std::string out;
+	out.reserve(_code.size());
 	int depth = 0;
+	bool previousLineEmpty = false;
 
-	for (std::string const& line: lines)
+	// Process the code line by line in a single pass, without materializing the list of lines.
+	for (size_t lineStart = 0; lineStart != std::string::npos;)
 	{
+		size_t const lineEnd = _code.find('\n', lineStart);
+		std::string_view line(_code);
+		line = line.substr(lineStart, lineEnd == std::string::npos ? std::string::npos : lineEnd - lineStart);
+		lineStart = lineEnd == std::string::npos ? std::string::npos : lineEnd + 1;
+
+		while (!line.empty() && isSpace(line.front()))
+			line.remove_prefix(1);
+		while (!line.empty() && isSpace(line.back()))
+			line.remove_suffix(1);
+
+		// Reduce multiple consecutive empty lines.
+		if (line.empty() && previousLineEmpty)
+			continue;
+		previousLineEmpty = line.empty();
+
 		int const diff = countBraces(line);
 		if (diff < 0)
 			depth += diff;
 
 		if (!line.empty())
 		{
-			for (int i = 0; i < depth * indentationWidth; ++i)
-				out << ' ';
-			out << line;
+			if (depth > 0)
+				out.append(static_cast<size_t>(depth * indentationWidth), ' ');
+			out += line;
 		}
-		out << '\n';
+		out += '\n';
 
 		if (diff > 0)
 			depth += diff;
 	}
 
-	return out.str();
+	return out;
 }
 
 LiteralValue solidity::yul::valueOfNumberLiteral(std::string_view const _literal)
