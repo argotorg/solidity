@@ -677,8 +677,12 @@ private:
 			for (std::size_t a = 0; a < m_data.size(); ++a)
 				if (!isFixed(a))
 					for (std::size_t b = a + 1; b < m_data.size(); ++b)
-						if (m_data[a] == m_data[b] && (isFixed(b) ? isTop(b) : !sameCycle(a, b)))
-							std::swap(_permutation[a], _permutation[b]);
+						if (m_data[a] == m_data[b] && (!isFixed(b) || isTop(b)))
+						{
+							if (!sameCycle(a, b))
+								std::swap(_permutation[a], _permutation[b]);
+							break;
+						}
 		};
 
 		minimizePermutationSupport();
