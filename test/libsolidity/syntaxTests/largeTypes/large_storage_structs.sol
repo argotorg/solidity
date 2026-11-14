@@ -56,19 +56,36 @@ contract C {
 }
 // ----
 // Warning 7325: (106-108): Type struct C.S0 covers a large part of storage and thus makes collisions likely. Either use mappings or dynamic arrays and allow their size to be increased only in small quantities per transaction.
+// Warning 2119: (106-108): Type struct C.S0 spans 2**64 or more slots. Such oversized types are deprecated and will be disallowed in the next breaking release.
 // Warning 7325: (106-108): Type struct C.P[101] covers a large part of storage and thus makes collisions likely. Either use mappings or dynamic arrays and allow their size to be increased only in small quantities per transaction.
+// Warning 2119: (106-108): Type struct C.P[101] spans 2**64 or more slots. Such oversized types are deprecated and will be disallowed in the next breaking release.
 // Warning 7325: (171-173): Type struct C.S1 covers a large part of storage and thus makes collisions likely. Either use mappings or dynamic arrays and allow their size to be increased only in small quantities per transaction.
+// Warning 2119: (171-173): Type struct C.S1 spans 2**64 or more slots. Such oversized types are deprecated and will be disallowed in the next breaking release.
 // Warning 7325: (171-173): Type struct C.P[102] covers a large part of storage and thus makes collisions likely. Either use mappings or dynamic arrays and allow their size to be increased only in small quantities per transaction.
+// Warning 2119: (171-173): Type struct C.P[102] spans 2**64 or more slots. Such oversized types are deprecated and will be disallowed in the next breaking release.
 // Warning 7325: (341-343): Type struct C.P[103] covers a large part of storage and thus makes collisions likely. Either use mappings or dynamic arrays and allow their size to be increased only in small quantities per transaction.
+// Warning 2119: (341-343): Type struct C.P[103] spans 2**64 or more slots. Such oversized types are deprecated and will be disallowed in the next breaking release.
 // Warning 7325: (341-343): Type struct C.P[104] covers a large part of storage and thus makes collisions likely. Either use mappings or dynamic arrays and allow their size to be increased only in small quantities per transaction.
+// Warning 2119: (341-343): Type struct C.P[104] spans 2**64 or more slots. Such oversized types are deprecated and will be disallowed in the next breaking release.
 // Warning 7325: (505-507): Type struct C.Q0 covers a large part of storage and thus makes collisions likely. Either use mappings or dynamic arrays and allow their size to be increased only in small quantities per transaction.
+// Warning 2119: (505-507): Type struct C.Q0 spans 2**64 or more slots. Such oversized types are deprecated and will be disallowed in the next breaking release.
 // Warning 7325: (505-507): Type uint256[1][][100000000000000000001] covers a large part of storage and thus makes collisions likely. Either use mappings or dynamic arrays and allow their size to be increased only in small quantities per transaction.
+// Warning 2119: (505-507): Type uint256[1][][100000000000000000001] spans 2**64 or more slots. Such oversized types are deprecated and will be disallowed in the next breaking release.
 // Warning 7325: (505-507): Type uint256[][100000000000000000003] covers a large part of storage and thus makes collisions likely. Either use mappings or dynamic arrays and allow their size to be increased only in small quantities per transaction.
+// Warning 2119: (505-507): Type uint256[][100000000000000000003] spans 2**64 or more slots. Such oversized types are deprecated and will be disallowed in the next breaking release.
 // Warning 7325: (505-507): Type uint256[100000000000000000004] covers a large part of storage and thus makes collisions likely. Either use mappings or dynamic arrays and allow their size to be increased only in small quantities per transaction.
+// Warning 2119: (505-507): Type uint256[100000000000000000004] spans 2**64 or more slots. Such oversized types are deprecated and will be disallowed in the next breaking release.
 // Warning 7325: (505-507): Type uint256[100000000000000000002] covers a large part of storage and thus makes collisions likely. Either use mappings or dynamic arrays and allow their size to be increased only in small quantities per transaction.
+// Warning 2119: (505-507): Type uint256[100000000000000000002] spans 2**64 or more slots. Such oversized types are deprecated and will be disallowed in the next breaking release.
 // Warning 7325: (576-578): Type struct C.Q1 covers a large part of storage and thus makes collisions likely. Either use mappings or dynamic arrays and allow their size to be increased only in small quantities per transaction.
+// Warning 2119: (576-578): Type struct C.Q1 spans 2**64 or more slots. Such oversized types are deprecated and will be disallowed in the next breaking release.
 // Warning 7325: (576-578): Type uint256[1][][100000000000000000005] covers a large part of storage and thus makes collisions likely. Either use mappings or dynamic arrays and allow their size to be increased only in small quantities per transaction.
+// Warning 2119: (576-578): Type uint256[1][][100000000000000000005] spans 2**64 or more slots. Such oversized types are deprecated and will be disallowed in the next breaking release.
 // Warning 7325: (647-649): Type uint256[100000000000000000006] covers a large part of storage and thus makes collisions likely. Either use mappings or dynamic arrays and allow their size to be increased only in small quantities per transaction.
+// Warning 2119: (647-649): Type uint256[100000000000000000006] spans 2**64 or more slots. Such oversized types are deprecated and will be disallowed in the next breaking release.
 // Warning 7325: (715-717): Type struct C.Q3 covers a large part of storage and thus makes collisions likely. Either use mappings or dynamic arrays and allow their size to be increased only in small quantities per transaction.
+// Warning 2119: (715-717): Type struct C.Q3 spans 2**64 or more slots. Such oversized types are deprecated and will be disallowed in the next breaking release.
 // Warning 7325: (715-717): Type uint256[][100000000000000000007] covers a large part of storage and thus makes collisions likely. Either use mappings or dynamic arrays and allow their size to be increased only in small quantities per transaction.
+// Warning 2119: (715-717): Type uint256[][100000000000000000007] spans 2**64 or more slots. Such oversized types are deprecated and will be disallowed in the next breaking release.
 // Warning 7325: (783-785): Type uint256[100000000000000000008] covers a large part of storage and thus makes collisions likely. Either use mappings or dynamic arrays and allow their size to be increased only in small quantities per transaction.
+// Warning 2119: (783-785): Type uint256[100000000000000000008] spans 2**64 or more slots. Such oversized types are deprecated and will be disallowed in the next breaking release.

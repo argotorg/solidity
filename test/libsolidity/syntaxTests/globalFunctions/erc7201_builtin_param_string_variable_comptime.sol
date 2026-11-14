@@ -4,3 +4,4 @@ contract C {
 }
 // ----
 // Warning 7325: (54-75): Type uint8[5237610212305498718603509572682216073844539971870822423088087032295879652864] covers a large part of storage and thus makes collisions likely. Either use mappings or dynamic arrays and allow their size to be increased only in small quantities per transaction.
+// Warning 2119: (54-75): Type uint8[5237610212305498718603509572682216073844539971870822423088087032295879652864] spans 2**64 or more slots. Such oversized types are deprecated and will be disallowed in the next breaking release.

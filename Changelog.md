@@ -6,6 +6,7 @@ Compiler Features:
 * Commandline Interface: Omit the compilation record from `--ethdebug-resources` (experimental).
 * ethdebug: Stamp the `ethdebug/format/program` and `ethdebug/format/info/resources` outputs with their schema and the version of the ethdebug/format specification they follow (experimental).
 * ethdebug: Populate the type and pointer tables of `ethdebug/format/info/resources` with type documents and layout-specific pointer templates for storage, transient storage, memory and calldata (experimental).
+* Static Analyzer: Emit deprecation warning for types which span 2**64 or more slots.
 * EVM: Warn about exceeding the increased contract code size (64 KiB) and initcode size (128 KiB) limits instead of the EIP-170 and EIP-3860 limits when compiling for the Amsterdam EVM version ([EIP-7954](https://eips.ethereum.org/EIPS/eip-7954)).
 * Standard JSON Interface: Omit the compilation record from `ethdebug.resources` (experimental).
 * Yul: Warn when the assembled bytecode of a compiled Yul object exceeds the EIP-170 (runtime code) or EIP-3860 (initcode) size limit, matching the existing warnings for Solidity input.
