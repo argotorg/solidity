@@ -1334,7 +1334,9 @@ BOOST_AUTO_TEST_CASE(cli_include_paths_should_allow_duplicate_paths)
 {
 	TemporaryDirectory tempDir({"dir1/", "dir2/"}, TEST_CASE_NAME);
 	TemporaryWorkingDirectory tempWorkDir(tempDir);
-	createFilesWithParentDirs({"dir1/contract.sol"});
+	createFilesWithParentDirs({"dir1/contract.sol"}, withPreamble("import \"dependency.sol\";"));
+	std::string const dependencySource = withPreamble("contract A {}");
+	createFilesWithParentDirs({"dir1/dependency.sol"}, dependencySource);
 
 	boost::filesystem::path expectedWorkDir = "/" / boost::filesystem::canonical(tempDir).relative_path();
 	boost::filesystem::path expectedTempDir = "/" / tempDir.path().relative_path();
@@ -1374,6 +1376,51 @@ BOOST_AUTO_TEST_CASE(cli_include_paths_should_allow_duplicate_paths)
 	BOOST_REQUIRE(result.success);
 	BOOST_TEST(result.reader.includePaths() == expectedIncludePaths);
 	BOOST_TEST(result.reader.basePath() == expectedWorkDir / "dir1/");
+
+	result = runCLI(commandLine, "");
+	BOOST_TEST(result.stderrContent == "");
+	BOOST_REQUIRE(result.success);
+	BOOST_TEST(result.reader.sourceUnits().at("dependency.sol") == dependencySource);
+}
+
+BOOST_AUTO_TEST_CASE(cli_include_paths_should_allow_duplicate_include_paths_for_imports)
+{
+	TemporaryDirectory tempDir({"base/", "include/"}, TEST_CASE_NAME);
+	TemporaryWorkingDirectory tempWorkDir(tempDir);
+	std::string const dependencySource = withPreamble("contract A {}");
+	createFilesWithParentDirs({"include/contract.sol"}, dependencySource);
+
+	OptionsReaderAndMessages result = runCLI(
+		{"solc", "--base-path=base/", "--include-path=include/", "--include-path=include/", "-"},
+		withPreamble("import \"contract.sol\"; contract B is A {}")
+	);
+	BOOST_TEST(result.stderrContent == "");
+	BOOST_REQUIRE(result.success);
+	BOOST_TEST(result.reader.sourceUnits().at("contract.sol") == dependencySource);
+}
+
+BOOST_AUTO_TEST_CASE(cli_include_paths_should_allow_symlinks_to_same_import)
+{
+	TemporaryDirectory tempDir({"base/", "include/"}, TEST_CASE_NAME);
+	TemporaryWorkingDirectory tempWorkDir(tempDir);
+	std::string const dependencySource = withPreamble("contract A {}");
+	createFilesWithParentDirs({"base/contract.sol"}, dependencySource);
+	if (
+		!createSymlinkIfSupportedByFilesystem("base", "linked", true) ||
+		!createSymlinkIfSupportedByFilesystem("../base/contract.sol", "include/contract.sol", false)
+	)
+		return;
+
+	for (std::string const includePath: {"linked", "include"})
+	{
+		OptionsReaderAndMessages result = runCLI(
+			{"solc", "--base-path=base/", "--include-path=" + includePath, "-"},
+			withPreamble("import \"contract.sol\"; contract B is A {}")
+		);
+		BOOST_TEST(result.stderrContent == "");
+		BOOST_REQUIRE(result.success);
+		BOOST_TEST(result.reader.sourceUnits().at("contract.sol") == dependencySource);
+	}
 }
 
 BOOST_AUTO_TEST_CASE(cli_include_paths_ambiguous_import)
@@ -1406,9 +1453,15 @@ BOOST_AUTO_TEST_CASE(cli_include_paths_ambiguous_import)
 		"3 | import \"contract.sol\";\n"
 		"  | ^^^^^^^^^^^^^^^^^^^^^^\n\n";
 
-	OptionsReaderAndMessages result = runCLI(commandLine, mainContractSource);
-	BOOST_TEST(result.stderrContent == expectedMessage);
-	BOOST_REQUIRE(!result.success);
+	for (bool duplicatePaths: {false, true})
+	{
+		if (duplicatePaths)
+			commandLine.insert(commandLine.end(), {"--include-path=base/", "--include-path=include/"});
+
+		OptionsReaderAndMessages result = runCLI(commandLine, mainContractSource);
+		BOOST_TEST(result.stderrContent == expectedMessage);
+		BOOST_REQUIRE(!result.success);
+	}
 }
 
 BOOST_AUTO_TEST_CASE(cli_ethdebug_incompatible_outputs)
