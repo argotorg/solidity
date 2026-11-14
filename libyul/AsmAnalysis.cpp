@@ -485,6 +485,19 @@ size_t AsmAnalyzer::operator()(FunctionCall const& _funCall)
 							"The \"verbatim_*\" builtins cannot be used with empty bytecode."
 						);
 				}
+				else if (functionName == "linkersymbol")
+				{
+					auto const& argumentAsLiteral = std::get<Literal>(arg);
+					if (formatLiteral(argumentAsLiteral).find(':') == std::string::npos)
+						m_errorReporter.warning(
+							1698_error,
+							nativeLocationOf(arg),
+							"Unqualified library names in \"linkersymbol()\" are deprecated and will be disallowed "
+							"in the next breaking version. Use a fully qualified name in the form "
+							"\"<source unit name>:<library name>\" instead. "
+							"For a library not associated with any source unit, use \":<library name>\"."
+						);
+				}
 				expectUnlimitedStringLiteral(std::get<Literal>(arg));
 				continue;
 			}
