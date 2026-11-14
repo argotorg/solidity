@@ -1,0 +1,7 @@
+{
+    "t": { "kind": "matrix" }
+}
+// ====
+// document: types
+// ----
+// Error: types.t.kind has the unknown value "matrix".

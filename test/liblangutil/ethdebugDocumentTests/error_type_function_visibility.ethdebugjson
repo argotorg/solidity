@@ -1,0 +1,7 @@
+{
+    "t": { "kind": "function", "contains": { "parameters": { "type": { "kind": "tuple", "contains": [] } } } }
+}
+// ====
+// document: types
+// ----
+// Error: types.t must be either internal or external.
