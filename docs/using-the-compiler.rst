@@ -473,8 +473,8 @@ Input Description
         //   evm.gasEstimates - Function gas estimates
         //
         // Global level (needs "*" as file name and "*" as contract name):
-        //   ethdebug.resources - Global ethdebug type and pointer tables (ethdebug/format/info/resources schema) (experimental)
-        //   ethdebug.compilation - Compiler information and source list (ethdebug/format/materials/compilation schema) (experimental)
+        //   ethdebug.resources - Global ethdebug type and pointer tables (ethdebug/format/info/resources schema, Solidity input only) (experimental)
+        //   ethdebug.compilation - Compiler information and source list (ethdebug/format/materials/compilation schema, Solidity input only) (experimental)
         //
         // Note that using `evm`, `evm.bytecode`, etc. will select every
         // target part of that output. Additionally, `*` can be used as a wildcard to request everything.
