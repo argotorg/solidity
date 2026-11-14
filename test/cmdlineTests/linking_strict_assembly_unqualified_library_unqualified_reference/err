@@ -1,0 +1,5 @@
+Warning: Unqualified library names in "linkersymbol()" are deprecated and will be disallowed in the next breaking version. Use a fully qualified name in the form "<source unit name>:<library name>" instead. For a library not associated with any source unit, use ":<library name>".
+ --> input.yul:3:34:
+  |
+3 |         let addr := linkersymbol("L")
+  |                                  ^^^
