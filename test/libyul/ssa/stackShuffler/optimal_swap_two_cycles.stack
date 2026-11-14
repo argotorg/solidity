@@ -1,0 +1,16 @@
+initial: [v0, v1, v0, v2, v3]
+targetStackTop: [v1, v0, v2, v0, v3]
+allowSpilling: false
+// ----
+//             |      0      1      2      3      4
+//             +-----------------------------------
+//    (initial)|     v0     v1     v0     v2     v3
+//        SWAP1|     v0     v1     v0     v3     v2
+//        SWAP2|     v0     v1     v2     v3     v0
+//        SWAP3|     v0     v0     v2     v3     v1
+//        SWAP4|     v1     v0     v2     v3     v0
+//        SWAP1|     v1     v0     v2     v0     v3
+//             +-----------------------------------
+//     (target)|     v1     v0     v2     v0     v3
+// Plan: 1 2 3 0 4
+// Status: Admissible
