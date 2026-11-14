@@ -1,0 +1,3 @@
+{"pointers": {"~bad": {"expect": [], "for": {"location": "storage", "slot": 0}}}}
+// ----
+// Error: resources.pointers has the member "~bad", which is not an identifier.

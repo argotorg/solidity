@@ -24,15 +24,18 @@
 #pragma once
 
 #include <libsolutil/Assertions.h>
+#include <libsolutil/Exceptions.h>
 #include <nlohmann/json.hpp>
 
 #include <compare>
 #include <concepts>
+#include <limits>
+#include <optional>
+#include <set>
 #include <string>
 #include <string_view>
+#include <type_traits>
 #include <utility>
-#include <optional>
-#include <limits>
 
 namespace solidity
 {
@@ -189,6 +192,65 @@ template<typename T>
 T getOrDefault(Json const& _input, std::string const& _name, T _default = {})
 {
 	return detail::helper<T>::getOrDefault(_input, _name, _default);
+}
+
+/// Thrown by the validation helpers below when JSON input does not have the
+/// expected structure. The message names the offending location, so it can
+/// be reported to the user as is.
+DEV_SIMPLE_EXCEPTION(JsonValidationError);
+
+/// The name of the JSON type that @a T is read from, for messages.
+template<typename T>
+constexpr std::string_view jsonTypeName()
+{
+	if constexpr (std::is_same_v<T, Json::string_t>)
+		return "string";
+	else if constexpr (std::is_same_v<T, Json::boolean_t>)
+		return "boolean";
+	else if constexpr (std::is_floating_point_v<T>)
+		return "number";
+	else if constexpr (std::is_unsigned_v<T>)
+		return "unsigned integer";
+	else
+		return "integer";
+}
+
+/// @returns @a _json if it is an object, throws JsonValidationError otherwise.
+Json const& requireObject(Json const& _json, std::string_view _path);
+/// @returns @a _json if it is an array, throws JsonValidationError otherwise.
+Json const& requireArray(Json const& _json, std::string_view _path);
+/// Throws JsonValidationError unless @a _json is an object whose members are all in @a _allowed.
+void requireOnlyMembers(Json const& _json, std::set<std::string_view> const& _allowed, std::string_view _path);
+/// @returns the member @a _name of the object @a _json, throws JsonValidationError if there is none.
+Json const& requiredMember(Json const& _json, std::string_view _name, std::string_view _path);
+/// @returns the member @a _name of the object @a _json or nullptr if there is none.
+Json const* optionalMember(Json const& _json, std::string_view _name, std::string_view _path);
+
+/// @returns @a _json read as @a T, throws JsonValidationError if it is not of that type.
+template<typename T>
+T valueOfType(Json const& _json, std::string_view _path)
+{
+	solRequire(isOfType<T>(_json), JsonValidationError, std::string(_path) + " must be a " + std::string(jsonTypeName<T>()) + ".");
+	return get<T>(_json);
+}
+
+/// @returns the member @a _name of the object @a _json read as @a T, throws JsonValidationError
+/// if it is missing or not of that type.
+template<typename T>
+T requiredValue(Json const& _json, std::string_view _name, std::string_view _path)
+{
+	return valueOfType<T>(requiredMember(_json, _name, _path), std::string(_path) + "." + std::string(_name));
+}
+
+/// @returns the member @a _name of the object @a _json read as @a T if present, throws
+/// JsonValidationError if it is present but not of that type.
+template<typename T>
+std::optional<T> optionalValue(Json const& _json, std::string_view _name, std::string_view _path)
+{
+	Json const* member = optionalMember(_json, _name, _path);
+	if (member == nullptr)
+		return std::nullopt;
+	return valueOfType<T>(*member, std::string(_path) + "." + std::string(_name));
 }
 
 } // namespace solidity::util

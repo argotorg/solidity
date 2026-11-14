@@ -1,0 +1,3 @@
+{"pointers": {"p": {"expect": [], "for": {"location": "storage", "slot": {"~sized0": 1}}}}}
+// ----
+// Error: resources.pointers.p.for.slot has the malformed resize key "~sized0".

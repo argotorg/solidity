@@ -1,0 +1,218 @@
+{
+    "t_uint256": { "kind": "uint", "bits": 256 },
+    "t_int8": { "class": "elementary", "kind": "int", "bits": 8 },
+    "t_bool": { "kind": "bool" },
+    "t_bytes4": { "kind": "bytes", "size": 4 },
+    "t_bytes": { "kind": "bytes" },
+    "t_string": { "kind": "string", "encoding": "utf-8" },
+    "t_fixed128x18": { "kind": "fixed", "bits": 128, "places": 18 },
+    "t_ufixed": { "kind": "ufixed", "bits": 256, "places": 1 },
+    "t_address_payable": { "kind": "address", "payable": true },
+    "t_library": { "kind": "contract", "library": true, "definition": { "name": "L" } },
+    "t_interface": { "kind": "contract", "interface": true, "payable": false, "definition": { "location": { "source": { "id": 1 }, "range": { "offset": 10, "length": 20 } } } },
+    "t_color": { "kind": "enum", "values": [ "Red", "Green" ], "definition": { "name": "Color", "location": { "source": { "id": "a.sol" } } } },
+    "t_price": { "class": "complex", "kind": "alias", "contains": { "type": { "id": "t_uint256" } }, "definition": { "name": "Price" } },
+    "t_static": { "kind": "array", "contains": { "type": { "id": "t_uint256" } }, "count": "0x02" },
+    "t_dynamic": { "kind": "array", "contains": { "type": { "id": "t_uint256" } }, "count": 3 },
+    "t_mapping": { "kind": "mapping", "contains": { "key": { "type": { "id": "t_address_payable" } }, "value": { "type": { "kind": "bool" } } } },
+    "t_point": { "kind": "struct", "contains": [ { "name": "x", "type": { "id": "t_uint256" } }, { "type": { "id": "t_bool" } } ], "definition": { "name": "Point" } },
+    "t_pair": { "kind": "tuple", "contains": [ { "type": { "id": "t_uint256" } }, { "name": "second", "type": { "id": "t_bool" } } ] },
+    "t_internal": { "kind": "function", "internal": true, "contains": { "parameters": { "type": { "kind": "tuple", "contains": [ { "type": { "id": "t_uint256" } } ] } } } },
+    "t_external": { "kind": "function", "external": true, "contains": { "parameters": { "type": { "kind": "tuple", "contains": [] } }, "returns": { "type": { "id": "t_bool" } } }, "definition": { "name": "f" } }
+}
+// ====
+// document: types
+// ----
+// {
+//     "t_address_payable": {
+//         "kind": "address",
+//         "payable": true
+//     },
+//     "t_bool": {
+//         "kind": "bool"
+//     },
+//     "t_bytes": {
+//         "kind": "bytes"
+//     },
+//     "t_bytes4": {
+//         "kind": "bytes",
+//         "size": 4
+//     },
+//     "t_color": {
+//         "definition": {
+//             "location": {
+//                 "source": {
+//                     "id": "a.sol"
+//                 }
+//             },
+//             "name": "Color"
+//         },
+//         "kind": "enum",
+//         "values": [
+//             "Red",
+//             "Green"
+//         ]
+//     },
+//     "t_dynamic": {
+//         "contains": {
+//             "type": {
+//                 "id": "t_uint256"
+//             }
+//         },
+//         "count": 3,
+//         "kind": "array"
+//     },
+//     "t_external": {
+//         "contains": {
+//             "parameters": {
+//                 "type": {
+//                     "contains": [],
+//                     "kind": "tuple"
+//                 }
+//             },
+//             "returns": {
+//                 "type": {
+//                     "id": "t_bool"
+//                 }
+//             }
+//         },
+//         "definition": {
+//             "name": "f"
+//         },
+//         "external": true,
+//         "kind": "function"
+//     },
+//     "t_fixed128x18": {
+//         "bits": 128,
+//         "kind": "fixed",
+//         "places": 18
+//     },
+//     "t_int8": {
+//         "bits": 8,
+//         "kind": "int"
+//     },
+//     "t_interface": {
+//         "definition": {
+//             "location": {
+//                 "range": {
+//                     "length": 20,
+//                     "offset": 10
+//                 },
+//                 "source": {
+//                     "id": 1
+//                 }
+//             }
+//         },
+//         "interface": true,
+//         "kind": "contract",
+//         "payable": false
+//     },
+//     "t_internal": {
+//         "contains": {
+//             "parameters": {
+//                 "type": {
+//                     "contains": [
+//                         {
+//                             "type": {
+//                                 "id": "t_uint256"
+//                             }
+//                         }
+//                     ],
+//                     "kind": "tuple"
+//                 }
+//             }
+//         },
+//         "internal": true,
+//         "kind": "function"
+//     },
+//     "t_library": {
+//         "definition": {
+//             "name": "L"
+//         },
+//         "kind": "contract",
+//         "library": true
+//     },
+//     "t_mapping": {
+//         "contains": {
+//             "key": {
+//                 "type": {
+//                     "id": "t_address_payable"
+//                 }
+//             },
+//             "value": {
+//                 "type": {
+//                     "kind": "bool"
+//                 }
+//             }
+//         },
+//         "kind": "mapping"
+//     },
+//     "t_pair": {
+//         "contains": [
+//             {
+//                 "type": {
+//                     "id": "t_uint256"
+//                 }
+//             },
+//             {
+//                 "name": "second",
+//                 "type": {
+//                     "id": "t_bool"
+//                 }
+//             }
+//         ],
+//         "kind": "tuple"
+//     },
+//     "t_point": {
+//         "contains": [
+//             {
+//                 "name": "x",
+//                 "type": {
+//                     "id": "t_uint256"
+//                 }
+//             },
+//             {
+//                 "type": {
+//                     "id": "t_bool"
+//                 }
+//             }
+//         ],
+//         "definition": {
+//             "name": "Point"
+//         },
+//         "kind": "struct"
+//     },
+//     "t_price": {
+//         "contains": {
+//             "type": {
+//                 "id": "t_uint256"
+//             }
+//         },
+//         "definition": {
+//             "name": "Price"
+//         },
+//         "kind": "alias"
+//     },
+//     "t_static": {
+//         "contains": {
+//             "type": {
+//                 "id": "t_uint256"
+//             }
+//         },
+//         "count": "0x02",
+//         "kind": "array"
+//     },
+//     "t_string": {
+//         "encoding": "utf-8",
+//         "kind": "string"
+//     },
+//     "t_ufixed": {
+//         "bits": 256,
+//         "kind": "ufixed",
+//         "places": 1
+//     },
+//     "t_uint256": {
+//         "bits": 256,
+//         "kind": "uint"
+//     }
+// }
