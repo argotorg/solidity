@@ -21,6 +21,8 @@
 #include <libevmasm/GasMeter.h>
 
 #include <range/v3/view/iota.hpp>
+#include <range/v3/view/reverse.hpp>
+#include <range/v3/view/take_last.hpp>
 #include <range/v3/view/zip.hpp>
 
 #include <fmt/ranges.h>
@@ -65,6 +67,8 @@ std::size_t solidity::yul::ssa::stackOpsGas(SSACFG const& _cfg, ShuffleTrace con
 		case ShuffleOp::Kind::Store:
 			gas += runGas(evmasm::Instruction::PUSH32) + runGas(evmasm::Instruction::MSTORE);
 			break;
+		case ShuffleOp::Kind::Rename:
+			break;
 		}
 	return gas;
 }
@@ -79,6 +83,26 @@ StackData solidity::yul::ssa::stackPreImage(SSACFG const& _cfg, StackData _stack
 				slot = StackSlot::makeValue(_cfg, preImage);
 			}
 	return _stack;
+}
+
+void solidity::yul::ssa::applyOperation(SSACFG const& _cfg, InstId const _operation, StackData& _stack)
+{
+	SSACFG::Inst const& inst = _cfg.inst(_operation);
+	yulAssert(inst.isOperation());
+	bool const hasReturnLabel = inst.opcode == InstOpcode::Call && _cfg.callPayload(_operation).canContinue;
+	std::size_t const numConsumed = inst.inputs.size() + (hasReturnLabel ? 1 : 0);
+	yulAssert(_stack.size() >= numConsumed, "operation input layout smaller than consumed slot count");
+	for (auto const& [slot, input]: ranges::views::zip(
+		_stack | ranges::views::take_last(inst.inputs.size()),
+		inst.inputs | ranges::views::reverse
+	))
+		yulAssert(slot.isValue() && slot.value() == input);
+	// the return label is not an input of the call, the callee's return jump consumes it
+	yulAssert(!hasReturnLabel || _stack[_stack.size() - numConsumed].isFunctionCallReturnLabel());
+	_stack.erase(_stack.end() - static_cast<std::ptrdiff_t>(numConsumed), _stack.end());
+	_cfg.forEachOutput(_operation, [&](InstId const _output) {
+		_stack.push_back(StackSlot::makeValue(_cfg, _output));
+	});
 }
 
 CallSites solidity::yul::ssa::gatherCallSites(SSACFG const& _cfg)

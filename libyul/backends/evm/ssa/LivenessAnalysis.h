@@ -53,6 +53,9 @@ private:
 	void runDagDfs();
 	void runLoopTreeDfs(SSACFG::BlockId _loopHeader);
 	void fillOperationsLiveOut();
+	/// Turns the live-out of a block into its live-in, reporting the live-out of each operation
+	template<typename Callable>
+	void liveOutToLiveIn(SSACFG::BlockId _blockId, LivenessData& _live, Callable&& _atOperation) const;
 	LivenessData blockExitValues(SSACFG::BlockId const& _blockId) const;
 
 	auto excludingLiteralsFilter() const

@@ -45,6 +45,9 @@ std::size_t stackOpsGas(SSACFG const& _cfg, ShuffleTrace const& _trace);
 /// Transform stack data by replacing all its phi variables with their respective preimages.
 StackData stackPreImage(SSACFG const& _cfg, StackData _stack, PhiInverse const& _phiInverse);
 
+/// Pops the operation's inputs (and a call's return label) off `_stack` and pushes its outputs
+void applyOperation(SSACFG const& _cfg, InstId _operation, StackData& _stack);
+
 CallSites gatherCallSites(SSACFG const& _cfg);
 
 /// Checks that _current and _desired have the same size and that each slot matches,
