@@ -100,3 +100,15 @@ ShadowLiveness::Writes ShadowLiveness::liveWrites(SSACFG::BlockId const _blockId
 	return writes;
 }
 
+bool ShadowLiveness::liveBehind(InstId const _phi) const
+{
+	SSACFG::BlockId const blockId = m_cfg.inst(_phi).block;
+	// An upsilon for the phi in its block comes after it and writes on the block's out-edge: the shadow is dead from
+	// the phi up to there. Otherwise, the shadow keeps the value the phi read up to the block's exit.
+	bool writtenInBlock = false;
+	m_cfg.forEachUpsilon(m_cfg.block(blockId), [&](InstId const _upsilon, SSACFG::Inst const&) {
+		if (m_cfg.upsilonPhi(_upsilon) == _phi)
+			writtenInBlock = true;
+	});
+	return !writtenInBlock && liveOut(blockId, _phi);
+}

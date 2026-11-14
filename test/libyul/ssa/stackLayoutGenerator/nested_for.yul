@@ -25,10 +25,18 @@
 // Block0_0Exit [label="Jump" shape=oval];
 // Block0_0Exit -> Block0_1 [style="solid"];
 // Block0_1 [label="\
-// IN: [phi2, phi16]\l\
+// IN: [^phi2, ^phi16]\l\
 // \l\
-// [phi2, phi16, lit1, phi2]\l\
+// [^phi2, ^phi16]\l\
+// phi2 := ^phi2\l\
+// [phi2, ^phi16]\l\
+// \l\
+// [phi2, ^phi16, lit1, phi2]\l\
 // lt\l\
+// [phi2, ^phi16, v3]\l\
+// \l\
+// [phi2, ^phi16, v3]\l\
+// phi16 := ^phi16\l\
 // [phi2, phi16, v3]\l\
 // \l\
 // OUT: [phi2, phi16, v3]\l\
@@ -57,10 +65,18 @@
 // Block0_4Exit [label="MainExit"];
 // Block0_4 -> Block0_4Exit;
 // Block0_5 [label="\
-// IN: [phi2, phi8, phi4]\l\
+// IN: [phi2, ^phi8, ^phi4]\l\
 // \l\
-// [phi2, phi8, phi4, lit1, phi4]\l\
+// [phi2, ^phi8, ^phi4]\l\
+// phi4 := ^phi4\l\
+// [phi2, ^phi8, phi4]\l\
+// \l\
+// [phi2, ^phi8, phi4, lit1, phi4]\l\
 // lt\l\
+// [phi2, ^phi8, phi4, v5]\l\
+// \l\
+// [phi2, ^phi8, phi4, v5]\l\
+// phi8 := ^phi8\l\
 // [phi2, phi8, phi4, v5]\l\
 // \l\
 // OUT: [phi2, phi8, phi4, v5]\l\

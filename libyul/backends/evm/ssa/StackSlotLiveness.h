@@ -29,12 +29,18 @@ namespace solidity::yul::ssa
 /// Liveness counts keyed on StackSlot
 using StackSlotLiveness = util::UseCountSet<StackSlot>;
 
-inline StackSlotLiveness toStackSlotLiveness(SSACFG const& _cfg, LivenessAnalysis::LivenessData const& _liveness)
+inline StackSlotLiveness toStackSlotLiveness(
+	SSACFG const& _cfg,
+	LivenessAnalysis::LivenessData const& _values,
+	ShadowLiveness::ShadowSet const& _shadows
+)
 {
 	StackSlotLiveness::Entries entries;
-	entries.reserve(_liveness.size());
-	for (auto const& [valueId, count]: _liveness)
+	entries.reserve(_values.size() + _shadows.size());
+	for (auto const& [valueId, count]: _values)
 		entries.emplace_back(StackSlot::makeValue(_cfg, valueId), count);
+	for (InstId const phi: _shadows)
+		entries.emplace_back(StackSlot::makeShadow(_cfg, phi), 1);
 	return StackSlotLiveness{std::move(entries)};
 }
 

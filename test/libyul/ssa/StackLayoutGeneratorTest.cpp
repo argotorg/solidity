@@ -96,7 +96,21 @@ protected:
 		{
 			SSACFG::Inst const& inst = m_cfg.inst(instId);
 			if (!inst.isOperation())
+			{
+				// A phi takes its value out of its shadow slot without code: show the rename between the stacks before
+				// and after it. Upsilons are realized on the edges and have no trace of their own.
+				if (!trace.empty())
+				{
+					_out << "\\l\\\n";
+					_out << stackToString(operationStack) << "\\l\\\n";
+					replay(operationStack, trace);
+					soltestAssert(inst.isPhi());
+					_out << slotToString(StackSlot::makeValue(m_cfg, instId)) << " := " << slotToString(StackSlot::makeShadow(m_cfg, instId));
+					_out << "\\l\\\n";
+					_out << stackToString(operationStack) << "\\l\\\n";
+				}
 				continue;
+			}
 			replay(operationStack, trace);
 
 			_out << "\\l\\\n";

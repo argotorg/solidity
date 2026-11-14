@@ -50,12 +50,12 @@ struct InstructionStackInBuilder
 		));
 	}
 
-	/// A slot the tail does not need to keep: junk, or a value that is neither live out nor an argument
+	/// A slot the tail does not need to keep: junk, or a variable that is neither live out nor an argument
 	bool isDead(StackSlot const& _slot) const
 	{
 		if (_slot.isJunk())
 			return true;
-		if (!_slot.isValue())
+		if (!_slot.isValue() && !_slot.isShadow())
 			return false;
 		return !liveOut.contains(_slot) && remainingArgsCount(_slot, 0) == 0;
 	}

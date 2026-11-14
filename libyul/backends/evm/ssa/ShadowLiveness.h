@@ -56,6 +56,9 @@ public:
 	/// The writes of a block's upsilons that reach a phi: per phi the input of the block's last upsilon for it, if
 	/// the shadow is live on exit
 	Writes liveWrites(SSACFG::BlockId _blockId) const;
+	/// Whether the shadow of `_phi` is still live behind the phi, i.e., some path leads from the phi back to it without
+	/// passing an upsilon for it, so that the phi reads the value it read before
+	bool liveBehind(InstId _phi) const;
 
 private:
 	SSACFG const& m_cfg;
