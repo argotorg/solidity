@@ -1026,6 +1026,10 @@ is equivalent to
 when the linker is invoked with ``--libraries "file.sol:Math=0x1234567890123456789012345678901234567890``
 option.
 
+.. warning::
+    Unqualified library names, i.e. identifiers that do not contain a colon, are deprecated and will be
+    disallowed in the next breaking version.
+
 See :ref:`Using the Commandline Compiler <commandline-compiler>` for details about the Solidity linker.
 
 memoryguard
