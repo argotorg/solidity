@@ -54,12 +54,13 @@ void TestCase::printUpdatedSettings(std::ostream& _stream, std::string const& _l
 bool TestCase::isTestFilename(boost::filesystem::path const& _filename)
 {
 	std::string extension = _filename.extension().string();
-	// NOTE: .asmjson rather than .json because JSON files that do not represent test cases exist in some test dirs.
+	// NOTE: .asmjson and .ethdebugjson rather than .json because JSON files that do not represent test cases exist in some test dirs.
 	bool const isAllowedExtension =
 		extension == ".sol" ||
 		extension == ".yul" ||
 		extension == ".asm" ||
 		extension == ".asmjson" ||
+		extension == ".ethdebugjson" ||
 		extension == ".stack" ||
 		extension == ".ssa";
 	return isAllowedExtension && !_filename.string().starts_with('~') && !_filename.string().starts_with('.');
