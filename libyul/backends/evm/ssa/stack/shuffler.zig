@@ -21,7 +21,7 @@
 //! build compiles this file to assembly text and links the object assembled from that text into libyul.
 //!
 //! - All memory is the caller's: the inputs, the spill bytes and one `Workspace`. Nothing is allocated, no
-//!   frame holds an array, and no function outside of this file is called.
+//!   frame holds an array or a struct, and no function outside of this file is called.
 //! - Nothing is thrown and nothing panics: a failed assertion is the error `AssertionFailed`, and an error is
 //!   a value that a function returns (`try` returns it to the caller's caller).
 //! - Each function that the proofs treat as a unit is `noinline`, and all other functions are `inline`. Thus
@@ -33,7 +33,7 @@
 //!
 //! - A failed assertion is an error, which `shuffle` returns as a status, instead of a call of `exit(1)`.
 //! - The reach of a swap is an input (`Shuffle.reachable_stack_depth`), not the constant 16.
-//! - The local arrays of the units are in the `Workspace`.
+//! - The local arrays and structs of the units are in the `Workspace`.
 //! - `Planner.resolve` fails with Blocked for `Resolution::Stuck`.
 //! - `Stack` asserts the capacity of the working stack and of the trace.
 //! - `shuffle` is `Shuffle::run` of `Shuffler.cpp`, which that file leaves out.
@@ -1066,7 +1066,7 @@ const Planner = extern struct {
     noinline fn resolve(
         self: *Planner,
         mapping: *const Mapping,
-        blocked: Blocked,
+        blocked: *const Blocked,
         current: *const Mapping,
         current_size: usize,
     ) Error!void {
@@ -1122,9 +1122,12 @@ const Planner = extern struct {
     /// the dropped bytes all 0 at the start. Done is a plan: `data` holds its stack, `ops` its `trace_size`
     /// operations, and `sources[j]` the source offset bound for target offset j in the mapping of the plan,
     /// or none. Blocked: `resolve` found nothing left to drop. Each attempt starts with a copy of the source
-    /// in `data`, and writes `data` and `ops` as the emission does.
+    /// in `data`, and writes `data` and `ops` as the emission does. `emission` and `builder` are the storage
+    /// of each attempt.
     noinline fn run(
         self: *Planner,
+        emission: *Emission,
+        builder: *MappingBuilder,
         strategy: WildcardSlotsStrategy,
         data: *[max_stack_size]StackSlot,
         ops: *[max_trace_size]ShuffleOp,
@@ -1144,7 +1147,7 @@ const Planner = extern struct {
         while (true) {
             const mapping = &self.scratch.planned_mapping;
             mapping.reset(self.source_size, self.target_size);
-            var builder: MappingBuilder = .{
+            builder.* = .{
                 .source = self.source,
                 .source_size = self.source_size,
                 .target = self.target,
@@ -1162,7 +1165,6 @@ const Planner = extern struct {
             self.saw_wildcard_copy = self.saw_wildcard_copy or builder.saw_wildcard_copy;
 
             for (0..self.source_size) |i| data[i] = self.sourceAt(i);
-            var emission: Emission = undefined;
             emission.init(
                 .{ .data = data, .size = self.source_size, .trace = ops, .trace_size = 0 },
                 self.target,
@@ -1183,7 +1185,7 @@ const Planner = extern struct {
 
             var dropped_before: usize = 0;
             for (0..self.source_size) |i| dropped_before += @intFromBool(self.dropped[i] != 0);
-            try self.resolve(mapping, emission.blocked, emission.mapping, emission.stack.size);
+            try self.resolve(mapping, &emission.blocked, emission.mapping, emission.stack.size);
             var dropped_after: usize = 0;
             for (0..self.source_size) |i| dropped_after += @intFromBool(self.dropped[i] != 0);
             // resolution must decrease the number of undropped source slots
@@ -1224,6 +1226,11 @@ pub const Workspace = extern struct {
     dropped: [max_stack_size]u8,
     /// for every source offset whether its slot is spilled before any planner ran
     spilled_before: [max_stack_size]u8,
+    /// the planner of `Shuffle.run`
+    planner: Planner,
+    /// the emission and the mapping builder of each attempt of `Planner.run`
+    emission: Emission,
+    builder: MappingBuilder,
 };
 
 /// The inputs and outputs of `shuffle`
@@ -1262,7 +1269,15 @@ pub const Shuffle = extern struct {
         const workspace = self.workspace;
         for (0..self.source_size) |i| workspace.dropped[i] = 0;
         const done =
-            if (planner.run(strategy, &result.data, &result.ops, &result.sources, &result.trace_size))
+            if (planner.run(
+                &workspace.emission,
+                &workspace.builder,
+                strategy,
+                &result.data,
+                &result.ops,
+                &result.sources,
+                &result.trace_size,
+            ))
                 true
             else |err| switch (err) {
                 error.Blocked => false,
@@ -1306,7 +1321,8 @@ pub const Shuffle = extern struct {
         try assert(self.target_size <= max_stack_size);
 
         const workspace = self.workspace;
-        var planner: Planner = .{
+        const planner = &workspace.planner;
+        planner.* = .{
             .source = self.source,
             .source_size = self.source_size,
             .target = self.target,
@@ -1323,14 +1339,14 @@ pub const Shuffle = extern struct {
         }
 
         const leave = &workspace.plans[@backingInt(WildcardSlotsStrategy.leave)];
-        const leave_done = try self.plan(&planner, .leave, leave);
+        const leave_done = try self.plan(planner, .leave, leave);
         if (!planner.saw_wildcard_copy) {
             if (!leave_done) return error.Blocked;
             return self.commit(leave);
         }
 
         const take = &workspace.plans[@backingInt(WildcardSlotsStrategy.take)];
-        const take_done = try self.plan(&planner, .take, take);
+        const take_done = try self.plan(planner, .take, take);
         if (!leave_done and !take_done) return error.Blocked;
         const use_take = !leave_done or (take_done and
             (take.spill_count < leave.spill_count or
