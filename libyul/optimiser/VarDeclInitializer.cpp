@@ -49,7 +49,7 @@ void VarDeclInitializer::operator()(Block& _block)
 				for (auto& var: _varDecl.variables)
 				{
 					std::unique_ptr<Expression> expr = std::make_unique<Expression>(m_dialect.zeroLiteral());
-					ret->emplace_back(VariableDeclaration{std::move(_varDecl.debugData), {std::move(var)}, std::move(expr)});
+					ret->emplace_back(VariableDeclaration{_varDecl.debugData, {std::move(var)}, std::move(expr)});
 				}
 				return ret;
 			}
