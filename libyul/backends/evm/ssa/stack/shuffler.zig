@@ -655,7 +655,8 @@ const Emission = extern struct {
                 // an equal slot stands at the offset: retag instead of swapping two equal slots
                 self.mapping.swapDestinations(target_offset, self.stack.topOffset());
             } else if (self.isSwapReachable(target_offset)) {
-                return self.swapWith(target_offset);
+                // never a tail call: the proofs lift one function at a time, and a jump into another function is not supported
+                return @call(.never_tail, Emission.swapWith, .{ self, target_offset });
             }
             // out of swap reach: leave the slot on top; buildBottomUp re-checks reach when filling the offset
         }
@@ -814,7 +815,8 @@ const Emission = extern struct {
         try assert(parked_count == hole_count);
         // parked is in ascending order
         for (0..parked_count) |i| permutation[parked[i]] = holes[i];
-        return self.permute(permutation);
+        // never a tail call: the proofs lift one function at a time, and a jump into another function is not supported
+        return @call(.never_tail, Emission.permute, .{ self, permutation });
     }
 
     /// Builds the target bottom-up. Every offset either holds its slot already, gets a retained slot that is
@@ -837,7 +839,8 @@ const Emission = extern struct {
                 for (0..self.stack.size) |pos| {
                     permutation[pos] = self.mapping.destinationOf(pos).unwrap() orelse return error.AssertionFailed;
                 }
-                return self.permute(permutation);
+                // never a tail call: the proofs lift one function at a time, and a jump into another function is not supported
+                return @call(.never_tail, Emission.permute, .{ self, permutation });
             }
 
             // a target offset that needs something DUPed urgently before it goes out of dup reach
@@ -970,7 +973,8 @@ const Emission = extern struct {
             // function return label has no bound source
             try assert(!self.targetAt(offset).isFunctionReturnLabel() or self.mapping.positionOf(offset) != .none); // Lean
         }
-        return self.buildBottomUp();
+        // never a tail call: the proofs lift one function at a time, and a jump into another function is not supported
+        return @call(.never_tail, Emission.buildBottomUp, .{self});
     }
 };
 
