@@ -53,6 +53,29 @@ LivenessAnalysis::LivenessData LivenessAnalysis::blockExitValues(SSACFG::BlockId
 	return result;
 }
 
+template<typename Callable>
+void LivenessAnalysis::liveOutToLiveIn(
+	SSACFG::BlockId const _blockId,
+	LivenessData& _live,
+	Callable&& _atOperation
+) const
+{
+	// add value ids to the live set that are used in exit blocks
+	_live += blockExitValues(_blockId);
+
+	for (InstId const instId: m_cfg.block(_blockId).instructions | ranges::views::reverse)
+	{
+		auto const& inst = m_cfg.inst(instId);
+		if (!inst.isOperation())
+			continue;
+		_atOperation(instId, std::as_const(_live));
+		// remove variables defined at p from live
+		_live.eraseAll(m_cfg.projectionsOf(instId));
+		_live.erase(instId);
+		_live.insertAll(inst.inputs | ranges::views::filter(excludingLiteralsFilter()));
+	}
+}
+
 LivenessAnalysis::LivenessAnalysis(SSACFG const& _cfg):
 	m_cfg(_cfg),
 	m_dfsTree(_cfg),
@@ -117,21 +140,7 @@ void LivenessAnalysis::runDagDfs()
 		m_liveOuts[blockId.value] = live;
 
 		// for each program point p in B, backwards, do:
-		{
-			// add value ids to the live set that are used in exit blocks
-			live += blockExitValues(blockId);
-
-			for (InstId const instId: block.instructions | ranges::views::reverse)
-			{
-				auto const& inst = m_cfg.inst(instId);
-				if (!inst.isOperation())
-					continue;
-				// remove variables defined at p from live
-				live.eraseAll(m_cfg.projectionsOf(instId));
-				live.erase(instId);
-				live.insertAll(inst.inputs | ranges::views::filter(excludingLiteralsFilter()));
-			}
-		}
+		liveOutToLiveIn(blockId, live, [](InstId, LivenessData const&) {});
 
 		// livein(b) <- live \cup PhiDefs(B)
 		m_cfg.forEachPhi(block, [&](InstId const instId, SSACFG::Inst const&) {
@@ -172,18 +181,9 @@ void LivenessAnalysis::fillOperationsLiveOut()
 {
 	for (SSACFG::BlockId const blockId: m_cfg.liveBlocks())
 	{
-		auto const& block = m_cfg.block(blockId);
 		auto live = m_liveOuts[blockId.value];
-		live += blockExitValues(blockId);
-		for (InstId const instId: block.instructions | ranges::views::reverse)
-		{
-			auto const& inst = m_cfg.inst(instId);
-			if (!inst.isOperation())
-				continue;
-			m_operationLiveOutByInst.emplace(instId.value, live);
-			live.eraseAll(m_cfg.projectionsOf(instId));
-			live.erase(instId);
-			live.insertAll(inst.inputs | ranges::views::filter(excludingLiteralsFilter()));
-		}
+		liveOutToLiveIn(blockId, live, [&](InstId const _operation, LivenessData const& _liveOut) {
+			m_operationLiveOutByInst.emplace(_operation.value, _liveOut);
+		});
 	}
 }

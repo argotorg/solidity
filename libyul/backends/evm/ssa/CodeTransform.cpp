@@ -270,14 +270,6 @@ void CodeTransform::operator()(InstId _instId, ShuffleTrace const& _operationShu
 	// check that the assembly stack height corresponds to the stack size after shuffling
 	yulAssert(static_cast<int>(m_stack.size()) == m_assembly.stackHeight());
 
-	// Assert that we have the inputs of the operation on stack top.
-	yulAssert(m_stack.size() >= _inst.inputs.size());
-	for (auto const& [stackEntry, input]: ranges::views::zip(
-		m_stack | ranges::views::take_last(_inst.inputs.size()),
-		_inst.inputs | ranges::views::reverse
-	))
-		yulAssert(stackEntry.isValue() && stackEntry.value() == input);
-
 	// if the function can continue (doesn't always abort), make sure we have the correct return label slot in place
 	if (hasReturnLabel)
 	{
@@ -317,14 +309,9 @@ void CodeTransform::operator()(InstId _instId, ShuffleTrace const& _operationShu
 			static_cast<int>(calleeCFG->numReturns) - static_cast<int>(calleeCFG->arguments.size()) - (call.canContinue ? 1 : 0),
 			AbstractAssembly::JumpType::IntoFunction
 		);
-		// if we have a return label, append it to assembly and pop the label from the stack
-		// it might also be one of the inputs that is popped here but then the label will be popped below with
-		// the other inputs
+		// if we have a return label, append it to assembly
 		if (returnLabel)
-		{
 			m_assembly.appendLabel(*returnLabel);
-			m_stack.pop();
-		}
 		break;
 	}
 	case InstOpcode::BuiltinCall:
@@ -353,13 +340,9 @@ void CodeTransform::operator()(InstId _instId, ShuffleTrace const& _operationShu
 	default:
 		yulAssert(false);
 	}
-	// simulate that the inputs are consumed
-	for (size_t i = 0; i < _inst.inputs.size(); ++i)
-		m_stack.pop();
-	// simulate that the outputs are produced
+	// simulate that the inputs are consumed and the outputs are produced
+	applyOperation(m_cfg, _instId, m_stackData);
 	auto const numOutputs = m_cfg.numReturnsOf(_instId);
-	for (InstId const id: m_cfg.outputsOf(_instId))
-		m_stack.push(StackSlot::makeValue(m_cfg, id));
 
 	// Each output the layout decided to spill gets its `mstore` here
 	if (m_spillEmitter)
