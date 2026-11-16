@@ -338,8 +338,8 @@ of the compiler.
     For example, you can specify a directory inside base path as an include directory or have an
     include directory that is a subdirectory of another include directory.
     The compiler will only issue an error if the source unit name passed to the Host Filesystem
-    Loader represents an existing path when combined with multiple include paths or an include path
-    and base path.
+    Loader resolves to multiple distinct canonical file paths across these directories.
+    Repeated paths and symbolic links resolving to the same canonical file path do not make an import ambiguous.
 
 .. _cli-path-normalization-and-stripping:
 

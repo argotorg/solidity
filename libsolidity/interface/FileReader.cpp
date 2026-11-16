@@ -28,6 +28,7 @@
 
 #include <range/v3/range/conversion.hpp>
 
+#include <algorithm>
 #include <functional>
 
 using solidity::frontend::ReadCallback;
@@ -111,7 +112,10 @@ ReadCallback::Result FileReader::readFile(std::string const& _kind, std::string 
 		for (auto const& prefix: prefixes)
 		{
 			boost::filesystem::path canonicalPath = normalizeCLIPathForVFS(prefix / strippedSourceUnitName, SymlinkResolution::Enabled);
-			if (boost::filesystem::exists(canonicalPath))
+			if (
+				boost::filesystem::exists(canonicalPath) &&
+				std::find(candidates.begin(), candidates.end(), canonicalPath) == candidates.end()
+			)
 				candidates.push_back(std::move(canonicalPath));
 		}
 
