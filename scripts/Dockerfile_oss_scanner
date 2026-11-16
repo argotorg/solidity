@@ -15,11 +15,12 @@ ENV DEBIAN_FRONTEND=noninteractive \
 COPY . /src
 WORKDIR /src
 
-# Build solc, the test drivers (soltest, isoltest, solfuzzer, yulrun, ...) the way CI does (scripts/ci/build.sh, PEDANTIC on).
+# Build solc and the test drivers the way CI does (scripts/ci/build.sh, PEDANTIC on).
+# Only the binaries a scan uses are built (not yulopti, yul-phaser, ...), to keep build time and image size down.
 RUN cmake -S /src -B /src/build -G Ninja \
       -DCMAKE_BUILD_TYPE=RelWithDebInfo \
       -DCMAKE_CXX_FLAGS="-fno-omit-frame-pointer" \
-    && cmake --build /src/build -j"$(nproc)"
+    && cmake --build /src/build -j"$(nproc)" --target solc soltest isoltest solfuzzer yulrun
 
 # Cheap smoke tests so we know the image works; failures do not abort the build.
 RUN cd /src/build \
