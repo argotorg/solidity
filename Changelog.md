@@ -7,6 +7,10 @@ Breaking Changes:
 * SMTChecker: Drop support for cvc5 as the backend SMT solver.
 * SMTChecker: Drop `pragma experimental SMTChecker;`. SMTChecker can be enabled by setting model checker engine to `chc`.
 
+Language Features:
+* ABIEncoder: Remove support for the experimental pragma `ABIEncoderV2`. This pragma was redundant.
+
+
 ### 0.8.39 (unreleased)
 
 Language Features:
