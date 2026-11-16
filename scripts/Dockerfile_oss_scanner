@@ -17,9 +17,10 @@ WORKDIR /src
 
 # Build solc and the test drivers the way CI does (scripts/ci/build.sh, PEDANTIC on).
 # Only the binaries a scan uses are built (not yulopti, yul-phaser, ...), to keep build time and image size down.
+# -gsplit-dwarf: separates DWARF debug information from object files such that the image is much smaller to export.
 RUN cmake -S /src -B /src/build -G Ninja \
       -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-      -DCMAKE_CXX_FLAGS="-fno-omit-frame-pointer" \
+      -DCMAKE_CXX_FLAGS="-fno-omit-frame-pointer -gsplit-dwarf" \
     && cmake --build /src/build -j"$(nproc)" --target solc soltest isoltest solfuzzer yulrun
 
 # Cheap smoke tests so we know the image works; failures do not abort the build.
