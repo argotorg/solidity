@@ -11,7 +11,8 @@ contract B is A {
     function f() public pure virtual override returns (uint256) { return super.f(); }
 }
 
-// D.f does not call super, so B.f is unreachable in D, yet the call is still reported.
+// B.f is unreachable in D, but it is still rejected: its declared mutability must hold
+// wherever it is inherited, not only where it happens to be called.
 abstract contract D is A, X, B {
     function f() public pure virtual override(A, X, B) returns (uint256) { return 7; }
 }
