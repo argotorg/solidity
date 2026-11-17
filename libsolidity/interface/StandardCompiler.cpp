@@ -1856,10 +1856,7 @@ Json StandardCompiler::compileYul(InputsAndSettings _inputsAndSettings)
 	if (isEthdebugGlobalOutputRequested(_inputsAndSettings.outputSelection, "ethdebug.resources"))
 	{
 		solAssert(_inputsAndSettings.experimental, "");
-		output["ethdebug"]["resources"] = evmasm::ethdebug::resources(
-			{{.id = 0, .path = sourceName, .contents = sourceContents, .language = "Yul"}},
-			VersionString
-		);
+		output["ethdebug"]["resources"] = evmasm::ethdebug::resources();
 	}
 	if (isEthdebugGlobalOutputRequested(_inputsAndSettings.outputSelection, "ethdebug.compilation"))
 	{

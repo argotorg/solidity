@@ -173,7 +173,7 @@ Producing the public type and pointer resource tables therefore does not require
 
 Local storage references are different: their base slot is a runtime value.
 For example, after ``uint[] storage ref = condition ? a : b``, the pointer for ``ref`` starts at the generated Yul local holding the selected slot rather than at a statically known slot.
-Stack values, memory references, and such storage references can use the internal ``$$yulLocal`` expression described below until Yul-to-EVM code generation assigns their concrete representation.
+Stack values, memory references, and such storage references can use the internal ``~~yulLocal`` expression described below until Yul-to-EVM code generation assigns their concrete representation.
 The expression must be resolved or removed before public emission.
 
 Scope Attachment
@@ -229,11 +229,12 @@ A root pointer with externally bound parameters, such as mapping keys, uses the 
 
 Expressions use the `ethdebug pointer-expression grammar <https://ethdebug.github.io/format/docs/core-schemas/pointers/expressions/>`_.
 Literals are non-negative JSON numbers or ``0x``-prefixed strings; bound variables are identifier strings.
-The remaining forms are ``"$wordsize"`` and the schema's single-key objects for lookups, reads, arithmetic, hashing, concatenation, and resizing.
+The remaining forms are ``"~wordsize"`` and the schema's single-key objects for lookups, reads, arithmetic, hashing, concatenation, and resizing.
 
-Expressions internal to the compiler use a ``$$`` prefix, which cannot clash with the schema's own ``$`` forms.
-The internal expression ``{"$$yulLocal": ...}`` names a generated Yul local whose stack depth has not yet been assigned.
-It has no public schema form and must be resolved or removed before emission; emission rejects any expression still carrying the ``$$`` prefix.
+Expressions internal to the compiler are single-key objects whose key starts with ``~~``.
+This prefix cannot appear in a Solidity identifier and is not used by the public schema.
+The internal expression ``{"~~yulLocal": ...}`` names a generated Yul local whose stack depth has not yet been assigned.
+It has no public schema form and must be resolved or removed before emission; emission rejects any expression still carrying the ``~~`` prefix.
 
 Reusable pointers are published as resource templates.
 The sidecar carries them in the ``pointers`` table of its ``resources`` object, keyed by producer-defined name identifier and mirroring `ethdebug.resources.pointers <https://github.com/ethdebug/format/blob/main/schemas/info/resources.schema.yaml>`_.
@@ -365,7 +366,7 @@ One shared component provides both serialization and deserialization, so the wri
 Serialization includes the resource tables, pointer expressions, variable updates, and scope records that have no Yul attachment.
 All integer fields are native JSON numbers; the reader decodes the full 64-bit ranges exactly.
 String-encoded numbers occur only inside pointer expressions, where the ethdebug expression grammar governs them.
-Declaration and type-definition ranges use the ethdebug `source range <https://github.com/ethdebug/format/blob/main/schemas/materials/source-range.schema.yaml>`_ shape.
+Declaration and type-definition ranges use the ethdebug `source range <https://github.com/ethdebug/format/blob/main/schemas/materials/source-range.schema.yaml>`_ schema.
 Source IDs are opaque to the Yul stage.
 The producer uses the same source IDs in the sidecar as in the accompanying ``ethdebug.compilation`` record, and the Yul stage transports them unchanged.
 Each source record in ``ethdebug.compilation`` maps its ID to the source path and contents, so a path is not used as an ID.

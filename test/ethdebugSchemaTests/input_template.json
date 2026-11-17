@@ -1,0 +1,29 @@
+{
+    "language": "Solidity",
+    "sources": {},
+    "settings": {
+        "experimental": true,
+        "viaIR": true,
+        "debug": {
+            "debugInfo": [
+                "ast-id",
+                "ethdebug"
+            ]
+        },
+        "outputSelection": {
+            "*": {
+                "*": [
+                    "evm.bytecode.ethdebug",
+                    "evm.deployedBytecode.ethdebug",
+                    "ethdebug.resources",
+                    "ethdebug.compilation",
+                    "storageLayout",
+                    "transientStorageLayout"
+                ],
+                "": [
+                    "ast"
+                ]
+            }
+        }
+    }
+}

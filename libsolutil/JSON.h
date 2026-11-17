@@ -126,7 +126,14 @@ struct helper_impl_with_range_check
 {
 	static bool isOfType(Json const& _input)
 	{
-		if ( (_input.*checkMember)())
+		if constexpr (std::is_integral_v<RT>)
+		{
+			if (_input.is_number_unsigned())
+				return std::in_range<RT>(_input.get<Json::number_unsigned_t>());
+			if (_input.is_number_integer())
+				return std::in_range<RT>(_input.get<Json::number_integer_t>());
+		}
+		else if ((_input.*checkMember)())
 		{
 			T value = (_input.*convertMember)();
 			return (value >= std::numeric_limits<RT>::min() && value <= std::numeric_limits<RT>::max());
@@ -150,8 +157,8 @@ struct helper_impl_with_range_check
 };
 
 template<> struct helper<Json::string_t>: helper_impl<Json::string_t, &Json::is_string, &Json::get<Json::string_t>> {};
-template<> struct helper<Json::number_integer_t>: helper_impl<Json::number_integer_t, &Json::is_number_integer, &Json::get<Json::number_integer_t>> {};
-template<> struct helper<Json::number_unsigned_t>: helper_impl<Json::number_unsigned_t, &Json::is_number_integer, &Json::get<Json::number_unsigned_t>> {};
+template<> struct helper<Json::number_integer_t>: helper_impl_with_range_check<Json::number_integer_t, Json::number_integer_t, &Json::is_number_integer, &Json::get<Json::number_integer_t>> {};
+template<> struct helper<Json::number_unsigned_t>: helper_impl_with_range_check<Json::number_unsigned_t, Json::number_unsigned_t, &Json::is_number_integer, &Json::get<Json::number_unsigned_t>> {};
 template<> struct helper<Json::number_float_t>: helper_impl<Json::number_float_t, &Json::is_number, &Json::get<Json::number_float_t>> {};
 template<> struct helper<Json::boolean_t>: helper_impl<Json::boolean_t, &Json::is_boolean, &Json::get<Json::boolean_t>> {};
 

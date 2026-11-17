@@ -23,12 +23,17 @@ Debug Data (ethdebug/format/program):
     "contract": {
         "definition": {
             "source": {
-                "id": 0
+                "id": 0,
+                "type": "source"
             }
         },
         "name": "C"
     },
     "environment": "create",
+    "ethdebug": {
+        "schema": "ethdebug/format/program",
+        "version": "0.1.0-draft.2"
+    },
     "instructions": [
         {
             "context": {
@@ -38,7 +43,8 @@ Debug Data (ethdebug/format/program):
                         "offset": 56
                     },
                     "source": {
-                        "id": 0
+                        "id": 0,
+                        "type": "source"
                     }
                 }
             },
@@ -58,7 +64,8 @@ Debug Data (ethdebug/format/program):
                         "offset": 56
                     },
                     "source": {
-                        "id": 0
+                        "id": 0,
+                        "type": "source"
                     }
                 }
             },
@@ -78,7 +85,8 @@ Debug Data (ethdebug/format/program):
                         "offset": 56
                     },
                     "source": {
-                        "id": 0
+                        "id": 0,
+                        "type": "source"
                     }
                 }
             },
@@ -95,7 +103,8 @@ Debug Data (ethdebug/format/program):
                         "offset": 56
                     },
                     "source": {
-                        "id": 0
+                        "id": 0,
+                        "type": "source"
                     }
                 }
             },
@@ -112,7 +121,8 @@ Debug Data (ethdebug/format/program):
                         "offset": 56
                     },
                     "source": {
-                        "id": 0
+                        "id": 0,
+                        "type": "source"
                     }
                 }
             },
@@ -132,7 +142,8 @@ Debug Data (ethdebug/format/program):
                         "offset": 56
                     },
                     "source": {
-                        "id": 0
+                        "id": 0,
+                        "type": "source"
                     }
                 }
             },
@@ -149,7 +160,8 @@ Debug Data (ethdebug/format/program):
                         "offset": 56
                     },
                     "source": {
-                        "id": 0
+                        "id": 0,
+                        "type": "source"
                     }
                 }
             },
@@ -169,7 +181,8 @@ Debug Data (ethdebug/format/program):
                         "offset": 56
                     },
                     "source": {
-                        "id": 0
+                        "id": 0,
+                        "type": "source"
                     }
                 }
             },
@@ -189,7 +202,8 @@ Debug Data (ethdebug/format/program):
                         "offset": 56
                     },
                     "source": {
-                        "id": 0
+                        "id": 0,
+                        "type": "source"
                     }
                 }
             },
@@ -206,7 +220,8 @@ Debug Data (ethdebug/format/program):
                         "offset": 56
                     },
                     "source": {
-                        "id": 0
+                        "id": 0,
+                        "type": "source"
                     }
                 }
             },
@@ -223,7 +238,8 @@ Debug Data (ethdebug/format/program):
                         "offset": 56
                     },
                     "source": {
-                        "id": 0
+                        "id": 0,
+                        "type": "source"
                     }
                 }
             },
@@ -243,7 +259,8 @@ Debug Data (ethdebug/format/program):
                         "offset": 56
                     },
                     "source": {
-                        "id": 0
+                        "id": 0,
+                        "type": "source"
                     }
                 }
             },
@@ -263,7 +280,8 @@ Debug Data (ethdebug/format/program):
                         "offset": 56
                     },
                     "source": {
-                        "id": 0
+                        "id": 0,
+                        "type": "source"
                     }
                 }
             },
@@ -280,7 +298,8 @@ Debug Data (ethdebug/format/program):
                         "offset": 56
                     },
                     "source": {
-                        "id": 0
+                        "id": 0,
+                        "type": "source"
                     }
                 }
             },
@@ -297,7 +316,8 @@ Debug Data (ethdebug/format/program):
                         "offset": 56
                     },
                     "source": {
-                        "id": 0
+                        "id": 0,
+                        "type": "source"
                     }
                 }
             },
@@ -317,7 +337,8 @@ Debug Data (ethdebug/format/program):
                         "offset": 56
                     },
                     "source": {
-                        "id": 0
+                        "id": 0,
+                        "type": "source"
                     }
                 }
             },
@@ -334,7 +355,8 @@ Debug Data (ethdebug/format/program):
                         "offset": 56
                     },
                     "source": {
-                        "id": 0
+                        "id": 0,
+                        "type": "source"
                     }
                 }
             },
@@ -351,7 +373,8 @@ Debug Data (ethdebug/format/program):
                         "offset": 56
                     },
                     "source": {
-                        "id": 0
+                        "id": 0,
+                        "type": "source"
                     }
                 }
             },
@@ -368,7 +391,8 @@ Debug Data (ethdebug/format/program):
                         "offset": 56
                     },
                     "source": {
-                        "id": 0
+                        "id": 0,
+                        "type": "source"
                     }
                 }
             },
@@ -388,7 +412,8 @@ Debug Data (ethdebug/format/program):
                         "offset": 56
                     },
                     "source": {
-                        "id": 0
+                        "id": 0,
+                        "type": "source"
                     }
                 }
             },
@@ -405,7 +430,8 @@ Debug Data (ethdebug/format/program):
                         "offset": 56
                     },
                     "source": {
-                        "id": 0
+                        "id": 0,
+                        "type": "source"
                     }
                 }
             },
@@ -422,7 +448,8 @@ Debug Data (ethdebug/format/program):
                         "offset": 56
                     },
                     "source": {
-                        "id": 0
+                        "id": 0,
+                        "type": "source"
                     }
                 }
             },
@@ -442,7 +469,8 @@ Debug Data (ethdebug/format/program):
                         "offset": 56
                     },
                     "source": {
-                        "id": 0
+                        "id": 0,
+                        "type": "source"
                     }
                 }
             },
@@ -459,7 +487,8 @@ Debug Data (ethdebug/format/program):
                         "offset": 56
                     },
                     "source": {
-                        "id": 0
+                        "id": 0,
+                        "type": "source"
                     }
                 }
             },
@@ -476,7 +505,8 @@ Debug Data (ethdebug/format/program):
                         "offset": 56
                     },
                     "source": {
-                        "id": 0
+                        "id": 0,
+                        "type": "source"
                     }
                 }
             },
@@ -493,7 +523,8 @@ Debug Data (ethdebug/format/program):
                         "offset": 56
                     },
                     "source": {
-                        "id": 0
+                        "id": 0,
+                        "type": "source"
                     }
                 }
             },
@@ -510,7 +541,8 @@ Debug Data (ethdebug/format/program):
                         "offset": 56
                     },
                     "source": {
-                        "id": 0
+                        "id": 0,
+                        "type": "source"
                     }
                 }
             },
@@ -527,7 +559,8 @@ Debug Data (ethdebug/format/program):
                         "offset": 56
                     },
                     "source": {
-                        "id": 0
+                        "id": 0,
+                        "type": "source"
                     }
                 }
             },
@@ -544,7 +577,8 @@ Debug Data (ethdebug/format/program):
                         "offset": 56
                     },
                     "source": {
-                        "id": 0
+                        "id": 0,
+                        "type": "source"
                     }
                 }
             },

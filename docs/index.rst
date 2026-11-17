@@ -152,6 +152,7 @@ Contents
    internals/optimizer.rst
    metadata.rst
    abi-spec.rst
+   ethdebug.rst
 
 .. toctree::
    :maxdepth: 2

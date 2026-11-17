@@ -391,12 +391,12 @@ Input Description
           //     - `<end>` is the index of the first byte after that location.
           // - `snippet`: A single-line code snippet from the location indicated by `@src`.
           //     The snippet is quoted and follows the corresponding `@src` annotation.
-          //     Depends on `location`; selecting `snippet` without it is an error.
+          //     Depends on `location`. Selecting `snippet` without it is an error.
           // - `ast-id`: Annotations of the form `@ast-id <id>` over elements that can be mapped back to a definition in the original Solidity file.
           //   `<id>` is a node ID in the Solidity AST ('ast' output).
-          // - `ethdebug`: Ethdebug annotations (experimental). Depends on `ast-id`; selecting
+          // - `ethdebug`: Ethdebug annotations (experimental). Depends on `ast-id`. Selecting
           //   `ethdebug` without `ast-id` is an error. Requesting an ethdebug output does not
-          //   change this selection; without `ethdebug` in it the `evm.bytecode.ethdebug` and
+          //   change this selection. Without `ethdebug` in it the `evm.bytecode.ethdebug` and
           //   `evm.deployedBytecode.ethdebug` outputs carry none of the semantic debug info
           //   this component adds.
           // - `*`: Wildcard value that can be used to request all non-experimental components.
@@ -458,8 +458,8 @@ Input Description
         //   transientStorageLayout - Slots, offsets and types of the contract's state variables in transient storage
         //   evm.assembly - New assembly format
         //   evm.legacyAssembly - Old-style assembly format in JSON
-        //   evm.bytecode.ethdebug - Debug information in ethdebug format (ethdebug/format/program schema for creation bytecode). Can only be requested when compiling via IR. Carries semantic debug info only when the `ethdebug` component is present in `settings.debug.debugInfo`. (experimental)
-        //   evm.deployedBytecode.ethdebug - Debug information in ethdebug format (ethdebug/format/program schema for deployed bytecode). Can only be requested when compiling via IR. Carries semantic debug info only when the `ethdebug` component is present in `settings.debug.debugInfo`. (experimental)
+        //   evm.bytecode.ethdebug - Debug information in ethdebug format (ethdebug/format/program schema for creation bytecode), stamped with the schema and the version of the ethdebug/format specification it follows. Can only be requested when compiling via IR. Carries semantic debug info only when the `ethdebug` component is present in `settings.debug.debugInfo`. (experimental)
+        //   evm.deployedBytecode.ethdebug - Debug information in ethdebug format (ethdebug/format/program schema for deployed bytecode), stamped with the schema and the version of the ethdebug/format specification it follows. Can only be requested when compiling via IR. Carries semantic debug info only when the `ethdebug` component is present in `settings.debug.debugInfo`. (experimental)
         //   evm.bytecode.functionDebugData - Debugging information at function level
         //   evm.bytecode.object - Bytecode object
         //   evm.bytecode.opcodes - Opcodes list
@@ -472,8 +472,8 @@ Input Description
         //   evm.gasEstimates - Function gas estimates
         //
         // Global level (needs "*" as file name and "*" as contract name):
-        //   ethdebug.resources - Global ethdebug output (ethdebug/format/info/resources schema) containing source list and compiler info (experimental)
-        //   ethdebug.compilation - Global ethdebug compilation output (the 'compilation' key from ethdebug/format/info/resources schema) (experimental)
+        //   ethdebug.resources - Global ethdebug type and pointer tables (ethdebug/format/info/resources schema) (experimental)
+        //   ethdebug.compilation - Compiler information and source list (ethdebug/format/materials/compilation schema) (experimental)
         //
         // Note that using `evm`, `evm.bytecode`, etc. will select every
         // target part of that output. Additionally, `*` can be used as a wildcard to request everything.
@@ -703,13 +703,12 @@ Output Description
       },
       // Global Ethdebug output (experimental)
       "ethdebug": {
-        // Requested via ethdebug.resources output selection
+        // Type and pointer tables, requested via ethdebug.resources
         "resources": {/* ... */},
-        // Requested via ethdebug.compilation output selection
+        // Compiler information and sources, requested via ethdebug.compilation
         "compilation": {/* ... */}
       }
     }
-
 
 Error Types
 ~~~~~~~~~~~

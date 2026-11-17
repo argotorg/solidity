@@ -32,9 +32,12 @@
 #include <boost/test/unit_test.hpp>
 
 #include <algorithm>
+#include <cstdint>
+#include <limits>
 #include <memory>
 #include <string>
 #include <tuple>
+#include <type_traits>
 
 using namespace solidity::langutil;
 using namespace solidity::evmasm;
@@ -431,7 +434,7 @@ BOOST_AUTO_TEST_CASE(ethdebug_program_last_instruction_with_immediate_arguments)
 		assembly.append(AssemblyItem{0x11223344});
 		LinkerObject output = assembly.assemble();
 
-		Json const program = ethdebug::program("", 0, assembly, output);
+		Json const program = evmasm::ethdebug::program("", 0, assembly, output);
 		BOOST_REQUIRE(program["instructions"].size() == 1);
 		BOOST_REQUIRE(program["instructions"][0]["operation"]["mnemonic"] == "PUSH4");
 		BOOST_REQUIRE(program["instructions"][0]["operation"]["arguments"][0] == "0x11223344");
@@ -442,7 +445,7 @@ BOOST_AUTO_TEST_CASE(ethdebug_program_last_instruction_with_immediate_arguments)
 		assembly.append(AssemblyItem{0x1122334455});
 		LinkerObject output = assembly.assemble();
 
-		Json const program = ethdebug::program("", 0, assembly, output);
+		Json const program = evmasm::ethdebug::program("", 0, assembly, output);
 		BOOST_REQUIRE(program["instructions"].size() == 2);
 		BOOST_REQUIRE(program["instructions"][0]["operation"]["mnemonic"] == "PUSH0");
 		BOOST_REQUIRE(!program["instructions"][0]["operation"].contains("arguments"));
@@ -451,48 +454,95 @@ BOOST_AUTO_TEST_CASE(ethdebug_program_last_instruction_with_immediate_arguments)
 	}
 }
 
-BOOST_AUTO_TEST_CASE(ethdebug_resources)
+BOOST_AUTO_TEST_CASE(ethdebug_source_references)
 {
-	Json const resources = ethdebug::resources(
-		{
-			{.id = 0, .path = "sourceA", .contents = "contentsA", .language = "Solidity"},
-			{.id = 1, .path = "sourceB", .contents = "contentsB", .language = "Yul"}
+	EVMVersion evmVersion = CommonOptions::get().evmVersion();
+	Json const sourceReference = {{"id", 7}, {"type", "source"}};
+	for (bool isCreation: {true, false})
+	{
+		Assembly assembly{evmVersion, isCreation, {}};
+		assembly.setSourceLocation({1, 3, std::make_shared<std::string>("source.sol")});
+		assembly.append(AssemblyItem{Instruction::STOP});
+		LinkerObject const output = assembly.assemble();
+
+		Json const program = evmasm::ethdebug::program("C", 7, assembly, output);
+		BOOST_CHECK(program["contract"]["definition"]["source"] == sourceReference);
+		BOOST_REQUIRE_EQUAL(program["instructions"].size(), 1);
+		BOOST_CHECK(program["instructions"][0]["context"]["code"]["source"] == sourceReference);
+	}
+}
+
+BOOST_AUTO_TEST_CASE(ethdebug_type_specifier_unique_ownership)
+{
+	using Type = langutil::ethdebug::schema::Type;
+	static_assert(!std::is_copy_constructible_v<Type>);
+	static_assert(!std::is_copy_constructible_v<Type::Specifier>);
+	static_assert(std::is_move_constructible_v<Type>);
+	static_assert(std::is_move_constructible_v<Type::Specifier>);
+
+	auto inlineType = std::make_unique<Type const>(Type{Type::Array{
+		.contains = {
+			.name = std::nullopt,
+			.type = Type::Specifier{std::make_unique<Type const>(Type{Type::UInt{128}})},
 		},
-		"version1"
+		.count = std::nullopt,
+	}});
+	Type const* inlineTypeAddress = inlineType.get();
+	Type::Specifier originalSpecifier{std::move(inlineType)};
+	BOOST_CHECK(inlineType == nullptr);
+	Type::Specifier const movedSpecifier = std::move(originalSpecifier);
+	BOOST_CHECK(std::get<std::unique_ptr<Type const>>(originalSpecifier.value) == nullptr);
+	BOOST_CHECK(std::get<std::unique_ptr<Type const>>(movedSpecifier.value).get() == inlineTypeAddress);
+	BOOST_CHECK_EQUAL(
+		Json(movedSpecifier).dump(),
+		R"({"contains":{"type":{"bits":128,"kind":"uint"}},"kind":"array"})"
 	);
-	std::string const compilationID = resources["compilation"]["id"].get<std::string>();
-	BOOST_REQUIRE(compilationID.substr(0, 5) == "solc-");
-	std::string const repeatedCompilationID = ethdebug::resources(
-		{
-			{.id = 0, .path = "sourceA", .contents = "contentsA", .language = "Solidity"},
-			{.id = 1, .path = "sourceB", .contents = "contentsB", .language = "Yul"}
-		},
-		"version1"
-	)["compilation"]["id"].get<std::string>();
-	BOOST_REQUIRE(compilationID == repeatedCompilationID);
-	std::string const changedCompilationID = ethdebug::resources(
-		{
-			{.id = 0, .path = "sourceA", .contents = "changedContentsA", .language = "Solidity"},
-			{.id = 1, .path = "sourceB", .contents = "contentsB", .language = "Yul"}
-		},
-		"version1"
-	)["compilation"]["id"].get<std::string>();
-	BOOST_REQUIRE(compilationID != changedCompilationID);
-	BOOST_REQUIRE(resources["types"].is_object());
-	BOOST_REQUIRE(resources["types"].empty());
-	BOOST_REQUIRE(resources["pointers"].is_object());
-	BOOST_REQUIRE(resources["pointers"].empty());
-	BOOST_REQUIRE(resources["compilation"]["compiler"]["name"] == "solc");
-	BOOST_REQUIRE(resources["compilation"]["compiler"]["version"] == "version1");
-	BOOST_REQUIRE(resources["compilation"]["sources"].size() == 2);
-	BOOST_REQUIRE(resources["compilation"]["sources"][0]["id"] == 0);
-	BOOST_REQUIRE(resources["compilation"]["sources"][0]["path"] == "sourceA");
-	BOOST_REQUIRE(resources["compilation"]["sources"][0]["contents"] == "contentsA");
-	BOOST_REQUIRE(resources["compilation"]["sources"][0]["language"] == "Solidity");
-	BOOST_REQUIRE(resources["compilation"]["sources"][1]["id"] == 1);
-	BOOST_REQUIRE(resources["compilation"]["sources"][1]["path"] == "sourceB");
-	BOOST_REQUIRE(resources["compilation"]["sources"][1]["contents"] == "contentsB");
-	BOOST_REQUIRE(resources["compilation"]["sources"][1]["language"] == "Yul");
+	Type::Specifier const referenceSpecifier{Type::Reference{langutil::ethdebug::schema::materials::ID{"t_uint128"}}};
+	BOOST_CHECK_EQUAL(Json(referenceSpecifier).dump(), R"({"id":"t_uint128"})");
+}
+
+BOOST_AUTO_TEST_CASE(ethdebug_pointer_unique_ownership)
+{
+	using Pointer = langutil::ethdebug::schema::Pointer;
+	static_assert(!std::is_copy_constructible_v<Pointer>);
+	static_assert(!std::is_copy_constructible_v<Pointer::Expression>);
+	static_assert(!std::is_copy_constructible_v<Pointer::Template>);
+	static_assert(std::is_move_constructible_v<Pointer>);
+	static_assert(std::is_move_constructible_v<Pointer::Expression>);
+	static_assert(std::is_move_constructible_v<Pointer::Template>);
+
+	auto child = std::make_unique<Pointer const>(Pointer{Pointer::Region{
+		"value",
+		Pointer::Location::Storage,
+		Pointer::Expression{Pointer::Variable{"slot"}},
+	}});
+	Pointer const* childAddress = child.get();
+	Pointer originalPointer{Pointer::List{
+		Pointer::Expression{Pointer::Variable{"count"}},
+		"index",
+		std::move(child),
+	}};
+	BOOST_CHECK(!child);
+	Json const expected = originalPointer;
+	Pointer const movedPointer = std::move(originalPointer);
+	BOOST_CHECK(!std::get<Pointer::List>(originalPointer.value).is);
+	BOOST_CHECK(std::get<Pointer::List>(movedPointer.value).is.get() == childAddress);
+	BOOST_CHECK_EQUAL(Json(movedPointer).dump(), expected.dump());
+}
+
+BOOST_AUTO_TEST_CASE(ethdebug_pointer_resize_width)
+{
+	using Pointer = langutil::ethdebug::schema::Pointer;
+	auto const makeOperand = [] {
+		return std::make_unique<Pointer::Expression const>(Pointer::Expression{Pointer::Variable{"slot"}});
+	};
+	BOOST_CHECK_EQUAL(Json(Pointer::Expression{Pointer::Resize{std::nullopt, makeOperand()}}).dump(), R"({"~wordsized":"slot"})");
+	BOOST_CHECK_EQUAL(Json(Pointer::Expression{Pointer::Resize{1, makeOperand()}}).dump(), R"({"~sized1":"slot"})");
+	std::uint64_t const maximumWidth = std::numeric_limits<std::uint64_t>::max();
+	BOOST_CHECK_EQUAL(
+		Json(Pointer::Expression{Pointer::Resize{maximumWidth, makeOperand()}}).dump(),
+		R"({"~sized18446744073709551615":"slot"})"
+	);
 }
 
 BOOST_AUTO_TEST_CASE(can_be_functional)

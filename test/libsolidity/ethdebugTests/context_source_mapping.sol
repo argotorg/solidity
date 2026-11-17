@@ -18,6 +18,7 @@ contract C {
 //         "offset": 59
 //     },
 //     "source": {
-//         "id": 0
+//         "id": 0,
+//         "type": "source"
 //     }
 // }
