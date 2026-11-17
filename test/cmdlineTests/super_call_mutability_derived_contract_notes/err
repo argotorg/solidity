@@ -1,0 +1,16 @@
+Error: Function "B.f" declared as pure, but this "super" call resolves to a function with higher state mutability in a derived contract.
+  --> input.sol:18:74:
+   |
+18 |     function f() public pure virtual override returns (uint256) { return super.f(); }
+   |                                                                          ^^^^^^^^^
+Note: In "D" it resolves to "X.f", which is nonpayable.
+  --> input.sol:21:10:
+   |
+21 | contract D is A, X, B {
+   |          ^
+Note: In "E" it resolves to "Y.f", which is view.
+  --> input.sol:25:10:
+   |
+25 | contract E is A, Y, B {
+   |          ^
+

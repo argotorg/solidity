@@ -378,7 +378,7 @@ void ViewPureChecker::endVisit(FunctionCall const& _functionCall)
 		FunctionDefinition const* resolved = ASTNode::resolveFunctionCall(_functionCall, derived);
 		if (
 			!resolved ||
-			// Error already covered by reportFunctionCallMutability
+			// Already checked by reportFunctionCallMutability above
 			resolved == memberAccess->annotation().referencedDeclaration ||
 			resolved->stateMutability() <= m_currentFunction->stateMutability()
 		)
