@@ -12,6 +12,10 @@ AST Changes:
 * AST: Remove the `virtual`, `overrides`, and `baseModifiers` fields from `ModifierDefinition` nodes.
 
 
+Language Features:
+* ABIEncoder: Remove support for the experimental pragma `ABIEncoderV2`. This pragma was redundant.
+
+
 ### 0.8.39 (unreleased)
 
 Language Features:

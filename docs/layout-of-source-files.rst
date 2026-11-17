@@ -111,9 +111,6 @@ since Solidity 0.8.0.
   validation and safety checks, which may result in higher gas costs, but also heightened
   security.
 
-.. note::
-  Up to Solidity 0.7.4, the ABI coder v2 was selected by using ``pragma experimental ABIEncoderV2``.
-
 .. index:: ! pragma; experimental
 .. _experimental_pragma:
 
@@ -122,16 +119,6 @@ Experimental Pragma
 
 The second pragma is the experimental pragma. It can be used to enable
 features of the compiler or language that are not yet enabled by default.
-The following experimental pragmas are currently supported:
-
-.. index:: ! pragma; ABIEncoderV2
-
-ABIEncoderV2
-~~~~~~~~~~~~
-
-Because the ABI coder v2 is not considered experimental anymore,
-it can be selected via ``pragma abicoder v2`` (please see above)
-since Solidity 0.7.4.
 
 .. index:: source file, ! import, module, source unit
 
