@@ -42,8 +42,15 @@ struct Source
 /// the stamps of the programs and of the resources name.
 constexpr std::string_view SpecificationVersion = "0.1.0-draft.2";
 
-// returns ethdebug/format/program, stamped with its schema and the specification version.
-Json program(std::string_view _name, unsigned _sourceID, Assembly const& _assembly, LinkerObject const& _linkerObject);
+/// Returns ethdebug/format/program, stamped with its schema and the specification version.
+/// @param _sourceIndices Maps instruction source names to their source IDs.
+Json program(
+	std::string_view _name,
+	unsigned _contractSourceID,
+	Assembly const& _assembly,
+	LinkerObject const& _linkerObject,
+	std::map<std::string, unsigned> const& _sourceIndices
+);
 
 // returns ethdebug/format/info/resources, stamped with its schema and the specification version.
 Json resources(

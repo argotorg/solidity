@@ -1,0 +1,19 @@
+{
+    "language": "Yul",
+    "sources": {
+        "input.yul": {
+            "content": "/// ethdebug: enabled\nobject \"C\" {\n    code { { stop() } }\n    object \"runtime\" {\n        code { { stop() } }\n    }\n}\n\n"
+        }
+    },
+    "settings": {
+        "experimental": true,
+        "debug": {
+            "debugInfo": ["ast-id", "ethdebug"]
+        },
+        "outputSelection": {
+            "*": {
+                "*": ["evm.bytecode.ethdebug", "evm.deployedBytecode.ethdebug"]
+            }
+        }
+    }
+}
