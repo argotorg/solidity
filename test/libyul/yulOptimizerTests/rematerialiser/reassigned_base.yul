@@ -8,7 +8,7 @@
     sstore(b, 1)
 }
 // ----
-// step: rematerialiserSolo
+// step: rematerialiser
 //
 // {
 //     let v := calldataload(0)

@@ -358,9 +358,6 @@ YulOptimizerTestCommon::YulOptimizerTestCommon(std::shared_ptr<Object const> _ob
 			return block;
 		}},
 		{"loadResolverSolo", soloStep<LoadResolver>()},
-		{"commonSubexpressionEliminatorSolo", soloStep<CommonSubexpressionEliminator>()},
-		{"equalStoreEliminatorSolo", soloStep<EqualStoreEliminator>()},
-		{"rematerialiserSolo", soloStep<Rematerialiser>()},
 		{"literalRematerialiserSolo", soloStep<LiteralRematerialiser>()},
 		{"expressionSimplifierSolo", soloStep<ExpressionSimplifier>()},
 		{"loopInvariantCodeMotion", [&]() {

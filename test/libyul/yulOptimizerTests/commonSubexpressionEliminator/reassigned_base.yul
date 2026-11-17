@@ -9,7 +9,7 @@
     sstore(c, 1)
 }
 // ----
-// step: commonSubexpressionEliminatorSolo
+// step: commonSubexpressionEliminator
 //
 // {
 //     let v := calldataload(0)

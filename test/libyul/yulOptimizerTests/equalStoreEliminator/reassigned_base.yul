@@ -11,7 +11,7 @@
     sstore(a, x)
 }
 // ----
-// step: equalStoreEliminatorSolo
+// step: equalStoreEliminator
 //
 // {
 //     let v := calldataload(0)
