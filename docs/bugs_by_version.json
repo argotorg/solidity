@@ -1133,6 +1133,7 @@
     },
     "0.5.0": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
@@ -1155,6 +1156,7 @@
     },
     "0.5.1": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
@@ -1177,6 +1179,7 @@
     },
     "0.5.10": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "AbiReencodingHeadOverflowWithStaticArrayCleanup",
@@ -1197,6 +1200,7 @@
     },
     "0.5.11": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "AbiReencodingHeadOverflowWithStaticArrayCleanup",
@@ -1216,6 +1220,7 @@
     },
     "0.5.12": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "AbiReencodingHeadOverflowWithStaticArrayCleanup",
@@ -1235,6 +1240,7 @@
     },
     "0.5.13": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "AbiReencodingHeadOverflowWithStaticArrayCleanup",
@@ -1254,6 +1260,7 @@
     },
     "0.5.14": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "AbiReencodingHeadOverflowWithStaticArrayCleanup",
@@ -1275,6 +1282,7 @@
     },
     "0.5.15": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "AbiReencodingHeadOverflowWithStaticArrayCleanup",
@@ -1295,6 +1303,7 @@
     },
     "0.5.16": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "AbiReencodingHeadOverflowWithStaticArrayCleanup",
@@ -1314,6 +1323,7 @@
     },
     "0.5.17": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "AbiReencodingHeadOverflowWithStaticArrayCleanup",
@@ -1332,6 +1342,7 @@
     },
     "0.5.2": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
@@ -1354,6 +1365,7 @@
     },
     "0.5.3": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
@@ -1376,6 +1388,7 @@
     },
     "0.5.4": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
@@ -1398,6 +1411,7 @@
     },
     "0.5.5": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
@@ -1422,6 +1436,7 @@
     },
     "0.5.6": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
@@ -1446,6 +1461,7 @@
     },
     "0.5.7": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
@@ -1468,6 +1484,7 @@
     },
     "0.5.8": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "AbiReencodingHeadOverflowWithStaticArrayCleanup",
@@ -1491,6 +1508,7 @@
     },
     "0.5.9": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "AbiReencodingHeadOverflowWithStaticArrayCleanup",
@@ -1513,6 +1531,7 @@
     },
     "0.6.0": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "AbiReencodingHeadOverflowWithStaticArrayCleanup",
@@ -1533,6 +1552,7 @@
     },
     "0.6.1": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "AbiReencodingHeadOverflowWithStaticArrayCleanup",
@@ -1552,6 +1572,7 @@
     },
     "0.6.10": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "FullInlinerNonExpressionSplitArgumentEvaluationOrder",
@@ -1570,6 +1591,7 @@
     },
     "0.6.11": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "FullInlinerNonExpressionSplitArgumentEvaluationOrder",
@@ -1588,6 +1610,7 @@
     },
     "0.6.12": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "FullInlinerNonExpressionSplitArgumentEvaluationOrder",
@@ -1606,6 +1629,7 @@
     },
     "0.6.2": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "MissingSideEffectsOnSelectorAccess",
@@ -1626,6 +1650,7 @@
     },
     "0.6.3": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "MissingSideEffectsOnSelectorAccess",
@@ -1646,6 +1671,7 @@
     },
     "0.6.4": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "MissingSideEffectsOnSelectorAccess",
@@ -1666,6 +1692,7 @@
     },
     "0.6.5": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "MissingSideEffectsOnSelectorAccess",
@@ -1686,6 +1713,7 @@
     },
     "0.6.6": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "MissingSideEffectsOnSelectorAccess",
@@ -1705,6 +1733,7 @@
     },
     "0.6.7": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "FullInlinerNonExpressionSplitArgumentEvaluationOrder",
@@ -1725,6 +1754,7 @@
     },
     "0.6.8": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "FullInlinerNonExpressionSplitArgumentEvaluationOrder",
@@ -1742,6 +1772,7 @@
     },
     "0.6.9": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "FullInlinerNonExpressionSplitArgumentEvaluationOrder",
@@ -1761,6 +1792,7 @@
     },
     "0.7.0": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "FullInlinerNonExpressionSplitArgumentEvaluationOrder",
@@ -1779,6 +1811,7 @@
     },
     "0.7.1": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "FullInlinerNonExpressionSplitArgumentEvaluationOrder",
@@ -1798,6 +1831,7 @@
     },
     "0.7.2": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "SpillSlotCollisionAcrossMutualRecursion",
             "UnsoundSpillInMutualRecursion",
@@ -1818,6 +1852,7 @@
     },
     "0.7.3": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "SpillSlotCollisionAcrossMutualRecursion",
             "UnsoundSpillInMutualRecursion",
@@ -1837,6 +1872,7 @@
     },
     "0.7.4": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "SpillSlotCollisionAcrossMutualRecursion",
             "UnsoundSpillInMutualRecursion",
@@ -1855,6 +1891,7 @@
     },
     "0.7.5": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "SpillSlotCollisionAcrossMutualRecursion",
             "UnsoundSpillInMutualRecursion",
@@ -1873,6 +1910,7 @@
     },
     "0.7.6": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "SpillSlotCollisionAcrossMutualRecursion",
             "UnsoundSpillInMutualRecursion",
@@ -1891,6 +1929,7 @@
     },
     "0.8.0": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "SpillSlotCollisionAcrossMutualRecursion",
             "UnsoundSpillInMutualRecursion",
@@ -1909,6 +1948,7 @@
     },
     "0.8.1": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "SpillSlotCollisionAcrossMutualRecursion",
             "UnsoundSpillInMutualRecursion",
@@ -1927,6 +1967,7 @@
     },
     "0.8.10": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "SpillSlotCollisionAcrossMutualRecursion",
             "UnsoundSpillInMutualRecursion",
@@ -1943,6 +1984,7 @@
     },
     "0.8.11": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "SpillSlotCollisionAcrossMutualRecursion",
             "UnsoundSpillInMutualRecursion",
@@ -1960,6 +2002,7 @@
     },
     "0.8.12": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "SpillSlotCollisionAcrossMutualRecursion",
             "UnsoundSpillInMutualRecursion",
@@ -1977,6 +2020,7 @@
     },
     "0.8.13": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "SpillSlotCollisionAcrossMutualRecursion",
             "UnsoundSpillInMutualRecursion",
@@ -1995,6 +2039,7 @@
     },
     "0.8.14": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "SpillSlotCollisionAcrossMutualRecursion",
             "UnsoundSpillInMutualRecursion",
@@ -2011,6 +2056,7 @@
     },
     "0.8.15": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "SpillSlotCollisionAcrossMutualRecursion",
             "UnsoundSpillInMutualRecursion",
@@ -2025,6 +2071,7 @@
     },
     "0.8.16": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "SpillSlotCollisionAcrossMutualRecursion",
             "UnsoundSpillInMutualRecursion",
@@ -2038,6 +2085,7 @@
     },
     "0.8.17": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "SpillSlotCollisionAcrossMutualRecursion",
             "UnsoundSpillInMutualRecursion",
@@ -2050,6 +2098,7 @@
     },
     "0.8.18": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "SpillSlotCollisionAcrossMutualRecursion",
             "UnsoundSpillInMutualRecursion",
@@ -2062,6 +2111,7 @@
     },
     "0.8.19": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "YulOptimizerKnowledgeBaseStaleBookkeeping",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "SpillSlotCollisionAcrossMutualRecursion",
@@ -2075,6 +2125,7 @@
     },
     "0.8.2": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "SpillSlotCollisionAcrossMutualRecursion",
             "UnsoundSpillInMutualRecursion",
@@ -2093,6 +2144,7 @@
     },
     "0.8.20": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "YulOptimizerKnowledgeBaseStaleBookkeeping",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "SpillSlotCollisionAcrossMutualRecursion",
@@ -2106,6 +2158,7 @@
     },
     "0.8.21": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "YulOptimizerKnowledgeBaseStaleBookkeeping",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "SpillSlotCollisionAcrossMutualRecursion",
@@ -2117,6 +2170,7 @@
     },
     "0.8.22": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "YulOptimizerKnowledgeBaseStaleBookkeeping",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "SpillSlotCollisionAcrossMutualRecursion",
@@ -2128,6 +2182,7 @@
     },
     "0.8.23": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "YulOptimizerKnowledgeBaseStaleBookkeeping",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "SpillSlotCollisionAcrossMutualRecursion",
@@ -2138,6 +2193,7 @@
     },
     "0.8.24": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "YulOptimizerKnowledgeBaseStaleBookkeeping",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "SpillSlotCollisionAcrossMutualRecursion",
@@ -2148,6 +2204,7 @@
     },
     "0.8.25": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "YulOptimizerKnowledgeBaseStaleBookkeeping",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "SpillSlotCollisionAcrossMutualRecursion",
@@ -2158,6 +2215,7 @@
     },
     "0.8.26": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "YulOptimizerKnowledgeBaseStaleBookkeeping",
             "MisorderedNamedParametersInRequireWithCustomErrors",
             "MemoryByteArrayElementDeleteClearsWholeWord",
@@ -2169,6 +2227,7 @@
     },
     "0.8.27": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "YulOptimizerKnowledgeBaseStaleBookkeeping",
             "MisorderedNamedParametersInRequireWithCustomErrors",
             "MemoryByteArrayElementDeleteClearsWholeWord",
@@ -2180,6 +2239,7 @@
     },
     "0.8.28": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "YulOptimizerKnowledgeBaseStaleBookkeeping",
             "MisorderedNamedParametersInRequireWithCustomErrors",
             "MemoryByteArrayElementDeleteClearsWholeWord",
@@ -2192,6 +2252,7 @@
     },
     "0.8.29": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "YulOptimizerKnowledgeBaseStaleBookkeeping",
             "MisorderedNamedParametersInRequireWithCustomErrors",
             "MemoryByteArrayElementDeleteClearsWholeWord",
@@ -2205,6 +2266,7 @@
     },
     "0.8.3": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "SpillSlotCollisionAcrossMutualRecursion",
             "UnsoundSpillInMutualRecursion",
@@ -2222,6 +2284,7 @@
     },
     "0.8.30": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "YulOptimizerKnowledgeBaseStaleBookkeeping",
             "MisorderedNamedParametersInRequireWithCustomErrors",
             "MemoryByteArrayElementDeleteClearsWholeWord",
@@ -2235,6 +2298,7 @@
     },
     "0.8.31": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "YulOptimizerKnowledgeBaseStaleBookkeeping",
             "MisorderedNamedParametersInRequireWithCustomErrors",
             "MemoryByteArrayElementDeleteClearsWholeWord",
@@ -2248,6 +2312,7 @@
     },
     "0.8.32": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "YulOptimizerKnowledgeBaseStaleBookkeeping",
             "MisorderedNamedParametersInRequireWithCustomErrors",
             "MemoryByteArrayElementDeleteClearsWholeWord",
@@ -2260,6 +2325,7 @@
     },
     "0.8.33": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "YulOptimizerKnowledgeBaseStaleBookkeeping",
             "MisorderedNamedParametersInRequireWithCustomErrors",
             "MemoryByteArrayElementDeleteClearsWholeWord",
@@ -2272,6 +2338,7 @@
     },
     "0.8.34": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "YulOptimizerKnowledgeBaseStaleBookkeeping",
             "MisorderedNamedParametersInRequireWithCustomErrors",
             "MemoryByteArrayElementDeleteClearsWholeWord",
@@ -2283,6 +2350,7 @@
     },
     "0.8.35": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "YulOptimizerKnowledgeBaseStaleBookkeeping",
             "MisorderedNamedParametersInRequireWithCustomErrors",
             "MemoryByteArrayElementDeleteClearsWholeWord",
@@ -2294,6 +2362,7 @@
     },
     "0.8.36": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "YulOptimizerKnowledgeBaseStaleBookkeeping",
             "MisorderedNamedParametersInRequireWithCustomErrors",
             "MemoryByteArrayElementDeleteClearsWholeWord",
@@ -2303,16 +2372,20 @@
     },
     "0.8.37": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "YulOptimizerKnowledgeBaseStaleBookkeeping"
         ],
         "released": "2026-09-10"
     },
     "0.8.38": {
-        "bugs": [],
+        "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing"
+        ],
         "released": "2026-10-22"
     },
     "0.8.4": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "SpillSlotCollisionAcrossMutualRecursion",
             "UnsoundSpillInMutualRecursion",
@@ -2329,6 +2402,7 @@
     },
     "0.8.5": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "SpillSlotCollisionAcrossMutualRecursion",
             "UnsoundSpillInMutualRecursion",
@@ -2346,6 +2420,7 @@
     },
     "0.8.6": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "SpillSlotCollisionAcrossMutualRecursion",
             "UnsoundSpillInMutualRecursion",
@@ -2363,6 +2438,7 @@
     },
     "0.8.7": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "SpillSlotCollisionAcrossMutualRecursion",
             "UnsoundSpillInMutualRecursion",
@@ -2380,6 +2456,7 @@
     },
     "0.8.8": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "SpillSlotCollisionAcrossMutualRecursion",
             "UnsoundSpillInMutualRecursion",
@@ -2398,6 +2475,7 @@
     },
     "0.8.9": {
         "bugs": [
+            "ABIDecodeStaticArrayMemoryAliasing",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "SpillSlotCollisionAcrossMutualRecursion",
             "UnsoundSpillInMutualRecursion",
