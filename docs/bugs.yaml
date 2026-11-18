@@ -1,3 +1,25 @@
+- uid: SOL-2026-9
+  name: ABIDecodeStaticArrayMemoryAliasing
+  summary: >-
+    With ABI coder v1, a statically sized array obtained by calling ``abi.decode`` on a ``bytes memory`` value is not copied and instead refers to the memory of the decoded byte array.
+  description: >-
+    When ``abi.decode`` is used on a byte array in memory, the decoded values are supposed to be independent of the input.
+    The evmasm code generator with ABI coder v1, however, did not copy statically sized arrays out of the input and returned a pointer into the byte array instead.
+    As a result, writing to the decoded array also modified the encoded data, and writing to the encoded data also modified the decoded array.
+    For the same reason, decoding the same byte array more than once produced arrays that shared the same memory, so a modification of one of them was visible through the other.
+    The same aliasing for dynamically sized arrays was fixed in version 0.5.11, but the statically sized case was left unchanged.
+    Only statically sized arrays of value types were affected.
+    Dynamically sized arrays were copied, and so was any array decoded from calldata.
+    The bug existed only in ABI coder v1 in the evmasm pipeline.
+    Code using ABI coder v2 or compiled via IR (where ABI coder v2 is the only option) was unaffected.
+    The bug was not fixed directly, but ceased to exist with the removal of ABI coder v1.
+  introduced: 0.5.0
+  fixed: 0.9.0
+  severity: very low
+  conditions:
+    ABIEncoderV2: false
+    viaIR: false
+
 - uid: SOL-2026-8
   name: OverlappingRecursiveStorageStructCopyCorruption
   summary: >-
