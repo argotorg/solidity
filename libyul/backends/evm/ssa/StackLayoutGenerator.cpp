@@ -21,7 +21,6 @@
 #include <libyul/backends/evm/ssa/stack/InstructionStackIn.h>
 #include <libyul/backends/evm/ssa/stack/Shuffler.h>
 
-#include <libyul/backends/evm/ssa/JunkAdmittingBlocksFinder.h>
 #include <libyul/backends/evm/ssa/PhiInverse.h>
 #include <libyul/backends/evm/ssa/ShuffleTrace.h>
 #include <libyul/backends/evm/ssa/StackUtils.h>
@@ -118,7 +117,6 @@ StackLayoutGenerator::StackLayoutGenerator(
 	m_graphID(_graphID),
 	m_hasFunctionReturnLabel(!_liveness.cfg().isMainGraph() && _liveness.cfg().canContinue),
 	m_spillingAllowed(_spillingAllowed),
-	m_junkAdmittingBlocksFinder(std::make_unique<JunkAdmittingBlocksFinder>(_liveness.cfg(), _liveness.dfsTree())),
 	m_inputStackProposalsPerBlock(m_cfg.numBlocks()),
 	m_resultLayout(m_cfg.numBlocks()),
 	m_spillSet(std::move(_initialSpillSet))

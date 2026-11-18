@@ -23,12 +23,9 @@
 #include <libyul/backends/evm/ssa/Stack.h>
 #include <libyul/backends/evm/ssa/StackLayout.h>
 
-#include <memory>
 
 namespace solidity::yul::ssa
 {
-
-class JunkAdmittingBlocksFinder;
 
 class StackLayoutGenerator
 {
@@ -72,7 +69,6 @@ private:
 	bool m_hasFunctionReturnLabel;
 	bool m_spillingAllowed;
 
-	std::unique_ptr<JunkAdmittingBlocksFinder> m_junkAdmittingBlocksFinder;
 	// Per-edge stack proposals for defineStackIn.
 	// m_inputStackProposalsPerBlock[blockId] contains (predecessorId, edgeStack) pairs
 	// representing the stack state flowing from each predecessor into the block.
