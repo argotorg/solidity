@@ -9,10 +9,10 @@ allowSpilling: true
 //        SWAP1| ReturnLabel[9]      *    v11     v6    v10    v18      *      *  phi31      *      *  phi49      *  phi44 phi108  phi63
 //        SWAP2| ReturnLabel[9]      *    v11     v6    v10    v18      *      *  phi31      *      *  phi49      *  phi63 phi108  phi44
 //        SWAP3| ReturnLabel[9]      *    v11     v6    v10    v18      *      *  phi31      *      *  phi49  phi44  phi63 phi108      *
-//        SWAP4| ReturnLabel[9]      *    v11     v6    v10    v18      *      *  phi31      *      *      *  phi44  phi63 phi108  phi49
-//        SWAP5| ReturnLabel[9]      *    v11     v6    v10    v18      *      *  phi31      *  phi49      *  phi44  phi63 phi108      *
-//        SWAP7| ReturnLabel[9]      *    v11     v6    v10    v18      *      *      *      *  phi49      *  phi44  phi63 phi108  phi31
-//        SWAP8| ReturnLabel[9]      *    v11     v6    v10    v18      *  phi31      *      *  phi49      *  phi44  phi63 phi108      *
+//        SWAP7| ReturnLabel[9]      *    v11     v6    v10    v18      *      *      *      *      *  phi49  phi44  phi63 phi108  phi31
+//        SWAP8| ReturnLabel[9]      *    v11     v6    v10    v18      *  phi31      *      *      *  phi49  phi44  phi63 phi108      *
+//        SWAP4| ReturnLabel[9]      *    v11     v6    v10    v18      *  phi31      *      *      *      *  phi44  phi63 phi108  phi49
+//        SWAP5| ReturnLabel[9]      *    v11     v6    v10    v18      *  phi31      *      *  phi49      *  phi44  phi63 phi108      *
 // PUSH FunctionCallReturnLabel[8]| ReturnLabel[9]      *    v11     v6    v10    v18      *  phi31      *      *  phi49      *  phi44  phi63 phi108      * FunctionCallReturnLabel[8]
 //         DUP7| ReturnLabel[9]      *    v11     v6    v10    v18      *  phi31      *      *  phi49      *  phi44  phi63 phi108      * FunctionCallReturnLabel[8]  phi49
 //        DUP16| ReturnLabel[9]      *    v11     v6    v10    v18      *  phi31      *      *  phi49      *  phi44  phi63 phi108      * FunctionCallReturnLabel[8]  phi49    v11
