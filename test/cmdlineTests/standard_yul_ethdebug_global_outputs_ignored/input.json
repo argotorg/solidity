@@ -1,0 +1,19 @@
+{
+    "language": "Yul",
+    "sources": {
+        "input.yul": {
+            "content": "object \"C\" { code { stop() } }"
+        }
+    },
+    "settings": {
+        "outputSelection": {
+            "*": {
+                "*": [
+                    "ethdebug.resources",
+                    "ethdebug.compilation",
+                    "evm.bytecode.object"
+                ]
+            }
+        }
+    }
+}

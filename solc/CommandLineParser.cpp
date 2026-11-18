@@ -470,8 +470,6 @@ void CommandLineParser::parseOutputSelection()
 			CompilerOutputs::componentName(&CompilerOutputs::irOptimized),
 			CompilerOutputs::componentName(&CompilerOutputs::astCompactJson),
 			CompilerOutputs::componentName(&CompilerOutputs::asmJson),
-			CompilerOutputs::componentName(&CompilerOutputs::ethdebugResources),
-			CompilerOutputs::componentName(&CompilerOutputs::ethdebugCompilation),
 			CompilerOutputs::componentName(&CompilerOutputs::ethdebugProgram),
 		};
 		static std::set<std::string> const evmAssemblyJsonImportModeOutputs = {

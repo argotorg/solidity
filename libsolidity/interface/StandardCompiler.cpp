@@ -30,7 +30,6 @@
 #include <libyul/optimiser/Suite.h>
 
 #include <libevmasm/Disassemble.h>
-#include <libevmasm/Ethdebug.h>
 #include <libevmasm/EVMAssemblyStack.h>
 
 #include <libsmtutil/Exceptions.h>
@@ -315,8 +314,12 @@ bool isEthdebugProgramRequested(Json const& _outputSelection)
 }
 
 /// @returns true if any ethdebug output (global or per-contract) was requested.
-bool isAnyEthdebugRequested(Json const& _outputSelection)
+/// Global outputs are ignored for Yul input.
+bool isAnyEthdebugRequested(Json const& _outputSelection, std::string_view _language)
 {
+	if (_language == "Yul")
+		return isEthdebugProgramRequested(_outputSelection);
+
 	if (!_outputSelection.is_object())
 		return false;
 
@@ -349,11 +352,11 @@ bool isEthdebugGlobalOutputRequested(Json const& _outputSelection, std::string c
 	return false;
 }
 
-bool isExperimentalArtifactRequested(Json const& _outputSelection)
+bool isExperimentalArtifactRequested(Json const& _outputSelection, std::string_view _language)
 {
 	static std::array constexpr experimentalArtifacts{"irAst", "irOptimizedAst"};
 
-	if (isAnyEthdebugRequested(_outputSelection))
+	if (isAnyEthdebugRequested(_outputSelection, _language))
 		return true;
 
 	return areArtifactsRequested(_outputSelection, experimentalArtifacts);
@@ -1255,7 +1258,7 @@ std::variant<StandardCompiler::InputsAndSettings, Json> StandardCompiler::parseI
 		ret.modelCheckerSettings.timeout = modelCheckerSettings["timeout"].get<Json::number_unsigned_t>();
 	}
 
-	if ((ret.debugInfoSelection.has_value() && ret.debugInfoSelection->ethdebug) || isAnyEthdebugRequested(ret.outputSelection))
+	if ((ret.debugInfoSelection.has_value() && ret.debugInfoSelection->ethdebug) || isAnyEthdebugRequested(ret.outputSelection, ret.language))
 	{
 		if (ret.language != "Solidity" && ret.language != "Yul")
 			return formatFatalError(Error::Type::FatalError, "'settings.debug.debugInfo' 'ethdebug' is only supported for languages 'Solidity' and 'Yul'.");
@@ -1281,7 +1284,7 @@ std::variant<StandardCompiler::InputsAndSettings, Json> StandardCompiler::parseI
 			// TODO: Cover with test when the Amsterdam version is introduced
 			return formatFatalError(Error::Type::FatalError, fmt::format("EVM version '{}' is experimental and can only be used with the 'settings.experimental' option enabled.", ret.evmVersion.name()));
 
-		if (isExperimentalArtifactRequested(ret.outputSelection))
+		if (isExperimentalArtifactRequested(ret.outputSelection, ret.language))
 			return formatFatalError(Error::Type::FatalError, "'irAst', 'irOptimizedAst', and 'ethdebug' outputs are experimental and can only be used with the 'settings.experimental' option enabled.");
 
 		if (ret.viaSSACFG)
@@ -1863,19 +1866,6 @@ Json StandardCompiler::compileYul(InputsAndSettings _inputsAndSettings)
 	if (isArtifactRequested(_inputsAndSettings.outputSelection, sourceName, contractName, "evm.assembly", wildcardMatchesExperimental))
 		output["contracts"][sourceName][contractName]["evm"]["assembly"] = object.assembly->assemblyString(stack.debugInfoSelection());
 
-	if (isEthdebugGlobalOutputRequested(_inputsAndSettings.outputSelection, "ethdebug.resources"))
-	{
-		solAssert(_inputsAndSettings.experimental, "");
-		output["ethdebug"]["resources"] = evmasm::ethdebug::resources();
-	}
-	if (isEthdebugGlobalOutputRequested(_inputsAndSettings.outputSelection, "ethdebug.compilation"))
-	{
-		solAssert(_inputsAndSettings.experimental, "");
-		output["ethdebug"]["compilation"] = evmasm::ethdebug::compilation(
-			{{.id = 0, .path = sourceName, .contents = sourceContents, .language = "Yul"}},
-			VersionString
-		);
-	}
 	return output;
 }
 
