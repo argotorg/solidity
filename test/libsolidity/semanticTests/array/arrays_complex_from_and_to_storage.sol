@@ -15,7 +15,7 @@ contract Test {
 // gas irOptimized: 185218
 // gas legacy: 199970
 // gas legacyOptimized: 186342
-// gas ssaCFGOptimized: 185201
+// gas ssaCFGOptimized: 185195
 // data(uint256,uint256): 0x02, 0x02 -> 0x09
 // data(uint256,uint256): 0x05, 0x01 -> 0x11
 // data(uint256,uint256): 0x06, 0x00 -> FAILURE

@@ -85,8 +85,6 @@ add_library(yul
 	backends/evm/ssa/JunkAdmittingBlocksFinder.h
 	backends/evm/ssa/LivenessAnalysis.cpp
 	backends/evm/ssa/LivenessAnalysis.h
-	backends/evm/ssa/PhiInverse.cpp
-	backends/evm/ssa/PhiInverse.h
 	backends/evm/ssa/SSACFGLoopNestingForest.cpp
 	backends/evm/ssa/SSACFGLoopNestingForest.h
 	backends/evm/ssa/SSACFG.cpp

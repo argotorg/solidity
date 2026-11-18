@@ -19,7 +19,6 @@
 #include <libyul/backends/evm/ssa/CodeTransform.h>
 
 #include <libyul/backends/evm/ssa/CallGraph.h>
-#include <libyul/backends/evm/ssa/PhiInverse.h>
 #include <libyul/backends/evm/ssa/StackLayoutGenerator.h>
 #include <libyul/backends/evm/ssa/StackUtils.h>
 
@@ -29,7 +28,7 @@
 
 #include <libsolutil/Visitor.h>
 
-#include <range/v3/view/take_last.hpp>
+#include <range/v3/algorithm/any_of.hpp>
 #include <range/v3/view/zip.hpp>
 
 using namespace solidity::yul;
@@ -202,11 +201,6 @@ CodeTransform::CodeTransform(
 	for (auto const& arg: m_cfg.arguments | ranges::views::reverse)
 		expectedStackTop.push_back(StackSlot::makeValue(_cfg, arg));
 	assertLayoutCompatibility(m_stack.data(), expectedStackTop);
-
-	// Spilled function args need an `mstore` at function entry so later `mload`s see a populated slot
-	if (m_spillEmitter && isFunctionGraph)
-		for (InstId const argId: m_cfg.arguments)
-			spillStore(argId, m_cfg.entry);
 }
 
 void CodeTransform::operator()(SSACFG::BlockId const _blockId)
@@ -223,24 +217,21 @@ void CodeTransform::operator()(SSACFG::BlockId const _blockId)
 
 	auto const& block = m_cfg.block(_blockId);
 
-	// Iterate every Inst in the block in scheduled order with its recorded trace. Only Operations advance codegen;
-	// Phis are otherwise pure stack assertions (already materialized on the block's stackIn).
+	// Iterate every Inst in the block in scheduled order with its recorded trace, then store the spilled variables it
+	// defines.
 	yulAssert(blockLayout->operationShuffles.size() == block.instructions.size());
 	for (auto const& [instId, trace]: ranges::views::zip(block.instructions, blockLayout->operationShuffles))
 	{
 		SSACFG::Inst const& inst = m_cfg.inst(instId);
-		if (inst.isPhi())
-			// this is a no-op for not spilled phis
-			spillStore(instId, _blockId);
 		if (inst.isOperation())
 			(*this)(instId, trace, _blockId);
 		else
-			yulAssert(trace.empty());
+			playback(trace, _blockId);
+		spillStore(instId, _blockId);
 	}
 
 	// Play back the recorded shuffle to the block's exit state before dispatching the exit.
-	// This ensures the condition is on top for ConditionalJump, phi pre-images are
-	// in the right positions for jumps, and return values are accessible for FunctionReturn.
+	// This ensures the condition is on top for ConditionalJump and return values are accessible for FunctionReturn.
 	playback(blockLayout->exitShuffle, _blockId);
 
 	// handle the block exit
@@ -281,9 +272,6 @@ void CodeTransform::operator()(InstId _instId, ShuffleTrace const& _operationShu
 			m_callSites.instId(returnLabelSlot.functionCallReturnLabel()) == _instId
 		);
 	}
-
-	// height of the stack sans function return label and operation inputs
-	std::size_t const baseHeight = m_stack.size() - _inst.inputs.size() - (hasReturnLabel ? 1 : 0);
 
 	auto const opOriginLocation = [&]() -> langutil::SourceLocation {
 		if (m_cfg.debugInfo)
@@ -342,42 +330,40 @@ void CodeTransform::operator()(InstId _instId, ShuffleTrace const& _operationShu
 	}
 	// simulate that the inputs are consumed and the outputs are produced
 	applyOperation(m_cfg, _instId, m_stackData);
-	auto const numOutputs = m_cfg.numReturnsOf(_instId);
-
-	// Each output the layout decided to spill gets its `mstore` here
-	if (m_spillEmitter)
-		for (InstId const outputId: m_cfg.outputsOf(_instId))
-			spillStore(outputId, _blockId);
-
-	yulAssert(m_stack.size() == baseHeight + numOutputs);
-	for (auto const& [stackEntry, output]: ranges::views::zip(
-		m_stack.data() | ranges::views::take_last(numOutputs),
-		m_cfg.outputsOf(_instId)
-	))
-		yulAssert(stackEntry.isValue() && stackEntry.value() == output);
 	yulAssert(
 		static_cast<int>(m_stack.size()) == m_assembly.stackHeight(),
 		fmt::format("symbolic stack size = {} =/= {} = assembly stack height", m_stack.size(), m_assembly.stackHeight())
 	);
 }
 
-void CodeTransform::spillStore(InstId const _value, SSACFG::BlockId const _block)
+void CodeTransform::spillStore(spill::SpillStoreSite const _site, SSACFG::BlockId const _block)
 {
-	if (!m_spillEmitter || !m_spillSet.isSpilled(StackSlot::makeValue(m_cfg, _value)))
+	auto const it = m_spillStoreTraces.find(_site);
+	// a load of a spilled shadow slot only sees its last write if every upsilon for it has a store
+	if (m_cfg.isUpsilon(_site))
+	{
+		StackSlot const shadowSlot = StackSlot::makeShadow(m_cfg, m_cfg.upsilonPhi(_site));
+		yulAssert(
+			!m_spillSet.isSpilled(shadowSlot) ||
+			(it != m_spillStoreTraces.end() && it->second.contains(shadowSlot)),
+			fmt::format("no store recorded for the spilled {} behind an upsilon that writes it", shadowSlot)
+		);
+	}
+	if (it == m_spillStoreTraces.end())
 		return;
 
-	// Play back the recorded def-site trace: it brings `_value` to the stack top and concludes with the
+	// Play back the recorded def-site traces: each brings its slot to the stack top and concludes with the
 	// `mstore` consuming it, leaving the rest of the stack in place.
-	auto const it = m_spillStoreTraces.find(_value);
-	yulAssert(it != m_spillStoreTraces.end(), fmt::format("no def-site store trace recorded for spilled value {}", _value));
-	ShuffleTrace const& storeTrace = it->second;
-	yulAssert(
-		!storeTrace.empty() &&
-		storeTrace.back().kind == ShuffleOp::Kind::Store &&
-		storeTrace.back().slot == StackSlot::makeValue(m_cfg, _value),
-		fmt::format("def-site trace for {} must conclude with its store", _value)
-	);
-	playback(storeTrace, _block);
+	for (auto const& [slot, storeTrace]: it->second)
+	{
+		yulAssert(
+			!storeTrace.empty() &&
+			storeTrace.back().kind == ShuffleOp::Kind::Store &&
+			storeTrace.back().slot == slot,
+			fmt::format("def-site trace for {} must conclude with its store", slot)
+		);
+		playback(storeTrace, _block);
+	}
 }
 
 void CodeTransform::operator()(SSACFG::BlockId const&, SSACFG::BasicBlock::MainExit const&)
@@ -489,6 +475,17 @@ void CodeTransform::playback(ShuffleTrace const& _trace, SSACFG::BlockId const _
 {
 	for (ShuffleOp const& op: _trace)
 	{
+		// a rename emits no code, so check the renamed slot against the upsilons of the block
+		if (op.kind == ShuffleOp::Kind::Rename && op.slot.isShadow())
+			yulAssert(
+				ranges::any_of(m_cfg.block(_block).instructions, [&](InstId const _id) {
+					return
+						m_cfg.isUpsilon(_id) &&
+						m_cfg.upsilonPhi(_id) == op.slot.shadowPhi() &&
+						StackSlot::makeValue(m_cfg, m_cfg.inst(_id).inputs.at(0)) == m_stack.slot(StackDepth{op.depth});
+				}),
+				fmt::format("block {} has no upsilon writing the slot renamed to {}", _block, op.slot)
+			);
 		apply(m_stackData, op);
 		emit(op, _block);
 	}
@@ -561,13 +558,11 @@ void CodeTransform::prepareBlockExitStack(SSACFG::BlockId const& _currentBlock, 
 {
 	auto const& targetLayout = m_stackLayout[_target];
 	yulAssert(targetLayout);
-	// pull back target to live in current variable space
-	auto const pulledBackTarget = stackPreImage(m_cfg, targetLayout->stackIn, PhiInverse(m_cfg, _currentBlock, _target));
 	// play back the recorded shuffle for this edge
 	playback(targetLayout->traceForStackIn(_currentBlock), _currentBlock);
-	// check that the playback reproduced the edge target
-	assertLayoutCompatibility(m_stack.data(), pulledBackTarget);
-	// now we can simply set the target to the actual one which will take care of the application of phi functions
+	// check that the playback reproduced the target's stack-in
+	assertLayoutCompatibility(m_stack.data(), targetLayout->stackIn);
+	// the target's junk slots are wildcards, take them
 	m_stackData = targetLayout->stackIn;
 }
 

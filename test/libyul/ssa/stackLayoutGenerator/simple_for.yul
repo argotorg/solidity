@@ -20,13 +20,29 @@
 // Block0_0 [label="\
 // IN: []\l\
 // \l\
-// OUT: []\l\
+// [lit0]\l\
+// ^phi1 := lit0\l\
+// [^phi1]\l\
+// \l\
+// [^phi1, lit0]\l\
+// ^phi2 := lit0\l\
+// [^phi1, ^phi2]\l\
+// \l\
+// OUT: [^phi1, ^phi2]\l\
 // "];
 // Block0_0 -> Block0_0Exit [arrowhead=none];
 // Block0_0Exit [label="Jump" shape=oval];
 // Block0_0Exit -> Block0_1 [style="solid"];
 // Block0_1 [label="\
-// IN: [phi1, phi2]\l\
+// IN: [^phi1, ^phi2]\l\
+// \l\
+// [^phi1, ^phi2]\l\
+// phi1 := ^phi1\l\
+// [phi1, ^phi2]\l\
+// \l\
+// [phi1, ^phi2]\l\
+// phi2 := ^phi2\l\
+// [phi1, phi2]\l\
 // \l\
 // OUT: [phi1, phi2, phi1]\l\
 // "];
@@ -73,7 +89,11 @@
 // add\l\
 // [phi2, v7]\l\
 // \l\
-// OUT: [phi2, v7]\l\
+// [phi2, v7]\l\
+// ^phi14 := v7\l\
+// [phi2, ^phi14]\l\
+// \l\
+// OUT: [phi2, ^phi14]\l\
 // "];
 // Block0_5 -> Block0_5Exit [arrowhead=none];
 // Block0_5Exit [label="Jump" shape=oval];
@@ -81,19 +101,35 @@
 // Block0_3 [label="\
 // IN: [phi1, phi2]\l\
 // \l\
-// OUT: [phi1, phi2]\l\
+// [phi1, phi2]\l\
+// ^phi14 := phi1\l\
+// [^phi14, phi2]\l\
+// \l\
+// OUT: [^phi14, phi2]\l\
 // "];
 // Block0_3 -> Block0_3Exit [arrowhead=none];
 // Block0_3Exit [label="Jump" shape=oval];
 // Block0_3Exit -> Block0_6 [style="solid"];
 // Block0_6 [label="\
-// IN: [phi2, phi14]\l\
+// IN: [phi2, ^phi14]\l\
+// \l\
+// [phi2, ^phi14]\l\
+// phi14 := ^phi14\l\
+// [phi2, phi14]\l\
 // \l\
 // [phi14, lit8, phi2]\l\
 // add\l\
 // [phi14, v12]\l\
 // \l\
-// OUT: [phi14, v12]\l\
+// [phi14, v12]\l\
+// ^phi1 := phi14\l\
+// [^phi1, v12]\l\
+// \l\
+// [^phi1, v12]\l\
+// ^phi2 := v12\l\
+// [^phi1, ^phi2]\l\
+// \l\
+// OUT: [^phi1, ^phi2]\l\
 // "];
 // Block0_6 -> Block0_6Exit [arrowhead=none];
 // Block0_6Exit [label="Jump" shape=oval];

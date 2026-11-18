@@ -33,6 +33,8 @@ namespace solidity::yul::ssa
 
 /// Performs liveness analysis on a reducible SSA CFG following Algorithm 9.1 in [1].
 ///
+/// Upsilons read their inputs and phis define their values where they are scheduled.
+///
 /// [1] Rastello, Fabrice, and Florent Bouchez Tichadou, eds. SSA-based Compiler Design. Springer, 2022.
 class LivenessAnalysis
 {
@@ -46,6 +48,7 @@ public:
 	LivenessData const& liveIn(SSACFG::BlockId const _blockId) const { return m_liveIns[_blockId.value]; }
 	LivenessData const& liveOut(SSACFG::BlockId const _blockId) const { return m_liveOuts[_blockId.value]; }
 	LivenessData used(SSACFG::BlockId _blockId) const;
+	/// The values live behind an operation or an upsilon
 	LivenessData const& operationLiveOut(InstId const _id) const { return m_operationLiveOutByInst.at(_id.value); }
 
 	/// The phis whose shadows are live on entry of a block
@@ -60,7 +63,7 @@ private:
 	void runDagDfs();
 	void runLoopTreeDfs(SSACFG::BlockId _loopHeader);
 	void fillOperationsLiveOut();
-	/// Turns the live-out of a block into its live-in, reporting the live-out of each operation
+	/// Turns the live-out of a block into its live-in, reporting the live-out of each operation and upsilon
 	template<typename Callable>
 	void liveOutToLiveIn(SSACFG::BlockId _blockId, LivenessData& _live, Callable&& _atOperation) const;
 	LivenessData blockExitValues(SSACFG::BlockId const& _blockId) const;
