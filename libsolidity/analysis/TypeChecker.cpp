@@ -95,6 +95,16 @@ bool TypeChecker::visit(ContractDefinition const& _contract)
 
 TypePointers TypeChecker::typeCheckABIDecodeAndRetrieveReturnType(FunctionCall const& _functionCall, bool _abiEncoderV2)
 {
+	if (!_functionCall.names().empty())
+	{
+		m_errorReporter.typeError(
+			5738_error,
+			_functionCall.location(),
+			"Named arguments cannot be used for functions that take arbitrary parameters."
+		);
+		return {};
+	}
+
 	std::vector<ASTPointer<Expression const>> arguments = _functionCall.arguments();
 	if (arguments.size() != 2)
 		m_errorReporter.typeError(
