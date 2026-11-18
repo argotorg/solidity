@@ -124,7 +124,7 @@ function zeppelin_test
             const result = await runSuper(args);
 
             result.output.errors = (result.output.errors || []).filter(err => {
-                if (err.severity === "warning" && (err.message.includes("deprecated") || err.message.includes("promoted"))) {
+                if (err.severity === "warning" && (err.message.includes("deprecated") || err.message.includes("promoted") || err.message.includes("shadows"))) {
                     return false; // suppress this warning
                 }
                 return true;
