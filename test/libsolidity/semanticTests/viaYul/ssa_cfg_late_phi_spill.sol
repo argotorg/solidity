@@ -1,6 +1,6 @@
 // A loop header whose phis are created after the operations of the loop condition (`add(b1, b2)`, `lt`), with
-// 17 values kept live across the body: the SSA CFG layout spills the phis there, which are stored where they
-// are defined, behind those operations.
+// 17 values kept live across the body: the SSA CFG layout spills the phis there, which are stored where their
+// shadow slots are written, behind the upsilons in the predecessors of the header.
 contract C {
     function f(uint b1, uint b2, uint b3, uint b4, uint b5, uint b6, uint b7, uint b8, uint b9, uint b10, uint b11, uint b12, uint b13, uint b14, uint b15, uint b16, uint b17) public returns (uint sum) {
         assembly {

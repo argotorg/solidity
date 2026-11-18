@@ -1,5 +1,5 @@
 // The phi of `i` is created behind the `add` of the loop condition, and it is spilled, as is the argument `b1`:
-// `b1` is stored once on entry of `f`, the phi where it is defined, behind the `add`.
+// `b1` is stored once on entry of `f`, the phi behind each upsilon that writes its shadow slot.
 object "C" {
     code {
         let g := memoryguard(0x80)
@@ -77,15 +77,15 @@ object "C" {
 //   0xa0
 //   mstore
 //   0x00
+//   dup1
+//   0xc0
+//   mstore
 //   jump(tag_5)
 // tag_5:
 //   swap1
 //   dup3
 //   swap1
 //   add
-//   dup2
-//   0xc0
-//   mstore
 //   swap1
 //   lt
 //   tag_6
@@ -135,6 +135,9 @@ object "C" {
 //   dup15
 //   sstore
 //   add(mload(0xc0), 0x01)
+//   dup1
+//   0xc0
+//   mstore
 //   mload(0xa0)
 //   swap1
 //   jump(tag_5)

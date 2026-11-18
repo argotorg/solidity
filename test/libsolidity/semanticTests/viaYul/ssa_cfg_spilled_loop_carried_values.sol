@@ -1,5 +1,5 @@
-// Loop-carried values beyond the reachable stack depth: the SSA CFG layout spills loop phis, shadow slots, which
-// are stored where their upsilons write them, and the values feeding them.
+// Loop-carried values beyond the reachable stack depth: the SSA CFG layout spills loop phis, each sharing its
+// memory slot with its shadow slot and stored where the shadow slot is written, and the values feeding them.
 contract C {
     function f(uint x) public returns (uint r) {
         assembly {

@@ -1,5 +1,5 @@
 // A loop whose counter is a phi with 17 always-live values across the body: the SSA CFG layout spills
-// the phi, which is stored where it is defined in the header and reloaded at its uses.
+// the phi, which is stored where its shadow slot is written and reloaded at its uses.
 contract C {
     function f(uint b1, uint b2, uint b3, uint b4, uint b5, uint b6, uint b7, uint b8, uint b9, uint b10, uint b11, uint b12, uint b13, uint b14, uint b15, uint b16, uint b17) public returns (uint sum) {
         assembly {

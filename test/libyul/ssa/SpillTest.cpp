@@ -51,6 +51,7 @@ std::string describeCFG(
 	SSACFG const& _cfg,
 	ControlFlowGraphs::FunctionGraphID const _graphID,
 	std::vector<std::pair<SpillKey, u256>> const& _spilled,
+	spill::SpillSet const& _spillSet,
 	spill::SpillStoreTraces const& _storeTraces
 )
 {
@@ -76,7 +77,8 @@ std::string describeCFG(
 	for (auto const& [site, stores]: _storeTraces)
 		for (StackSlot const& slot: stores | std::views::keys)
 			out += fmt::format(
-				"    mstore addr({0}) <- {0} (behind {1} in B#{2})\n",
+				"    mstore addr({}) <- {} (behind {} in B#{})\n",
+				_spillSet.keyOf(slot),
 				slot,
 				_cfg.isUpsilon(site) ? "its upsilon" : slotToString(StackSlot::makeValue(_cfg, site)),
 				_cfg.inst(site).block.value
@@ -181,7 +183,7 @@ frontend::test::TestCase::TestResult SpillTest::run(std::ostream& _stream, std::
 			std::vector<std::pair<SpillKey, u256>> spilled;
 			for (SpillKey const key: spillSetsPerCFG[functionIndex].spilledValues())
 				spilled.emplace_back(key, addressing.addressOf(graphID, key));
-			m_obtainedResult += describeCFG(cfg, graphID, spilled, storeTracesPerCFG[functionIndex]);
+			m_obtainedResult += describeCFG(cfg, graphID, spilled, spillSetsPerCFG[functionIndex], storeTracesPerCFG[functionIndex]);
 		}
 
 		for (auto const& subNode: object.subObjects)

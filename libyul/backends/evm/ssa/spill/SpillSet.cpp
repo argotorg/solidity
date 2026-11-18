@@ -72,6 +72,8 @@ InstId storeSiteOf(SSACFG const& _cfg, InstId const _value)
 struct DefSite
 {
 	SpillStoreSite site;
+	/// the slot stored at the site, the variable itself or, for a phi that shares its key, its shadow slot
+	StackSlot slot;
 	/// the symbolic stack at the site
 	StackData stack;
 };
@@ -80,21 +82,29 @@ struct DefSite
 std::vector<DefSite> defSitesFor(
 	SSACFG const& _cfg,
 	SSACFGStackLayout const& _layout,
+	SpillSet const& _spillSet,
 	SpillKey const _key
 )
 {
-	if (_key.isValue())
+	bool const isPhiSharingItsKey =
+		_key.isPhiValue() && _spillSet.keyOf(StackSlot::makeShadow(_cfg, _key.value())) == _key;
+	if (_key.isValue() && !isPhiSharingItsKey)
 	{
 		InstId const site = storeSiteOf(_cfg, _key.value());
-		return {{.site = site, .stack = computeOperationOut(_cfg, _layout, site)}};
+		return {{.site = site, .slot = _key, .stack = computeOperationOut(_cfg, _layout, site)}};
 	}
 
+	StackSlot const shadowSlot = _key.isShadow() ? _key : StackSlot::makeShadow(_cfg, _key.value());
 	std::vector<DefSite> sites;
 	for (SSACFG::BlockId const blockId: _cfg.liveBlocks())
 		if (_layout[blockId])
 			_cfg.forEachUpsilon(_cfg.block(blockId), [&](InstId const _upsilon, SSACFG::Inst const&) {
-				if (_cfg.upsilonPhi(_upsilon) == _key.shadowPhi())
-					sites.push_back({.site = _upsilon, .stack = computeOperationOut(_cfg, _layout, _upsilon)});
+				if (_cfg.upsilonPhi(_upsilon) == shadowSlot.shadowPhi())
+					sites.push_back({
+						.site = _upsilon,
+						.slot = shadowSlot,
+						.stack = computeOperationOut(_cfg, _layout, _upsilon)
+					});
 			});
 	return sites;
 }
@@ -116,45 +126,45 @@ void SpillSet::closeUnderReachabilityConstraints(SSACFG const& _cfg, SSACFGStack
 		SpillKey const key = queue.front();
 		queue.pop_front();
 
-		for (auto const& [site, defStack]: defSitesFor(_cfg, _layout, key))
-			ensureDefSiteFeasible(key, site, defStack, queue, _storeTraces);
+		for (auto const& [site, slot, defStack]: defSitesFor(_cfg, _layout, *this, key))
+			ensureDefSiteFeasible(slot, site, defStack, queue, _storeTraces);
 	}
 }
 
 void SpillSet::ensureDefSiteFeasible(
-	SpillKey const _key,
+	StackSlot const _slot,
 	SpillStoreSite const _site,
 	StackData const& _defStack,
 	std::deque<SpillKey>& _workQueue,
 	SpillStoreTraces* _storeTraces)
 {
 	// predicate = spill set minus the owner; the shuffle accumulates discovered culprits here.
-	SpillSet spillSetWithoutOwner = without(_key);
-	// [... defStack ..., _key]
+	SpillSet spillSetWithoutOwner = without(_slot);
+	// [... defStack ..., _slot]
 	StackData const target = [&]{
 		StackData result;
 		result.reserve(_defStack.size() + 1);
 		result.insert(result.end(), _defStack.begin(), _defStack.end());
-		result.push_back(_key);
+		result.push_back(_slot);
 		return result;
 	}();
 	StackData workStack = _defStack;
 	stack::ShuffleResult result = stack::shuffle(workStack, target, spillSetWithoutOwner);
 	yulAssert(
 		result.status == stack::ShuffleResult::Status::Admissible,
-		fmt::format("def-site store for {} infeasible even after spilling siblings (status={})", _key, static_cast<int>(result.status))
+		fmt::format("def-site store for {} infeasible even after spilling siblings (status={})", _slot, static_cast<int>(result.status))
 	);
 
-	// - if `_key` is reachable, it can be just DUPed and there shouldn't have been a stack too deep with it
-	// - if `_key` is unreachable, there are > reachable stack depth distinct slots strictly above it and the
+	// - if `_slot` is reachable, it can be just DUPed and there shouldn't have been a stack too deep with it
+	// - if `_slot` is unreachable, there are > reachable stack depth distinct slots strictly above it and the
 	//   shuffler heuristics should not pick anything that is already too deep as culprit
-	yulAssert(!spillSetWithoutOwner.isSpilled(_key), "spill-aware shuffle reported the owner as its own blocker");
+	yulAssert(!spillSetWithoutOwner.isSpilled(_slot), "spill-aware shuffle reported the owner as its own blocker");
 
 	if (_storeTraces)
 	{
 		// the `mstore` consuming the variable from the top concludes the def-site trace
-		result.trace.push_back(ShuffleOp::store(_key));
-		(*_storeTraces)[_site][_key] = std::move(result.trace);
+		result.trace.push_back(ShuffleOp::store(_slot));
+		(*_storeTraces)[_site][_slot] = std::move(result.trace);
 	}
 
 	for (SpillKey const culprit: spillSetWithoutOwner.spilledValues())
@@ -166,9 +176,9 @@ void SpillSet::ensureDefSiteFeasible(
 	}
 }
 
-SpillSet SpillSet::without(SpillKey const _key) const
+SpillSet SpillSet::without(StackSlot const _slot) const
 {
 	SpillSet result = *this;
-	result.m_values.erase(_key);
+	result.m_values.erase(keyOf(_slot));
 	return result;
 }

@@ -31,6 +31,7 @@
 #include <range/v3/to_container.hpp>
 
 #include <queue>
+#include <set>
 
 using namespace solidity::yul::ssa;
 
@@ -41,7 +42,15 @@ StackLayoutGenerator::Result StackLayoutGenerator::generate(
 	bool const _spillingAllowed
 )
 {
-	spill::SpillSet spillSet;
+	// A phi that is read behind one of its upsilons cannot share a memory slot with its shadow slot
+	SSACFG const& cfg = _liveness.cfg();
+	std::set<InstId> phisWithOwnSlot;
+	for (SSACFG::BlockId const blockId: _liveness.dfsTree().preOrder())
+		cfg.forEachUpsilon(cfg.block(blockId), [&](InstId const _upsilon, SSACFG::Inst const&) {
+			if (_liveness.operationLiveOut(_upsilon).contains(cfg.upsilonPhi(_upsilon)))
+				phisWithOwnSlot.insert(cfg.upsilonPhi(_upsilon));
+		});
+	spill::SpillSet spillSet(std::move(phisWithOwnSlot));
 	spill::SpillStoreTraces spillStoreTraces;
 	while (true)
 	{
@@ -204,7 +213,7 @@ void StackLayoutGenerator::visitBlock(SSACFG::BlockId const& _blockId)
 		applyOperation(m_cfg, _instId, currentStackData);
 	};
 
-	// A phi takes its value out of its shadow slot, loading a spilled one that was dropped
+	// A phi takes its value out of its shadow slot, a spilled one that was dropped is loaded or shared in memory
 	auto const layoutPhi = [&](InstId const _instId) {
 		ShuffleTrace trace;
 		auto const shadowSlot = Slot::makeShadow(m_cfg, _instId);
@@ -213,7 +222,8 @@ void StackLayoutGenerator::visitBlock(SSACFG::BlockId const& _blockId)
 		if (!ranges::contains(currentStackData, shadowSlot))
 		{
 			yulAssert(m_spillSet.isSpilled(shadowSlot), fmt::format("the shadow slot of phi {} is not on the stack", _instId));
-			tracedStack.push(shadowSlot);
+			if (m_spillSet.keyOf(shadowSlot) == shadowSlot)
+				tracedStack.push(shadowSlot);
 		}
 		for (StackOffset offset{0}; offset < tracedStack.size(); ++offset.value)
 			if (tracedStack[offset] == shadowSlot)

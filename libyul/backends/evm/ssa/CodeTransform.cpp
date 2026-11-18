@@ -532,21 +532,21 @@ void CodeTransform::emit(ShuffleOp const& _op, SSACFG::BlockId const _block)
 		solidity::util::unreachable();
 	case ShuffleOp::Kind::Load:
 		yulAssert(
-			m_spillEmitter && m_spillEmitter->hasAddress(_op.slot),
+			m_spillEmitter && m_spillEmitter->hasAddress(m_spillSet.keyOf(_op.slot)),
 			fmt::format("Tried bringing up non-spilled non-const {}", _op.slot)
 		);
 		// a store earlier in the block covers the load
-		if (!m_stores.contains({_op.slot, _block}))
-			m_uncoveredLoads[_op.slot].insert(_block);
-		m_spillEmitter->emitLoad(_op.slot);
+		if (!m_stores.contains({m_spillSet.keyOf(_op.slot), _block}))
+			m_uncoveredLoads[m_spillSet.keyOf(_op.slot)].insert(_block);
+		m_spillEmitter->emitLoad(m_spillSet.keyOf(_op.slot));
 		return;
 	case ShuffleOp::Kind::Store:
 		yulAssert(
-			m_spillEmitter && m_spillEmitter->hasAddress(_op.slot),
+			m_spillEmitter && m_spillEmitter->hasAddress(m_spillSet.keyOf(_op.slot)),
 			fmt::format("Tried storing variable {} without a spill slot", _op.slot)
 		);
-		m_stores.emplace(_op.slot, _block);
-		m_spillEmitter->emitStore(_op.slot);
+		m_stores.emplace(m_spillSet.keyOf(_op.slot), _block);
+		m_spillEmitter->emitStore(m_spillSet.keyOf(_op.slot));
 		return;
 	case ShuffleOp::Kind::Rename:
 		return;

@@ -1,4 +1,4 @@
-// A spilled phi is stored behind itself, where its shadow slot has just become the phi.
+// A spilled phi shares the memory slot of its shadow slot and is stored behind the upsilons that write it.
 // Here the loop counter `i` is a phi at the loop header; with 17 always-live params
 // kept live across the body's sstore chain the layout generator spills, and the phi can be among the
 // spilled values. The `memoryguard` prelude (kept alive by `mstore(0x40, g)`) reserves the spill
@@ -171,4 +171,5 @@ object "C" {
 //     phi19 -> mem 0xc0
 //   mstore schedule:
 //     mstore addr(v0) <- v0 (behind v0 in B#0)
-//     mstore addr(phi19) <- phi19 (behind phi19 in B#1)
+//     mstore addr(phi19) <- ^phi19 (behind its upsilon in B#0)
+//     mstore addr(phi19) <- ^phi19 (behind its upsilon in B#2)

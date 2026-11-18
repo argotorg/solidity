@@ -121,6 +121,13 @@ public:
 		return InstId{m_payload};
 	}
 
+	/// The value slot of the phi whose shadow location the slot holds
+	StackSlot shadowPhiValue() const
+	{
+		yulAssert(isShadow());
+		return {m_payload, Kind::Value, InstOpcode::Phi};
+	}
+
 	static constexpr StackSlot makeJunk() { return {0, Kind::Junk}; }
 	static StackSlot makeValue(SSACFG const& _cfg, InstId _value)
 	{
