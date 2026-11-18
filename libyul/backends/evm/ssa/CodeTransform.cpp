@@ -411,6 +411,11 @@ void CodeTransform::operator()(SSACFG::BlockId const& _currentBlock, SSACFG::Bas
 	}
 	{
 		yulAssert(m_stackLayout[_conditionalJump.nonZero]);
+		// JUMPI enters the nonZero target directly
+		yulAssert(
+			m_stackLayout[_conditionalJump.nonZero]->traceForStackIn(_currentBlock).empty(),
+			"The edge into the nonZero target of a conditional jump cannot carry code."
+		);
 		m_assembly.setStackHeight(static_cast<int>(m_stack.size()));
 		// transform stack to a state in which we can jump to the nonZero branch
 		prepareBlockExitStack(_currentBlock, _conditionalJump.nonZero);
