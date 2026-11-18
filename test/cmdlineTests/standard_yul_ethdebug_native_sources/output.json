@@ -1,0 +1,86 @@
+{
+    "contracts": {
+        "input.yul": {
+            "C": {
+                "evm": {
+                    "bytecode": {
+                        "ethdebug": {
+                            "contract": {
+                                "definition": {
+                                    "source": {
+                                        "id": 0,
+                                        "type": "source"
+                                    }
+                                },
+                                "name": ""
+                            },
+                            "environment": "create",
+                            "ethdebug": {
+                                "schema": "ethdebug/format/program",
+                                "version": "0.1.0-draft.2"
+                            },
+                            "instructions": [
+                                {
+                                    "context": {
+                                        "code": {
+                                            "range": {
+                                                "length": 6,
+                                                "offset": 48
+                                            },
+                                            "source": {
+                                                "id": 0,
+                                                "type": "source"
+                                            }
+                                        }
+                                    },
+                                    "offset": 0,
+                                    "operation": {
+                                        "mnemonic": "STOP"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "deployedBytecode": {
+                        "ethdebug": {
+                            "contract": {
+                                "definition": {
+                                    "source": {
+                                        "id": 0,
+                                        "type": "source"
+                                    }
+                                },
+                                "name": "runtime"
+                            },
+                            "environment": "create",
+                            "ethdebug": {
+                                "schema": "ethdebug/format/program",
+                                "version": "0.1.0-draft.2"
+                            },
+                            "instructions": [
+                                {
+                                    "context": {
+                                        "code": {
+                                            "range": {
+                                                "length": 6,
+                                                "offset": 99
+                                            },
+                                            "source": {
+                                                "id": 0,
+                                                "type": "source"
+                                            }
+                                        }
+                                    },
+                                    "offset": 0,
+                                    "operation": {
+                                        "mnemonic": "STOP"
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
