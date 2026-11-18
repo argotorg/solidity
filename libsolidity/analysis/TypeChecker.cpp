@@ -1331,7 +1331,6 @@ bool TypeChecker::visit(Conditional const& _conditional)
 		}
 	}
 
-	_conditional.annotation().isConstant = false;
 	_conditional.annotation().type = commonType;
 	_conditional.annotation().isPure =
 		*_conditional.condition().annotation().isPure &&
@@ -1391,7 +1390,6 @@ bool TypeChecker::visit(Assignment const& _assignment)
 	_assignment.annotation().type = t;
 	_assignment.annotation().isPure = false;
 	_assignment.annotation().isLValue = false;
-	_assignment.annotation().isConstant = false;
 
 	checkExpressionAssignment(*t, _assignment.leftHandSide());
 
@@ -1436,7 +1434,6 @@ bool TypeChecker::visit(Assignment const& _assignment)
 
 bool TypeChecker::visit(TupleExpression const& _tuple)
 {
-	_tuple.annotation().isConstant = false;
 	std::vector<ASTPointer<Expression>> const& components = _tuple.components();
 	TypePointers types;
 
@@ -1598,7 +1595,6 @@ bool TypeChecker::visit(UnaryOperation const& _operation)
 		// first one - in valid code there will be only one anyway.
 		resultType = _operation.userDefinedFunctionType()->returnParameterTypes()[0];
 	_operation.annotation().type = resultType;
-	_operation.annotation().isConstant = false;
 	_operation.annotation().isPure =
 		!modifying &&
 		*_operation.subExpression().annotation().isPure &&
@@ -1702,7 +1698,6 @@ void TypeChecker::endVisit(BinaryOperation const& _operation)
 		*_operation.rightExpression().annotation().isPure &&
 		(!userDefinedFunctionType || userDefinedFunctionType->isPure());
 	_operation.annotation().isLValue = false;
-	_operation.annotation().isConstant = false;
 
 	if (_operation.getOperator() == Token::Equal || _operation.getOperator() == Token::NotEqual)
 	{
@@ -2593,7 +2588,6 @@ bool TypeChecker::visit(FunctionCall const& _functionCall)
 	// Determine function call kind and function type for this FunctionCall node
 	FunctionCallAnnotation& funcCallAnno = _functionCall.annotation();
 	FunctionTypePointer functionType = nullptr;
-	funcCallAnno.isConstant = false;
 
 	bool isLValue = false;
 
@@ -2758,7 +2752,6 @@ bool TypeChecker::visit(FunctionCallOptions const& _functionCallOptions)
 	_functionCallOptions.expression().accept(*this);
 
 	_functionCallOptions.annotation().isPure = false;
-	_functionCallOptions.annotation().isConstant = false;
 	_functionCallOptions.annotation().isLValue = false;
 
 	auto expressionFunctionType = dynamic_cast<FunctionType const*>(type(_functionCallOptions.expression()));
@@ -2894,7 +2887,6 @@ void TypeChecker::endVisit(NewExpression const& _newExpression)
 	Type const* type = _newExpression.typeName().annotation().type;
 	solAssert(!!type, "Type name not resolved.");
 
-	_newExpression.annotation().isConstant = false;
 	_newExpression.annotation().isLValue = false;
 
 	if (auto contractName = dynamic_cast<UserDefinedTypeName const*>(&_newExpression.typeName()))
@@ -3158,8 +3150,6 @@ bool TypeChecker::visit(MemberAccess const& _memberAccess)
 	Type const* owningObjectType = type(_memberAccess.expression());
 	ASTString const& memberName = _memberAccess.memberName();
 
-	// TODO: This should be probably deprecated.
-	_memberAccess.annotation().isConstant = false;
 	MemberList::Member const possibleMember = resolveOverloads(_memberAccess);
 
 	_memberAccess.annotation().referencedDeclaration = possibleMember.declaration;
@@ -3422,7 +3412,6 @@ bool TypeChecker::visit(MemberAccess const& _memberAccess)
 
 bool TypeChecker::visit(IndexAccess const& _access)
 {
-	_access.annotation().isConstant = false;
 	_access.baseExpression().accept(*this);
 	Type const* baseType = type(_access.baseExpression());
 	Type const* resultType = nullptr;
@@ -3539,7 +3528,6 @@ bool TypeChecker::visit(IndexAccess const& _access)
 
 bool TypeChecker::visit(IndexRangeAccess const& _access)
 {
-	_access.annotation().isConstant = false;
 	_access.baseExpression().accept(*this);
 
 	bool isLValue = false; // TODO: set this correctly when implementing slices for memory and storage arrays
@@ -3698,12 +3686,11 @@ bool TypeChecker::visit(Identifier const& _identifier)
 		!!annotation.referencedDeclaration,
 		"Referenced declaration is null after overload resolution."
 	);
-	bool isConstant = false;
 	annotation.isLValue = annotation.referencedDeclaration->isLValue();
 	annotation.type = annotation.referencedDeclaration->type();
 	solAssert(annotation.type, "Declaration referenced before type could be determined.");
 	if (auto variableDeclaration = dynamic_cast<VariableDeclaration const*>(annotation.referencedDeclaration))
-		annotation.isPure = isConstant = variableDeclaration->isConstant();
+		annotation.isPure = variableDeclaration->isConstant();
 	else if (dynamic_cast<MagicVariableDeclaration const*>(annotation.referencedDeclaration))
 		annotation.isPure = dynamic_cast<FunctionType const*>(annotation.type);
 	else if (dynamic_cast<TypeType const*>(annotation.type))
@@ -3712,8 +3699,6 @@ bool TypeChecker::visit(Identifier const& _identifier)
 		annotation.isPure = true;
 	else
 		annotation.isPure = false;
-
-	annotation.isConstant = isConstant;
 
 	annotation.requiredLookup =
 		dynamic_cast<CallableDeclaration const*>(annotation.referencedDeclaration) ?
@@ -3776,7 +3761,6 @@ void TypeChecker::endVisit(ElementaryTypeNameExpression const& _expr)
 	_expr.annotation().type = TypeProvider::typeType(TypeProvider::fromElementaryTypeName(_expr.type().typeName(), _expr.type().stateMutability()));
 	_expr.annotation().isPure = true;
 	_expr.annotation().isLValue = false;
-	_expr.annotation().isConstant = false;
 }
 
 void TypeChecker::endVisit(Literal const& _literal)
@@ -3833,7 +3817,6 @@ void TypeChecker::endVisit(Literal const& _literal)
 
 	_literal.annotation().isPure = true;
 	_literal.annotation().isLValue = false;
-	_literal.annotation().isConstant = false;
 }
 
 void TypeChecker::endVisit(UsingForDirective const& _usingFor)
@@ -4178,9 +4161,6 @@ void TypeChecker::requireLValue(Expression const& _expression)
 		return;
 
 	auto [errorId, description] = [&]() -> std::tuple<ErrorId, std::string> {
-		if (*_expression.annotation().isConstant)
-			return { 6520_error, "Cannot assign to a constant variable." };
-
 		if (auto indexAccess = dynamic_cast<IndexAccess const*>(&_expression))
 		{
 			if (type(indexAccess->baseExpression())->category() == Type::Category::FixedBytes)
@@ -4204,8 +4184,12 @@ void TypeChecker::requireLValue(Expression const& _expression)
 
 		if (auto identifier = dynamic_cast<Identifier const*>(&_expression))
 			if (auto varDecl = dynamic_cast<VariableDeclaration const*>(identifier->annotation().referencedDeclaration))
+			{
+				if (varDecl->isConstant())
+					return { 6520_error, "Cannot assign to a constant variable." };
 				if (varDecl->isExternalCallableParameter() && dynamic_cast<ReferenceType const*>(identifier->annotation().type))
 					return { 7128_error, "External function arguments of reference type are read-only." };
+			}
 
 		return { 4247_error, "Expression has to be an lvalue." };
 	}();
