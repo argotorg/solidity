@@ -19,6 +19,7 @@
 #pragma once
 
 #include <libyul/backends/evm/ssa/spill/SpillSet.h>
+#include <libyul/backends/evm/ssa/stack/BlockStackIn.h>
 
 #include <libyul/backends/evm/ssa/Stack.h>
 #include <libyul/backends/evm/ssa/StackLayout.h>
@@ -69,10 +70,8 @@ private:
 	bool m_hasFunctionReturnLabel;
 	bool m_spillingAllowed;
 
-	// Per-edge stack proposals for defineStackIn.
-	// m_inputStackProposalsPerBlock[blockId] contains (predecessorId, edgeStack) pairs
-	// representing the stack state flowing from each predecessor into the block.
-	std::vector<std::vector<std::pair<SSACFG::BlockId, StackData>>> m_inputStackProposalsPerBlock;
+	// The incoming edges of each block, collected while its predecessors are laid out and read by defineStackIn
+	std::vector<std::vector<stack::IncomingEdge>> m_incomingEdgesPerBlock;
 	SSACFGStackLayout m_resultLayout;
 	spill::SpillSet m_spillSet;
 };
