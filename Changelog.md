@@ -15,6 +15,7 @@ Bugfixes:
 * ethdebug: Fix incorrect source file IDs in instruction locations (experimental).
 * SMTChecker: Fix false negative in CHC engine when a function from abstract base is called externally using `this`.
 * SMTChecker: Fix empty tuples being printed as an undeclared constant in SMT-LIB queries, which made the solver reject every query of the affected contract.
+* View Pure Checker: Fix state mutability of `super` calls being checked only against the contract declaring the function. Since `super` calls are re-resolved for each most derived contract, a `view` or `pure` function could reach a more mutable target there without being reported.
 
 
 ### 0.8.38 (2026-10-22)
