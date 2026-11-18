@@ -12,6 +12,7 @@ Compiler Features:
 
 Bugfixes:
 * Code Generator: Fix tuple assignments swapping values when a nested tuple component occupying at least one stack slot grows during type conversion.
+* Name Resolver: Fix shadowing warning not being emitted for declarations shadowing inherited members.
 * SMTChecker: Fix false negative in CHC engine when a function from abstract base is called externally using `this`.
 * SMTChecker: Fix empty tuples being printed as an undeclared constant in SMT-LIB queries, which made the solver reject every query of the affected contract.
 
