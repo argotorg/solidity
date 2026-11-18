@@ -8,12 +8,12 @@ contract c {
 // gas irOptimized: 110557
 // gas legacy: 111310
 // gas legacyOptimized: 110741
-// gas ssaCFGOptimized: 110549
+// gas ssaCFGOptimized: 110550
 // set(uint256): 2, 2, 3, 4, 5 -> true
 // gas irOptimized: 177508
 // gas legacy: 178312
 // gas legacyOptimized: 177716
-// gas ssaCFGOptimized: 177491
+// gas ssaCFGOptimized: 177492
 // storageEmpty -> 0
 // copy(uint256,uint256): 1, 2 -> true
 // gas irOptimized: 48419

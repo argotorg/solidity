@@ -70,21 +70,19 @@
 // Block1_3 [label="\
 // IN: [ReturnLabel[1], JUNK]\l\
 // \l\
-// [ReturnLabel[1], JUNK, lit1]\l\
-// ^phi6 := lit1\l\
-// [ReturnLabel[1], JUNK, ^phi6]\l\
+// ^phi6 := lit1 (on the edge)\l\
 // \l\
-// OUT: [ReturnLabel[1], JUNK, ^phi6]\l\
+// OUT: [ReturnLabel[1], JUNK]\l\
 // "];
 // Block1_3 -> Block1_3Exit [arrowhead=none];
 // Block1_3Exit [label="Jump" shape=oval];
 // Block1_3Exit -> Block1_2 [style="solid"];
 // Block1_2 [label="\
-// IN: [ReturnLabel[1], JUNK, ^phi6]\l\
+// IN: [ReturnLabel[1], ^phi6]\l\
 // \l\
-// [ReturnLabel[1], JUNK, ^phi6]\l\
+// [ReturnLabel[1], ^phi6]\l\
 // phi6 := ^phi6\l\
-// [ReturnLabel[1], JUNK, phi6]\l\
+// [ReturnLabel[1], phi6]\l\
 // \l\
 // OUT: [phi6, ReturnLabel[1]]\l\
 // "];

@@ -156,8 +156,13 @@ void StackLayoutGenerator::defineStackIn(SSACFG::BlockId const& _blockId)
 	// Record the trace of every incoming forward edge against the chosen stack-in
 	for (stack::IncomingEdge const& edge: incomingEdges)
 	{
-		StackData edgeStack = edge.stack;
-		auto shuffleResult = stack::shuffle(edgeStack, blockLayout.stackIn, m_spillSet, m_spillingAllowed);
+		auto shuffleResult = stack::shuffleAcrossEdge(
+			edge,
+			blockLayout.stackIn,
+			liveInShadows,
+			m_spillSet,
+			m_spillingAllowed
+		);
 		yulAssert(
 			shuffleResult.status == stack::ShuffleResult::Status::Admissible,
 			"Stack too deep, but spilling is disabled because the function is part of a recursive call chain."
@@ -178,6 +183,8 @@ void StackLayoutGenerator::visitBlock(SSACFG::BlockId const& _blockId)
 
 	StackData currentStackData = blockLayout.stackIn;
 	Stack stack(currentStackData);
+	// The upsilons whose copy is left to the edge of the block's jump
+	std::vector<stack::PendingCopy> pendingCopies;
 
 	auto const layoutOperation = [&](InstId const _instId, SSACFG::Inst const& _inst) {
 		auto opLiveOutWithoutOutputs = m_liveness.operationLiveOut(_instId);
@@ -231,18 +238,34 @@ void StackLayoutGenerator::visitBlock(SSACFG::BlockId const& _blockId)
 		blockLayout.operationShuffles.push_back(std::move(trace));
 	};
 
-	// An upsilon renames its input to its phi's shadow slot, on a copy if the input stays live
+	// An upsilon renames its input to its phi's shadow slot, a copy it needs is made here or left to the edge
 	auto const layoutUpsilon = [&](InstId const _instId, SSACFG::Inst const& _inst) {
 		InstId const phi = m_cfg.upsilonPhi(_instId);
 		auto const shadowSlot = Slot::makeShadow(m_cfg, phi);
 		auto const input = Slot::makeValue(m_cfg, _inst.inputs.at(0));
 		auto const& liveOut = m_liveness.operationLiveOut(_instId);
 		yulAssert(
-			!ranges::contains(currentStackData, shadowSlot),
+			!ranges::contains(currentStackData, shadowSlot) &&
+			!ranges::contains(pendingCopies, shadowSlot, &stack::PendingCopy::shadowSlot),
 			fmt::format("the shadow of phi {} is written twice in block {}, which is not supported yet", phi, _blockId)
 		);
 		ShuffleTrace trace;
-		if (liveOut.contains(input.value()) || !ranges::contains(currentStackData, input))
+		bool const needsCopy = liveOut.contains(input.value()) || !ranges::contains(currentStackData, input);
+		// the shuffle across the edge of a jump knows where the target wants the copy, so it is left to it
+		if (
+			needsCopy &&
+			block.isJumpBlock() &&
+			// the input is still there at the exit
+			(input.isLiteralValue() || m_liveness.liveOut(_blockId).contains(input.value())) &&
+			// a spilled shadow slot is stored behind its upsilon
+			!m_spillSet.isSpilled(shadowSlot)
+		)
+		{
+			pendingCopies.push_back({shadowSlot, input});
+			blockLayout.operationShuffles.emplace_back();
+			return;
+		}
+		if (needsCopy)
 		{
 			auto const target = stack::buildInstructionStackIn(
 				stack.data(),
@@ -277,13 +300,21 @@ void StackLayoutGenerator::visitBlock(SSACFG::BlockId const& _blockId)
 			blockLayout.operationShuffles.emplace_back();
 	}
 
+	// only the edge of a jump takes pending copies
+	yulAssert(pendingCopies.empty() || block.isJumpBlock());
+
 	// we don't explicitly visit backedges and might have to spill here, too
 	auto const validateBackEdge = [&](SSACFG::BlockId const& _target) {
 		if (!m_liveness.dfsTree().backEdge(_blockId, _target))
 			return;
 		yulAssert(m_resultLayout[_target], "Back-edge target must have its stackIn defined already.");
-		StackData exitStack = currentStackData;
-		auto shuffleResult = stack::shuffle(exitStack, m_resultLayout[_target]->stackIn, m_spillSet, m_spillingAllowed);
+		auto shuffleResult = stack::shuffleAcrossEdge(
+			stack::IncomingEdge{_blockId, currentStackData, pendingCopies},
+			m_resultLayout[_target]->stackIn,
+			m_liveness.liveInShadows(_target),
+			m_spillSet,
+			m_spillingAllowed
+		);
 		yulAssert(
 			shuffleResult.status == stack::ShuffleResult::Status::Admissible,
 			"Stack too deep, but spilling is disabled because the function is part of a recursive call chain."
@@ -336,7 +367,9 @@ void StackLayoutGenerator::visitBlock(SSACFG::BlockId const& _blockId)
 				blockLayout.exitShuffle = std::move(shuffleResult.trace);
 			},
 			[&](SSACFG::BasicBlock::Jump const& _jump) {
-				m_incomingEdgesPerBlock[_jump.target.value].push_back({_blockId, currentStackData});
+				m_incomingEdgesPerBlock[_jump.target.value].push_back(
+					{_blockId, currentStackData, pendingCopies}
+				);
 
 				validateBackEdge(_jump.target);
 			},

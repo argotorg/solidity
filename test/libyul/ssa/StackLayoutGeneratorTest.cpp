@@ -113,6 +113,13 @@ protected:
 					_out << "\\l\\\n";
 					_out << stackToString(operationStack) << "\\l\\\n";
 				}
+				// an upsilon without a trace left its copy to the edge of the block's jump
+				else if (inst.isUpsilon())
+				{
+					_out << "\\l\\\n";
+					_out << slotToString(StackSlot::makeShadow(m_cfg, m_cfg.upsilonPhi(instId))) << " := " << slotToString(StackSlot::makeValue(m_cfg, inst.inputs.at(0)));
+					_out << " (on the edge)\\l\\\n";
+				}
 				continue;
 			}
 			replay(operationStack, trace);

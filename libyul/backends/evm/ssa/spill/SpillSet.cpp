@@ -24,6 +24,7 @@
 #include <libyul/backends/evm/ssa/StackLayout.h>
 #include <libyul/backends/evm/ssa/StackUtils.h>
 
+#include <range/v3/algorithm/contains.hpp>
 #include <range/v3/view/zip.hpp>
 
 #include <deque>
@@ -99,12 +100,12 @@ std::vector<DefSite> defSitesFor(
 	for (SSACFG::BlockId const blockId: _cfg.liveBlocks())
 		if (_layout[blockId])
 			_cfg.forEachUpsilon(_cfg.block(blockId), [&](InstId const _upsilon, SSACFG::Inst const&) {
-				if (_cfg.upsilonPhi(_upsilon) == shadowSlot.shadowPhi())
-					sites.push_back({
-						.site = _upsilon,
-						.slot = shadowSlot,
-						.stack = computeOperationOut(_cfg, _layout, _upsilon)
-					});
+				if (_cfg.upsilonPhi(_upsilon) != shadowSlot.shadowPhi())
+					return;
+				// a shadow slot that got spilled while its copy was left to an edge is not on the stack here
+				StackData stack = computeOperationOut(_cfg, _layout, _upsilon);
+				if (ranges::contains(stack, shadowSlot))
+					sites.push_back({.site = _upsilon, .slot = shadowSlot, .stack = std::move(stack)});
 			});
 	return sites;
 }

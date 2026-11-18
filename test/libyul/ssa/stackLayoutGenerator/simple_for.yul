@@ -20,15 +20,11 @@
 // Block0_0 [label="\
 // IN: []\l\
 // \l\
-// [lit0]\l\
-// ^phi1 := lit0\l\
-// [^phi1]\l\
+// ^phi1 := lit0 (on the edge)\l\
 // \l\
-// [^phi1, lit0]\l\
-// ^phi2 := lit0\l\
-// [^phi1, ^phi2]\l\
+// ^phi2 := lit0 (on the edge)\l\
 // \l\
-// OUT: [^phi1, ^phi2]\l\
+// OUT: []\l\
 // "];
 // Block0_0 -> Block0_0Exit [arrowhead=none];
 // Block0_0Exit [label="Jump" shape=oval];
