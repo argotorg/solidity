@@ -1,5 +1,31 @@
 [
     {
+        "uid": "SOL-2026-8",
+        "name": "OverlappingRecursiveStorageStructCopyCorruption",
+        "summary": "Overwriting a recursive struct in storage with a struct nested inside it could silently corrupt storage.",
+        "description": "A recursive struct refers to its own type through a mapping or a dynamically-sized array. This bug affected the dynamically-sized array case. In storage, such a struct can contain other structs of the same type as elements of its array. When the target of a storage-to-storage copy contained the source, the copy silently produced incorrect values. A storage struct is copied member by member in declaration order, and a storage array element by element. Copying the array member resized the target's array and rewrote or cleared its data area, which destroyed the source before the copy had finished reading it. The elements nested in the source were therefore lost, and any source member read after the array copy came back zeroed. The position of the array member in the struct only determined which other members were copied before it and therefore survived. The affected operations were struct assignment and array assignment in which the target contained the source. Copies in the opposite direction, i.e., source containing the target, were not affected: they failed through unbounded recursion and still do. Both the evmasm and IR pipelines were affected, independently of optimizer settings.",
+        "link": "https://blog.soliditylang.org/2026/11/19/overlapping-recursive-storage-struct-copy-corruption-bug/",
+        "introduced": "0.4.9",
+        "fixed": "0.8.39",
+        "severity": "medium",
+        "conditions": {
+            "viaIR": false
+        }
+    },
+    {
+        "uid": "SOL-2026-8",
+        "name": "OverlappingRecursiveStorageStructCopyCorruptionViaIR",
+        "summary": "Overwriting a recursive struct in storage with a struct nested inside it could silently corrupt storage.",
+        "description": "A recursive struct refers to its own type through a mapping or a dynamically-sized array. This bug affected the dynamically-sized array case. In storage, such a struct can contain other structs of the same type as elements of its array. When the target of a storage-to-storage copy contained the source, the copy silently produced incorrect values. A storage struct is copied member by member in declaration order, and a storage array element by element. Copying the array member resized the target's array and rewrote or cleared its data area, which destroyed the source before the copy had finished reading it. The elements nested in the source were therefore lost, and any source member read after the array copy came back zeroed. The position of the array member in the struct only determined which other members were copied before it and therefore survived. The affected operations were struct assignment and array assignment in which the target contained the source. Copies in the opposite direction, i.e., source containing the target, were not affected: they failed through unbounded recursion and still do. Both the evmasm and IR pipelines were affected, independently of optimizer settings.",
+        "link": "https://blog.soliditylang.org/2026/11/19/overlapping-recursive-storage-struct-copy-corruption-bug/",
+        "introduced": "0.8.13",
+        "fixed": "0.8.39",
+        "severity": "medium",
+        "conditions": {
+            "viaIR": true
+        }
+    },
+    {
         "uid": "SOL-2026-7",
         "name": "YulOptimizerKnowledgeBaseStaleBookkeeping",
         "summary": "The Yul optimizer could consider two memory or storage locations distinct even though their addresses were computed from different values of the same reassigned variable and coincided at runtime. This could lead to loads being replaced with outdated values and to needed stores being removed.",

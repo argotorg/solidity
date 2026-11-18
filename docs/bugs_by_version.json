@@ -535,6 +535,7 @@
     },
     "0.4.10": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
@@ -560,6 +561,7 @@
     },
     "0.4.11": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
@@ -584,6 +586,7 @@
     },
     "0.4.12": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
@@ -607,6 +610,7 @@
     },
     "0.4.13": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
@@ -630,6 +634,7 @@
     },
     "0.4.14": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
@@ -652,6 +657,7 @@
     },
     "0.4.15": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
@@ -673,6 +679,7 @@
     },
     "0.4.16": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
@@ -697,6 +704,7 @@
     },
     "0.4.17": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
@@ -722,6 +730,7 @@
     },
     "0.4.18": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
@@ -746,6 +755,7 @@
     },
     "0.4.19": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
@@ -796,6 +806,7 @@
     },
     "0.4.20": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
@@ -821,6 +832,7 @@
     },
     "0.4.21": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
@@ -846,6 +858,7 @@
     },
     "0.4.22": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
@@ -871,6 +884,7 @@
     },
     "0.4.23": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
@@ -895,6 +909,7 @@
     },
     "0.4.24": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
@@ -919,6 +934,7 @@
     },
     "0.4.25": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
@@ -941,6 +957,7 @@
     },
     "0.4.26": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
@@ -1108,6 +1125,7 @@
     },
     "0.4.9": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
@@ -1133,6 +1151,7 @@
     },
     "0.5.0": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
@@ -1155,6 +1174,7 @@
     },
     "0.5.1": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
@@ -1177,6 +1197,7 @@
     },
     "0.5.10": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "AbiReencodingHeadOverflowWithStaticArrayCleanup",
@@ -1197,6 +1218,7 @@
     },
     "0.5.11": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "AbiReencodingHeadOverflowWithStaticArrayCleanup",
@@ -1216,6 +1238,7 @@
     },
     "0.5.12": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "AbiReencodingHeadOverflowWithStaticArrayCleanup",
@@ -1235,6 +1258,7 @@
     },
     "0.5.13": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "AbiReencodingHeadOverflowWithStaticArrayCleanup",
@@ -1254,6 +1278,7 @@
     },
     "0.5.14": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "AbiReencodingHeadOverflowWithStaticArrayCleanup",
@@ -1275,6 +1300,7 @@
     },
     "0.5.15": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "AbiReencodingHeadOverflowWithStaticArrayCleanup",
@@ -1295,6 +1321,7 @@
     },
     "0.5.16": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "AbiReencodingHeadOverflowWithStaticArrayCleanup",
@@ -1314,6 +1341,7 @@
     },
     "0.5.17": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "AbiReencodingHeadOverflowWithStaticArrayCleanup",
@@ -1332,6 +1360,7 @@
     },
     "0.5.2": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
@@ -1354,6 +1383,7 @@
     },
     "0.5.3": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
@@ -1376,6 +1406,7 @@
     },
     "0.5.4": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
@@ -1398,6 +1429,7 @@
     },
     "0.5.5": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
@@ -1422,6 +1454,7 @@
     },
     "0.5.6": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
@@ -1446,6 +1479,7 @@
     },
     "0.5.7": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "DirtyBytesArrayToStorage",
@@ -1468,6 +1502,7 @@
     },
     "0.5.8": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "AbiReencodingHeadOverflowWithStaticArrayCleanup",
@@ -1491,6 +1526,7 @@
     },
     "0.5.9": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "AbiReencodingHeadOverflowWithStaticArrayCleanup",
@@ -1513,6 +1549,7 @@
     },
     "0.6.0": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "AbiReencodingHeadOverflowWithStaticArrayCleanup",
@@ -1533,6 +1570,7 @@
     },
     "0.6.1": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "AbiReencodingHeadOverflowWithStaticArrayCleanup",
@@ -1552,6 +1590,7 @@
     },
     "0.6.10": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "FullInlinerNonExpressionSplitArgumentEvaluationOrder",
@@ -1570,6 +1609,7 @@
     },
     "0.6.11": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "FullInlinerNonExpressionSplitArgumentEvaluationOrder",
@@ -1588,6 +1628,7 @@
     },
     "0.6.12": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "FullInlinerNonExpressionSplitArgumentEvaluationOrder",
@@ -1606,6 +1647,7 @@
     },
     "0.6.2": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "MissingSideEffectsOnSelectorAccess",
@@ -1626,6 +1668,7 @@
     },
     "0.6.3": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "MissingSideEffectsOnSelectorAccess",
@@ -1646,6 +1689,7 @@
     },
     "0.6.4": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "MissingSideEffectsOnSelectorAccess",
@@ -1666,6 +1710,7 @@
     },
     "0.6.5": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "MissingSideEffectsOnSelectorAccess",
@@ -1686,6 +1731,7 @@
     },
     "0.6.6": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "MissingSideEffectsOnSelectorAccess",
@@ -1705,6 +1751,7 @@
     },
     "0.6.7": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "FullInlinerNonExpressionSplitArgumentEvaluationOrder",
@@ -1725,6 +1772,7 @@
     },
     "0.6.8": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "FullInlinerNonExpressionSplitArgumentEvaluationOrder",
@@ -1742,6 +1790,7 @@
     },
     "0.6.9": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "FullInlinerNonExpressionSplitArgumentEvaluationOrder",
@@ -1761,6 +1810,7 @@
     },
     "0.7.0": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "FullInlinerNonExpressionSplitArgumentEvaluationOrder",
@@ -1779,6 +1829,7 @@
     },
     "0.7.1": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "LostStorageArrayWriteOnSlotOverflow",
             "FullInlinerNonExpressionSplitArgumentEvaluationOrder",
@@ -1798,6 +1849,7 @@
     },
     "0.7.2": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "SpillSlotCollisionAcrossMutualRecursion",
             "UnsoundSpillInMutualRecursion",
@@ -1818,6 +1870,7 @@
     },
     "0.7.3": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "SpillSlotCollisionAcrossMutualRecursion",
             "UnsoundSpillInMutualRecursion",
@@ -1837,6 +1890,7 @@
     },
     "0.7.4": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "SpillSlotCollisionAcrossMutualRecursion",
             "UnsoundSpillInMutualRecursion",
@@ -1855,6 +1909,7 @@
     },
     "0.7.5": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "SpillSlotCollisionAcrossMutualRecursion",
             "UnsoundSpillInMutualRecursion",
@@ -1873,6 +1928,7 @@
     },
     "0.7.6": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "SpillSlotCollisionAcrossMutualRecursion",
             "UnsoundSpillInMutualRecursion",
@@ -1891,6 +1947,7 @@
     },
     "0.8.0": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "SpillSlotCollisionAcrossMutualRecursion",
             "UnsoundSpillInMutualRecursion",
@@ -1909,6 +1966,7 @@
     },
     "0.8.1": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "SpillSlotCollisionAcrossMutualRecursion",
             "UnsoundSpillInMutualRecursion",
@@ -1927,6 +1985,7 @@
     },
     "0.8.10": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "SpillSlotCollisionAcrossMutualRecursion",
             "UnsoundSpillInMutualRecursion",
@@ -1943,6 +2002,7 @@
     },
     "0.8.11": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "SpillSlotCollisionAcrossMutualRecursion",
             "UnsoundSpillInMutualRecursion",
@@ -1960,6 +2020,7 @@
     },
     "0.8.12": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "SpillSlotCollisionAcrossMutualRecursion",
             "UnsoundSpillInMutualRecursion",
@@ -1977,6 +2038,8 @@
     },
     "0.8.13": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
+            "OverlappingRecursiveStorageStructCopyCorruptionViaIR",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "SpillSlotCollisionAcrossMutualRecursion",
             "UnsoundSpillInMutualRecursion",
@@ -1995,6 +2058,8 @@
     },
     "0.8.14": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
+            "OverlappingRecursiveStorageStructCopyCorruptionViaIR",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "SpillSlotCollisionAcrossMutualRecursion",
             "UnsoundSpillInMutualRecursion",
@@ -2011,6 +2076,8 @@
     },
     "0.8.15": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
+            "OverlappingRecursiveStorageStructCopyCorruptionViaIR",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "SpillSlotCollisionAcrossMutualRecursion",
             "UnsoundSpillInMutualRecursion",
@@ -2025,6 +2092,8 @@
     },
     "0.8.16": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
+            "OverlappingRecursiveStorageStructCopyCorruptionViaIR",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "SpillSlotCollisionAcrossMutualRecursion",
             "UnsoundSpillInMutualRecursion",
@@ -2038,6 +2107,8 @@
     },
     "0.8.17": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
+            "OverlappingRecursiveStorageStructCopyCorruptionViaIR",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "SpillSlotCollisionAcrossMutualRecursion",
             "UnsoundSpillInMutualRecursion",
@@ -2050,6 +2121,8 @@
     },
     "0.8.18": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
+            "OverlappingRecursiveStorageStructCopyCorruptionViaIR",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "SpillSlotCollisionAcrossMutualRecursion",
             "UnsoundSpillInMutualRecursion",
@@ -2062,6 +2135,8 @@
     },
     "0.8.19": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
+            "OverlappingRecursiveStorageStructCopyCorruptionViaIR",
             "YulOptimizerKnowledgeBaseStaleBookkeeping",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "SpillSlotCollisionAcrossMutualRecursion",
@@ -2075,6 +2150,7 @@
     },
     "0.8.2": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "SpillSlotCollisionAcrossMutualRecursion",
             "UnsoundSpillInMutualRecursion",
@@ -2093,6 +2169,8 @@
     },
     "0.8.20": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
+            "OverlappingRecursiveStorageStructCopyCorruptionViaIR",
             "YulOptimizerKnowledgeBaseStaleBookkeeping",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "SpillSlotCollisionAcrossMutualRecursion",
@@ -2106,6 +2184,8 @@
     },
     "0.8.21": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
+            "OverlappingRecursiveStorageStructCopyCorruptionViaIR",
             "YulOptimizerKnowledgeBaseStaleBookkeeping",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "SpillSlotCollisionAcrossMutualRecursion",
@@ -2117,6 +2197,8 @@
     },
     "0.8.22": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
+            "OverlappingRecursiveStorageStructCopyCorruptionViaIR",
             "YulOptimizerKnowledgeBaseStaleBookkeeping",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "SpillSlotCollisionAcrossMutualRecursion",
@@ -2128,6 +2210,8 @@
     },
     "0.8.23": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
+            "OverlappingRecursiveStorageStructCopyCorruptionViaIR",
             "YulOptimizerKnowledgeBaseStaleBookkeeping",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "SpillSlotCollisionAcrossMutualRecursion",
@@ -2138,6 +2222,8 @@
     },
     "0.8.24": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
+            "OverlappingRecursiveStorageStructCopyCorruptionViaIR",
             "YulOptimizerKnowledgeBaseStaleBookkeeping",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "SpillSlotCollisionAcrossMutualRecursion",
@@ -2148,6 +2234,8 @@
     },
     "0.8.25": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
+            "OverlappingRecursiveStorageStructCopyCorruptionViaIR",
             "YulOptimizerKnowledgeBaseStaleBookkeeping",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "SpillSlotCollisionAcrossMutualRecursion",
@@ -2158,6 +2246,8 @@
     },
     "0.8.26": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
+            "OverlappingRecursiveStorageStructCopyCorruptionViaIR",
             "YulOptimizerKnowledgeBaseStaleBookkeeping",
             "MisorderedNamedParametersInRequireWithCustomErrors",
             "MemoryByteArrayElementDeleteClearsWholeWord",
@@ -2169,6 +2259,8 @@
     },
     "0.8.27": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
+            "OverlappingRecursiveStorageStructCopyCorruptionViaIR",
             "YulOptimizerKnowledgeBaseStaleBookkeeping",
             "MisorderedNamedParametersInRequireWithCustomErrors",
             "MemoryByteArrayElementDeleteClearsWholeWord",
@@ -2180,6 +2272,8 @@
     },
     "0.8.28": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
+            "OverlappingRecursiveStorageStructCopyCorruptionViaIR",
             "YulOptimizerKnowledgeBaseStaleBookkeeping",
             "MisorderedNamedParametersInRequireWithCustomErrors",
             "MemoryByteArrayElementDeleteClearsWholeWord",
@@ -2192,6 +2286,8 @@
     },
     "0.8.29": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
+            "OverlappingRecursiveStorageStructCopyCorruptionViaIR",
             "YulOptimizerKnowledgeBaseStaleBookkeeping",
             "MisorderedNamedParametersInRequireWithCustomErrors",
             "MemoryByteArrayElementDeleteClearsWholeWord",
@@ -2205,6 +2301,7 @@
     },
     "0.8.3": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "SpillSlotCollisionAcrossMutualRecursion",
             "UnsoundSpillInMutualRecursion",
@@ -2222,6 +2319,8 @@
     },
     "0.8.30": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
+            "OverlappingRecursiveStorageStructCopyCorruptionViaIR",
             "YulOptimizerKnowledgeBaseStaleBookkeeping",
             "MisorderedNamedParametersInRequireWithCustomErrors",
             "MemoryByteArrayElementDeleteClearsWholeWord",
@@ -2235,6 +2334,8 @@
     },
     "0.8.31": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
+            "OverlappingRecursiveStorageStructCopyCorruptionViaIR",
             "YulOptimizerKnowledgeBaseStaleBookkeeping",
             "MisorderedNamedParametersInRequireWithCustomErrors",
             "MemoryByteArrayElementDeleteClearsWholeWord",
@@ -2248,6 +2349,8 @@
     },
     "0.8.32": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
+            "OverlappingRecursiveStorageStructCopyCorruptionViaIR",
             "YulOptimizerKnowledgeBaseStaleBookkeeping",
             "MisorderedNamedParametersInRequireWithCustomErrors",
             "MemoryByteArrayElementDeleteClearsWholeWord",
@@ -2260,6 +2363,8 @@
     },
     "0.8.33": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
+            "OverlappingRecursiveStorageStructCopyCorruptionViaIR",
             "YulOptimizerKnowledgeBaseStaleBookkeeping",
             "MisorderedNamedParametersInRequireWithCustomErrors",
             "MemoryByteArrayElementDeleteClearsWholeWord",
@@ -2272,6 +2377,8 @@
     },
     "0.8.34": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
+            "OverlappingRecursiveStorageStructCopyCorruptionViaIR",
             "YulOptimizerKnowledgeBaseStaleBookkeeping",
             "MisorderedNamedParametersInRequireWithCustomErrors",
             "MemoryByteArrayElementDeleteClearsWholeWord",
@@ -2283,6 +2390,8 @@
     },
     "0.8.35": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
+            "OverlappingRecursiveStorageStructCopyCorruptionViaIR",
             "YulOptimizerKnowledgeBaseStaleBookkeeping",
             "MisorderedNamedParametersInRequireWithCustomErrors",
             "MemoryByteArrayElementDeleteClearsWholeWord",
@@ -2294,6 +2403,8 @@
     },
     "0.8.36": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
+            "OverlappingRecursiveStorageStructCopyCorruptionViaIR",
             "YulOptimizerKnowledgeBaseStaleBookkeeping",
             "MisorderedNamedParametersInRequireWithCustomErrors",
             "MemoryByteArrayElementDeleteClearsWholeWord",
@@ -2303,16 +2414,22 @@
     },
     "0.8.37": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
+            "OverlappingRecursiveStorageStructCopyCorruptionViaIR",
             "YulOptimizerKnowledgeBaseStaleBookkeeping"
         ],
         "released": "2026-09-10"
     },
     "0.8.38": {
-        "bugs": [],
+        "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
+            "OverlappingRecursiveStorageStructCopyCorruptionViaIR"
+        ],
         "released": "2026-10-22"
     },
     "0.8.4": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "SpillSlotCollisionAcrossMutualRecursion",
             "UnsoundSpillInMutualRecursion",
@@ -2329,6 +2446,7 @@
     },
     "0.8.5": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "SpillSlotCollisionAcrossMutualRecursion",
             "UnsoundSpillInMutualRecursion",
@@ -2346,6 +2464,7 @@
     },
     "0.8.6": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "SpillSlotCollisionAcrossMutualRecursion",
             "UnsoundSpillInMutualRecursion",
@@ -2363,6 +2482,7 @@
     },
     "0.8.7": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "SpillSlotCollisionAcrossMutualRecursion",
             "UnsoundSpillInMutualRecursion",
@@ -2380,6 +2500,7 @@
     },
     "0.8.8": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "SpillSlotCollisionAcrossMutualRecursion",
             "UnsoundSpillInMutualRecursion",
@@ -2398,6 +2519,7 @@
     },
     "0.8.9": {
         "bugs": [
+            "OverlappingRecursiveStorageStructCopyCorruption",
             "MemoryByteArrayElementDeleteClearsWholeWord",
             "SpillSlotCollisionAcrossMutualRecursion",
             "UnsoundSpillInMutualRecursion",
