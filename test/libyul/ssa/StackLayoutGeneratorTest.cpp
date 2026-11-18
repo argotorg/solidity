@@ -96,7 +96,25 @@ protected:
 		{
 			SSACFG::Inst const& inst = m_cfg.inst(instId);
 			if (!inst.isOperation())
+			{
+				// A phi takes its value out of its shadow slot and an upsilon writes its input into one, both by a rename
+				// without code: show it between the stacks before and after it.
+				if (!trace.empty())
+				{
+					auto const rename = ranges::find(trace, ShuffleOp::Kind::Rename, &ShuffleOp::kind);
+					replay(operationStack, {trace.begin(), rename});
+					_out << "\\l\\\n";
+					_out << stackToString(operationStack) << "\\l\\\n";
+					replay(operationStack, {rename, trace.end()});
+					if (inst.isPhi())
+						_out << slotToString(StackSlot::makeValue(m_cfg, instId)) << " := " << slotToString(StackSlot::makeShadow(m_cfg, instId));
+					else
+						_out << slotToString(StackSlot::makeShadow(m_cfg, m_cfg.upsilonPhi(instId))) << " := " << slotToString(StackSlot::makeValue(m_cfg, inst.inputs.at(0)));
+					_out << "\\l\\\n";
+					_out << stackToString(operationStack) << "\\l\\\n";
+				}
 				continue;
+			}
 			replay(operationStack, trace);
 
 			_out << "\\l\\\n";

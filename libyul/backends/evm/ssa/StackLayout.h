@@ -36,7 +36,7 @@ struct BlockLayout
 	/// Transforms the stack after the last operation into the block's exit state (for conditional jumps: condition on top, pre-JUMPI)
 	ShuffleTrace exitShuffle;
 	/// Per predecessor edge: transforms the predecessor's post-exit stack (for conditional jumps: after
-	/// popping the condition) into the phi preimage of `stackIn` under that edge
+	/// popping the condition) into `stackIn`
 	std::vector<std::pair<SSACFG::BlockId, ShuffleTrace>> tracesForStackIn;
 
 	/// The recorded shuffle for the edge from `_predecessor` into this block

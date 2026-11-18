@@ -23,6 +23,7 @@
 #include <libyul/backends/evm/ssa/LivenessAnalysis.h>
 #include <libyul/backends/evm/ssa/SSACFG.h>
 #include <libyul/backends/evm/ssa/SSACFGTypes.h>
+#include <libyul/backends/evm/ssa/ShadowLiveness.h>
 
 #include <vector>
 
@@ -37,12 +38,12 @@ struct IncomingEdge
 	StackData stack;
 };
 
-/// Chooses the stack-in of the block `_block` from its incoming forward edges. There must be at least one incoming edge.
+/// Chooses the stack-in of a block from its incoming forward edges. There must be at least one incoming edge.
 StackData chooseBlockStackIn(
 	SSACFG const& _cfg,
-	SSACFG::BlockId _block,
 	std::vector<IncomingEdge> const& _edges,
 	LivenessAnalysis::LivenessData const& _liveIn,
+	ShadowLiveness::ShadowSet const& _liveInShadows,
 	spill::SpillSet& _spillSet,
 	bool _spillingAllowed
 );

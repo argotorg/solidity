@@ -30,5 +30,5 @@ contract Main {
 // gas legacy code: 23600
 // gas legacyOptimized: 99612
 // gas legacyOptimized code: 13400
-// gas ssaCFGOptimized: 99490
+// gas ssaCFGOptimized: 99496
 // gas ssaCFGOptimized code: 10800

@@ -20,12 +20,8 @@
 
 #include <libyul/backends/evm/ssa/stack/Shuffler.h>
 
-#include <libyul/backends/evm/ssa/PhiInverse.h>
 #include <libyul/backends/evm/ssa/Stack.h>
 #include <libyul/backends/evm/ssa/StackUtils.h>
-
-#include <range/v3/algorithm/count.hpp>
-#include <range/v3/algorithm/replace.hpp>
 
 #include <tuple>
 
@@ -34,42 +30,19 @@ using namespace solidity::yul::ssa::stack;
 
 namespace
 {
-void handlePhiFunctions(StackData& _stackData, PhiInverse const& _phiInverse, LivenessAnalysis::LivenessData const& _liveness, SSACFG const& _cfg)
-{
-	// add any phi function values here that are not already contained in the stack
-	for (auto const& [phi, preImage]: _phiInverse.data())
-	{
-		auto reversedStackData = _stackData | ranges::views::reverse;
-		auto const phiSlot = StackSlot::makeValue(_cfg, phi);
-		auto const preImageSlot = StackSlot::makeValue(_cfg, preImage);
-		auto it = ranges::find(reversedStackData, preImageSlot);
-		if (_liveness.contains(preImage))
-		{
-			// Both the phi function and the preimage are part of the live-in set.
-			// If the preimage occurs more than once on the stack, one occurrence is
-			// symbolically replaced by the phi function; otherwise, we push the phi value.
-			if (ranges::count(_stackData, preImageSlot) > 1)
-				*it = phiSlot;
-			else
-				_stackData.emplace_back(phiSlot);
-		}
-		else
-		{
-			// replace all occurrences of the preimage with the phi value
-			ranges::replace(_stackData, preImageSlot, phiSlot);
-			// if it's not contained, push it (could be derived from a literal)
-			if (it == ranges::end(reversedStackData))
-				_stackData.emplace_back(phiSlot);
-		}
-	}
-}
-
-void declareJunk(Stack& _stack, LivenessAnalysis::LivenessData const& _live)
+void declareJunk(
+	Stack& _stack,
+	LivenessAnalysis::LivenessData const& _live,
+	ShadowLiveness::ShadowSet const& _liveShadows
+)
 {
 	for (StackOffset offset{0}; offset < _stack.size(); ++offset.value)
 	{
 		auto const& slot = _stack[offset];
-		if (slot.isValue() && !_live.contains(slot.value()))
+		if (
+			(slot.isValue() && !_live.contains(slot.value())) ||
+			(slot.isShadow() && !_liveShadows.contains(slot.shadowPhi()))
+		)
 			_stack.declareJunk(offset);
 	}
 }
@@ -78,23 +51,22 @@ void declareJunk(Stack& _stack, LivenessAnalysis::LivenessData const& _live)
 
 StackData stack::chooseBlockStackIn(
 	SSACFG const& _cfg,
-	SSACFG::BlockId const _block,
 	std::vector<IncomingEdge> const& _edges,
 	LivenessAnalysis::LivenessData const& _liveIn,
+	ShadowLiveness::ShadowSet const& _liveInShadows,
 	spill::SpillSet& _spillSet,
 	bool const _spillingAllowed
 )
 {
 	yulAssert(!_edges.empty());
 	StackData stackIn;
-	if (_cfg.block(_block).entries.size() == 1)
+	// The chosen stack-in only affects code quality since every incoming edge is shuffled to it
+	if (_edges.size() == 1)
 	{
 		// pass through
-		yulAssert(_edges.size() == 1);
 		stackIn = _edges[0].stack;
-		handlePhiFunctions(stackIn, PhiInverse(_cfg, _edges[0].predecessor, _block), _liveIn, _cfg);
 		Stack stack(stackIn);
-		declareJunk(stack, _liveIn);
+		declareJunk(stack, _liveIn, _liveInShadows);
 	}
 	else
 	{
@@ -103,10 +75,9 @@ StackData stack::chooseBlockStackIn(
 		for (std::size_t i = 0; i < _edges.size(); ++i)
 		{
 			proposals[i] = _edges[i].stack;
-			handlePhiFunctions(proposals[i], PhiInverse(_cfg, _edges[i].predecessor, _block), _liveIn, _cfg);
 			{
 				Stack stack(proposals[i]);
-				declareJunk(stack, _liveIn);
+				declareJunk(stack, _liveIn, _liveInShadows);
 			}
 		}
 		// For each candidate stack-in layout (one parent's proposal), reconcile every parent to it,
@@ -121,7 +92,7 @@ StackData stack::chooseBlockStackIn(
 				StackData edgeStack = _edges[j].stack;
 				ShuffleResult const result = stack::shuffle(
 					edgeStack,
-					stackPreImage(_cfg, proposals[i], PhiInverse(_cfg, _edges[j].predecessor, _block)),
+					proposals[i],
 					candidateSpillSet,
 					_spillingAllowed
 				);

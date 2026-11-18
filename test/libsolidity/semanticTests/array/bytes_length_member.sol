@@ -16,5 +16,5 @@ contract c {
 // gas irOptimized: 110390
 // gas legacy: 110951
 // gas legacyOptimized: 110577
-// gas ssaCFGOptimized: 110382
+// gas ssaCFGOptimized: 110381
 // getLength() -> 68
