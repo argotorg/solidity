@@ -1,14 +1,12 @@
-### 0.8.39 (unreleased)
+### 0.8.39 (2026-11-19)
 
 Important Bugfixes:
 * Code Generator: Fix storage corruption when overwriting a recursive struct in storage with a struct nested inside it. Copying a recursive struct between storage locations now performs a runtime overlap check, taking a memory snapshot of the source when the target contains it.
 
-Language Features:
-
 Compiler Features:
 * Commandline Interface: Omit the compilation record from `--ethdebug-resources` (experimental).
-* ethdebug: Stamp the `ethdebug/format/program` and `ethdebug/format/info/resources` outputs with their schema and the version of the ethdebug/format specification they follow (experimental).
 * ethdebug: Populate the type and pointer tables of `ethdebug/format/info/resources` with type documents and layout-specific pointer templates for storage, transient storage, memory and calldata (experimental).
+* ethdebug: Stamp the `ethdebug/format/program` and `ethdebug/format/info/resources` outputs with their schema and the version of the ethdebug/format specification they follow (experimental).
 * EVM: Warn about exceeding the increased contract code size (64 KiB) and initcode size (128 KiB) limits instead of the EIP-170 and EIP-3860 limits when compiling for the Amsterdam EVM version ([EIP-7954](https://eips.ethereum.org/EIPS/eip-7954)).
 * Standard JSON Interface: Omit the compilation record from `ethdebug.resources` (experimental).
 * Yul: Warn when the assembled bytecode of a compiled Yul object exceeds the EIP-170 (runtime code) or EIP-3860 (initcode) size limit, matching the existing warnings for Solidity input.
@@ -16,8 +14,8 @@ Compiler Features:
 Bugfixes:
 * Code Generator: Fix tuple assignments swapping values when a nested tuple component occupying at least one stack slot grows during type conversion.
 * ethdebug: Fix incorrect source file IDs in instruction locations (experimental).
-* SMTChecker: Fix false negative in CHC engine when a function from abstract base is called externally using `this`.
 * SMTChecker: Fix empty tuples being printed as an undeclared constant in SMT-LIB queries, which made the solver reject every query of the affected contract.
+* SMTChecker: Fix false negative in CHC engine when a function from abstract base is called externally using `this`.
 
 
 ### 0.8.38 (2026-10-22)
