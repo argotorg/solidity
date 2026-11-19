@@ -1809,7 +1809,7 @@ BOOST_AUTO_TEST_CASE(accessor_involving_strings)
 	u256 x = 7;
 	u256 y = 123;
 	bytes args = encodeArgs(x, y, u256(0xa0), b, u256(0xa0 + s1Data.size()), s1Data, s2Data);
-	bytes result = encodeArgs(u256(0x60), b, u256(0x60 + s1Data.size()), s1Data, s2Data);
+	bytes result = encodeArgs(u256(0x20), u256(0x60), b, u256(0x60 + s1Data.size()), s1Data, s2Data);
 	BOOST_REQUIRE(callContractFunction("set(uint256,uint256,string,uint256,string)", asString(args)) == encodeArgs(true));
 	BOOST_REQUIRE(callContractFunction("data(uint256,uint256)", x, y) == result);
 }

@@ -717,7 +717,7 @@ BOOST_AUTO_TEST_CASE(struct_in_constructor)
 
 	NEW_ENCODER(
 		compileAndRun(sourceCode, 0, "C", encodeArgs(0x20, 0x60, 0x03, 0x80, 0x00, 0x00));
-		ABI_CHECK(callContractFunction("x()"), encodeArgs(0x60, 0x03, 0x80, 0x00, 0x00));
+		ABI_CHECK(callContractFunction("x()"), encodeArgs(0x20, 0x60, 0x03, 0x80, 0x00, 0x00));
 	)
 }
 
@@ -735,7 +735,7 @@ BOOST_AUTO_TEST_CASE(struct_in_constructor_indirect)
 		}
 
 		contract D {
-			function f() public returns (string memory, uint8, string memory) {
+			function f() public returns (C.S memory) {
 				C.S memory s;
 				s.a = "abc";
 				s.b = 7;
@@ -747,7 +747,7 @@ BOOST_AUTO_TEST_CASE(struct_in_constructor_indirect)
 	)";
 	NEW_ENCODER(
 		compileAndRun(sourceCode, 0, "D");
-		ABI_CHECK(callContractFunction("f()"), encodeArgs(0x60, 7, 0xa0, 3, "abc", 3, "def"));
+		ABI_CHECK(callContractFunction("f()"), encodeArgs(0x20, 0x60, 7, 0xa0, 3, "abc", 3, "def"));
 	)
 }
 

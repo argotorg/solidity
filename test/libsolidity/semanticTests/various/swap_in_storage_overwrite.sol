@@ -26,10 +26,10 @@ contract c {
 // x() -> 0, 0
 // y() -> 0, 0
 // set() ->
-// gas irOptimized: 109681
+// gas irOptimized: 109673
 // gas legacy: 109727
 // gas legacyOptimized: 109680
-// gas ssaCFGOptimized: 109675
+// gas ssaCFGOptimized: 109672
 // x() -> 1, 2
 // y() -> 3, 4
 // swap() ->

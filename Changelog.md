@@ -8,6 +8,7 @@ Breaking Changes:
 * SMTChecker: Drop `pragma experimental SMTChecker;`. SMTChecker can be enabled by setting model checker engine to `chc`.
 * Type Checker: Disallow comparison of internal function pointers.
 * Type System: Disallow virtual modifiers.
+* Type System: Getters of public state variables of struct type return the struct instead of a tuple of its members. Struct members of array type are no longer omitted and public state variables of struct type containing a mapping are disallowed.
 
 AST Changes:
 * AST: Remove the `virtual`, `overrides`, and `baseModifiers` fields from `ModifierDefinition` nodes.

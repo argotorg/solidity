@@ -598,8 +598,7 @@ std::string IRGenerator::generateGetter(VariableDeclaration const& _varDecl)
 				"If there are parameters, we are dealing with structs or mappings and thus should have offset zero."
 			);
 
-		// The code of an accessor is of the form `x[a][b][c]` (it is slightly more complicated
-		// if the final type is a struct).
+		// The code of an accessor is of the form `x[a][b][c]`.
 		// In each iteration of the loop below, we consume one parameter, perform an
 		// index access, reassign the yul variable `slot` and move @a currentType further "down".
 		// The initial value of @a currentType is only used if we skip the loop completely.
@@ -642,48 +641,18 @@ std::string IRGenerator::generateGetter(VariableDeclaration const& _varDecl)
 		}
 
 		auto returnTypes = accessorType.returnParameterTypes();
-		solAssert(returnTypes.size() >= 1, "");
-		if (StructType const* structType = dynamic_cast<StructType const*>(currentType))
-		{
-			solAssert(location.second == 0, "");
-			auto const& names = accessorType.returnParameterNames();
-			for (size_t i = 0; i < names.size(); ++i)
-			{
-				if (returnTypes[i]->category() == Type::Category::Mapping)
-					continue;
-				if (
-					auto const* arrayType = dynamic_cast<ArrayType const*>(returnTypes[i]);
-					arrayType && !arrayType->isByteArrayOrString()
-				)
-					continue;
-
-				std::pair<u256, unsigned> const& offsets = structType->storageOffsetsOfMember(names[i]);
-				std::vector<std::string> retVars = IRVariable("ret_" + std::to_string(returnVariables.size()), *returnTypes[i]).stackSlots();
-				returnVariables += retVars;
-				code += Whiskers(R"(
-					<ret> := <readStorage>(add(slot, <slotOffset>))
-				)")
-				("ret", joinHumanReadable(retVars))
-				("readStorage", m_utils.readFromStorage(*returnTypes[i], offsets.second, true, _varDecl.referenceLocation()))
-				("slotOffset", offsets.first.str())
-				.render();
-			}
-		}
-		else
-		{
-			solAssert(returnTypes.size() == 1, "");
-			auto const* arrayType = dynamic_cast<ArrayType const*>(returnTypes.front());
-			if (arrayType)
-				solAssert(arrayType->isByteArrayOrString(), "");
-			std::vector<std::string> retVars = IRVariable("ret", *returnTypes.front()).stackSlots();
-			returnVariables += retVars;
-			code += Whiskers(R"(
-				<ret> := <readStorage>(slot, offset)
-			)")
-			("ret", joinHumanReadable(retVars))
-			("readStorage", m_utils.readFromStorageDynamic(*returnTypes.front(), true, _varDecl.referenceLocation()))
-			.render();
-		}
+		solAssert(returnTypes.size() == 1, "");
+		auto const* arrayType = dynamic_cast<ArrayType const*>(returnTypes.front());
+		if (arrayType)
+			solAssert(arrayType->isByteArrayOrString(), "");
+		std::vector<std::string> retVars = IRVariable("ret", *returnTypes.front()).stackSlots();
+		returnVariables += retVars;
+		code += Whiskers(R"(
+			<ret> := <readStorage>(slot, offset)
+		)")
+		("ret", joinHumanReadable(retVars))
+		("readStorage", m_utils.readFromStorageDynamic(*returnTypes.front(), true, _varDecl.referenceLocation()))
+		.render();
 
 		return Whiskers(R"(
 			<astIDComment><sourceLocationComment>

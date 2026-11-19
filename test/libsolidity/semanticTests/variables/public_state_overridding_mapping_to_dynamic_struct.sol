@@ -4,10 +4,10 @@ struct S { uint256 v; string s; }
 
 contract A
 {
-	function test(uint256 x) external virtual returns (uint256 v, string memory s)
+	function test(uint256 x) external virtual returns (S memory r)
 	{
-	    v = x;
-	    s = "test";
+	    r.v = x;
+	    r.s = "test";
 	}
 }
 contract X is A
@@ -17,8 +17,8 @@ contract X is A
 	function set() public { test[42].v = 2; test[42].s = "statevar"; }
 }
 // ----
-// test(uint256): 0 -> 0, 64, 0
-// test(uint256): 42 -> 0, 64, 0
+// test(uint256): 0 -> 0x20, 0, 0x40, 0
+// test(uint256): 42 -> 0x20, 0, 0x40, 0
 // set() ->
-// test(uint256): 0 -> 0, 64, 0
-// test(uint256): 42 -> 2, 0x40, 8, "statevar"
+// test(uint256): 0 -> 0x20, 0, 0x40, 0
+// test(uint256): 42 -> 0x20, 2, 0x40, 8, "statevar"

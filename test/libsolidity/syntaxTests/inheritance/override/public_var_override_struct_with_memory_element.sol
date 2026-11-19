@@ -6,7 +6,7 @@ abstract contract C {
 		string y;
 	}
 
-	function f() external virtual returns (uint256, string memory);
+	function f() external virtual returns (S memory);
 }
 contract D is C {
 	S public override f;

@@ -232,49 +232,16 @@ void ExpressionCompiler::appendStateVariableAccessor(VariableDeclaration const& 
 		m_context << swapInstruction(static_cast<unsigned>(paramTypes.size()));
 		utils().popStackSlots(paramTypes.size() - 1);
 	}
-	unsigned retSizeOnStack = 0;
 	auto returnTypes = accessorType.returnParameterTypes();
-	solAssert(returnTypes.size() >= 1, "");
-	if (StructType const* structType = dynamic_cast<StructType const*>(returnType))
-	{
-		solAssert(_varDecl.referenceLocation() != VariableDeclaration::Location::Transient);
-		solAssert(!_varDecl.immutable(), "");
-		// remove offset
-		m_context << Instruction::POP;
-		auto const& names = accessorType.returnParameterNames();
-		// struct
-		for (size_t i = 0; i < names.size(); ++i)
-		{
-			if (returnTypes[i]->category() == Type::Category::Mapping)
-				continue;
-			if (auto arrayType = dynamic_cast<ArrayType const*>(returnTypes[i]))
-				if (!arrayType->isByteArrayOrString())
-					continue;
-			std::pair<u256, unsigned> const& offsets = structType->storageOffsetsOfMember(names[i]);
-			m_context << Instruction::DUP1 << u256(offsets.first) << Instruction::ADD << u256(offsets.second);
-			Type const* memberType = structType->memberType(names[i]);
-			StorageItem(m_context, *memberType).retrieveValue(SourceLocation(), true);
-			utils().convertType(*memberType, *returnTypes[i]);
-			utils().moveToStackTop(returnTypes[i]->sizeOnStack());
-			retSizeOnStack += returnTypes[i]->sizeOnStack();
-		}
-		// remove slot
-		m_context << Instruction::POP;
-	}
+	solAssert(returnTypes.size() == 1, "");
+	if (_varDecl.immutable())
+		ImmutableItem(m_context, _varDecl).retrieveValue(SourceLocation());
+	else if (_varDecl.referenceLocation() == VariableDeclaration::Location::Transient)
+		TransientStorageItem(m_context, *returnType).retrieveValue(SourceLocation(), true);
 	else
-	{
-		// simple value or array
-		solAssert(returnTypes.size() == 1, "");
-		if (_varDecl.immutable())
-			ImmutableItem(m_context, _varDecl).retrieveValue(SourceLocation());
-		else if (_varDecl.referenceLocation() == VariableDeclaration::Location::Transient)
-			TransientStorageItem(m_context, *returnType).retrieveValue(SourceLocation(), true);
-		else
-			StorageItem(m_context, *returnType).retrieveValue(SourceLocation(), true);
-		utils().convertType(*returnType, *returnTypes.front());
-		retSizeOnStack = returnTypes.front()->sizeOnStack();
-	}
-	solAssert(retSizeOnStack == utils().sizeOnStack(returnTypes), "");
+		StorageItem(m_context, *returnType).retrieveValue(SourceLocation(), true);
+	utils().convertType(*returnType, *returnTypes.front());
+	unsigned retSizeOnStack = returnTypes.front()->sizeOnStack();
 	if (retSizeOnStack + 1 > m_context.reachableStackDepth())
 		BOOST_THROW_EXCEPTION(
 			StackTooDeepError() <<

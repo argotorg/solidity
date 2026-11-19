@@ -12,3 +12,4 @@ contract C is I {
     WrappedS public override s;
 }
 // ----
+// TypeError 4822: (168-194): Overriding public state variable return types differ.

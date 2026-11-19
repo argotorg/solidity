@@ -11,25 +11,37 @@ contract C {
 //     "name": "s",
 //     "outputs": [
 //       {
-//         "internalType": "uint256",
-//         "name": "a",
-//         "type": "uint256"
-//       },
-//       {
-//         "internalType": "bytes",
-//         "name": "b",
-//         "type": "bytes"
-//       },
-//       {
 //         "components": [
 //           {
-//             "internalType": "uint256[2]",
-//             "name": "x",
-//             "type": "uint256[2]"
+//             "internalType": "uint256",
+//             "name": "a",
+//             "type": "uint256"
+//           },
+//           {
+//             "internalType": "bytes",
+//             "name": "b",
+//             "type": "bytes"
+//           },
+//           {
+//             "internalType": "uint256[]",
+//             "name": "c",
+//             "type": "uint256[]"
+//           },
+//           {
+//             "components": [
+//               {
+//                 "internalType": "uint256[2]",
+//                 "name": "x",
+//                 "type": "uint256[2]"
+//               }
+//             ],
+//             "internalType": "struct C.T",
+//             "name": "t",
+//             "type": "tuple"
 //           }
 //         ],
-//         "internalType": "struct C.T",
-//         "name": "t",
+//         "internalType": "struct C.S",
+//         "name": "",
 //         "type": "tuple"
 //       }
 //     ],

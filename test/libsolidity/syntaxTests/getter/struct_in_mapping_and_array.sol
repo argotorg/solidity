@@ -14,5 +14,5 @@ contract C {
     }
 }
 // ----
-// TypeError 9574: (240-307): Type function (uint256) view external returns (uint256) is not implicitly convertible to expected type function (uint256) view external returns (struct C.S memory).
-// TypeError 9574: (395-468): Type function (uint256) view external returns (uint256) is not implicitly convertible to expected type function (uint256) view external returns (struct C.S memory).
+// TypeError 9574: (168-230): Type function (uint256) view external returns (struct C.S memory) is not implicitly convertible to expected type function (uint256) view external returns (uint256).
+// TypeError 9574: (317-385): Type function (uint256) view external returns (struct C.S memory) is not implicitly convertible to expected type function (uint256) view external returns (uint256).

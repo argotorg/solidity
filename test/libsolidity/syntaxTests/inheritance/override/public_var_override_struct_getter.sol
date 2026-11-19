@@ -17,4 +17,3 @@ contract C is I {
     S public override s;
 }
 // ----
-// TypeError 4822: (274-293): Overriding public state variable return types differ.

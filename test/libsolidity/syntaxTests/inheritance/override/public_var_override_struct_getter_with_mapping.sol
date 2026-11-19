@@ -10,3 +10,5 @@ contract C is I {
     S public override s;
 }
 // ----
+// TypeError 4822: (156-175): Overriding public state variable return types differ.
+// TypeError 6744: (156-175): Internal or recursive type is not allowed for public state variables.

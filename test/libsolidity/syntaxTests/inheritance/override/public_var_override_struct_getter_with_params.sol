@@ -12,5 +12,3 @@ contract C is I {
     S[] public override list;
 }
 // ----
-// TypeError 4822: (211-247): Overriding public state variable return types differ.
-// TypeError 4822: (253-277): Overriding public state variable return types differ.
