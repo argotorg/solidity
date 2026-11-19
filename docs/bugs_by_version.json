@@ -2427,6 +2427,10 @@
         ],
         "released": "2026-10-22"
     },
+    "0.8.39": {
+        "bugs": [],
+        "released": "2026-11-19"
+    },
     "0.8.4": {
         "bugs": [
             "OverlappingRecursiveStorageStructCopyCorruption",
