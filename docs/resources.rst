@@ -78,9 +78,6 @@ Editor Integrations
 
 * Visual Studio Code (VS Code)
 
-    * `Aderyn Visual Studio Code extension <https://marketplace.visualstudio.com/items?itemName=Cyfrin.aderyn>`_
-        Solidity Smart contract analyzer designed to help find vulnerabilities. It supports projects built with Hardhat, Foundry, or any custom framework.
-
     * `Ethereum Remix Visual Studio Code extension <https://github.com/ethereum/remix-vscode>`_
         Ethereum Remix extension pack for VS Code
         💡 Note: As per the official repository, this extension has been removed from the VSCODE marketplace and will be replaced by a dedicated stand-alone desktop application.
