@@ -29,7 +29,9 @@
 #include <liblangutil/SemVerHandler.h>
 #include <test/FilesystemUtils.h>
 
+#include <libsolutil/CommonData.h>
 #include <libsolutil/JSON.h>
+#include <libsolutil/Logger.h>
 #include <libsolutil/TemporaryDirectory.h>
 
 #include <boost/algorithm/string.hpp>
@@ -53,6 +55,8 @@ using PathSet = std::set<boost::filesystem::path>;
 
 namespace
 {
+
+DEFINE_LOGGER(cliTestLogger, "test.cli.interface");
 
 std::ostream& operator<<(std::ostream& _out, std::vector<ImportRemapper::Remapping> const& _remappings)
 {
@@ -146,6 +150,128 @@ BOOST_AUTO_TEST_CASE(version)
 	BOOST_TEST(result.options.input.mode == InputMode::Version);
 }
 
+BOOST_AUTO_TEST_CASE(log_list_categories)
+{
+	OptionsReaderAndMessages result = runCLI({"solc", "--log-list-categories"}, "");
+
+	BOOST_TEST(result.success);
+	BOOST_TEST(result.stderrContent == "");
+	BOOST_TEST(result.options.input.mode == InputMode::LogListCategories);
+
+	std::vector<std::string> const categories = solidity::log::LoggerRegistry::singleton().categories();
+	std::string expectedOutput;
+	for (std::string const& category: categories)
+		expectedOutput += category + "\n";
+	BOOST_TEST(result.stdoutContent == expectedOutput);
+	BOOST_TEST(util::contains(categories, "test.cli.interface"));
+}
+
+BOOST_AUTO_TEST_CASE(log_file)
+{
+	TemporaryDirectory tempDir(TEST_CASE_NAME);
+	boost::filesystem::path const logPath = tempDir.path() / "solc.log";
+
+	std::string const standardJsonInput = R"({"language": "Solidity", "sources": {"a.sol": {"content": "contract C {}"}}})";
+
+	OptionsReaderAndMessages result = runCLI(
+		{"solc", "--standard-json", "--log=test.cli.interface=1", "--log-file=" + logPath.string()},
+		standardJsonInput
+	);
+	BOOST_TEST(result.success);
+	BOOST_TEST(result.stderrContent == "");
+	BOOST_TEST(result.options.logging.categoryLevels.size() == 1);
+	BOOST_TEST(boost::filesystem::exists(logPath));
+	// The CLI resets the process-wide registry on destruction.
+	BOOST_TEST(!cliTestLogger.shouldLog(1));
+}
+
+BOOST_AUTO_TEST_CASE(log_file_cannot_be_opened)
+{
+	TemporaryDirectory tempDir(TEST_CASE_NAME);
+	boost::filesystem::path const logPath = tempDir.path() / "missing_dir" / "solc.log";
+
+	OptionsReaderAndMessages result = runCLI(
+		{"solc", "--standard-json", "--no-color", "--log-file=" + logPath.string()},
+		"{}"
+	);
+	BOOST_TEST(!result.success);
+	BOOST_TEST(result.stderrContent == "Error: Could not open log file \"" + logPath.string() + "\".\n");
+}
+
+BOOST_AUTO_TEST_CASE(log_file_must_not_exist)
+{
+	TemporaryDirectory tempDir(TEST_CASE_NAME);
+	boost::filesystem::path const sourcePath = tempDir.path() / "input.sol";
+	boost::filesystem::path const libraryPath = tempDir.path() / "lib.sol";
+	boost::filesystem::path const jsonPath = tempDir.path() / "input.json";
+	boost::filesystem::path const existingLogPath = tempDir.path() / "existing.log";
+	boost::filesystem::path const newLogPath = tempDir.path() / "new.log";
+	std::map<boost::filesystem::path, std::string> const files = {
+		{sourcePath, "import \"./lib.sol\";\ncontract C is L {}\n"},
+		{libraryPath, "contract L {}\n"},
+		{jsonPath, R"({"language": "Solidity", "sources": {"a.sol": {"content": "contract C {}"}}})"},
+		{existingLogPath, "old log\n"},
+	};
+	for (auto const& [path, content]: files)
+		createFileWithContent(path, content);
+
+	auto checkRefused = [&](std::vector<std::string> _commandLine, boost::filesystem::path const& _logFile) {
+		_commandLine.push_back("--log-file=" + _logFile.string());
+		OptionsReaderAndMessages result = runCLI(_commandLine);
+		BOOST_TEST(!result.success);
+		BOOST_TEST(result.stdoutContent == "");
+		BOOST_TEST(
+			result.stderrContent ==
+			"Error: Logger will not overwrite already existing file \"" + _logFile.string() + "\".\n"
+		);
+		for (auto const& [path, content]: files)
+			BOOST_TEST(readFileAsString(path) == content);
+	};
+
+	std::vector<std::string> const compile = {"solc", "--no-color", sourcePath.string(), "--bin"};
+	// An input file, a file imported by the input and an unrelated file.
+	checkRefused(compile, sourcePath);
+	checkRefused(compile, libraryPath);
+	checkRefused(compile, existingLogPath);
+	checkRefused({"solc", "--no-color", "--standard-json", jsonPath.string()}, jsonPath);
+	// --overwrite only applies to -o.
+	checkRefused({"solc", "--no-color", sourcePath.string(), "--bin", "--overwrite"}, existingLogPath);
+
+	// A file that does not exist yet is created, and compilation proceeds.
+	OptionsReaderAndMessages result = runCLI({"solc", sourcePath.string(), "--bin", "--log-file=" + newLogPath.string()});
+	BOOST_TEST(result.success);
+	BOOST_TEST(result.stdoutContent.find("Binary:") != std::string::npos);
+	BOOST_TEST(boost::filesystem::exists(newLogPath));
+	for (auto const& [path, content]: files)
+		BOOST_TEST(readFileAsString(path) == content);
+}
+
+BOOST_AUTO_TEST_CASE(log_file_parent_not_accessible)
+{
+	// Directory permissions do not apply to root, so whether the log file exists could be checked.
+	if (geteuid() == 0)
+	{
+		BOOST_TEST_MESSAGE("Skipped: running as root.");
+		return;
+	}
+
+	TemporaryDirectory tempDir(TEST_CASE_NAME);
+	boost::filesystem::path const lockedDir = tempDir.path() / "locked";
+	boost::filesystem::path const logPath = lockedDir / "solc.log";
+	boost::filesystem::create_directory(lockedDir);
+	boost::filesystem::permissions(lockedDir, boost::filesystem::no_perms);
+	// Restores access before tempDir is removed, even if runCLI() throws.
+	ScopeGuard const restorePermissions([&]() {
+		boost::system::error_code errorCode;
+		boost::filesystem::permissions(lockedDir, boost::filesystem::owner_all, errorCode);
+	});
+
+	OptionsReaderAndMessages result = runCLI({"solc", "--no-color", "--standard-json", "--log-file=" + logPath.string()}, "{}");
+	BOOST_TEST(!result.success);
+	BOOST_TEST(result.stdoutContent == "");
+	BOOST_TEST(result.stderrContent == "Error: Logger cannot use file \"" + logPath.string() + "\". Permission denied\n");
+}
+
 BOOST_AUTO_TEST_CASE(multiple_input_modes)
 {
 	std::array inputModeOptions {
@@ -157,10 +283,12 @@ BOOST_AUTO_TEST_CASE(multiple_input_modes)
 		"--strict-assembly",
 		"--import-ast",
 		"--import-asm-json",
+		"--log-list-categories",
 	};
 	std::string expectedMessage =
 		"The following options are mutually exclusive: "
-		"--help, --license, --version, --standard-json, --link, --strict-assembly, --import-ast, --import-asm-json. "
+		"--help, --license, --version, --standard-json, --link, --strict-assembly, --import-ast, --import-asm-json, "
+		"--log-list-categories. "
 		"Select at most one.";
 
 	for (auto const& mode1: inputModeOptions)

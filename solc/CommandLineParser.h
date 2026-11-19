@@ -32,6 +32,7 @@
 #include <liblangutil/EVMVersion.h>
 
 #include <libsolutil/JSON.h>
+#include <libsolutil/Logger.h>
 
 #include <boost/program_options.hpp>
 #include <boost/filesystem/path.hpp>
@@ -42,6 +43,7 @@
 #include <ostream>
 #include <set>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace solidity::frontend
@@ -57,7 +59,8 @@ enum class InputMode
 	StandardJson,
 	Linker,
 	Assembler,
-	EVMAssemblerJSON
+	EVMAssemblerJSON,
+	LogListCategories
 };
 
 struct CompilerOutputs
@@ -274,6 +277,17 @@ struct CommandLineOptions
 		ModelCheckerSettings settings;
 	} modelChecker;
 
+	struct Logging
+	{
+		bool operator==(Logging const&) const noexcept = default;
+		bool operator!=(Logging const&) const noexcept = default;
+
+		std::optional<log::Level> globalLevel;
+		std::vector<std::pair<std::string, log::Level>> categoryLevels;
+		/// "stdout" or a file path. Unset means stderr.
+		std::optional<std::string> file;
+	} logging;
+
 	bool experimental = false;
 };
 
@@ -320,6 +334,16 @@ private:
 	/// Parses the names of the input files, remappings. Does not check if the files actually exist.
 	/// @throws CommandLineValidationError in case of validation errors.
 	void parseInputPathsAndRemappings();
+
+	/// Parses --log-level, --log and --log-file. Every --log prefix must match a category known to
+	/// log::LoggerRegistry.
+	/// @throws CommandLineValidationError in case of validation errors.
+	void parseLoggingOptions();
+
+	/// Parses a log level in the range [0, log::maxLevel]. @a _context describes where the level was
+	/// given, for the error message.
+	/// @throws CommandLineValidationError if @a _levelString is not a valid level.
+	static log::Level parseLogLevel(std::string const& _levelString, std::string const& _context);
 
 	/// Tries to read from the file @a _input or interprets @a _input literally if that fails.
 	/// It then tries to parse the contents and appends to @a m_options.libraries.
