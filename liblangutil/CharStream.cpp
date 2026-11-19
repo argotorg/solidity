@@ -151,7 +151,7 @@ std::optional<int> CharStream::translateLineColumnToPosition(LineColumn const& _
 
 std::optional<int> CharStream::translateLineColumnToPosition(std::string const& _text, LineColumn const& _input)
 {
-	if (_input.line < 0)
+	if (_input.line < 0 || _input.column < 0)
 		return std::nullopt;
 
 	size_t offset = 0;

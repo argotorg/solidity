@@ -89,6 +89,7 @@ BOOST_AUTO_TEST_CASE(translateLineColumnToPosition)
 {
 	BOOST_CHECK_EQUAL(toPosition(-1, 0, "ABC"), std::nullopt);
 	BOOST_CHECK_EQUAL(toPosition(0, -1, "ABC"), std::nullopt);
+	BOOST_CHECK_EQUAL(toPosition(1, -1, "ABC\nDEF"), std::nullopt);
 
 	BOOST_CHECK_EQUAL(toPosition(0, 0, ""), 0);
 	BOOST_CHECK_EQUAL(toPosition(1, 0, ""), std::nullopt);
