@@ -1,5 +1,8 @@
 ### 0.8.39 (unreleased)
 
+Important Bugfixes:
+* Code Generator: Fix storage corruption when overwriting a recursive struct in storage with a struct nested inside it. Copying a recursive struct between storage locations now performs a runtime overlap check, taking a memory snapshot of the source when the target contains it.
+
 Language Features:
 
 Compiler Features:

@@ -21,9 +21,12 @@
  * Unit tests for the type system of Solidity.
  */
 
+#include <test/libsolidity/AnalysisFramework.h>
+
 #include <libsolidity/ast/Types.h>
 #include <libsolidity/ast/TypeProvider.h>
 #include <libsolidity/ast/AST.h>
+#include <libsolidity/interface/CompilerStack.h>
 #include <libsolutil/Keccak256.h>
 #include <boost/test/unit_test.hpp>
 
@@ -280,6 +283,102 @@ BOOST_AUTO_TEST_CASE(helper_string_result)
 
 	BOOST_REQUIRE_EQUAL(r1.get(), "");
 	BOOST_REQUIRE_EQUAL(r1.message(), "Failure");
+}
+
+BOOST_FIXTURE_TEST_CASE(struct_definition_cycles, AnalysisFramework)
+{
+	char const* sourceCode = R"(
+		struct Plain { uint x; }
+		struct Node { Node[] children; }
+		struct MapNode { mapping(uint => MapNode) m; }
+		struct DeepMapNode { mapping(uint => DeepMapNode[]) m; }
+		struct MapPlain { mapping(uint => Plain) m; }
+		struct A { B[] b; }
+		struct B { A[] a; }
+		struct C1 { C2 c; }
+		struct C2 { C1[] c; }
+		struct F1 { F2[2] f; }
+		struct F2 { F1[] f; }
+		struct G1 { mapping(uint => G2)[] m; }
+		struct G2 { G1[] g; }
+		struct Inner { Inner[] arr; }
+		struct Outer { Inner i; }
+		struct Fn { function(Fn memory) internal f; }
+	)";
+	BOOST_REQUIRE(runFramework(sourceCode, PipelineStage::Analysis));
+
+	auto structType = [&](std::string const& _name) -> StructType const* {
+		for (ASTPointer<ASTNode> const& node: compiler().ast("").nodes())
+			if (auto const* structDefinition = dynamic_cast<StructDefinition const*>(node.get()))
+				if (structDefinition->name() == _name)
+					return TypeProvider::structType(*structDefinition, DataLocation::Storage);
+		BOOST_FAIL("Struct " + _name + " not found.");
+		return nullptr;
+	};
+
+	BOOST_CHECK(!structType("Plain")->recursive());
+	BOOST_CHECK(!structType("Plain")->hasCyclicDefinition());
+	BOOST_CHECK(structType("Node")->hasCyclicDefinition());
+	BOOST_CHECK(structType("MapNode")->hasCyclicDefinition());
+	BOOST_CHECK(structType("DeepMapNode")->hasCyclicDefinition());
+	BOOST_CHECK(!structType("MapPlain")->hasCyclicDefinition());
+	BOOST_CHECK(structType("A")->hasCyclicDefinition());
+	BOOST_CHECK(structType("B")->hasCyclicDefinition());
+	BOOST_CHECK(structType("C1")->hasCyclicDefinition());
+	BOOST_CHECK(structType("C2")->hasCyclicDefinition());
+	BOOST_CHECK(structType("F1")->hasCyclicDefinition());
+	BOOST_CHECK(structType("F2")->hasCyclicDefinition());
+	BOOST_CHECK(structType("G1")->hasCyclicDefinition());
+	BOOST_CHECK(structType("G2")->hasCyclicDefinition());
+	BOOST_CHECK(structType("Inner")->hasCyclicDefinition());
+	BOOST_CHECK(structType("Outer")->recursive());
+	BOOST_CHECK(!structType("Outer")->hasCyclicDefinition());
+	BOOST_CHECK(!structType("Fn")->hasCyclicDefinition());
+}
+
+BOOST_FIXTURE_TEST_CASE(type_can_contain_value_of, AnalysisFramework)
+{
+	char const* sourceCode = R"(
+		struct Plain { uint x; }
+		struct Leaf { Leaf[] ll; uint v; }
+		struct Other { Leaf[] l; }
+		struct Node { Node[] children; Other o; }
+		struct A { B[] b; }
+		struct B { A[] a; }
+	)";
+	BOOST_REQUIRE(runFramework(sourceCode, PipelineStage::Analysis));
+
+	auto structType = [&](std::string const& _name) -> StructType const* {
+		for (ASTPointer<ASTNode> const& node: compiler().ast("").nodes())
+			if (auto const* structDefinition = dynamic_cast<StructDefinition const*>(node.get()))
+				if (structDefinition->name() == _name)
+					return TypeProvider::structType(*structDefinition, DataLocation::Storage);
+		BOOST_FAIL("Struct " + _name + " not found.");
+		return nullptr;
+	};
+
+	BOOST_CHECK(structType("Node")->canContainValueOf(*structType("Node")));
+	BOOST_CHECK(!structType("Plain")->canContainValueOf(*structType("Plain")));
+	BOOST_CHECK(structType("Node")->canContainValueOf(*structType("Other")));
+	BOOST_CHECK(structType("Node")->canContainValueOf(*structType("Leaf")));
+	BOOST_CHECK(structType("Node")->canContainValueOf(*TypeProvider::uint256()));
+	BOOST_CHECK(!structType("Other")->canContainValueOf(*structType("Node")));
+	BOOST_CHECK(!structType("Leaf")->canContainValueOf(*structType("Node")));
+	BOOST_CHECK(!structType("Plain")->canContainValueOf(*structType("Node")));
+	BOOST_CHECK(structType("A")->canContainValueOf(*structType("B")));
+	BOOST_CHECK(structType("B")->canContainValueOf(*structType("A")));
+	BOOST_CHECK(!TypeProvider::uint256()->canContainValueOf(*structType("Node")));
+	Type const* nodePointer = structType("Node")->withLocation(DataLocation::Storage, true);
+	BOOST_CHECK(nodePointer->canContainValueOf(*structType("Node")));
+	BOOST_CHECK(structType("Node")->canContainValueOf(*nodePointer));
+	ArrayType const* nodeArray = TypeProvider::array(DataLocation::Storage, structType("Node"));
+	BOOST_CHECK(nodeArray->canContainValueOf(*structType("Node")));
+	BOOST_CHECK(structType("Node")->canContainValueOf(*nodeArray));
+	BOOST_CHECK(nodeArray->hasCyclicDefinition());
+	// A static array of Node is not on the cycle: no such array occurs inside Node.
+	ArrayType const* staticNodeArray = TypeProvider::array(DataLocation::Storage, structType("Node"), 5);
+	BOOST_CHECK(!staticNodeArray->canContainValueOf(*staticNodeArray));
+	BOOST_CHECK(!staticNodeArray->hasCyclicDefinition());
 }
 
 BOOST_AUTO_TEST_SUITE_END()

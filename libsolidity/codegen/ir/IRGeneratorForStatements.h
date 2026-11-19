@@ -229,6 +229,16 @@ private:
 	/// Assigns the value of @a _value to the lvalue @a _lvalue.
 	void writeToLValue(IRLValue const& _lvalue, IRVariable const& _value);
 
+	/// A helper used in `writeToLValue` to emit a storage assignment. Uses the runtime overlap
+	/// guard if the copy requires it, see ReferenceType::copyRequiresRuntimeOverlapGuard.
+	void emitStorageAssignment(
+		Type const& _from,
+		Type const& _to,
+		IRLValue::GenericStorage const& _lhs,
+		IRVariable const& _rhs,
+		VariableDeclaration::Location _storageLocation
+	);
+
 	/// @returns a fresh IR variable containing the value of the lvalue @a _lvalue.
 	IRVariable readFromLValue(IRLValue const& _lvalue);
 
