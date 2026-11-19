@@ -163,6 +163,10 @@ private:
 	std::optional<int64_t> m_astIDFromComment;
 	UseSourceLocationFrom m_useSourceLocationFrom = UseSourceLocationFrom::Scanner;
 	ForLoopComponent m_currentForLoopComponent = ForLoopComponent::None;
+	/// Number of for-loop init blocks currently being parsed. Nested loops inside an
+	/// init block keep this elevated so function definitions stay forbidden anywhere
+	/// inside that init (including nested loop post/body sections).
+	size_t m_forInitDepth = 0;
 	bool m_insideFunction = false;
 };
 
