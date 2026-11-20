@@ -402,11 +402,13 @@ u256 EVMInstructionInterpreter::eval(
 		BOOST_THROW_EXCEPTION(ExplicitlyTerminatedWithReturn());
 	}
 	case Instruction::REVERT:
-		accessMemory(arg[0], arg[1]);
+		m_state.returndata = {};
+		if (accessMemory(arg[0], arg[1]))
+			m_state.returndata = m_state.readMemory(arg[0], arg[1]);
 		logTrace(_instruction, arg);
 		m_state.storage.clear();
 		m_state.transientStorage.clear();
-		BOOST_THROW_EXCEPTION(ExplicitlyTerminated());
+		BOOST_THROW_EXCEPTION(ExplicitlyTerminatedWithRevert());
 	case Instruction::INVALID:
 		logTrace(_instruction);
 		m_state.storage.clear();
