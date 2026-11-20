@@ -35,6 +35,7 @@
 
 #include <boost/algorithm/string.hpp>
 
+#include <map>
 #include <optional>
 
 using namespace solidity;
@@ -257,6 +258,17 @@ YulStack::assembleWithDeployed(std::optional<std::string_view> _deployName, bool
 
 	MachineAssemblyObject creationObject;
 	MachineAssemblyObject deployedObject;
+	std::map<std::string, unsigned> const yulSourceIndices{{m_charStream->name(), 0}};
+	// ETHDebug preserves the Solidity source IDs carried by each object's @use-src annotation.
+	auto const buildEthdebugSourceIndices = [&](Object const& _object) {
+		std::map<std::string, unsigned> sourceIndices;
+		if (_object.debugData && _object.debugData->sourceNames.has_value())
+			for (auto const& [sourceIndex, sourceName]: *_object.debugData->sourceNames)
+				sourceIndices.emplace(*sourceName, sourceIndex);
+		else
+			sourceIndices = yulSourceIndices;
+		return sourceIndices;
+	};
 	try
 	{
 		creationObject.bytecode = std::make_shared<evmasm::LinkerObject>(creationAssembly->assemble());
@@ -265,21 +277,38 @@ YulStack::assembleWithDeployed(std::optional<std::string_view> _deployName, bool
 		creationObject.sourceMappings = std::make_unique<std::string>();
 		*creationObject.sourceMappings = evmasm::AssemblyItem::computeSourceMapping(
 			creationAssembly->items(),
-			{{m_charStream->name(), 0}}
+			yulSourceIndices
 		);
 		if (debugInfoSelection().ethdebug)
-			creationObject.ethdebug = evmasm::ethdebug::program(creationObject.assembly->name(), 0, *creationObject.assembly, *creationObject.bytecode);
+			creationObject.ethdebug = evmasm::ethdebug::program(
+				creationObject.assembly->name(),
+				0,
+				*creationObject.assembly,
+				*creationObject.bytecode,
+				buildEthdebugSourceIndices(*m_parserResult)
+			);
 
 		if (deployedAssembly)
 		{
 			deployedObject.bytecode = std::make_shared<evmasm::LinkerObject>(deployedAssembly->assemble());
 			deployedObject.assembly = deployedAssembly;
 			if (debugInfoSelection().ethdebug)
-				deployedObject.ethdebug = evmasm::ethdebug::program(deployedObject.assembly->name(), 0, *deployedObject.assembly, *deployedObject.bytecode);
+			{
+				Object const& deployedYulObject = dynamic_cast<Object const&>(*m_parserResult->subObjects.at(
+					m_parserResult->subIndexByName.at(deployedAssembly->name())
+				));
+				deployedObject.ethdebug = evmasm::ethdebug::program(
+					deployedObject.assembly->name(),
+					0,
+					*deployedObject.assembly,
+					*deployedObject.bytecode,
+					buildEthdebugSourceIndices(deployedYulObject)
+				);
+			}
 			deployedObject.sourceMappings = std::make_unique<std::string>(
 				evmasm::AssemblyItem::computeSourceMapping(
 					deployedAssembly->items(),
-					{{m_charStream->name(), 0}}
+					yulSourceIndices
 				)
 			);
 		}

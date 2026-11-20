@@ -34,6 +34,8 @@
 
 #include <range/v3/algorithm/all_of.hpp>
 
+#include <string_view>
+
 using namespace solidity;
 using namespace solidity::util;
 using namespace solidity::frontend;
@@ -53,7 +55,6 @@ std::optional<size_t> staticEncodingSize(std::vector<Type const*> const& _parame
 	}
 	return encodedSize;
 }
-
 }
 
 std::string YulUtilFunctions::identityFunction()
@@ -1946,83 +1947,259 @@ std::string YulUtilFunctions::copyArrayToStorageFunction(ArrayType const& _fromT
 
 	std::string functionName = "copy_array_to_storage_from_" + _fromType.identifier() + "_to_" + _toType.identifier();
 	return m_functionCollector.createFunction(functionName, [&](){
-		Whiskers templ(R"(
-			function <functionName>(slot, value<?isFromDynamicCalldata>, len</isFromDynamicCalldata>) {
-				<?fromStorage> if eq(slot, value) { leave } </fromStorage>
-				let length := <arrayLength>(value<?isFromDynamicCalldata>, len</isFromDynamicCalldata>)
-
-				<resizeArray>(slot, length)
-
-				let srcPtr := <srcDataLocation>(value)
-
-				let elementSlot := <dstDataLocation>(slot)
-
-				for { let i := 0 } lt(i, length) {i := add(i, 1)} {
-					<?fromCalldata>
-						let <stackItems> :=
-						<?dynamicallyEncodedBase>
-							<accessCalldataTail>(value, srcPtr)
-						<!dynamicallyEncodedBase>
-							srcPtr
-						</dynamicallyEncodedBase>
-					</fromCalldata>
-
-					<?fromMemory>
-						let <stackItems> := <readFromMemoryOrCalldata>(srcPtr)
-					</fromMemory>
-
-					<?fromStorage>
-						let <stackItems> := srcPtr
-					</fromStorage>
-
-					<updateStorageValue>(elementSlot, <stackItems>)
-
-					srcPtr := add(srcPtr, <srcStride>)
-
-					elementSlot := add(elementSlot, <storageSize>)
-				}
-			}
-		)");
-		if (_fromType.dataStoredIn(DataLocation::Storage))
-			solAssert(!_fromType.isValueType(), "");
-		templ("functionName", functionName);
-		bool fromCalldata = _fromType.dataStoredIn(DataLocation::CallData);
-		templ("isFromDynamicCalldata", _fromType.isDynamicallySized() && fromCalldata);
-		templ("fromStorage", _fromType.dataStoredIn(DataLocation::Storage));
-		bool fromMemory = _fromType.dataStoredIn(DataLocation::Memory);
-		templ("fromMemory", fromMemory);
-		templ("fromCalldata", fromCalldata);
-		templ("srcDataLocation", arrayDataAreaFunction(_fromType));
-		if (fromCalldata)
-		{
-			templ("dynamicallyEncodedBase", _fromType.baseType()->isDynamicallyEncoded());
-			if (_fromType.baseType()->isDynamicallyEncoded())
-				templ("accessCalldataTail", accessCalldataTailFunction(*_fromType.baseType()));
-		}
-		templ("resizeArray", resizeArrayFunction(_toType));
-		templ("arrayLength",arrayLengthFunction(_fromType));
-		templ("dstDataLocation", arrayDataAreaFunction(_toType));
-		if (fromMemory || (fromCalldata && _fromType.baseType()->isValueType()))
-			templ("readFromMemoryOrCalldata", readFromMemoryOrCalldata(*_fromType.baseType(), fromCalldata));
-		templ("stackItems", suffixedVariableNameList(
-			"stackItem_",
-			0,
-			_fromType.baseType()->stackItems().size()
-		));
-		templ("updateStorageValue", updateStorageValueFunction(*_fromType.baseType(), *_toType.baseType(), VariableDeclaration::Location::Unspecified, 0));
-		templ("srcStride",
-			fromCalldata ?
-			std::to_string(_fromType.calldataStride()) :
-				fromMemory ?
-				std::to_string(_fromType.memoryStride()) :
-				formatNumber(_fromType.baseType()->storageSize())
-		);
-		templ("storageSize", _toType.baseType()->storageSize().str());
-
-		return templ.render();
+		return copyArrayToStorageDefinition(functionName, _fromType, _toType);
 	});
 }
 
+std::string YulUtilFunctions::copyToStorageWithOverlapGuardFunction(
+	ReferenceType const& _fromType,
+	ReferenceType const& _toType,
+	std::optional<std::size_t> const _offset
+)
+{
+	solUnimplementedAssert(!_fromType.dataStoredIn(DataLocation::Transient), "Transient storage not supported yet");
+	solAssert(_offset.value_or(0) == 0);
+	VariableDeclaration::Location location = VariableDeclaration::Location::Unspecified;
+	solAssert(_fromType.category() == Type::Category::Array || _fromType.category() == Type::Category::Struct);
+
+	std::string const functionName =
+		(location == VariableDeclaration::Location::Transient ? "transient_"s : "") +
+		"storage_copy_with_overlap_guard_" +
+		(_offset.has_value() ? ("offset_" + std::to_string(*_offset)) + "_" : "") +
+		_fromType.identifier() +
+		"_to_" +
+		_toType.identifier();
+	std::unique_ptr<ReferenceType> memoryFromPtr = _fromType.copyForLocation(DataLocation::Memory, true);
+	std::string loadToMemoryFunction = readFromStorageReferenceType(*memoryFromPtr);
+	std::string copyFromMemoryFunction =
+		_fromType.category() == Type::Category::Array ?
+		copyArrayToStorageFunction(
+			dynamic_cast<ArrayType const&>(*memoryFromPtr),
+			dynamic_cast<ArrayType const&>(_toType)
+		) :
+		copyStructToStorageFunction(
+			dynamic_cast<StructType const&>(*memoryFromPtr),
+			dynamic_cast<StructType const&>(_toType)
+		);
+	std::string copyDirectlyFunction = updateStorageValueFunction(_fromType, _toType, location, 0);
+
+	return m_functionCollector.createFunction(functionName, [&]()
+	{
+		// The offset parameter should be unnecessary for reference types, whose byte offset is
+		// always zero. However, codegen does not always statically pass in zero (e.g. array
+		// indexing unconditionally stores it in a variable), so it arrives as a runtime value
+		// and the generated function asserts that it is zero.
+		//
+		// TODO: the default branch rewinds the free memory pointer directly, which bypasses the
+		// allocation helpers (solidity#11106). This is only safe under these assumptions:
+		//   - nothing allocated between the snapshot and the rewind is reachable afterwards,
+		//   - loadToMemory allocates upward from the free memory pointer, and
+		//   - copyFromMemory does not advance the free memory pointer.
+		// It is kept because reclaiming the snapshot this way avoids a memory-growth cost.
+		// Replace it later with a readFromStorageReferenceType that does an unbounded allocation.
+		return Whiskers(R"(
+			function <functionName>(targetSlot, <?dynamicOffset>offset, </dynamicOffset>sourceSlot) {
+				<?dynamicOffset>
+				if offset { <panic>() }
+				</dynamicOffset>
+				if eq(targetSlot, sourceSlot) { leave }
+				switch <targetContainsSource>(targetSlot, sourceSlot)
+				case 0 { <copyDirectly>(targetSlot, sourceSlot) }
+				default {
+					let freeMemoryPointer := mload(<freeMemoryPointerSlot>)
+					let temporaryMemoryBuffer := <loadToMemory>(sourceSlot)
+					<copyFromMemory>(targetSlot, temporaryMemoryBuffer)
+					mstore(<freeMemoryPointerSlot>, freeMemoryPointer)
+				}
+			}
+		)")
+		("dynamicOffset", !_offset.has_value())
+		("functionName", functionName)
+		("freeMemoryPointerSlot", std::to_string(CompilerUtils::freeMemoryPointer))
+		("panic", panicFunction(PanicCode::Generic))
+		("targetContainsSource", targetContainsSourceFunction(_toType, _fromType))
+		("copyDirectly", copyDirectlyFunction)
+		("loadToMemory", loadToMemoryFunction)
+		("copyFromMemory", copyFromMemoryFunction)
+		.render();
+	});
+}
+
+std::string YulUtilFunctions::copyArrayToStorageDefinition(
+	std::string const& _functionName,
+	ArrayType const& _fromType,
+	ArrayType const& _toType
+)
+{
+	Whiskers templ(R"(
+		function <functionName>(slot, value<?isFromDynamicCalldata>, len</isFromDynamicCalldata>) {
+			<?fromStorage> if eq(slot, value) { leave } </fromStorage>
+			let length := <arrayLength>(value<?isFromDynamicCalldata>, len</isFromDynamicCalldata>)
+
+			<resizeArray>(slot, length)
+
+			let srcPtr := <srcDataLocation>(value)
+
+			let elementSlot := <dstDataLocation>(slot)
+
+			for { let i := 0 } lt(i, length) {i := add(i, 1)} {
+				<?fromCalldata>
+					let <stackItems> :=
+					<?dynamicallyEncodedBase>
+						<accessCalldataTail>(value, srcPtr)
+					<!dynamicallyEncodedBase>
+						srcPtr
+					</dynamicallyEncodedBase>
+				</fromCalldata>
+
+				<?fromMemory>
+					let <stackItems> := <readFromMemoryOrCalldata>(srcPtr)
+				</fromMemory>
+
+				<?fromStorage>
+					let <stackItems> := srcPtr
+				</fromStorage>
+
+				<updateStorageValue>(elementSlot, <stackItems>)
+
+				srcPtr := add(srcPtr, <srcStride>)
+
+				elementSlot := add(elementSlot, <storageSize>)
+			}
+		}
+	)");
+	if (_fromType.dataStoredIn(DataLocation::Storage))
+		solAssert(!_fromType.isValueType(), "");
+	templ("functionName", _functionName);
+	bool fromCalldata = _fromType.dataStoredIn(DataLocation::CallData);
+	templ("isFromDynamicCalldata", _fromType.isDynamicallySized() && fromCalldata);
+	templ("fromStorage", _fromType.dataStoredIn(DataLocation::Storage));
+	bool fromMemory = _fromType.dataStoredIn(DataLocation::Memory);
+	templ("fromMemory", fromMemory);
+	templ("fromCalldata", fromCalldata);
+	templ("srcDataLocation", arrayDataAreaFunction(_fromType));
+	if (fromCalldata)
+	{
+		templ("dynamicallyEncodedBase", _fromType.baseType()->isDynamicallyEncoded());
+		if (_fromType.baseType()->isDynamicallyEncoded())
+			templ("accessCalldataTail", accessCalldataTailFunction(*_fromType.baseType()));
+	}
+	templ("resizeArray", resizeArrayFunction(_toType));
+	templ("arrayLength",arrayLengthFunction(_fromType));
+	templ("dstDataLocation", arrayDataAreaFunction(_toType));
+	if (fromMemory || (fromCalldata && _fromType.baseType()->isValueType()))
+		templ("readFromMemoryOrCalldata", readFromMemoryOrCalldata(*_fromType.baseType(), fromCalldata));
+	templ("stackItems", suffixedVariableNameList(
+		"stackItem_",
+		0,
+		_fromType.baseType()->stackItems().size()
+	));
+	// The element copies never need the overlap check:
+	// - either this copy is guarded and the check already ran, or
+	// - its operands are disjoint, and then so are their elements.
+	templ("updateStorageValue", updateStorageValueFunction(*_fromType.baseType(), *_toType.baseType(), VariableDeclaration::Location::Unspecified, 0));
+	templ("srcStride",
+		fromCalldata ?
+		std::to_string(_fromType.calldataStride()) :
+			fromMemory ?
+			std::to_string(_fromType.memoryStride()) :
+			formatNumber(_fromType.baseType()->storageSize())
+	);
+	templ("storageSize", _toType.baseType()->storageSize().str());
+
+	return templ.render();
+}
+
+// The generated function compares storage regions: the target's contiguous span and,
+// recursively, the data areas of dynamic arrays below it, descending only into types
+// that can contain a value of the source type. A slot is in a region iff its wrapping
+// distance from the region start, sub(slot, start), is below the region size.
+std::string YulUtilFunctions::targetContainsSourceFunction(Type const& _targetType, Type const& _sourceType)
+{
+	solAssert(_targetType.dataStoredIn(DataLocation::Storage));
+	solAssert(_sourceType.dataStoredIn(DataLocation::Storage));
+	solAssert(_targetType.canContainValueOf(_sourceType));
+
+	std::string functionName = "target_contains_source_" + _sourceType.identifier() + "_in_" + _targetType.identifier();
+
+	switch (_targetType.category())
+	{
+	case Type::Category::Array:
+	{
+		auto const* arrayType = dynamic_cast<ArrayType const*>(&_targetType);
+		solAssert(arrayType);
+		solAssert(!arrayType->baseType()->isValueType());
+		return m_functionCollector.createFunction(functionName, [&](auto& _arguments, auto& _returnVariables) {
+			_arguments = {"targetSlot", "sourceSlot"};
+			_returnVariables = {"sourceInTarget"};
+			// The target can contain the source and the source type is cyclic, so the
+			// elements can contain it too.
+			solAssert(arrayType->baseType()->canContainValueOf(_sourceType));
+			return Whiskers(R"(
+				let length := <arrayLength>(targetSlot)
+				let elementSlot := <dataArea>(targetSlot)
+				if lt(sub(sourceSlot, elementSlot), mul(length, <elementStorageSize>)) {
+					sourceInTarget := true
+					leave
+				}
+				for { let i := 0 } lt(i, length) { i := add(i, 1) } {
+					if <elementContainsSource>(elementSlot, sourceSlot) {
+						sourceInTarget := true
+						leave
+					}
+					elementSlot := add(elementSlot, <elementStorageSize>)
+				}
+			)")
+			("arrayLength", arrayLengthFunction(*arrayType))
+			("dataArea", arrayDataAreaFunction(*arrayType))
+			("elementContainsSource", targetContainsSourceFunction(*arrayType->baseType(), _sourceType))
+			("elementStorageSize", arrayType->baseType()->storageSize().str())
+			.render();
+		});
+	}
+	case Type::Category::Struct:
+	{
+		auto const* structType = dynamic_cast<StructType const*>(&_targetType);
+		solAssert(structType);
+		return m_functionCollector.createFunction(functionName, [&](auto& _arguments, auto& _returnVariables) {
+			_arguments = {"targetSlot", "sourceSlot"};
+			_returnVariables = {"sourceInTarget"};
+			std::vector<std::map<std::string, std::string>> members;
+			for (auto const& member: structType->members(nullptr))
+			{
+				solAssert(member.type);
+				// Only members whose type can contain a value of the source type can nest
+				// the source.
+				if (!member.type->canContainValueOf(_sourceType))
+					continue;
+				auto const& [slotDiff, byteOffset] = structType->storageOffsetsOfMember(member.name);
+				solAssert(byteOffset == 0);
+				members.push_back({
+					{"memberContainsSource", targetContainsSourceFunction(*member.type, _sourceType)},
+					{"slotDiff", slotDiff.str()}
+				});
+			}
+			return Whiskers(R"(
+			if lt(sub(sourceSlot, targetSlot), <storageSize>) {
+				sourceInTarget := true
+				leave
+			}
+			<#member>
+			if <memberContainsSource>(add(targetSlot, <slotDiff>), sourceSlot) {
+				sourceInTarget := true
+				leave
+			}
+			</member>
+		)")
+			("storageSize", structType->storageSize().str())
+			("member", members)
+			.render();
+		});
+	}
+	default:
+		solAssert(false, "Only arrays and structs can have a cyclic definition.");
+	}
+}
 
 std::string YulUtilFunctions::copyByteArrayToStorageFunction(ArrayType const& _fromType, ArrayType const& _toType)
 {
@@ -3734,9 +3911,19 @@ std::string YulUtilFunctions::copyStructToStorageFunction(StructType const& _fro
 		"_to_" +
 		_to.identifier();
 
-	return m_functionCollector.createFunction(functionName, [&](auto& _arguments, auto&) {
-		_arguments = {"slot", "value"};
-		Whiskers templ(R"(
+	return m_functionCollector.createFunction(functionName, [&](){
+		return copyStructToStorageDefinition(functionName, _from, _to);
+	});
+}
+
+std::string YulUtilFunctions::copyStructToStorageDefinition(
+	std::string const& _functionName,
+	StructType const& _from,
+	StructType const& _to
+)
+{
+	Whiskers templ(R"(
+		function <functionName>(slot, value) {
 			<?fromStorage> if iszero(eq(slot, value)) { </fromStorage>
 			<#member>
 			{
@@ -3744,97 +3931,96 @@ std::string YulUtilFunctions::copyStructToStorageFunction(StructType const& _fro
 			}
 			</member>
 			<?fromStorage> } </fromStorage>
-		)");
-		templ("fromStorage", _from.dataStoredIn(DataLocation::Storage));
-
-		MemberList::MemberMap structMembers = _from.nativeMembers(nullptr);
-		MemberList::MemberMap toStructMembers = _to.nativeMembers(nullptr);
-
-		std::vector<std::map<std::string, std::string>> memberParams(structMembers.size());
-		for (size_t i = 0; i < structMembers.size(); ++i)
-		{
-			Type const& memberType = *structMembers[i].type;
-			solAssert(memberType.memoryHeadSize() == 32, "");
-			auto const&[slotDiff, offset] = _to.storageOffsetsOfMember(structMembers[i].name);
-
-			Whiskers t(R"(
-				let memberSlot := add(slot, <memberStorageSlotDiff>)
-				let memberSrcPtr := add(value, <memberOffset>)
-
-				<?fromCalldata>
-					let <memberValues> :=
-						<?dynamicallyEncodedMember>
-							<accessCalldataTail>(value, memberSrcPtr)
-						<!dynamicallyEncodedMember>
-							memberSrcPtr
-						</dynamicallyEncodedMember>
-
-					<?isValueType>
-						<memberValues> := <read>(<memberValues>)
-					</isValueType>
-				</fromCalldata>
-
-				<?fromMemory>
-					let <memberValues> := <read>(memberSrcPtr)
-				</fromMemory>
-
-				<?fromStorage>
-					let <memberValues> :=
-						<?isValueType>
-							<read>(memberSrcPtr)
-						<!isValueType>
-							memberSrcPtr
-						</isValueType>
-				</fromStorage>
-
-				<updateStorageValue>(memberSlot, <memberValues>)
-			)");
-			bool fromCalldata = _from.location() == DataLocation::CallData;
-			t("fromCalldata", fromCalldata);
-			bool fromMemory = _from.location() == DataLocation::Memory;
-			t("fromMemory", fromMemory);
-			bool fromStorage = _from.location() == DataLocation::Storage;
-			t("fromStorage", fromStorage);
-			t("isValueType", memberType.isValueType());
-			t("memberValues", suffixedVariableNameList("memberValue_", 0, memberType.stackItems().size()));
-
-			t("memberStorageSlotDiff", slotDiff.str());
-			if (fromCalldata)
-			{
-				t("memberOffset", std::to_string(_from.calldataOffsetOfMember(structMembers[i].name)));
-				t("dynamicallyEncodedMember", memberType.isDynamicallyEncoded());
-				if (memberType.isDynamicallyEncoded())
-					t("accessCalldataTail", accessCalldataTailFunction(memberType));
-				if (memberType.isValueType())
-					t("read", readFromCalldata(memberType));
-			}
-			else if (fromMemory)
-			{
-				t("memberOffset", _from.memoryOffsetOfMember(structMembers[i].name).str());
-				t("read", readFromMemory(memberType));
-			}
-			else if (fromStorage)
-			{
-				auto const& [srcSlotOffset, srcOffset] = _from.storageOffsetsOfMember(structMembers[i].name);
-				t("memberOffset", formatNumber(srcSlotOffset));
-				if (memberType.isValueType())
-					t("read", readFromStorageValueType(memberType, srcOffset, true, VariableDeclaration::Location::Unspecified));
-				else
-					solAssert(srcOffset == 0, "");
-
-			}
-			t("updateStorageValue", updateStorageValueFunction(
-				memberType,
-				*toStructMembers[i].type,
-				VariableDeclaration::Location::Unspecified,
-				std::optional<unsigned>{offset}
-			));
-			memberParams[i]["updateMemberCall"] = t.render();
 		}
-		templ("member", memberParams);
+	)");
+	templ("functionName", _functionName);
+	templ("fromStorage", _from.dataStoredIn(DataLocation::Storage));
 
-		return templ.render();
-	});
+	MemberList::MemberMap structMembers = _from.nativeMembers(nullptr);
+	MemberList::MemberMap toStructMembers = _to.nativeMembers(nullptr);
+
+	std::vector<std::map<std::string, std::string>> memberParams(structMembers.size());
+	for (size_t i = 0; i < structMembers.size(); ++i)
+	{
+		Type const& memberType = *structMembers[i].type;
+		solAssert(memberType.memoryHeadSize() == 32, "");
+		auto const&[slotDiff, offset] = _to.storageOffsetsOfMember(structMembers[i].name);
+
+		Whiskers t(R"(
+			let memberSlot := add(slot, <memberStorageSlotDiff>)
+			let memberSrcPtr := add(value, <memberOffset>)
+
+			<?fromCalldata>
+				let <memberValues> :=
+					<?dynamicallyEncodedMember>
+						<accessCalldataTail>(value, memberSrcPtr)
+					<!dynamicallyEncodedMember>
+						memberSrcPtr
+					</dynamicallyEncodedMember>
+
+				<?isValueType>
+					<memberValues> := <read>(<memberValues>)
+				</isValueType>
+			</fromCalldata>
+
+			<?fromMemory>
+				let <memberValues> := <read>(memberSrcPtr)
+			</fromMemory>
+
+			<?fromStorage>
+				let <memberValues> :=
+					<?isValueType>
+						<read>(memberSrcPtr)
+					<!isValueType>
+						memberSrcPtr
+					</isValueType>
+			</fromStorage>
+
+			<updateStorageValue>(memberSlot, <memberValues>)
+		)");
+		bool fromCalldata = _from.location() == DataLocation::CallData;
+		t("fromCalldata", fromCalldata);
+		bool fromMemory = _from.location() == DataLocation::Memory;
+		t("fromMemory", fromMemory);
+		bool fromStorage = _from.location() == DataLocation::Storage;
+		t("fromStorage", fromStorage);
+		t("isValueType", memberType.isValueType());
+		t("memberValues", suffixedVariableNameList("memberValue_", 0, memberType.stackItems().size()));
+
+		t("memberStorageSlotDiff", slotDiff.str());
+		if (fromCalldata)
+		{
+			t("memberOffset", std::to_string(_from.calldataOffsetOfMember(structMembers[i].name)));
+			t("dynamicallyEncodedMember", memberType.isDynamicallyEncoded());
+			if (memberType.isDynamicallyEncoded())
+				t("accessCalldataTail", accessCalldataTailFunction(memberType));
+			if (memberType.isValueType())
+				t("read", readFromCalldata(memberType));
+		}
+		else if (fromMemory)
+		{
+			t("memberOffset", _from.memoryOffsetOfMember(structMembers[i].name).str());
+			t("read", readFromMemory(memberType));
+		}
+		else if (fromStorage)
+		{
+			auto const& [srcSlotOffset, srcOffset] = _from.storageOffsetsOfMember(structMembers[i].name);
+			t("memberOffset", formatNumber(srcSlotOffset));
+			if (memberType.isValueType())
+				t("read", readFromStorageValueType(memberType, srcOffset, true, VariableDeclaration::Location::Unspecified));
+			else
+				solAssert(srcOffset == 0, "");
+
+		}
+		// The member copies never need the overlap check:
+		// - either this copy is guarded and the check already ran, or
+		// - its operands are disjoint, and then so are their members.
+		t("updateStorageValue", updateStorageValueFunction(memberType, *toStructMembers[i].type, VariableDeclaration::Location::Unspecified, offset));
+		memberParams[i]["updateMemberCall"] = t.render();
+	}
+	templ("member", memberParams);
+
+	return templ.render();
 }
 
 std::string YulUtilFunctions::arrayConversionFunction(ArrayType const& _from, ArrayType const& _to)

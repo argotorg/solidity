@@ -256,6 +256,8 @@ public:
 	/// @returns the name of a function that pushes an element to a storage array
 	/// @param _fromType represents the type of the element being pushed.
 	/// If _fromType is ReferenceType the function will perform deep copy.
+	/// The copy is unguarded: a push appends a fresh element that can never contain the source,
+	/// so it is never the target-contains-source case that needs the runtime overlap guard.
 	/// signature: (array, value)
 	std::string storageArrayPushFunction(ArrayType const& _type, Type const* _fromType = nullptr);
 
@@ -275,8 +277,10 @@ public:
 	/// signature: (slot) ->
 	std::string clearStorageArrayFunction(ArrayType const& _type);
 
-	/// @returns the name of a function that will copy an array to storage
-	/// signature (to_slot, from_ptr) ->
+	/// @returns the name of a function that will copy an array to storage, without the runtime
+	/// overlap check. Copies that need the check go through `copyToStorageWithOverlapGuardFunction`.
+	/// When the source is in memory, this copies into storage without allocating memory.
+	/// signature (targetSlot, source) ->
 	std::string copyArrayToStorageFunction(ArrayType const& _fromType, ArrayType const& _toType);
 
 	/// @returns the name of a function that will copy a byte array to storage
@@ -380,6 +384,22 @@ public:
 	/// For external function types, input and output is in "compressed"/"unsplit" form.
 	std::string extractFromStorageValue(Type const& _type, size_t _offset);
 	std::string extractFromStorageValueDynamic(Type const& _type);
+
+	/// @returns the name of a function implementing the guarded
+	/// entry of a recursive storage copy: a runtime check of whether the source is nested
+	/// within the target, a memory snapshot of the source before copying when it is, and
+	/// an unguarded copy otherwise. A source that instead contains the target misses the check,
+	/// is copied without a snapshot and runs out of gas.
+	/// @a _fromType and @a _toType must be storage array or struct types with a cyclic
+	/// definition.
+	/// @a _offset has the same meaning as in updateStorageValueFunction: if not given, it is expected as a runtime
+	/// parameter and checked at runtime to be zero. If given, must be zero as we are dealing with reference types here.
+	/// signature of the emitted function: (targetSlot, [offset,] sourceSlot) ->
+	std::string copyToStorageWithOverlapGuardFunction(
+		ReferenceType const& _fromType,
+		ReferenceType const& _toType,
+		std::optional<std::size_t> _offset
+	);
 
 	/// Returns the name of a function will write the given value to
 	/// the specified slot and offset. If offset is not given, it is expected as
@@ -573,9 +593,26 @@ public:
 	std::string erc7201();
 
 private:
-	/// @returns the name of a function that copies a struct from calldata or memory to storage
-	/// signature: (slot, value) ->
+	/// @returns the name of a function that returns whether the storage value of type
+	/// @a _sourceType at @a sourceSlot is nested within the storage value of type
+	/// @a _targetType at @a targetSlot.
+	/// @a _targetType must be a storage type that can contain a value of @a _sourceType.
+	/// signature: (targetSlot, sourceSlot) -> sourceInTarget
+	std::string targetContainsSourceFunction(Type const& _targetType, Type const& _sourceType);
+
+	/// @returns the name of a function that copies a struct to storage, without the runtime
+	/// overlap check. Copies that need the check go through `copyToStorageWithOverlapGuardFunction`.
+	/// When the source is in memory, this copies into storage without allocating memory.
+	/// signature: (targetSlot, source) ->
 	std::string copyStructToStorageFunction(StructType const& _from, StructType const& _to);
+
+	/// @returns the definition of a function named @a _functionName copying an array to storage
+	/// element by element, without the runtime overlap check.
+	std::string copyArrayToStorageDefinition(std::string const& _functionName, ArrayType const& _fromType, ArrayType const& _toType);
+
+	/// @returns the definition of a function named @a _functionName copying a struct to storage
+	/// member by member, without the runtime overlap check.
+	std::string copyStructToStorageDefinition(std::string const& _functionName, StructType const& _from, StructType const& _to);
 
 	/// Special case of conversion functions - handles all array conversions.
 	std::string arrayConversionFunction(ArrayType const& _from, ArrayType const& _to);
@@ -603,6 +640,9 @@ private:
 		VariableDeclaration::Location _location
 	);
 	/// @returns a function that reads a reference type from storage to memory (performing a deep copy).
+	/// signature: (slot) -> memPtr
+	/// Allocates the result and its nested reference-type members through the memory allocation
+	/// helpers (above the free memory pointer) and returns a pointer to it.
 	std::string readFromStorageReferenceType(Type const& _type);
 
 	/// @returns the name of a function that will clear given storage slot

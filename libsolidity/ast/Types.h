@@ -299,6 +299,18 @@ public:
 		solAssert(nameable(), "Called for a non nameable type.");
 		return false;
 	}
+	/// Returns true if the type's own definition is cyclic, i.e. it is part of a cycle in the
+	/// type-dependency graph, so that one value of the type can be stored inside another.
+	/// Equivalently, the type can contain a value of itself (see canContainValueOf).
+	/// The default is false; types that can be cyclic override it.
+	/// Stricter than StructType::recursive(), which is also true for a struct that merely
+	/// contains a type with a cyclic definition.
+	virtual bool hasCyclicDefinition() const { return false; }
+	/// @returns whether a value of the given type can be stored, directly or nested inside
+	/// other values, within a value of this type. The query is strict: a type cannot contain
+	/// itself unless its definition is cyclic. Only composite types can contain other
+	/// values, so the default is false. See `CompositeType::canContainValueOf`.
+	virtual bool canContainValueOf(Type const&) const { return false; }
 	/// Returns true if the type can be stored as a value (as opposed to a reference) on the stack,
 	/// i.e. it behaves differently in lvalue context and in value context.
 	virtual bool isValueType() const { return false; }
@@ -754,6 +766,12 @@ public:
 	/// Each type is included only once.
 	std::vector<Type const*> fullDecomposition() const;
 
+	/// The query is strict: a type cannot contain itself unless its definition is cyclic.
+	/// Both types must be in the same data location.
+	bool canContainValueOf(Type const& _other) const override;
+
+	bool hasCyclicDefinition() const override { return canContainValueOf(*this); }
+
 protected:
 	/// @returns a list of types that together make up the data part of this type.
 	/// Contains all types that will have to be implicitly stored, whenever an object of this type is stored.
@@ -813,6 +831,10 @@ public:
 	}
 
 	Type const* withLocation(DataLocation _location, bool _isPointer) const;
+
+	/// Runtime overlap guard is required if both source and target have the same (normal or transient) storage location
+	/// and the source type has cyclic definition.
+	bool copyRequiresRuntimeOverlapGuard(ReferenceType const& _sourceType) const;
 
 protected:
 	Type const* copyForLocationIfReference(Type const* _type) const;

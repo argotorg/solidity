@@ -46,6 +46,7 @@
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/split.hpp>
 
+#include <range/v3/algorithm/any_of.hpp>
 #include <range/v3/view/enumerate.hpp>
 #include <range/v3/view/reverse.hpp>
 #include <range/v3/view/tail.hpp>
@@ -1511,9 +1512,43 @@ std::vector<Type const*> CompositeType::fullDecomposition() const
 	return res;
 }
 
+bool CompositeType::canContainValueOf(Type const& _other) const
+{
+	auto const* thisReference = dynamic_cast<ReferenceType const*>(this);
+	auto const* otherReference = dynamic_cast<ReferenceType const*>(&_other);
+	if (thisReference && otherReference)
+		solAssert(thisReference->location() == otherReference->location(), "Both types must be in the same data location.");
+
+	Type const& otherInStorage = *TypeProvider::withLocationIfReference(DataLocation::Storage, &_other);
+	auto isSameTypeAsOther = [&](Type const* _type) {
+		return *TypeProvider::withLocationIfReference(DataLocation::Storage, _type) == otherInStorage;
+	};
+	return ranges::any_of(decomposition(), [&](Type const* _component) {
+		if (auto const* compositeComponent = dynamic_cast<CompositeType const*>(_component))
+			return ranges::any_of(compositeComponent->fullDecomposition(), isSameTypeAsOther);
+		return isSameTypeAsOther(_component);
+	});
+}
+
 Type const* ReferenceType::withLocation(DataLocation _location, bool _isPointer) const
 {
 	return TypeProvider::withLocation(this, _location, _isPointer);
+}
+
+bool ReferenceType::copyRequiresRuntimeOverlapGuard(ReferenceType const& _sourceType) const
+{
+	if (location() != DataLocation::Storage && location() != DataLocation::Transient)
+		return false;
+	if (location() != _sourceType.location())
+		return false;
+	solAssert(category() == _sourceType.category(), "Check for overlap guard called for incompatible types");
+	if (!_sourceType.hasCyclicDefinition())
+		return false;
+	solAssert(category() == Type::Category::Array || category() == Type::Category::Struct);
+	// A struct that is recursive through a mapping also has a cyclic definition, but types
+	// containing mappings cannot be assigned in storage, so it never gets here.
+	solAssert(!containsNestedMapping());
+	return true;
 }
 
 TypeResult ReferenceType::unaryOperatorResult(Token _operator) const

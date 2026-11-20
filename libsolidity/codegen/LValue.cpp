@@ -305,6 +305,30 @@ void GenericStorageItem<IsTransient>::retrieveValue(langutil::SourceLocation con
 template<bool IsTransient>
 void GenericStorageItem<IsTransient>::storeValue(Type const& _sourceType, langutil::SourceLocation const& _location, bool _move) const
 {
+	ReferenceType const* lhsAsReferenceType = dynamic_cast<ReferenceType const*>(m_dataType);
+	ReferenceType const* rhsAsReferenceType = dynamic_cast<ReferenceType const*>(&_sourceType);
+
+	// Check for special handling of types with cyclic definition
+	if (lhsAsReferenceType && rhsAsReferenceType && lhsAsReferenceType->copyRequiresRuntimeOverlapGuard(*rhsAsReferenceType))
+	{
+		// stack layout: source_ref target_ref target_offset
+		m_context << Instruction::POP; // remove byte offset
+		m_context << Instruction::DUP2 << Instruction::DUP2;
+		// stack: source_ref target_ref source_ref target_ref
+		m_context.callYulFunction(m_context.utilFunctions().copyToStorageWithOverlapGuardFunction(*rhsAsReferenceType, *lhsAsReferenceType, 0), 2, 0);
+		// stack: source_ref target_ref
+		if (_move)
+			CompilerUtils(m_context).popStackSlots(2);
+		else
+			m_context << Instruction::SWAP1 << Instruction::POP;
+	}
+	else
+		storeValueWithoutOverlapGuard(_sourceType, _location, _move);
+}
+
+template<bool IsTransient>
+void GenericStorageItem<IsTransient>::storeValueWithoutOverlapGuard(Type const& _sourceType, langutil::SourceLocation const& _location, bool _move) const
+{
 	CompilerUtils utils(m_context);
 	solAssert(m_dataType, "");
 
@@ -414,15 +438,25 @@ void GenericStorageItem<IsTransient>::storeValue(Type const& _sourceType, langut
 				"Struct assignment with conversion."
 			);
 			solAssert(!structType.containsNestedMapping(), "");
-			if (sourceType.location() == DataLocation::CallData)
+			if (
+				// The member-by-member loop below cannot read calldata sources.
+				sourceType.location() == DataLocation::CallData
+			)
 			{
 				solAssert(sourceType.sizeOnStack() == 1, "");
 				solAssert(structType.sizeOnStack() == 1, "");
+				// stack: source_ref target_ref
 				m_context << Instruction::DUP2 << Instruction::DUP2;
+				// stack: source_ref target_ref source_ref target_ref
 				m_context.callYulFunction(m_context.utilFunctions().updateStorageValueFunction(sourceType, structType, VariableDeclaration::Location::Unspecified, 0), 2, 0);
+				// stack: source_ref target_ref
 			}
 			else
 			{
+				solUnimplementedAssert(
+					sourceType.location() != DataLocation::Transient,
+					"Copying structs from transient storage is not implemented."
+				);
 				for (auto const& member: structType.members(nullptr))
 				{
 					// assign each member that can live outside of storage
@@ -452,8 +486,8 @@ void GenericStorageItem<IsTransient>::storeValue(Type const& _sourceType, langut
 					std::pair<u256, unsigned> const& offsets = structType.storageOffsetsOfMember(member.name);
 					m_context << dupInstruction(1 + stackSize) << offsets.first << Instruction::ADD;
 					m_context << u256(offsets.second);
-					// stack: source_ref target_ref target_off source_value... target_member_ref target_member_byte_off
-					StorageItem(m_context, *memberType).storeValue(*sourceMemberType, _location, true);
+					// stack: source_ref target_ref source_value... target_member_ref target_member_byte_off
+					GenericStorageItem<IsTransient>(m_context, *memberType).storeValueWithoutOverlapGuard(*sourceMemberType, _location, true);
 				}
 			}
 			// stack layout: source_ref target_ref
