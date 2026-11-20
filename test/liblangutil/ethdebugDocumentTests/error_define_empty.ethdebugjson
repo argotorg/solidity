@@ -1,0 +1,3 @@
+{"pointers": {"p": {"expect": [], "for": {"define": {}, "in": {"location": "storage", "slot": 0}}}}}
+// ----
+// Error: resources.pointers.p.for.define must define at least one variable.

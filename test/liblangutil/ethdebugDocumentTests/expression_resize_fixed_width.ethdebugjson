@@ -1,0 +1,19 @@
+{"pointers":{"T":{"expect":[],"for":{"location":"memory","offset":{"~sized4294967296":"0x01"},"length":{"~sized18446744073709551615":"0x01"}}}}}
+// ----
+// {
+//     "pointers": {
+//         "T": {
+//             "expect": [],
+//             "for": {
+//                 "length": {
+//                     "~sized18446744073709551615": "0x01"
+//                 },
+//                 "location": "memory",
+//                 "offset": {
+//                     "~sized4294967296": "0x01"
+//                 }
+//             }
+//         }
+//     },
+//     "types": {}
+// }

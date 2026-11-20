@@ -27,6 +27,7 @@
 #include <boost/test/unit_test.hpp>
 
 #include <cstdint>
+#include <functional>
 #include <limits>
 #include <optional>
 #include <string>
@@ -388,6 +389,46 @@ BOOST_AUTO_TEST_CASE(json_range_checks)
 	BOOST_CHECK(getOrDefault<float>(underflow, "v", 0) == 0);
 	BOOST_CHECK_THROW(get<float>(overflow["v"]), InvalidType);
 	BOOST_CHECK_THROW(get<float>(underflow["v"]), InvalidType);
+}
+
+BOOST_AUTO_TEST_CASE(json_validation_helpers)
+{
+	Json const object = Json::parse(R"({"items":[],"name":"value","zero":0})");
+	BOOST_CHECK(&requireObject(object, "root") == &object);
+	BOOST_CHECK(&requireArray(object.at("items"), "root.items") == &object.at("items"));
+	BOOST_CHECK_NO_THROW(requireOnlyMembers(object, {"items", "name", "zero"}, "root"));
+	BOOST_CHECK(&requiredMember(object, "name", "root") == &object.at("name"));
+	BOOST_CHECK(optionalMember(object, "name", "root") == &object.at("name"));
+	BOOST_CHECK(optionalMember(object, "missing", "root") == nullptr);
+	BOOST_CHECK_EQUAL(requiredValue<std::string>(object, "name", "root"), "value");
+	BOOST_CHECK_EQUAL(optionalValue<unsigned>(object, "zero", "root").value(), 0);
+	BOOST_CHECK(!optionalValue<unsigned>(object, "missing", "root").has_value());
+}
+
+BOOST_AUTO_TEST_CASE(json_validation_errors)
+{
+	Json const object = Json::parse(R"({"name":null,"zero":0})");
+	Json const array = Json::array();
+	std::vector<std::pair<std::function<void()>, std::string>> const cases{
+		{[&] { requireObject(array, "root"); }, "root must be an object."},
+		{[&] { requireArray(object, "root"); }, "root must be an array."},
+		{[&] { requireOnlyMembers(object, {"zero"}, "root"); }, "root has an unknown member \"name\"."},
+		{[&] { requiredMember(object, "missing", "root"); }, "root.missing is required."},
+		{[&] { optionalMember(array, "missing", "root"); }, "root must be an object."},
+		{[&] { valueOfType<std::string>(object, "root"); }, "root must be a string."},
+		{[&] { valueOfType<bool>(object, "root"); }, "root must be a boolean."},
+		{[&] { valueOfType<double>(object, "root"); }, "root must be a number."},
+		{[&] { valueOfType<unsigned>(object, "root"); }, "root must be an unsigned integer."},
+		{[&] { valueOfType<int>(object, "root"); }, "root must be an integer."},
+		{[&] { requiredValue<std::string>(object, "zero", "root"); }, "root.zero must be a string."},
+		{[&] { optionalValue<std::string>(object, "zero", "root"); }, "root.zero must be a string."},
+		{[&] { optionalValue<std::string>(object, "name", "root"); }, "root.name must be a string."},
+	};
+	for (auto const& [validate, message]: cases)
+		BOOST_TEST_CONTEXT(message)
+			BOOST_CHECK_EXCEPTION(validate(), JsonValidationError, [&](JsonValidationError const& _error) {
+				return _error.comment() != nullptr && *_error.comment() == message;
+			});
 }
 
 BOOST_AUTO_TEST_SUITE_END()
