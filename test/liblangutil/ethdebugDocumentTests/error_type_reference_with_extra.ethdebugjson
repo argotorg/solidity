@@ -1,0 +1,7 @@
+{
+    "t": { "kind": "array", "contains": { "type": { "id": "x", "kind": "uint" } } }
+}
+// ====
+// document: types
+// ----
+// Error: types.t.contains.type has an unknown member "kind".
