@@ -30,6 +30,10 @@ This section lists changes that might cause existing contracts to not compile an
   A derived contract cannot define a modifier with the same name as a modifier of one of its base contracts,
   and it cannot inherit two different modifiers with the same name.
 
+* Internal function pointers can no longer be compared using ``==`` and ``!=``.
+  Such comparisons could yield unexpected results in the evmasm pipeline with the optimizer enabled
+  and have been reported with a warning since Solidity 0.8.24.
+
 Interface Changes
 =================
 
