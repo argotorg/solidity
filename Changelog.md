@@ -6,6 +6,7 @@ Breaking Changes:
 * SMTChecker: Remove BMC engine.
 * SMTChecker: Drop support for cvc5 as the backend SMT solver.
 * SMTChecker: Drop `pragma experimental SMTChecker;`. SMTChecker can be enabled by setting model checker engine to `chc`.
+* Type Checker: Disallow comparison of internal function pointers.
 * Type System: Disallow virtual modifiers.
 
 AST Changes:
