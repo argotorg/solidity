@@ -47,9 +47,13 @@ std::string AsmPrinter::format(
 	AST const& _ast,
 	std::optional<std::map<unsigned, std::shared_ptr<std::string const>>> const& _sourceIndexToName,
 	DebugInfoSelection const& _debugInfoSelection,
-	CharStreamProvider const* _soliditySourceProvider)
+	CharStreamProvider const* _soliditySourceProvider,
+	size_t _indentation
+)
 {
-	return AsmPrinter{_ast.dialect(), _sourceIndexToName, _debugInfoSelection, _soliditySourceProvider}(_ast.root());
+	AsmPrinter printer{_ast.dialect(), _sourceIndexToName, _debugInfoSelection, _soliditySourceProvider};
+	printer.m_indentation = _indentation;
+	return printer(_ast.root());
 }
 
 
@@ -145,7 +149,7 @@ std::string AsmPrinter::operator()(FunctionDefinition const& _functionDefinition
 		);
 	}
 
-	return out + "\n" + (*this)(_functionDefinition.body);
+	return out + newLine() + (*this)(_functionDefinition.body);
 }
 
 std::string AsmPrinter::operator()(FunctionCall const& _functionCall)
@@ -169,9 +173,9 @@ std::string AsmPrinter::operator()(If const& _if)
 	out += "if " + std::visit(*this, *_if.condition);
 
 	std::string body = (*this)(_if.body);
-	char delim = '\n';
+	std::string delim = newLine();
 	if (body.find('\n') == std::string::npos)
-		delim = ' ';
+		delim = " ";
 
 	return out + delim + body;
 }
@@ -186,9 +190,9 @@ std::string AsmPrinter::operator()(Switch const& _switch)
 	for (auto const& _case: _switch.cases)
 	{
 		if (!_case.value)
-			out += "\ndefault ";
+			out += newLine() + "default ";
 		else
-			out += "\ncase " + (*this)(*_case.value) + " ";
+			out += newLine() + "case " + (*this)(*_case.value) + " ";
 		out += (*this)(_case.body);
 	}
 	return out;
@@ -203,16 +207,16 @@ std::string AsmPrinter::operator()(ForLoop const& _forLoop)
 	std::string condition = std::visit(*this, *_forLoop.condition);
 	std::string post = (*this)(_forLoop.post);
 
-	char delim = '\n';
+	std::string delim = newLine();
 	if (
 		pre.size() + condition.size() + post.size() < 60 &&
 		pre.find('\n') == std::string::npos &&
 		post.find('\n') == std::string::npos
 	)
-		delim = ' ';
+		delim = " ";
 	return
 		locationComment +
-		("for " + std::move(pre) + delim + std::move(condition) + delim + std::move(post) + "\n") +
+		("for " + std::move(pre) + delim + std::move(condition) + delim + std::move(post) + newLine()) +
 		(*this)(_forLoop.body);
 }
 
@@ -238,17 +242,19 @@ std::string AsmPrinter::operator()(Block const& _block)
 
 	if (_block.statements.empty())
 		return locationComment + "{ }";
+
+	++m_indentation;
+	std::string const statementIndentation = newLine();
 	std::string body = boost::algorithm::join(
 		_block.statements | ranges::views::transform([&](auto&& _node) { return std::visit(*this, _node); }),
-		"\n"
+		statementIndentation
 	);
+	--m_indentation;
+
 	if (body.size() < 30 && body.find('\n') == std::string::npos)
 		return locationComment + "{ " + body + " }";
 	else
-	{
-		boost::replace_all(body, "\n", "\n    ");
-		return locationComment + "{\n    " + body + "\n}";
-	}
+		return locationComment + "{" + statementIndentation + body + newLine() + "}";
 }
 
 std::string AsmPrinter::formatNameWithDebugData(NameWithDebugData _variable)
@@ -310,10 +316,14 @@ std::string AsmPrinter::formatDebugData(langutil::DebugData::ConstPtr const& _de
 	if (!_debugData || m_debugInfoSelection.none())
 		return "";
 
-	std::vector<std::string> items;
+	std::string commentBody;
+	bool hasItems = false;
 	if (auto id = _debugData->astID)
 		if (m_debugInfoSelection.astID)
-			items.emplace_back("@ast-id " + std::to_string(*id));
+		{
+			commentBody = "@ast-id " + std::to_string(*id);
+			hasItems = true;
+		}
 
 	if (
 		m_lastLocation != _debugData->originLocation &&
@@ -322,20 +332,21 @@ std::string AsmPrinter::formatDebugData(langutil::DebugData::ConstPtr const& _de
 	{
 		m_lastLocation = _debugData->originLocation;
 
-		items.emplace_back(formatSourceLocation(
+		if (hasItems)
+			commentBody += ' ';
+		commentBody += formatSourceLocation(
 			_debugData->originLocation,
 			m_nameToSourceIndex,
 			m_debugInfoSelection,
 			m_soliditySourceProvider
-		));
+		);
 	}
 
-	std::string commentBody = joinHumanReadable(items, " ");
 	if (commentBody.empty())
 		return "";
 	else
 		return
 			_statement ?
-			"/// " + commentBody + "\n" :
+			"/// " + commentBody + newLine() :
 			"/** " + commentBody + " */ ";
 }
