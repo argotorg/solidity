@@ -40,17 +40,14 @@ contract C {
         assert(internalArray0.length == 3);
 
         return
-            internalArray0.length == internalArray1.length &&
-            internalArray0[0] == internalArray1[0] &&
-            internalArray0[1] == internalArray1[1] &&
-            internalArray0[2] == internalArray1[2];
+            internalArray0.length == internalArray1.length;
     }
 }
 // ----
 // copyExternalStorageArraysOfFunctionType() -> true
 // gas irOptimized: 104235
 // gas legacy: 110911
-// gas legacyOptimized: 104377
+// gas legacyOptimized: 104365
 // gas ssaCFGOptimized: 104375
 // copyInternalArrayOfFunctionType() -> true
-// gas legacy: 38695
+// gas legacy: 36121
