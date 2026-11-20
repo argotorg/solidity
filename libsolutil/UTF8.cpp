@@ -78,7 +78,6 @@ bool isWellFormed(unsigned char byte1, unsigned char byte2)
 
 bool validateUTF8(unsigned char const* _input, size_t _length, size_t& _invalidPosition)
 {
-	bool valid = true;
 	size_t i = 0;
 
 	for (; i < _length; i++)
@@ -88,48 +87,45 @@ bool validateUTF8(unsigned char const* _input, size_t _length, size_t& _invalidP
 			continue;
 
 		size_t count = 0;
-		if (_input[i] >= 0xc0 && _input[i] <= 0xdf)
+		if (_input[i] >= 0xc2 && _input[i] <= 0xdf)
 			count = 1;
 		else if (_input[i] >= 0xe0 && _input[i] <= 0xef)
 			count = 2;
-		else if (_input[i] >= 0xf0 && _input[i] <= 0xf7)
+		else if (_input[i] >= 0xf0 && _input[i] <= 0xf4)
 			count = 3;
 
 		if (count == 0)
 		{
-			valid = false;
-			break;
+			_invalidPosition = i;
+			return false;
 		}
 
-		if ((i + count) >= _length)
-		{
-			valid = false;
-			break;
-		}
-
+		size_t sequenceStart = i;
 		for (size_t j = 0; j < count; j++)
 		{
+			if (i + 1 >= _length)
+			{
+				_invalidPosition = sequenceStart;
+				return false;
+			}
+
 			i++;
 			if ((_input[i] & 0xc0) != 0x80)
 			{
-				valid = false;
-				break;
+				_invalidPosition = i;
+				return false;
 			}
 
 			// Check for Unicode Chapter 3 Table 3-7 conformity.
 			if ((j == 0) && !isWellFormed(_input[i - 1], _input[i]))
 			{
-				valid = false;
-				break;
+				_invalidPosition = i;
+				return false;
 			}
 		}
 	}
 
-	if (valid)
-		return true;
-
-	_invalidPosition = i;
-	return false;
+	return true;
 }
 
 }

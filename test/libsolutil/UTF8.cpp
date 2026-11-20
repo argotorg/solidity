@@ -79,13 +79,23 @@ BOOST_AUTO_TEST_CASE(invalid)
 	BOOST_CHECK(isInvalidUTF8("a0", 0)); // invalid per table 3.6
 	BOOST_CHECK(isInvalidUTF8("c0", 0)); // invalid per table 3.7
 	BOOST_CHECK(isInvalidUTF8("c1", 0)); // invalid per table 3.7
+	BOOST_CHECK(isInvalidUTF8("c080", 0)); // invalid leading byte
 	BOOST_CHECK(isInvalidUTF8("c2", 0)); // too short (position is reported as the first byte)
-	BOOST_CHECK(isInvalidUTF8("e08081", 2)); // e0 must be followed by >= a0
+	BOOST_CHECK(isInvalidUTF8("e08081", 1)); // e0 must be followed by >= a0
 	BOOST_CHECK(isInvalidUTF8("e180", 0)); // too short
 	BOOST_CHECK(isInvalidUTF8("ec80", 0)); // too short
-	BOOST_CHECK(isInvalidUTF8("f08f8001", 2)); // f0 must be followed by >= 90
+	BOOST_CHECK(isInvalidUTF8("f08f8001", 1)); // f0 must be followed by >= 90
 	BOOST_CHECK(isInvalidUTF8("f18080", 0)); // too short
-	BOOST_CHECK(isInvalidUTF8("f4908081", 2)); // f4 must be followed by < 90
+	BOOST_CHECK(isInvalidUTF8("f4908081", 1)); // f4 must be followed by < 90
+	BOOST_CHECK(isInvalidUTF8("e080", 1)); // invalid second byte precedes truncation
+	BOOST_CHECK(isInvalidUTF8("e141", 1)); // invalid continuation precedes truncation
+	BOOST_CHECK(isInvalidUTF8("f5808080", 0)); // invalid leading byte
+	BOOST_CHECK(isInvalidUTF8("e08041", 1));
+	BOOST_CHECK(isInvalidUTF8("c24142", 1));
+	BOOST_CHECK(isInvalidUTF8("e0804142", 1));
+	BOOST_CHECK(isInvalidUTF8("e18041", 2)); // invalid second continuation byte
+	BOOST_CHECK(isInvalidUTF8("f1808041", 3)); // invalid third continuation byte
+	BOOST_CHECK(isInvalidUTF8("61c24142", 2)); // valid prefix before the first invalid byte
 	// anything above 0xf7 is disallowed
 	BOOST_CHECK(isInvalidUTF8("f8", 0)); // invalid per table 3.7
 	BOOST_CHECK(isInvalidUTF8("f9", 0)); // invalid per table 3.7
