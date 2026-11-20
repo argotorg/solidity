@@ -3611,7 +3611,7 @@ std::string YulUtilFunctions::conversionFunction(Type const& _from, Type const& 
 		solAssert(
 			fromType.isImplicitlyConvertibleTo(targetType) &&
 			fromType.sizeOnStack() == targetType.sizeOnStack() &&
-			(fromType.kind() == FunctionType::Kind::Internal || fromType.kind() == FunctionType::Kind::External) &&
+			(fromType.kind() == FunctionType::Kind::Internal || fromType.kind() == FunctionType::Kind::External || fromType.kind() == FunctionType::Kind::DelegateCall) &&
 			fromType.kind() == targetType.kind(),
 			"Invalid function type conversion requested."
 		);
@@ -3628,7 +3628,7 @@ std::string YulUtilFunctions::conversionFunction(Type const& _from, Type const& 
 				}
 			)")
 			("functionName", functionName)
-			("external", fromType.kind() == FunctionType::Kind::External)
+			("external", fromType.kind() == FunctionType::Kind::External || fromType.kind() == FunctionType::Kind::DelegateCall)
 			.render();
 		});
 	}
