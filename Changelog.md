@@ -5,6 +5,7 @@ Language Features:
 Compiler Features:
 
 Bugfixes:
+* Syntax Checker: Report the first invalid UTF-8 byte position in malformed string literals instead of a later position.
 
 
 ### 0.8.39 (2026-11-19)
