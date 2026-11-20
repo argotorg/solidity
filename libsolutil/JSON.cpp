@@ -182,4 +182,38 @@ std::optional<Json> jsonValueByPath(Json const& _node, std::string_view _jsonPat
 	return jsonValueByPath(_node[memberName], _jsonPath.substr(memberName.size() + 1));
 }
 
-} // namespace solidity::util
+Json const& requireObject(Json const& _json, std::string_view _path)
+{
+	solRequire(_json.is_object(), JsonValidationError, std::string(_path) + " must be an object.");
+	return _json;
+}
+
+Json const& requireArray(Json const& _json, std::string_view _path)
+{
+	solRequire(_json.is_array(), JsonValidationError, std::string(_path) + " must be an array.");
+	return _json;
+}
+
+void requireOnlyMembers(Json const& _json, std::set<std::string_view> const& _allowed, std::string_view _path)
+{
+	requireObject(_json, _path);
+	for (auto const& [name, value]: _json.items())
+		solRequire(_allowed.contains(name), JsonValidationError, std::string(_path) + " has an unknown member \"" + name + "\".");
+}
+
+Json const& requiredMember(Json const& _json, std::string_view _name, std::string_view _path)
+{
+	requireObject(_json, _path);
+	solRequire(_json.contains(_name), JsonValidationError, std::string(_path) + "." + std::string(_name) + " is required.");
+	return _json.at(_name);
+}
+
+Json const* optionalMember(Json const& _json, std::string_view _name, std::string_view _path)
+{
+	requireObject(_json, _path);
+	if (!_json.contains(_name))
+		return nullptr;
+	return &_json.at(_name);
+}
+
+}
