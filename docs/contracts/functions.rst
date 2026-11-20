@@ -162,8 +162,7 @@ View Functions
 Functions can be declared ``view`` in which case they promise not to modify the state.
 
 .. note::
-  If the compiler's EVM target is Byzantium or newer (default) the opcode
-  ``STATICCALL`` is used when ``view`` functions are called, which enforces the state
+  The opcode ``STATICCALL`` is used when ``view`` functions are called, which enforces the state
   to stay unmodified as part of the EVM execution. For library ``view`` functions
   ``DELEGATECALL`` is used, because there is no combined ``DELEGATECALL`` and ``STATICCALL``.
   This means library ``view`` functions do not have run-time checks that prevent state
@@ -219,7 +218,7 @@ only its inputs and ``msg.data``, but without any knowledge of the current block
 This means that reading from ``immutable`` variables can be a non-pure operation.
 
 .. note::
-  If the compiler's EVM target is Byzantium or newer (default) the opcode ``STATICCALL`` is used,
+  The opcode ``STATICCALL`` is used when ``pure`` functions are called,
   which does not guarantee that the state is not read, but at least that it is not modified.
 
 In addition to the list of state modifying statements explained above, the following are considered reading from the state:

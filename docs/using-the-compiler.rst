@@ -509,7 +509,7 @@ Input Description
           // and not using Spacer as the Horn solver (using Eldarica, for example).
           // See the Formal Verification section for a more detailed explanation of this option.
           "divModNoSlacks": false,
-          // Choose which model checker engine to use: all (default), bmc, chc, none.
+          // Choose which model checker engine to use: all, chc, none (default).
           "engine": "chc",
           // Choose whether external calls should be considered trusted in case the
           // code of the called function is available at compile-time.
@@ -526,8 +526,8 @@ Input Description
           // Choose which solvers should be used, if available.
           // See the Formal Verification section for the solvers description.
           "solvers": ["eld", "smtlib2", "z3"],
-          // Choose which targets should be checked: constantCondition,
-          // underflow, overflow, divByZero, balance, assert, popEmptyArray, outOfBounds.
+          // Choose which targets should be checked: underflow, overflow,
+          // divByZero, balance, assert, popEmptyArray, outOfBounds.
           // If the option is not given all targets are checked by default,
           // except underflow/overflow for Solidity >=0.8.7.
           // See the Formal Verification section for the targets description.

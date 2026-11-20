@@ -20,8 +20,8 @@ We currently use a 0.y.z version number `to indicate this fast pace of change <h
 
 .. warning::
 
-  The Solidity 0.8.x release introduced a lot of breaking changes.
-  Make sure you read :doc:`the full list <080-breaking-changes>`.
+  The Solidity 0.9.x release introduced a few breaking changes.
+  Make sure you read :doc:`the full list <090-breaking-changes>`.
 
 Ideas for improving Solidity or this documentation are always welcome,
 read our :doc:`contributors guide <contributing>` for more details.

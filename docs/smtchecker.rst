@@ -475,7 +475,7 @@ but it can be useful especially when dealing with large contracts.
 Proved Targets
 ==============
 
-If there are any proved targets, the SMTChecker issues one warning per engine stating
+If there are any proved targets, the SMTChecker issues a single warning stating
 how many targets were proved. If the user wishes to see all the specific
 proved targets, the CLI option ``--model-checker-show-proved-safe`` and
 the JSON option ``settings.modelChecker.showProvedSafe = true`` can be used.

@@ -71,7 +71,7 @@ Block and Transaction Properties
 - ``block.blobbasefee`` (``uint``): current block's blob base fee (`EIP-7516 <https://eips.ethereum.org/EIPS/eip-7516>`_ and `EIP-4844 <https://eips.ethereum.org/EIPS/eip-4844>`_)
 - ``block.chainid`` (``uint``): current chain id
 - ``block.coinbase`` (``address payable``): current block miner's address
-- ``block.difficulty`` (``uint``): current block difficulty (``EVM < Paris``). For other EVM versions it behaves as a deprecated alias for ``block.prevrandao`` that will be removed in the next breaking release
+- ``block.difficulty`` (``uint``): current block difficulty (``EVM < Paris``). For other EVM versions it behaves as a deprecated alias for ``block.prevrandao`` that will be removed in one of the upcoming breaking releases
 - ``block.gaslimit`` (``uint``): current block gaslimit
 - ``block.number`` (``uint``): current block number
 - ``block.prevrandao`` (``uint``): random number provided by the beacon chain (``EVM >= Paris``) (see `EIP-4399 <https://eips.ethereum.org/EIPS/eip-4399>`_ )
