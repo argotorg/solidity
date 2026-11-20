@@ -852,11 +852,8 @@ functions.
     Marking the parameters as ``calldata`` only affects the implementation of the external function and is
     meaningless in a function pointer on the caller's side.
 
-.. warning::
-    Comparison of internal function pointers can have unexpected results in the legacy pipeline with the optimizer enabled,
-    as it can collapse identical functions into one, which will then lead to said function pointers comparing as equal instead of not.
-    Such comparisons are not advised, and will lead to the compiler issuing a warning, until the next breaking release (0.9.0),
-    when the warning will be upgraded to an error, thereby making such comparisons disallowed.
+.. note::
+    Since Solidity 0.9.0, internal function pointers can no longer be compared.
 
 Libraries are excluded because they require a ``delegatecall`` and use :ref:`a different ABI
 convention for their selectors <library-selectors>`.
