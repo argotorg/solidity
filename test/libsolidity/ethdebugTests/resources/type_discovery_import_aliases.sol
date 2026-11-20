@@ -18,7 +18,7 @@ enum Color { Red, Green }
 struct Point { uint8 x; uint8 y; }
 contract Target {}
 // ----
-// .resources.compilation.sources[1].path: definitions.sol
+// .compilation.sources[1].path: definitions.sol
 // .resources.types | keys: ["t_contract$_Target_$45","t_enum$_Color_$39","t_struct$_Point_$44_storage","t_uint128","t_uint8","t_userDefinedValueType$_Amount_$36"]
 // .resources.types.t_contract$_Target_$45.definition.name: Target
 // .resources.types.t_contract$_Target_$45.definition.location.source.id: 1

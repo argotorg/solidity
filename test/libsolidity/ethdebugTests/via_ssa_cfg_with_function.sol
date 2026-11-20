@@ -5,7 +5,7 @@ contract C {
 // compileViaSSACFG: true
 // ----
 // .compilation.compiler.name: solc
-// .resources.compilation.sources | length: 1
+// .compilation.sources | length: 1
 // C.contract.name: C
 // C.creation.environment: create
 // C.runtime.environment: call

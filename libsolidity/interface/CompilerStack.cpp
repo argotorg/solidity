@@ -1174,8 +1174,6 @@ Json CompilerStack::ethdebug() const
 			resources.merge(ethdebug::resources(*compiledContract.contract, sourceIndexMap));
 
 	return evmasm::ethdebug::resources(
-		ethdebugSources(),
-		VersionString,
 		std::move(resources.types),
 		std::move(resources.pointers)
 	);
@@ -1223,8 +1221,15 @@ Json CompilerStack::ethdebug(Contract const& _contract, bool _runtime) const
 	if (!assembly)
 		return {};
 
-	solAssert(sourceIndices().contains(_contract.contract->sourceUnitName()));
-	return evmasm::ethdebug::program(_contract.contract->name(), sourceIndices()[_contract.contract->sourceUnitName()], *assembly, object);
+	std::map<std::string, unsigned> const sourceIndexMap = sourceIndices();
+	solAssert(sourceIndexMap.contains(_contract.contract->sourceUnitName()));
+	return evmasm::ethdebug::program(
+		_contract.contract->name(),
+		sourceIndexMap.at(_contract.contract->sourceUnitName()),
+		*assembly,
+		object,
+		sourceIndexMap
+	);
 }
 
 bytes CompilerStack::cborMetadata(std::string const& _contractName, bool _forIR) const

@@ -27,39 +27,6 @@
     },
     "ethdebug": {
         "resources": {
-            "compilation": {
-                "compiler": {
-                    "name": "solc",
-                    "version": "<VERSION REMOVED>"
-                },
-                "id": "solc-598eebe605bc597ddb6fccd6a05fff13cb70c3dca35a634a51bb02f8c3291ad8",
-                "sources": [
-                    {
-                        "contents": "// SPDX-License-Identifier: GPL-2.0
-pragma solidity >=0.0;
-
-abstract contract C {
-    function f() public virtual returns (bytes32);
-}
-",
-                        "id": 0,
-                        "language": "Solidity",
-                        "path": "a.sol"
-                    },
-                    {
-                        "contents": "// SPDX-License-Identifier: GPL-2.0
-pragma solidity >=0.0;
-
-interface C {
-    function f() external;
-}
-",
-                        "id": 1,
-                        "language": "Solidity",
-                        "path": "b.sol"
-                    }
-                ]
-            },
             "ethdebug": {
                 "schema": "ethdebug/format/info/resources",
                 "version": "0.1.0-draft.2"

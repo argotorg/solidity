@@ -1,0 +1,19 @@
+{
+    "language": "Yul",
+    "sources": {
+        "input.yul": {
+            "urls": ["in.yul"]
+        }
+    },
+    "settings": {
+        "experimental": true,
+        "debug": {
+            "debugInfo": ["ast-id", "ethdebug"]
+        },
+        "outputSelection": {
+            "*": {
+                "*": ["evm.bytecode.ethdebug", "evm.deployedBytecode.ethdebug"]
+            }
+        }
+    }
+}

@@ -637,7 +637,6 @@ namespace info
 struct Resources
 {
 	std::optional<data::Stamp> ethdebug;
-	materials::Compilation compilation;
 	std::map<std::string, Type> types;
 	std::map<std::string, Pointer::Template> pointers;
 };

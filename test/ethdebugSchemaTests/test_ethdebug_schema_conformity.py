@@ -464,20 +464,20 @@ class EthdebugSchemaConformityTest(EthdebugTestCase):
     def test_deployed_program_sanity(self):
         self.check_program_sanity("evm.deployedBytecode.ethdebug", "call")
 
-    def test_resources_match_standard_json_sources(self):
+    def test_compilation_matches_standard_json_sources(self):
         standard_json_sources = {
             source_name: source["id"] for (source_name, source) in self.solc_output["sources"].items()
         }
         ethdebug_sources = {
             source["path"]: source["id"]
-            for source in self.solc_output["ethdebug"]["resources"]["compilation"]["sources"]
+            for source in self.solc_output["ethdebug"]["compilation"]["sources"]
         }
         self.assertEqual(ethdebug_sources, standard_json_sources)
 
-    def test_resources_include_standard_json_source_contents(self):
+    def test_compilation_includes_standard_json_source_contents(self):
         ethdebug_sources = {
             source["path"]: source
-            for source in self.solc_output["ethdebug"]["resources"]["compilation"]["sources"]
+            for source in self.solc_output["ethdebug"]["compilation"]["sources"]
         }
 
         self.assertEqual(set(ethdebug_sources), set(self.standard_json_input["sources"]))
@@ -485,8 +485,8 @@ class EthdebugSchemaConformityTest(EthdebugTestCase):
             self.assertEqual(ethdebug_sources[source_name]["contents"], source_input["content"])
             self.assertEqual(ethdebug_sources[source_name]["language"], "Solidity")
 
-    def test_resources_and_compilation_share_compilation(self):
-        self.assertEqual(self.solc_output["ethdebug"]["resources"]["compilation"], self.solc_output["ethdebug"]["compilation"])
+    def test_resources_exclude_compilation(self):
+        self.assertNotIn("compilation", self.resources)
 
     def test_type_documents_match_their_identifiers(self):
         types = self.resources["types"]
@@ -496,7 +496,7 @@ class EthdebugSchemaConformityTest(EthdebugTestCase):
                 self.assertTypeDocumentMatchesID(type_id, document, types)
 
     def test_definition_locations_refer_to_the_compilation_sources(self):
-        source_ids = {source["id"] for source in self.resources["compilation"]["sources"]}
+        source_ids = {source["id"] for source in self.solc_output["ethdebug"]["compilation"]["sources"]}
         for (type_id, document) in self.resources["types"].items():
             location = document.get("definition", {}).get("location")
             if location is not None:

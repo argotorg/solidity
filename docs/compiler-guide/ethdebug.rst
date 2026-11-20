@@ -17,7 +17,7 @@ Resource Collection
 ===================
 
 ``CompilerStack::ethdebug()`` calls ``frontend::ethdebug::resources()`` in ``libsolidity/interface/Ethdebug.cpp`` for each analyzed contract and merges the returned tables.
-The merged tables are passed to ``evmasm::ethdebug::resources()``, which adds the compilation record and schema stamp.
+The merged tables are passed to ``evmasm::ethdebug::resources()``, which adds the schema stamp.
 ``liblangutil/EthdebugSchema.h`` models the public schemas.
 The ``to_json()`` overloads in ``EthdebugSchema.cpp`` serialize those structures.
 

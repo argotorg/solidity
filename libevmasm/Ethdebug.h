@@ -42,18 +42,23 @@ struct Source
 /// the stamps of the programs and of the resources name.
 constexpr std::string_view SpecificationVersion = "0.1.0-draft.2";
 
-// returns ethdebug/format/program, stamped with its schema and the specification version.
-Json program(std::string_view _name, unsigned _sourceID, Assembly const& _assembly, LinkerObject const& _linkerObject);
+/// Returns ethdebug/format/program, stamped with its schema and the specification version.
+/// @param _sourceIndices Maps instruction source names to their source IDs.
+Json program(
+	std::string_view _name,
+	unsigned _contractSourceID,
+	Assembly const& _assembly,
+	LinkerObject const& _linkerObject,
+	std::map<std::string, unsigned> const& _sourceIndices
+);
 
 // returns ethdebug/format/info/resources, stamped with its schema and the specification version.
 Json resources(
-	std::vector<Source> const& _sources,
-	std::string_view _version,
 	std::map<std::string, langutil::ethdebug::schema::Type> _types = {},
 	std::map<std::string, langutil::ethdebug::schema::Pointer::Template> _pointers = {}
 );
 
-// returns the 'compilation' object from ethdebug/format/info/resources
-Json compilation(std::vector<Source> const& _sources, std::string_view _version);
+// returns ethdebug/format/materials/compilation
+Json compilation(std::vector<Source> const& _sources, std::string_view _compilerVersion);
 
 } // namespace solidity::evmasm::ethdebug

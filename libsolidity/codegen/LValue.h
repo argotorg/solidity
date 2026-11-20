@@ -174,6 +174,15 @@ public:
 		bool _removeReference = true
 	) const override;
 private:
+	/// Stores a value into this storage reference without the runtime overlap guard.
+	/// Callers must have run the guard or know it is not needed.
+	/// Stack pre: value storage_key storage_offset
+	/// Stack post:
+	///     if @a _move:                    <empty>
+	///     otherwise, for value types:     value
+	///     otherwise, for reference types: storage_key
+	/// @a storage_offset is the target's byte offset in the slot and is zero for reference types.
+	void storeValueWithoutOverlapGuard(Type const& _sourceType, langutil::SourceLocation const& _location, bool _move) const;
 	static constexpr evmasm::Instruction s_storeInstruction = IsTransient ? evmasm::Instruction::TSTORE : evmasm::Instruction::SSTORE;
 	static constexpr evmasm::Instruction s_loadInstruction = IsTransient ? evmasm::Instruction::TLOAD : evmasm::Instruction::SLOAD;
 };

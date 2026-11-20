@@ -34,6 +34,7 @@
 #include <algorithm>
 #include <cstdint>
 #include <limits>
+#include <map>
 #include <memory>
 #include <string>
 #include <tuple>
@@ -434,7 +435,7 @@ BOOST_AUTO_TEST_CASE(ethdebug_program_last_instruction_with_immediate_arguments)
 		assembly.append(AssemblyItem{0x11223344});
 		LinkerObject output = assembly.assemble();
 
-		Json const program = evmasm::ethdebug::program("", 0, assembly, output);
+		Json const program = evmasm::ethdebug::program("", 0, assembly, output, {});
 		BOOST_REQUIRE(program["instructions"].size() == 1);
 		BOOST_REQUIRE(program["instructions"][0]["operation"]["mnemonic"] == "PUSH4");
 		BOOST_REQUIRE(program["instructions"][0]["operation"]["arguments"][0] == "0x11223344");
@@ -445,7 +446,7 @@ BOOST_AUTO_TEST_CASE(ethdebug_program_last_instruction_with_immediate_arguments)
 		assembly.append(AssemblyItem{0x1122334455});
 		LinkerObject output = assembly.assemble();
 
-		Json const program = evmasm::ethdebug::program("", 0, assembly, output);
+		Json const program = evmasm::ethdebug::program("", 0, assembly, output, {});
 		BOOST_REQUIRE(program["instructions"].size() == 2);
 		BOOST_REQUIRE(program["instructions"][0]["operation"]["mnemonic"] == "PUSH0");
 		BOOST_REQUIRE(!program["instructions"][0]["operation"].contains("arguments"));
@@ -457,7 +458,12 @@ BOOST_AUTO_TEST_CASE(ethdebug_program_last_instruction_with_immediate_arguments)
 BOOST_AUTO_TEST_CASE(ethdebug_source_references)
 {
 	EVMVersion evmVersion = CommonOptions::get().evmVersion();
-	Json const sourceReference = {{"id", 7}, {"type", "source"}};
+	Json const contractSourceReference = {{"id", 7}, {"type", "source"}};
+	Json const instructionSourceReference = {{"id", 9}, {"type", "source"}};
+	std::map<std::string, unsigned> const sourceIndices{
+		{"contract.sol", 7},
+		{"source.sol", 9},
+	};
 	for (bool isCreation: {true, false})
 	{
 		Assembly assembly{evmVersion, isCreation, {}};
@@ -465,55 +471,11 @@ BOOST_AUTO_TEST_CASE(ethdebug_source_references)
 		assembly.append(AssemblyItem{Instruction::STOP});
 		LinkerObject const output = assembly.assemble();
 
-		Json const program = evmasm::ethdebug::program("C", 7, assembly, output);
-		BOOST_CHECK(program["contract"]["definition"]["source"] == sourceReference);
+		Json const program = evmasm::ethdebug::program("C", 7, assembly, output, sourceIndices);
+		BOOST_CHECK(program["contract"]["definition"]["source"] == contractSourceReference);
 		BOOST_REQUIRE_EQUAL(program["instructions"].size(), 1);
-		BOOST_CHECK(program["instructions"][0]["context"]["code"]["source"] == sourceReference);
+		BOOST_CHECK(program["instructions"][0]["context"]["code"]["source"] == instructionSourceReference);
 	}
-}
-
-BOOST_AUTO_TEST_CASE(ethdebug_resources)
-{
-	Json const resources = evmasm::ethdebug::resources(
-		{
-			{.id = 0, .path = "sourceA", .contents = "contentsA", .language = "Solidity"},
-			{.id = 1, .path = "sourceB", .contents = "contentsB", .language = "Yul"},
-		},
-		"version1"
-	);
-	std::string const compilationID = resources["compilation"]["id"].get<std::string>();
-	BOOST_REQUIRE(compilationID.substr(0, 5) == "solc-");
-	std::string const repeatedCompilationID = evmasm::ethdebug::resources(
-		{
-			{.id = 0, .path = "sourceA", .contents = "contentsA", .language = "Solidity"},
-			{.id = 1, .path = "sourceB", .contents = "contentsB", .language = "Yul"},
-		},
-		"version1"
-	)["compilation"]["id"].get<std::string>();
-	BOOST_REQUIRE(compilationID == repeatedCompilationID);
-	std::string const changedCompilationID = evmasm::ethdebug::resources(
-		{
-			{.id = 0, .path = "sourceA", .contents = "changedContentsA", .language = "Solidity"},
-			{.id = 1, .path = "sourceB", .contents = "contentsB", .language = "Yul"},
-		},
-		"version1"
-	)["compilation"]["id"].get<std::string>();
-	BOOST_REQUIRE(compilationID != changedCompilationID);
-	BOOST_REQUIRE(resources["types"].is_object());
-	BOOST_REQUIRE(resources["types"].empty());
-	BOOST_REQUIRE(resources["pointers"].is_object());
-	BOOST_REQUIRE(resources["pointers"].empty());
-	BOOST_REQUIRE(resources["compilation"]["compiler"]["name"] == "solc");
-	BOOST_REQUIRE(resources["compilation"]["compiler"]["version"] == "version1");
-	BOOST_REQUIRE(resources["compilation"]["sources"].size() == 2);
-	BOOST_REQUIRE(resources["compilation"]["sources"][0]["id"] == 0);
-	BOOST_REQUIRE(resources["compilation"]["sources"][0]["path"] == "sourceA");
-	BOOST_REQUIRE(resources["compilation"]["sources"][0]["contents"] == "contentsA");
-	BOOST_REQUIRE(resources["compilation"]["sources"][0]["language"] == "Solidity");
-	BOOST_REQUIRE(resources["compilation"]["sources"][1]["id"] == 1);
-	BOOST_REQUIRE(resources["compilation"]["sources"][1]["path"] == "sourceB");
-	BOOST_REQUIRE(resources["compilation"]["sources"][1]["contents"] == "contentsB");
-	BOOST_REQUIRE(resources["compilation"]["sources"][1]["language"] == "Yul");
 }
 
 BOOST_AUTO_TEST_CASE(ethdebug_type_specifier_unique_ownership)

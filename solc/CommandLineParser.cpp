@@ -760,11 +760,11 @@ General Information)").c_str(),
 		(CompilerOutputs::componentName(&CompilerOutputs::transientStorageLayout).c_str(), "Slots, offsets and types of the contract's state variables located in transient storage.")
 	(
 		CompilerOutputs::componentName(&CompilerOutputs::ethdebugResources).c_str(),
-		"(experimental) Global ethdebug output (ethdebug/format/info/resources schema) containing source list and compiler info."
+		"(experimental) Global ethdebug type and pointer tables (ethdebug/format/info/resources schema)."
 	)
 	(
 		CompilerOutputs::componentName(&CompilerOutputs::ethdebugCompilation).c_str(),
-		"(experimental) Global ethdebug compilation output (the 'compilation' key from ethdebug/format/info/resources schema)."
+		"(experimental) Compiler information and source list (ethdebug/format/materials/compilation schema)."
 	)
 	(
 		CompilerOutputs::componentName(&CompilerOutputs::ethdebugProgram).c_str(),

@@ -107,6 +107,7 @@ void CodeTransform::run
 			addressing
 		);
 		transform(cfg.entry);
+		transform.assertLoadsAreStoredOnEveryPath();
 	}
 }
 
@@ -205,7 +206,7 @@ CodeTransform::CodeTransform(
 	// Spilled function args need an `mstore` at function entry so later `mload`s see a populated slot
 	if (m_spillEmitter && isFunctionGraph)
 		for (InstId const argId: m_cfg.arguments)
-			spillStore(argId);
+			spillStore(argId, m_cfg.entry);
 }
 
 void CodeTransform::operator()(SSACFG::BlockId const _blockId)
@@ -230,9 +231,9 @@ void CodeTransform::operator()(SSACFG::BlockId const _blockId)
 		SSACFG::Inst const& inst = m_cfg.inst(instId);
 		if (inst.isPhi())
 			// this is a no-op for not spilled phis
-			spillStore(instId);
+			spillStore(instId, _blockId);
 		if (inst.isOperation())
-			(*this)(instId, trace);
+			(*this)(instId, trace, _blockId);
 		else
 			yulAssert(trace.empty());
 	}
@@ -240,13 +241,13 @@ void CodeTransform::operator()(SSACFG::BlockId const _blockId)
 	// Play back the recorded shuffle to the block's exit state before dispatching the exit.
 	// This ensures the condition is on top for ConditionalJump, phi pre-images are
 	// in the right positions for jumps, and return values are accessible for FunctionReturn.
-	playback(blockLayout->exitShuffle);
+	playback(blockLayout->exitShuffle, _blockId);
 
 	// handle the block exit
 	std::visit(solidity::util::GenericVisitor{ [this, &_blockId](auto const& exit) { (*this)(_blockId, exit); } }, block.exit);
 }
 
-void CodeTransform::operator()(InstId _instId, ShuffleTrace const& _operationShuffle)
+void CodeTransform::operator()(InstId _instId, ShuffleTrace const& _operationShuffle, SSACFG::BlockId const _blockId)
 {
 	SSACFG::Inst const& _inst = m_cfg.inst(_instId);
 	yulAssert(_inst.isOperation());
@@ -264,18 +265,10 @@ void CodeTransform::operator()(InstId _instId, ShuffleTrace const& _operationShu
 	yulAssert(static_cast<int>(m_stack.size()) == m_assembly.stackHeight());
 
 	// prepare stack for operation by playing back the recorded shuffle
-	playback(_operationShuffle);
+	playback(_operationShuffle, _blockId);
 
 	// check that the assembly stack height corresponds to the stack size after shuffling
 	yulAssert(static_cast<int>(m_stack.size()) == m_assembly.stackHeight());
-
-	// Assert that we have the inputs of the operation on stack top.
-	yulAssert(m_stack.size() >= _inst.inputs.size());
-	for (auto const& [stackEntry, input]: ranges::views::zip(
-		m_stack | ranges::views::take_last(_inst.inputs.size()),
-		_inst.inputs | ranges::views::reverse
-	))
-		yulAssert(stackEntry.isValue() && stackEntry.value() == input);
 
 	// if the function can continue (doesn't always abort), make sure we have the correct return label slot in place
 	if (hasReturnLabel)
@@ -316,14 +309,9 @@ void CodeTransform::operator()(InstId _instId, ShuffleTrace const& _operationShu
 			static_cast<int>(calleeCFG->numReturns) - static_cast<int>(calleeCFG->arguments.size()) - (call.canContinue ? 1 : 0),
 			AbstractAssembly::JumpType::IntoFunction
 		);
-		// if we have a return label, append it to assembly and pop the label from the stack
-		// it might also be one of the inputs that is popped here but then the label will be popped below with
-		// the other inputs
+		// if we have a return label, append it to assembly
 		if (returnLabel)
-		{
 			m_assembly.appendLabel(*returnLabel);
-			m_stack.pop();
-		}
 		break;
 	}
 	case InstOpcode::BuiltinCall:
@@ -352,18 +340,14 @@ void CodeTransform::operator()(InstId _instId, ShuffleTrace const& _operationShu
 	default:
 		yulAssert(false);
 	}
-	// simulate that the inputs are consumed
-	for (size_t i = 0; i < _inst.inputs.size(); ++i)
-		m_stack.pop();
-	// simulate that the outputs are produced
+	// simulate that the inputs are consumed and the outputs are produced
+	applyOperation(m_cfg, _instId, m_stackData);
 	auto const numOutputs = m_cfg.numReturnsOf(_instId);
-	for (InstId const id: m_cfg.outputsOf(_instId))
-		m_stack.push(StackSlot::makeValue(m_cfg, id));
 
 	// Each output the layout decided to spill gets its `mstore` here
 	if (m_spillEmitter)
 		for (InstId const outputId: m_cfg.outputsOf(_instId))
-			spillStore(outputId);
+			spillStore(outputId, _blockId);
 
 	yulAssert(m_stack.size() == baseHeight + numOutputs);
 	for (auto const& [stackEntry, output]: ranges::views::zip(
@@ -377,7 +361,7 @@ void CodeTransform::operator()(InstId _instId, ShuffleTrace const& _operationShu
 	);
 }
 
-void CodeTransform::spillStore(InstId const _value)
+void CodeTransform::spillStore(InstId const _value, SSACFG::BlockId const _block)
 {
 	if (!m_spillEmitter || !m_spillSet.isSpilled(StackSlot::makeValue(m_cfg, _value)))
 		return;
@@ -393,7 +377,7 @@ void CodeTransform::spillStore(InstId const _value)
 		storeTrace.back().slot == StackSlot::makeValue(m_cfg, _value),
 		fmt::format("def-site trace for {} must conclude with its store", _value)
 	);
-	playback(storeTrace);
+	playback(storeTrace, _block);
 }
 
 void CodeTransform::operator()(SSACFG::BlockId const&, SSACFG::BasicBlock::MainExit const&)
@@ -496,16 +480,16 @@ void CodeTransform::operator()(SSACFG::BlockId const& _blockId, SSACFG::BasicBlo
 	m_assembly.appendInstruction(evmasm::Instruction::INVALID);
 }
 
-void CodeTransform::playback(ShuffleTrace const& _trace)
+void CodeTransform::playback(ShuffleTrace const& _trace, SSACFG::BlockId const _block)
 {
 	for (ShuffleOp const& op: _trace)
 	{
 		apply(m_stackData, op);
-		emit(op);
+		emit(op, _block);
 	}
 }
 
-void CodeTransform::emit(ShuffleOp const& _op)
+void CodeTransform::emit(ShuffleOp const& _op, SSACFG::BlockId const _block)
 {
 	switch (_op.kind)
 	{
@@ -547,6 +531,9 @@ void CodeTransform::emit(ShuffleOp const& _op)
 			m_spillEmitter && m_spillEmitter->hasAddress(_op.slot),
 			fmt::format("Tried bringing up non-spilled non-const {}", _op.slot)
 		);
+		// a store earlier in the block covers the load
+		if (!m_stores.contains({_op.slot, _block}))
+			m_uncoveredLoads[_op.slot].insert(_block);
 		m_spillEmitter->emitLoad(_op.slot);
 		return;
 	case ShuffleOp::Kind::Store:
@@ -554,6 +541,7 @@ void CodeTransform::emit(ShuffleOp const& _op)
 			m_spillEmitter && m_spillEmitter->hasAddress(_op.slot),
 			fmt::format("Tried storing variable {} without a spill slot", _op.slot)
 		);
+		m_stores.emplace(_op.slot, _block);
 		m_spillEmitter->emitStore(_op.slot);
 		return;
 	}
@@ -567,9 +555,29 @@ void CodeTransform::prepareBlockExitStack(SSACFG::BlockId const& _currentBlock, 
 	// pull back target to live in current variable space
 	auto const pulledBackTarget = stackPreImage(m_cfg, targetLayout->stackIn, PhiInverse(m_cfg, _currentBlock, _target));
 	// play back the recorded shuffle for this edge
-	playback(targetLayout->traceForStackIn(_currentBlock));
+	playback(targetLayout->traceForStackIn(_currentBlock), _currentBlock);
 	// check that the playback reproduced the edge target
 	assertLayoutCompatibility(m_stack.data(), pulledBackTarget);
 	// now we can simply set the target to the actual one which will take care of the application of phi functions
 	m_stackData = targetLayout->stackIn;
+}
+
+void CodeTransform::assertLoadsAreStoredOnEveryPath() const
+{
+	for (auto const& [slot, loadBlocks]: m_uncoveredLoads)
+	{
+		// Walk back from the loads, but not past a block that stores `slot`. Reaching the function entry means
+		// that a path to one of the loads has no store.
+		std::set<SSACFG::BlockId> visited = loadBlocks;
+		std::vector<SSACFG::BlockId> toVisit(loadBlocks.begin(), loadBlocks.end());
+		while (!toVisit.empty())
+		{
+			SSACFG::BlockId const block = toVisit.back();
+			toVisit.pop_back();
+			yulAssert(block != m_cfg.entry, fmt::format("Tried loading {} where it is not stored on every path", slot));
+			for (SSACFG::BlockId const predecessor: m_cfg.block(block).entries)
+				if (!m_stores.contains({slot, predecessor}) && visited.insert(predecessor).second)
+					toVisit.push_back(predecessor);
+		}
+	}
 }

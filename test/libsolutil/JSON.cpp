@@ -26,6 +26,12 @@
 
 #include <boost/test/unit_test.hpp>
 
+#include <cstdint>
+#include <limits>
+#include <optional>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace solidity::util::test
 {
@@ -302,6 +308,7 @@ void json_test_int_range()
 	Json min = {{"v", std::numeric_limits<T>::min()}};
 	Json overflow = {{"v", static_cast<int64_t>(std::numeric_limits<T>::max()) + 1}};
 	Json underflow = {{"v", static_cast<int64_t>(std::numeric_limits<T>::min()) - 1}};
+	Json unsignedMax = {{"v", std::numeric_limits<uint64_t>::max()}};
 	BOOST_CHECK(getOrDefault<T>(max, "v", 0) == std::numeric_limits<T>::max());
 	BOOST_CHECK(getOrDefault<T>(min, "v", 0) == std::numeric_limits<T>::min());
 	BOOST_CHECK(getOrDefault<T>(overflow, "v", 0) == 0);
@@ -310,6 +317,58 @@ void json_test_int_range()
 	BOOST_CHECK(get<T>(min["v"]) == std::numeric_limits<T>::min());
 	BOOST_CHECK_THROW(get<T>(overflow["v"]), InvalidType);
 	BOOST_CHECK_THROW(get<T>(underflow["v"]), InvalidType);
+	BOOST_CHECK(!isOfType<T>(unsignedMax["v"]));
+	BOOST_CHECK(getOrDefault<T>(unsignedMax, "v", 0) == 0);
+	BOOST_CHECK_THROW(get<T>(unsignedMax["v"]), InvalidType);
+}
+
+template<typename T>
+void json_test_int64_range(std::vector<std::pair<std::string, std::optional<T>>> const& _cases)
+{
+	T const fallback = 42;
+	for (auto const& [input, expected]: _cases)
+		BOOST_TEST_CONTEXT(input)
+		{
+			Json const value = Json::parse(input);
+			Json const object = {{"v", value}};
+			BOOST_CHECK_EQUAL(isOfType<T>(value), expected.has_value());
+			BOOST_CHECK_EQUAL(isOfTypeIfExists<T>(object, "v"), expected.has_value());
+			BOOST_CHECK_EQUAL(getOrDefault<T>(object, "v", fallback), expected.value_or(fallback));
+			if (expected.has_value())
+				BOOST_CHECK_EQUAL(get<T>(value), expected.value());
+			else
+				BOOST_CHECK_THROW(get<T>(value), InvalidType);
+		}
+}
+
+BOOST_AUTO_TEST_CASE(json_int64_range_checks)
+{
+	json_test_int64_range<int64_t>({
+		{"-9223372036854775808", std::numeric_limits<int64_t>::min()},
+		{"-1", -1},
+		{"0", 0},
+		{"9223372036854775807", std::numeric_limits<int64_t>::max()},
+		{"9223372036854775808", std::nullopt},
+		{"18446744073709551615", std::nullopt},
+		{"18446744073709551616", std::nullopt},
+		{"-9223372036854775809", std::nullopt},
+		{"0.0", std::nullopt},
+	});
+}
+
+BOOST_AUTO_TEST_CASE(json_uint64_range_checks)
+{
+	json_test_int64_range<uint64_t>({
+		{"-9223372036854775808", std::nullopt},
+		{"-1", std::nullopt},
+		{"0", 0},
+		{"9223372036854775807", static_cast<uint64_t>(std::numeric_limits<int64_t>::max())},
+		{"9223372036854775808", static_cast<uint64_t>(std::numeric_limits<int64_t>::max()) + 1},
+		{"18446744073709551615", std::numeric_limits<uint64_t>::max()},
+		{"18446744073709551616", std::nullopt},
+		{"-9223372036854775809", std::nullopt},
+		{"0.0", std::nullopt},
+	});
 }
 
 BOOST_AUTO_TEST_CASE(json_range_checks)

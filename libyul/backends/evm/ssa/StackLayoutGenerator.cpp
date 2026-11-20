@@ -321,11 +321,7 @@ void StackLayoutGenerator::visitBlock(SSACFG::BlockId const& _blockId)
 			requireRealizableLayout(m_spillingAllowed || m_spillSet.numSpilled() == spillCountBefore, m_spillingAllowed, m_cfg);
 			blockLayout.operationShuffles.push_back(std::move(shuffleResult.trace));
 		}
-		for (std::size_t i = 0; i < requiredStackTop.size(); ++i)
-			stack.pop();
-		m_cfg.forEachOutput(_instId, [&](InstId const id) {
-			stack.push(Slot::makeValue(m_cfg, id));
-		});
+		applyOperation(m_cfg, _instId, currentStackData);
 	};
 
 	blockLayout.operationShuffles.reserve(block.instructions.size());

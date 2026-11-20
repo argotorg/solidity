@@ -12,6 +12,7 @@ on:
       - 'scripts/docker/buildpack-deps/Dockerfile.ubuntu2404'
       - 'scripts/docker/buildpack-deps/Dockerfile.ubuntu2404.clang'
       - 'scripts/docker/buildpack-deps/Dockerfile.ubuntu2404.arm'
+      - 'scripts/docker/buildpack-deps/Dockerfile.ubuntu2604'
 
 jobs:
   buildpack-deps:
@@ -34,6 +35,8 @@ jobs:
             runs-on: ubuntu-latest
           - image_variant: ubuntu2404.arm
             runs-on: ubuntu-24.04-arm
+          - image_variant: ubuntu2604
+            runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0

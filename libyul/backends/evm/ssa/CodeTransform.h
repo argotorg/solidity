@@ -66,7 +66,7 @@ private:
 	);
 
 	void operator()(SSACFG::BlockId _blockId);
-	void operator()(InstId _instId, ShuffleTrace const& _operationShuffle);
+	void operator()(InstId _instId, ShuffleTrace const& _operationShuffle, SSACFG::BlockId _blockId);
 	void operator()(SSACFG::BlockId const& _currentBlock, SSACFG::BasicBlock::MainExit const& _mainExit);
 	void operator()(SSACFG::BlockId const& _currentBlock, SSACFG::BasicBlock::ConditionalJump const& _conditionalJump);
 	void operator()(SSACFG::BlockId const& _currentBlock, SSACFG::BasicBlock::Jump const& _jump);
@@ -76,13 +76,16 @@ private:
 	void prepareBlockExitStack(SSACFG::BlockId const& _currentBlock, SSACFG::BlockId const& _target);
 
 	/// Plays back a recorded shuffle trace: applies each operation to the symbolic stack and emits its assembly.
-	void playback(ShuffleTrace const& _trace);
+	void playback(ShuffleTrace const& _trace, SSACFG::BlockId _block);
 	/// Appends the assembly realizing a single recorded shuffle operation. Does not touch the symbolic stack.
-	void emit(ShuffleOp const& _op);
+	void emit(ShuffleOp const& _op, SSACFG::BlockId _block);
 
 	/// If `_value` is spilled, plays back its recorded def-site trace, which brings it to the stack top and
 	/// stores it into its memory slot
-	void spillStore(InstId _value);
+	void spillStore(InstId _value, SSACFG::BlockId _block);
+
+	/// Asserts that a store of a spilled variable lies on every path from the function entry to each load of it
+	void assertLoadsAreStoredOnEveryPath() const;
 
 	AbstractAssembly& m_assembly;
 	BuiltinContext& m_builtinContext;
@@ -101,6 +104,10 @@ private:
 	StackData m_stackData;
 	Stack m_stack;
 	std::map<InstId, AbstractAssembly::LabelID> m_returnLabels;
+	/// The stores of spilled variables that were emitted, with the block they are in
+	std::set<std::pair<StackSlot, SSACFG::BlockId>> m_stores;
+	/// Per spilled variable, the blocks that load it without a store of it earlier in the block
+	std::map<StackSlot, std::set<SSACFG::BlockId>> m_uncoveredLoads;
 };
 
 }
