@@ -1710,12 +1710,10 @@ void TypeChecker::endVisit(BinaryOperation const& _operation)
 			rightFunction->kind() == FunctionType::Kind::Internal
 		)
 		{
-			m_errorReporter.warning(
-				3075_error,
+			m_errorReporter.typeError(
+				7641_error,
 				_operation.location(),
-				"Comparison of internal function pointers can yield unexpected results "
-				"in the legacy pipeline with the optimizer enabled, and will be disallowed entirely "
-				"in the next breaking release."
+				"Comparison of internal function pointers is not allowed."
 			);
 		}
 	}

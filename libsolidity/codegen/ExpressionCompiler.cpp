@@ -2505,15 +2505,8 @@ void ExpressionCompiler::appendCompareOperatorCode(Token _operator, Type const& 
 		}
 		else
 		{
+			solAssert(!functionType, "Comparison of internal function pointers.");
 			solAssert(_type.sizeOnStack() == 1, "Comparison of multi-slot types.");
-			if (functionType && functionType->kind() == FunctionType::Kind::Internal)
-			{
-				// We have to remove the upper bits (construction time value) because they might
-				// be "unknown" in one of the operands and not in the other.
-				m_context << ((u256(1) << 32) - 1) << Instruction::AND;
-				m_context << Instruction::SWAP1;
-				m_context << ((u256(1) << 32) - 1) << Instruction::AND;
-			}
 			m_context << Instruction::EQ;
 		}
 		if (_operator == Token::NotEqual)
