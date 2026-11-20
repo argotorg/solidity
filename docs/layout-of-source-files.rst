@@ -91,7 +91,7 @@ these follow the same syntax used by `npm <https://docs.npmjs.com/cli/v6/using-n
   required by the pragma. If it does not match, the compiler issues
   an error.
 
-.. index:: ! ABI coder, ! pragma; abicoder, pragma; ABIEncoderV2
+.. index:: ! ABI coder, ! pragma; abicoder
 .. _abi_coder:
 
 ABI Coder Pragma

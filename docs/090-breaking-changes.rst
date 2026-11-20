@@ -41,7 +41,7 @@ interface, or how you analyze the output produced by it.
   CLI and JSON interfaces now reject them.
 
 * BMC engine of SMTChecker was removed. CLI and JSON interfaces now reject it.
-  The associated option `--model-checker-bmc-loop-iterations` and `constantCondition` verification target were also removed.
+  The associated option ``--model-checker-bmc-loop-iterations`` and ``constantCondition`` verification target were also removed.
 
 * cvc5 can no longer be selected as the SMT solver to be used by SMTChecker.
 
