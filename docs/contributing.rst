@@ -576,7 +576,8 @@ If you want to know where the team is standing in terms of implementing new feat
 Issues in the design backlog need further specification and will either be discussed in a language design call or in a regular team call. You can
 see the upcoming changes for the next breaking release by changing from the default branch (`develop`) to the `breaking branch <https://github.com/argotorg/solidity/tree/breaking>`_.
 
-For ad-hoc cases and questions, you can reach out to us via the `Solidity-dev Gitter channel <https://gitter.im/ethereum/solidity-dev>`_ — a
-dedicated chatroom for conversations around the Solidity compiler and language development.
+For ad-hoc cases and questions, you can reach out to us via the `Solidity Development Matrix channel
+<https://matrix.to/#/#ethereum\_solidity-dev:gitter.im>`_ — a dedicated chatroom for conversations
+around the Solidity compiler and language development.
 
 We are happy to hear your thoughts on how we can improve the language design process to be even more collaborative and transparent.
