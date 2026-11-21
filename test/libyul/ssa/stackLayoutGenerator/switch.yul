@@ -63,7 +63,11 @@
 // Block0_3Exit:0 -> Block0_5 [style="solid"];
 // Block0_3Exit:1 -> Block0_4 [style="solid"];
 // Block0_1 [label="\
-// IN: [phi10]\l\
+// IN: [^phi10]\l\
+// \l\
+// [^phi10]\l\
+// phi10 := ^phi10\l\
+// [phi10]\l\
 // \l\
 // [phi10, lit14]\l\
 // sstore\l\
