@@ -39,24 +39,6 @@ using namespace solidity::yul::ssa;
 namespace
 {
 
-/// Build a human-readable Phi/Upsilon annotation for a phi value.
-/// Shows which upsilons feed it, listed per predecessor block.
-std::string formatPhi(SSACFG const& _cfg, InstId _phiId)
-{
-	// Collect all upsilons targeting _phiId from the whole CFG.
-	std::vector<std::string> formattedUpsilons;
-	for (BlockId const blockId: _cfg.liveBlocks())
-		_cfg.forEachUpsilon(_cfg.block(blockId), [&](InstId const instId, SSACFG::Inst const& inst) {
-			if (_cfg.upsilonPhi(instId) == _phiId)
-				formattedUpsilons.push_back(
-					fmt::format("Block {} => {}", blockId.value, inst.inputs.at(0).str(_cfg))
-				);
-		});
-	if (!formattedUpsilons.empty())
-		return fmt::format("φ(\\l\\\n\t{}\\l\\\n)", fmt::join(formattedUpsilons, ",\\l\\\n\t"));
-	return "φ()";
-}
-
 class SSACFGDotExporter: public io::DotExporterBase
 {
 public:
@@ -83,30 +65,50 @@ protected:
 				m_liveness->dfsTree().preOrderIndexOf(_blockId),
 				m_liveness->dfsTree().maxSubtreePreOrderIndexOf(_blockId)
 			);
+			auto const livenessToString = [&](LivenessAnalysis::LivenessData const& _values, ShadowLiveness::ShadowSet const& _shadows) {
+				std::vector<std::string> entries;
+				for (auto const& [value, count]: _values)
+					entries.push_back(valueToString(value) + fmt::format("[{}]", count));
+				for (InstId const phi: _shadows)
+					entries.push_back(fmt::format("^{}[1]", valueToString(phi)));
+				return fmt::format("{}", fmt::join(entries, ", "));
+			};
+			ShadowLiveness::ShadowSet usedShadows;
+			for (InstId const phi: m_liveness->liveInShadows(_blockId))
+				if (!m_liveness->liveOutShadows(_blockId).contains(phi))
+					usedShadows.insert(phi);
 			_out << fmt::format(
 				"LiveIn: {}\\l\\\n",
-				fmt::join(m_liveness->liveIn(_blockId) | ranges::views::transform([&](auto const& liveIn) { return valueToString(liveIn.first) + fmt::format("[{}]", liveIn.second); }), ", ")
+				livenessToString(m_liveness->liveIn(_blockId), m_liveness->liveInShadows(_blockId))
 			);
 			_out << fmt::format(
 				"LiveOut: {}\\l\\n",
-				fmt::join(m_liveness->liveOut(_blockId) | ranges::views::transform([&](auto const& liveOut) { return valueToString(liveOut.first) + fmt::format("[{}]", liveOut.second); }), ", ")
+				livenessToString(m_liveness->liveOut(_blockId), m_liveness->liveOutShadows(_blockId))
 			);
-			auto const usedVariables = m_liveness->used(_blockId);
 			_out << fmt::format(
 				"Used: {}\\l\\n",
-				fmt::join(usedVariables | ranges::views::transform([&](auto const& used) { return valueToString(used.first) + fmt::format("[{}]", used.second); }), ", ")
+				livenessToString(m_liveness->used(_blockId), usedShadows)
 			);
 		}
 		else
 			_out << fmt::format("\\\nBlock {}\\n", _blockId.value);
 
-		// Phis first, then BuiltinCall / Call in program order. Upsilons are rendered
-		// under successor phis (via formatPhi) and skipped here. Trailing Projections of
-		// multi-return calls are rendered as standalone lines following their producer.
-		m_cfg.forEachPhi(block, [&](InstId const instId, SSACFG::Inst const&) {
-			_out << fmt::format("phi{} := {}\\l\\\n", instId.value, formatPhi(m_cfg, instId));
-		});
-		m_cfg.forEachOperation(block, [&](InstId const instId, SSACFG::Inst const& inst) {
+		// Phis, upsilons and BuiltinCall / Call in program order. A phi reads its shadow and an upsilon
+		// writes the shadow of its phi. Trailing Projections of multi-return calls are rendered as
+		// standalone lines following their producer.
+		for (InstId const instId: block.instructions)
+		{
+			SSACFG::Inst const& inst = m_cfg.inst(instId);
+			if (inst.isPhi())
+				_out << fmt::format("{0} := φ(^{0})\\l\\\n", valueToString(instId));
+			if (inst.isUpsilon())
+				_out << fmt::format(
+					"^{} := {}\\l\\\n",
+					valueToString(m_cfg.upsilonPhi(instId)),
+					valueToString(inst.inputs.at(0))
+				);
+			if (!inst.isOperation())
+				continue;
 			std::string label;
 			switch (inst.opcode)
 			{
@@ -142,7 +144,7 @@ protected:
 					valueToString(instId),
 					static_cast<unsigned>(m_cfg.projectionIndex(projId))
 				);
-		});
+		}
 	}
 
 	std::vector<std::pair<std::string, std::string>> blockNodeAttributes(BlockId _blockId) override
