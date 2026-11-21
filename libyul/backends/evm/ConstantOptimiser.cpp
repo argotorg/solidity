@@ -89,6 +89,14 @@ struct MiniEVMInterpreter
 };
 }
 
+void ConstantOptimiser::operator()(FunctionCall& _funCall)
+{
+	BuiltinFunction const* builtin = resolveBuiltinFunction(_funCall.functionName, m_dialect);
+	for (size_t i = _funCall.arguments.size(); i > 0; i--)
+		if (!builtin || !builtin->literalArgument(i - 1))
+			visit(_funCall.arguments[i - 1]);
+}
+
 void ConstantOptimiser::visit(Expression& _e)
 {
 	if (std::holds_alternative<Literal>(_e))
