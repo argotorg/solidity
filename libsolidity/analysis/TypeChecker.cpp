@@ -504,8 +504,6 @@ bool TypeChecker::visit(VariableDeclaration const& _variable)
 	}
 	else if (_variable.immutable())
 	{
-		if (!_variable.type()->isValueType())
-			m_errorReporter.typeError(6377_error, _variable.location(), "Immutable variables cannot have a non-value type.");
 		if (
 			auto const* functionType = dynamic_cast<FunctionType const*>(_variable.type());
 			functionType && functionType->kind() == FunctionType::Kind::External

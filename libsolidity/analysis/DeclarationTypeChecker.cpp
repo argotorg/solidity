@@ -519,6 +519,9 @@ void DeclarationTypeChecker::endVisit(VariableDeclaration const& _variable)
 		}
 
 	Type const* type = _variable.typeName().annotation().type;
+	if (_variable.isStateVariable() && _variable.immutable() && !type->isValueType())
+		m_errorReporter.fatalTypeError(6377_error, _variable.location(), "Immutable variables cannot have a non-value type.");
+
 	if (auto ref = dynamic_cast<ReferenceType const*>(type))
 	{
 		bool isPointer = !_variable.isStateVariable();

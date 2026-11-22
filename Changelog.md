@@ -5,6 +5,7 @@ Language Features:
 Compiler Features:
 
 Bugfixes:
+* Type Checker: Report a proper error instead of ICE for immutable arrays of mappings and structs containing them.
 
 
 ### 0.8.39 (2026-11-19)
