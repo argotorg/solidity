@@ -21,65 +21,18 @@
 #include <libyul/backends/evm/ssa/stack/InstructionStackIn.h>
 #include <libyul/backends/evm/ssa/stack/Shuffler.h>
 
-#include <libyul/backends/evm/ssa/JunkAdmittingBlocksFinder.h>
 #include <libyul/backends/evm/ssa/PhiInverse.h>
 #include <libyul/backends/evm/ssa/ShuffleTrace.h>
 #include <libyul/backends/evm/ssa/StackUtils.h>
 
 #include <libsolutil/Visitor.h>
 
-#include <range/v3/algorithm/count.hpp>
-#include <range/v3/algorithm/replace.hpp>
 #include <range/v3/view/transform.hpp>
 #include <range/v3/to_container.hpp>
 
 #include <queue>
 
 using namespace solidity::yul::ssa;
-
-namespace
-{
-void handlePhiFunctions(StackData& _stackData, PhiInverse const& _phiInverse, LivenessAnalysis::LivenessData const& _liveness, SSACFG const& _cfg)
-{
-	// add any phi function values here that are not already contained in the stack
-	for (auto const& [phi, preImage]: _phiInverse.data())
-	{
-		auto reversedStackData = _stackData | ranges::views::reverse;
-		auto const phiSlot = StackSlot::makeValue(_cfg, phi);
-		auto const preImageSlot = StackSlot::makeValue(_cfg, preImage);
-		auto it = ranges::find(reversedStackData, preImageSlot);
-		if (_liveness.contains(preImage))
-		{
-			// Both the phi function and the preimage are part of the live-in set.
-			// If the preimage occurs more than once on the stack, one occurrence is
-			// symbolically replaced by the phi function; otherwise, we push the phi value.
-			if (ranges::count(_stackData, preImageSlot) > 1)
-				*it = phiSlot;
-			else
-				_stackData.emplace_back(phiSlot);
-		}
-		else
-		{
-			// replace all occurrences of the preimage with the phi value
-			ranges::replace(_stackData, preImageSlot, phiSlot);
-			// if it's not contained, push it (could be derived from a literal)
-			if (it == ranges::end(reversedStackData))
-				_stackData.emplace_back(phiSlot);
-		}
-	}
-}
-
-void declareJunk(Stack& _stack, LivenessAnalysis::LivenessData const& _live)
-{
-	for (StackOffset offset{0}; offset < _stack.size(); ++offset.value)
-	{
-		auto const& slot = _stack[offset];
-		if (slot.isValue() && !_live.contains(slot.value()))
-			_stack.declareJunk(offset);
-	}
-}
-
-}
 
 StackLayoutGenerator::Result StackLayoutGenerator::generate(
 	LivenessAnalysis const& _liveness,
@@ -118,8 +71,7 @@ StackLayoutGenerator::StackLayoutGenerator(
 	m_graphID(_graphID),
 	m_hasFunctionReturnLabel(!_liveness.cfg().isMainGraph() && _liveness.cfg().canContinue),
 	m_spillingAllowed(_spillingAllowed),
-	m_junkAdmittingBlocksFinder(std::make_unique<JunkAdmittingBlocksFinder>(_liveness.cfg(), _liveness.dfsTree())),
-	m_inputStackProposalsPerBlock(m_cfg.numBlocks()),
+	m_incomingEdgesPerBlock(m_cfg.numBlocks()),
 	m_resultLayout(m_cfg.numBlocks()),
 	m_spillSet(std::move(_initialSpillSet))
 {
@@ -177,78 +129,27 @@ void StackLayoutGenerator::defineStackIn(SSACFG::BlockId const& _blockId)
 		return;
 	}
 
-	auto const& block = m_cfg.block(_blockId);
 	auto const& liveIn = m_liveness.liveIn(_blockId);
 
-	auto const& stackInProposals = m_inputStackProposalsPerBlock[_blockId.value];
-	yulAssert(!stackInProposals.empty(), fmt::format("None of the parents of block {} were generated", _blockId));
+	auto const& incomingEdges = m_incomingEdgesPerBlock[_blockId.value];
+	yulAssert(!incomingEdges.empty(), fmt::format("None of the parents of block {} were generated", _blockId));
 
-	if (block.entries.size() == 1)
-	{
-		// pass through
-		yulAssert(stackInProposals.size() == 1);
-		blockLayout.stackIn = stackInProposals[0].second;
-		handlePhiFunctions(blockLayout.stackIn, PhiInverse(m_cfg, stackInProposals[0].first, _blockId), liveIn, m_cfg);
-		Stack stack(blockLayout.stackIn);
-		declareJunk(stack, liveIn);
-	}
-	else
-	{
-		// Pre-compute each parent's proposal
-		std::vector<StackData> proposals(stackInProposals.size());
-		for (std::size_t i = 0; i < stackInProposals.size(); ++i)
-		{
-			proposals[i] = stackInProposals[i].second;
-			handlePhiFunctions(proposals[i], PhiInverse(m_cfg, stackInProposals[i].first, _blockId), liveIn, m_cfg);
-			{
-				Stack stack(proposals[i]);
-				declareJunk(stack, liveIn);
-			}
-		}
-		// For each candidate stack-in layout (one parent's proposal), reconcile every parent to it,
-		// discovering the spills needed to make each reconciliation realizable
-		std::vector<std::size_t> cumulativeGas(stackInProposals.size(), 0);
-		std::vector<spill::SpillSet> candidateSpillSets(stackInProposals.size());
-		for (std::size_t i = 0; i < stackInProposals.size(); ++i)
-		{
-			spill::SpillSet candidateSpillSet = m_spillSet;
-			for (std::size_t j = 0; j < stackInProposals.size(); ++j)
-			{
-				StackData edgeStack = stackInProposals[j].second;
-				stack::ShuffleResult const result = stack::shuffle(
-					edgeStack,
-					stackPreImage(m_cfg, proposals[i], PhiInverse(m_cfg, stackInProposals[j].first, _blockId)),
-					candidateSpillSet,
-					m_spillingAllowed
-				);
-				yulAssert(result.status == stack::ShuffleResult::Status::Admissible);
-				cumulativeGas[i] += stackOpsGas(m_cfg, result.trace);
-			}
-			candidateSpillSets[i] = std::move(candidateSpillSet);
-		}
-		// Pick the candidate that spills the least; break ties by gas, then by preferring smaller stacks.
-		auto const candidateCost = [&](std::size_t const _i) {
-			return std::make_tuple(candidateSpillSets[_i].numSpilled(), cumulativeGas[_i], proposals[_i].size());
-		};
-		std::size_t best = 0;
-		for (std::size_t i = 1; i < stackInProposals.size(); ++i)
-			if (candidateCost(i) < candidateCost(best))
-				best = i;
-		yulAssert(
-			m_spillingAllowed || candidateSpillSets[best].numSpilled() == m_spillSet.numSpilled(),
-			"Stack too deep, but spilling is disabled because the function is part of a recursive call chain."
-		);
-		m_spillSet = std::move(candidateSpillSets[best]);
-		blockLayout.stackIn = std::move(proposals[best]);
-	}
+	blockLayout.stackIn = stack::chooseBlockStackIn(
+		m_cfg,
+		_blockId,
+		incomingEdges,
+		liveIn,
+		m_spillSet,
+		m_spillingAllowed
+	);
 
 	// Validate every incoming forward edge
-	for (auto const& [parentBlockId, parentExitStack]: stackInProposals)
+	for (stack::IncomingEdge const& edge: incomingEdges)
 	{
-		StackData edgeStack = parentExitStack;
+		StackData edgeStack = edge.stack;
 		auto shuffleResult = stack::shuffle(
 			edgeStack,
-			stackPreImage(m_cfg, blockLayout.stackIn, PhiInverse(m_cfg, parentBlockId, _blockId)),
+			stackPreImage(m_cfg, blockLayout.stackIn, PhiInverse(m_cfg, edge.predecessor, _blockId)),
 			m_spillSet,
 			m_spillingAllowed
 		);
@@ -256,7 +157,7 @@ void StackLayoutGenerator::defineStackIn(SSACFG::BlockId const& _blockId)
 			shuffleResult.status == stack::ShuffleResult::Status::Admissible,
 			"Stack too deep, but spilling is disabled because the function is part of a recursive call chain."
 		);
-		blockLayout.addTraceForStackIn(parentBlockId, std::move(shuffleResult.trace));
+		blockLayout.addTraceForStackIn(edge.predecessor, std::move(shuffleResult.trace));
 	}
 
 	m_resultLayout[_blockId] = std::move(blockLayout);
@@ -361,8 +262,8 @@ void StackLayoutGenerator::visitBlock(SSACFG::BlockId const& _blockId)
 				stack.pop();
 
 				// Define successor stack-in layouts
-				m_inputStackProposalsPerBlock[_cJump.zero.value].emplace_back(_blockId, currentStackData);
-				m_inputStackProposalsPerBlock[_cJump.nonZero.value].emplace_back(_blockId, currentStackData);
+				m_incomingEdgesPerBlock[_cJump.zero.value].push_back({_blockId, currentStackData});
+				m_incomingEdgesPerBlock[_cJump.nonZero.value].push_back({_blockId, currentStackData});
 
 				validateBackEdge(_cJump.zero);
 				validateBackEdge(_cJump.nonZero);
@@ -377,7 +278,7 @@ void StackLayoutGenerator::visitBlock(SSACFG::BlockId const& _blockId)
 				blockLayout.exitShuffle = std::move(shuffleResult.trace);
 			},
 			[&](SSACFG::BasicBlock::Jump const& _jump) {
-				m_inputStackProposalsPerBlock[_jump.target.value].emplace_back(_blockId, currentStackData);
+				m_incomingEdgesPerBlock[_jump.target.value].push_back({_blockId, currentStackData});
 
 				validateBackEdge(_jump.target);
 			},
