@@ -30,136 +30,150 @@
     }
 }
 // ----
-// digraph SSACFG {
-// nodesep=0.7;
-// graph[fontname="DejaVu Sans"]
-// node[shape=box,fontname="DejaVu Sans"];
+// #0:
+//     ; dfs 0..0
+//     ; live-in:
+//     ; live-out:
+//     ; used:
+//     main_exit
 //
-// Entry [label="Entry"];
-// Entry -> Block0_0;
-// Block0_0 [fillcolor="#FF746C", style=filled, label="\
-// Block 0; (0, max 0)\nLiveIn: \l\
-// LiveOut: \l\nUsed: \l\n"];
-// Block0_0Exit [label="MainExit"];
-// Block0_0 -> Block0_0Exit;
-// FunctionEntry_f_0 [label="function f:
-//  [1 returns] := f(v0, v1)"];
-// FunctionEntry_f_0 -> Block1_0;
-// Block1_0 [label="\
-// Block 0; (0, max 0)\nLiveIn: v0[2], v1[1]\l\
-// LiveOut: v4[1]\l\nUsed: v0[2], v1[1]\l\nv3 := add(v0, v1)\l\
-// v4 := sub(v3, v0)\l\
-// "];
-// Block1_0Exit [label="FunctionReturn[v4]"];
-// Block1_0 -> Block1_0Exit;
-// FunctionEntry_g_0 [label="function g:
-//  g()"];
-// FunctionEntry_g_0 -> Block2_0;
-// Block2_0 [label="\
-// Block 0; (0, max 0)\nLiveIn: \l\
-// LiveOut: \l\nUsed: \l\nv1 := v()\l\
-// v2 := f(v1, 0x02)\l\
-// v3 := z()\l\
-// sstore(v3, v2)\l\
-// "];
-// Block2_0Exit [label="FunctionReturn[]"];
-// Block2_0 -> Block2_0Exit;
-// FunctionEntry_cycle1_0 [label="function cycle1:
-//  [1 returns] := cycle1()"];
-// FunctionEntry_cycle1_0 -> Block3_0;
-// Block3_0 [label="\
-// Block 0; (0, max 3)\nLiveIn: \l\
-// LiveOut: \l\nUsed: \l\nv2 := mload(0x03)\l\
-// "];
-// Block3_0 -> Block3_0Exit;
-// Block3_0Exit [label="{ If v2 | { <0> Zero | <1> NonZero }}" shape=Mrecord];
-// Block3_0Exit:0 -> Block3_3 [style="solid"];
-// Block3_0Exit:1 -> Block3_1 [style="solid"];
-// Block3_1 [label="\
-// Block 1; (1, max 2)\nLiveIn: \l\
-// LiveOut: v3[1]\l\nUsed: \l\nv3 := cycle2()\l\
-// ^phi4 := v3\l\
-// "];
-// Block3_1 -> Block3_1Exit [arrowhead=none];
-// Block3_1Exit [label="Jump" shape=oval];
-// Block3_1Exit -> Block3_2 [style="solid"];
-// Block3_3 [label="\
-// Block 3; (3, max 3)\nLiveIn: \l\
-// LiveOut: \l\nUsed: \l\n^phi4 := 0x00\l\
-// "];
-// Block3_3 -> Block3_3Exit [arrowhead=none];
-// Block3_3Exit [label="Jump" shape=oval];
-// Block3_3Exit -> Block3_2 [style="solid"];
-// Block3_2 [label="\
-// Block 2; (2, max 2)\nLiveIn: phi4[3]\l\
-// LiveOut: phi4[1]\l\nUsed: phi4[2]\l\nphi4 := φ(^phi4)\l\
-// "];
-// Block3_2Exit [label="FunctionReturn[phi4]"];
-// Block3_2 -> Block3_2Exit;
-// FunctionEntry_cycle2_0 [label="function cycle2:
-//  [1 returns] := cycle2()"];
-// FunctionEntry_cycle2_0 -> Block4_0;
-// Block4_0 [label="\
-// Block 0; (0, max 3)\nLiveIn: \l\
-// LiveOut: \l\nUsed: \l\nv2 := mload(0x04)\l\
-// "];
-// Block4_0 -> Block4_0Exit;
-// Block4_0Exit [label="{ If v2 | { <0> Zero | <1> NonZero }}" shape=Mrecord];
-// Block4_0Exit:0 -> Block4_3 [style="solid"];
-// Block4_0Exit:1 -> Block4_1 [style="solid"];
-// Block4_1 [label="\
-// Block 1; (1, max 2)\nLiveIn: \l\
-// LiveOut: v3[1]\l\nUsed: \l\nv3 := cycle1()\l\
-// ^phi4 := v3\l\
-// "];
-// Block4_1 -> Block4_1Exit [arrowhead=none];
-// Block4_1Exit [label="Jump" shape=oval];
-// Block4_1Exit -> Block4_2 [style="solid"];
-// Block4_3 [label="\
-// Block 3; (3, max 3)\nLiveIn: \l\
-// LiveOut: \l\nUsed: \l\n^phi4 := 0x00\l\
-// "];
-// Block4_3 -> Block4_3Exit [arrowhead=none];
-// Block4_3Exit [label="Jump" shape=oval];
-// Block4_3Exit -> Block4_2 [style="solid"];
-// Block4_2 [label="\
-// Block 2; (2, max 2)\nLiveIn: phi4[3]\l\
-// LiveOut: phi4[1]\l\nUsed: phi4[2]\l\nphi4 := φ(^phi4)\l\
-// "];
-// Block4_2Exit [label="FunctionReturn[phi4]"];
-// Block4_2 -> Block4_2Exit;
-// FunctionEntry_z_0 [label="function z:
-//  [1 returns] := z()"];
-// FunctionEntry_z_0 -> Block5_0;
-// Block5_0 [label="\
-// Block 0; (0, max 0)\nLiveIn: \l\
-// LiveOut: v1[1]\l\nUsed: \l\nv1 := w()\l\
-// "];
-// Block5_0Exit [label="FunctionReturn[v1]"];
-// Block5_0 -> Block5_0Exit;
-// FunctionEntry_v_0 [label="function v:
-//  [1 returns] := v()"];
-// FunctionEntry_v_0 -> Block6_0;
-// Block6_0 [label="\
-// Block 0; (0, max 0)\nLiveIn: \l\
-// LiveOut: v1[1]\l\nUsed: \l\nv1 := w()\l\
-// "];
-// Block6_0Exit [label="FunctionReturn[v1]"];
-// Block6_0 -> Block6_0Exit;
-// FunctionEntry_w_0 [label="function w:
-//  [1 returns] := w()"];
-// FunctionEntry_w_0 -> Block7_0;
-// Block7_0 [label="\
-// Block 0; (0, max 0)\nLiveIn: \l\
-// LiveOut: \l\nUsed: \l\n"];
-// Block7_0Exit [label="FunctionReturn[0x01]"];
-// Block7_0 -> Block7_0Exit;
-// FunctionEntry_w_0 [label="function w:
-//  [1 returns] := w()"];
-// FunctionEntry_w_0 -> Block8_0;
-// Block8_0 [label="\
-// Block 0; (0, max 0)\nLiveIn: \l\
-// LiveOut: \l\nUsed: \l\n"];
-// Block8_0Exit [label="FunctionReturn[0x11]"];
-// Block8_0 -> Block8_0Exit;
+// func @f(args: (v0, v1)) -> 1 {
+// #0:
+//     ; dfs 0..0
+//     ; live-in: v0[2], v1[1]
+//     ; live-out: v4[1]
+//     ; used: v0[2], v1[1]
+//     v0 = arg 0
+//     v1 = arg 1
+//     v2 = const 0x00
+//     v3 = builtin @add v0, v1
+//     v4 = builtin @sub v3, v0
+//     return v4
 // }
+//
+// func @g(args: ()) -> 0 {
+// #0:
+//     ; dfs 0..0
+//     ; live-in:
+//     ; live-out:
+//     ; used:
+//     v0 = const 0x02
+//     v1 = call @v
+//     v2 = call @f v1, v0
+//     v3 = call @z
+//     builtin @sstore v3, v2
+//     return
+// }
+//
+// func @cycle1(args: ()) -> 1 {
+// #0:
+//     ; dfs 0..3
+//     ; live-in:
+//     ; live-out:
+//     ; used:
+//     v0 = const 0x00
+//     v1 = const 0x03
+//     v2 = builtin @mload v1
+//     branch v2, #1, #3
+// #1: preds: #0
+//     ; dfs 1..2
+//     ; live-in:
+//     ; live-out: v3[1]
+//     ; used:
+//     v3 = call @cycle2
+//     upsilon v3 -> ^v4
+//     jump #2
+// #2: preds: #3, #1
+//     ; dfs 2..2
+//     ; live-in: phi4[3]
+//     ; live-out: phi4[1]
+//     ; used: phi4[2]
+//     v4 = phi
+//     return v4
+// #3: preds: #0
+//     ; dfs 3..3
+//     ; live-in:
+//     ; live-out:
+//     ; used:
+//     upsilon v0 -> ^v4
+//     jump #2
+// }
+//
+// func @cycle2(args: ()) -> 1 {
+// #0:
+//     ; dfs 0..3
+//     ; live-in:
+//     ; live-out:
+//     ; used:
+//     v0 = const 0x00
+//     v1 = const 0x04
+//     v2 = builtin @mload v1
+//     branch v2, #1, #3
+// #1: preds: #0
+//     ; dfs 1..2
+//     ; live-in:
+//     ; live-out: v3[1]
+//     ; used:
+//     v3 = call @cycle1
+//     upsilon v3 -> ^v4
+//     jump #2
+// #2: preds: #3, #1
+//     ; dfs 2..2
+//     ; live-in: phi4[3]
+//     ; live-out: phi4[1]
+//     ; used: phi4[2]
+//     v4 = phi
+//     return v4
+// #3: preds: #0
+//     ; dfs 3..3
+//     ; live-in:
+//     ; live-out:
+//     ; used:
+//     upsilon v0 -> ^v4
+//     jump #2
+// }
+//
+// func @z(args: ()) -> 1 {
+// #0:
+//     ; dfs 0..0
+//     ; live-in:
+//     ; live-out: v1[1]
+//     ; used:
+//     v0 = const 0x00
+//     v1 = call @w
+//     return v1
+// }
+//
+// func @v(args: ()) -> 1 {
+// #0:
+//     ; dfs 0..0
+//     ; live-in:
+//     ; live-out: v1[1]
+//     ; used:
+//     v0 = const 0x00
+//     v1 = call @w
+//     return v1
+// }
+//
+// func @w(args: ()) -> 1 {
+// #0:
+//     ; dfs 0..0
+//     ; live-in:
+//     ; live-out:
+//     ; used:
+//     v0 = const 0x00
+//     v1 = const 0x01
+//     return v1
+// }
+//
+// func @w(args: ()) -> 1 {
+// #0:
+//     ; dfs 0..0
+//     ; live-in:
+//     ; live-out:
+//     ; used:
+//     v0 = const 0x00
+//     v1 = const 0x11
+//     return v1
+// }
+//

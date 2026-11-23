@@ -18,170 +18,165 @@
 }
 
 // ----
-// digraph SSACFG {
-// nodesep=0.7;
-// graph[fontname="DejaVu Sans"]
-// node[shape=box,fontname="DejaVu Sans"];
+// #0:
+//     ; dfs 0..19
+//     ; live-in:
+//     ; live-out:
+//     ; used:
+//     v0 = const 0x00
+//     v1 = const 0x03
+//     v17 = const 0x01
+//     upsilon v0 -> ^v2
+//     jump #1
+// #1: preds: #0, #8
+//     ; back edge from: #8
+//     ; dfs 1..19
+//     ; live-in: phi2[3]
+//     ; live-out: phi2[1]
+//     ; used: phi2[2]
+//     v2 = phi
+//     v3 = builtin @lt v2, v1
+//     branch v3, #2, #4
+// #2: preds: #1
+//     ; dfs 2..18
+//     ; live-in: phi2[1]
+//     ; live-out: phi2[1]
+//     ; used:
+//     upsilon v0 -> ^v4
+//     jump #5
+// #4: preds: #1
+//     ; dfs 19..19
+//     ; live-in:
+//     ; live-out:
+//     ; used:
+//     main_exit
+// #5: preds: #2, #12
+//     ; back edge from: #12
+//     ; dfs 3..18
+//     ; live-in: phi2[1], phi4[3]
+//     ; live-out: phi2[1], phi4[1]
+//     ; used: phi4[2]
+//     v4 = phi
+//     v5 = builtin @lt v4, v1
+//     branch v5, #6, #8
+// #6: preds: #5
+//     ; dfs 4..17
+//     ; live-in: phi2[1], phi4[1]
+//     ; live-out: phi2[1], phi4[1]
+//     ; used:
+//     upsilon v0 -> ^v6
+//     jump #9
+// #8: preds: #5
+//     ; dfs 18..18
+//     ; live-in: phi2[1]
+//     ; live-out: v78[1]
+//     ; used: phi2[1]
+//     v78 = builtin @add v2, v17
+//     upsilon v78 -> ^v2
+//     jump #1
+// #9: preds: #6, #20
+//     ; back edge from: #20
+//     ; dfs 5..17
+//     ; live-in: phi6[3], phi2[1], phi4[1]
+//     ; live-out: phi6[1], phi2[1], phi4[1]
+//     ; used: phi6[2]
+//     v6 = phi
+//     v7 = builtin @lt v6, v1
+//     branch v7, #10, #12
+// #10: preds: #9
+//     ; dfs 6..16
+//     ; live-in: phi6[1], phi2[1], phi4[1]
+//     ; live-out: phi6[1], phi2[1], phi4[1]
+//     ; used:
+//     v8 = builtin @mload v0
+//     branch v8, #13, #14
+// #12: preds: #9
+//     ; dfs 17..17
+//     ; live-in: phi4[1], phi2[1]
+//     ; live-out: v73[1], phi2[1]
+//     ; used: phi4[1]
+//     v73 = builtin @add v4, v17
+//     upsilon v73 -> ^v4
+//     jump #5
+// #13: preds: #10
+//     ; dfs 7..16
+//     ; live-in: phi6[1], phi2[1], phi4[1]
+//     ; live-out: phi6[1], phi2[1], phi4[1]
+//     ; used:
+//     upsilon v0 -> ^v9
+//     jump #15
+// #14: preds: #10, #18
+//     ; dfs 11..16
+//     ; live-in: phi6[1], phi2[1], phi4[1]
+//     ; live-out: phi6[1], phi2[1], phi4[1]
+//     ; used:
+//     v29 = builtin @mload v17
+//     branch v29, #19, #20
+// #15: preds: #13, #16
+//     ; back edge from: #16
+//     ; dfs 8..16
+//     ; live-in: phi9[4], phi6[1], phi2[1], phi4[1]
+//     ; live-out: phi9[2], phi6[1], phi2[1], phi4[1]
+//     ; used: phi9[2]
+//     v9 = phi
+//     v10 = builtin @lt v9, v1
+//     branch v10, #16, #18
+// #16: preds: #15
+//     ; dfs 9..9
+//     ; live-in: phi9[2], phi6[1], phi2[1], phi4[1]
+//     ; live-out: v18[1], phi6[1], phi2[1], phi4[1]
+//     ; used: phi9[2]
+//     v14 = builtin @add v2, v4
+//     v15 = builtin @add v14, v6
+//     builtin @sstore v9, v15
+//     v18 = builtin @add v9, v17
+//     upsilon v18 -> ^v9
+//     jump #15
+// #18: preds: #15
+//     ; dfs 10..16
+//     ; live-in: phi6[1], phi2[1], phi4[1]
+//     ; live-out: phi6[1], phi2[1], phi4[1]
+//     ; used:
+//     jump #14
+// #19: preds: #14
+//     ; dfs 12..16
+//     ; live-in: phi6[1], phi2[1], phi4[1]
+//     ; live-out: phi6[1], phi2[1], phi4[1]
+//     ; used:
+//     upsilon v0 -> ^v30
+//     jump #21
+// #20: preds: #14, #24
+//     ; dfs 16..16
+//     ; live-in: phi6[1], phi2[1], phi4[1]
+//     ; live-out: v59[1], phi2[1], phi4[1]
+//     ; used: phi6[1]
+//     v59 = builtin @add v6, v17
+//     upsilon v59 -> ^v6
+//     jump #9
+// #21: preds: #19, #22
+//     ; back edge from: #22
+//     ; dfs 13..16
+//     ; live-in: phi30[4], phi6[1], phi2[1], phi4[1]
+//     ; live-out: phi30[2], phi6[1], phi2[1], phi4[1]
+//     ; used: phi30[2]
+//     v30 = phi
+//     v31 = builtin @lt v30, v1
+//     branch v31, #22, #24
+// #22: preds: #21
+//     ; dfs 14..14
+//     ; live-in: phi30[2], phi6[1], phi2[1], phi4[1]
+//     ; live-out: v38[1], phi6[1], phi2[1], phi4[1]
+//     ; used: phi30[2]
+//     v35 = builtin @add v2, v4
+//     v36 = builtin @add v35, v6
+//     builtin @sstore v30, v36
+//     v38 = builtin @add v30, v17
+//     upsilon v38 -> ^v30
+//     jump #21
+// #24: preds: #21
+//     ; dfs 15..16
+//     ; live-in: phi6[1], phi2[1], phi4[1]
+//     ; live-out: phi6[1], phi2[1], phi4[1]
+//     ; used:
+//     jump #20
 //
-// Entry [label="Entry"];
-// Entry -> Block0_0;
-// Block0_0 [fillcolor="#FF746C", style=filled, label="\
-// Block 0; (0, max 19)\nLiveIn: \l\
-// LiveOut: \l\nUsed: \l\n^phi2 := 0x00\l\
-// "];
-// Block0_0 -> Block0_0Exit [arrowhead=none];
-// Block0_0Exit [label="Jump" shape=oval];
-// Block0_0Exit -> Block0_1 [style="solid"];
-// Block0_1 [label="\
-// Block 1; (1, max 19)\nLiveIn: phi2[3]\l\
-// LiveOut: phi2[1]\l\nUsed: phi2[2]\l\nphi2 := φ(^phi2)\l\
-// v3 := lt(phi2, 0x03)\l\
-// "];
-// Block0_1 -> Block0_1Exit;
-// Block0_1Exit [label="{ If v3 | { <0> Zero | <1> NonZero }}" shape=Mrecord];
-// Block0_1Exit:0 -> Block0_4 [style="solid"];
-// Block0_1Exit:1 -> Block0_2 [style="solid"];
-// Block0_2 [label="\
-// Block 2; (2, max 18)\nLiveIn: phi2[1]\l\
-// LiveOut: phi2[1]\l\nUsed: \l\n^phi4 := 0x00\l\
-// "];
-// Block0_2 -> Block0_2Exit [arrowhead=none];
-// Block0_2Exit [label="Jump" shape=oval];
-// Block0_2Exit -> Block0_5 [style="solid"];
-// Block0_4 [fillcolor="#FF746C", style=filled, label="\
-// Block 4; (19, max 19)\nLiveIn: \l\
-// LiveOut: \l\nUsed: \l\n"];
-// Block0_4Exit [label="MainExit"];
-// Block0_4 -> Block0_4Exit;
-// Block0_5 [label="\
-// Block 5; (3, max 18)\nLiveIn: phi2[1], phi4[3]\l\
-// LiveOut: phi2[1], phi4[1]\l\nUsed: phi4[2]\l\nphi4 := φ(^phi4)\l\
-// v5 := lt(phi4, 0x03)\l\
-// "];
-// Block0_5 -> Block0_5Exit;
-// Block0_5Exit [label="{ If v5 | { <0> Zero | <1> NonZero }}" shape=Mrecord];
-// Block0_5Exit:0 -> Block0_8 [style="solid"];
-// Block0_5Exit:1 -> Block0_6 [style="solid"];
-// Block0_6 [label="\
-// Block 6; (4, max 17)\nLiveIn: phi2[1], phi4[1]\l\
-// LiveOut: phi2[1], phi4[1]\l\nUsed: \l\n^phi6 := 0x00\l\
-// "];
-// Block0_6 -> Block0_6Exit [arrowhead=none];
-// Block0_6Exit [label="Jump" shape=oval];
-// Block0_6Exit -> Block0_9 [style="solid"];
-// Block0_8 [label="\
-// Block 8; (18, max 18)\nLiveIn: phi2[1]\l\
-// LiveOut: v78[1]\l\nUsed: phi2[1]\l\nv78 := add(phi2, 0x01)\l\
-// ^phi2 := v78\l\
-// "];
-// Block0_8 -> Block0_8Exit [arrowhead=none];
-// Block0_8Exit [label="Jump" shape=oval];
-// Block0_8Exit -> Block0_1 [style="dashed"];
-// Block0_9 [label="\
-// Block 9; (5, max 17)\nLiveIn: phi6[3], phi2[1], phi4[1]\l\
-// LiveOut: phi6[1], phi2[1], phi4[1]\l\nUsed: phi6[2]\l\nphi6 := φ(^phi6)\l\
-// v7 := lt(phi6, 0x03)\l\
-// "];
-// Block0_9 -> Block0_9Exit;
-// Block0_9Exit [label="{ If v7 | { <0> Zero | <1> NonZero }}" shape=Mrecord];
-// Block0_9Exit:0 -> Block0_12 [style="solid"];
-// Block0_9Exit:1 -> Block0_10 [style="solid"];
-// Block0_10 [label="\
-// Block 10; (6, max 16)\nLiveIn: phi6[1], phi2[1], phi4[1]\l\
-// LiveOut: phi6[1], phi2[1], phi4[1]\l\nUsed: \l\nv8 := mload(0x00)\l\
-// "];
-// Block0_10 -> Block0_10Exit;
-// Block0_10Exit [label="{ If v8 | { <0> Zero | <1> NonZero }}" shape=Mrecord];
-// Block0_10Exit:0 -> Block0_14 [style="solid"];
-// Block0_10Exit:1 -> Block0_13 [style="solid"];
-// Block0_12 [label="\
-// Block 12; (17, max 17)\nLiveIn: phi4[1], phi2[1]\l\
-// LiveOut: v73[1], phi2[1]\l\nUsed: phi4[1]\l\nv73 := add(phi4, 0x01)\l\
-// ^phi4 := v73\l\
-// "];
-// Block0_12 -> Block0_12Exit [arrowhead=none];
-// Block0_12Exit [label="Jump" shape=oval];
-// Block0_12Exit -> Block0_5 [style="dashed"];
-// Block0_13 [label="\
-// Block 13; (7, max 16)\nLiveIn: phi6[1], phi2[1], phi4[1]\l\
-// LiveOut: phi6[1], phi2[1], phi4[1]\l\nUsed: \l\n^phi9 := 0x00\l\
-// "];
-// Block0_13 -> Block0_13Exit [arrowhead=none];
-// Block0_13Exit [label="Jump" shape=oval];
-// Block0_13Exit -> Block0_15 [style="solid"];
-// Block0_14 [label="\
-// Block 14; (11, max 16)\nLiveIn: phi6[1], phi2[1], phi4[1]\l\
-// LiveOut: phi6[1], phi2[1], phi4[1]\l\nUsed: \l\nv29 := mload(0x01)\l\
-// "];
-// Block0_14 -> Block0_14Exit;
-// Block0_14Exit [label="{ If v29 | { <0> Zero | <1> NonZero }}" shape=Mrecord];
-// Block0_14Exit:0 -> Block0_20 [style="solid"];
-// Block0_14Exit:1 -> Block0_19 [style="solid"];
-// Block0_15 [label="\
-// Block 15; (8, max 16)\nLiveIn: phi9[4], phi6[1], phi2[1], phi4[1]\l\
-// LiveOut: phi9[2], phi6[1], phi2[1], phi4[1]\l\nUsed: phi9[2]\l\nphi9 := φ(^phi9)\l\
-// v10 := lt(phi9, 0x03)\l\
-// "];
-// Block0_15 -> Block0_15Exit;
-// Block0_15Exit [label="{ If v10 | { <0> Zero | <1> NonZero }}" shape=Mrecord];
-// Block0_15Exit:0 -> Block0_18 [style="solid"];
-// Block0_15Exit:1 -> Block0_16 [style="solid"];
-// Block0_19 [label="\
-// Block 19; (12, max 16)\nLiveIn: phi6[1], phi2[1], phi4[1]\l\
-// LiveOut: phi6[1], phi2[1], phi4[1]\l\nUsed: \l\n^phi30 := 0x00\l\
-// "];
-// Block0_19 -> Block0_19Exit [arrowhead=none];
-// Block0_19Exit [label="Jump" shape=oval];
-// Block0_19Exit -> Block0_21 [style="solid"];
-// Block0_20 [label="\
-// Block 20; (16, max 16)\nLiveIn: phi6[1], phi2[1], phi4[1]\l\
-// LiveOut: v59[1], phi2[1], phi4[1]\l\nUsed: phi6[1]\l\nv59 := add(phi6, 0x01)\l\
-// ^phi6 := v59\l\
-// "];
-// Block0_20 -> Block0_20Exit [arrowhead=none];
-// Block0_20Exit [label="Jump" shape=oval];
-// Block0_20Exit -> Block0_9 [style="dashed"];
-// Block0_16 [label="\
-// Block 16; (9, max 9)\nLiveIn: phi9[2], phi6[1], phi2[1], phi4[1]\l\
-// LiveOut: v18[1], phi6[1], phi2[1], phi4[1]\l\nUsed: phi9[2]\l\nv14 := add(phi2, phi4)\l\
-// v15 := add(v14, phi6)\l\
-// sstore(phi9, v15)\l\
-// v18 := add(phi9, 0x01)\l\
-// ^phi9 := v18\l\
-// "];
-// Block0_16 -> Block0_16Exit [arrowhead=none];
-// Block0_16Exit [label="Jump" shape=oval];
-// Block0_16Exit -> Block0_15 [style="dashed"];
-// Block0_18 [label="\
-// Block 18; (10, max 16)\nLiveIn: phi6[1], phi2[1], phi4[1]\l\
-// LiveOut: phi6[1], phi2[1], phi4[1]\l\nUsed: \l\n"];
-// Block0_18 -> Block0_18Exit [arrowhead=none];
-// Block0_18Exit [label="Jump" shape=oval];
-// Block0_18Exit -> Block0_14 [style="solid"];
-// Block0_21 [label="\
-// Block 21; (13, max 16)\nLiveIn: phi30[4], phi6[1], phi2[1], phi4[1]\l\
-// LiveOut: phi30[2], phi6[1], phi2[1], phi4[1]\l\nUsed: phi30[2]\l\nphi30 := φ(^phi30)\l\
-// v31 := lt(phi30, 0x03)\l\
-// "];
-// Block0_21 -> Block0_21Exit;
-// Block0_21Exit [label="{ If v31 | { <0> Zero | <1> NonZero }}" shape=Mrecord];
-// Block0_21Exit:0 -> Block0_24 [style="solid"];
-// Block0_21Exit:1 -> Block0_22 [style="solid"];
-// Block0_22 [label="\
-// Block 22; (14, max 14)\nLiveIn: phi30[2], phi6[1], phi2[1], phi4[1]\l\
-// LiveOut: v38[1], phi6[1], phi2[1], phi4[1]\l\nUsed: phi30[2]\l\nv35 := add(phi2, phi4)\l\
-// v36 := add(v35, phi6)\l\
-// sstore(phi30, v36)\l\
-// v38 := add(phi30, 0x01)\l\
-// ^phi30 := v38\l\
-// "];
-// Block0_22 -> Block0_22Exit [arrowhead=none];
-// Block0_22Exit [label="Jump" shape=oval];
-// Block0_22Exit -> Block0_21 [style="dashed"];
-// Block0_24 [label="\
-// Block 24; (15, max 16)\nLiveIn: phi6[1], phi2[1], phi4[1]\l\
-// LiveOut: phi6[1], phi2[1], phi4[1]\l\nUsed: \l\n"];
-// Block0_24 -> Block0_24Exit [arrowhead=none];
-// Block0_24Exit [label="Jump" shape=oval];
-// Block0_24Exit -> Block0_20 [style="solid"];
-// }

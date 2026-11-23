@@ -19,57 +19,65 @@
     h(y)
 }
 // ----
-// digraph SSACFG {
-// nodesep=0.7;
-// graph[fontname="DejaVu Sans"]
-// node[shape=box,fontname="DejaVu Sans"];
+// #0:
+//     ; dfs 0..0
+//     ; live-in:
+//     ; live-out:
+//     ; used:
+//     v0 = call @i
+//     v1 = proj v0, 0
+//     v2 = proj v0, 1
+//     call @h v1 { nocontinue = true }
+//     terminated
 //
-// Entry [label="Entry"];
-// Entry -> Block0_0;
-// Block0_0 [fillcolor="#FF746C", style=filled, label="\
-// Block 0; (0, max 0)\nLiveIn: \l\
-// LiveOut: \l\nUsed: \l\nv0 := i()\l\
-// v1 := v0.proj(0)\l\
-// v2 := v0.proj(1)\l\
-// h(v1)\l\
-// "];
-// Block0_0Exit [label="Terminated"];
-// Block0_0 -> Block0_0Exit;
-// FunctionEntry_f_0 [label="function f:
-//  [1 returns] := f(v0, v1)"];
-// FunctionEntry_f_0 -> Block1_0;
-// Block1_0 [label="\
-// Block 0; (0, max 0)\nLiveIn: v0[2], v1[1]\l\
-// LiveOut: v4[1]\l\nUsed: v0[2], v1[1]\l\nv3 := add(v0, v1)\l\
-// v4 := sub(v3, v0)\l\
-// "];
-// Block1_0Exit [label="FunctionReturn[v4]"];
-// Block1_0 -> Block1_0Exit;
-// FunctionEntry_g_0 [label="function g:
-//  g()"];
-// FunctionEntry_g_0 -> Block2_0;
-// Block2_0 [label="\
-// Block 0; (0, max 0)\nLiveIn: \l\
-// LiveOut: \l\nUsed: \l\nsstore(0x01, 0x0101)\l\
-// "];
-// Block2_0Exit [label="FunctionReturn[]"];
-// Block2_0 -> Block2_0Exit;
-// FunctionEntry_h_0 [label="function h:
-//  h(v0)"];
-// FunctionEntry_h_0 -> Block3_0;
-// Block3_0 [fillcolor="#FF746C", style=filled, label="\
-// Block 0; (0, max 0)\nLiveIn: v0[1]\l\
-// LiveOut: \l\nUsed: v0[1]\l\nv2 := f(v0, 0x00)\l\
-// h(v2)\l\
-// "];
-// Block3_0Exit [label="Terminated"];
-// Block3_0 -> Block3_0Exit;
-// FunctionEntry_i_0 [label="function i:
-//  [2 returns] := i()"];
-// FunctionEntry_i_0 -> Block4_0;
-// Block4_0 [label="\
-// Block 0; (0, max 0)\nLiveIn: \l\
-// LiveOut: \l\nUsed: \l\n"];
-// Block4_0Exit [label="FunctionReturn[0x0202, 0x0303]"];
-// Block4_0 -> Block4_0Exit;
+// func @f(args: (v0, v1)) -> 1 {
+// #0:
+//     ; dfs 0..0
+//     ; live-in: v0[2], v1[1]
+//     ; live-out: v4[1]
+//     ; used: v0[2], v1[1]
+//     v0 = arg 0
+//     v1 = arg 1
+//     v2 = const 0x00
+//     v3 = builtin @add v0, v1
+//     v4 = builtin @sub v3, v0
+//     return v4
 // }
+//
+// func @g(args: ()) -> 0 {
+// #0:
+//     ; dfs 0..0
+//     ; live-in:
+//     ; live-out:
+//     ; used:
+//     v0 = const 0x0101
+//     v1 = const 0x01
+//     builtin @sstore v1, v0
+//     return
+// }
+//
+// func @h(args: (v0)) -> 0 nocontinue {
+// #0:
+//     ; dfs 0..0
+//     ; live-in: v0[1]
+//     ; live-out:
+//     ; used: v0[1]
+//     v0 = arg 0
+//     v1 = const 0x00
+//     v2 = call @f v0, v1
+//     call @h v2 { nocontinue = true }
+//     terminated
+// }
+//
+// func @i(args: ()) -> 2 {
+// #0:
+//     ; dfs 0..0
+//     ; live-in:
+//     ; live-out:
+//     ; used:
+//     v0 = const 0x00
+//     v1 = const 0x0202
+//     v2 = const 0x0303
+//     return v1, v2
+// }
+//

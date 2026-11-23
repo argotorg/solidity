@@ -29,6 +29,8 @@
 #include <libyul/Object.h>
 #include <libyul/YulStack.h>
 
+#include <fmt/ranges.h>
+
 #ifdef ISOLTEST
 #include <boost/version.hpp>
 #if (BOOST_VERSION < 108800)
@@ -45,9 +47,65 @@ using namespace solidity;
 using namespace solidity::util;
 using namespace solidity::langutil;
 using namespace solidity::yul;
+using namespace solidity::yul::ssa;
 using namespace solidity::yul::test::ssa;
 using namespace solidity::frontend;
 using namespace solidity::frontend::test;
+
+namespace
+{
+
+/// Annotates each block with its interval in the DFS spanning tree, its back edges and its liveness
+class LivenessAnnotator: public io::Annotator
+{
+public:
+	explicit LivenessAnnotator(ControlFlowGraphsLiveness const& _liveness): m_liveness(_liveness) {}
+
+	Lines atBlockEntry(FunctionGraphID const _graphID, BlockId const _blockId) const override
+	{
+		LivenessAnalysis const& liveness = *m_liveness.cfgLiveness[_graphID];
+		SSACFG const& cfg = liveness.cfg();
+		auto const& dfsTree = liveness.dfsTree();
+
+		Lines lines;
+		std::vector<std::string> backEdgeSources;
+		for (BlockId const predecessor: cfg.block(_blockId).entries)
+			if (dfsTree.backEdge(predecessor, _blockId))
+				backEdgeSources.push_back(fmt::format("#{}", predecessor.value));
+		if (!backEdgeSources.empty())
+			lines.push_back(fmt::format("back edge from: {}", fmt::join(backEdgeSources, ", ")));
+		lines.push_back(fmt::format(
+			"dfs {}..{}",
+			dfsTree.preOrderIndexOf(_blockId),
+			dfsTree.maxSubtreePreOrderIndexOf(_blockId)
+		));
+		lines.push_back(formatLiveness("live-in", liveness.liveIn(_blockId), cfg));
+		lines.push_back(formatLiveness("live-out", liveness.liveOut(_blockId), cfg));
+		lines.push_back(formatLiveness("used", liveness.used(_blockId), cfg));
+		return lines;
+	}
+
+private:
+	static std::string formatLiveness(
+		std::string_view const _name,
+		LivenessAnalysis::LivenessData const& _values,
+		SSACFG const& _cfg
+	)
+	{
+		std::string line = fmt::format("{}:", _name);
+		std::string_view separator = " ";
+		for (auto const& [value, count]: _values)
+		{
+			line += fmt::format("{}{}[{}]", separator, value.str(_cfg), count);
+			separator = ", ";
+		}
+		return line;
+	}
+
+	ControlFlowGraphsLiveness const& m_liveness;
+};
+
+}
 
 std::unique_ptr<TestCase> ControlFlowGraphTest::create(Config const& _config) {
 	return std::make_unique<ControlFlowGraphTest>(_config.filename);
@@ -83,7 +141,7 @@ TestCase::TestResult ControlFlowGraphTest::run(std::ostream& _stream, std::strin
 	);
 	yul::ssa::transform::optimize(*controlFlowGraphs);
 	yul::ssa::ControlFlowGraphsLiveness liveness(*controlFlowGraphs);
-	m_obtainedResult = controlFlowGraphs->toDot(&liveness);
+	m_obtainedResult = controlFlowGraphs->print(LivenessAnnotator(liveness));
 
 	auto result = checkResult(_stream, _linePrefix, _formatted);
 
@@ -105,7 +163,7 @@ TestCase::TestResult ControlFlowGraphTest::run(std::ostream& _stream, std::strin
 		boost::process::opstream pipe;
 		boost::process::child child(graphDisplayer, boost::process::std_in < pipe);
 
-		pipe << m_obtainedResult;
+		pipe << controlFlowGraphs->toDot(&liveness);
 		pipe.flush();
 		pipe.pipe().close();
 		if (result == TestResult::Success)

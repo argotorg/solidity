@@ -12,20 +12,19 @@
     sstore(y, 0)
 }
 // ----
-// digraph SSACFG {
-// nodesep=0.7;
-// graph[fontname="DejaVu Sans"]
-// node[shape=box,fontname="DejaVu Sans"];
+// #0:
+//     ; dfs 0..0
+//     ; live-in:
+//     ; live-out:
+//     ; used:
+//     v0 = const 0x03
+//     v1 = builtin @calldataload v0
+//     v2 = const 0x00
+//     v3 = const 0x4d
+//     v5 = const 0x21
+//     v6 = const 0x2a
+//     v7 = builtin @calldataload v6
+//     v14 = builtin @calldataload v7
+//     builtin @sstore v14, v2
+//     main_exit
 //
-// Entry [label="Entry"];
-// Entry -> Block0_0;
-// Block0_0 [fillcolor="#FF746C", style=filled, label="\
-// Block 0; (0, max 0)\nLiveIn: \l\
-// LiveOut: \l\nUsed: \l\nv1 := calldataload(0x03)\l\
-// v7 := calldataload(0x2a)\l\
-// v14 := calldataload(v7)\l\
-// sstore(v14, 0x00)\l\
-// "];
-// Block0_0Exit [label="MainExit"];
-// Block0_0 -> Block0_0Exit;
-// }

@@ -14,60 +14,58 @@
     sstore(x, 0)
 }
 // ----
-// digraph SSACFG {
-// nodesep=0.7;
-// graph[fontname="DejaVu Sans"]
-// node[shape=box,fontname="DejaVu Sans"];
+// #0:
+//     ; dfs 0..5
+//     ; live-in:
+//     ; live-out: v3[1]
+//     ; used:
+//     v0 = const 0x03
+//     v1 = builtin @calldataload v0
+//     v2 = const 0x00
+//     v3 = builtin @sload v2
+//     v4 = builtin @eq v3, v2
+//     v5 = const 0x4d
+//     v7 = const 0x01
+//     v9 = const 0x58
+//     v11 = const 0x63
+//     branch v4, #2, #3
+// #1: preds: #2, #4, #5
+//     ; dfs 2..2
+//     ; live-in: phi13[2]
+//     ; live-out:
+//     ; used: phi13[2]
+//     v13 = phi
+//     builtin @sstore v13, v2
+//     main_exit
+// #2: preds: #0
+//     ; dfs 1..2
+//     ; live-in:
+//     ; live-out: v6[1]
+//     ; used:
+//     v6 = builtin @calldataload v5
+//     upsilon v6 -> ^v13
+//     jump #1
+// #3: preds: #0
+//     ; dfs 3..5
+//     ; live-in: v3[1]
+//     ; live-out:
+//     ; used: v3[1]
+//     v8 = builtin @eq v3, v7
+//     branch v8, #4, #5
+// #4: preds: #3
+//     ; dfs 4..4
+//     ; live-in:
+//     ; live-out: v10[1]
+//     ; used:
+//     v10 = builtin @calldataload v9
+//     upsilon v10 -> ^v13
+//     jump #1
+// #5: preds: #3
+//     ; dfs 5..5
+//     ; live-in:
+//     ; live-out: v12[1]
+//     ; used:
+//     v12 = builtin @calldataload v11
+//     upsilon v12 -> ^v13
+//     jump #1
 //
-// Entry [label="Entry"];
-// Entry -> Block0_0;
-// Block0_0 [label="\
-// Block 0; (0, max 5)\nLiveIn: \l\
-// LiveOut: v3[1]\l\nUsed: \l\nv1 := calldataload(0x03)\l\
-// v3 := sload(0x00)\l\
-// v4 := eq(v3, 0x00)\l\
-// "];
-// Block0_0 -> Block0_0Exit;
-// Block0_0Exit [label="{ If v4 | { <0> Zero | <1> NonZero }}" shape=Mrecord];
-// Block0_0Exit:0 -> Block0_3 [style="solid"];
-// Block0_0Exit:1 -> Block0_2 [style="solid"];
-// Block0_2 [label="\
-// Block 2; (1, max 2)\nLiveIn: \l\
-// LiveOut: v6[1]\l\nUsed: \l\nv6 := calldataload(0x4d)\l\
-// ^phi13 := v6\l\
-// "];
-// Block0_2 -> Block0_2Exit [arrowhead=none];
-// Block0_2Exit [label="Jump" shape=oval];
-// Block0_2Exit -> Block0_1 [style="solid"];
-// Block0_3 [label="\
-// Block 3; (3, max 5)\nLiveIn: v3[1]\l\
-// LiveOut: \l\nUsed: v3[1]\l\nv8 := eq(v3, 0x01)\l\
-// "];
-// Block0_3 -> Block0_3Exit;
-// Block0_3Exit [label="{ If v8 | { <0> Zero | <1> NonZero }}" shape=Mrecord];
-// Block0_3Exit:0 -> Block0_5 [style="solid"];
-// Block0_3Exit:1 -> Block0_4 [style="solid"];
-// Block0_1 [label="\
-// Block 1; (2, max 2)\nLiveIn: phi13[2]\l\
-// LiveOut: \l\nUsed: phi13[2]\l\nphi13 := φ(^phi13)\l\
-// sstore(phi13, 0x00)\l\
-// "];
-// Block0_1Exit [label="MainExit"];
-// Block0_1 -> Block0_1Exit;
-// Block0_4 [label="\
-// Block 4; (4, max 4)\nLiveIn: \l\
-// LiveOut: v10[1]\l\nUsed: \l\nv10 := calldataload(0x58)\l\
-// ^phi13 := v10\l\
-// "];
-// Block0_4 -> Block0_4Exit [arrowhead=none];
-// Block0_4Exit [label="Jump" shape=oval];
-// Block0_4Exit -> Block0_1 [style="solid"];
-// Block0_5 [label="\
-// Block 5; (5, max 5)\nLiveIn: \l\
-// LiveOut: v12[1]\l\nUsed: \l\nv12 := calldataload(0x63)\l\
-// ^phi13 := v12\l\
-// "];
-// Block0_5 -> Block0_5Exit [arrowhead=none];
-// Block0_5Exit [label="Jump" shape=oval];
-// Block0_5Exit -> Block0_1 [style="solid"];
-// }

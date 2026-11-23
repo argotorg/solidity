@@ -5,20 +5,18 @@
     sstore(q, 1)
 }
 // ----
-// digraph SSACFG {
-// nodesep=0.7;
-// graph[fontname="DejaVu Sans"]
-// node[shape=box,fontname="DejaVu Sans"];
+// memoryguard = 0x80
 //
-// Entry [label="Entry"];
-// Entry -> Block0_0;
-// Block0_0 [fillcolor="#FF746C", style=filled, label="\
-// Block 0; (0, max 0)\nLiveIn: \l\
-// LiveOut: \l\nUsed: \l\nv0 := memoryguard<0x80>()\l\
-// mstore(v0, 0x2a)\l\
-// v3 := memoryguard<0x80>()\l\
-// sstore(v3, 0x01)\l\
-// "];
-// Block0_0Exit [label="MainExit"];
-// Block0_0 -> Block0_0Exit;
-// }
+// #0:
+//     ; dfs 0..0
+//     ; live-in:
+//     ; live-out:
+//     ; used:
+//     v0 = memoryguard
+//     v1 = const 0x2a
+//     builtin @mstore v0, v1
+//     v3 = memoryguard
+//     v4 = const 0x01
+//     builtin @sstore v3, v4
+//     main_exit
+//

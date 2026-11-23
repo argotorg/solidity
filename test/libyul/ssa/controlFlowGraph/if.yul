@@ -7,43 +7,40 @@
     sstore(y, 0)
 }
 // ----
-// digraph SSACFG {
-// nodesep=0.7;
-// graph[fontname="DejaVu Sans"]
-// node[shape=box,fontname="DejaVu Sans"];
+// #0:
+//     ; dfs 0..3
+//     ; live-in:
+//     ; live-out: v1[1]
+//     ; used:
+//     v0 = const 0x03
+//     v1 = builtin @calldataload v0
+//     v2 = const 0x2a
+//     v3 = builtin @mload v2
+//     v4 = const 0x4d
+//     v10 = const 0x00
+//     branch v3, #1, #3
+// #1: preds: #0
+//     ; dfs 1..2
+//     ; live-in:
+//     ; live-out: v5[1]
+//     ; used:
+//     v5 = builtin @calldataload v4
+//     upsilon v5 -> ^v6
+//     jump #2
+// #2: preds: #3, #1
+//     ; dfs 2..2
+//     ; live-in: phi6[2]
+//     ; live-out:
+//     ; used: phi6[2]
+//     v6 = phi
+//     v9 = builtin @calldataload v6
+//     builtin @sstore v9, v10
+//     main_exit
+// #3: preds: #0
+//     ; dfs 3..3
+//     ; live-in: v1[1]
+//     ; live-out: v1[1]
+//     ; used:
+//     upsilon v1 -> ^v6
+//     jump #2
 //
-// Entry [label="Entry"];
-// Entry -> Block0_0;
-// Block0_0 [label="\
-// Block 0; (0, max 3)\nLiveIn: \l\
-// LiveOut: v1[1]\l\nUsed: \l\nv1 := calldataload(0x03)\l\
-// v3 := mload(0x2a)\l\
-// "];
-// Block0_0 -> Block0_0Exit;
-// Block0_0Exit [label="{ If v3 | { <0> Zero | <1> NonZero }}" shape=Mrecord];
-// Block0_0Exit:0 -> Block0_3 [style="solid"];
-// Block0_0Exit:1 -> Block0_1 [style="solid"];
-// Block0_1 [label="\
-// Block 1; (1, max 2)\nLiveIn: \l\
-// LiveOut: v5[1]\l\nUsed: \l\nv5 := calldataload(0x4d)\l\
-// ^phi6 := v5\l\
-// "];
-// Block0_1 -> Block0_1Exit [arrowhead=none];
-// Block0_1Exit [label="Jump" shape=oval];
-// Block0_1Exit -> Block0_2 [style="solid"];
-// Block0_3 [label="\
-// Block 3; (3, max 3)\nLiveIn: v1[1]\l\
-// LiveOut: v1[1]\l\nUsed: \l\n^phi6 := v1\l\
-// "];
-// Block0_3 -> Block0_3Exit [arrowhead=none];
-// Block0_3Exit [label="Jump" shape=oval];
-// Block0_3Exit -> Block0_2 [style="solid"];
-// Block0_2 [label="\
-// Block 2; (2, max 2)\nLiveIn: phi6[2]\l\
-// LiveOut: \l\nUsed: phi6[2]\l\nphi6 := φ(^phi6)\l\
-// v9 := calldataload(phi6)\l\
-// sstore(v9, 0x00)\l\
-// "];
-// Block0_2Exit [label="MainExit"];
-// Block0_2 -> Block0_2Exit;
-// }
