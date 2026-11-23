@@ -21,7 +21,10 @@
 
 #pragma once
 
+#include <libyul/backends/evm/ssa/SSACFGTypes.h>
+
 #include <string>
+#include <vector>
 
 namespace solidity::yul::ssa
 {
@@ -33,7 +36,24 @@ struct ControlFlowGraphs;
 namespace solidity::yul::ssa::io
 {
 
+/// Lines that `print` adds to its output, each as `    ; <line>`. They are not part of the grammar.
+class Annotator
+{
+public:
+	using Lines = std::vector<std::string>;
+
+	virtual ~Annotator() = default;
+	/// Lines in front of the first block of a graph
+	virtual Lines atGraph(FunctionGraphID) const { return {}; }
+	/// Lines below the header of a block
+	virtual Lines atBlockEntry(FunctionGraphID, BlockId) const { return {}; }
+	/// Lines in front of an instruction
+	virtual Lines atInstruction(FunctionGraphID, InstId) const { return {}; }
+	/// Lines in front of the exit of a block
+	virtual Lines atExit(FunctionGraphID, BlockId) const { return {}; }
+};
+
 /// Produces a textual rendering of `_cfgs`
-void print(std::ostream& _out, ControlFlowGraphs const& _cfgs);
+void print(std::ostream& _out, ControlFlowGraphs const& _cfgs, Annotator const& _annotator = {});
 
 }

@@ -263,12 +263,20 @@ void printExit(std::ostream& _out, SSACFG const& _cfg, SSACFG::BasicBlock const&
 	}, _block.exit);
 }
 
+void printAnnotations(std::ostream& _out, Annotator::Lines const& _lines)
+{
+	for (std::string const& line: _lines)
+		_out << fmt::format("    ; {}\n", line);
+}
+
 void printBlock(
 	std::ostream& _out,
 	ControlFlowGraphs const& _module,
 	SSACFG const& _cfg,
 	BlockId const _id,
-	std::unordered_map<InstId::ValueType, std::size_t> const& _argIndex
+	std::unordered_map<InstId::ValueType, std::size_t> const& _argIndex,
+	FunctionGraphID const _graphID,
+	Annotator const& _annotator
 )
 {
 	auto const& block = _cfg.block(_id);
@@ -282,14 +290,25 @@ void printBlock(
 		);
 	else
 		_out << fmt::format("{}:\n", formatBlockRef(_id));
+	printAnnotations(_out, _annotator.atBlockEntry(_graphID, _id));
 
 	for (InstId const id: block.instructions)
+	{
+		printAnnotations(_out, _annotator.atInstruction(_graphID, id));
 		printInstruction(_out, _module, _cfg, id, _argIndex);
+	}
 
+	printAnnotations(_out, _annotator.atExit(_graphID, _id));
 	printExit(_out, _cfg, block);
 }
 
-void printGraph(std::ostream& _out, ControlFlowGraphs const& _module, SSACFG const& _cfg)
+void printGraph(
+	std::ostream& _out,
+	ControlFlowGraphs const& _module,
+	SSACFG const& _cfg,
+	FunctionGraphID const _graphID,
+	Annotator const& _annotator
+)
 {
 	bool const wrapIntoFunc = !_cfg.isMainGraph();
 
@@ -307,13 +326,14 @@ void printGraph(std::ostream& _out, ControlFlowGraphs const& _module, SSACFG con
 			_out << fmt::format(" {}", Keyword::NoContinue);
 		_out << " {\n";
 	}
+	printAnnotations(_out, _annotator.atGraph(_graphID));
 
 	std::unordered_map<InstId::ValueType, std::size_t> argIndex;
 	for (std::size_t pos = 0; pos < _cfg.arguments.size(); ++pos)
 		argIndex.emplace(_cfg.arguments[pos].value, pos);
 
 	for (BlockId const id: _cfg.liveBlocks())
-		printBlock(_out, _module, _cfg, id, argIndex);
+		printBlock(_out, _module, _cfg, id, argIndex, _graphID, _annotator);
 
 	if (wrapIntoFunc)
 		_out << "}\n";
@@ -321,7 +341,7 @@ void printGraph(std::ostream& _out, ControlFlowGraphs const& _module, SSACFG con
 
 }
 
-void io::print(std::ostream& _out, ControlFlowGraphs const& _cfgs)
+void io::print(std::ostream& _out, ControlFlowGraphs const& _cfgs, Annotator const& _annotator)
 {
 	if (_cfgs.memoryGuard)
 		_out << fmt::format(
@@ -330,9 +350,9 @@ void io::print(std::ostream& _out, ControlFlowGraphs const& _cfgs)
 			toCompactHexWithPrefix(*_cfgs.memoryGuard)
 		);
 
-	for (auto const& graph: _cfgs.functionGraphs)
+	for (FunctionGraphID graphID = 0; graphID < _cfgs.functionGraphs.size(); ++graphID)
 	{
-		printGraph(_out, _cfgs, *graph);
+		printGraph(_out, _cfgs, *_cfgs.functionGraphs[graphID], graphID, _annotator);
 		_out << '\n';
 	}
 }

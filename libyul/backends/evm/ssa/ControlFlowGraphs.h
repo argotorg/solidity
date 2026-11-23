@@ -73,10 +73,10 @@ struct ControlFlowGraphs
 		return output.str();
 	}
 
-	std::string print() const
+	std::string print(io::Annotator const& _annotator = {}) const
 	{
 		std::ostringstream output;
-		io::print(output, *this);
+		io::print(output, *this, _annotator);
 		return output.str();
 	}
 
