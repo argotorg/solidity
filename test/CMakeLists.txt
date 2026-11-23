@@ -63,8 +63,8 @@ detect_stray_source_files("${libevmasm_sources}" "libevmasm/")
 set(liblangutil_sources
     liblangutil/CharStream.cpp
     liblangutil/EthdebugJson.cpp
-    liblangutil/EthdebugResourcesTest.cpp
-    liblangutil/EthdebugResourcesTest.h
+    liblangutil/EthdebugJsonTest.cpp
+    liblangutil/EthdebugJsonTest.h
     liblangutil/Scanner.cpp
     liblangutil/SemanticDebugDataTable.cpp
     liblangutil/SourceLocation.cpp
