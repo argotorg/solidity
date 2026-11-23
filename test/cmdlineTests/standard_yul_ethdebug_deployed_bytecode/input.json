@@ -7,7 +7,7 @@
 	    "debug": {"debugInfo": ["location", "snippet", "ast-id", "ethdebug"]},
 		"experimental": true,
 		"outputSelection": {
-			"*": {"*": ["evm.deployedBytecode.ethdebug", "ethdebug.resources"]}
+			"*": {"*": ["evm.deployedBytecode.ethdebug"]}
 		}
 	}
 }

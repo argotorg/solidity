@@ -11,7 +11,7 @@
 		"experimental": true,
 		"debug": {"debugInfo": ["ast-id", "ethdebug"]},
 		"outputSelection": {
-			"*": {"*": ["ir", "irOptimized", "evm.bytecode.ethdebug", "ethdebug.resources"]}
+			"*": {"*": ["ir", "irOptimized", "evm.bytecode.ethdebug"]}
 		}
 	}
 }
