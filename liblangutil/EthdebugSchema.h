@@ -26,6 +26,7 @@
 #include <map>
 #include <memory>
 #include <optional>
+#include <set>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -733,6 +734,14 @@ Pointer::Template templateFromJSON(Json const& _json, std::string_view _path, Po
 /// Whether @a _pointer, including the templates it defines locally,
 /// contains a compiler-internal expression such as YulLocal.
 bool hasInternalExpression(Pointer const& _pointer);
+
+/// The names @a _pointer reads and nothing inside it binds: Yul locals and
+/// variables that no scope definition or list index binds. Template
+/// references use the enclosing templates blocks and @a _templates;
+/// their expected parameters must be bound at the reference. Yul locals
+/// remain dependencies even if a pointer variable has the same name.
+/// Unknown templates contribute no names; their validation is separate.
+std::set<std::string> freeNames(Pointer const& _pointer, std::map<std::string, Pointer::Template> const& _templates);
 
 namespace info
 {

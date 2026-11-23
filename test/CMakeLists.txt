@@ -65,6 +65,7 @@ set(liblangutil_sources
     liblangutil/EthdebugJson.cpp
     liblangutil/EthdebugJsonTest.cpp
     liblangutil/EthdebugJsonTest.h
+    liblangutil/EthdebugPointerDependencies.cpp
     liblangutil/Scanner.cpp
     liblangutil/SemanticDebugDataTable.cpp
     liblangutil/SourceLocation.cpp
