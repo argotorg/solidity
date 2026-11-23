@@ -1,6 +1,11 @@
 contract C {
     fixed128x18 signed;
     ufixed8x1 small;
+    fixed8x0 signedZeroPlaces;
+    ufixed256x0 unsignedZeroPlaces;
+    fixed256x80 signedMaxPlaces;
+    fixed signedDefault;
+    ufixed unsignedDefault;
 }
 // ----
 // .resources.types | keys: ["t_fixed128x18","t_ufixed8x1"]
