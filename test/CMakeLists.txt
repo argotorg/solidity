@@ -66,6 +66,7 @@ set(liblangutil_sources
     liblangutil/EthdebugResourcesTest.cpp
     liblangutil/EthdebugResourcesTest.h
     liblangutil/Scanner.cpp
+    liblangutil/SemanticDebugDataTable.cpp
     liblangutil/SourceLocation.cpp
 )
 detect_stray_source_files("${liblangutil_sources}" "liblangutil/")
