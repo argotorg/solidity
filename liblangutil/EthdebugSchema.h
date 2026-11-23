@@ -182,8 +182,8 @@ struct Type
 	/// of 8 up to 256.
 	static bool isValidWidth(unsigned _bits) { return _bits >= 8 && _bits <= 256 && _bits % 8 == 0; }
 	/// @returns whether @a _places is a number of decimal places the fixed-point
-	/// kinds allow: between 1 and 80.
-	static bool isValidPlaces(unsigned _places) { return _places >= 1 && _places <= 80; }
+	/// kinds allow: at most 80.
+	static bool isValidPlaces(unsigned _places) { return _places <= 80; }
 
 	// Elementary kinds
 	struct UInt

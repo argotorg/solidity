@@ -93,29 +93,29 @@ schema::Type::Definition::Definition(std::optional<std::string> _name, std::opti
 schema::Type::UInt::UInt(unsigned _bits):
 	bits(_bits)
 {
-	solAssert(isValidWidth(bits), "Type width must be a multiple of 8 bits up to 256.");
+	solAssert(isValidWidth(bits));
 }
 
 schema::Type::Int::Int(unsigned _bits):
 	bits(_bits)
 {
-	solAssert(isValidWidth(bits), "Type width must be a multiple of 8 bits up to 256.");
+	solAssert(isValidWidth(bits));
 }
 
 schema::Type::UFixed::UFixed(unsigned _bits, unsigned _places):
 	bits(_bits),
 	places(_places)
 {
-	solAssert(isValidWidth(bits), "Type width must be a multiple of 8 bits up to 256.");
-	solAssert(isValidPlaces(places), "Fixed point type must have between 1 and 80 decimal places.");
+	solAssert(isValidWidth(bits));
+	solAssert(isValidPlaces(places));
 }
 
 schema::Type::Fixed::Fixed(unsigned _bits, unsigned _places):
 	bits(_bits),
 	places(_places)
 {
-	solAssert(isValidWidth(bits), "Type width must be a multiple of 8 bits up to 256.");
-	solAssert(isValidPlaces(places), "Fixed point type must have between 1 and 80 decimal places.");
+	solAssert(isValidWidth(bits));
+	solAssert(isValidPlaces(places));
 }
 
 bool schema::Pointer::isIdentifier(std::string_view _text)
