@@ -12,9 +12,13 @@ Breaking Changes:
 AST Changes:
 * AST: Remove the `virtual`, `overrides`, and `baseModifiers` fields from `ModifierDefinition` nodes.
 * AST: Remove `isConstant` field from `ExpressionAnnotation`.
+* AST: Index and member accesses into constants and other compile-time constant expressions (e.g. `B[0]` or `[1, 2][0]`) now have `isLValue` set to `false`, also when they are only read.
 
 Language Features:
 * ABIEncoder: Remove support for the experimental pragma `ABIEncoderV2`. This pragma was redundant.
+
+Bugfixes:
+* Type Checker: Disallow assigning to elements or members of constants and other compile-time constant expressions (e.g. `B[0] = "x"` or `[X][0] = 1`, where `B` and `X` are constants), which previously compiled but the write had no effect. Note that the rest of such a statement did take effect, e.g. the call to `g()` in `[X][0] = g();` or the assignment to `y` in `([X][0], y) = (1, 2);`.
 
 
 ### 0.8.40 (unreleased)

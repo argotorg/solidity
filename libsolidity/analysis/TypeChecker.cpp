@@ -3178,7 +3178,9 @@ bool TypeChecker::visit(MemberAccess const& _memberAccess)
 	{
 		auto const* owningObjectStructType = dynamic_cast<StructType const*>(owningObjectType);
 		solAssert(owningObjectStructType);
-		_memberAccess.annotation().isLValue = !owningObjectStructType->dataStoredIn(DataLocation::CallData);
+		_memberAccess.annotation().isLValue =
+			!owningObjectStructType->dataStoredIn(DataLocation::CallData) &&
+			!*_memberAccess.expression().annotation().isPure;
 		break;
 	}
 	case Type::Category::Function:
@@ -3448,7 +3450,8 @@ bool TypeChecker::visit(IndexAccess const& _access)
 				}
 		}
 		resultType = actualType.baseType();
-		isLValue = actualType.location() != DataLocation::CallData;
+		// A pure base is a fresh copy (e.g. a constant), so writing into it would have no effect.
+		isLValue = actualType.location() != DataLocation::CallData && !isPure;
 		break;
 	}
 	case Type::Category::Mapping:
@@ -4155,10 +4158,13 @@ void TypeChecker::requireLValue(Expression const& _expression)
 	_expression.annotation().willBeWrittenTo = true;
 	_expression.accept(*this);
 
+	// A pure expression is a fresh value, so a write into it would be lost.
+	solAssert(!(*_expression.annotation().isLValue && *_expression.annotation().isPure));
 	if (*_expression.annotation().isLValue)
 		return;
 
 	auto [errorId, description] = [&]() -> std::tuple<ErrorId, std::string> {
+		// Before the constant checks, so writing a byte of a `bytesNN` constant gets the fixed bytes error.
 		if (auto indexAccess = dynamic_cast<IndexAccess const*>(&_expression))
 		{
 			if (type(indexAccess->baseExpression())->category() == Type::Category::FixedBytes)
@@ -4176,18 +4182,38 @@ void TypeChecker::requireLValue(Expression const& _expression)
 					return { 4156_error, "Calldata structs are read-only." };
 			}
 			else if (dynamic_cast<ArrayType const*>(type(memberAccess->expression())))
+				// Writing `.length` is an attempt to resize the array
 				if (memberAccess->memberName() == "length")
 					return { 7567_error, "Member \"length\" is read-only and cannot be used to resize arrays." };
 		}
 
-		if (auto identifier = dynamic_cast<Identifier const*>(&_expression))
+		// Accesses into a pure base are not lvalues. Find the base to give a specific error.
+		Expression const* base = nullptr;
+		if (auto indexAccess = dynamic_cast<IndexAccess const*>(&_expression))
+		{
+			if (dynamic_cast<ArrayType const*>(type(indexAccess->baseExpression())))
+				base = &indexAccess->baseExpression();
+		}
+		else if (auto memberAccess = dynamic_cast<MemberAccess const*>(&_expression))
+			if (dynamic_cast<StructType const*>(type(memberAccess->expression())))
+				base = &memberAccess->expression();
+
+		// Look through parentheses, e.g. `(CONST)[0]`, but not inline arrays: `[CONST][0]` indexes a new array.
+		while (auto const* tuple = dynamic_cast<TupleExpression const*>(base))
+			if (!tuple->isInlineArray() && tuple->components().size() == 1)
+				base = tuple->components().front().get();
+			else
+				break;
+
+		// `CONST = ...` and `CONST[0] = ...`, but not the library constant `L.CONST[0]`.
+		if (auto identifier = dynamic_cast<Identifier const*>(base ? base : &_expression))
 			if (auto varDecl = dynamic_cast<VariableDeclaration const*>(identifier->annotation().referencedDeclaration))
-			{
 				if (varDecl->isConstant())
 					return { 6520_error, "Cannot assign to a constant variable." };
-				if (varDecl->isExternalCallableParameter() && dynamic_cast<ReferenceType const*>(identifier->annotation().type))
-					return { 7128_error, "External function arguments of reference type are read-only." };
-			}
+
+		// Any other pure base, e.g. `[CONST][0]`, `L.CONST[0]` or `abi.encode(1)[0]`.
+		if (base && *base->annotation().isPure)
+			return { 5986_error, "Cannot modify part of a temporary value, the change would be lost." };
 
 		return { 4247_error, "Expression has to be an lvalue." };
 	}();
