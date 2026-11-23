@@ -23,6 +23,9 @@ set(sources
 	Scanner.cpp
 	Scanner.h
 	CharStreamProvider.h
+	SemanticDebugData.h
+	SemanticDebugDataTable.cpp
+	SemanticDebugDataTable.h
 	SemVerHandler.cpp
 	SemVerHandler.h
 	SourceLocation.h
