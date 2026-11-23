@@ -12,58 +12,36 @@
     revert_wrapper(42, 1)
 }
 // ----
-// digraph SSACFG {
-// nodesep=0.7;
-// graph[fontname="DejaVu Sans", rankdir=LR]
-// node[shape=box,fontname="DejaVu Sans"];
+// object "object"
+//     ; spilled: {}
+// #0:
+//     ; in: []
+//     v0 = const 0x01
+//     v1 = const 0x2a
+//     ; [FunctionCallReturnLabel[0], lit0, lit1]
+//     call @revert_wrapper v1, v0
+//     ; out: []
+//     main_exit
 //
-// Entry [label="Entry
-// spilled: {}"];
-// Entry -> Block0_0;
-// Block0_0 [label="\
-// IN: []\l\
-// \l\
-// [FunctionCallReturnLabel[0], lit0, lit1]\l\
-// revert_wrapper\l\
-// []\l\
-// \l\
-// OUT: []\l\
-// "];
-// Block0_0Exit [label="MainExit"];
-// Block0_0 -> Block0_0Exit;
-// FunctionEntry_revert_wrapper_0 [label="function revert_wrapper:
-//  revert_wrapper(v0, v1)
-// spilled: {}"];
-// FunctionEntry_revert_wrapper_0 -> Block1_0;
-// Block1_0 [label="\
-// IN: [ReturnLabel[1], v1, v0]\l\
-// \l\
-// [ReturnLabel[1], v0, v1]\l\
-// iszero\l\
-// [ReturnLabel[1], v0, v2]\l\
-// \l\
-// OUT: [ReturnLabel[1], v0, v2]\l\
-// "];
-// Block1_0 -> Block1_0Exit;
-// Block1_0Exit [label="{ If v2 | { <0> Zero | <1> NonZero }}" shape=Mrecord];
-// Block1_0Exit:0 -> Block1_2 [style="solid"];
-// Block1_0Exit:1 -> Block1_1 [style="solid"];
-// Block1_1 [label="\
-// IN: [ReturnLabel[1], v0]\l\
-// \l\
-// [ReturnLabel[1], v0, v0]\l\
-// revert\l\
-// [ReturnLabel[1]]\l\
-// \l\
-// OUT: [ReturnLabel[1]]\l\
-// "];
-// Block1_1Exit [label="Terminated"];
-// Block1_1 -> Block1_1Exit;
-// Block1_2 [label="\
-// IN: [ReturnLabel[1], JUNK]\l\
-// \l\
-// OUT: [ReturnLabel[1]]\l\
-// "];
-// Block1_2Exit [label="FunctionReturn[]"];
-// Block1_2 -> Block1_2Exit;
+// func @revert_wrapper(args: (v0, v1)) -> 0 {
+//     ; spilled: {}
+// #0:
+//     ; in: [ReturnLabel[1], v1, v0]
+//     v0 = arg 0
+//     v1 = arg 1
+//     ; [ReturnLabel[1], v0, v1]
+//     v2 = builtin @iszero v1
+//     ; out: [ReturnLabel[1], v0, v2]
+//     branch v2, #1, #2
+// #1: preds: #0
+//     ; in: [ReturnLabel[1], v0]
+//     ; [ReturnLabel[1], v0, v0]
+//     builtin @revert v0, v0
+//     ; out: [ReturnLabel[1]]
+//     terminated
+// #2: preds: #0
+//     ; in: [ReturnLabel[1], JUNK]
+//     ; out: [ReturnLabel[1]]
+//     return
 // }
+//

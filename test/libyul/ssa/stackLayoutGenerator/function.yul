@@ -21,91 +21,68 @@
     g()
 }
 // ----
-// digraph SSACFG {
-// nodesep=0.7;
-// graph[fontname="DejaVu Sans", rankdir=LR]
-// node[shape=box,fontname="DejaVu Sans"];
+// object "object"
+//     ; spilled: {}
+// #0:
+//     ; in: []
+//     ; [FunctionCallReturnLabel[0]]
+//     v0 = call @i
+//     v1 = proj v0, 0
+//     v2 = proj v0, 1
+//     ; [v2, v1]
+//     call @h v1 { nocontinue = true }
+//     ; out: [v2]
+//     terminated
 //
-// Entry [label="Entry
-// spilled: {}"];
-// Entry -> Block0_0;
-// Block0_0 [label="\
-// IN: []\l\
-// \l\
-// [FunctionCallReturnLabel[0]]\l\
-// i\l\
-// [v1, v2]\l\
-// \l\
-// [v2, v1]\l\
-// h\l\
-// [v2]\l\
-// \l\
-// OUT: [v2]\l\
-// "];
-// Block0_0Exit [label="Terminated"];
-// Block0_0 -> Block0_0Exit;
-// FunctionEntry_f_0 [label="function f:
-//  [1 returns] := f(v0, v1)
-// spilled: {}"];
-// FunctionEntry_f_0 -> Block1_0;
-// Block1_0 [label="\
-// IN: [ReturnLabel[1], v1, v0]\l\
-// \l\
-// [ReturnLabel[1], v0, v1, v0]\l\
-// add\l\
-// [ReturnLabel[1], v0, v3]\l\
-// \l\
-// [ReturnLabel[1], v0, v3]\l\
-// sub\l\
-// [ReturnLabel[1], v4]\l\
-// \l\
-// OUT: [v4, ReturnLabel[1]]\l\
-// "];
-// Block1_0Exit [label="FunctionReturn[v4]"];
-// Block1_0 -> Block1_0Exit;
-// FunctionEntry_g_0 [label="function g:
-//  g()
-// spilled: {}"];
-// FunctionEntry_g_0 -> Block2_0;
-// Block2_0 [label="\
-// IN: [ReturnLabel[2]]\l\
-// \l\
-// [ReturnLabel[2], lit0, lit1]\l\
-// sstore\l\
-// [ReturnLabel[2]]\l\
-// \l\
-// OUT: [ReturnLabel[2]]\l\
-// "];
-// Block2_0Exit [label="FunctionReturn[]"];
-// Block2_0 -> Block2_0Exit;
-// FunctionEntry_h_0 [label="function h:
-//  h(v0)
-// spilled: {}"];
-// FunctionEntry_h_0 -> Block3_0;
-// Block3_0 [label="\
-// IN: [v0]\l\
-// \l\
-// [FunctionCallReturnLabel[0], lit1, v0]\l\
-// f\l\
-// [v2]\l\
-// \l\
-// [v2]\l\
-// h\l\
-// []\l\
-// \l\
-// OUT: []\l\
-// "];
-// Block3_0Exit [label="Terminated"];
-// Block3_0 -> Block3_0Exit;
-// FunctionEntry_i_0 [label="function i:
-//  [2 returns] := i()
-// spilled: {}"];
-// FunctionEntry_i_0 -> Block4_0;
-// Block4_0 [label="\
-// IN: [ReturnLabel[4]]\l\
-// \l\
-// OUT: [lit1, lit2, ReturnLabel[4]]\l\
-// "];
-// Block4_0Exit [label="FunctionReturn[0x0202, 0x0303]"];
-// Block4_0 -> Block4_0Exit;
+// func @f(args: (v0, v1)) -> 1 {
+//     ; spilled: {}
+// #0:
+//     ; in: [ReturnLabel[1], v1, v0]
+//     v0 = arg 0
+//     v1 = arg 1
+//     v2 = const 0x00
+//     ; [ReturnLabel[1], v0, v1, v0]
+//     v3 = builtin @add v0, v1
+//     ; [ReturnLabel[1], v0, v3]
+//     v4 = builtin @sub v3, v0
+//     ; out: [v4, ReturnLabel[1]]
+//     return v4
 // }
+//
+// func @g(args: ()) -> 0 {
+//     ; spilled: {}
+// #0:
+//     ; in: [ReturnLabel[2]]
+//     v0 = const 0x0101
+//     v1 = const 0x01
+//     ; [ReturnLabel[2], lit0, lit1]
+//     builtin @sstore v1, v0
+//     ; out: [ReturnLabel[2]]
+//     return
+// }
+//
+// func @h(args: (v0)) -> 0 nocontinue {
+//     ; spilled: {}
+// #0:
+//     ; in: [v0]
+//     v0 = arg 0
+//     v1 = const 0x00
+//     ; [FunctionCallReturnLabel[0], lit1, v0]
+//     v2 = call @f v0, v1
+//     ; [v2]
+//     call @h v2 { nocontinue = true }
+//     ; out: []
+//     terminated
+// }
+//
+// func @i(args: ()) -> 2 {
+//     ; spilled: {}
+// #0:
+//     ; in: [ReturnLabel[4]]
+//     v0 = const 0x00
+//     v1 = const 0x0202
+//     v2 = const 0x0303
+//     ; out: [lit1, lit2, ReturnLabel[4]]
+//     return v1, v2
+// }
+//

@@ -123,6 +123,72 @@ private:
 	ControlFlowGraphs const& m_controlFlow;
 };
 
+/// Annotates each graph with its spill set and each block with its stack at the entry, in front of
+/// every operation and in front of the exit
+class StackLayoutAnnotator: public io::Annotator
+{
+public:
+	/// Adds the next graph, replaying the recorded shuffles of each of its blocks from the stack-in
+	void addGraph(SSACFG const& _cfg, SSACFGStackLayout const& _layout, spill::SpillSet const& _spillSet)
+	{
+		Graph& graph = m_graphs.emplace_back();
+		graph.spilled = fmt::format("spilled: {{{}}}", fmt::join(_spillSet.spilledValues(), ", "));
+		for (SSACFG::BlockId const blockId: _cfg.liveBlocks())
+		{
+			auto const& block = _cfg.block(blockId);
+			auto const& blockLayout = _layout[blockId];
+			yulAssert(blockLayout.has_value());
+			yulAssert(blockLayout->operationShuffles.size() == block.instructions.size());
+
+			StackData stack = blockLayout->stackIn;
+			graph.stackIn[blockId] = "in: " + stackToString(stack);
+			for (auto const& [instId, trace]: ranges::views::zip(block.instructions, blockLayout->operationShuffles))
+			{
+				if (!_cfg.isOperation(instId))
+					continue;
+				replay(stack, trace);
+				graph.operationStackIn[instId] = stackToString(stack);
+				applyOperation(_cfg, instId, stack);
+			}
+			replay(stack, blockLayout->exitShuffle);
+			graph.stackOut[blockId] = "out: " + stackToString(stack);
+		}
+	}
+
+	Lines atGraph(FunctionGraphID const _graphID) const override
+	{
+		return {m_graphs.at(_graphID).spilled};
+	}
+
+	Lines atBlockEntry(FunctionGraphID const _graphID, BlockId const _blockId) const override
+	{
+		return {m_graphs.at(_graphID).stackIn.at(_blockId)};
+	}
+
+	Lines atInstruction(FunctionGraphID const _graphID, InstId const _instId) const override
+	{
+		auto const& stacks = m_graphs.at(_graphID).operationStackIn;
+		auto const it = stacks.find(_instId);
+		return it == stacks.end() ? Lines{} : Lines{it->second};
+	}
+
+	Lines atExit(FunctionGraphID const _graphID, BlockId const _blockId) const override
+	{
+		return {m_graphs.at(_graphID).stackOut.at(_blockId)};
+	}
+
+private:
+	struct Graph
+	{
+		std::string spilled;
+		std::map<BlockId, std::string> stackIn;
+		std::map<InstId, std::string> operationStackIn;
+		std::map<BlockId, std::string> stackOut;
+	};
+
+	std::vector<Graph> m_graphs;
+};
+
 }
 
 std::unique_ptr<frontend::test::TestCase> StackLayoutGeneratorTest::create(Config const& _config)
@@ -148,6 +214,8 @@ frontend::test::TestCase::TestResult StackLayoutGeneratorTest::run(std::ostream&
 		return TestResult::FatalError;
 	}
 
+	// The graphs in dot, for the viewer of isoltest
+	std::string dot;
 	std::set<Object const*> visited;
 	visited.insert(yulStack.parserResult().get());
 
@@ -168,11 +236,12 @@ frontend::test::TestCase::TestResult StackLayoutGeneratorTest::run(std::ostream&
 		);
 		yul::ssa::transform::optimize(*controlFlowGraphs);
 		// insert separator
-		if (!m_obtainedResult.empty())
-			m_obtainedResult += SUBOBJECT_GRAPH_SEPARATOR;
+		if (!dot.empty())
+			dot += SUBOBJECT_GRAPH_SEPARATOR;
 
-		m_obtainedResult += "digraph SSACFG {\nnodesep=0.7;\ngraph[fontname=\"DejaVu Sans\", rankdir=LR]\nnode[shape=box,fontname=\"DejaVu Sans\"];\n\n";
+		dot += "digraph SSACFG {\nnodesep=0.7;\ngraph[fontname=\"DejaVu Sans\", rankdir=LR]\nnode[shape=box,fontname=\"DejaVu Sans\"];\n\n";
 
+		StackLayoutAnnotator annotator;
 		for (std::size_t index = 0; index < controlFlowGraphs->functionGraphs.size(); ++index)
 		{
 			auto const& cfg = *controlFlowGraphs->functionGraphs[index];
@@ -182,14 +251,17 @@ frontend::test::TestCase::TestResult StackLayoutGeneratorTest::run(std::ostream&
 				static_cast<ControlFlowGraphs::FunctionGraphID>(index),
 				true
 			);
+			annotator.addGraph(cfg, result.layout, result.spillSet);
 			StackLayoutDotExporter exporter(cfg, index, result.layout, result.spillSet, *controlFlowGraphs);
 			if (!cfg.isMainGraph())
-				m_obtainedResult += exporter.exportFunction(cfg, false);
+				dot += exporter.exportFunction(cfg, false);
 			else
-				m_obtainedResult += exporter.exportBlocks(cfg.entry, false);
+				dot += exporter.exportBlocks(cfg.entry, false);
 		}
 
-		m_obtainedResult += "}\n";
+		dot += "}\n";
+		m_obtainedResult += fmt::format("object \"{}\"\n", object.name);
+		m_obtainedResult += controlFlowGraphs->print(annotator);
 
 		for (auto const& subNode: object.subObjects)
 			if (auto subObject = std::dynamic_pointer_cast<Object>(subNode))
@@ -213,7 +285,7 @@ frontend::test::TestCase::TestResult StackLayoutGeneratorTest::run(std::ostream&
 	{
 		if (result == TestResult::Success)
 			std::cout << std::endl << m_source << std::endl;
-		for (auto const dotRange: ranges::views::split(m_obtainedResult, SUBOBJECT_GRAPH_SEPARATOR))
+		for (auto const dotRange: ranges::views::split(dot, SUBOBJECT_GRAPH_SEPARATOR))
 		{
 			std::string_view dot(&*dotRange.begin(), static_cast<std::size_t>(ranges::distance(dotRange)));
 			boost::process::opstream pipe;

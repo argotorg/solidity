@@ -16,81 +16,51 @@
     sstore(0x0404, y)
 }
 // ----
-// digraph SSACFG {
-// nodesep=0.7;
-// graph[fontname="DejaVu Sans", rankdir=LR]
-// node[shape=box,fontname="DejaVu Sans"];
+// object "object"
+//     ; spilled: {}
+// #0:
+//     ; in: []
+//     v0 = const 0x0101
+//     v1 = const 0x0202
+//     v2 = const 0x0303
+//     ; [lit0]
+//     v3 = builtin @sload v0
+//     v4 = const 0x00
+//     ; [v3, lit4, v3]
+//     v5 = builtin @eq v3, v4
+//     v6 = const 0x42
+//     v7 = const 0x01
+//     v14 = const 0x0404
+//     ; out: [v3, v5]
+//     branch v5, #2, #3
+// #1: preds: #2, #4, #5
+//     ; in: [phi10]
+//     v10 = phi
+//     ; [phi10, lit14]
+//     builtin @sstore v14, v10
+//     ; out: []
+//     main_exit
+// #2: preds: #0
+//     ; in: [JUNK]
+//     upsilon v1 -> ^v10
+//     ; out: [JUNK]
+//     jump #1
+// #3: preds: #0
+//     ; in: [v3]
+//     ; [lit7, v3]
+//     v8 = builtin @eq v3, v7
+//     ; out: [v8]
+//     branch v8, #4, #5
+// #4: preds: #3
+//     ; in: []
+//     upsilon v6 -> ^v10
+//     ; out: []
+//     jump #1
+// #5: preds: #3
+//     ; in: []
+//     ; [lit2, lit2]
+//     builtin @sstore v2, v2
+//     upsilon v1 -> ^v10
+//     ; out: []
+//     jump #1
 //
-// Entry [label="Entry
-// spilled: {}"];
-// Entry -> Block0_0;
-// Block0_0 [label="\
-// IN: []\l\
-// \l\
-// [lit0]\l\
-// sload\l\
-// [v3]\l\
-// \l\
-// [v3, lit4, v3]\l\
-// eq\l\
-// [v3, v5]\l\
-// \l\
-// OUT: [v3, v5]\l\
-// "];
-// Block0_0 -> Block0_0Exit;
-// Block0_0Exit [label="{ If v5 | { <0> Zero | <1> NonZero }}" shape=Mrecord];
-// Block0_0Exit:0 -> Block0_3 [style="solid"];
-// Block0_0Exit:1 -> Block0_2 [style="solid"];
-// Block0_2 [label="\
-// IN: [JUNK]\l\
-// \l\
-// OUT: [JUNK]\l\
-// "];
-// Block0_2 -> Block0_2Exit [arrowhead=none];
-// Block0_2Exit [label="Jump" shape=oval];
-// Block0_2Exit -> Block0_1 [style="solid"];
-// Block0_3 [label="\
-// IN: [v3]\l\
-// \l\
-// [lit7, v3]\l\
-// eq\l\
-// [v8]\l\
-// \l\
-// OUT: [v8]\l\
-// "];
-// Block0_3 -> Block0_3Exit;
-// Block0_3Exit [label="{ If v8 | { <0> Zero | <1> NonZero }}" shape=Mrecord];
-// Block0_3Exit:0 -> Block0_5 [style="solid"];
-// Block0_3Exit:1 -> Block0_4 [style="solid"];
-// Block0_1 [label="\
-// IN: [phi10]\l\
-// \l\
-// [phi10, lit14]\l\
-// sstore\l\
-// []\l\
-// \l\
-// OUT: []\l\
-// "];
-// Block0_1Exit [label="MainExit"];
-// Block0_1 -> Block0_1Exit;
-// Block0_4 [label="\
-// IN: []\l\
-// \l\
-// OUT: []\l\
-// "];
-// Block0_4 -> Block0_4Exit [arrowhead=none];
-// Block0_4Exit [label="Jump" shape=oval];
-// Block0_4Exit -> Block0_1 [style="solid"];
-// Block0_5 [label="\
-// IN: []\l\
-// \l\
-// [lit2, lit2]\l\
-// sstore\l\
-// []\l\
-// \l\
-// OUT: []\l\
-// "];
-// Block0_5 -> Block0_5Exit [arrowhead=none];
-// Block0_5Exit [label="Jump" shape=oval];
-// Block0_5Exit -> Block0_1 [style="solid"];
-// }

@@ -10,71 +10,38 @@
     sstore(x, y)
 }
 // ----
-// digraph SSACFG {
-// nodesep=0.7;
-// graph[fontname="DejaVu Sans", rankdir=LR]
-// node[shape=box,fontname="DejaVu Sans"];
+// object "object"
+//     ; spilled: {}
+// #0:
+//     ; in: []
+//     v0 = const 0x00
+//     ; [lit0]
+//     v1 = builtin @calldataload v0
+//     v4 = const 0x20
+//     ; out: [v1, v1]
+//     branch v1, #1, #2
+// #1: preds: #0
+//     ; in: [JUNK]
+//     ; [JUNK, lit0, lit0]
+//     builtin @revert v0, v0
+//     ; out: [JUNK]
+//     terminated
+// #2: preds: #0
+//     ; in: [v1]
+//     ; [v1, lit4]
+//     v5 = builtin @calldataload v4
+//     ; out: [v1, v5, v5]
+//     branch v5, #4, #5
+// #4: preds: #2
+//     ; in: [JUNK, JUNK]
+//     ; [JUNK, JUNK, lit0, lit0]
+//     builtin @revert v0, v0
+//     ; out: [JUNK, JUNK]
+//     terminated
+// #5: preds: #2
+//     ; in: [v1, v5]
+//     ; [v5, v1]
+//     builtin @sstore v1, v5
+//     ; out: []
+//     main_exit
 //
-// Entry [label="Entry
-// spilled: {}"];
-// Entry -> Block0_0;
-// Block0_0 [label="\
-// IN: []\l\
-// \l\
-// [lit0]\l\
-// calldataload\l\
-// [v1]\l\
-// \l\
-// OUT: [v1, v1]\l\
-// "];
-// Block0_0 -> Block0_0Exit;
-// Block0_0Exit [label="{ If v1 | { <0> Zero | <1> NonZero }}" shape=Mrecord];
-// Block0_0Exit:0 -> Block0_2 [style="solid"];
-// Block0_0Exit:1 -> Block0_1 [style="solid"];
-// Block0_1 [label="\
-// IN: [JUNK]\l\
-// \l\
-// [JUNK, lit0, lit0]\l\
-// revert\l\
-// [JUNK]\l\
-// \l\
-// OUT: [JUNK]\l\
-// "];
-// Block0_1Exit [label="Terminated"];
-// Block0_1 -> Block0_1Exit;
-// Block0_2 [label="\
-// IN: [v1]\l\
-// \l\
-// [v1, lit4]\l\
-// calldataload\l\
-// [v1, v5]\l\
-// \l\
-// OUT: [v1, v5, v5]\l\
-// "];
-// Block0_2 -> Block0_2Exit;
-// Block0_2Exit [label="{ If v5 | { <0> Zero | <1> NonZero }}" shape=Mrecord];
-// Block0_2Exit:0 -> Block0_5 [style="solid"];
-// Block0_2Exit:1 -> Block0_4 [style="solid"];
-// Block0_4 [label="\
-// IN: [JUNK, JUNK]\l\
-// \l\
-// [JUNK, JUNK, lit0, lit0]\l\
-// revert\l\
-// [JUNK, JUNK]\l\
-// \l\
-// OUT: [JUNK, JUNK]\l\
-// "];
-// Block0_4Exit [label="Terminated"];
-// Block0_4 -> Block0_4Exit;
-// Block0_5 [label="\
-// IN: [v1, v5]\l\
-// \l\
-// [v5, v1]\l\
-// sstore\l\
-// []\l\
-// \l\
-// OUT: []\l\
-// "];
-// Block0_5Exit [label="MainExit"];
-// Block0_5 -> Block0_5Exit;
-// }
