@@ -16,10 +16,11 @@
 */
 // SPDX-License-Identifier: GPL-3.0
 
-#include <test/liblangutil/EthdebugResourcesTest.h>
+#include <test/liblangutil/EthdebugJsonTest.h>
 
 #include <liblangutil/EthdebugJson.h>
 #include <liblangutil/EthdebugSchema.h>
+#include <liblangutil/SemanticDebugDataSerialization.h>
 
 #include <libsolutil/CommonData.h>
 #include <libsolutil/JSON.h>
@@ -31,22 +32,55 @@
 
 using namespace solidity;
 using namespace solidity::frontend::test;
+using namespace solidity::langutil;
 using namespace solidity::langutil::ethdebug;
 using namespace solidity::langutil::test;
 using namespace solidity::util;
 
-EthdebugResourcesTest::EthdebugResourcesTest(std::string const& _filename):
-	TestCase(_filename)
+namespace
+{
+
+Json roundTripResources(Json const& _input)
+{
+	requireOnlyMembers(_input, {"types", "pointers"}, "resources");
+	Json output = Json::object();
+	if (Json const* types = checkAndFindMember(_input, "types", "resources"))
+		output["types"] = schema::info::typesFromJSON(*types, "resources.types");
+	if (Json const* pointers = checkAndFindMember(_input, "pointers", "resources"))
+		output["pointers"] = schema::info::pointersFromJSON(*pointers, "resources.pointers");
+	return output;
+}
+
+Json roundTripSidecar(Json const& _input)
+{
+	return semanticDebugDataToJSON(semanticDebugDataFromJSON(_input));
+}
+
+}
+
+std::unique_ptr<TestCase> EthdebugJsonTest::createResourcesTest(Config const& _config)
+{
+	return std::make_unique<EthdebugJsonTest>(_config.filename, roundTripResources);
+}
+
+std::unique_ptr<TestCase> EthdebugJsonTest::createSidecarTest(Config const& _config)
+{
+	return std::make_unique<EthdebugJsonTest>(_config.filename, roundTripSidecar);
+}
+
+EthdebugJsonTest::EthdebugJsonTest(std::string const& _filename, RoundTrip _roundTrip):
+	TestCase(_filename),
+	m_roundTrip(_roundTrip)
 {
 	m_source = m_reader.source();
 	m_expectation = m_reader.simpleExpectations();
 	if (!_filename.ends_with(".ethdebugjson"))
 		BOOST_THROW_EXCEPTION(std::runtime_error(
-			"Not an ETHDebug resources test: \"" + _filename + "\". Expected extension: .ethdebugjson."
+			"Not an ETHDebug JSON test: \"" + _filename + "\". Expected extension: .ethdebugjson."
 		));
 }
 
-TestCase::TestResult EthdebugResourcesTest::run(std::ostream& _stream, std::string const& _linePrefix, bool const _formatted)
+TestCase::TestResult EthdebugJsonTest::run(std::ostream& _stream, std::string const& _linePrefix, bool const _formatted)
 {
 	Json input;
 	std::string parseError;
@@ -58,12 +92,7 @@ TestCase::TestResult EthdebugResourcesTest::run(std::ostream& _stream, std::stri
 
 	try
 	{
-		requireOnlyMembers(input, {"types", "pointers"}, "resources");
-		Json output = Json::object();
-		if (Json const* types = checkAndFindMember(input, "types", "resources"))
-			output["types"] = schema::info::typesFromJSON(*types, "resources.types");
-		if (Json const* pointers = checkAndFindMember(input, "pointers", "resources"))
-			output["pointers"] = schema::info::pointersFromJSON(*pointers, "resources.pointers");
+		Json const output = m_roundTrip(input);
 		Json const changes = Json::diff(input, output);
 		m_obtainedResult = changes.empty() ?
 			"Input and output are identical.\n" :

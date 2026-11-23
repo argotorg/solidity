@@ -20,6 +20,8 @@
 
 #include <test/TestCase.h>
 
+#include <libsolutil/JSON.h>
+
 #include <memory>
 #include <ostream>
 #include <string>
@@ -27,17 +29,20 @@
 namespace solidity::langutil::test
 {
 
-/// Reads the type and pointer tables in ETHDebug resources and reports changes after serialization.
-class EthdebugResourcesTest: public frontend::test::TestCase
+/// Reads and serializes an ETHDebug fixture and reports changes.
+class EthdebugJsonTest: public frontend::test::TestCase
 {
 public:
-	static std::unique_ptr<TestCase> create(Config const& _config)
-	{
-		return std::make_unique<EthdebugResourcesTest>(_config.filename);
-	}
-	EthdebugResourcesTest(std::string const& _filename);
+	using RoundTrip = Json (*)(Json const&);
+
+	static std::unique_ptr<TestCase> createResourcesTest(Config const& _config);
+	static std::unique_ptr<TestCase> createSidecarTest(Config const& _config);
+	EthdebugJsonTest(std::string const& _filename, RoundTrip _roundTrip);
 
 	TestResult run(std::ostream& _stream, std::string const& _linePrefix = "", bool const _formatted = false) override;
+
+private:
+	RoundTrip m_roundTrip;
 };
 
 }

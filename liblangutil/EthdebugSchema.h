@@ -351,6 +351,13 @@ struct Pointer
 	/// @returns whether @a _text names a region: an identifier or `~this`.
 	static bool isRegionReference(std::string_view _text);
 
+	/// What a reader accepts beyond ethdebug/format.
+	struct ReadOptions
+	{
+		/// Accept the compiler-internal YulLocal expression.
+		bool internalExpressions = false;
+	};
+
 	/// An unsigned number or `0x`-prefixed hex string.
 	struct Literal
 	{
@@ -443,6 +450,17 @@ struct Pointer
 		std::unique_ptr<Expression const> operand;
 	};
 
+	/// A generated Yul local whose stack depth is not yet known.
+	/// The sidecar writes it as `{ "~~yulLocal": <name> }`.
+	/// ETHDebug output rejects it.
+	struct YulLocal
+	{
+		/// @a _name must not be empty.
+		explicit YulLocal(std::string _name);
+
+		std::string name;
+	};
+
 	/// ethdebug/format/pointer/expression
 	struct Expression
 	{
@@ -455,7 +473,8 @@ struct Pointer
 			Arithmetic,
 			Keccak256,
 			Concat,
-			Resize
+			Resize,
+			YulLocal
 		> value;
 	};
 
@@ -707,16 +726,20 @@ SourceRange sourceRangeFromJSON(Json const& _json, std::string_view _path);
 Type typeFromJSON(Json const& _json, std::string_view _path);
 Type::Wrapper wrapperFromJSON(Json const& _json, std::string_view _path);
 
-Pointer::Expression expressionFromJSON(Json const& _json, std::string_view _path);
-Pointer pointerFromJSON(Json const& _json, std::string_view _path);
-Pointer::Template templateFromJSON(Json const& _json, std::string_view _path);
+Pointer::Expression expressionFromJSON(Json const& _json, std::string_view _path, Pointer::ReadOptions _options = {});
+Pointer pointerFromJSON(Json const& _json, std::string_view _path, Pointer::ReadOptions _options = {});
+Pointer::Template templateFromJSON(Json const& _json, std::string_view _path, Pointer::ReadOptions _options = {});
+
+/// Whether @a _pointer, including the templates it defines locally,
+/// contains a compiler-internal expression such as YulLocal.
+bool hasInternalExpression(Pointer const& _pointer);
 
 namespace info
 {
 /// The type table of a resources object, keyed by type ID.
 std::map<std::string, Type> typesFromJSON(Json const& _json, std::string_view _path);
 /// The pointer table of a resources object, keyed by template name.
-std::map<std::string, Pointer::Template> pointersFromJSON(Json const& _json, std::string_view _path);
+std::map<std::string, Pointer::Template> pointersFromJSON(Json const& _json, std::string_view _path, Pointer::ReadOptions _options = {});
 }
 
 }
