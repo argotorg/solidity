@@ -1598,8 +1598,8 @@ BOOST_AUTO_TEST_CASE(function_self_reference)
 {
 	std::unique_ptr<CompilerStack> compilerStack = parseAndAnalyzeContracts(R"(
 		contract C {
-			function f() public returns (bool ret) {
-				return f == f;
+			function f() public {
+				f;
 			}
 		}
 	)"s);
