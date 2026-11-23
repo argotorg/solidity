@@ -1390,3 +1390,178 @@ std::map<std::string, schema::Pointer::Template> schema::info::pointersFromJSON(
 	}
 	return pointers;
 }
+
+namespace
+{
+
+/// Collects the free names of pointers, resolving template references in
+/// their current variable and template scope, including recursive references.
+class FreeNameCollector
+{
+public:
+	explicit FreeNameCollector(std::map<std::string, schema::Pointer::Template> const& _templates):
+		m_templates(_templates)
+	{}
+
+	std::set<std::string> collect(schema::Pointer const& _pointer)
+	{
+		std::set<std::string> free;
+		std::set<std::string> bound;
+		LocalTemplates localTemplates;
+		visit(_pointer, bound, localTemplates, free);
+		return free;
+	}
+
+private:
+	using LocalTemplates = std::map<std::string, schema::Pointer::Template const*>;
+
+	struct TemplateContext
+	{
+		std::set<std::string> boundVariables;
+		LocalTemplates localTemplates;
+
+		bool operator==(TemplateContext const&) const = default;
+	};
+
+	void visit(schema::Pointer::Expression const& _expression, std::set<std::string> const& _bound, std::set<std::string>& _free)
+	{
+		using Pointer = schema::Pointer;
+		auto const operands = [&](Pointer::Operands const& _operands) {
+			for (Pointer::Expression const& operand: _operands)
+				visit(operand, _bound, _free);
+		};
+		std::visit(GenericVisitor{
+			// A Yul local is a dependency on the current Yul code by
+			// definition; nothing binds it. An unbound variable is one too.
+			[&](Pointer::YulLocal const& _yulLocal) { _free.insert(_yulLocal.name); },
+			[&](Pointer::Variable const& _variable)
+			{
+				if (!_bound.contains(_variable.identifier))
+					_free.insert(_variable.identifier);
+			},
+			[&](Pointer::Arithmetic const& _arithmetic) { operands(_arithmetic.operands); },
+			[&](Pointer::Keccak256 const& _keccak256) { operands(_keccak256.operands); },
+			[&](Pointer::Concat const& _concat) { operands(_concat.operands); },
+			[&](Pointer::Resize const& _resize) { visit(*_resize.operand, _bound, _free); },
+			// Literals, constants, lookups and reads: the latter two name
+			// regions, which live in a separate namespace.
+			[](auto const&) {},
+		}, _expression.value);
+	}
+
+	void visit(
+		std::optional<schema::Pointer::Expression> const& _expression,
+		std::set<std::string> const& _bound,
+		std::set<std::string>& _free
+	)
+	{
+		if (_expression.has_value())
+			visit(*_expression, _bound, _free);
+	}
+
+	void visit(
+		schema::Pointer const& _pointer,
+		std::set<std::string> const& _bound,
+		LocalTemplates const& _localTemplates,
+		std::set<std::string>& _free
+	)
+	{
+		using Pointer = schema::Pointer;
+		auto const sub = [&](std::unique_ptr<Pointer const> const& _sub) {
+			if (_sub)
+				visit(*_sub, _bound, _localTemplates, _free);
+		};
+		std::visit(GenericVisitor{
+			[&](Pointer::Region const& _region)
+			{
+				visit(_region.slot, _bound, _free);
+				visit(_region.offset, _bound, _free);
+				visit(_region.length, _bound, _free);
+			},
+			[&](Pointer::Group const& _group)
+			{
+				for (Pointer const& member: _group.members)
+					visit(member, _bound, _localTemplates, _free);
+			},
+			[&](Pointer::List const& _list)
+			{
+				visit(_list.count, _bound, _free);
+				std::set<std::string> boundVariables = _bound;
+				boundVariables.insert(_list.each);
+				visit(*_list.is, boundVariables, _localTemplates, _free);
+			},
+			[&](Pointer::Conditional const& _conditional)
+			{
+				visit(_conditional.condition, _bound, _free);
+				sub(_conditional.then);
+				sub(_conditional.otherwise);
+			},
+			[&](Pointer::Scope const& _scope)
+			{
+				// Definitions are ordered: each may reference the earlier ones.
+				std::set<std::string> boundVariables = _bound;
+				for (auto const& [name, value]: _scope.definitions)
+				{
+					visit(value, boundVariables, _free);
+					boundVariables.insert(name);
+				}
+				visit(*_scope.in, boundVariables, _localTemplates, _free);
+			},
+			[&](Pointer::TemplateReference const& _reference)
+			{
+				visitTemplate(_reference.name, _bound, _localTemplates, _free);
+			},
+			[&](Pointer::Templates const& _templates)
+			{
+				// Locally defined templates are visible to references inside the target.
+				LocalTemplates localTemplates = _localTemplates;
+				for (auto const& [name, definition]: _templates.templates)
+					localTemplates.insert_or_assign(name, &definition);
+				visit(*_templates.in, _bound, localTemplates, _free);
+			},
+		}, _pointer.value);
+	}
+
+	void visitTemplate(
+		std::string const& _name,
+		std::set<std::string> const& _bound,
+		LocalTemplates const& _localTemplates,
+		std::set<std::string>& _free
+	)
+	{
+		schema::Pointer::Template const* definition = nullptr;
+		if (auto const local = _localTemplates.find(_name);
+			local != _localTemplates.end()
+		)
+			definition = local->second;
+		else if (auto const it = m_templates.find(_name);
+			it != m_templates.end()
+		)
+			definition = &it->second;
+		if (!definition)
+			return;
+
+		// Revisit a template if its visible bindings change, but terminate
+		// cycles and reuse visits made in the same environment.
+		TemplateContext context{_bound, _localTemplates};
+		auto& visitedContexts = m_visitedTemplates[definition];
+		if (std::find(visitedContexts.begin(), visitedContexts.end(), context) != visitedContexts.end())
+			return;
+		visitedContexts.emplace_back(std::move(context));
+
+		for (std::string const& name: definition->expect)
+			if (!_bound.contains(name))
+				_free.insert(name);
+		visit(*definition->body, _bound, _localTemplates, _free);
+	}
+
+	std::map<std::string, schema::Pointer::Template> const& m_templates;
+	std::map<schema::Pointer::Template const*, std::vector<TemplateContext>> m_visitedTemplates;
+};
+
+}
+
+std::set<std::string> schema::freeNames(Pointer const& _pointer, std::map<std::string, Pointer::Template> const& _templates)
+{
+	return FreeNameCollector{_templates}.collect(_pointer);
+}
