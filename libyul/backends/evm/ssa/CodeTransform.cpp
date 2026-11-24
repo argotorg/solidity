@@ -78,7 +78,7 @@ void CodeTransform::run
 		auto const graphID = static_cast<ControlFlowGraphs::FunctionGraphID>(functionIndex);
 		callSitesPerCFG.push_back(gatherCallSites(cfg));
 		bool const spillingAllowed = !callGraph.isRecursive(graphID);
-		auto [layout, spillSet, spillStoreTraces] = StackLayoutGenerator::generate(*liveness, callSitesPerCFG.back(), graphID, spillingAllowed);
+		auto [layout, spillSet, spillStoreTraces] = StackLayoutGenerator::generate(*liveness, callSitesPerCFG.back(), graphID, spillingAllowed, cfg.evmDialect.reachableStackDepth());
 		layouts.push_back(std::move(layout));
 		spillSetsPerCFG.push_back(std::move(spillSet));
 		spillStoreTracesPerCFG.push_back(std::move(spillStoreTraces));

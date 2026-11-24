@@ -49,7 +49,7 @@ public:
 		CallSites const& _callSites,
 		ControlFlowGraphs::FunctionGraphID _graphID,
 		bool _spillingAllowed,
-		std::size_t _reachableStackDepth = reachableStackDepth
+		std::size_t _reachableStackDepth
 	);
 
 private:

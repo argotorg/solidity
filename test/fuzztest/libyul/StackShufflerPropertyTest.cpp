@@ -273,7 +273,7 @@ FUZZ_TEST(StackShufflerProperty, ShuffleRealizesFreeDrawTarget)
 	.WithDomains(
 		freeDrawDomain(),
 		fuzztest::Arbitrary<bool>(),
-		fuzztest::InRange<std::size_t>(2, reachableStackDepth)
+		fuzztest::InRange<std::size_t>(2, langutil::EVMVersion{}.reachableStackDepth())
 	);
 
 void ShuffleRealizesPermutedTarget(
@@ -289,7 +289,7 @@ FUZZ_TEST(StackShufflerProperty, ShuffleRealizesPermutedTarget)
 	.WithDomains(
 		permutedDomain(),
 		fuzztest::Arbitrary<bool>(),
-		fuzztest::InRange<std::size_t>(2, reachableStackDepth)
+		fuzztest::InRange<std::size_t>(2, langutil::EVMVersion{}.reachableStackDepth())
 	);
 
 }

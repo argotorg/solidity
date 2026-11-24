@@ -25,13 +25,14 @@
 #include <range/v3/view/reverse.hpp>
 
 #include <cstddef>
+#include <limits>
 
 namespace solidity::yul::ssa
 {
 
 /// A view over a `StackData` mimicking EVM stack semantics. When constructed with a trace, every stack
 /// manipulation is recorded as a `ShuffleOp`; an untraced view mutates the data silently.
-/// `_reachableStackDepth` is the deepest slot a swap may address
+/// `_reachableStackDepth` is the deepest slot a swap may address, any slot unless given
 class Stack
 {
 public:
@@ -43,7 +44,7 @@ public:
 	explicit Stack(
 		Data& _data,
 		ShuffleTrace* _trace = nullptr,
-		std::size_t const _reachableStackDepth = reachableStackDepth
+		std::size_t const _reachableStackDepth = std::numeric_limits<std::size_t>::max()
 	):
 		m_data(&_data),
 		m_trace(_trace),

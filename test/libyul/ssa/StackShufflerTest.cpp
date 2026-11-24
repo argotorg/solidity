@@ -195,7 +195,7 @@ struct ShuffleTestInput
 	std::optional<StackData> initial;
 	std::optional<StackData> targetStackTop;
 	bool allowSpilling = false;
-	std::size_t reachableDepth = reachableStackDepth;
+	std::size_t reachableDepth = langutil::EVMVersion{}.reachableStackDepth();
 	spill::SpillSet initialSpilledSet{};
 	StackData initialSpilledSetSlots{};
 
@@ -251,7 +251,7 @@ struct ShuffleTestInput
 			else if (key == parserKeyReachableDepth)
 			{
 				auto const depth = solidity::util::parseArithmetic<std::size_t>(value);
-				if (!depth || *depth < 2 || *depth > reachableStackDepth)
+				if (!depth || *depth < 2 || *depth > langutil::EVMVersion{}.reachableStackDepth())
 					throw std::runtime_error(fmt::format("Couldn't parse reachableStackDepth: {}", value));
 				result.reachableDepth = *depth;
 			}
@@ -408,7 +408,7 @@ ShufflingTest::TestResult ShufflingTest::run(std::ostream& _stream, std::string 
 		  static constexpr std::string_view formatHelp = R"(initial: [<slot>, ...]
 targetStackTop: [<slot>, ...]
 allowSpilling: true|false
-reachableStackDepth: <N>  (optional, default 16)
+reachableStackDepth: <N>  (optional, default is what the EVM reaches)
 initialSpilledSet: {<slot>, ...}
 
 Where <slot> is one of:

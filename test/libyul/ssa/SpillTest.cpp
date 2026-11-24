@@ -19,6 +19,7 @@
 #include <test/libyul/ssa/SpillTest.h>
 
 #include <test/libyul/Common.h>
+#include <test/Common.h>
 
 #include <libyul/backends/evm/ssa/CallGraph.h>
 #include <libyul/backends/evm/ssa/ControlFlowGraphs.h>
@@ -96,7 +97,10 @@ SpillTest::SpillTest(std::string const& _filename): TestCase(_filename)
 	m_source = m_reader.source();
 	auto const dialectName = m_reader.stringSetting("dialect", "evm");
 	soltestAssert(dialectName == "evm");
-	m_reachableStackDepth = m_reader.sizetSetting("reachableStackDepth", reachableStackDepth);
+	m_reachableStackDepth = m_reader.sizetSetting(
+		"reachableStackDepth",
+		solidity::test::CommonOptions::get().evmVersion().reachableStackDepth()
+	);
 	m_expectation = m_reader.simpleExpectations();
 }
 

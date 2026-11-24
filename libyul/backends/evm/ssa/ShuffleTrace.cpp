@@ -29,11 +29,11 @@ void apply(StackData& _data, ShuffleOp const& _op)
 	switch (_op.kind)
 	{
 	case ShuffleOp::Kind::Swap:
-		yulAssert(1 <= _op.depth && _op.depth <= reachableStackDepth, "malformed swap in shuffle trace");
+		yulAssert(1 <= _op.depth, "malformed swap in shuffle trace");
 		stack.swap(StackDepth{_op.depth});
 		return;
 	case ShuffleOp::Kind::Dup:
-		yulAssert(1 <= _op.depth && _op.depth <= reachableStackDepth, "malformed dup in shuffle trace");
+		yulAssert(1 <= _op.depth, "malformed dup in shuffle trace");
 		stack.dup(StackDepth{static_cast<std::size_t>(_op.depth) - 1});
 		return;
 	case ShuffleOp::Kind::Pop:
