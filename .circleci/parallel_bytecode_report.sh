@@ -54,6 +54,7 @@ if [[ $binary_type == native || $binary_type == "osx_intel" ]]; then
         --interface "$interface" \
         --preset "$preset" \
         --execution-arch "$binary_type" \
+        --jobs "${CPUs:-1}" \
         --report-file "../bytecode-report-${label}-${interface}-${preset}.txt"
 else
     echo "Installing solc-js"
