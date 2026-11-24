@@ -29,6 +29,7 @@
 #include <libsolutil/Numeric.h>
 
 #include <map>
+#include <tuple>
 #include <functional>
 
 namespace solidity::yul
@@ -93,7 +94,6 @@ public:
 		++m_currentVersions[_var];
 	}
 
-private:
 	struct VersionedVariable
 	{
 		YulName name;
@@ -123,17 +123,13 @@ private:
 			else
 				return std::nullopt;
 		}
-	};
 
-	struct CachedOffset
-	{
-		VariableOffset offset;
-		/// Value of the variable the offset was computed from, nullptr if it was unknown
-		Expression const* computedFrom = nullptr;
+		bool operator==(VariableOffset const&) const = default;
+		bool operator<(VariableOffset const& _other) const
+		{
+			return std::tie(reference, offset) < std::tie(_other.reference, _other.offset);
+		}
 	};
-
-	/// @returns @a _var at its current version, which is zero if it never changed.
-	VersionedVariable withCurrentVersion(YulName _var) const;
 
 	/// Determines the offset of @a _var relative to the representative of its group by recursively exploring the value
 	/// provided by the value callback. The result is memoized. If the value is unknown or cannot be expressed as a
@@ -145,6 +141,21 @@ private:
 	/// Arithmetic is modulo 2**256.
 	/// @returns the offset or nullopt if @a _value is not of one of these forms
 	std::optional<VariableOffset> explore(Expression const& _value);
+
+	static std::optional<u256> differenceIfKnownConstant(VariableOffset const& _a, VariableOffset const& _b);
+	static bool knownToBeDifferent(VariableOffset const& _a, VariableOffset const& _b);
+	static bool knownToBeDifferentByAtLeast32(VariableOffset const& _a, VariableOffset const& _b);
+
+private:
+	struct CachedOffset
+	{
+		VariableOffset offset;
+		/// Value of the variable the offset was computed from, nullptr if it was unknown
+		Expression const* computedFrom = nullptr;
+	};
+
+	/// @returns @a _var at its current version, which is zero if it never changed.
+	VersionedVariable withCurrentVersion(YulName _var) const;
 
 	/// If true, we can assume that variable values never change and skip some steps.
 	bool m_valuesAreSSA = false;

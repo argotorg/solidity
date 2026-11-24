@@ -25,7 +25,7 @@
 #include <libyul/optimiser/Semantics.h>
 #include <libyul/optimiser/OptimizerUtilities.h>
 #include <libyul/optimiser/Semantics.h>
-#include <libyul/optimiser/SSAValueTracker.h>
+#include <libyul/optimiser/NameCollector.h>
 #include <libyul/optimiser/DataFlowAnalyzer.h>
 #include <libyul/optimiser/KnowledgeBase.h>
 #include <libyul/ControlFlowSideEffectsCollector.h>
@@ -51,18 +51,11 @@ void UnusedStoreEliminator::run(OptimiserStepContext& _context, Block& _ast)
 		CallGraphGenerator::callGraph(_ast)
 	);
 
-	SSAValueTracker ssaValues;
-	ssaValues(_ast);
-	std::map<YulName, AssignedValue> values;
-	for (auto const& [name, expression]: ssaValues.values())
-		values[name] = AssignedValue{expression, {}};
-
 	bool const ignoreMemory = MSizeFinder::containsMSize(_context.dialect, _ast);
 	UnusedStoreEliminator rse{
 		_context.dialect,
 		functionSideEffects,
 		ControlFlowSideEffectsCollector{_context.dialect, _ast}.functionSideEffectsNamed(),
-		values,
 		ignoreMemory
 	};
 	rse(_ast);
@@ -84,15 +77,20 @@ UnusedStoreEliminator::UnusedStoreEliminator(
 	Dialect const& _dialect,
 	std::map<FunctionHandle, SideEffects> const& _functionSideEffects,
 	std::map<YulName, ControlFlowSideEffects> _controlFlowSideEffects,
-	std::map<YulName, AssignedValue> const& _ssaValues,
 	bool _ignoreMemory
 ):
 	UnusedStoreBase(_dialect),
 	m_ignoreMemory(_ignoreMemory),
 	m_functionSideEffects(_functionSideEffects),
 	m_controlFlowSideEffects(std::move(_controlFlowSideEffects)),
-	m_ssaValues(_ssaValues),
-	m_knowledgeBase(_ssaValues, _dialect)
+	m_knowledgeBase(
+		[this](YulName _var) -> AssignedValue const* {
+			if (m_currentAssignment && m_currentAssignment->first == _var)
+				return &m_currentAssignment->second;
+			return nullptr;
+		},
+		_dialect
+	)
 {}
 
 void UnusedStoreEliminator::operator()(FunctionCall const& _functionCall)
@@ -123,8 +121,60 @@ void UnusedStoreEliminator::operator()(FunctionCall const& _functionCall)
 
 void UnusedStoreEliminator::operator()(FunctionDefinition const& _functionDefinition)
 {
-	ScopedSaveAndRestore storeOperations(m_storeOperations, {});
+	for (auto const& parameter: _functionDefinition.parameters)
+		handleAssignment({parameter.name}, nullptr);
+	for (auto const& returnVariable: _functionDefinition.returnVariables)
+		handleAssignment({returnVariable.name}, &m_zero);
 	UnusedStoreBase::operator()(_functionDefinition);
+}
+
+void UnusedStoreEliminator::operator()(VariableDeclaration const& _variableDeclaration)
+{
+	UnusedStoreBase::operator()(_variableDeclaration);
+
+	if (_variableDeclaration.value)
+		handleAssignment(
+			util::applyMap(_variableDeclaration.variables, [](NameWithDebugData const& _var) { return _var.name; }),
+			_variableDeclaration.value.get()
+		);
+	else
+		for (auto const& variable: _variableDeclaration.variables)
+			handleAssignment({variable.name}, &m_zero);
+}
+
+void UnusedStoreEliminator::operator()(Assignment const& _assignment)
+{
+	UnusedStoreBase::operator()(_assignment);
+	handleAssignment(
+		util::applyMap(_assignment.variableNames, [](Identifier const& _var) { return _var.name; }),
+		_assignment.value.get()
+	);
+}
+
+void UnusedStoreEliminator::operator()(Block const& _block)
+{
+	UnusedStoreBase::operator()(_block);
+	// Blocks are the bodies of branches, loops and functions. Variables assigned inside might have
+	// different values on the paths that join after the block.
+	forgetValues(assignedVariableNames(_block));
+}
+
+void UnusedStoreEliminator::operator()(ForLoop const& _forLoop)
+{
+	// At the loop head, values from the loop entry join with values from the back edge.
+	std::set<YulName> assignedInLoop = assignedVariableNames(_forLoop.body) + assignedVariableNames(_forLoop.post);
+	forgetValues(assignedInLoop);
+	UnusedStoreBase::operator()(_forLoop);
+	forgetValues(assignedInLoop);
+}
+
+void UnusedStoreEliminator::beforeLoopBody(ForLoop const& _forLoop)
+{
+	// Each visit of the body starts at the loop head, where values from all previous iterations join.
+	// Without this, the second visit would relate the locations of stores from the first visit to the
+	// current values of the variables, which is only correct if the stored values are read in the very
+	// next iteration, but not if they are read in a later one.
+	forgetValues(assignedVariableNames(_forLoop.body) + assignedVariableNames(_forLoop.post));
 }
 
 
@@ -187,20 +237,20 @@ void UnusedStoreEliminator::visit(Statement const& _statement)
 		m_allStores.insert(&_statement);
 		std::vector<Operation> operations = operationsFromFunctionCall(*funCall);
 		yulAssert(operations.size() == 1, "");
-		if (operations.front().location == Location::Storage)
-			activeStorageStores().insert(&_statement);
+		ActiveStore store{&_statement, std::move(operations.front())};
+		if (store.operation.location == Location::Storage)
+			activeStorageStores().insert(std::move(store));
 		else
 		{
-			yulAssert(operations.front().location == Location::Memory, "");
-			activeMemoryStores().insert(&_statement);
+			yulAssert(store.operation.location == Location::Memory, "");
+			activeMemoryStores().insert(std::move(store));
 		}
-		m_storeOperations[&_statement] = std::move(operations.front());
 	}
 }
 
 std::vector<UnusedStoreEliminator::Operation> UnusedStoreEliminator::operationsFromFunctionCall(
 	FunctionCall const& _functionCall
-) const
+)
 {
 	using evmasm::Instruction;
 
@@ -235,14 +285,14 @@ std::vector<UnusedStoreEliminator::Operation> UnusedStoreEliminator::operationsF
 			yulAssert(_op.effect != Effect::None);
 			Operation ourOp{_op.location, _op.effect, {}, {}};
 			if (_op.startParameter)
-				ourOp.start = identifierNameIfSSA(_functionCall.arguments.at(*_op.startParameter));
+				ourOp.start = m_knowledgeBase.explore(_functionCall.arguments.at(*_op.startParameter));
 			if (_op.lengthParameter)
-				ourOp.length = identifierNameIfSSA(_functionCall.arguments.at(*_op.lengthParameter));
+				ourOp.length = m_knowledgeBase.explore(_functionCall.arguments.at(*_op.lengthParameter));
 			if (_op.lengthConstant)
 				switch (*_op.lengthConstant)
 				{
-				case 1: ourOp.length = u256(1); break;
-				case 32: ourOp.length = u256(32); break;
+				case 1: ourOp.length = KnowledgeBase::VariableOffset{{}, u256(1)}; break;
+				case 32: ourOp.length = KnowledgeBase::VariableOffset{{}, u256(32)}; break;
 				default: yulAssert(false);
 				}
 			return ourOp;
@@ -252,23 +302,20 @@ std::vector<UnusedStoreEliminator::Operation> UnusedStoreEliminator::operationsF
 
 void UnusedStoreEliminator::applyOperation(UnusedStoreEliminator::Operation const& _operation)
 {
-	std::set<Statement const*>& active =
+	std::set<ActiveStore>& active =
 		_operation.location == Location::Storage ?
 		activeStorageStores() :
 		activeMemoryStores();
 
-
 	for (auto it = active.begin(); it != active.end();)
 	{
-		Statement const* statement = *it;
-		Operation const& storeOperation = m_storeOperations.at(statement);
-		if (_operation.effect == Effect::Read && !knownUnrelated(storeOperation, _operation))
+		if (_operation.effect == Effect::Read && !knownUnrelated(it->operation, _operation))
 		{
 			// This store is read from, mark it as used and remove it from the active set.
-			m_usedStores.insert(statement);
+			m_usedStores.insert(it->statement);
 			it = active.erase(it);
 		}
-		else if (_operation.effect == Effect::Write && knownCovered(storeOperation, _operation))
+		else if (_operation.effect == Effect::Write && knownCovered(it->operation, _operation))
 			// This store is overwritten before being read, remove it from the active set.
 			it = active.erase(it);
 		else
@@ -293,7 +340,7 @@ bool UnusedStoreEliminator::knownUnrelated(
 				lengthValue(*_op1.length) == 1 &&
 				lengthValue(*_op2.length) == 1
 			);
-			return m_knowledgeBase.knownToBeDifferent(*_op1.start, *_op2.start);
+			return KnowledgeBase::knownToBeDifferent(*_op1.start, *_op2.start);
 		}
 	}
 	else
@@ -308,8 +355,8 @@ bool UnusedStoreEliminator::knownUnrelated(
 		if (_op1.start && _op1.length && _op2.start)
 		{
 			std::optional<u256> length1 = lengthValue(*_op1.length);
-			std::optional<u256> start1 = m_knowledgeBase.valueIfKnownConstant(*_op1.start);
-			std::optional<u256> start2 = m_knowledgeBase.valueIfKnownConstant(*_op2.start);
+			std::optional<u256> start1 = _op1.start->absoluteValue();
+			std::optional<u256> start2 = _op2.start->absoluteValue();
 			if (
 				(length1 && start1 && start2) &&
 				*start1 + *length1 >= *start1 && // no overflow
@@ -320,8 +367,8 @@ bool UnusedStoreEliminator::knownUnrelated(
 		if (_op2.start && _op2.length && _op1.start)
 		{
 			std::optional<u256> length2 = lengthValue(*_op2.length);
-			std::optional<u256> start2 = m_knowledgeBase.valueIfKnownConstant(*_op2.start);
-			std::optional<u256> start1 = m_knowledgeBase.valueIfKnownConstant(*_op1.start);
+			std::optional<u256> start2 = _op2.start->absoluteValue();
+			std::optional<u256> start1 = _op1.start->absoluteValue();
 			if (
 				(length2 && start2 && start1) &&
 				*start2 + *length2 >= *start2 && // no overflow
@@ -337,7 +384,7 @@ bool UnusedStoreEliminator::knownUnrelated(
 			if (
 				(length1 && *length1 <= 32) &&
 				(length2 && *length2 <= 32) &&
-				m_knowledgeBase.knownToBeDifferentByAtLeast32(*_op1.start, *_op2.start)
+				KnowledgeBase::knownToBeDifferentByAtLeast32(*_op1.start, *_op2.start)
 			)
 				return true;
 		}
@@ -372,8 +419,8 @@ bool UnusedStoreEliminator::knownCovered(
 		if (*_covered.start == *_covering.start)
 			if (coveredLength && coveringLength && *coveredLength <= *coveringLength)
 				return true;
-		std::optional<u256> coveredStart = m_knowledgeBase.valueIfKnownConstant(*_covered.start);
-		std::optional<u256> coveringStart = m_knowledgeBase.valueIfKnownConstant(*_covering.start);
+		std::optional<u256> coveredStart = _covered.start->absoluteValue();
+		std::optional<u256> coveringStart = _covering.start->absoluteValue();
 		if (coveredStart && coveringStart && coveredLength && coveringLength)
 			if (
 				*coveringStart <= *coveredStart &&
@@ -395,11 +442,11 @@ void UnusedStoreEliminator::markActiveAsUsed(
 )
 {
 	if (_onlyLocation == std::nullopt || _onlyLocation == Location::Memory)
-		for (Statement const* statement: activeMemoryStores())
-			m_usedStores.insert(statement);
+		for (ActiveStore const& store: activeMemoryStores())
+			m_usedStores.insert(store.statement);
 	if (_onlyLocation == std::nullopt || _onlyLocation == Location::Storage)
-		for (Statement const* statement: activeStorageStores())
-			m_usedStores.insert(statement);
+		for (ActiveStore const& store: activeStorageStores())
+			m_usedStores.insert(store.statement);
 	clearActive(_onlyLocation);
 }
 
@@ -413,10 +460,28 @@ void UnusedStoreEliminator::clearActive(
 		activeStorageStores() = {};
 }
 
-std::optional<YulName> UnusedStoreEliminator::identifierNameIfSSA(Expression const& _expression) const
+void UnusedStoreEliminator::handleAssignment(std::vector<YulName> const& _variables, Expression const* _value)
 {
-	if (Identifier const* identifier = std::get_if<Identifier>(&_expression))
-		if (m_ssaValues.count(identifier->name))
-			return {identifier->name};
-	return std::nullopt;
+	for (YulName const& variable: _variables)
+		m_knowledgeBase.variableChanged(variable);
+	if (
+		_value &&
+		_variables.size() == 1 &&
+		!VariableReferencesCounter::countReferences(*_value).count(_variables.front())
+	)
+	{
+		// For `x := add(y, 32)`, the value of `x` must use the version of `y` from this assignment,
+		// not from the later point where `x` is used in a store or load. So we let the knowledge base
+		// evaluate and cache it right here.
+		// The value is only visible to the knowledge base during this call.
+		m_currentAssignment = {_variables.front(), AssignedValue{_value, 0}};
+		m_knowledgeBase.explore(_variables.front());
+		m_currentAssignment.reset();
+	}
+}
+
+void UnusedStoreEliminator::forgetValues(std::set<YulName> const& _variables)
+{
+	for (YulName const& variable: _variables)
+		m_knowledgeBase.variableChanged(variable);
 }

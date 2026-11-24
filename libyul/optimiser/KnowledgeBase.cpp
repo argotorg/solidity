@@ -41,27 +41,38 @@ KnowledgeBase::KnowledgeBase(std::map<YulName, AssignedValue> const& _ssaValues,
 
 bool KnowledgeBase::knownToBeDifferent(YulName _a, YulName _b)
 {
+	return knownToBeDifferent(explore(_a), explore(_b));
+}
+
+std::optional<u256> KnowledgeBase::differenceIfKnownConstant(YulName _a, YulName _b)
+{
+	return differenceIfKnownConstant(explore(_a), explore(_b));
+}
+
+bool KnowledgeBase::knownToBeDifferentByAtLeast32(YulName _a, YulName _b)
+{
+	return knownToBeDifferentByAtLeast32(explore(_a), explore(_b));
+}
+
+std::optional<u256> KnowledgeBase::differenceIfKnownConstant(VariableOffset const& _a, VariableOffset const& _b)
+{
+	if (_a.reference == _b.reference)
+		return _a.offset - _b.offset;
+	else
+		return std::nullopt;
+}
+
+bool KnowledgeBase::knownToBeDifferent(VariableOffset const& _a, VariableOffset const& _b)
+{
 	if (std::optional<u256> difference = differenceIfKnownConstant(_a, _b))
 		return difference != 0;
 	return false;
 }
 
-std::optional<u256> KnowledgeBase::differenceIfKnownConstant(YulName _a, YulName _b)
-{
-	VariableOffset offA = explore(_a);
-	VariableOffset offB = explore(_b);
-	if (offA.reference == offB.reference)
-		return offA.offset - offB.offset;
-	else
-		return std::nullopt;
-}
-
-
-bool KnowledgeBase::knownToBeDifferentByAtLeast32(YulName _a, YulName _b)
+bool KnowledgeBase::knownToBeDifferentByAtLeast32(VariableOffset const& _a, VariableOffset const& _b)
 {
 	if (std::optional<u256> difference = differenceIfKnownConstant(_a, _b))
 		return difference >= 32 && difference <= u256(0) - 32;
-
 	return false;
 }
 
