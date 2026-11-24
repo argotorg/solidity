@@ -53,6 +53,7 @@ The Resources
 
 The resources document carries its ``ethdebug`` stamp and two tables that the programs refer to: ``types`` and ``pointers``.
 Compiler information and sources are provided separately by ``ethdebug.compilation``.
+The resources and compilation outputs are only available for Solidity input.
 Both tables cover all contracts of the compilation.
 
 .. code-block:: json

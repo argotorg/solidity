@@ -22,6 +22,8 @@ Language Features:
 Language Features:
 
 Compiler Features:
+* Commandline Interface: Remove the experimental `--ethdebug-resources` and `--ethdebug-compilation` outputs from assembler mode.
+* Standard JSON Interface: Remove the experimental `ethdebug.resources` and `ethdebug.compilation` outputs for Yul input.
 
 Bugfixes:
 
