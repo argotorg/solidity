@@ -122,7 +122,7 @@ struct InstructionStackInBuilder
 				dropForReach(
 					data,
 					sim.depthToOffset(*sim.findSlotDepth(args[i])),  // shallowest copy of args[i] in the tail
-					[&](StackOffset const& _offset) { return sim.offsetToDepth(_offset).value > reachableStackDepth; }
+					[&](StackOffset const& _offset) { return sim.offsetToDepth(_offset).value > reachableDepth; }
 				);
 
 		// Takes the top off the tail if it is the copy of a pending moved arg
@@ -160,7 +160,7 @@ struct InstructionStackInBuilder
 					dropForReach(
 						data,
 						sim.depthToOffset(*source),
-						[&](StackOffset const& _offset) { return sim.offsetToDepth(_offset).value + 1 > reachableStackDepth; }
+						[&](StackOffset const& _offset) { return sim.offsetToDepth(_offset).value + 1 > reachableDepth; }
 					);
 			sim.push(args[i]);
 		}
@@ -171,6 +171,7 @@ struct InstructionStackInBuilder
 	StackData const& args;
 	StackSlotLiveness const& liveOut;
 	spill::SpillSet const& spillSet;
+	std::size_t reachableDepth;
 };
 }
 
@@ -179,8 +180,15 @@ StackData stack::buildInstructionStackIn
 	StackData const& _stack,
 	StackData const& _args,
 	StackSlotLiveness const& _liveOut,
-	spill::SpillSet const& _spillSet
+	spill::SpillSet const& _spillSet,
+	std::size_t const _reachableStackDepth
 )
 {
-	return InstructionStackInBuilder{.stack = _stack, .args = _args, .liveOut = _liveOut, .spillSet = _spillSet}.build();
+	return InstructionStackInBuilder{
+		.stack = _stack,
+		.args = _args,
+		.liveOut = _liveOut,
+		.spillSet = _spillSet,
+		.reachableDepth = _reachableStackDepth
+	}.build();
 }

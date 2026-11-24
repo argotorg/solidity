@@ -44,7 +44,8 @@ StackData chooseBlockStackIn(
 	std::vector<IncomingEdge> const& _edges,
 	LivenessAnalysis::LivenessData const& _liveIn,
 	spill::SpillSet& _spillSet,
-	bool _spillingAllowed
+	bool _spillingAllowed,
+	std::size_t _reachableStackDepth
 );
 
 }

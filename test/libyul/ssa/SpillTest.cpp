@@ -96,6 +96,7 @@ SpillTest::SpillTest(std::string const& _filename): TestCase(_filename)
 	m_source = m_reader.source();
 	auto const dialectName = m_reader.stringSetting("dialect", "evm");
 	soltestAssert(dialectName == "evm");
+	m_reachableStackDepth = m_reader.sizetSetting("reachableStackDepth", reachableStackDepth);
 	m_expectation = m_reader.simpleExpectations();
 }
 
@@ -151,7 +152,8 @@ frontend::test::TestCase::TestResult SpillTest::run(std::ostream& _stream, std::
 				*cfgLiveness,
 				gatherCallSites(cfg),
 				graphID,
-				spillingAllowed
+				spillingAllowed,
+				m_reachableStackDepth
 			);
 			layouts.push_back(std::move(result.layout));
 			spillSetsPerCFG.push_back(std::move(result.spillSet));
@@ -160,7 +162,8 @@ frontend::test::TestCase::TestResult SpillTest::run(std::ostream& _stream, std::
 		for (std::size_t functionIndex = 0; functionIndex < numCFGs; ++functionIndex)
 			spillSetsPerCFG[functionIndex].closeUnderReachabilityConstraints(
 				*controlFlowGraphs->functionGraphs[functionIndex],
-				layouts[functionIndex]
+				layouts[functionIndex],
+				m_reachableStackDepth
 			);
 
 		// build up global addressing based on the spill sets
