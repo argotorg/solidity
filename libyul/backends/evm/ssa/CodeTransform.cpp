@@ -185,7 +185,7 @@ CodeTransform::CodeTransform(
 		yulAssert(entryLayout);
 		return entryLayout->stackIn;
 	}()),
-	m_stack(m_stackData)
+	m_stack(m_stackData, m_cfg.evmDialect.reachableStackDepth())
 {
 	bool const isFunctionGraph = !m_cfg.isMainGraph();
 	if (isFunctionGraph)

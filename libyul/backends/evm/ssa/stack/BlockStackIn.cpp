@@ -94,7 +94,7 @@ StackData stack::chooseBlockStackIn(
 		yulAssert(_edges.size() == 1);
 		stackIn = _edges[0].stack;
 		handlePhiFunctions(stackIn, PhiInverse(_cfg, _edges[0].predecessor, _block), _liveIn, _cfg);
-		Stack stack(stackIn);
+		Stack stack(stackIn, _reachableStackDepth);
 		declareJunk(stack, _liveIn);
 	}
 	else
@@ -106,7 +106,7 @@ StackData stack::chooseBlockStackIn(
 			proposals[i] = _edges[i].stack;
 			handlePhiFunctions(proposals[i], PhiInverse(_cfg, _edges[i].predecessor, _block), _liveIn, _cfg);
 			{
-				Stack stack(proposals[i]);
+				Stack stack(proposals[i], _reachableStackDepth);
 				declareJunk(stack, _liveIn);
 			}
 		}

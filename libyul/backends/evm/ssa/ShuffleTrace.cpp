@@ -25,15 +25,14 @@ namespace solidity::yul::ssa
 
 void apply(StackData& _data, ShuffleOp const& _op)
 {
-	Stack stack(_data);
+	// the reach of an op was checked when it was recorded, so the replay applies no limit
+	Stack stack(_data, std::numeric_limits<std::size_t>::max());
 	switch (_op.kind)
 	{
 	case ShuffleOp::Kind::Swap:
-		yulAssert(1 <= _op.depth, "malformed swap in shuffle trace");
 		stack.swap(StackDepth{_op.depth});
 		return;
 	case ShuffleOp::Kind::Dup:
-		yulAssert(1 <= _op.depth, "malformed dup in shuffle trace");
 		stack.dup(StackDepth{static_cast<std::size_t>(_op.depth) - 1});
 		return;
 	case ShuffleOp::Kind::Pop:

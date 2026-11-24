@@ -215,14 +215,14 @@ fuzztest::Domain<ShuffleCase> permutedDomain()
 void checkShuffleProperties(
 	ShuffleCase const& _case,
 	bool const _spillingAllowed,
-	std::size_t const _reachableDepth
+	std::size_t const _reachableStackDepth
 )
 {
 	auto const& [initial, target, spilled] = _case;
 	spill::SpillSet spills = toSpillSet(spilled);
 	std::size_t const spilledBefore = spills.numSpilled();
 	StackData shuffled = initial;
-	stack::ShuffleResult const result = stack::shuffle(shuffled, target, spills, _spillingAllowed, _reachableDepth);
+	stack::ShuffleResult const result = stack::shuffle(shuffled, target, spills, _spillingAllowed, _reachableStackDepth);
 
 	bool const hasReturnLabel = ranges::any_of(initial, [](StackSlot const& _s) { return _s.isFunctionReturnLabel(); });
 	if (_spillingAllowed && !hasReturnLabel)
@@ -236,7 +236,7 @@ void checkShuffleProperties(
 
 	for (ShuffleOp const& op: result.trace)
 		if (op.kind == ShuffleOp::Kind::Swap || op.kind == ShuffleOp::Kind::Dup)
-			ASSERT_LE(op.depth, _reachableDepth);
+			ASSERT_LE(op.depth, _reachableStackDepth);
 
 	StackData replayed = initial;
 	replay(replayed, result.trace);
@@ -263,33 +263,33 @@ void checkShuffleProperties(
 void ShuffleRealizesFreeDrawTarget(
 	ShuffleCase const& _case,
 	bool const _spillingAllowed,
-	std::size_t const _reachableDepth
+	std::size_t const _reachableStackDepth
 )
 {
-	checkShuffleProperties(_case, _spillingAllowed, _reachableDepth);
+	checkShuffleProperties(_case, _spillingAllowed, _reachableStackDepth);
 }
 
 FUZZ_TEST(StackShufflerProperty, ShuffleRealizesFreeDrawTarget)
 	.WithDomains(
 		freeDrawDomain(),
 		fuzztest::Arbitrary<bool>(),
-		fuzztest::InRange<std::size_t>(2, langutil::EVMVersion{}.reachableStackDepth())
+		fuzztest::InRange<std::size_t>(2, langutil::EVMVersion::osaka().reachableStackDepth())
 	);
 
 void ShuffleRealizesPermutedTarget(
 	ShuffleCase const& _case,
 	bool const _spillingAllowed,
-	std::size_t const _reachableDepth
+	std::size_t const _reachableStackDepth
 )
 {
-	checkShuffleProperties(_case, _spillingAllowed, _reachableDepth);
+	checkShuffleProperties(_case, _spillingAllowed, _reachableStackDepth);
 }
 
 FUZZ_TEST(StackShufflerProperty, ShuffleRealizesPermutedTarget)
 	.WithDomains(
 		permutedDomain(),
 		fuzztest::Arbitrary<bool>(),
-		fuzztest::InRange<std::size_t>(2, langutil::EVMVersion{}.reachableStackDepth())
+		fuzztest::InRange<std::size_t>(2, langutil::EVMVersion::osaka().reachableStackDepth())
 	);
 
 }

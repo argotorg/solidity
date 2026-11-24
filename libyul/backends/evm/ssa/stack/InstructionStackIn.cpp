@@ -105,7 +105,7 @@ struct InstructionStackInBuilder
 	{
 		StackData data = stack;
 		// simulating what a shuffler might produce based on args requirements, liveness, and reachability
-		Stack sim(data);
+		Stack sim(data, reachableStackDepth);
 
 		// Moved args take their copy out of the tail the way a SWAP does: the old top falls into the vacated position.
 		// They are pushed back as args below.
@@ -122,7 +122,7 @@ struct InstructionStackInBuilder
 				dropForReach(
 					data,
 					sim.depthToOffset(*sim.findSlotDepth(args[i])),  // shallowest copy of args[i] in the tail
-					[&](StackOffset const& _offset) { return sim.offsetToDepth(_offset).value > reachableDepth; }
+					[&](StackOffset const& _offset) { return sim.offsetToDepth(_offset).value > reachableStackDepth; }
 				);
 
 		// Takes the top off the tail if it is the copy of a pending moved arg
@@ -160,7 +160,7 @@ struct InstructionStackInBuilder
 					dropForReach(
 						data,
 						sim.depthToOffset(*source),
-						[&](StackOffset const& _offset) { return sim.offsetToDepth(_offset).value + 1 > reachableDepth; }
+						[&](StackOffset const& _offset) { return sim.offsetToDepth(_offset).value + 1 > reachableStackDepth; }
 					);
 			sim.push(args[i]);
 		}
@@ -171,7 +171,7 @@ struct InstructionStackInBuilder
 	StackData const& args;
 	StackSlotLiveness const& liveOut;
 	spill::SpillSet const& spillSet;
-	std::size_t reachableDepth;
+	std::size_t const reachableStackDepth;
 };
 }
 
@@ -189,6 +189,6 @@ StackData stack::buildInstructionStackIn
 		.args = _args,
 		.liveOut = _liveOut,
 		.spillSet = _spillSet,
-		.reachableDepth = _reachableStackDepth
+		.reachableStackDepth = _reachableStackDepth
 	}.build();
 }
