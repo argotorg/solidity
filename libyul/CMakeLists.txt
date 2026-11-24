@@ -128,6 +128,8 @@ add_library(yul
 	backends/evm/ssa/spill/MemoryAddressing.h
 	backends/evm/ssa/spill/SpillSet.cpp
 	backends/evm/ssa/spill/SpillSet.h
+	backends/evm/ssa/stack/BlockStackIn.cpp
+	backends/evm/ssa/stack/BlockStackIn.h
 	backends/evm/ssa/stack/InstructionStackIn.cpp
 	backends/evm/ssa/stack/InstructionStackIn.h
 	backends/evm/ssa/stack/Shuffler.cpp

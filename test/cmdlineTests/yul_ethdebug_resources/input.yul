@@ -1,0 +1,1 @@
+object "C" { code { stop() } }

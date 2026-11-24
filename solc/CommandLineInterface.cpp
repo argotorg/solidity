@@ -1318,26 +1318,6 @@ void CommandLineInterface::assembleYul(yul::YulStack::Machine _targetMachine)
 		yul::YulStack const& stack = yulStacks[sourceUnitName];
 		yul::MachineAssemblyObject const& object = objects[sourceUnitName];
 
-		if (m_options.compiler.outputs.ethdebugResources)
-		{
-			sout() << "======= Debug Data (ethdebug/format/info/resources) =======" << std::endl;
-			sout() << util::jsonPrint(
-					evmasm::ethdebug::resources(),
-					m_options.formatting.json
-			) << std::endl;
-		}
-		if (m_options.compiler.outputs.ethdebugCompilation)
-		{
-			sout() << "======= Debug Data (ethdebug compilation) =======" << std::endl;
-			sout() << util::jsonPrint(
-					evmasm::ethdebug::compilation(
-						{{.id = 0, .path = sourceUnitName, .contents = yulSource, .language = "Yul"}},
-						VersionString
-					),
-					m_options.formatting.json
-			) << std::endl;
-		}
-
 		std::string machine = "EVM";
 		sout() << std::endl << "======= " << sourceUnitName << " (" << machine << ") =======" << std::endl;
 
