@@ -41,28 +41,17 @@ JunkAdmittingBlocksFinder::JunkAdmittingBlocksFinder(SSACFG const& _cfg, analysi
 	BridgeFinder const bridgeFinder(_cfg);
 
 	// of the bridge vertices, we have the exclude the ones that can lead to a function return
-	std::vector<SSACFG::BlockId> toVisit;
+	std::vector<SSACFG::BlockId> functionReturnBlocks;
 	for (SSACFG::BlockId const blockId: _dfsTree.preOrder())
 	{
 		bool const isLoopHead = _dfsTree.backEdgeTargets().contains(blockId);
 		m_blockAllowsJunk[blockId.value] = (bridgeFinder.bridgeVertex(blockId) && !isLoopHead) || _cfg.block(blockId).isTerminationBlock();
 		if (_cfg.block(blockId).isFunctionReturnBlock())
-			toVisit.emplace_back(blockId);
+			functionReturnBlocks.emplace_back(blockId);
 	}
 
-	std::vector<uint8_t> visited(_cfg.numBlocks(), false);
-	while (!toVisit.empty())
-	{
-		auto const blockId = toVisit.back();
-		auto const& block = _cfg.block(blockId);
-		toVisit.pop_back();
-
+	for (SSACFG::BlockId const blockId: _cfg.blocksReaching(functionReturnBlocks))
 		m_blockAllowsJunk[blockId.value] = false;
-		visited[blockId.value] = true;
-		for (auto const& entry: block.entries)
-			if (!visited[entry.value])
-				toVisit.emplace_back(entry);
-	}
 }
 
 bool JunkAdmittingBlocksFinder::allowsAdditionOfJunk(SSACFG::BlockId const& _blockId) const
