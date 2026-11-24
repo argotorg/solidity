@@ -529,6 +529,8 @@ void CodeTransform::emit(ShuffleOp const& _op, SSACFG::BlockId const _block)
 		}
 		case StackSlot::Kind::FunctionReturnLabel:
 			yulAssert(false, "Cannot produce function return label.");
+		case StackSlot::Kind::Shadow:
+			yulAssert(false, "Shadow slots are renamed into place or loaded, never pushed.");
 		}
 		solidity::util::unreachable();
 	case ShuffleOp::Kind::Load:
@@ -548,6 +550,8 @@ void CodeTransform::emit(ShuffleOp const& _op, SSACFG::BlockId const _block)
 		);
 		m_stores.emplace(_op.slot, _block);
 		m_spillEmitter->emitStore(_op.slot);
+		return;
+	case ShuffleOp::Kind::Rename:
 		return;
 	}
 	solidity::util::unreachable();
