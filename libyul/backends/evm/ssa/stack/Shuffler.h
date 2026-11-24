@@ -48,8 +48,8 @@ struct ShuffleResult
 	StackData& _source,
 	StackData const& _target,
 	spill::SpillSet& _spills,
-	bool _spillingAllowed = true,
-	std::size_t _reachableStackDepth = reachableStackDepth
+	bool _spillingAllowed,
+	std::size_t _reachableStackDepth
 );
 
 }

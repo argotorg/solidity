@@ -55,7 +55,7 @@ std::string_view constexpr parserKeyInitialStack {"initial"};
 std::string_view constexpr parserKeyStackTop {"targetStackTop"};
 std::string_view constexpr parserKeyAllowSpilling {"allowSpilling"};
 std::string_view constexpr parserKeyInitialSpilled {"initialSpilledSet"};
-std::string_view constexpr parserKeyReachableDepth {"reachableStackDepth"};
+std::string_view constexpr parserKeyReachableStackDepth {"reachableStackDepth"};
 
 using Slot = StackSlot;
 
@@ -195,7 +195,7 @@ struct ShuffleTestInput
 	std::optional<StackData> initial;
 	std::optional<StackData> targetStackTop;
 	bool allowSpilling = false;
-	std::size_t reachableDepth = reachableStackDepth;
+	std::size_t reachableStackDepth = langutil::EVMVersion::osaka().reachableStackDepth();
 	spill::SpillSet initialSpilledSet{};
 	StackData initialSpilledSetSlots{};
 
@@ -248,12 +248,12 @@ struct ShuffleTestInput
 				else
 					throw std::runtime_error(fmt::format("Couldn't parse allowSpilling: {}", value));
 			}
-			else if (key == parserKeyReachableDepth)
+			else if (key == parserKeyReachableStackDepth)
 			{
 				auto const depth = solidity::util::parseArithmetic<std::size_t>(value);
-				if (!depth || *depth < 2 || *depth > reachableStackDepth)
+				if (!depth || *depth < 2 || *depth > langutil::EVMVersion::osaka().reachableStackDepth())
 					throw std::runtime_error(fmt::format("Couldn't parse reachableStackDepth: {}", value));
-				result.reachableDepth = *depth;
+				result.reachableStackDepth = *depth;
 			}
 			else if (key == parserKeyInitialSpilled)
 			{
@@ -443,7 +443,7 @@ Lines starting with // are comments. Comments at the end of lines are supported,
 
 	// The planner plans its spills itself; without allowSpilling a plan that needs one is reported as too deep.
 	spill::SpillSet const spillSetBefore = spillSet;
-	stack::ShuffleResult shuffleResult = stack::shuffle(stackData, target, spillSet, true, testConfig.reachableDepth);
+	stack::ShuffleResult shuffleResult = stack::shuffle(stackData, target, spillSet, true, testConfig.reachableStackDepth);
 	std::vector<StackSlot> newlySpilled;
 	for (SpillKey const key: spillSet.spilledValues())
 		if (!spillSetBefore.isSpilled(key))

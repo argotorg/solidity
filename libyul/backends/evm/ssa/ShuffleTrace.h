@@ -23,6 +23,7 @@
 #include <fmt/format.h>
 
 #include <cstdint>
+#include <limits>
 #include <type_traits>
 #include <vector>
 
@@ -50,12 +51,18 @@ struct ShuffleOp
 
 	static ShuffleOp swap(StackDepth const _depth)
 	{
-		yulAssert(1 <= _depth.value && _depth.value <= reachableStackDepth);
+		yulAssert(
+			1 <= _depth.value && _depth.value <= std::numeric_limits<std::uint8_t>::max(),
+			"swap depth does not fit the op"
+		);
 		return {Kind::Swap, static_cast<std::uint8_t>(_depth.value), StackSlot::makeJunk()};
 	}
 	static ShuffleOp dup(StackDepth const _depth)
 	{
-		yulAssert(1 <= _depth.value && _depth.value <= reachableStackDepth);
+		yulAssert(
+			1 <= _depth.value && _depth.value <= std::numeric_limits<std::uint8_t>::max(),
+			"dup depth does not fit the op"
+		);
 		return {Kind::Dup, static_cast<std::uint8_t>(_depth.value), StackSlot::makeJunk()};
 	}
 	static ShuffleOp pop() { return {Kind::Pop, 0, StackSlot::makeJunk()}; }

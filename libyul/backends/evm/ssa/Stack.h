@@ -42,8 +42,8 @@ public:
 
 	explicit Stack(
 		Data& _data,
-		ShuffleTrace* _trace = nullptr,
-		std::size_t const _reachableStackDepth = reachableStackDepth
+		std::size_t const _reachableStackDepth,
+		ShuffleTrace* _trace = nullptr
 	):
 		m_data(&_data),
 		m_trace(_trace),

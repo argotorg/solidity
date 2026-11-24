@@ -55,7 +55,7 @@ public:
 
 	/// Finalizes the spill set by making every spilled value's def-site `mstore` reachable.
 	/// If `_storeTraces` is provided, it is rebuilt to hold each spilled value's recorded def-site store trace.
-	void closeUnderReachabilityConstraints(SSACFG const& _cfg, SSACFGStackLayout const& _layout, SpillStoreTraces* _storeTraces = nullptr);
+	void closeUnderReachabilityConstraints(SSACFG const& _cfg, SSACFGStackLayout const& _layout, std::size_t _reachableStackDepth, SpillStoreTraces* _storeTraces = nullptr);
 
 	/// Yields a copy of this spill set minus `_key`.
 	[[nodiscard]] SpillSet without(SpillKey _key) const;
@@ -63,7 +63,7 @@ public:
 private:
 	/// Ensure that the variable `_key` can be spilled, i.e.,
 	/// brought up to the top and `mstore`d. Might populate the spill set with more entries if not possible right away.
-	void ensureDefSiteFeasible(SpillKey _key, StackData const& _defStack, std::deque<SpillKey>& _workQueue, SpillStoreTraces* _storeTraces);
+	void ensureDefSiteFeasible(SpillKey _key, StackData const& _defStack, std::deque<SpillKey>& _workQueue, std::size_t _reachableStackDepth, SpillStoreTraces* _storeTraces);
 
 	std::set<SpillKey> m_values;
 };
