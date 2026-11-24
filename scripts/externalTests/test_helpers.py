@@ -71,6 +71,15 @@ def settings_from_preset(preset: SettingsPreset, evm_version: str) -> dict:
 def parse_custom_presets(presets: List[str]) -> Set[SettingsPreset]:
     return {SettingsPreset(p) for p in presets}
 
+
+def circleci_select_presets(presets: Set[SettingsPreset]) -> Set[SettingsPreset]:
+    """Select the presets to run on the current CircleCI node when the job runs on multiple nodes in parallel."""
+    node_index = max(0, int(os.environ.get("CIRCLE_NODE_INDEX") or 0))
+    node_total = max(1, int(os.environ.get("CIRCLE_NODE_TOTAL") or 1))
+    # Sort to get the same order on all nodes. Iteration order of a set is not stable across processes.
+    return set(sorted(presets, key=lambda preset: preset.value)[node_index::node_total])
+
+
 def parse_command_line(description: str, args: List[str]):
     arg_parser = ArgumentParser(description)
     arg_parser.add_argument(

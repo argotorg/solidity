@@ -32,6 +32,7 @@ from textwrap import dedent
 from typing import List
 from typing import Set
 
+from test_helpers import circleci_select_presets
 from test_helpers import download_project
 from test_helpers import get_solc_short_version
 from test_helpers import parse_command_line
@@ -67,7 +68,11 @@ class BaseRunner(metaclass=ABCMeta):
         self.config = config
         self.solc_binary_type = args.solc_binary_type
         self.solc_binary_path = args.solc_binary_path
-        self.presets = parse_custom_presets(args.selected_presets) if args.selected_presets else config.selected_presets()
+        self.presets = (
+            parse_custom_presets(args.selected_presets)
+            if args.selected_presets else
+            circleci_select_presets(config.selected_presets())
+        )
         self.env = os.environ.copy()
         self.tmp_dir = mkdtemp(prefix=f"ext-test-{config.name}-")
         self.test_dir = Path(self.tmp_dir) / "ext"
@@ -125,6 +130,9 @@ class BaseRunner(metaclass=ABCMeta):
 
 def run_test(runner: BaseRunner):
     print(f"Testing {runner.config.name}...\n===========================")
+    if len(runner.presets) == 0:
+        print("No presets to run. Exiting.")
+        return
     print(f"Selected settings presets: {' '.join(p.value for p in runner.presets)}")
 
     # Configure solc compiler
