@@ -1809,6 +1809,10 @@ jobs:
       preset:
         type: string
     <<: *base_node_small
+    resource_class: large
+    environment:
+      <<: *base_node_small_env
+      CPUs: 4
     steps:
       - checkout
       - attach_workspace:

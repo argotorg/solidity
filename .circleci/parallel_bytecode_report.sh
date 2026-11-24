@@ -71,8 +71,10 @@ else
     cp ../scripts/bytecodecompare/prepare_report.js .
 
     echo "Generating bytecode reports"
-    # shellcheck disable=SC2035
-    ./prepare_report.js \
-        --preset "$preset" \
-        *.sol --report-file "../bytecode-report-${label}-${preset}.txt"
+    # A fresh node process overflows its default stack on tests that hit the parser's recursion limit
+    # Process in parallel in batches of 100
+    # shellcheck disable=SC2016,SC2035
+    printf '%s\0' *.sol | xargs --null --max-args 100 --max-procs "${CPUs:-1}" bash -c \
+        'node --stack-size=3000 ./prepare_report.js --preset "$0" "$@" --report-file "report-part-$1.txt"' "$preset"
+    cat report-part-*.txt > "../bytecode-report-${label}-${preset}.txt"
 fi
