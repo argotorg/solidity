@@ -32,9 +32,13 @@
 namespace solidity::yul::ssa::spill
 {
 
-/// Per def site of a spilled variable the recorded shuffle realizing its store: brings the variable to the
-/// stack top and concludes with the `Store` op consuming it. Keyed by the defining Inst.
-using SpillStoreTraces = std::map<InstId, ShuffleTrace>;
+/// The Inst behind which a spilled variable is stored:
+/// - a value behind its defining Inst (a projection behind its operation), or
+/// - a shadow slot behind every upsilon that writes it
+using SpillStoreSite = InstId;
+
+/// Map associating spill store site -> spilled variable -> shuffle realizing the spill.
+using SpillStoreTraces = std::map<SpillStoreSite, std::map<StackSlot, ShuffleTrace>>;
 
 /// Per-CFG set of variables spilled to memory
 class SpillSet
@@ -61,9 +65,9 @@ public:
 	[[nodiscard]] SpillSet without(SpillKey _key) const;
 
 private:
-	/// Ensure that the variable `_key` can be spilled, i.e.,
+	/// Ensure that the variable `_key` can be spilled at `_site`, i.e.,
 	/// brought up to the top and `mstore`d. Might populate the spill set with more entries if not possible right away.
-	void ensureDefSiteFeasible(SpillKey _key, StackData const& _defStack, std::deque<SpillKey>& _workQueue, std::size_t _reachableStackDepth, SpillStoreTraces* _storeTraces);
+	void ensureDefSiteFeasible(SpillKey _key, SpillStoreSite _site, StackData const& _defStack, std::deque<SpillKey>& _workQueue, std::size_t _reachableStackDepth, SpillStoreTraces* _storeTraces);
 
 	std::set<SpillKey> m_values;
 };

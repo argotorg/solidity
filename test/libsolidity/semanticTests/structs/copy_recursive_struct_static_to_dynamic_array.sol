@@ -23,4 +23,4 @@ contract C {
 // gas irOptimized: 240772
 // gas legacy: 245728
 // gas legacyOptimized: 241011
-// gas ssaCFGOptimized: 240868
+// gas ssaCFGOptimized: 240867

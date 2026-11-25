@@ -33,7 +33,7 @@
 // Block0_0Exit:1 -> Block0_2 [style="solid"];
 // Block0_2 [label="\
 // Block 2; (1, max 2)\nLiveIn: \l\
-// LiveOut: v6[1], ^phi13[1]\l\nUsed: \l\nv6 := calldataload(0x4d)\l\
+// LiveOut: ^phi13[1]\l\nUsed: \l\nv6 := calldataload(0x4d)\l\
 // ^phi13 := v6\l\
 // "];
 // Block0_2 -> Block0_2Exit [arrowhead=none];
@@ -48,15 +48,15 @@
 // Block0_3Exit:0 -> Block0_5 [style="solid"];
 // Block0_3Exit:1 -> Block0_4 [style="solid"];
 // Block0_1 [label="\
-// Block 1; (2, max 2)\nLiveIn: phi13[2], ^phi13[1]\l\
-// LiveOut: \l\nUsed: phi13[2], ^phi13[1]\l\nphi13 := φ(^phi13)\l\
+// Block 1; (2, max 2)\nLiveIn: ^phi13[1]\l\
+// LiveOut: \l\nUsed: ^phi13[1]\l\nphi13 := φ(^phi13)\l\
 // sstore(phi13, 0x00)\l\
 // "];
 // Block0_1Exit [label="MainExit"];
 // Block0_1 -> Block0_1Exit;
 // Block0_4 [label="\
 // Block 4; (4, max 4)\nLiveIn: \l\
-// LiveOut: v10[1], ^phi13[1]\l\nUsed: \l\nv10 := calldataload(0x58)\l\
+// LiveOut: ^phi13[1]\l\nUsed: \l\nv10 := calldataload(0x58)\l\
 // ^phi13 := v10\l\
 // "];
 // Block0_4 -> Block0_4Exit [arrowhead=none];
@@ -64,7 +64,7 @@
 // Block0_4Exit -> Block0_1 [style="solid"];
 // Block0_5 [label="\
 // Block 5; (5, max 5)\nLiveIn: \l\
-// LiveOut: v12[1], ^phi13[1]\l\nUsed: \l\nv12 := calldataload(0x63)\l\
+// LiveOut: ^phi13[1]\l\nUsed: \l\nv12 := calldataload(0x63)\l\
 // ^phi13 := v12\l\
 // "];
 // Block0_5 -> Block0_5Exit [arrowhead=none];

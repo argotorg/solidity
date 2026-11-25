@@ -47,5 +47,5 @@
 //     v12 -> mem 0x80
 //     v14 -> mem 0xa0
 //   mstore schedule:
-//     mstore addr(v12) <- v12 (B#0)
-//     mstore addr(v14) <- v14 (B#0)
+//     mstore addr(v12) <- v12 (behind v12 in B#0)
+//     mstore addr(v14) <- v14 (behind v14 in B#0)
