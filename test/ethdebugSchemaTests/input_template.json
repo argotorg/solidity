@@ -15,6 +15,7 @@
                 "*": [
                     "evm.bytecode.ethdebug",
                     "evm.deployedBytecode.ethdebug",
+                    "evm.deployedBytecode.immutableReferences",
                     "ethdebug.resources",
                     "ethdebug.compilation",
                     "storageLayout",

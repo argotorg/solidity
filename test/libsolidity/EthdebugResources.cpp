@@ -31,11 +31,17 @@
 #include <map>
 #include <set>
 #include <string>
+#include <utility>
 
+using solidity::langutil::SemanticDebugScope;
+using solidity::langutil::SemanticDebugVariable;
+using solidity::langutil::SemanticDebugVariablePhase;
 using solidity::test::CommonOptions;
 
 namespace solidity::frontend::test
 {
+
+namespace schema = langutil::ethdebug::schema;
 
 namespace
 {
@@ -51,6 +57,34 @@ void checkTypeIDs(Json const& _types, std::set<std::string> const& _expected)
 }
 
 BOOST_AUTO_TEST_SUITE(EthdebugResources)
+
+BOOST_AUTO_TEST_CASE(program_context_omits_variables_with_unbound_pointers)
+{
+	Json const slots{
+		{"closed", "0x00"},
+		{"unbound", "slot"},
+		{"internal", {{"~~yulLocal", "local"}}},
+	};
+	SemanticDebugScope scope;
+	for (auto const& [identifier, slot]: slots.items())
+	{
+		SemanticDebugVariable variable;
+		variable.identifier = identifier;
+		variable.phase = SemanticDebugVariablePhase::Materialized;
+		variable.pointer = schema::pointerFromJSON(
+			Json{{"location", "stack"}, {"slot", slot}},
+			"pointer",
+			{.internalExpressions = true}
+		);
+		scope.variableDefinitions.emplace_back(std::move(variable));
+	}
+
+	auto const context = ethdebug::programContext(std::move(scope), {});
+	BOOST_REQUIRE(context.has_value());
+	BOOST_REQUIRE(context->variables.has_value());
+	BOOST_REQUIRE_EQUAL(context->variables->size(), 1);
+	BOOST_CHECK_EQUAL(Json(*context)["variables"][0]["identifier"], "closed");
+}
 
 BOOST_AUTO_TEST_CASE(function_tuple_arguments_and_returns_are_not_flattened)
 {

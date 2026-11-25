@@ -1,0 +1,7 @@
+{
+    "format": "solidity-ethdebug-semantic-data",
+    "version": "1",
+    "scopes": {}
+}
+// ----
+// Error: sidecar.version: expected unsigned integer.

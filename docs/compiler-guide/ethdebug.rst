@@ -94,3 +94,15 @@ Tests
 
 The fixtures under ``test/libsolidity/ethdebugTests/resources/`` pin the serialized type documents and pointer templates.
 ``test/ethdebugSchemaTests.py`` compiles the same fixtures and checks schema conformance, type references, template bindings and region names.
+
+Scope Records
+=============
+
+``frontend::ethdebug::semanticDebugDataTable()`` builds the side table described in :doc:`ethdebug_internal_debug_info` from analysis results.
+It contains the contract's scope record, keyed by its AST ID with instance 0, and the type documents and pointer templates returned by ``frontend::ethdebug::resources()``.
+
+The scope record describes the state variables in storage and transient storage, located as in the program-level context.
+A contract without such variables has no scope record.
+Function and modifier scopes, immutables and local variables of blocks are not yet recorded here.
+
+The fixtures ``semantic_contract_scope.sol`` and ``semantic_without_variables.sol`` under ``test/libsolidity/ethdebugTests/`` show the table through ``Contract.semantic``.

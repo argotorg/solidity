@@ -1,0 +1,7 @@
+{
+    "types": {
+        "t": { "kind": "bytes", "size": -1 }
+    }
+}
+// ----
+// Error: resources.types.t.size must be an unsigned number or a 0x-prefixed hex string.
