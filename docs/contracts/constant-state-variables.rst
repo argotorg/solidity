@@ -8,8 +8,9 @@ Constant and Immutable State Variables
 
 State variables can be declared as ``constant`` or ``immutable``.
 In both cases, the variables cannot be modified after the contract has been constructed.
-For ``constant`` variables, the value has to be fixed at compile-time, while
-for ``immutable``, it can still be assigned at construction time.
+For ``constant`` variables, the value has to be a runtime constant, i.e. an expression
+that always evaluates to the same value, while for ``immutable``, it can still be
+assigned at construction time.
 
 It is also possible to define ``constant`` variables at the file level.
 
@@ -61,8 +62,9 @@ Not all types for constants and immutables are implemented at this time. The onl
 Constant
 ========
 
-For ``constant`` variables, the value has to be a constant at compile time and it has to be
-assigned where the variable is declared. Any expression
+For ``constant`` variables, the value has to be a runtime constant and it has to be
+assigned where the variable is declared. A runtime constant always evaluates to the same value,
+but that value is not necessarily computed at compile time (e.g. ``keccak256("abc")``). Any expression
 that accesses storage, blockchain data (e.g. ``block.timestamp``, ``address(this).balance`` or
 ``block.number``) or
 execution data (``msg.value`` or ``gasleft()``) or makes calls to external contracts is disallowed. Expressions
