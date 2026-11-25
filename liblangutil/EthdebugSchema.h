@@ -470,12 +470,14 @@ struct Pointer
 		Returndata,
 		Transient,
 		Code,
+		Virtual,
 	};
 	static std::map<Location, std::string> const locationNames;
 
 	/// ethdebug/format/pointer/region. Stack, storage and transient regions are
 	/// addressed by @a slot (offset and length within the slot optional); the
-	/// byte-oriented locations by @a offset and @a length.
+	/// byte-oriented locations by @a offset and @a length. Virtual regions
+	/// address a fragment of the bytes produced by @a expression.
 	struct Region
 	{
 		/// @a _name, if set, must satisfy isIdentifier(). A stack, storage or
@@ -488,12 +490,21 @@ struct Pointer
 			std::optional<Expression> _offset = std::nullopt,
 			std::optional<Expression> _length = std::nullopt
 		);
+		/// Constructs a virtual region. The offset defaults to zero and the
+		/// length defaults to the remaining bytes of the expression.
+		Region(
+			std::optional<std::string> _name,
+			Expression _expression,
+			std::optional<Expression> _offset = std::nullopt,
+			std::optional<Expression> _length = std::nullopt
+		);
 
 		std::optional<std::string> name;
 		Location location{};
 		std::optional<Expression> slot;
 		std::optional<Expression> offset;
 		std::optional<Expression> length;
+		std::optional<Expression> expression;
 	};
 
 	struct Group

@@ -72,6 +72,7 @@ std::map<schema::Pointer::Location, std::string> const schema::Pointer::location
 	{Location::Returndata, "returndata"},
 	{Location::Transient, "transient"},
 	{Location::Code, "code"},
+	{Location::Virtual, "virtual"},
 };
 
 std::map<schema::Program::Environment, std::string> const schema::Program::environmentNames = {
@@ -199,7 +200,25 @@ schema::Pointer::Region::Region(
 		// Byte-oriented locations address by offset and length.
 		solAssert(!slot.has_value() && offset.has_value() && length.has_value(), "A memory, calldata, returndata or code region must address its offset and length.");
 		break;
+	case Location::Virtual:
+		solAssert(false, "A virtual region must supply an expression instead of a slot.");
 	}
+}
+
+schema::Pointer::Region::Region(
+	std::optional<std::string> _name,
+	Expression _expression,
+	std::optional<Expression> _offset,
+	std::optional<Expression> _length
+):
+	name(std::move(_name)),
+	location(Location::Virtual),
+	offset(std::move(_offset)),
+	length(std::move(_length)),
+	expression(std::move(_expression))
+{
+	if (name.has_value())
+		solAssert(isIdentifier(*name), "Region name \"" + *name + "\" is not an identifier.");
 }
 
 schema::Pointer::Group::Group(std::vector<Pointer> _members):
@@ -548,6 +567,8 @@ void schema::to_json(Json& _json, Pointer::Region const& _region)
 		_json["offset"] = *_region.offset;
 	if (_region.length.has_value())
 		_json["length"] = *_region.length;
+	if (_region.expression.has_value())
+		_json["expression"] = *_region.expression;
 }
 
 void schema::to_json(Json& _json, Pointer const& _pointer)
@@ -1175,18 +1196,28 @@ std::optional<schema::Pointer::Expression> optionalExpression(Json const& _json,
 schema::Pointer::Region regionFromJSON(Json const& _json, std::string_view _path, size_t _depth)
 {
 	using Location = schema::Pointer::Location;
-	requireOnlyMembers(_json, {"name", "location", "slot", "offset", "length"}, _path);
-	std::optional<std::string> name;
-	if (Json const* nameJson = checkAndFindMember(_json, "name", _path))
-		name = identifierFromJSON(*nameJson, appendMemberToPath(_path, "name"));
 	std::string const locationName = requireMemberOfType<std::string>(_json, "location", _path);
 	std::optional<Location> const location = findValueByName(schema::Pointer::locationNames, locationName);
 	if (!location.has_value())
 		solThrow(JsonValidationError, appendMemberToPath(_path, "location") + " has the unknown value \"" + locationName + "\".");
-	bool const wordOriented = *location == Location::Stack || *location == Location::Storage || *location == Location::Transient;
-	std::optional<schema::Pointer::Expression> slot = optionalExpression(_json, "slot", _path, _depth);
+	if (*location == Location::Virtual)
+		requireOnlyMembers(_json, {"name", "location", "expression", "offset", "length"}, _path);
+	else
+		requireOnlyMembers(_json, {"name", "location", "slot", "offset", "length"}, _path);
+	std::optional<std::string> name;
+	if (Json const* nameJson = checkAndFindMember(_json, "name", _path))
+		name = identifierFromJSON(*nameJson, appendMemberToPath(_path, "name"));
 	std::optional<schema::Pointer::Expression> offset = optionalExpression(_json, "offset", _path, _depth);
 	std::optional<schema::Pointer::Expression> length = optionalExpression(_json, "length", _path, _depth);
+	if (*location == Location::Virtual)
+		return schema::Pointer::Region{
+			std::move(name),
+			expressionFromJSON(requireMember(_json, "expression", _path), appendMemberToPath(_path, "expression"), _depth + 1),
+			std::move(offset),
+			std::move(length),
+		};
+	bool const wordOriented = *location == Location::Stack || *location == Location::Storage || *location == Location::Transient;
+	std::optional<schema::Pointer::Expression> slot = optionalExpression(_json, "slot", _path, _depth);
 	// Word-oriented locations address by slot, byte-oriented ones by offset and length.
 	if (wordOriented && !slot.has_value())
 		solThrow(JsonValidationError, std::string(_path) + " must address its slot.");
