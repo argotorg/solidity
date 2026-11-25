@@ -83,8 +83,8 @@ Core Structures
 
 .. note::
 
-   Of the types named below, only ``langutil::DebugData`` exists in the compiler today.
-   The ``SemanticDebugScope`` family and the ``semanticDebugScope`` field on ``DebugData`` are planned additions and will arrive with the implementation pull requests.
+   The scope records and table described below are implemented in ``liblangutil``.
+   Serialization, attaching records to ``DebugData`` and exposing the sidecar will follow.
 
 ``langutil::DebugData`` is the debug payload carried by Yul AST nodes.
 The sidecar envelope and variable records are compiler-specific.
@@ -151,8 +151,9 @@ The scope record therefore carries declaration identity, type, and initial recov
      - Identity of the source-language declaration.
        Synthetic bindings may omit it.
    * - ``declarationSourceRange``
-     - optional ``SourceLocation``
-     - Source range of the declaration.
+     - optional ethdebug ``materials::SourceRange``
+     - Source range of the declaration: the numeric source ID of the ``ethdebug.compilation`` record with the byte offset and length.
+       Unlike ``SourceLocation``, this range does not use the source name.
    * - ``typeID``
      - optional string
      - Key of the variable's document in ``ethdebug.resources.types``.
