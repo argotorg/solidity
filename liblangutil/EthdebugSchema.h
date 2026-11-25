@@ -522,15 +522,28 @@ struct Pointer
 		std::unique_ptr<Pointer const> otherwise;
 	};
 
-	/// Definitions are ordered: each may reference the earlier ones.
+	/// Definitions are stored in evaluation order.
 	struct Scope
 	{
-		/// @a _definitions must not be empty and must define identifiers; @a _in
-		/// must not be null.
-		Scope(std::vector<std::pair<std::string, Expression>> _definitions, std::unique_ptr<Pointer const> _in);
+		using Definitions = std::vector<std::pair<std::string, Expression>>;
 
-		std::vector<std::pair<std::string, Expression>> definitions;
+		enum class DefinitionEncoding
+		{
+			Nested,
+			Grouped,
+		};
+
+		/// @a _definitions must contain at least one binding, and @a _in must not be null.
+		/// Grouped bindings must have distinct names and be ordered by their dependencies.
+		Scope(
+			Definitions _definitions,
+			std::unique_ptr<Pointer const> _in,
+			DefinitionEncoding _definitionEncoding = DefinitionEncoding::Nested
+		);
+
+		Definitions definitions;
 		std::unique_ptr<Pointer const> in;
+		DefinitionEncoding definitionEncoding{};
 	};
 
 	struct TemplateReference

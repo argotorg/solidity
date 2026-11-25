@@ -1,0 +1,17 @@
+{
+    "pointers": {
+        "p": {
+            "expect": [],
+            "for": {
+                "define": {
+                    "a": {"~wordsized": "b"},
+                    "b": {"~sum": ["c", 1]},
+                    "c": "a"
+                },
+                "in": {"location": "storage", "slot": "a"}
+            }
+        }
+    }
+}
+// ----
+// Error: resources.pointers.p.for.define has cyclic variable dependencies.

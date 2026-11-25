@@ -229,13 +229,23 @@ schema::Pointer::Conditional::Conditional(
 	solAssert(then, "Conditional consequent is missing.");
 }
 
-schema::Pointer::Scope::Scope(std::vector<std::pair<std::string, Expression>> _definitions, std::unique_ptr<Pointer const> _in):
+schema::Pointer::Scope::Scope(
+	Definitions _definitions,
+	std::unique_ptr<Pointer const> _in,
+	DefinitionEncoding _definitionEncoding
+):
 	definitions(std::move(_definitions)),
-	in(std::move(_in))
+	in(std::move(_in)),
+	definitionEncoding(_definitionEncoding)
 {
 	solAssert(!definitions.empty(), "A scope pointer must define at least one variable.");
+	std::set<std::string_view> names;
 	for (auto const& [variable, expression]: definitions)
+	{
 		solAssert(isIdentifier(variable), "Scope variable \"" + variable + "\" is not an identifier.");
+		if (definitionEncoding == DefinitionEncoding::Grouped)
+			solAssert(names.insert(variable).second, "Duplicate grouped scope variable \"" + variable + "\".");
+	}
 	solAssert(in, "Scope target pointer is missing.");
 }
 
@@ -560,8 +570,16 @@ void schema::to_json(Json& _json, Pointer const& _pointer)
 		},
 		[&](Pointer::Scope const& _scope)
 		{
-			// Definitions are ordered while JSON object members are not, so each
-			// definition becomes its own define/in level.
+			if (_scope.definitionEncoding == Pointer::Scope::DefinitionEncoding::Grouped)
+			{
+				Json definitions = Json::object();
+				for (auto const& [variable, expression]: _scope.definitions)
+					definitions[variable] = expression;
+				_json = Json{{"define", std::move(definitions)}, {"in", *_scope.in}};
+				return;
+			}
+
+			// Preserve the evaluation order and shadowing of sequential bindings.
 			Json inner = *_scope.in;
 			for (auto definition = _scope.definitions.rbegin(); definition != _scope.definitions.rend(); ++definition)
 				inner = Json{{"define", Json{{definition->first, definition->second}}}, {"in", std::move(inner)}};
@@ -1064,6 +1082,83 @@ schema::Pointer::Expression expressionFromJSON(Json const& _json, std::string_vi
 	solThrow(JsonValidationError, std::string(_path) + " has the unknown expression key \"" + key + "\".");
 }
 
+void collectReferencedVariables(schema::Pointer::Expression const& _expression, std::set<std::string_view>& _variables)
+{
+	using Pointer = schema::Pointer;
+	auto const collectOperands = [&](Pointer::Operands const& _operands) {
+		for (Pointer::Expression const& operand: _operands)
+			collectReferencedVariables(operand, _variables);
+	};
+	std::visit(GenericVisitor{
+		[&](Pointer::Variable const& _variable) { _variables.insert(_variable.identifier); },
+		[&](Pointer::Arithmetic const& _arithmetic) { collectOperands(_arithmetic.operands); },
+		[&](Pointer::Keccak256 const& _hash) { collectOperands(_hash.operands); },
+		[&](Pointer::Concat const& _concat) { collectOperands(_concat.operands); },
+		[&](Pointer::Resize const& _resize) { collectReferencedVariables(*_resize.operand, _variables); },
+		[](Pointer::Literal const&) {},
+		[](Pointer::Constant) {},
+		[](Pointer::Lookup const&) {},
+		[](Pointer::Read const&) {},
+	}, _expression.value);
+}
+
+schema::Pointer::Scope::Definitions readScopeDefinitions(Json const& _json, std::string_view _path, size_t _depth)
+{
+	using Definitions = schema::Pointer::Scope::Definitions;
+	requireObject(_json, _path);
+	if (_json.empty())
+		solThrow(JsonValidationError, std::string(_path) + " must define at least one variable.");
+
+	Definitions definitions;
+	definitions.reserve(_json.size());
+	for (auto const& [name, value]: _json.items())
+	{
+		requireIdentifierKey(name, _path);
+		definitions.emplace_back(name, expressionFromJSON(value, appendMemberToPath(_path, name), _depth));
+	}
+
+	std::map<std::string_view, size_t> definitionIndices;
+	for (size_t index = 0; index < definitions.size(); ++index)
+		definitionIndices.emplace(definitions[index].first, index);
+
+	std::vector<std::vector<size_t>> dependents(definitions.size());
+	std::vector<size_t> dependencyCounts(definitions.size());
+	for (size_t index = 0; index < definitions.size(); ++index)
+	{
+		std::set<std::string_view> references;
+		collectReferencedVariables(definitions[index].second, references);
+		for (std::string_view reference: references)
+		{
+			auto const dependency = definitionIndices.find(reference);
+			// A self-reference names an enclosing binding, not this definition.
+			if (dependency != definitionIndices.end() && dependency->second != index)
+			{
+				dependents[dependency->second].push_back(index);
+				++dependencyCounts[index];
+			}
+		}
+	}
+
+	// Order dependencies before their users without recursing through the graph.
+	std::vector<size_t> ready;
+	ready.reserve(definitions.size());
+	for (size_t index = 0; index < definitions.size(); ++index)
+		if (dependencyCounts[index] == 0)
+			ready.push_back(index);
+	for (size_t next = 0; next < ready.size(); ++next)
+		for (size_t dependent: dependents[ready[next]])
+			if (--dependencyCounts[dependent] == 0)
+				ready.push_back(dependent);
+	if (ready.size() != definitions.size())
+		solThrow(JsonValidationError, std::string(_path) + " has cyclic variable dependencies.");
+
+	Definitions sorted;
+	sorted.reserve(definitions.size());
+	for (size_t index: ready)
+		sorted.push_back(std::move(definitions[index]));
+	return sorted;
+}
+
 std::optional<schema::Pointer::Expression> optionalExpression(Json const& _json, std::string_view _name, std::string_view _path, size_t _depth)
 {
 	if (Json const* value = checkAndFindMember(_json, _name, _path))
@@ -1144,32 +1239,12 @@ schema::Pointer pointerFromJSON(Json const& _json, std::string_view _path, size_
 	}
 	if (_json.contains("define"))
 	{
-		// A define/in chain is folded into one ordered definition list. The
-		// members of one define object cannot reference each other, so their
-		// order within that object does not matter.
-		std::vector<std::pair<std::string, Pointer::Expression>> definitions;
-		Json const* current = &_json;
-		std::string path(_path);
-		size_t depth = _depth;
-		while (current->contains("define"))
-		{
-			requireDepthBelow(depth, path);
-			requireOnlyMembers(*current, {"define", "in"}, path);
-			Json const& define = current->at("define");
-			std::string const definePath = appendMemberToPath(path, "define");
-			requireObject(define, definePath);
-			if (define.empty())
-				solThrow(JsonValidationError, definePath + " must define at least one variable.");
-			for (auto const& [name, value]: define.items())
-			{
-				requireIdentifierKey(name, definePath);
-				definitions.emplace_back(name, expressionFromJSON(value, appendMemberToPath(definePath, name), depth + 1));
-			}
-			current = &requireMember(*current, "in", path);
-			path = appendMemberToPath(path, "in");
-			++depth;
-		}
-		return Pointer{Pointer::Scope{std::move(definitions), std::make_unique<Pointer const>(pointerFromJSON(*current, path, depth))}};
+		requireOnlyMembers(_json, {"define", "in"}, _path);
+		return Pointer{Pointer::Scope{
+			readScopeDefinitions(_json.at("define"), appendMemberToPath(_path, "define"), _depth + 1),
+			subPointer(requireMember(_json, "in", _path), appendMemberToPath(_path, "in")),
+			Pointer::Scope::DefinitionEncoding::Grouped,
+		}};
 	}
 	if (_json.contains("template"))
 	{
