@@ -1,0 +1,3 @@
+{"pointers": {"p": {"expect": [], "for": {"location": "storage", "slot": -1}}}}
+// ----
+// Error: resources.pointers.p.for.slot must be an unsigned number or a 0x-prefixed hex string.

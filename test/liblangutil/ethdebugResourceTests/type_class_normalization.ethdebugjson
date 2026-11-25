@@ -1,0 +1,17 @@
+{
+    "types": {
+        "t_bool": { "class": "elementary", "kind": "bool" },
+        "t_tuple": { "class": "complex", "kind": "tuple", "contains": [] }
+    }
+}
+// ----
+// [
+//     {
+//         "op": "remove",
+//         "path": "/types/t_bool/class"
+//     },
+//     {
+//         "op": "remove",
+//         "path": "/types/t_tuple/class"
+//     }
+// ]

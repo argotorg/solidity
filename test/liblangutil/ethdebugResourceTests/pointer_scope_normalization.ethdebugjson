@@ -1,0 +1,41 @@
+{
+    "pointers": {
+        "p": {
+            "expect": [],
+            "for": {
+                "define": { "a": 1, "b": 2 },
+                "in": { "location": "storage", "slot": "a" }
+            }
+        }
+    }
+}
+// ----
+// [
+//     {
+//         "op": "remove",
+//         "path": "/pointers/p/for/define/b"
+//     },
+//     {
+//         "op": "remove",
+//         "path": "/pointers/p/for/in/location"
+//     },
+//     {
+//         "op": "remove",
+//         "path": "/pointers/p/for/in/slot"
+//     },
+//     {
+//         "op": "add",
+//         "path": "/pointers/p/for/in/define",
+//         "value": {
+//             "b": 2
+//         }
+//     },
+//     {
+//         "op": "add",
+//         "path": "/pointers/p/for/in/in",
+//         "value": {
+//             "location": "storage",
+//             "slot": "a"
+//         }
+//     }
+// ]
