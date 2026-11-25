@@ -1,0 +1,22 @@
+{
+    "pointers": {
+        "p": {
+            "expect": [],
+            "for": {
+                "define": {
+                    "integer": "0x1",
+                    "wide-integer": "0x10000000000000000",
+                    "byte": "0x01",
+                    "two-bytes": "0x0001"
+                },
+                "in": {
+                    "location": "memory",
+                    "offset": {"~sum": ["integer", "wide-integer"]},
+                    "length": {"~sum": ["byte", "two-bytes"]}
+                }
+            }
+        }
+    }
+}
+// ----
+// Input and output are identical.

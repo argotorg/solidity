@@ -1,0 +1,25 @@
+{
+    "pointers": {
+        "p": {
+            "expect": [],
+            "for": {
+                "group": [
+                    {"name": "operand", "location": "stack", "slot": 2},
+                    {
+                        "name": "computed",
+                        "location": "virtual",
+                        "expression": {"~wordsized": {"~sum": [{"~read": "operand"}, 1]}}
+                    },
+                    {
+                        "location": "virtual",
+                        "expression": {"~keccak256": [{"~read": "computed"}]},
+                        "length": 4
+                    },
+                    {"location": "virtual", "expression": "0xdeadbeef", "offset": 2, "length": 2}
+                ]
+            }
+        }
+    }
+}
+// ----
+// Input and output are identical.

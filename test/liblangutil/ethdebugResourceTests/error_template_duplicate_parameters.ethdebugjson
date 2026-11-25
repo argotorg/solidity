@@ -1,0 +1,3 @@
+{"pointers":{"T":{"expect":["slot","slot"],"for":{"location":"storage","slot":"slot"}}}}
+// ----
+// Error: resources.pointers.T.expect has the duplicate parameter slot.

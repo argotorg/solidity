@@ -1,0 +1,13 @@
+{
+    "pointers": {
+        "p": {
+            "expect": [],
+            "for": {
+                "define": { "a": 1, "b": 2 },
+                "in": { "location": "storage", "slot": "a" }
+            }
+        }
+    }
+}
+// ----
+// Input and output are identical.
