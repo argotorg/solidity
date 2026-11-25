@@ -3687,10 +3687,10 @@ std::string FunctionType::externalIdentifierHex() const
 	return util::selectorFromSignatureH32(externalSignature()).hex();
 }
 
-bool FunctionType::isPure() const
+bool FunctionType::returnsRuntimeConstant() const
 {
-	// TODO: replace this with m_stateMutability == StateMutability::Pure once
-	//       the callgraph analyzer is in place
+	// TODO: extend this to user-defined functions once the callgraph analyzer is in place.
+	//       Being `pure` is not enough: pure functions can read e.g. `msg.data`.
 	return
 		m_kind == Kind::KECCAK256 ||
 		m_kind == Kind::ECRecover ||

@@ -12,6 +12,7 @@ Breaking Changes:
 AST Changes:
 * AST: Remove `isConstant` field from `ExpressionAnnotation`.
 * AST: Remove the `virtual`, `overrides`, and `baseModifiers` fields from `ModifierDefinition` nodes.
+* AST: Rename the `isPure` field of expression nodes in the AST JSON output to `isRuntimeConstant`.
 
 Language Features:
 * ABIEncoder: Remove support for the experimental pragma `ABIEncoderV2`. This pragma was redundant.
