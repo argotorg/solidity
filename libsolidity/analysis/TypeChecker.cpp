@@ -162,7 +162,7 @@ TypePointers TypeChecker::typeCheckABIDecodeAndRetrieveReturnType(FunctionCall c
 
 			if (auto referenceType = dynamic_cast<ReferenceType const*>(actualType))
 			{
-				auto result = referenceType->validForLocation(referenceType->location());
+				auto result = validForLocation(referenceType, referenceType->location());
 				if (!result)
 					m_errorReporter.typeError(
 						6118_error,
@@ -516,9 +516,12 @@ bool TypeChecker::visit(VariableDeclaration const& _variable)
 	if (isStructMemberDeclaration)
 		return false;
 
-	if (auto referenceType = dynamic_cast<ReferenceType const*>(varType))
+	BoolResult result = {true};
+	if (dynamic_cast<MappingType const*>(varType))
+		result = validForLocation(varType, DataLocation::Storage);
+	else if (auto referenceType = dynamic_cast<ReferenceType const*>(varType))
 	{
-		BoolResult result = referenceType->validForLocation(referenceType->location());
+		result = validForLocation(referenceType, referenceType->location());
 		if (result)
 		{
 			bool isLibraryStorageParameter = (_variable.isLibraryFunctionParameter() && referenceType->location() == DataLocation::Storage);
@@ -533,15 +536,14 @@ bool TypeChecker::visit(VariableDeclaration const& _variable)
 				if (!referenceType->interfaceType(false))
 					solAssert(m_errorReporter.hasErrors(), "");
 				else
-					result = referenceType->validForLocation(DataLocation::CallData);
+					result = validForLocation(referenceType, DataLocation::CallData);
 			}
 		}
-		if (!result)
-		{
-			solAssert(!result.message().empty(), "Expected detailed error message");
-			m_errorReporter.typeError(1534_error, _variable.location(), result.message());
-			return false;
-		}
+	}
+	if (!result)
+	{
+		solAssert(!result.message().empty(), "Expected detailed error message");
+		m_errorReporter.typeError(1534_error, _variable.location(), result.message());
 	}
 
 	return false;
