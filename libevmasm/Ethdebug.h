@@ -26,6 +26,7 @@
 #include <libsolutil/JSON.h>
 
 #include <map>
+#include <optional>
 
 namespace solidity::evmasm::ethdebug
 {
@@ -44,12 +45,14 @@ constexpr std::string_view SpecificationVersion = "0.1.0-draft.2";
 
 /// Returns ethdebug/format/program, stamped with its schema and the specification version.
 /// @param _sourceIndices Maps instruction source names to their source IDs.
+/// @param _programContext Describes variables for the program as a whole, if available.
 Json program(
 	std::string_view _name,
 	unsigned _contractSourceID,
 	Assembly const& _assembly,
 	LinkerObject const& _linkerObject,
-	std::map<std::string, unsigned> const& _sourceIndices
+	std::map<std::string, unsigned> const& _sourceIndices,
+	std::optional<langutil::ethdebug::schema::program::Context> _programContext = std::nullopt
 );
 
 // returns ethdebug/format/info/resources, stamped with its schema and the specification version.

@@ -1,0 +1,62 @@
+IR ethdebug sidecar:
+{
+    "contractName": "C",
+    "format": "solidity-ethdebug-semantic-data",
+    "resources": {
+        "pointers": {
+            "storage-t_uint256": {
+                "expect": [
+                    "slot",
+                    "offset"
+                ],
+                "for": {
+                    "length": "0x20",
+                    "location": "storage",
+                    "name": "value",
+                    "offset": {
+                        "~difference": [
+                            "0x00",
+                            "offset"
+                        ]
+                    },
+                    "slot": "slot"
+                }
+            }
+        },
+        "types": {
+            "t_uint256": {
+                "bits": 256,
+                "kind": "uint"
+            }
+        }
+    },
+    "scopes": {
+        "4": {
+            "0": {
+                "variableDefinitions": [
+                    {
+                        "declarationASTID": 3,
+                        "declarationSourceRange": {
+                            "range": {
+                                "length": 15,
+                                "offset": 77
+                            },
+                            "source": {
+                                "id": 0,
+                                "type": "source"
+                            }
+                        },
+                        "identifier": "counter",
+                        "phase": "materialized",
+                        "pointer": {
+                            "location": "storage",
+                            "slot": "0x00"
+                        },
+                        "typeID": "t_uint256"
+                    }
+                ]
+            }
+        }
+    },
+    "version": 1
+}

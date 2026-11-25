@@ -1,0 +1,1 @@
+--strict-assembly --experimental --debug-info ast-id,ethdebug --ethdebug-input sidecar.json in.yul

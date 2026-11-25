@@ -33,6 +33,10 @@ contract A1 {
 	function (uint256) external returns (bool) externalFunction;
 	uint256 transient temporary;
 	uint256 constant CONSTANT = 1;
+	int24 immutable shift = -5;
+	bytes4 immutable tag = 0xdeadbeef;
+	uint64 immutable unread = 3;
+	address immutable creator = msg.sender;
 
 	function a(uint x) public pure {
 		assert(x > 0);
@@ -40,6 +44,10 @@ contract A1 {
 
 	function b(Point memory p, uint256[] calldata xs) public pure returns (Line memory, bytes memory) {
 		assert(p.x > 0 && xs.length > 0);
+	}
+
+	function c() public view returns (int24, bytes4, address) {
+		return (shift, tag, creator);
 	}
 }
 
