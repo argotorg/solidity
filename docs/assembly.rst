@@ -176,6 +176,12 @@ For these (structs, arrays or mappings), the ``.offset`` part is always zero.
 It is not possible to assign to the ``.slot`` or ``.offset`` part of a state variable,
 though.
 
+.. warning::
+    The compiler assigns each state variable a disjoint storage region (see
+    :ref:`storage layout <storage-inplace-encoding>`). Using ``.slot`` to place two variables in
+    overlapping storage lies outside these guarantees, and operations that depend on the layout,
+    such as a storage-to-storage copy, may then produce incorrect results.
+
 Local Solidity variables are available for assignments, for example:
 
 .. code-block:: solidity

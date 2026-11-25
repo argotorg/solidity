@@ -48,7 +48,8 @@ public:
 		LivenessAnalysis const& _liveness,
 		CallSites const& _callSites,
 		ControlFlowGraphs::FunctionGraphID _graphID,
-		bool _spillingAllowed
+		bool _spillingAllowed,
+		std::size_t _reachableStackDepth
 	);
 
 private:
@@ -57,6 +58,7 @@ private:
 		CallSites const& _callSites,
 		ControlFlowGraphs::FunctionGraphID _graphID,
 		bool _spillingAllowed,
+		std::size_t _reachableStackDepth,
 		spill::SpillSet _initialSpillSet
 	);
 
@@ -69,6 +71,7 @@ private:
 	ControlFlowGraphs::FunctionGraphID m_graphID;
 	bool m_hasFunctionReturnLabel;
 	bool m_spillingAllowed;
+	std::size_t m_reachableStackDepth;
 
 	// The incoming edges of each block, collected while its predecessors are laid out and read by defineStackIn
 	std::vector<std::vector<stack::IncomingEdge>> m_incomingEdgesPerBlock;

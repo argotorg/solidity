@@ -78,7 +78,7 @@ void CodeTransform::run
 		auto const graphID = static_cast<ControlFlowGraphs::FunctionGraphID>(functionIndex);
 		callSitesPerCFG.push_back(gatherCallSites(cfg));
 		bool const spillingAllowed = !callGraph.isRecursive(graphID);
-		auto [layout, spillSet, spillStoreTraces] = StackLayoutGenerator::generate(*liveness, callSitesPerCFG.back(), graphID, spillingAllowed);
+		auto [layout, spillSet, spillStoreTraces] = StackLayoutGenerator::generate(*liveness, callSitesPerCFG.back(), graphID, spillingAllowed, cfg.evmDialect.reachableStackDepth());
 		layouts.push_back(std::move(layout));
 		spillSetsPerCFG.push_back(std::move(spillSet));
 		spillStoreTracesPerCFG.push_back(std::move(spillStoreTraces));
@@ -185,7 +185,7 @@ CodeTransform::CodeTransform(
 		yulAssert(entryLayout);
 		return entryLayout->stackIn;
 	}()),
-	m_stack(m_stackData)
+	m_stack(m_stackData, m_cfg.evmDialect.reachableStackDepth())
 {
 	bool const isFunctionGraph = !m_cfg.isMainGraph();
 	if (isFunctionGraph)
@@ -529,6 +529,8 @@ void CodeTransform::emit(ShuffleOp const& _op, SSACFG::BlockId const _block)
 		}
 		case StackSlot::Kind::FunctionReturnLabel:
 			yulAssert(false, "Cannot produce function return label.");
+		case StackSlot::Kind::Shadow:
+			yulAssert(false, "Shadow slots are renamed into place or loaded, never pushed.");
 		}
 		solidity::util::unreachable();
 	case ShuffleOp::Kind::Load:
@@ -548,6 +550,8 @@ void CodeTransform::emit(ShuffleOp const& _op, SSACFG::BlockId const _block)
 		);
 		m_stores.emplace(_op.slot, _block);
 		m_spillEmitter->emitStore(_op.slot);
+		return;
+	case ShuffleOp::Kind::Rename:
 		return;
 	}
 	solidity::util::unreachable();

@@ -835,7 +835,7 @@ private:
 	/// Number of target offsets whose slot still has to be produced; decremented by `produce`
 	std::size_t m_pendingGenerations = 0;
 	ShuffleTrace m_trace;
-	Stack m_stack{m_data, &m_trace, m_maxSwapDepth};
+	Stack m_stack{m_data, m_maxSwapDepth, &m_trace};
 };
 
 class Planner

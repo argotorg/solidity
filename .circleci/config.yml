@@ -764,7 +764,7 @@ defaults:
       name: t_native_test_ext_yield_liquidator
       project: yield-liquidator
       binary_type: native
-      image: cimg/node:18.16
+      image: cimg/node:22.13
 
   - job_native_compile_ext_bleeps: &job_native_compile_ext_bleeps
       <<: *requires_b_ubu_static

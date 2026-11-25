@@ -180,7 +180,8 @@ frontend::test::TestCase::TestResult StackLayoutGeneratorTest::run(std::ostream&
 				LivenessAnalysis(cfg),
 				gatherCallSites(cfg),
 				static_cast<ControlFlowGraphs::FunctionGraphID>(index),
-				true
+				true,
+				evmDialect->reachableStackDepth()
 			);
 			StackLayoutDotExporter exporter(cfg, index, result.layout, result.spillSet, *controlFlowGraphs);
 			if (!cfg.isMainGraph())

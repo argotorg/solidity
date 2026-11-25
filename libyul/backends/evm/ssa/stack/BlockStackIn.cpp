@@ -82,7 +82,8 @@ StackData stack::chooseBlockStackIn(
 	std::vector<IncomingEdge> const& _edges,
 	LivenessAnalysis::LivenessData const& _liveIn,
 	spill::SpillSet& _spillSet,
-	bool const _spillingAllowed
+	bool const _spillingAllowed,
+	std::size_t const _reachableStackDepth
 )
 {
 	yulAssert(!_edges.empty());
@@ -93,7 +94,7 @@ StackData stack::chooseBlockStackIn(
 		yulAssert(_edges.size() == 1);
 		stackIn = _edges[0].stack;
 		handlePhiFunctions(stackIn, PhiInverse(_cfg, _edges[0].predecessor, _block), _liveIn, _cfg);
-		Stack stack(stackIn);
+		Stack stack(stackIn, _reachableStackDepth);
 		declareJunk(stack, _liveIn);
 	}
 	else
@@ -105,7 +106,7 @@ StackData stack::chooseBlockStackIn(
 			proposals[i] = _edges[i].stack;
 			handlePhiFunctions(proposals[i], PhiInverse(_cfg, _edges[i].predecessor, _block), _liveIn, _cfg);
 			{
-				Stack stack(proposals[i]);
+				Stack stack(proposals[i], _reachableStackDepth);
 				declareJunk(stack, _liveIn);
 			}
 		}
@@ -123,7 +124,8 @@ StackData stack::chooseBlockStackIn(
 					edgeStack,
 					stackPreImage(_cfg, proposals[i], PhiInverse(_cfg, _edges[j].predecessor, _block)),
 					candidateSpillSet,
-					_spillingAllowed
+					_spillingAllowed,
+					_reachableStackDepth
 				);
 				yulAssert(result.status == ShuffleResult::Status::Admissible);
 				cumulativeGas[i] += stackOpsGas(_cfg, result.trace);
