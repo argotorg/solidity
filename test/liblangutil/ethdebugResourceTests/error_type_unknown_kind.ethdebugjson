@@ -1,0 +1,7 @@
+{
+    "types": {
+        "t": { "kind": "matrix" }
+    }
+}
+// ----
+// Error: resources.types.t.kind has the unknown value "matrix".

@@ -1,0 +1,3 @@
+{"pointers": {"p": {"expect": [], "for": {"region": "storage"}}}}
+// ----
+// Error: resources.pointers.p.for is not a pointer: expected one of location, group, list, if, define, template or templates.

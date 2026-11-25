@@ -24,6 +24,8 @@
 
 #include <liblangutil/EthdebugSchema.h>
 
+#include <libsolutil/Numeric.h>
+
 #include <map>
 #include <set>
 #include <string>
@@ -75,7 +77,18 @@ public:
 	/// The pointer ID for a layout of the location-independent type document.
 	static std::string identifier(Type const& _type, DataLocation _location);
 
+	/// Locates one state variable at its storage-layout slot and byte offset.
+	static langutil::ethdebug::schema::Pointer buildStateVariablePointer(
+		Type const& _type,
+		DataLocation _location,
+		u256 const& _slot,
+		unsigned _littleEndianOffset
+	);
+
 	std::map<std::string, langutil::ethdebug::schema::Pointer::Template> takeTemplates();
+
+	/// Locates the value within an immutable's word-sized copy in deployed code.
+	static langutil::ethdebug::schema::Pointer buildImmutablePointer(Type const& _type, size_t _codeOffset);
 
 private:
 	using Pointer = langutil::ethdebug::schema::Pointer;
