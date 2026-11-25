@@ -14,8 +14,8 @@
     {
         let loc := arg
         sstore(loc, value)
-        // Reassigning arg (not loc) still invalidates loc, because loc's tracked
-        // value transitively depends on arg.
+        // Reassigning arg does not affect loc, which keeps referring to the old version
+        // of arg. Both stores target loc, so the first one is overwritten.
         arg := add(arg, 1)
         let value1 := add(value, 1)
         sstore(loc, value1)
@@ -24,9 +24,8 @@
     function mix(arg, value)
     {
         let loc := arg
-        // The first sstore could theoretically be eliminated since loc == arg,
-        // but USE cannot prove this without a known constant value for arg;
-        // a subsequent optimizer pass (after, e.g., CSE resolves the alias) would eliminate it.
+        // The value of arg is unknown, but loc refers to the same version of arg,
+        // so both stores target the same slot and the first one is overwritten.
         sstore(loc, value)
         let value1 := add(value, 1)
         sstore(arg, value1)

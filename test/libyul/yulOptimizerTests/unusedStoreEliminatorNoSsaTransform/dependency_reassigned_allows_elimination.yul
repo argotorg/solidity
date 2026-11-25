@@ -1,9 +1,8 @@
 {
     let x := calldataload(0)
-    let y := add(x, 32) // Transitively depends on x
+    x := calldataload(32) // Reassignment; x gets a new version, which a and b both refer to
+    let a := add(x, 32)
     let b := x
-    x := calldataload(32) // Reassignment; breaks tracking of x and, transitively, of y
-    let a := y
     let outLen := 32
     mstore(a, 0xAA) // Unused, no overlap with [b, b+outLen]
     return(b, outLen)
@@ -13,10 +12,9 @@
 //
 // {
 //     let x := calldataload(0)
-//     let y := add(x, 32)
-//     let b := x
 //     x := calldataload(32)
-//     let a := y
+//     let a := add(x, 32)
+//     let b := x
 //     let outLen := 32
 //     return(b, outLen)
 // }
