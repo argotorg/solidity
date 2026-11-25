@@ -1,0 +1,7 @@
+{
+    "types": {
+        "t": { "kind": "function", "internal": true, "contains": {} }
+    }
+}
+// ----
+// Error: resources.types.t.contains.parameters is required.

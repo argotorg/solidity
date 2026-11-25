@@ -1,0 +1,7 @@
+{
+    "types": {
+        "t": { "kind": "uint", "bits": 12 }
+    }
+}
+// ----
+// Error: resources.types.t.bits must be a multiple of 8 between 8 and 256.

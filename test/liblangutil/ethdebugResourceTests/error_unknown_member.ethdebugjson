@@ -1,0 +1,3 @@
+{"types": {}, "pointers": {}, "extra": 1}
+// ----
+// Error: resources has an unknown member "extra".
