@@ -27,6 +27,7 @@
 #include <libyul/ObjectParser.h>
 #include <libyul/optimiser/Semantics.h>
 #include <libyul/optimiser/Suite.h>
+#include <libyul/SemanticDebugDataTransfer.h>
 #include <libevmasm/Assembly.h>
 #include <libevmasm/Ethdebug.h>
 #include <liblangutil/CodeSizeLimits.h>
@@ -204,6 +205,11 @@ void YulStack::reparse()
 	// NOTE: it is important for the source printed here to exactly match what the compiler will
 	// eventually output to the user. In particular, debug info must be exactly the same.
 	// Otherwise source locations will be off.
+	// Semantic debug info has no comment form in the printed Yul. Collect it from the AST into the
+	// side table before printing and reattach it by (AST ID, instance) after the reparse; records
+	// no Yul node carries survive in the table.
+	if (m_debugInfoSelection.ethdebug)
+		collectSemanticDebugData(*m_parserResult, m_semanticDebugData);
 	std::string source = print();
 
 	YulStack cleanStack(
@@ -223,6 +229,8 @@ void YulStack::reparse()
 
 	m_stackState = AnalysisSuccessful;
 	m_parserResult = std::move(cleanStack.m_parserResult);
+	if (m_debugInfoSelection.ethdebug && !m_semanticDebugData.empty())
+		applySemanticDebugData(*m_parserResult, m_semanticDebugData);
 
 	// NOTE: We keep the char stream, and errors, even though they no longer match the object,
 	// because it's the original source that matters to the user. Optimized code may have different
@@ -280,13 +288,7 @@ YulStack::assembleWithDeployed(std::optional<std::string_view> _deployName, bool
 			yulSourceIndices
 		);
 		if (debugInfoSelection().ethdebug)
-			creationObject.ethdebug = evmasm::ethdebug::program(
-				creationObject.assembly->name(),
-				0,
-				*creationObject.assembly,
-				*creationObject.bytecode,
-				buildEthdebugSourceIndices(*m_parserResult)
-			);
+			creationObject.ethdebug = ethdebugProgram(creationObject, buildEthdebugSourceIndices(*m_parserResult));
 
 		if (deployedAssembly)
 		{
@@ -297,13 +299,7 @@ YulStack::assembleWithDeployed(std::optional<std::string_view> _deployName, bool
 				Object const& deployedYulObject = dynamic_cast<Object const&>(*m_parserResult->subObjects.at(
 					m_parserResult->subIndexByName.at(deployedAssembly->name())
 				));
-				deployedObject.ethdebug = evmasm::ethdebug::program(
-					deployedObject.assembly->name(),
-					0,
-					*deployedObject.assembly,
-					*deployedObject.bytecode,
-					buildEthdebugSourceIndices(deployedYulObject)
-				);
+				deployedObject.ethdebug = ethdebugProgram(deployedObject, buildEthdebugSourceIndices(deployedYulObject));
 			}
 			deployedObject.sourceMappings = std::make_unique<std::string>(
 				evmasm::AssemblyItem::computeSourceMapping(
@@ -425,6 +421,48 @@ std::shared_ptr<Object> YulStack::parserResult() const
 	yulAssert(m_parserResult, "");
 	yulAssert(m_parserResult->hasCode(), "");
 	return m_parserResult;
+}
+
+void YulStack::attachSemanticDebugData(SemanticDebugDataTable const& _table)
+{
+	yulAssert(m_stackState >= AnalysisSuccessful, "Analysis was not successful.");
+	yulAssert(m_parserResult, "");
+	yulAssert(m_debugInfoSelection.ethdebug, "Semantic debug info was supplied without requesting ethdebug.");
+
+	m_semanticDebugData.merge(_table);
+	// Applying rather than merely reattaching re-checks every pointer against the current code:
+	// when the table is attached to Yul reloaded from text, a variable whose pointer reads a Yul
+	// local that no longer exists must become optimized-out instead of keeping a stale pointer.
+	if (!m_semanticDebugData.empty())
+		applySemanticDebugData(*m_parserResult, m_semanticDebugData);
+}
+
+void YulStack::setEthdebugProgramContext(
+	std::string _contractName,
+	std::optional<langutil::ethdebug::schema::program::Context> _context
+)
+{
+	m_ethdebugContractName = std::move(_contractName);
+	m_ethdebugProgramContext = std::move(_context);
+}
+
+Json YulStack::ethdebugProgram(
+	MachineAssemblyObject const& _object,
+	std::map<std::string, unsigned> const& _sourceIndices
+) const
+{
+	yulAssert(_object.assembly && _object.bytecode);
+	Json result = evmasm::ethdebug::program(
+		m_ethdebugContractName.value_or(_object.assembly->name()),
+		0,
+		*_object.assembly,
+		*_object.bytecode,
+		_sourceIndices
+	);
+	// Both assembled objects use the context, whose pointer trees have unique ownership.
+	if (m_ethdebugProgramContext.has_value())
+		result["context"] = *m_ethdebugProgramContext;
+	return result;
 }
 
 Dialect const& YulStack::dialect() const

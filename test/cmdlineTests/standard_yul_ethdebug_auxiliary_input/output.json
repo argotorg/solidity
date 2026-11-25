@@ -1,0 +1,61 @@
+{
+    "contracts": {
+        "input.yul": {
+            "C": {
+                "evm": {
+                    "bytecode": {
+                        "ethdebug": {
+                            "context": {
+                                "variables": [
+                                    {
+                                        "identifier": "counter",
+                                        "pointer": {
+                                            "template": "counter"
+                                        },
+                                        "type": {
+                                            "id": "t_uint256"
+                                        }
+                                    }
+                                ]
+                            },
+                            "contract": {
+                                "definition": {
+                                    "source": {
+                                        "id": 0,
+                                        "type": "source"
+                                    }
+                                },
+                                "name": "C"
+                            },
+                            "environment": "create",
+                            "ethdebug": {
+                                "schema": "ethdebug/format/program",
+                                "version": "0.1.0-draft.2"
+                            },
+                            "instructions": [
+                                {
+                                    "context": {
+                                        "code": {
+                                            "range": {
+                                                "length": 6,
+                                                "offset": 48
+                                            },
+                                            "source": {
+                                                "id": 0,
+                                                "type": "source"
+                                            }
+                                        }
+                                    },
+                                    "offset": 0,
+                                    "operation": {
+                                        "mnemonic": "STOP"
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,3 @@
+{"pointers": {"p": {"expect": [], "for": {"group": []}}}}
+// ----
+// Error: resources.pointers.p.for.group must have at least one member.

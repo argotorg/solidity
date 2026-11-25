@@ -1,0 +1,66 @@
+{
+    "language": "Yul",
+    "sources": {
+        "input.yul": {
+            "content": "object \"C\" {\n    /// @ast-id 1\n    code { stop() }\n}\n"
+        }
+    },
+    "auxiliaryInput": {
+        "ethdebug": {
+            "format": "solidity-ethdebug-semantic-data",
+            "version": 1,
+            "contractName": "C",
+            "resources": {
+                "types": {
+                    "t_uint256": {
+                        "kind": "uint",
+                        "bits": 256
+                    }
+                },
+                "pointers": {
+                    "counter": {
+                        "expect": [],
+                        "for": {
+                            "location": "storage",
+                            "name": "counter",
+                            "slot": "0x00"
+                        }
+                    }
+                }
+            },
+            "scopes": {
+                "1": {
+                    "0": {
+                        "variableDefinitions": [
+                            {
+                                "identifier": "counter",
+                                "typeID": "t_uint256",
+                                "phase": "materialized",
+                                "pointer": {
+                                    "template": "counter"
+                                }
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    },
+    "settings": {
+        "debug": {
+            "debugInfo": [
+                "ast-id",
+                "ethdebug"
+            ]
+        },
+        "experimental": true,
+        "outputSelection": {
+            "*": {
+                "*": [
+                    "evm.bytecode.ethdebug",
+                    "ethdebug.resources"
+                ]
+            }
+        }
+    }
+}

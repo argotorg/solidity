@@ -278,6 +278,20 @@ Input Description
           }
         }
       },
+      // Optional auxiliary inputs.
+      "auxiliaryInput": {
+        // Semantic debug info for the Yul input (experimental): the object the Solidity
+        // `irEthdebug` output emits for the `ir` output, attached to the Yul by its `@ast-id`
+        // annotations. Requires `ethdebug` in `settings.debug.debugInfo`. Yul optimization is
+        // not yet supported together with it.
+        "ethdebug": {
+          "format": "solidity-ethdebug-semantic-data",
+          "version": 1,
+          "contractName": "ContractName",
+          "resources": {/* ... */},
+          "scopes": {/* ... */}
+        }
+      },
       // Optional
       "settings":
       {
@@ -395,11 +409,12 @@ Input Description
           //     Depends on `location`. Selecting `snippet` without it is an error.
           // - `ast-id`: Annotations of the form `@ast-id <id>` over elements that can be mapped back to a definition in the original Solidity file.
           //   `<id>` is a node ID in the Solidity AST ('ast' output).
+          //   A cloned Yul scope also carries `@ast-id-instance <n>` to distinguish it from the original.
           // - `ethdebug`: Ethdebug annotations (experimental). Depends on `ast-id`. Selecting
           //   `ethdebug` without `ast-id` is an error. Requesting an ethdebug output does not
           //   change this selection. Without `ethdebug` in it the `evm.bytecode.ethdebug` and
           //   `evm.deployedBytecode.ethdebug` outputs carry none of the semantic debug info
-          //   this component adds.
+          //   this component adds, and `irEthdebug` and `auxiliaryInput.ethdebug` are an error.
           // - `*`: Wildcard value that can be used to request all non-experimental components.
           "debugInfo": ["location", "snippet", "ast-id", "ethdebug"]
         },
@@ -452,6 +467,7 @@ Input Description
         //   userdoc - User documentation (natspec)
         //   metadata - Metadata
         //   ir - Yul intermediate representation of the code before optimization
+        //   irEthdebug - Semantic debug info of the `ir` output: type documents, pointer templates and the variable scopes keyed by AST ID. Requires `ethdebug` in `settings.debug.debugInfo`. (experimental)
         //   irAst - AST of Yul intermediate representation of the code before optimization (experimental)
         //   irOptimized - Intermediate representation after optimization
         //   irOptimizedAst - AST of intermediate representation after optimization (experimental)
@@ -609,6 +625,8 @@ Output Description
             "devdoc": {},
             // Intermediate representation before optimization (string)
             "ir": "",
+            // Semantic debug info of the Yul IR (experimental)
+            "irEthdebug": {/* ... */},
             // AST of intermediate representation before optimization
             "irAst":  {/* ... */},
             // Intermediate representation after optimization (string)
