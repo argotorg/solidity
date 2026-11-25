@@ -1,0 +1,3 @@
+{"pointers":{"T":{"expect":[],"for":{"location":"memory","offset":{"~sized4294967296":"0x01"},"length":{"~sized18446744073709551615":"0x01"}}}}}
+// ----
+// Input and output are identical.

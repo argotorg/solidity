@@ -1,0 +1,7 @@
+{
+    "types": {
+        "t": { "class": "complex", "kind": "uint", "bits": 8 }
+    }
+}
+// ----
+// Error: resources.types.t.class must be "elementary" for kind "uint".
