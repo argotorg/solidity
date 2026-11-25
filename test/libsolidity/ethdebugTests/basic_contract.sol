@@ -15,12 +15,12 @@ contract C {
 // .compilation.sources[0].path: <IGNORE>
 // .compilation.sources[0].contents: <IGNORE>
 // .compilation.sources[0].language: Solidity
-// .resources.ethdebug: {"schema":"ethdebug/format/info/resources","version":"0.1.0-draft.2"}
+// .resources.ethdebug: {"schema":"ethdebug/format/info/resources","version":"0.1.0-draft.3"}
 // .resources.types.t_uint256.kind: uint
 // .resources.types.t_uint256.bits: 256
 // .resources.pointers | keys: ["storage-t_uint256"]
 // C.contract.name: C
-// C.creation.ethdebug: {"schema":"ethdebug/format/program","version":"0.1.0-draft.2"}
+// C.creation.ethdebug: {"schema":"ethdebug/format/program","version":"0.1.0-draft.3"}
 // C.creation.environment: create
 // C.contract.definition.source.id: 0
 // C.creation.instructions[0].offset: 0

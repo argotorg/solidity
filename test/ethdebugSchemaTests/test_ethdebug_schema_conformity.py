@@ -313,6 +313,7 @@ class EthdebugTestCase(unittest.TestCase):
             if "else" in pointer:
                 self.assertPointerIsClosed(pointer["else"], bound_variables, defined_region_names)
         elif variant == "define":
+            assert len(pointer["define"]) == 1
             for expression in pointer["define"].values():
                 check_expression(expression)
             self.assertPointerIsClosed(pointer["in"], bound_variables | set(pointer["define"]), defined_region_names)

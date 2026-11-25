@@ -17,7 +17,7 @@
                             "environment": "create",
                             "ethdebug": {
                                 "schema": "ethdebug/format/program",
-                                "version": "0.1.0-draft.2"
+                                "version": "0.1.0-draft.3"
                             },
                             "instructions": [
                                 {
@@ -109,7 +109,7 @@
                             "environment": "create",
                             "ethdebug": {
                                 "schema": "ethdebug/format/program",
-                                "version": "0.1.0-draft.2"
+                                "version": "0.1.0-draft.3"
                             },
                             "instructions": [
                                 {

@@ -91,6 +91,9 @@
         "/allOf/6/if/properties": [
             "location"
         ],
+        "/allOf/7/if/properties": [
+            "location"
+        ],
         "/properties": [
             "location"
         ]
@@ -134,6 +137,18 @@
     "pointer/region/transient": {
         "/allOf/0/properties": [
             "location"
+        ]
+    },
+    "pointer/region/virtual": {
+        "/allOf/0/properties": [
+            "location"
+        ]
+    },
+    "pointer/scheme/fragment": {
+        "/properties": [
+            "expression",
+            "length",
+            "offset"
         ]
     },
     "pointer/scheme/segment": {
