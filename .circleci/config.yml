@@ -1767,6 +1767,8 @@ jobs:
         type: string
     <<: *base_win
     parallelism: 2 # For prepare_bytecode_report
+    environment:
+      CPUs: 4
     steps:
       # NOTE: For bytecode generation we need the input files to be byte-for-byte identical on all
       # platforms so line ending conversions must absolutely be disabled.
@@ -1807,6 +1809,10 @@ jobs:
       preset:
         type: string
     <<: *base_node_small
+    resource_class: large
+    environment:
+      <<: *base_node_small_env
+      CPUs: 4
     steps:
       - checkout
       - attach_workspace:

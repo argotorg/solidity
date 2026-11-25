@@ -2,8 +2,13 @@
 
 import json
 import unittest
+from contextlib import redirect_stdout
+from io import StringIO
 from pathlib import Path
+from tempfile import TemporaryDirectory
 from textwrap import dedent
+from threading import Event
+from unittest.mock import Mock, patch
 
 from unittest_helpers import FIXTURE_DIR, LIBSOLIDITY_TEST_DIR, load_fixture, load_libsolidity_test_case
 
@@ -11,6 +16,7 @@ from unittest_helpers import FIXTURE_DIR, LIBSOLIDITY_TEST_DIR, load_fixture, lo
 # pragma pylint: disable=import-error
 from bytecodecompare.prepare_report import ExecutionArchitecture, CompilerInterface, FileReport, ContractReport
 from bytecodecompare.prepare_report import SettingsPreset, SMTUse, Statistics
+from bytecodecompare.prepare_report import generate_report
 from bytecodecompare.prepare_report import load_source, parse_cli_output, parse_standard_json_output, prepare_compiler_input
 # pragma pylint: enable=import-error
 
@@ -673,3 +679,35 @@ class TestParseCLIOutput(PrepareReportTestBase):
         # pragma pylint: enable=line-too-long
 
         self.assertEqual(parse_cli_output(Path('contract.sol'), compiler_output, 0), expected_report)
+
+
+class TestGenerateReport(PrepareReportTestBase):
+    @patch('bytecodecompare.prepare_report.detect_metadata_cli_option_support', Mock(return_value=True))
+    def test_generate_report_should_keep_file_order_when_compiling_in_parallel(self):
+        second_file_compiled = Event()
+
+        def compile_first_file_last(_compiler_path, _execution_arch, source_file_name, **_kwargs):
+            if source_file_name == Path('a.sol'):
+                self.assertTrue(second_file_compiled.wait(timeout=10))
+            else:
+                second_file_compiled.set()
+            return FileReport(file_name=source_file_name, contract_reports=None)
+
+        with TemporaryDirectory() as tmp_dir, patch('bytecodecompare.prepare_report.run_compiler', compile_first_file_last):
+            report_file_path = Path(tmp_dir) / 'report.txt'
+            with redirect_stdout(StringIO()):
+                generate_report(
+                    ['b.sol', 'a.sol'],
+                    Path('solc'),
+                    ExecutionArchitecture.NATIVE,
+                    CompilerInterface.STANDARD_JSON,
+                    [SettingsPreset.LEGACY_OPTIMIZE],
+                    SMTUse.DISABLE,
+                    force_no_optimize_yul=False,
+                    report_file_path=report_file_path,
+                    verbose=False,
+                    exit_on_error=False,
+                    jobs=2,
+                )
+
+            self.assertEqual(report_file_path.read_text(encoding='utf8'), "a.sol: <ERROR>\nb.sol: <ERROR>\n")
