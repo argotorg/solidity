@@ -1,0 +1,10 @@
+{
+    "types": {
+        "T": {
+            "kind": "contract",
+            "definition": { "location": { "source": { "id": "a.sol", "type": "contract" } } }
+        }
+    }
+}
+// ----
+// Error: resources.types.T.definition.location.source.type has the unknown value "contract".

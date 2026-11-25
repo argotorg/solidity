@@ -32,6 +32,11 @@
 
 using namespace solidity;
 using namespace solidity::frontend;
+using solidity::langutil::SemanticDebugScope;
+using solidity::langutil::SemanticDebugVariable;
+using solidity::langutil::SemanticDebugVariablePhase;
+
+namespace schema = solidity::langutil::ethdebug::schema;
 
 void ethdebug::Resources::merge(Resources _other)
 {
@@ -53,6 +58,71 @@ void ethdebug::Resources::merge(Resources _other)
 			"Conflicting ethdebug pointer templates for ID " + name + "."
 		);
 	}
+}
+
+SemanticDebugScope ethdebug::stateVariableScope(
+	ContractDefinition const& _contract,
+	std::map<std::string, unsigned> const& _sourceIndices
+)
+{
+	TypeRegistry types{_sourceIndices};
+	auto const* typeType = dynamic_cast<TypeType const*>(_contract.type());
+	solAssert(typeType, "Contract TypeType expected.");
+	auto const* contractType = dynamic_cast<ContractType const*>(typeType->actualType());
+	solAssert(contractType, "Contract type expected.");
+
+	SemanticDebugScope scope;
+	auto const addStateVariables = [&](DataLocation _dataLocation) {
+		for (auto const& [variable, slot, offset]: contractType->linearizedStateVariables(_dataLocation))
+		{
+			solAssert(!variable->name().empty(), "State variable without a name.");
+			SemanticDebugVariable record;
+			record.identifier = variable->name();
+			record.declarationASTID = variable->id();
+			record.declarationSourceRange = types.buildSourceRange(variable->location());
+			record.typeID = TypeRegistry::canonicalizeType(*variable->type()).identifier();
+			record.phase = SemanticDebugVariablePhase::Materialized;
+			record.pointer = PointerTemplateRegistry::buildStateVariablePointer(*variable->type(), _dataLocation, slot, offset);
+			scope.variableDefinitions.emplace_back(std::move(record));
+		}
+	};
+	addStateVariables(DataLocation::Storage);
+	addStateVariables(DataLocation::Transient);
+	return scope;
+}
+
+std::optional<schema::program::Context> ethdebug::programContext(
+	SemanticDebugScope _scope,
+	Resources const& _resources
+)
+{
+	std::vector<schema::program::Context::Variable> variables;
+	for (SemanticDebugVariable& variable: _scope.variableDefinitions)
+	{
+		if (variable.phase != SemanticDebugVariablePhase::Materialized || !variable.pointer.has_value())
+			continue;
+		// A pointer that reads a generated Yul local, or a variable that
+		// nothing binds, is only meaningful once the Yul-to-EVM transform has
+		// resolved it; the program-level context carries closed pointers. The
+		// templates a pointer references are in the resources, their
+		// parameters bound by the pointer.
+		if (!schema::freeNames(*variable.pointer, _resources.pointers).empty())
+			continue;
+
+		schema::program::Context::Variable contextVariable;
+		contextVariable.identifier = variable.identifier;
+		contextVariable.declaration = variable.declarationSourceRange;
+		if (variable.typeID.has_value())
+			contextVariable.type = schema::Type::Specifier{schema::Type::Reference{schema::materials::ID{*variable.typeID}}};
+		contextVariable.pointer = std::move(variable.pointer);
+		variables.emplace_back(std::move(contextVariable));
+	}
+
+	if (variables.empty())
+		return std::nullopt;
+	schema::program::Context context;
+	context.variables = std::move(variables);
+	return context;
 }
 
 ethdebug::Resources ethdebug::resources(ContractDefinition const& _contract, std::map<std::string, unsigned> const& _sourceIndices)

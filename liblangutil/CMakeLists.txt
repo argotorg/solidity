@@ -10,6 +10,8 @@ set(sources
 	DebugInfoSelection.h
 	ErrorReporter.cpp
 	ErrorReporter.h
+	EthdebugJson.cpp
+	EthdebugJson.h
 	EthdebugSchema.cpp
 	EthdebugSchema.h
 	EVMVersion.h
@@ -21,6 +23,11 @@ set(sources
 	Scanner.cpp
 	Scanner.h
 	CharStreamProvider.h
+	SemanticDebugData.h
+	SemanticDebugDataSerialization.cpp
+	SemanticDebugDataSerialization.h
+	SemanticDebugDataTable.cpp
+	SemanticDebugDataTable.h
 	SemVerHandler.cpp
 	SemVerHandler.h
 	SourceLocation.h

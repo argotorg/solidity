@@ -1228,7 +1228,11 @@ Json CompilerStack::ethdebug(Contract const& _contract, bool _runtime) const
 		sourceIndexMap.at(_contract.contract->sourceUnitName()),
 		*assembly,
 		object,
-		sourceIndexMap
+		sourceIndexMap,
+		ethdebug::programContext(
+			ethdebug::stateVariableScope(*_contract.contract, sourceIndexMap),
+			ethdebug::resources(*_contract.contract, sourceIndexMap)
+		)
 	);
 }
 

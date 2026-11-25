@@ -265,6 +265,26 @@ std::string PointerTemplateRegistry::identifier(Type const& _type, DataLocation 
 	unreachable();
 }
 
+Pointer PointerTemplateRegistry::buildStateVariablePointer(
+	Type const& _type,
+	DataLocation _location,
+	u256 const& _slot,
+	unsigned _littleEndianOffset
+)
+{
+	solAssert(_location == DataLocation::Storage || _location == DataLocation::Transient);
+	Pointer::Location const location = _location == DataLocation::Storage ? Pointer::Location::Storage : Pointer::Location::Transient;
+	if (_type.isValueType())
+		return pointer::buildValueRegion(_type, location, pointer::literal(_slot), _littleEndianOffset, std::nullopt);
+	solAssert(_location == DataLocation::Storage && _littleEndianOffset == 0);
+	if (_type.category() == Type::Category::Mapping)
+		return pointer::region(location, std::nullopt, pointer::literal(_slot));
+	return pointer::scope(
+		make_vector<VariableDefinition>(VariableDefinition{"slot", pointer::literal(_slot)}),
+		Pointer{Pointer::TemplateReference{identifier(_type, _location)}}
+	);
+}
+
 void PointerTemplateRegistry::registerType(Type const& _type, DataLocation _location)
 {
 	std::string const id = identifier(_type, _location);
