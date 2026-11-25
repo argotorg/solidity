@@ -26,6 +26,7 @@
 #include <map>
 #include <memory>
 #include <optional>
+#include <set>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -351,6 +352,13 @@ struct Pointer
 	/// @returns whether @a _text names a region: an identifier or `~this`.
 	static bool isRegionReference(std::string_view _text);
 
+	/// What a reader accepts beyond ethdebug/format.
+	struct ReadOptions
+	{
+		/// Accept the compiler-internal YulLocal expression.
+		bool internalExpressions = false;
+	};
+
 	/// An unsigned number or `0x`-prefixed hex string.
 	struct Literal
 	{
@@ -443,6 +451,17 @@ struct Pointer
 		std::unique_ptr<Expression const> operand;
 	};
 
+	/// A generated Yul local whose stack depth is not yet known.
+	/// The sidecar writes it as `{ "~~yulLocal": <name> }`.
+	/// ETHDebug output rejects it.
+	struct YulLocal
+	{
+		/// @a _name must not be empty.
+		explicit YulLocal(std::string _name);
+
+		std::string name;
+	};
+
 	/// ethdebug/format/pointer/expression
 	struct Expression
 	{
@@ -455,7 +474,8 @@ struct Pointer
 			Arithmetic,
 			Keccak256,
 			Concat,
-			Resize
+			Resize,
+			YulLocal
 		> value;
 	};
 
@@ -687,6 +707,48 @@ void to_json(Json& _json, Program const& _program);
 namespace info
 {
 void to_json(Json& _json, Resources const& _resources);
+}
+
+// Reading. Every function throws ethdebug::JsonValidationError, whose message
+// names the offending location, for input that does not follow the schema.
+
+namespace data
+{
+/// ethdebug/format/data/value: an unsigned number or a `0x`-prefixed hex string.
+Unsigned unsignedFromJSON(Json const& _json, std::string_view _path);
+}
+
+namespace materials
+{
+ID idFromJSON(Json const& _json, std::string_view _path);
+SourceRange sourceRangeFromJSON(Json const& _json, std::string_view _path);
+}
+
+Type typeFromJSON(Json const& _json, std::string_view _path);
+Type::Wrapper wrapperFromJSON(Json const& _json, std::string_view _path);
+
+Pointer::Expression expressionFromJSON(Json const& _json, std::string_view _path, Pointer::ReadOptions _options = {});
+Pointer pointerFromJSON(Json const& _json, std::string_view _path, Pointer::ReadOptions _options = {});
+Pointer::Template templateFromJSON(Json const& _json, std::string_view _path, Pointer::ReadOptions _options = {});
+
+/// Whether @a _pointer, including the templates it defines locally,
+/// contains a compiler-internal expression such as YulLocal.
+bool hasInternalExpression(Pointer const& _pointer);
+
+/// The names @a _pointer reads and nothing inside it binds: Yul locals and
+/// variables that no scope definition or list index binds. Template
+/// references use the enclosing templates blocks and @a _templates;
+/// their expected parameters must be bound at the reference. Yul locals
+/// remain dependencies even if a pointer variable has the same name.
+/// Unknown templates contribute no names; their validation is separate.
+std::set<std::string> freeNames(Pointer const& _pointer, std::map<std::string, Pointer::Template> const& _templates);
+
+namespace info
+{
+/// The type table of a resources object, keyed by type ID.
+std::map<std::string, Type> typesFromJSON(Json const& _json, std::string_view _path);
+/// The pointer table of a resources object, keyed by template name.
+std::map<std::string, Pointer::Template> pointersFromJSON(Json const& _json, std::string_view _path, Pointer::ReadOptions _options = {});
 }
 
 }

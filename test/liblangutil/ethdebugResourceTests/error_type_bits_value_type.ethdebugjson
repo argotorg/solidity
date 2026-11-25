@@ -1,0 +1,7 @@
+{
+    "types": {
+        "t": { "kind": "uint", "bits": "256" }
+    }
+}
+// ----
+// Error: resources.types.t.bits: expected unsigned integer.
