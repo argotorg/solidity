@@ -395,6 +395,7 @@ Input Description
           //     Depends on `location`. Selecting `snippet` without it is an error.
           // - `ast-id`: Annotations of the form `@ast-id <id>` over elements that can be mapped back to a definition in the original Solidity file.
           //   `<id>` is a node ID in the Solidity AST ('ast' output).
+          //   A cloned Yul scope also carries `@ast-id-instance <n>` to distinguish it from the original.
           // - `ethdebug`: Ethdebug annotations (experimental). Depends on `ast-id`. Selecting
           //   `ethdebug` without `ast-id` is an error. Requesting an ethdebug output does not
           //   change this selection. Without `ethdebug` in it the `evm.bytecode.ethdebug` and

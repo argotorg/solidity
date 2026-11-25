@@ -1,0 +1,3 @@
+{"pointers": {"p": {"expect": ["1st"], "for": {"location": "storage", "slot": 0}}}}
+// ----
+// Error: resources.pointers.p.expect[0] must be an identifier.
