@@ -43,6 +43,8 @@ namespace data
 struct HexValue
 {
 	bytes value;
+	/// The first byte contains only one significant digit when decoding an odd-length literal.
+	bool oddDigitCount{};
 };
 
 /// ethdebug/format/data/stamp: the schema an object conforms to and the

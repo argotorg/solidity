@@ -292,7 +292,13 @@ schema::Pointer::Templates::Templates(std::vector<std::pair<std::string, Templat
 
 void schema::data::to_json(Json& _json, HexValue const& _hexValue)
 {
-	_json = toHex(_hexValue.value, HexPrefix::Add);
+	std::string hex = toHex(_hexValue.value, HexPrefix::Add);
+	if (_hexValue.oddDigitCount)
+	{
+		solAssert(hex.size() > 2 && hex[2] == '0', "An odd-length hex value must start with a padded half byte.");
+		hex.erase(2, 1);
+	}
+	_json = std::move(hex);
 }
 
 void schema::data::to_json(Json& _json, Unsigned const& _unsigned)
@@ -1307,8 +1313,13 @@ schema::data::Unsigned schema::data::unsignedFromJSON(Json const& _json, std::st
 {
 	if (_json.is_number_unsigned())
 		return Unsigned{_json.get<uint64_t>()};
-	if (_json.is_string() && isHexString(_json.get<std::string>()))
-		return Unsigned{HexValue{fromHex(_json.get<std::string>())}};
+	if (_json.is_string())
+	{
+		std::string const& hex = _json.get_ref<std::string const&>();
+		// Odd-digit pointer literals are integers, not width-bearing byte values.
+		if (isHexString(hex))
+			return Unsigned{HexValue{fromHex(hex), hex.size() % 2 != 0}};
+	}
 	solThrow(JsonValidationError, std::string(_path) + " must be an unsigned number or a 0x-prefixed hex string.");
 }
 
