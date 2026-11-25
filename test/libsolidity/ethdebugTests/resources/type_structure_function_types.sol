@@ -9,186 +9,32 @@ contract C {
     function (uint32, bool, address) internal returns (bytes4, int16) internalMultiple;
 }
 // ----
-// .resources.types: {
-//     "t_address": {
-//         "kind": "address",
-//         "payable": false
-//     },
-//     "t_bool": {
-//         "kind": "bool"
-//     },
-//     "t_bytes4": {
-//         "kind": "bytes",
-//         "size": 4
-//     },
-//     "t_function_external_nonpayable$__$returns$__$": {
-//         "contains": {
-//             "parameters": {
-//                 "type": {
-//                     "id": "t_tuple$__$"
-//                 }
-//             }
-//         },
-//         "external": true,
-//         "kind": "function"
-//     },
-//     "t_function_external_nonpayable$__$returns$_t_uint32_$": {
-//         "contains": {
-//             "parameters": {
-//                 "type": {
-//                     "id": "t_tuple$__$"
-//                 }
-//             },
-//             "returns": {
-//                 "type": {
-//                     "id": "t_tuple$_t_uint32_$"
-//                 }
-//             }
-//         },
-//         "external": true,
-//         "kind": "function"
-//     },
-//     "t_function_external_nonpayable$_t_uint32_$_t_bool_$_t_address_$returns$_t_bytes4_$_t_int16_$": {
-//         "contains": {
-//             "parameters": {
-//                 "type": {
-//                     "id": "t_tuple$_t_uint32_$_t_bool_$_t_address_$"
-//                 }
-//             },
-//             "returns": {
-//                 "type": {
-//                     "id": "t_tuple$_t_bytes4_$_t_int16_$"
-//                 }
-//             }
-//         },
-//         "external": true,
-//         "kind": "function"
-//     },
-//     "t_function_external_nonpayable$_t_uint32_$returns$__$": {
-//         "contains": {
-//             "parameters": {
-//                 "type": {
-//                     "id": "t_tuple$_t_uint32_$"
-//                 }
-//             }
-//         },
-//         "external": true,
-//         "kind": "function"
-//     },
-//     "t_function_external_nonpayable$_t_uint32_$returns$_t_uint32_$": {
-//         "contains": {
-//             "parameters": {
-//                 "type": {
-//                     "id": "t_tuple$_t_uint32_$"
-//                 }
-//             },
-//             "returns": {
-//                 "type": {
-//                     "id": "t_tuple$_t_uint32_$"
-//                 }
-//             }
-//         },
-//         "external": true,
-//         "kind": "function"
-//     },
-//     "t_function_internal_nonpayable$__$returns$__$": {
-//         "contains": {
-//             "parameters": {
-//                 "type": {
-//                     "id": "t_tuple$__$"
-//                 }
-//             }
-//         },
-//         "internal": true,
-//         "kind": "function"
-//     },
-//     "t_function_internal_nonpayable$_t_uint32_$_t_bool_$_t_address_$returns$_t_bytes4_$_t_int16_$": {
-//         "contains": {
-//             "parameters": {
-//                 "type": {
-//                     "id": "t_tuple$_t_uint32_$_t_bool_$_t_address_$"
-//                 }
-//             },
-//             "returns": {
-//                 "type": {
-//                     "id": "t_tuple$_t_bytes4_$_t_int16_$"
-//                 }
-//             }
-//         },
-//         "internal": true,
-//         "kind": "function"
-//     },
-//     "t_function_internal_nonpayable$_t_uint32_$returns$_t_uint32_$": {
-//         "contains": {
-//             "parameters": {
-//                 "type": {
-//                     "id": "t_tuple$_t_uint32_$"
-//                 }
-//             },
-//             "returns": {
-//                 "type": {
-//                     "id": "t_tuple$_t_uint32_$"
-//                 }
-//             }
-//         },
-//         "internal": true,
-//         "kind": "function"
-//     },
-//     "t_int16": {
-//         "bits": 16,
-//         "kind": "int"
-//     },
-//     "t_tuple$__$": {
-//         "contains": [],
-//         "kind": "tuple"
-//     },
-//     "t_tuple$_t_bytes4_$_t_int16_$": {
-//         "contains": [
-//             {
-//                 "type": {
-//                     "id": "t_bytes4"
-//                 }
-//             },
-//             {
-//                 "type": {
-//                     "id": "t_int16"
-//                 }
-//             }
-//         ],
-//         "kind": "tuple"
-//     },
-//     "t_tuple$_t_uint32_$": {
-//         "contains": [
-//             {
-//                 "type": {
-//                     "id": "t_uint32"
-//                 }
-//             }
-//         ],
-//         "kind": "tuple"
-//     },
-//     "t_tuple$_t_uint32_$_t_bool_$_t_address_$": {
-//         "contains": [
-//             {
-//                 "type": {
-//                     "id": "t_uint32"
-//                 }
-//             },
-//             {
-//                 "type": {
-//                     "id": "t_bool"
-//                 }
-//             },
-//             {
-//                 "type": {
-//                     "id": "t_address"
-//                 }
-//             }
-//         ],
-//         "kind": "tuple"
-//     },
-//     "t_uint32": {
-//         "bits": 32,
-//         "kind": "uint"
-//     }
-// }
+// .resources.types | keys: ["t_address","t_bool","t_bytes4","t_function_external_nonpayable$__$returns$__$","t_function_external_nonpayable$__$returns$_t_uint32_$","t_function_external_nonpayable$_t_uint32_$_t_bool_$_t_address_$returns$_t_bytes4_$_t_int16_$","t_function_external_nonpayable$_t_uint32_$returns$__$","t_function_external_nonpayable$_t_uint32_$returns$_t_uint32_$","t_function_internal_nonpayable$__$returns$__$","t_function_internal_nonpayable$_t_uint32_$_t_bool_$_t_address_$returns$_t_bytes4_$_t_int16_$","t_function_internal_nonpayable$_t_uint32_$returns$_t_uint32_$","t_int16","t_tuple$__$","t_tuple$_t_bytes4_$_t_int16_$","t_tuple$_t_uint32_$","t_tuple$_t_uint32_$_t_bool_$_t_address_$","t_uint32"]
+// .resources.types.t_function_external_nonpayable$__$returns$__$.contains.parameters.type.id: t_tuple$__$
+// .resources.types.t_function_external_nonpayable$__$returns$__$.contains.returns: <PATH NOT FOUND>
+// .resources.types.t_function_external_nonpayable$_t_uint32_$returns$__$.contains.parameters.type.id: t_tuple$_t_uint32_$
+// .resources.types.t_function_external_nonpayable$_t_uint32_$returns$__$.contains.returns: <PATH NOT FOUND>
+// .resources.types.t_function_internal_nonpayable$__$returns$__$.contains.parameters.type.id: t_tuple$__$
+// .resources.types.t_function_internal_nonpayable$__$returns$__$.contains.returns: <PATH NOT FOUND>
+// .resources.types.t_function_external_nonpayable$__$returns$_t_uint32_$.contains.parameters.type.id: t_tuple$__$
+// .resources.types.t_function_external_nonpayable$__$returns$_t_uint32_$.contains.returns.type.id: t_tuple$_t_uint32_$
+// .resources.types.t_function_external_nonpayable$_t_uint32_$_t_bool_$_t_address_$returns$_t_bytes4_$_t_int16_$.contains.parameters.type.id: t_tuple$_t_uint32_$_t_bool_$_t_address_$
+// .resources.types.t_function_external_nonpayable$_t_uint32_$_t_bool_$_t_address_$returns$_t_bytes4_$_t_int16_$.contains.returns.type.id: t_tuple$_t_bytes4_$_t_int16_$
+// .resources.types.t_function_external_nonpayable$_t_uint32_$returns$_t_uint32_$.contains.parameters.type.id: t_tuple$_t_uint32_$
+// .resources.types.t_function_external_nonpayable$_t_uint32_$returns$_t_uint32_$.contains.returns.type.id: t_tuple$_t_uint32_$
+// .resources.types.t_function_internal_nonpayable$_t_uint32_$_t_bool_$_t_address_$returns$_t_bytes4_$_t_int16_$.contains.parameters.type.id: t_tuple$_t_uint32_$_t_bool_$_t_address_$
+// .resources.types.t_function_internal_nonpayable$_t_uint32_$_t_bool_$_t_address_$returns$_t_bytes4_$_t_int16_$.contains.returns.type.id: t_tuple$_t_bytes4_$_t_int16_$
+// .resources.types.t_function_internal_nonpayable$_t_uint32_$returns$_t_uint32_$.contains.parameters.type.id: t_tuple$_t_uint32_$
+// .resources.types.t_function_internal_nonpayable$_t_uint32_$returns$_t_uint32_$.contains.returns.type.id: t_tuple$_t_uint32_$
+// .resources.types.t_function_external_nonpayable$__$returns$__$.definition: <PATH NOT FOUND>
+// .resources.types.t_function_internal_nonpayable$__$returns$__$.definition: <PATH NOT FOUND>
+// .resources.types.t_tuple$__$.contains | length: 0
+// .resources.types.t_tuple$_t_bytes4_$_t_int16_$.contains | length: 2
+// .resources.types.t_tuple$_t_bytes4_$_t_int16_$.contains[0].type.id: t_bytes4
+// .resources.types.t_tuple$_t_bytes4_$_t_int16_$.contains[1].type.id: t_int16
+// .resources.types.t_tuple$_t_uint32_$.contains | length: 1
+// .resources.types.t_tuple$_t_uint32_$.contains[0].type.id: t_uint32
+// .resources.types.t_tuple$_t_uint32_$_t_bool_$_t_address_$.contains | length: 3
+// .resources.types.t_tuple$_t_uint32_$_t_bool_$_t_address_$.contains[0].type.id: t_uint32
+// .resources.types.t_tuple$_t_uint32_$_t_bool_$_t_address_$.contains[1].type.id: t_bool
+// .resources.types.t_tuple$_t_uint32_$_t_bool_$_t_address_$.contains[2].type.id: t_address

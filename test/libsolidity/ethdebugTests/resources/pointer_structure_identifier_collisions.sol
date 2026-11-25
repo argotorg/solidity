@@ -7,81 +7,15 @@ contract C {
 }
 // ----
 // .resources.types | keys: ["t_struct$_$$$_$6_storage","t_struct$__$$$__$13_storage","t_uint8"]
+// .resources.pointers | keys: ["storage-t_struct$_$$$_$6_storage","storage-t_struct$__$$$__$13_storage","storage-t_uint8"]
 // .resources.types.t_struct$_$$$_$6_storage.definition.name: $
 // .resources.types.t_struct$__$$$__$13_storage.definition.name: _$_
-// .resources.pointers: {
-//     "storage-t_struct$_$$$_$6_storage": {
-//         "expect": [
-//             "slot"
-//         ],
-//         "for": {
-//             "group": [
-//                 {
-//                     "length": "0x01",
-//                     "location": "storage",
-//                     "name": "$",
-//                     "offset": "0x1f",
-//                     "slot": "slot"
-//                 },
-//                 {
-//                     "length": "0x01",
-//                     "location": "storage",
-//                     "name": "_$_",
-//                     "offset": "0x1e",
-//                     "slot": "slot"
-//                 }
-//             ]
-//         }
-//     },
-//     "storage-t_struct$__$$$__$13_storage": {
-//         "expect": [
-//             "slot"
-//         ],
-//         "for": {
-//             "group": [
-//                 {
-//                     "template": "storage-t_struct$_$$$_$6_storage",
-//                     "yields": {
-//                         "$": "a-$",
-//                         "_$_": "a-_$_"
-//                     }
-//                 },
-//                 {
-//                     "define": {
-//                         "slot": {
-//                             "~sum": [
-//                                 "slot",
-//                                 "0x01"
-//                             ]
-//                         }
-//                     },
-//                     "in": {
-//                         "template": "storage-t_struct$_$$$_$6_storage",
-//                         "yields": {
-//                             "$": "b-$",
-//                             "_$_": "b-_$_"
-//                         }
-//                     }
-//                 }
-//             ]
-//         }
-//     },
-//     "storage-t_uint8": {
-//         "expect": [
-//             "slot",
-//             "offset"
-//         ],
-//         "for": {
-//             "length": "0x01",
-//             "location": "storage",
-//             "name": "value",
-//             "offset": {
-//                 "~difference": [
-//                     "0x1f",
-//                     "offset"
-//                 ]
-//             },
-//             "slot": "slot"
-//         }
-//     }
-// }
+// .resources.pointers.storage-t_struct$_$$$_$6_storage.for.group | length: 2
+// .resources.pointers.storage-t_struct$_$$$_$6_storage.for.group[0].name: $
+// .resources.pointers.storage-t_struct$_$$$_$6_storage.for.group[1].name: _$_
+// .resources.pointers.storage-t_struct$__$$$__$13_storage.for.group[0].template: storage-t_struct$_$$$_$6_storage
+// .resources.pointers.storage-t_struct$__$$$__$13_storage.for.group[0].yields.$: a-$
+// .resources.pointers.storage-t_struct$__$$$__$13_storage.for.group[0].yields._$_: a-_$_
+// .resources.pointers.storage-t_struct$__$$$__$13_storage.for.group[1].in.template: storage-t_struct$_$$$_$6_storage
+// .resources.pointers.storage-t_struct$__$$$__$13_storage.for.group[1].in.yields.$: b-$
+// .resources.pointers.storage-t_struct$__$$$__$13_storage.for.group[1].in.yields._$_: b-_$_
