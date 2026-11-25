@@ -36,6 +36,7 @@
 #include <map>
 #include <optional>
 #include <tuple>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -173,6 +174,9 @@ private:
 	/// Forgets the values of the given variables by giving them new versions in the knowledge base.
 	/// Used where control flow joins and the variables might have different values on different paths.
 	void forgetValues(std::set<YulName> const& _variables);
+	/// @returns the variables assigned anywhere inside @a _block, including nested blocks.
+	/// The result is cached, as blocks are visited repeatedly (loop bodies twice, nested blocks once per enclosing block).
+	std::set<YulName> const& assignedVariables(Block const& _block);
 
 	bool const m_ignoreMemory;
 	std::map<FunctionHandle, SideEffects> const& m_functionSideEffects;
@@ -184,6 +188,9 @@ private:
 	Expression const m_zero{Literal{{}, LiteralKind::Number, LiteralValue{0, std::nullopt}}};
 
 	KnowledgeBase m_knowledgeBase;
+
+	/// Cache for assignedVariables.
+	std::unordered_map<Block const*, std::set<YulName>> m_assignedVariables;
 };
 
 }

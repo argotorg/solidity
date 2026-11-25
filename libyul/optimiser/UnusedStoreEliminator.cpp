@@ -25,7 +25,7 @@
 #include <libyul/optimiser/Semantics.h>
 #include <libyul/optimiser/OptimizerUtilities.h>
 #include <libyul/optimiser/Semantics.h>
-#include <libyul/optimiser/NameCollector.h>
+#include <libyul/optimiser/ASTWalker.h>
 #include <libyul/optimiser/DataFlowAnalyzer.h>
 #include <libyul/optimiser/KnowledgeBase.h>
 #include <libyul/ControlFlowSideEffectsCollector.h>
@@ -35,14 +35,63 @@
 #include <libyul/backends/evm/EVMDialect.h>
 
 #include <libsolutil/CommonData.h>
+#include <libsolutil/Visitor.h>
 
 #include <libevmasm/Instruction.h>
 #include <libevmasm/SemanticInformation.h>
 
 #include <range/v3/algorithm/all_of.hpp>
+#include <range/v3/algorithm/any_of.hpp>
+
+#include <functional>
 
 using namespace solidity;
 using namespace solidity::yul;
+
+namespace
+{
+
+/// @returns true if @a _expression references the variable @a _variable.
+bool references(Expression const& _expression, YulName _variable)
+{
+	return std::visit(util::GenericVisitor{
+		[&](FunctionCall const& _call) {
+			return ranges::any_of(_call.arguments, [&](Expression const& _argument) {
+				return references(_argument, _variable);
+			});
+		},
+		[&](Identifier const& _identifier) { return _identifier.name == _variable; },
+		[](Literal const&) { return false; }
+	}, _expression);
+}
+
+/// Collects the variables assigned in the statements it visits.
+/// Takes the variables assigned in nested blocks from @a _assignedInBlock instead of walking them.
+class AssignedVariablesCollector: public ASTWalker
+{
+public:
+	AssignedVariablesCollector(
+		std::set<YulName>& _names,
+		std::function<std::set<YulName> const&(Block const&)> _assignedInBlock
+	):
+		m_names(_names),
+		m_assignedInBlock(std::move(_assignedInBlock))
+	{}
+
+	using ASTWalker::operator();
+	void operator()(Assignment const& _assignment) override
+	{
+		for (Identifier const& variable: _assignment.variableNames)
+			m_names.insert(variable.name);
+	}
+	void operator()(Block const& _block) override { m_names += m_assignedInBlock(_block); }
+
+private:
+	std::set<YulName>& m_names;
+	std::function<std::set<YulName> const&(Block const&)> m_assignedInBlock;
+};
+
+}
 
 void UnusedStoreEliminator::run(OptimiserStepContext& _context, Block& _ast)
 {
@@ -156,13 +205,13 @@ void UnusedStoreEliminator::operator()(Block const& _block)
 	UnusedStoreBase::operator()(_block);
 	// Blocks are the bodies of branches, loops and functions. Variables assigned inside might have
 	// different values on the paths that join after the block.
-	forgetValues(assignedVariableNames(_block));
+	forgetValues(assignedVariables(_block));
 }
 
 void UnusedStoreEliminator::operator()(ForLoop const& _forLoop)
 {
 	// At the loop head, values from the loop entry join with values from the back edge.
-	std::set<YulName> assignedInLoop = assignedVariableNames(_forLoop.body) + assignedVariableNames(_forLoop.post);
+	std::set<YulName> assignedInLoop = assignedVariables(_forLoop.body) + assignedVariables(_forLoop.post);
 	forgetValues(assignedInLoop);
 	UnusedStoreBase::operator()(_forLoop);
 	forgetValues(assignedInLoop);
@@ -174,7 +223,7 @@ void UnusedStoreEliminator::beforeLoopBody(ForLoop const& _forLoop)
 	// Without this, the second visit would relate the locations of stores from the first visit to the
 	// current values of the variables, which is only correct if the stored values are read in the very
 	// next iteration, but not if they are read in a later one.
-	forgetValues(assignedVariableNames(_forLoop.body) + assignedVariableNames(_forLoop.post));
+	forgetValues(assignedVariables(_forLoop.body) + assignedVariables(_forLoop.post));
 }
 
 
@@ -467,7 +516,7 @@ void UnusedStoreEliminator::handleAssignment(std::vector<YulName> const& _variab
 	if (
 		_value &&
 		_variables.size() == 1 &&
-		!VariableReferencesCounter::countReferences(*_value).count(_variables.front())
+		!references(*_value, _variables.front())
 	)
 	{
 		// For `x := add(y, 32)`, the value of `x` must use the version of `y` from this assignment,
@@ -478,6 +527,20 @@ void UnusedStoreEliminator::handleAssignment(std::vector<YulName> const& _variab
 		m_knowledgeBase.explore(_variables.front());
 		m_currentAssignment.reset();
 	}
+}
+
+std::set<YulName> const& UnusedStoreEliminator::assignedVariables(Block const& _block)
+{
+	if (auto it = m_assignedVariables.find(&_block); it != m_assignedVariables.end())
+		return it->second;
+
+	std::set<YulName> names;
+	AssignedVariablesCollector collector{names, [this](Block const& _nested) -> std::set<YulName> const& {
+		return assignedVariables(_nested);
+	}};
+	for (Statement const& statement: _block.statements)
+		collector.visit(statement);
+	return m_assignedVariables[&_block] = std::move(names);
 }
 
 void UnusedStoreEliminator::forgetValues(std::set<YulName> const& _variables)
