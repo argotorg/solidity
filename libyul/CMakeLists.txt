@@ -40,6 +40,8 @@ add_library(yul
 	Scope.h
 	ScopeFiller.cpp
 	ScopeFiller.h
+	SemanticDebugDataTransfer.cpp
+	SemanticDebugDataTransfer.h
 	Utilities.cpp
 	Utilities.h
 	YulName.h

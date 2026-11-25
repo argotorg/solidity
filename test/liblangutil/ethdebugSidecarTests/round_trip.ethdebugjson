@@ -1,0 +1,51 @@
+{
+    "format": "solidity-ethdebug-semantic-data",
+    "version": 1,
+    "contractName": "C",
+    "resources": {
+        "types": {
+            "t_uint256": {"kind": "uint", "bits": 256},
+            "t_mapping": {"kind": "mapping", "contains": {"key": {"type": {"id": "t_uint256"}}, "value": {"type": {"id": "t_uint256"}}}}
+        },
+        "pointers": {
+            "storage_7_3": {"expect": [], "for": {"name": "counter", "location": "storage", "slot": "0x00"}},
+            "storage_7_5": {"expect": ["key"], "for": {"name": "balances", "location": "storage", "slot": {"~keccak256": [{"~wordsized": "key"}, {"~wordsized": "0x01"}]}}}
+        }
+    },
+    "scopes": {
+        "7": {
+            "0": {
+                "variableDefinitions": [
+                    {"identifier": "counter", "declarationASTID": 3, "declarationSourceRange": {"source": {"id": 0}, "range": {"offset": 20, "length": 15}}, "typeID": "t_uint256", "phase": "materialized", "pointer": {"template": "storage_7_3"}},
+                    {"identifier": "balances", "declarationASTID": 5, "typeID": "t_mapping", "phase": "materialized", "pointer": {"template": "storage_7_5"}}
+                ]
+            }
+        },
+        "12": {
+            "0": {
+                "variableDefinitions": [
+                    {"identifier": "argument", "declarationASTID": 9, "typeID": "t_uint256", "phase": "materialized", "pointer": {"name": "argument", "location": "stack", "slot": {"~~yulLocal": "var_argument_9"}}},
+                    {"identifier": "result", "declarationASTID": 11, "typeID": "t_uint256", "phase": "computed"},
+                    {"declarationASTID": 13, "phase": "optimized-out"}
+                ]
+            },
+            "2": {
+                "variableDefinitions": [
+                    {"identifier": "argument", "declarationASTID": 9, "phase": "materialized", "pointer": {"templates": {"slot": {"expect": ["at"], "for": {"location": "stack", "slot": "at"}}}, "in": {"template": "slot", "yields": {}}}}
+                ],
+                "variableUpdates": [
+                    {"variableASTID": 9, "phase": "optimized-out"},
+                    {"variableASTID": 11, "phase": "materialized", "pointer": {"location": "stack", "slot": {"~sum": [{"~~yulLocal": "var_result_11"}, 1]}}}
+                ]
+            }
+        },
+        "-1": {"0": {"variableDefinitions": []}}
+    }
+}
+// ----
+// [
+//     {
+//         "op": "remove",
+//         "path": "/scopes/12/2/variableDefinitions/0/pointer/in/yields"
+//     }
+// ]

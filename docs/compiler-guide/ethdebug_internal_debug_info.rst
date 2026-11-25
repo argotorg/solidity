@@ -29,7 +29,7 @@ Several established terms are ambiguous in this context, so this page pairs each
 - *Location* elsewhere names both positions in source text and the data locations of the Solidity language such as storage, memory, and calldata.
   This page uses *source range* for bytes in Solidity or Yul source text and a pointer's *region location* for EVM data in stack, storage, transient storage, memory, calldata, returndata, or code; the two are unrelated.
 - *Pointer* elsewhere often means a Solidity storage or memory reference.
-  Unless qualified that way, *pointer* on this page means an `ethdebug pointer <https://github.com/ethdebug/format/blob/main/schemas/pointer.schema.yaml>`_.
+  Unless qualified that way, *pointer* on this page means an `ethdebug pointer <https://github.com/ethdebug/format/blob/@ethdebug/format@0.1.0-draft.2/schemas/pointer.schema.yaml>`_.
 
 Fields introduced by this format follow these terms, for example ``declarationSourceRange``.
 Existing compiler structures keep their established names, for example ``SourceLocation`` and the ``nativeLocation`` and ``originLocation`` fields of ``DebugData``.
@@ -83,12 +83,12 @@ Core Structures
 
 .. note::
 
-   Of the types named below, only ``langutil::DebugData`` exists in the compiler today.
-   The ``SemanticDebugScope`` family and the ``semanticDebugScope`` field on ``DebugData`` are planned additions and will arrive with the implementation pull requests.
+   The scope records and their transfer through ``DebugData`` are implemented.
+   Connecting the Solidity builder to Yul and exposing the sidecar through the compiler interfaces will follow in later pull requests.
 
 ``langutil::DebugData`` is the debug payload carried by Yul AST nodes.
 The sidecar envelope and variable records are compiler-specific.
-Type documents and pointer documents follow the public `type <https://github.com/ethdebug/format/blob/main/schemas/type.schema.yaml>`_ and `pointer <https://github.com/ethdebug/format/blob/main/schemas/pointer.schema.yaml>`_ schemas, with one internal pointer expression for unresolved Yul locals.
+Type documents and pointer documents follow the public `type <https://github.com/ethdebug/format/blob/@ethdebug/format@0.1.0-draft.2/schemas/type.schema.yaml>`_ and `pointer <https://github.com/ethdebug/format/blob/@ethdebug/format@0.1.0-draft.2/schemas/pointer.schema.yaml>`_ schemas, with one internal pointer expression for unresolved Yul locals.
 
 .. list-table:: ``DebugData`` fields relevant to ethdebug
    :header-rows: 1
@@ -151,8 +151,9 @@ The scope record therefore carries declaration identity, type, and initial recov
      - Identity of the source-language declaration.
        Synthetic bindings may omit it.
    * - ``declarationSourceRange``
-     - optional ``SourceLocation``
-     - Source range of the declaration.
+     - optional ethdebug ``materials::SourceRange``
+     - Source range of the declaration: the numeric source ID of the ``ethdebug.compilation`` record with the byte offset and length.
+       Unlike ``SourceLocation``, this range does not use the source name.
    * - ``typeID``
      - optional string
      - Key of the variable's document in ``ethdebug.resources.types``.
@@ -237,7 +238,7 @@ The internal expression ``{"~~yulLocal": ...}`` names a generated Yul local whos
 It has no public schema form and must be resolved or removed before emission; emission rejects any expression still carrying the ``~~`` prefix.
 
 Reusable pointers are published as resource templates.
-The sidecar carries them in the ``pointers`` table of its ``resources`` object, keyed by producer-defined name identifier and mirroring `ethdebug.resources.pointers <https://github.com/ethdebug/format/blob/main/schemas/info/resources.schema.yaml>`_.
+The sidecar carries them in the ``pointers`` table of its ``resources`` object, keyed by producer-defined names and mirroring `ethdebug.resources.pointers <https://github.com/ethdebug/format/blob/@ethdebug/format@0.1.0-draft.2/schemas/info/resources.schema.yaml>`_.
 A variable whose location is described by a template carries the pointer schema's ``template`` reference to the table entry, so pointer templates are referenced the same way as types.
 Both resource tables are derived from analysis results; producing them does not wait for Yul-to-EVM code generation.
 Public emission copies the tables into ``ethdebug.resources`` unchanged.
@@ -366,7 +367,7 @@ One shared component provides both serialization and deserialization, so the wri
 Serialization includes the resource tables, pointer expressions, variable updates, and scope records that have no Yul attachment.
 All integer fields are native JSON numbers; the reader decodes the full 64-bit ranges exactly.
 String-encoded numbers occur only inside pointer expressions, where the ethdebug expression grammar governs them.
-Declaration and type-definition ranges use the ethdebug `source range <https://github.com/ethdebug/format/blob/main/schemas/materials/source-range.schema.yaml>`_ schema.
+Declaration and type-definition ranges use the ethdebug `source range <https://github.com/ethdebug/format/blob/@ethdebug/format@0.1.0-draft.2/schemas/materials/source-range.schema.yaml>`_ schema.
 Source IDs are opaque to the Yul stage.
 The producer uses the same source IDs in the sidecar as in the accompanying ``ethdebug.compilation`` record, and the Yul stage transports them unchanged.
 Each source record in ``ethdebug.compilation`` maps its ID to the source path and contents, so a path is not used as an ID.
@@ -389,7 +390,7 @@ Each source record in ``ethdebug.compilation`` maps its ID to the source path an
      - Source-language contract name used by the public ethdebug program object when the generated Yul object has a different name.
    * - ``resources``
      - optional object
-     - The ``types`` and ``pointers`` members of the `ethdebug resource tables <https://github.com/ethdebug/format/blob/main/schemas/info/resources.schema.yaml>`_, keyed by producer-defined IDs.
+     - The ``types`` and ``pointers`` members of the `ethdebug resource tables <https://github.com/ethdebug/format/blob/@ethdebug/format@0.1.0-draft.2/schemas/info/resources.schema.yaml>`_, keyed by producer-defined IDs.
        Variables refer to type entries through ``typeID`` and to pointer templates through ``template`` references.
        Public emission copies both tables into ``ethdebug.resources``.
    * - ``scopes``
@@ -420,7 +421,7 @@ The sidecar is both compiler input and compiler output, allowing the same debug 
 
 .. note::
 
-   For implementation testing, ``EthdebugTest`` will add ``Contract.semantic`` as a direct view of the serialized sidecar.
+   For implementation testing, ``EthdebugTest`` exposes ``Contract.semantic`` as a direct view of the serialized sidecar.
 
 Required Variable Coverage
 ==========================

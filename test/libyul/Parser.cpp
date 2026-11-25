@@ -42,6 +42,7 @@
 #include <string>
 
 using namespace solidity;
+using solidity::test::CommonOptions;
 using namespace solidity::util;
 using namespace solidity::langutil;
 
@@ -932,6 +933,56 @@ BOOST_AUTO_TEST_CASE(astid_invalid)
 	BOOST_TEST(errorList[0]->type() == Error::Type::SyntaxError);
 	BOOST_TEST(errorList[0]->errorId() == 1749_error);
 	CHECK_LOCATION(result->root().debugData->originLocation, "", -1, -1);
+}
+
+BOOST_AUTO_TEST_CASE(astid_instance)
+{
+	ErrorList errorList;
+	ErrorReporter reporter(errorList);
+	auto const sourceText = R"(
+		/// @ast-id 5 @ast-id-instance 3
+		{}
+	)";
+	auto const& dialect = EVMDialect::strictAssemblyForEVM(CommonOptions::get().evmVersion());
+	std::shared_ptr<AST> result = parse(sourceText, dialect, reporter);
+	BOOST_REQUIRE(!!result);
+	BOOST_REQUIRE(errorList.empty());
+	BOOST_REQUIRE(result->root().debugData->astID.has_value());
+	BOOST_CHECK_EQUAL(*result->root().debugData->astID, 5);
+	BOOST_REQUIRE(result->root().debugData->astIDInstance.has_value());
+	BOOST_CHECK_EQUAL(*result->root().debugData->astIDInstance, 3);
+}
+
+BOOST_AUTO_TEST_CASE(astid_instance_without_astid_is_ignored)
+{
+	ErrorList errorList;
+	ErrorReporter reporter(errorList);
+	auto const sourceText = R"(
+		/// @ast-id-instance 3
+		{}
+	)";
+	auto const& dialect = EVMDialect::strictAssemblyForEVM(CommonOptions::get().evmVersion());
+	std::shared_ptr<AST> result = parse(sourceText, dialect, reporter);
+	BOOST_REQUIRE(!!result);
+	BOOST_REQUIRE(errorList.empty());
+	BOOST_CHECK(!result->root().debugData->astID.has_value());
+	BOOST_CHECK(!result->root().debugData->astIDInstance.has_value());
+}
+
+BOOST_AUTO_TEST_CASE(astid_instance_invalid)
+{
+	ErrorList errorList;
+	ErrorReporter reporter(errorList);
+	auto const sourceText = R"(
+		/// @ast-id 5 @ast-id-instance abc
+		{}
+	)";
+	auto const& dialect = EVMDialect::strictAssemblyForEVM(CommonOptions::get().evmVersion());
+	std::shared_ptr<AST> result = parse(sourceText, dialect, reporter);
+	BOOST_REQUIRE(!!result);
+	BOOST_REQUIRE(errorList.size() == 1);
+	BOOST_TEST(errorList[0]->type() == Error::Type::SyntaxError);
+	BOOST_TEST(errorList[0]->errorId() == 9913_error);
 }
 
 BOOST_AUTO_TEST_CASE(astid_too_large)

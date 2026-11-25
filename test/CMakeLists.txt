@@ -62,7 +62,12 @@ detect_stray_source_files("${libevmasm_sources}" "libevmasm/")
 
 set(liblangutil_sources
     liblangutil/CharStream.cpp
+    liblangutil/EthdebugJson.cpp
+    liblangutil/EthdebugJsonTest.cpp
+    liblangutil/EthdebugJsonTest.h
+    liblangutil/EthdebugPointerDependencies.cpp
     liblangutil/Scanner.cpp
+    liblangutil/SemanticDebugDataTable.cpp
     liblangutil/SourceLocation.cpp
 )
 detect_stray_source_files("${liblangutil_sources}" "liblangutil/")
@@ -154,6 +159,7 @@ set(libyul_sources
     libyul/ControlFlowGraphTest.h
     libyul/ControlFlowSideEffectsTest.cpp
     libyul/ControlFlowSideEffectsTest.h
+    libyul/DebugData.cpp
     libyul/EVMCodeTransformTest.cpp
     libyul/EVMCodeTransformTest.h
     libyul/EVMDialectCompatibility.cpp

@@ -191,7 +191,8 @@ Json evmasm::ethdebug::program(
 	unsigned _contractSourceID,
 	Assembly const& _assembly,
 	LinkerObject const& _linkerObject,
-	std::map<std::string, unsigned> const& _sourceIndices
+	std::map<std::string, unsigned> const& _sourceIndices,
+	std::optional<schema::program::Context> _programContext
 )
 {
 	schema::Program const result{
@@ -205,7 +206,7 @@ Json evmasm::ethdebug::program(
 			},
 		},
 		.environment = _assembly.isCreation() ? schema::Program::Environment::CREATE : schema::Program::Environment::CALL,
-		.context = std::nullopt,
+		.context = std::move(_programContext),
 		.instructions = programInstructions(_assembly, _linkerObject, _sourceIndices),
 	};
 	return Json(result);
