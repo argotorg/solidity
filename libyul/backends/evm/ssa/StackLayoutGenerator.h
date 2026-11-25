@@ -19,16 +19,14 @@
 #pragma once
 
 #include <libyul/backends/evm/ssa/spill/SpillSet.h>
+#include <libyul/backends/evm/ssa/stack/BlockStackIn.h>
 
 #include <libyul/backends/evm/ssa/Stack.h>
 #include <libyul/backends/evm/ssa/StackLayout.h>
 
-#include <memory>
 
 namespace solidity::yul::ssa
 {
-
-class JunkAdmittingBlocksFinder;
 
 class StackLayoutGenerator
 {
@@ -50,7 +48,8 @@ public:
 		LivenessAnalysis const& _liveness,
 		CallSites const& _callSites,
 		ControlFlowGraphs::FunctionGraphID _graphID,
-		bool _spillingAllowed
+		bool _spillingAllowed,
+		std::size_t _reachableStackDepth
 	);
 
 private:
@@ -59,6 +58,7 @@ private:
 		CallSites const& _callSites,
 		ControlFlowGraphs::FunctionGraphID _graphID,
 		bool _spillingAllowed,
+		std::size_t _reachableStackDepth,
 		spill::SpillSet _initialSpillSet
 	);
 
@@ -71,12 +71,10 @@ private:
 	ControlFlowGraphs::FunctionGraphID m_graphID;
 	bool m_hasFunctionReturnLabel;
 	bool m_spillingAllowed;
+	std::size_t m_reachableStackDepth;
 
-	std::unique_ptr<JunkAdmittingBlocksFinder> m_junkAdmittingBlocksFinder;
-	// Per-edge stack proposals for defineStackIn.
-	// m_inputStackProposalsPerBlock[blockId] contains (predecessorId, edgeStack) pairs
-	// representing the stack state flowing from each predecessor into the block.
-	std::vector<std::vector<std::pair<SSACFG::BlockId, StackData>>> m_inputStackProposalsPerBlock;
+	// The incoming edges of each block, collected while its predecessors are laid out and read by defineStackIn
+	std::vector<std::vector<stack::IncomingEdge>> m_incomingEdgesPerBlock;
 	SSACFGStackLayout m_resultLayout;
 	spill::SpillSet m_spillSet;
 };

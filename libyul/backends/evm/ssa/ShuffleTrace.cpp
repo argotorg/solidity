@@ -25,15 +25,14 @@ namespace solidity::yul::ssa
 
 void apply(StackData& _data, ShuffleOp const& _op)
 {
-	Stack stack(_data);
+	// the reach of an op was checked when it was recorded, so the replay applies no limit
+	Stack stack(_data, std::numeric_limits<std::size_t>::max());
 	switch (_op.kind)
 	{
 	case ShuffleOp::Kind::Swap:
-		yulAssert(1 <= _op.depth && _op.depth <= reachableStackDepth, "malformed swap in shuffle trace");
 		stack.swap(StackDepth{_op.depth});
 		return;
 	case ShuffleOp::Kind::Dup:
-		yulAssert(1 <= _op.depth && _op.depth <= reachableStackDepth, "malformed dup in shuffle trace");
 		stack.dup(StackDepth{static_cast<std::size_t>(_op.depth) - 1});
 		return;
 	case ShuffleOp::Kind::Pop:
@@ -47,6 +46,18 @@ void apply(StackData& _data, ShuffleOp const& _op)
 		yulAssert(!_data.empty() && _data.back() == _op.slot, "store must consume its value from the stack top");
 		stack.pop();
 		return;
+	case ShuffleOp::Kind::Rename:
+	{
+		yulAssert(_op.depth < _data.size(), "malformed rename in shuffle trace");
+		StackSlot& renamed = _data[_data.size() - 1 - _op.depth];
+		yulAssert(
+			(renamed.isValue() && _op.slot.isShadow()) ||
+			(renamed.isShadow() && _op.slot.isPhiValue() && _op.slot.value() == renamed.shadowPhi()),
+			"a value becomes a shadow slot, a shadow slot its phi"
+		);
+		renamed = _op.slot;
+		return;
+	}
 	}
 	solidity::util::unreachable();
 }

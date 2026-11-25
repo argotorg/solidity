@@ -95,7 +95,7 @@ StackData defStackFor(
 
 }
 
-void SpillSet::closeUnderReachabilityConstraints(SSACFG const& _cfg, SSACFGStackLayout const& _layout, SpillStoreTraces* _storeTraces)
+void SpillSet::closeUnderReachabilityConstraints(SSACFG const& _cfg, SSACFGStackLayout const& _layout, std::size_t const _reachableStackDepth, SpillStoreTraces* _storeTraces)
 {
 	if (_storeTraces)
 		_storeTraces->clear();
@@ -112,7 +112,7 @@ void SpillSet::closeUnderReachabilityConstraints(SSACFG const& _cfg, SSACFGStack
 
 		InstId const value = key.value();
 		StackData const defStack = defStackFor(_cfg, _layout, value);
-		ensureDefSiteFeasible(key, defStack, queue, _storeTraces);
+		ensureDefSiteFeasible(key, defStack, queue, _reachableStackDepth, _storeTraces);
 	}
 }
 
@@ -120,6 +120,7 @@ void SpillSet::ensureDefSiteFeasible(
 	SpillKey const _key,
 	StackData const& _defStack,
 	std::deque<SpillKey>& _workQueue,
+	std::size_t const _reachableStackDepth,
 	SpillStoreTraces* _storeTraces)
 {
 	// predicate = spill set minus the owner; the shuffle accumulates discovered culprits here.
@@ -133,7 +134,7 @@ void SpillSet::ensureDefSiteFeasible(
 		return result;
 	}();
 	StackData workStack = _defStack;
-	stack::ShuffleResult result = stack::shuffle(workStack, target, spillSetWithoutOwner);
+	stack::ShuffleResult result = stack::shuffle(workStack, target, spillSetWithoutOwner, true, _reachableStackDepth);
 	yulAssert(
 		result.status == stack::ShuffleResult::Status::Admissible,
 		fmt::format("def-site store for {} infeasible even after spilling siblings (status={})", _key, static_cast<int>(result.status))

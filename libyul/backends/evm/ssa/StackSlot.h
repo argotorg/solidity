@@ -71,6 +71,7 @@ private:
 /// Can represent:
 ///		- ValueID: SSA values (including literals)
 ///		- Junk: Placeholder/unused values
+///     - Shadow: a phi's shadow, written by the phi's upsilons and read by the phi
 ///     - FunctionCallReturnLabel: Return addresses for function calls
 ///     - FunctionReturnLabel: Identifies the calling function's graph
 ///
@@ -83,7 +84,8 @@ public:
 		Value, // u32 InstId
 		Junk, // empty
 		FunctionCallReturnLabel, // index into corresponding stack layout's call sites
-		FunctionReturnLabel // identifying the function graph via ControlFlowGraphs
+		FunctionReturnLabel, // identifying the function graph via ControlFlowGraphs
+		Shadow // u32 InstId of the phi whose shadow location the slot holds
 	};
 
 	constexpr StackSlot() = default;
@@ -96,12 +98,13 @@ public:
 	constexpr bool isLiteralValue() const noexcept { return m_valueOpcode == InstOpcode::Const; }
 	constexpr bool isPhiValue() const noexcept { return m_valueOpcode == InstOpcode::Phi; }
 
-	// a spilling and liveness relevant slot
-	constexpr bool isVariable() const noexcept { return isValue() && !isLiteralValue(); }
+	// a spilling relevant slot: a non-literal value or a phi's shadow
+	constexpr bool isVariable() const noexcept { return (isValue() && !isLiteralValue()) || isShadow(); }
 
 	constexpr bool isFunctionReturnLabel() const noexcept { return kind() == Kind::FunctionReturnLabel; }
 	constexpr bool isFunctionCallReturnLabel() const noexcept { return kind() == Kind::FunctionCallReturnLabel; }
 	constexpr bool isJunk() const noexcept { return kind() == Kind::Junk; }
+	constexpr bool isShadow() const noexcept { return kind() == Kind::Shadow; }
 	constexpr Kind kind() const noexcept { return m_kind; }
 
 	ControlFlowGraphs::FunctionGraphID functionReturnLabel() const { yulAssert(isFunctionReturnLabel()); return m_payload; }
@@ -109,6 +112,12 @@ public:
 	InstId value() const
 	{
 		yulAssert(isValue());
+		return InstId{m_payload};
+	}
+	/// The phi whose shadow location the slot holds
+	InstId shadowPhi() const
+	{
+		yulAssert(isShadow());
 		return InstId{m_payload};
 	}
 
@@ -120,6 +129,11 @@ public:
 	static StackSlot makeValue(InstructionStore const& _store, InstId _value)
 	{
 		return {_value.value, Kind::Value, _store.kindOf(_value)};
+	}
+	static StackSlot makeShadow(SSACFG const& _cfg, InstId _phi)
+	{
+		yulAssert(_cfg.isPhi(_phi), "only phis have a shadow location");
+		return {_phi.value, Kind::Shadow};
 	}
 	static constexpr StackSlot makeFunctionReturnLabel(ControlFlowGraphs::FunctionGraphID const _graphID) { return {_graphID, Kind::FunctionReturnLabel}; }
 	static constexpr StackSlot makeFunctionCallReturnLabel(CallSites::CallSiteID const _callSiteID) { return {_callSiteID, Kind::FunctionCallReturnLabel};	}
@@ -160,7 +174,7 @@ constexpr bool canBeFreelyGenerated(StackSlot const& _slot)
 std::string slotToString(StackSlot const& _slot);
 std::string stackToString(StackData const& _stackData);
 
-/// A slot as spill key: a non-literal SSA value, each addressing its own memory slot
+/// A slot as spill key: a variable, each addressing its own memory slot
 using SpillKey = StackSlot;
 
 /// Array index into stack from the bottom (offset 0 = bottom).

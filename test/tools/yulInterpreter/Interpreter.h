@@ -54,6 +54,10 @@ class ExplicitlyTerminatedWithReturn: public ExplicitlyTerminated
 {
 };
 
+class ExplicitlyTerminatedWithRevert: public ExplicitlyTerminated
+{
+};
+
 class StepLimitReached: public InterpreterTerminatedGeneric
 {
 };

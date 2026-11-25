@@ -18,6 +18,8 @@
 
 #include <libyul/backends/evm/ssa/StackUtils.h>
 
+#include <libyul/Exceptions.h>
+
 #include <libevmasm/GasMeter.h>
 
 #include <range/v3/view/iota.hpp>
@@ -67,6 +69,8 @@ std::size_t solidity::yul::ssa::stackOpsGas(SSACFG const& _cfg, ShuffleTrace con
 		case ShuffleOp::Kind::Store:
 			gas += runGas(evmasm::Instruction::PUSH32) + runGas(evmasm::Instruction::MSTORE);
 			break;
+		case ShuffleOp::Kind::Rename:
+			break;
 		}
 	return gas;
 }
@@ -101,6 +105,21 @@ void solidity::yul::ssa::applyOperation(SSACFG const& _cfg, InstId const _operat
 	_cfg.forEachOutput(_operation, [&](InstId const _output) {
 		_stack.push_back(StackSlot::makeValue(_cfg, _output));
 	});
+}
+
+void solidity::yul::ssa::requireRealizableLayout(bool const _realizable, bool const _spillingAllowed, SSACFG const& _cfg)
+{
+	if (_realizable)
+		return;
+	yulAssert(!_spillingAllowed, "Stack layout must be realizable when spilling is allowed.");
+	BOOST_THROW_EXCEPTION(StackTooDeepError(
+		YulName{_cfg.name},
+		YulName{},
+		0,
+		"Stack too deep. "
+		"Spilling variables to memory is not supported in functions that are part of a recursive call chain. "
+		"Try removing local variables."
+	));
 }
 
 CallSites solidity::yul::ssa::gatherCallSites(SSACFG const& _cfg)

@@ -48,6 +48,10 @@ StackData stackPreImage(SSACFG const& _cfg, StackData _stack, PhiInverse const& 
 /// Pops the operation's inputs (and a call's return label) off `_stack` and pushes its outputs
 void applyOperation(SSACFG const& _cfg, InstId _operation, StackData& _stack);
 
+/// Raises a stack-too-deep error if a required stack layout could not be realized. This can only happen if spilling
+/// to memory is disabled, i.e., if the function is part of a recursive call chain.
+void requireRealizableLayout(bool _realizable, bool _spillingAllowed, SSACFG const& _cfg);
+
 CallSites gatherCallSites(SSACFG const& _cfg);
 
 /// Checks that _current and _desired have the same size and that each slot matches,

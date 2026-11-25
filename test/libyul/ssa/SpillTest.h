@@ -35,6 +35,9 @@ public:
 	static std::unique_ptr<TestCase> create(Config const& _config);
 	explicit SpillTest(std::string const& _filename);
 	TestResult run(std::ostream& _stream, std::string const& _linePrefix, bool _formatted) override;
+
+private:
+	std::size_t m_reachableStackDepth;
 };
 
 }

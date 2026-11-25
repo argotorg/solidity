@@ -691,6 +691,9 @@ private:
 		auto exchangeWithTop = [this, &_permutation](StackOffset const _pos) -> std::optional<Blocked>
 		{
 			StackOffset const top{m_data.size() - 1};
+			// Preprocessing of the permutation enforces no swap of identical values
+			assert(m_data[_pos.value] != m_data[top.value]);
+			// But we can proceed even if that is somehow not the case
 			if (m_data[_pos.value] == m_data[top.value])
 				m_mapping.swapDestinations(_pos, top);
 			else if (!isSwapReachable(_pos))
@@ -709,7 +712,6 @@ private:
 				desiredOfTop != top
 			)
 			{
-				// an equal slot standing at the desired offset serves the top's destination just as well
 				if (std::optional<Blocked> blocked = exchangeWithTop(desiredOfTop))
 					return blocked;
 				continue;
@@ -725,8 +727,6 @@ private:
 			if (misplaced == empty)
 				return std::nullopt;  // nothing misplaced was found, we're done
 
-			// a misplaced slot equal to the top takes over the top's destination, making the top the misplaced
-			// one; it then travels to its destination directly instead of dislodging an in-place slot
 			if (std::optional<Blocked> blocked = exchangeWithTop(misplaced))
 				return blocked;
 		}
@@ -835,7 +835,7 @@ private:
 	/// Number of target offsets whose slot still has to be produced; decremented by `produce`
 	std::size_t m_pendingGenerations = 0;
 	ShuffleTrace m_trace;
-	Stack m_stack{m_data, &m_trace, m_maxSwapDepth};
+	Stack m_stack{m_data, m_maxSwapDepth, &m_trace};
 };
 
 class Planner

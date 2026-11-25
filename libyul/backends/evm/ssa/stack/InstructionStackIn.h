@@ -31,7 +31,8 @@ StackData buildInstructionStackIn(
 	StackData const& _stack,
 	StackData const& _args,
 	StackSlotLiveness const& _liveOut,
-	spill::SpillSet const& _spillSet
+	spill::SpillSet const& _spillSet,
+	std::size_t _reachableStackDepth
 );
 
 }
