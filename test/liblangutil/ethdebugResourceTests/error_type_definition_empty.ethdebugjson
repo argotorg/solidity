@@ -1,0 +1,5 @@
+{
+    "t": { "kind": "enum", "values": [], "definition": {} }
+}
+// ----
+// Error: types.t.definition must have a name or a location.
