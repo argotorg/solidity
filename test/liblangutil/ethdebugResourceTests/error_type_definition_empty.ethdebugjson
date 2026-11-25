@@ -1,0 +1,7 @@
+{
+    "types": {
+        "t": { "kind": "enum", "values": [], "definition": {} }
+    }
+}
+// ----
+// Error: resources.types.t.definition must have a name or a location.

@@ -43,6 +43,8 @@ namespace data
 struct HexValue
 {
 	bytes value;
+	/// The first byte contains only one significant digit when decoding an odd-length literal.
+	bool oddDigitCount{};
 };
 
 /// ethdebug/format/data/stamp: the schema an object conforms to and the
@@ -522,15 +524,28 @@ struct Pointer
 		std::unique_ptr<Pointer const> otherwise;
 	};
 
-	/// Definitions are ordered: each may reference the earlier ones.
+	/// Definitions are stored in evaluation order.
 	struct Scope
 	{
-		/// @a _definitions must not be empty and must define identifiers; @a _in
-		/// must not be null.
-		Scope(std::vector<std::pair<std::string, Expression>> _definitions, std::unique_ptr<Pointer const> _in);
+		using Definitions = std::vector<std::pair<std::string, Expression>>;
 
-		std::vector<std::pair<std::string, Expression>> definitions;
+		enum class DefinitionEncoding
+		{
+			Nested,
+			Grouped,
+		};
+
+		/// @a _definitions must contain at least one binding, and @a _in must not be null.
+		/// Grouped bindings must have distinct names and be ordered by their dependencies.
+		Scope(
+			Definitions _definitions,
+			std::unique_ptr<Pointer const> _in,
+			DefinitionEncoding _definitionEncoding = DefinitionEncoding::Nested
+		);
+
+		Definitions definitions;
 		std::unique_ptr<Pointer const> in;
+		DefinitionEncoding definitionEncoding{};
 	};
 
 	struct TemplateReference
@@ -687,6 +702,36 @@ void to_json(Json& _json, Program const& _program);
 namespace info
 {
 void to_json(Json& _json, Resources const& _resources);
+}
+
+// Reading. Every function throws ethdebug::JsonValidationError, whose message
+// names the offending location, for input that does not follow the schema.
+
+namespace data
+{
+/// ethdebug/format/data/value: an unsigned number or a `0x`-prefixed hex string.
+Unsigned unsignedFromJSON(Json const& _json, std::string_view _path);
+}
+
+namespace materials
+{
+ID idFromJSON(Json const& _json, std::string_view _path);
+SourceRange sourceRangeFromJSON(Json const& _json, std::string_view _path);
+}
+
+Type typeFromJSON(Json const& _json, std::string_view _path);
+Type::Wrapper wrapperFromJSON(Json const& _json, std::string_view _path);
+
+Pointer::Expression expressionFromJSON(Json const& _json, std::string_view _path);
+Pointer pointerFromJSON(Json const& _json, std::string_view _path);
+Pointer::Template templateFromJSON(Json const& _json, std::string_view _path);
+
+namespace info
+{
+/// The type table of a resources object, keyed by type ID.
+std::map<std::string, Type> typesFromJSON(Json const& _json, std::string_view _path);
+/// The pointer table of a resources object, keyed by template name.
+std::map<std::string, Pointer::Template> pointersFromJSON(Json const& _json, std::string_view _path);
 }
 
 }

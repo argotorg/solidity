@@ -1,0 +1,3 @@
+{"pointers": {"p": {"expect": [], "for": {"location": "heap", "slot": 0}}}}
+// ----
+// Error: resources.pointers.p.for.location has the unknown value "heap".
