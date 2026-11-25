@@ -30,15 +30,23 @@ using namespace solidity::frontend::test;
 using namespace solidity::util;
 using namespace solidity::langutil::test;
 
-EthdebugResourcesTest::EthdebugResourcesTest(std::string const& _filename):
-	TestCase(_filename)
+namespace
 {
-	m_source = m_reader.source();
-	m_expectation = m_reader.simpleExpectations();
+std::string const& validateResourcesTestFilename(std::string const& _filename)
+{
 	if (!_filename.ends_with(".ethdebugjson"))
 		BOOST_THROW_EXCEPTION(std::runtime_error(
 			"Not an ETHDebug resources test: \"" + _filename + "\". Expected extension: .ethdebugjson."
 		));
+	return _filename;
+}
+}
+
+EthdebugResourcesTest::EthdebugResourcesTest(std::string const& _filename):
+	TestCase(validateResourcesTestFilename(_filename))
+{
+	m_source = m_reader.source();
+	m_expectation = m_reader.simpleExpectations();
 }
 
 TestCase::TestResult EthdebugResourcesTest::run(std::ostream& _stream, std::string const& _linePrefix, bool const _formatted)
