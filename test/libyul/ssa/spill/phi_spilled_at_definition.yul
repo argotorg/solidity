@@ -1,5 +1,5 @@
-// A spilled phi is addressed at its block entry (def-site), where the merged value is materialized
-// on `stackIn`. Here the loop counter `i` is a phi at the loop header; with 17 always-live params
+// A spilled phi is stored behind itself, where its shadow slot has just become the phi.
+// Here the loop counter `i` is a phi at the loop header; with 17 always-live params
 // kept live across the body's sstore chain the layout generator spills, and the phi can be among the
 // spilled values. The `memoryguard` prelude (kept alive by `mstore(0x40, g)`) reserves the spill
 // region MemoryAddressing bumps.
@@ -164,11 +164,11 @@ object "C" {
 //   spilled:
 //     v33 -> mem 0x80
 //   mstore schedule:
-//     mstore addr(v33) <- v33 (B#0)
+//     mstore addr(v33) <- v33 (behind v33 in B#0)
 // CFG[1] f
 //   spilled:
 //     v0 -> mem 0xa0
 //     phi19 -> mem 0xc0
 //   mstore schedule:
-//     mstore addr(v0) <- v0 (B#0)
-//     mstore addr(phi19) <- phi19 (B#1)
+//     mstore addr(v0) <- v0 (behind v0 in B#0)
+//     mstore addr(phi19) <- phi19 (behind phi19 in B#1)

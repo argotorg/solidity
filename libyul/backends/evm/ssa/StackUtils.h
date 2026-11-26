@@ -18,7 +18,6 @@
 
 #pragma once
 
-#include <libyul/backends/evm/ssa/PhiInverse.h>
 #include <libyul/backends/evm/ssa/ShuffleTrace.h>
 #include <libyul/backends/evm/ssa/Stack.h>
 
@@ -41,9 +40,6 @@ private:
 
 /// Computes the EVM gas cost of executing `_trace`.
 std::size_t stackOpsGas(SSACFG const& _cfg, ShuffleTrace const& _trace);
-
-/// Transform stack data by replacing all its phi variables with their respective preimages.
-StackData stackPreImage(SSACFG const& _cfg, StackData _stack, PhiInverse const& _phiInverse);
 
 /// Pops the operation's inputs (and a call's return label) off `_stack` and pushes its outputs
 void applyOperation(SSACFG const& _cfg, InstId _operation, StackData& _stack);

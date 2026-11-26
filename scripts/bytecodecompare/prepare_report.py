@@ -5,8 +5,10 @@ import subprocess
 import json
 import re
 from argparse import ArgumentParser
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from enum import Enum
+from functools import partial
 from glob import glob
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -376,28 +378,34 @@ def generate_report(
     report_file_path: Path,
     verbose: bool,
     exit_on_error: bool,
+    jobs: int,
 ):
     statistics = Statistics()
     metadata_option_supported = detect_metadata_cli_option_support(compiler_path)
+    sorted_source_file_names = sorted(source_file_names)
 
     try:
         with open(report_file_path, mode='w', encoding='utf8', newline='\n') as report_file:
             for preset in presets:
-                with TemporaryDirectory(prefix='prepare_report-') as tmp_dir:
-                    for source_file_name in sorted(source_file_names):
+                with TemporaryDirectory(prefix='prepare_report-') as tmp_dir, ThreadPoolExecutor(jobs) as executor:
+                    reports = executor.map(
+                        partial(
+                            run_compiler,
+                            compiler_path,
+                            execution_arch,
+                            force_no_optimize_yul=force_no_optimize_yul,
+                            interface=interface,
+                            preset=preset,
+                            smt_use=smt_use,
+                            metadata_option_supported=metadata_option_supported,
+                            tmp_dir=Path(tmp_dir),
+                            exit_on_error=exit_on_error,
+                        ),
+                        map(Path, sorted_source_file_names),
+                    )
+                    for source_file_name in sorted_source_file_names:
                         try:
-                            report = run_compiler(
-                                compiler_path,
-                                execution_arch,
-                                Path(source_file_name),
-                                force_no_optimize_yul,
-                                interface,
-                                preset,
-                                smt_use,
-                                metadata_option_supported,
-                                Path(tmp_dir),
-                                exit_on_error,
-                            )
+                            report = next(reports)
 
                             statistics.aggregate(report)
                             print(report.format_summary(verbose), end=('\n' if verbose else ''), flush=True)
@@ -477,6 +485,13 @@ def commandline_parser() -> ArgumentParser:
         action='store_true',
         help="Immediately exit and print compiler output if the compiler exits with an error.",
     )
+    parser.add_argument(
+        '--jobs',
+        dest='jobs',
+        default=1,
+        type=int,
+        help="Number of compiler processes to run in parallel.",
+    )
     return parser
 
 
@@ -501,4 +516,5 @@ if __name__ == "__main__":
         Path(options.report_file),
         options.verbose,
         options.exit_on_error,
+        options.jobs,
     )

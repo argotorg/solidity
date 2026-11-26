@@ -66,11 +66,15 @@ void LivenessAnalysis::liveOutToLiveIn(
 	for (InstId const instId: m_cfg.block(_blockId).instructions | ranges::views::reverse)
 	{
 		auto const& inst = m_cfg.inst(instId);
-		if (!inst.isOperation())
+		if (inst.isPhi())
+			_live.erase(instId);
+		if (!inst.isOperation() && !inst.isUpsilon())
 			continue;
+		yulAssert(!inst.isUpsilon() || !m_cfg.isUnreachable(inst.inputs.at(0)));
 		_atOperation(instId, std::as_const(_live));
 		// remove variables defined at p from live
-		_live.eraseAll(m_cfg.projectionsOf(instId));
+		if (inst.isOperation())
+			_live.eraseAll(m_cfg.projectionsOf(instId));
 		_live.erase(instId);
 		_live.insertAll(inst.inputs | ranges::views::filter(excludingLiteralsFilter()));
 	}
@@ -80,6 +84,7 @@ LivenessAnalysis::LivenessAnalysis(SSACFG const& _cfg):
 	m_cfg(_cfg),
 	m_dfsTree(_cfg),
 	m_loopNestingForest(m_dfsTree),
+	m_shadows(m_dfsTree),
 	m_liveIns(_cfg.numBlocks()),
 	m_liveOuts(_cfg.numBlocks())
 {
@@ -107,27 +112,15 @@ void LivenessAnalysis::runDagDfs()
 		// post-order traversal
 		auto const& block = m_cfg.block(blockId);
 
-		// live <- PhiUses(B)
+		// live <- PhiUses(B), which is empty since an upsilon reads its input at its position
 		LivenessData live{};
-		m_cfg.forEachUpsilon(block, [&](InstId, SSACFG::Inst const& inst) {
-			InstId const v = inst.inputs.at(0);
-			yulAssert(!m_cfg.isUnreachable(v));
-			if (!m_cfg.isLiteral(v))
-				live.insert(v);
-		});
 
-		// for each S \in succs(B) s.t. (B, S) not a back edge: live <- live \cup (LiveIn(S) - PhiDefs(S))
+		// for each S \in succs(B) s.t. (B, S) not a back edge: live <- live \cup LiveIn(S)
+		// (a phi is defined at its position, so there are no PhiDefs(S) to take out)
 		block.forEachExit(
 			[&](SSACFG::BlockId const& _successor) {
 				if (!m_dfsTree.backEdge(blockId, _successor))
-				{
-					// LiveIn(S) - PhiDefs(S)
-					auto liveInWithoutPhiDefs = m_liveIns[_successor.value];
-					m_cfg.forEachPhi(m_cfg.block(_successor), [&](InstId const succInstId, SSACFG::Inst const&) {
-						liveInWithoutPhiDefs.erase(succInstId);
-					});
-					live.maxUnion(liveInWithoutPhiDefs);
-				}
+					live.maxUnion(m_liveIns[_successor.value]);
 			});
 
 		if (std::holds_alternative<SSACFG::BasicBlock::FunctionReturn>(block.exit))
@@ -142,10 +135,7 @@ void LivenessAnalysis::runDagDfs()
 		// for each program point p in B, backwards, do:
 		liveOutToLiveIn(blockId, live, [](InstId, LivenessData const&) {});
 
-		// livein(b) <- live \cup PhiDefs(B)
-		m_cfg.forEachPhi(block, [&](InstId const instId, SSACFG::Inst const&) {
-			live.insert(instId);
-		});
+		// livein(b) <- live
 		m_liveIns[blockId.value] = live;
 	}
 }
@@ -155,13 +145,8 @@ void LivenessAnalysis::runLoopTreeDfs(SSACFG::BlockId const _loopHeader)
 	// SSA Book, Algorithm 9.3
 	if (m_loopNestingForest.loopNodes().contains(_loopHeader))
 	{
-		// the loop header block id
-		auto const& block = m_cfg.block(_loopHeader);
-		// LiveLoop <- LiveIn(B_N) - PhiDefs(B_N)
+		// LiveLoop <- LiveIn(B_N) (the header's phis are defined at their position, not live on entry)
 		auto liveLoop = m_liveIns[_loopHeader.value];
-		m_cfg.forEachPhi(block, [&](InstId const instId, SSACFG::Inst const&) {
-			liveLoop.erase(instId);
-		});
 		// must be live out of header if live in of children
 		m_liveOuts[_loopHeader.value].maxUnion(liveLoop);
 		// for each blockId \in children(loopHeader)

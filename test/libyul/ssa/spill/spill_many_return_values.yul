@@ -63,7 +63,7 @@
 //     v5 -> mem 0x0120
 //     v21 -> mem 0x0140
 //   mstore schedule:
-//     mstore addr(v5) <- v5 (B#0)
-//     mstore addr(v21) <- v21 (B#0)
+//     mstore addr(v5) <- v5 (behind v3 in B#0)
+//     mstore addr(v21) <- v21 (behind v3 in B#0)
 // CFG[1] many
 //   spilled: none

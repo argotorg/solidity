@@ -27,5 +27,5 @@ contract A {
 // gas legacy code: 190200
 // gas legacyOptimized: 187256
 // gas legacyOptimized code: 92400
-// gas ssaCFGOptimized: 186919
+// gas ssaCFGOptimized: 186928
 // gas ssaCFGOptimized code: 60600

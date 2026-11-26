@@ -85,8 +85,6 @@ add_library(yul
 	backends/evm/ssa/JunkAdmittingBlocksFinder.h
 	backends/evm/ssa/LivenessAnalysis.cpp
 	backends/evm/ssa/LivenessAnalysis.h
-	backends/evm/ssa/PhiInverse.cpp
-	backends/evm/ssa/PhiInverse.h
 	backends/evm/ssa/SSACFGLoopNestingForest.cpp
 	backends/evm/ssa/SSACFGLoopNestingForest.h
 	backends/evm/ssa/SSACFG.cpp
@@ -96,6 +94,8 @@ add_library(yul
 	backends/evm/ssa/SSACFGDebugInfo.h
 	backends/evm/ssa/SSACFGTypes.cpp
 	backends/evm/ssa/SSACFGTypes.h
+	backends/evm/ssa/ShadowLiveness.cpp
+	backends/evm/ssa/ShadowLiveness.h
 	backends/evm/ssa/ShuffleTrace.cpp
 	backends/evm/ssa/ShuffleTrace.h
 	backends/evm/ssa/Stack.h

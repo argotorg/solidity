@@ -18,29 +18,26 @@
 
 #pragma once
 
-#include <libyul/backends/evm/ssa/SSACFG.h>
+#include <test/TestCase.h>
 
-#include <map>
+#include <memory>
+#include <ostream>
+#include <string>
 
-namespace solidity::yul::ssa
+namespace solidity::langutil::test
 {
 
-/// If Block `_from` -> Block `_to` and `_to` has phi functions `v_k := phi(..., _from => v_i, ...)`, this transform
-/// pulls values `v_k` back to `v_i`.
-class PhiInverse
+/// Runs a JSON round trip for a fixture and reports changes to the document.
+class EthdebugResourcesTest: public frontend::test::TestCase
 {
 public:
-	PhiInverse() = default;
-	PhiInverse(SSACFG const& _cfg, SSACFG::BlockId const& _from, SSACFG::BlockId const& _to);
+	static std::unique_ptr<TestCase> create(Config const& _config)
+	{
+		return std::make_unique<EthdebugResourcesTest>(_config.filename);
+	}
+	EthdebugResourcesTest(std::string const& _filename);
 
-	/// whether the transform is guaranteed to be a no-op, ie, there is no phi function in `_to`
-	bool noOp() const;
-	InstId operator()(InstId _valueId) const;
-
-	std::map<InstId, InstId> const& data() const;
-
-private:
-	std::map<InstId, InstId> m_phiToPreImage = {};
+	TestResult run(std::ostream& _stream, std::string const& _linePrefix = "", bool const _formatted = false) override;
 };
 
 }
