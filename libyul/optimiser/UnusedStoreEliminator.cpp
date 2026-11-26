@@ -132,6 +132,8 @@ UnusedStoreEliminator::UnusedStoreEliminator(
 	m_ignoreMemory(_ignoreMemory),
 	m_functionSideEffects(_functionSideEffects),
 	m_controlFlowSideEffects(std::move(_controlFlowSideEffects)),
+	m_addBuiltinHandle(_dialect.findBuiltin("add")),
+	m_subBuiltinHandle(_dialect.findBuiltin("sub")),
 	m_knowledgeBase(
 		[this](YulName _var) -> AssignedValue const* {
 			if (m_currentAssignment && m_currentAssignment->first == _var)
@@ -516,6 +518,7 @@ void UnusedStoreEliminator::handleAssignment(std::vector<YulName> const& _variab
 	if (
 		_value &&
 		_variables.size() == 1 &&
+		mayBeOffset(*_value) &&
 		!references(*_value, _variables.front())
 	)
 	{
@@ -527,6 +530,17 @@ void UnusedStoreEliminator::handleAssignment(std::vector<YulName> const& _variab
 		m_knowledgeBase.explore(_variables.front());
 		m_currentAssignment.reset();
 	}
+}
+
+bool UnusedStoreEliminator::mayBeOffset(Expression const& _value) const
+{
+	FunctionCall const* call = std::get_if<FunctionCall>(&_value);
+	if (!call)
+		return true;
+	if (!isBuiltinFunctionCall(*call))
+		return false;
+	BuiltinHandle const& handle = std::get<BuiltinName>(call->functionName).handle;
+	return handle == m_addBuiltinHandle || handle == m_subBuiltinHandle;
 }
 
 std::set<YulName> const& UnusedStoreEliminator::assignedVariables(Block const& _block)

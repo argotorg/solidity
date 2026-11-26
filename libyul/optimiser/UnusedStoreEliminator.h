@@ -171,6 +171,10 @@ private:
 	/// The variables get unknown values if several are assigned at once (e.g. `a, b := f()`) or if @a _value
 	/// references the assigned variable (e.g. `x := add(x, 1)`).
 	void handleAssignment(std::vector<YulName> const& _variables, Expression const* _value);
+	/// @returns false if @a _value is certainly not a constant offset from a variable or a constant,
+	/// i.e. if it is a call other than `add` or `sub`. Such a value does not have to be evaluated
+	/// at the assignment, as the knowledge base treats the variable as unknown anyway.
+	bool mayBeOffset(Expression const& _value) const;
 	/// Forgets the values of the given variables by giving them new versions in the knowledge base.
 	/// Used where control flow joins and the variables might have different values on different paths.
 	void forgetValues(std::set<YulName> const& _variables);
@@ -181,6 +185,8 @@ private:
 	bool const m_ignoreMemory;
 	std::map<FunctionHandle, SideEffects> const& m_functionSideEffects;
 	std::map<YulName, ControlFlowSideEffects> m_controlFlowSideEffects;
+	std::optional<BuiltinHandle> m_addBuiltinHandle;
+	std::optional<BuiltinHandle> m_subBuiltinHandle;
 
 	/// The assignment handleAssignment is processing. It provides the only value the knowledge base can see.
 	std::optional<std::pair<YulName, AssignedValue>> m_currentAssignment;
