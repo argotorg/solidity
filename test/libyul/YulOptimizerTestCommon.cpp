@@ -225,6 +225,14 @@ YulOptimizerTestCommon::YulOptimizerTestCommon(std::shared_ptr<Object const> _ob
 			Rematerialiser::run(*m_context, block);
 			return block;
 		}},
+		{"literalRematerialiser", [&]() {
+			auto block = disambiguate();
+			updateContext(block);
+			ForLoopInitRewriter::run(*m_context, block);
+			FunctionHoister::run(*m_context, block);
+			LiteralRematerialiser::run(*m_context, block);
+			return block;
+		}},
 		{"expressionSimplifier", [&]() {
 			auto block = disambiguate();
 			updateContext(block);
@@ -238,6 +246,14 @@ YulOptimizerTestCommon::YulOptimizerTestCommon(std::shared_ptr<Object const> _ob
 			UnusedPruner::run(*m_context, block);
 			ExpressionJoiner::run(*m_context, block);
 			ExpressionJoiner::run(*m_context, block);
+			return block;
+		}},
+		{"expressionSimplifierSolo", [&]() {
+			auto block = disambiguate();
+			updateContext(block);
+			ForLoopInitRewriter::run(*m_context, block);
+			FunctionHoister::run(*m_context, block);
+			ExpressionSimplifier::run(*m_context, block);
 			return block;
 		}},
 		{"fullSimplify", [&]() {
@@ -349,7 +365,7 @@ YulOptimizerTestCommon::YulOptimizerTestCommon(std::shared_ptr<Object const> _ob
 			auto block = disambiguate();
 			updateContext(block);
 			ForLoopInitRewriter::run(*m_context, block);
-
+			FunctionHoister::run(*m_context, block);
 			LoadResolver::run(*m_context, block);
 			return block;
 		}},
