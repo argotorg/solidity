@@ -1,0 +1,14 @@
+{
+	"language": "Solidity",
+	"sources": {
+		"C": {"urls": ["in.sol"]}
+	},
+	"settings": {
+		"experimental": true,
+		"viaSSACFG": true,
+		"optimizer": {"enabled": true},
+		"outputSelection": {
+			"*": {"*": ["metadata"]}
+		}
+	}
+}

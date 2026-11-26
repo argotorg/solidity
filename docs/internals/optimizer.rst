@@ -378,6 +378,10 @@ sequence. In addition, the delimiter may be placed at the beginning of the user-
 which will result in the optimization sequence being empty, whereas conversely, if placed at the end of
 the sequence, will be treated as an empty cleanup sequence.
 
+The experimental SSA CFG pipeline (``--via-ssa-cfg``) has its own default sequence and its own default cleanup sequence.
+Both are shorter than the defaults of the other pipelines. A user-supplied sequence is used unchanged with the SSA CFG pipeline as well.
+If the user-supplied sequence has no ``:`` delimiter, the optimizer applies the default cleanup sequence of the other pipelines.
+
 Preprocessing
 -------------
 

@@ -994,6 +994,26 @@ std::variant<StandardCompiler::InputsAndSettings, Json> StandardCompiler::parseI
 			return std::get<Json>(std::move(optimiserSettings)); // was an error
 		else
 			ret.optimiserSettings = std::get<OptimiserSettings>(std::move(optimiserSettings));
+
+		// The SSA CFG code transform has its own default sequence, but is not used before Tangerine Whistle.
+		// A given sequence is used as is.
+		Json const& optimizer = settings["optimizer"];
+		bool const optimizerStepsGiven =
+			optimizer.contains("details") &&
+			optimizer["details"].contains("yulDetails") &&
+			optimizer["details"]["yulDetails"].contains("optimizerSteps");
+		if (
+			ret.viaSSACFG &&
+			ret.evmVersion.canOverchargeGasForCall() &&
+			ret.optimiserSettings.runYulOptimiser &&
+			!optimizerStepsGiven
+		)
+		{
+			ret.optimiserSettings.yulOptimiserSteps =
+				OptimiserSettings::DefaultSSACFGYulOptimiserSteps;
+			ret.optimiserSettings.yulOptimiserCleanupSteps =
+				OptimiserSettings::DefaultSSACFGYulOptimiserCleanupSteps;
+		}
 	}
 	else if (ret.language == "EVMAssembly")
 		ret.optimiserSettings = OptimiserSettings::none();

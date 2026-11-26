@@ -281,6 +281,12 @@ OptimiserSettings CommandLineOptions::optimiserSettings() const
 		else
 			solAssert(settings.yulOptimiserCleanupSteps == OptimiserSettings::DefaultYulOptimiserCleanupSteps);
 	}
+	// The SSA CFG code transform has its own default sequence, but is not used before Tangerine Whistle.
+	else if (output.viaSSACFG && settings.runYulOptimiser && output.evmVersion.canOverchargeGasForCall())
+	{
+		settings.yulOptimiserSteps = OptimiserSettings::DefaultSSACFGYulOptimiserSteps;
+		settings.yulOptimiserCleanupSteps = OptimiserSettings::DefaultSSACFGYulOptimiserCleanupSteps;
+	}
 
 	return settings;
 }
