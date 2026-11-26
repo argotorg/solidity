@@ -173,9 +173,9 @@ void UnusedStoreEliminator::operator()(FunctionCall const& _functionCall)
 void UnusedStoreEliminator::operator()(FunctionDefinition const& _functionDefinition)
 {
 	for (auto const& parameter: _functionDefinition.parameters)
-		handleAssignment({parameter.name}, nullptr);
+		handleAssignment({parameter.name}, nullptr, true);
 	for (auto const& returnVariable: _functionDefinition.returnVariables)
-		handleAssignment({returnVariable.name}, &m_zero);
+		handleAssignment({returnVariable.name}, &m_zero, true);
 	UnusedStoreBase::operator()(_functionDefinition);
 }
 
@@ -186,11 +186,12 @@ void UnusedStoreEliminator::operator()(VariableDeclaration const& _variableDecla
 	if (_variableDeclaration.value)
 		handleAssignment(
 			util::applyMap(_variableDeclaration.variables, [](NameWithDebugData const& _var) { return _var.name; }),
-			_variableDeclaration.value.get()
+			_variableDeclaration.value.get(),
+			true
 		);
 	else
 		for (auto const& variable: _variableDeclaration.variables)
-			handleAssignment({variable.name}, &m_zero);
+			handleAssignment({variable.name}, &m_zero, true);
 }
 
 void UnusedStoreEliminator::operator()(Assignment const& _assignment)
@@ -198,7 +199,8 @@ void UnusedStoreEliminator::operator()(Assignment const& _assignment)
 	UnusedStoreBase::operator()(_assignment);
 	handleAssignment(
 		util::applyMap(_assignment.variableNames, [](Identifier const& _var) { return _var.name; }),
-		_assignment.value.get()
+		_assignment.value.get(),
+		false
 	);
 }
 
@@ -215,7 +217,10 @@ void UnusedStoreEliminator::operator()(ForLoop const& _forLoop)
 	// At the loop head, values from the loop entry join with values from the back edge.
 	std::set<YulName> assignedInLoop = assignedVariables(_forLoop.body) + assignedVariables(_forLoop.post);
 	forgetValues(assignedInLoop);
-	UnusedStoreBase::operator()(_forLoop);
+	{
+		ScopedSaveAndRestore loopDepth(m_loopDepth, m_loopDepth + 1);
+		UnusedStoreBase::operator()(_forLoop);
+	}
 	forgetValues(assignedInLoop);
 }
 
@@ -511,10 +516,17 @@ void UnusedStoreEliminator::clearActive(
 		activeStorageStores() = {};
 }
 
-void UnusedStoreEliminator::handleAssignment(std::vector<YulName> const& _variables, Expression const* _value)
+void UnusedStoreEliminator::handleAssignment(
+	std::vector<YulName> const& _variables,
+	Expression const* _value,
+	bool _isDeclaration
+)
 {
-	for (YulName const& variable: _variables)
-		m_knowledgeBase.variableChanged(variable);
+	// Names are unique, so outside of loops a declaration is the first time a variable is assigned
+	// and it still has its initial version. Only inside a loop, where it is visited again, it needs a new one.
+	if (!_isDeclaration || m_loopDepth > 0)
+		for (YulName const& variable: _variables)
+			m_knowledgeBase.variableChanged(variable);
 	if (
 		_value &&
 		_variables.size() == 1 &&

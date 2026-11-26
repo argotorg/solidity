@@ -170,7 +170,8 @@ private:
 	/// Records the assignment of @a _value (nullptr if unknown) to @a _variables.
 	/// The variables get unknown values if several are assigned at once (e.g. `a, b := f()`) or if @a _value
 	/// references the assigned variable (e.g. `x := add(x, 1)`).
-	void handleAssignment(std::vector<YulName> const& _variables, Expression const* _value);
+	/// @a _isDeclaration is true for variable declarations and function parameters and return variables.
+	void handleAssignment(std::vector<YulName> const& _variables, Expression const* _value, bool _isDeclaration);
 	/// @returns false if @a _value is certainly not a constant offset from a variable or a constant,
 	/// i.e. if it is a call other than `add` or `sub`. Such a value does not have to be evaluated
 	/// at the assignment, as the knowledge base treats the variable as unknown anyway.
@@ -194,6 +195,10 @@ private:
 	Expression const m_zero{Literal{{}, LiteralKind::Number, LiteralValue{0, std::nullopt}}};
 
 	KnowledgeBase m_knowledgeBase;
+
+	/// Number of loops the current statement is in. Unlike UnusedStoreBase::m_forLoopNestingDepth,
+	/// it is not reset in function definitions, as a function defined in a loop is also visited repeatedly.
+	size_t m_loopDepth = 0;
 
 	/// Cache for assignedVariables.
 	std::unordered_map<Block const*, std::set<YulName>> m_assignedVariables;
