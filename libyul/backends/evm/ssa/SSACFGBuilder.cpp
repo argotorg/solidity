@@ -24,7 +24,6 @@
 #include <libyul/backends/evm/ssa/ControlFlowGraphs.h>
 
 #include <libyul/AST.h>
-#include <libyul/ControlFlowSideEffectsCollector.h>
 #include <libyul/optimiser/Metrics.h>
 #include <libyul/Exceptions.h>
 #include <libyul/Utilities.h>
@@ -50,7 +49,6 @@ SSACFGBuilder::SSACFGBuilder(
 	ControlFlowGraphs& _controlFlow,
 	SSACFG& _graph,
 	AsmAnalysisInfo const& _analysisInfo,
-	ControlFlowSideEffectsCollector const& _sideEffects,
 	EVMDialect const& _dialect,
 	bool _generateDebugInfo,
 	FunctionRegistry& _functionRegistry
@@ -58,7 +56,6 @@ SSACFGBuilder::SSACFGBuilder(
 	m_controlFlow(_controlFlow),
 	m_graph(_graph),
 	m_info(_analysisInfo),
-	m_sideEffects(_sideEffects),
 	m_dialect(_dialect),
 	m_generateDebugInfo(_generateDebugInfo),
 	m_functionRegistry(_functionRegistry),
@@ -77,8 +74,6 @@ std::unique_ptr<ControlFlowGraphs> SSACFGBuilder::build(
 	bool _generateDebugInfo
 )
 {
-	ControlFlowSideEffectsCollector sideEffects(_dialect, _block);
-
 	auto controlFlowGraphs = std::make_unique<ControlFlowGraphs>();
 	controlFlowGraphs->functionGraphs.emplace_back(std::make_unique<SSACFG>(
 		_dialect,
@@ -87,7 +82,7 @@ std::unique_ptr<ControlFlowGraphs> SSACFGBuilder::build(
 	));
 	SSACFG& mainGraph = *controlFlowGraphs->functionGraphs.back();
 	FunctionRegistry functionRegistry;
-	SSACFGBuilder builder(*controlFlowGraphs, mainGraph, _analysisInfo, sideEffects, _dialect, _generateDebugInfo, functionRegistry);
+	SSACFGBuilder builder(*controlFlowGraphs, mainGraph, _analysisInfo, _dialect, _generateDebugInfo, functionRegistry);
 	builder.m_currentBlock = mainGraph.makeBlock(debugDataOf(_block));
 	builder.sealBlock(builder.m_currentBlock);
 	builder(_block);
@@ -129,7 +124,7 @@ void SSACFGBuilder::buildFunctionGraph(
 		| ranges::views::transform([](auto const& _binding) { return std::get<1>(_binding); })
 		| ranges::to<std::vector>;
 
-	SSACFGBuilder builder(m_controlFlow, cfg, m_info, m_sideEffects, m_dialect, m_generateDebugInfo, m_functionRegistry);
+	SSACFGBuilder builder(m_controlFlow, cfg, m_info, m_dialect, m_generateDebugInfo, m_functionRegistry);
 	builder.m_currentBlock = cfg.entry;
 	builder.m_currentReturnVars = returnVars;
 	for (auto&& [var, varId]: argumentBindings)
@@ -444,7 +439,6 @@ InstId SSACFGBuilder::visitFunctionCall(FunctionCall const& _call)
 			Scope::Function const& function = lookupFunction(functionName);
 			auto const calleeIt = m_functionRegistry.find(&function);
 			yulAssert(calleeIt != m_functionRegistry.end(), "Called function has no registered graph id.");
-			canContinue = m_sideEffects.functionSideEffects().at(calleeIt->second.definition).canContinue;
 			// Arguments must be evaluated from right to left, according to Yul specification
 			std::vector<InstId> inputs;
 			for (auto const& arg: _call.arguments | ranges::views::reverse)

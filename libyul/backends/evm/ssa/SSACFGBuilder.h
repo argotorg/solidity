@@ -36,8 +36,6 @@
 */
 #pragma once
 
-#include <libyul/ControlFlowSideEffectsCollector.h>
-
 #include <libyul/backends/evm/EVMDialect.h>
 
 #include <libyul/backends/evm/ssa/ControlFlowGraphs.h>
@@ -69,7 +67,6 @@ private:
 		ControlFlowGraphs& _controlFlow,
 		SSACFG& _graph,
 		AsmAnalysisInfo const& _analysisInfo,
-		ControlFlowSideEffectsCollector const& _sideEffects,
 		EVMDialect const& _dialect,
 		bool _generateDebugInfo,
 		FunctionRegistry& _functionRegistry
@@ -122,7 +119,6 @@ private:
 	ControlFlowGraphs& m_controlFlow;
 	SSACFG& m_graph;
 	AsmAnalysisInfo const& m_info;
-	ControlFlowSideEffectsCollector const& m_sideEffects;
 	EVMDialect const& m_dialect;
 	bool const m_generateDebugInfo;
 	/// Shared function lookup, populated as `registerFunctionDefinition` is called.
