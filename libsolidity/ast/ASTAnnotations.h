@@ -276,8 +276,9 @@ struct ExpressionAnnotation: ASTAnnotation
 {
 	/// Inferred type of the expression.
 	Type const* type = nullptr;
-	/// Whether the expression is pure, i.e. compile-time constant.
-	util::SetOnce<bool> isPure;
+	/// Whether the expression is a runtime constant, i.e. it always evaluates to the same value,
+	/// although that value is not necessarily known at compilation time.
+	util::SetOnce<bool> isRuntimeConstant;
 	/// Whether it is an LValue (i.e. something that can be assigned to).
 	util::SetOnce<bool> isLValue;
 	/// Whether the expression is used in a context where the LValue is actually required.

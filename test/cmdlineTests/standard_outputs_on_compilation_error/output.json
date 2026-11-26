@@ -145,7 +145,7 @@
                                             "expression": {
                                                 "id": 8,
                                                 "isLValue": false,
-                                                "isPure": false,
+                                                "isRuntimeConstant": false,
                                                 "lValueRequested": false,
                                                 "leftHandSide": {
                                                     "id": 6,
@@ -165,7 +165,7 @@
                                                     "hexValue": "30",
                                                     "id": 7,
                                                     "isLValue": false,
-                                                    "isPure": true,
+                                                    "isRuntimeConstant": true,
                                                     "kind": "number",
                                                     "lValueRequested": false,
                                                     "nodeType": "Literal",
@@ -197,7 +197,7 @@
                                                 "hexValue": "74727565",
                                                 "id": 10,
                                                 "isLValue": false,
-                                                "isPure": true,
+                                                "isRuntimeConstant": true,
                                                 "kind": "bool",
                                                 "lValueRequested": false,
                                                 "nodeType": "Literal",

@@ -886,7 +886,7 @@ bool ExpressionCompiler::visit(FunctionCall const& _functionCall)
 				solAssert(function.parameterTypes().size() == 1, "");
 				if (m_context.revertStrings() == RevertStrings::Strip)
 				{
-					if (!*arguments.front()->annotation().isPure)
+					if (!*arguments.front()->annotation().isRuntimeConstant)
 					{
 						arguments.front()->accept(*this);
 						utils().popStackElement(*arguments.front()->annotation().type);
@@ -1361,7 +1361,7 @@ bool ExpressionCompiler::visit(FunctionCall const& _functionCall)
 
 				if (m_context.revertStrings() == RevertStrings::Strip)
 				{
-					if (!*arguments.at(1)->annotation().isPure)
+					if (!*arguments.at(1)->annotation().isRuntimeConstant)
 					{
 						arguments.at(1)->accept(*this);
 						utils().popStackElement(*arguments.at(1)->annotation().type);
@@ -1754,7 +1754,7 @@ bool ExpressionCompiler::visit(MemberAccess const& _memberAccess)
 	}
 	// Another special case for `this.f.selector` and for ``C.f.selector`` which do not need the address.
 	// There are other uses of `.selector` which do need the address, but we want these
-	// specific uses to be pure expressions.
+	// specific uses to be runtime constants.
 	if (
 		auto const* functionType = dynamic_cast<FunctionType const*>(_memberAccess.expression().annotation().type);
 		functionType && member == "selector"
