@@ -69,10 +69,10 @@
 // \l\
 // [ReturnLabel[1], v1, v0]\l\
 // add\l\
-// [ReturnLabel[1], v16]\l\
+// [ReturnLabel[1], v13]\l\
 // \l\
-// OUT: [v16, ReturnLabel[1]]\l\
+// OUT: [v13, ReturnLabel[1]]\l\
 // "];
-// Block1_2Exit [label="FunctionReturn[v16]"];
+// Block1_2Exit [label="FunctionReturn[v13]"];
 // Block1_2 -> Block1_2Exit;
 // }

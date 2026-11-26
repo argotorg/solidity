@@ -359,20 +359,11 @@ void SSACFGBuilder::assign(std::vector<std::reference_wrapper<Scope::Variable co
 	if (auto const* functionCall = std::get_if<FunctionCall>(_expression))
 	{
 		InstId const callId = visitFunctionCall(*functionCall);
-		if (m_graph.isUnreachable(callId))
-		{
-			// The callee did not continue: post-call block is unreachable. Bind variables to unreachable.
-			for (auto const& var: _variables)
-				writeVariable(var, m_currentBlock, callId);
-		}
-		else
-		{
-			yulAssert(m_graph.numReturnsOf(callId) == _variables.size());
-			auto const outputs = m_graph.outputsOf(callId);
-			yulAssert(outputs.size() == _variables.size());
-			for (auto const& [var, output]: ranges::views::zip(_variables, outputs))
-				writeVariable(var, m_currentBlock, output);
-		}
+		yulAssert(m_graph.numReturnsOf(callId) == _variables.size());
+		auto const outputs = m_graph.outputsOf(callId);
+		yulAssert(outputs.size() == _variables.size());
+		for (auto const& [var, output]: ranges::views::zip(_variables, outputs))
+			writeVariable(var, m_currentBlock, output);
 		return;
 	}
 	auto const rhs = _expression ?
@@ -385,8 +376,7 @@ void SSACFGBuilder::assign(std::vector<std::reference_wrapper<Scope::Variable co
 
 InstId SSACFGBuilder::visitFunctionCall(FunctionCall const& _call)
 {
-	bool canContinue = true;
-	InstId const id = std::visit(solidity::util::GenericVisitor{
+	return std::visit(solidity::util::GenericVisitor{
 		[&](BuiltinName const& _builtinName) -> InstId
 		{
 			// memoryguard(N) is represented as a dedicated MemoryGuard Inst; the boundary value lives in the
@@ -404,7 +394,6 @@ InstId SSACFGBuilder::visitFunctionCall(FunctionCall const& _call)
 					);
 				else
 					m_controlFlow.memoryGuard = value;
-				canContinue = m_dialect.builtin(m_memoryGuardHandle).controlFlowSideEffects.canContinue;
 				return m_graph.makeMemoryGuard(m_currentBlock, debugDataOf(_call));
 			}
 
@@ -424,7 +413,6 @@ InstId SSACFGBuilder::visitFunctionCall(FunctionCall const& _call)
 					inputs.emplace_back(std::visit(*this, arg));
 			// But we want to store them in the original order
 			ranges::reverse(inputs);
-			canContinue = builtin.controlFlowSideEffects.canContinue;
 			return m_graph.makeBuiltinCallWithProjections(
 				m_currentBlock,
 				SSACFG::BuiltinCall{_builtinName.handle, std::move(literalArguments)},
@@ -454,14 +442,6 @@ InstId SSACFGBuilder::visitFunctionCall(FunctionCall const& _call)
 			);
 		}
 	}, _call.functionName);
-	if (canContinue)
-		return id;
-	// `id` lives in the now-Terminated call block and won't dominate the successor,
-	// so terminate, open a fresh successor and signal non-continuation via unreachableValue.
-	currentBlock().exit = SSACFG::BasicBlock::Terminated{};
-	m_currentBlock = m_graph.makeBlock(currentBlockDebugData());
-	sealBlock(m_currentBlock);
-	return m_graph.unreachableValue();
 }
 
 InstId SSACFGBuilder::zero()

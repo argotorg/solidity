@@ -36,12 +36,10 @@ using namespace solidity::yul::ssa;
 namespace
 {
 
-/// Whether `_cfg` reaches a return without passing a call to a function that is not in `_canContinue`
-bool reachesReturn(SSACFG const& _cfg, std::vector<bool> const& _canContinue)
+/// Whether `_cfg` reaches a return without passing an instruction that cannot continue according to `_callGraph`
+bool reachesReturn(SSACFG const& _cfg, CallGraph const& _callGraph)
 {
-	auto const cannotContinue = [&](InstId const _id) {
-		return _cfg.kindOf(_id) == InstOpcode::Call && !_canContinue[_cfg.callPayload(_id).graphID];
-	};
+	auto const cannotContinue = [&](InstId const _id) { return !_callGraph.canContinue(_cfg, _id); };
 	std::vector<bool> visited(_cfg.numBlocks(), false);
 	visited[_cfg.entry.value] = true;
 	std::vector<BlockId> toVisit{_cfg.entry};
@@ -87,12 +85,21 @@ CallGraph::CallGraph(ControlFlowGraphs const& _cfgs):
 	{
 		changed = false;
 		for (auto const& [index, cfgPtr]: _cfgs.functionGraphs | ranges::views::enumerate)
-			if (!m_canContinue[index] && reachesReturn(*cfgPtr, m_canContinue))
+			if (!m_canContinue[index] && reachesReturn(*cfgPtr, *this))
 			{
 				m_canContinue[index] = true;
 				changed = true;
 			}
 	}
+}
+
+bool CallGraph::canContinue(SSACFG const& _cfg, InstId const _inst) const
+{
+	if (_cfg.kindOf(_inst) == InstOpcode::Call)
+		return canContinue(_cfg.callPayload(_inst).graphID);
+	if (_cfg.kindOf(_inst) == InstOpcode::BuiltinCall)
+		return _cfg.evmDialect.builtin(_cfg.builtinPayload(_inst).builtin).controlFlowSideEffects.canContinue;
+	return true;
 }
 
 std::vector<std::vector<FunctionGraphID>> CallGraph::computeSCCs() const

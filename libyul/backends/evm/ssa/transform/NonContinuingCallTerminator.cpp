@@ -33,7 +33,7 @@ void transform::terminateNonContinuingCalls(ControlFlowGraphs& _cfgs)
 		{
 			auto& block = cfg->block(blockId);
 			auto const call = ranges::find_if(block.instructions, [&](InstId const _id) {
-				return cfg->kindOf(_id) == InstOpcode::Call && !callGraph.canContinue(cfg->callPayload(_id).graphID);
+				return !callGraph.canContinue(*cfg, _id);
 			});
 			if (call == block.instructions.end())
 				continue;
