@@ -1,0 +1,40 @@
+Optimized IR:
+/// @use-src 0:"input.sol"
+object "V3_12" {
+    code {
+        {
+            let _1 := memoryguard(128)
+            mstore(64, _1)
+            if callvalue() { revert(0, 0) }
+            let _2 := datasize("V3_12_deployed")
+            codecopy(_1, dataoffset("V3_12_deployed"), _2)
+            return(_1, _2)
+        }
+    }
+    /// @use-src 0:"input.sol"
+    object "V3_12_deployed" {
+        code {
+            {
+                mstore(64, 128)
+                if gt(calldatasize(), 3)
+                {
+                    if eq(0xaecc42ab, shr(224, calldataload(0)))
+                    {
+                        if callvalue() { revert(0, 0) }
+                        if slt(add(calldatasize(), not(3)), 64) { revert(0, 0) }
+                        let usr$flag := calldataload(4)
+                        let usr$ptr := 128
+                        if usr$flag { usr$ptr := 160 }
+                        let usr$readAt := add(usr$ptr, 32)
+                        if usr$flag { usr$ptr := usr$readAt }
+                        mstore(usr$ptr, calldataload(36))
+                        sstore(0, mload(usr$readAt))
+                        stop()
+                    }
+                }
+                revert(0, 0)
+            }
+        }
+        data ".metadata" hex""
+    }
+}
