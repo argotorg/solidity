@@ -81,7 +81,7 @@ Data locations are not only relevant for persistency of data, but also for the s
 .. code-block:: solidity
 
     // SPDX-License-Identifier: GPL-3.0
-    pragma solidity >=0.5.0 <0.9.0;
+    pragma solidity >=0.5.0 <0.10.0;
 
     contract C {
         // The data location of x is storage.
@@ -205,7 +205,7 @@ If you want to use string parameters or other types that are not implicitly conv
 .. code-block:: solidity
 
     // SPDX-License-Identifier: GPL-3.0
-    pragma solidity ^0.8.12;
+    pragma solidity >=0.8.12 <0.10.0;
 
     contract C {
         string s = "Storage";
@@ -237,7 +237,7 @@ with the :ref:`default value<default-value>`.
 .. code-block:: solidity
 
     // SPDX-License-Identifier: GPL-3.0
-    pragma solidity >=0.4.16 <0.9.0;
+    pragma solidity >=0.4.16 <0.10.0;
 
     contract C {
         function f(uint len) public pure {
@@ -276,7 +276,7 @@ the first element to ``uint``.
 .. code-block:: solidity
 
     // SPDX-License-Identifier: GPL-3.0
-    pragma solidity >=0.4.16 <0.9.0;
+    pragma solidity >=0.4.16 <0.10.0;
 
     contract C {
         function f() public pure {
@@ -298,7 +298,7 @@ if you want to use two-dimensional array literals:
 .. code-block:: solidity
 
     // SPDX-License-Identifier: GPL-3.0
-    pragma solidity >=0.4.16 <0.9.0;
+    pragma solidity >=0.4.16 <0.10.0;
 
     contract C {
         function f() public pure returns (uint24[2][4] memory) {
@@ -315,7 +315,7 @@ memory arrays, i.e. the following is not possible:
 .. code-block:: solidity
 
     // SPDX-License-Identifier: GPL-3.0
-    pragma solidity >=0.4.0 <0.9.0;
+    pragma solidity >=0.4.0 <0.10.0;
 
     // This will not compile.
     contract C {
@@ -335,7 +335,7 @@ individual elements:
 .. code-block:: solidity
 
     // SPDX-License-Identifier: GPL-3.0
-    pragma solidity >=0.4.16 <0.9.0;
+    pragma solidity >=0.4.16 <0.10.0;
 
     contract C {
         function f() public pure {
@@ -380,20 +380,10 @@ Array Members
     it includes explicitly clearing the removed
     elements similar to calling :ref:`delete<delete>` on them.
 
-.. note::
-    To use arrays of arrays in external (instead of public) functions, you need to
-    activate ABI coder v2.
-
-.. note::
-    In EVM versions before Byzantium, it was not possible to access
-    dynamic arrays returned from function calls. If you call functions
-    that return dynamic arrays, make sure to use an EVM that is set to
-    Byzantium mode.
-
 .. code-block:: solidity
 
     // SPDX-License-Identifier: GPL-3.0
-    pragma solidity >=0.6.0 <0.9.0;
+    pragma solidity >=0.6.0 <0.10.0;
 
     contract ArrayContract {
         uint[2**20] aLotOfIntegers;
@@ -504,7 +494,7 @@ reference to an array element in a local variable and then ``.pop()`` from the c
 .. code-block:: solidity
 
     // SPDX-License-Identifier: GPL-3.0
-    pragma solidity >=0.8.0 <0.9.0;
+    pragma solidity >=0.8.0 <0.10.0;
 
     contract C {
         uint[][] s;
@@ -536,7 +526,7 @@ can also occur temporarily when using complex expressions in tuple assignments:
 .. code-block:: solidity
 
     // SPDX-License-Identifier: GPL-3.0
-    pragma solidity >=0.8.0 <0.9.0;
+    pragma solidity >=0.8.0 <0.10.0;
 
     contract C {
         uint[] s;
@@ -576,7 +566,7 @@ to long layout in storage<bytes-and-string>`.
 .. code-block:: solidity
 
     // SPDX-License-Identifier: GPL-3.0
-    pragma solidity >=0.8.0 <0.9.0;
+    pragma solidity >=0.8.0 <0.10.0;
 
     // This will report a warning
     contract C {
@@ -643,7 +633,7 @@ Array slices are useful to ABI-decode secondary data passed in function paramete
 .. code-block:: solidity
 
     // SPDX-License-Identifier: GPL-3.0
-    pragma solidity >=0.8.5 <0.9.0;
+    pragma solidity >=0.8.5 <0.10.0;
     contract Proxy {
         /// @dev Address of the client contract managed by proxy i.e., this contract
         address client;
@@ -682,7 +672,7 @@ shown in the following example:
 .. code-block:: solidity
 
     // SPDX-License-Identifier: GPL-3.0
-    pragma solidity >=0.6.2 <0.9.0;
+    pragma solidity >=0.6.2 <0.10.0;
 
     // Defines a new type with two fields.
     // Declaring a struct outside of a contract allows

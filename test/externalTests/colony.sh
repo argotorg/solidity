@@ -71,6 +71,19 @@ function colony_test
 
     replace_version_pragmas
     remove_experimental_abi_encoder_v2_pragmas
+    # Replace the single usage of virtual modifiers in this project.
+    sed -i '
+        # Delete the placeholder of the virtual modifier.
+        /modifier auth virtual {/,/_;/ { /_;/ d }
+        # Add a non-virtual modifier calling a new virtual function that takes over the original body.
+        s|modifier auth virtual {|modifier auth { _checkAuth(); _; }\n    function _checkAuth() internal view virtual {|
+    ' lib/dappsys/auth.sol
+    sed -i '
+        # Delete the placeholder of the overriding modifier.
+        /modifier auth() override {/,/_;/ { /_;/ d }
+        # Turn the overriding modifier into an override of the new function.
+        s|modifier auth() override {|function _checkAuth() internal view override {|
+    ' contracts/colony/ColonyStorage.sol
 
     for preset in $SELECTED_PRESETS; do
         hardhat_run_test "$config_file" "$preset" "${compile_only_presets[*]}" compile_fn test_fn

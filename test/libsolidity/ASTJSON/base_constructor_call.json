@@ -140,9 +140,8 @@
                 {
                   "hexValue": "32",
                   "id": 12,
-                  "isConstant": false,
                   "isLValue": false,
-                  "isPure": true,
+                  "isRuntimeConstant": true,
                   "kind": "number",
                   "lValueRequested": false,
                   "nodeType": "Literal",

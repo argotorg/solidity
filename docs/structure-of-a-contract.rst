@@ -29,7 +29,7 @@ See :ref:`data locations <locations>` for more details.
 .. code-block:: solidity
 
     // SPDX-License-Identifier: GPL-3.0
-    pragma solidity >=0.4.0 <0.9.0;
+    pragma solidity >=0.4.0 <0.10.0;
 
     contract SimpleStorage {
         uint storedData; // State variable
@@ -52,7 +52,7 @@ contracts.
 .. code-block:: solidity
 
     // SPDX-License-Identifier: GPL-3.0
-    pragma solidity >=0.7.1 <0.9.0;
+    pragma solidity >=0.7.1 <0.10.0;
 
     contract SimpleAuction {
         function bid() public payable { // Function
@@ -81,12 +81,10 @@ Function modifiers can be used to amend the semantics of functions in a declarat
 Overloading, that is, having the same modifier name with different parameters,
 is not possible.
 
-Like functions, modifiers can be :ref:`overridden <modifier-overriding>`.
-
 .. code-block:: solidity
 
     // SPDX-License-Identifier: GPL-3.0
-    pragma solidity >=0.4.22 <0.9.0;
+    pragma solidity >=0.4.22 <0.10.0;
 
     contract Purchase {
         address public seller;
@@ -114,7 +112,7 @@ Events are convenience interfaces with the EVM logging facilities.
 .. code-block:: solidity
 
     // SPDX-License-Identifier: GPL-3.0
-    pragma solidity ^0.8.22;
+    pragma solidity >=0.8.22 <0.10.0;
 
     event HighestBidIncreased(address bidder, uint amount); // Event
 
@@ -142,7 +140,7 @@ the user.
 .. code-block:: solidity
 
     // SPDX-License-Identifier: GPL-3.0
-    pragma solidity ^0.8.4;
+    pragma solidity >=0.8.4 <0.10.0;
 
     /// Not enough funds for transfer. Requested `requested`,
     /// but only `available` available.
@@ -173,7 +171,7 @@ Structs are custom defined types that can group several variables (see
 .. code-block:: solidity
 
     // SPDX-License-Identifier: GPL-3.0
-    pragma solidity >=0.4.0 <0.9.0;
+    pragma solidity >=0.4.0 <0.10.0;
 
     contract Ballot {
         struct Voter { // Struct
@@ -195,7 +193,7 @@ Enums can be used to create custom types with a finite set of 'constant values' 
 .. code-block:: solidity
 
     // SPDX-License-Identifier: GPL-3.0
-    pragma solidity >=0.4.0 <0.9.0;
+    pragma solidity >=0.4.0 <0.10.0;
 
     contract Purchase {
         enum State { Created, Locked, Inactive } // Enum

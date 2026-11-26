@@ -663,8 +663,6 @@ bool CompilerStack::analyzeLegacy(bool _noErrorsSoFar)
 		// Run SMTChecker
 
 		auto allSources = util::applyMap(m_sourceOrder, [](Source const* _source) { return _source->ast; });
-		if (ModelChecker::isPragmaPresent(allSources))
-			m_modelCheckerSettings.engine = ModelCheckerEngine::All();
 
 		// m_modelCheckerSettings is spread to engines and solver interfaces,
 		// so we need to check whether the enabled ones are available before building the classes.
@@ -1523,14 +1521,6 @@ void CompilerStack::generateIR(ContractDefinition const& _contract, bool _unopti
 		solAssert(!compiledContract.yulIR->empty());
 		return;
 	}
-
-	if (!*_contract.sourceUnit().annotation().useABICoderV2)
-		m_errorReporter.warning(
-			2066_error,
-			_contract.location(),
-			"Contract requests the ABI coder v1, which is incompatible with the IR. "
-			"Using ABI coder v2 instead."
-		);
 
 	std::string dependenciesSource;
 	for (auto const& [dependency, referencee]: _contract.annotation().contractDependencies)

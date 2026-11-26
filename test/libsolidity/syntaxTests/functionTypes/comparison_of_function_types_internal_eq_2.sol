@@ -8,4 +8,4 @@ contract C {
     }
 }
 // ----
-// Warning 3075: (176-186): Comparison of internal function pointers can yield unexpected results in the legacy pipeline with the optimizer enabled, and will be disallowed entirely in the next breaking release.
+// TypeError 7641: (176-186): Comparison of internal function pointers is not allowed.

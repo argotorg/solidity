@@ -149,14 +149,14 @@ at each version. Backward compatibility is not guaranteed between each version.
 See also the `Timeline of all Ethereum forks <https://ethereum.org/ethereum-forks/>`__ for more details.
 Note that the compiler introduces a new option only for forks that actually change the EVM.
 
-- ``homestead`` (*support deprecated*)
+- ``homestead`` (*support dropped*)
    - (oldest version)
-- ``tangerineWhistle`` (*support deprecated*)
+- ``tangerineWhistle`` (*support dropped*)
    - Gas cost for access to other accounts increased, relevant for gas estimation and the optimizer.
    - All gas sent by default for external calls, previously a certain amount had to be retained.
-- ``spuriousDragon`` (*support deprecated*)
+- ``spuriousDragon`` (*support dropped*)
    - Gas cost for the ``exp`` opcode increased, relevant for gas estimation and the optimizer.
-- ``byzantium`` (*support deprecated*)
+- ``byzantium`` (*support dropped*)
    - Opcodes ``returndatacopy``, ``returndatasize`` and ``staticcall`` are available in assembly.
    - The ``staticcall`` opcode is used when calling non-library view or pure functions, which prevents the functions from modifying state at the EVM level, i.e., even applies when you use invalid type conversions.
    - It is possible to access dynamic data returned from function calls.
@@ -362,8 +362,7 @@ Input Description
           }
         },
         // Version of the EVM to compile for (optional).
-        // Affects type checking and code generation. Can be homestead,
-        // tangerineWhistle, spuriousDragon, byzantium, constantinople,
+        // Affects type checking and code generation. Can be constantinople,
         // petersburg, istanbul, berlin, london, paris, shanghai, cancun,
         // prague, osaka (default), amsterdam (experimental), or @future (experimental).
         "evmVersion": "osaka",
@@ -510,7 +509,7 @@ Input Description
           // and not using Spacer as the Horn solver (using Eldarica, for example).
           // See the Formal Verification section for a more detailed explanation of this option.
           "divModNoSlacks": false,
-          // Choose which model checker engine to use: all (default), bmc, chc, none.
+          // Choose which model checker engine to use: all, chc, none (default).
           "engine": "chc",
           // Choose whether external calls should be considered trusted in case the
           // code of the called function is available at compile-time.
@@ -526,9 +525,9 @@ Input Description
           "showUnsupported": true,
           // Choose which solvers should be used, if available.
           // See the Formal Verification section for the solvers description.
-          "solvers": ["cvc5", "smtlib2", "z3"],
-          // Choose which targets should be checked: constantCondition,
-          // underflow, overflow, divByZero, balance, assert, popEmptyArray, outOfBounds.
+          "solvers": ["eld", "smtlib2", "z3"],
+          // Choose which targets should be checked: underflow, overflow,
+          // divByZero, balance, assert, popEmptyArray, outOfBounds.
           // If the option is not given all targets are checked by default,
           // except underflow/overflow for Solidity >=0.8.7.
           // See the Formal Verification section for the targets description.

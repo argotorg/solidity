@@ -103,6 +103,8 @@ bool SyntaxChecker::visit(PragmaDirective const& _pragma)
 				m_errorReporter.syntaxError(3250_error, _pragma.location(), "Empty experimental feature name is invalid.");
 			else if (literal == "solidity")
 				m_errorReporter.syntaxError(3332_error, _pragma.location(), "The experimental Solidity prototype has been removed from the compiler.");
+			else if (literal == "ABIEncoderV2")
+				m_errorReporter.syntaxError(2044_error, _pragma.location(), "The experimental ABIEncoderV2 pragma has been removed from the compiler.");
 			else if (!ExperimentalFeatureNames.count(literal))
 				m_errorReporter.syntaxError(8491_error, _pragma.location(), "Unsupported experimental feature name.");
 			else if (m_sourceUnit->annotation().experimentalFeatures.count(ExperimentalFeatureNames.at(literal)))
@@ -122,26 +124,6 @@ bool SyntaxChecker::visit(PragmaDirective const& _pragma)
 					else
 						m_errorReporter.warning(2264_error, _pragma.location(), "Experimental features are turned on. Do not use experimental features on live deployments.");
 				}
-
-				if (feature == ExperimentalFeature::ABIEncoderV2)
-				{
-					m_errorReporter.warning(
-						8506_error,
-						_pragma.location(),
-						"Experimental pragma ABIEncoderV2 is deprecated and will be removed in a future release."
-					);
-					if (m_sourceUnit->annotation().useABICoderV2.set())
-					{
-						if (!*m_sourceUnit->annotation().useABICoderV2)
-							m_errorReporter.syntaxError(
-								8273_error,
-								_pragma.location(),
-								"ABI coder v1 has already been selected through \"pragma abicoder v1\"."
-							);
-					}
-					else
-						m_sourceUnit->annotation().useABICoderV2 = true;
-				}
 			}
 		}
 	}
@@ -150,12 +132,12 @@ bool SyntaxChecker::visit(PragmaDirective const& _pragma)
 		solAssert(m_sourceUnit, "");
 		if (
 			_pragma.literals().size() != 2 ||
-			!std::set<std::string>{"v1", "v2"}.count(_pragma.literals()[1])
+			_pragma.literals()[1] != "v2"
 		)
 			m_errorReporter.syntaxError(
 				2745_error,
 				_pragma.location(),
-				"Expected either \"pragma abicoder v1\" or \"pragma abicoder v2\"."
+				"Expected \"pragma abicoder v2\"."
 			);
 		else if (m_sourceUnit->annotation().useABICoderV2.set())
 			m_errorReporter.syntaxError(
@@ -165,16 +147,6 @@ bool SyntaxChecker::visit(PragmaDirective const& _pragma)
 			);
 		else
 			m_sourceUnit->annotation().useABICoderV2 = (_pragma.literals()[1] == "v2");
-
-		if (
-			_pragma.literals().size() > 1 &&
-			_pragma.literals()[1] == "v1"
-		)
-			m_errorReporter.warning(
-				9511_error,
-				_pragma.location(),
-				"ABI coder v1 is deprecated and scheduled for removal. Use ABI coder v2 instead."
-			);
 	}
 	else if (_pragma.literals()[0] == "solidity")
 	{
@@ -208,15 +180,9 @@ bool SyntaxChecker::visit(ModifierDefinition const&)
 
 void SyntaxChecker::endVisit(ModifierDefinition const& _modifier)
 {
-	if (_modifier.isImplemented() && !m_placeholderFound)
+	solAssert(!_modifier.markedVirtual(), "Virtual modifiers have been removed.");
+	if (!m_placeholderFound)
 		m_errorReporter.syntaxError(2883_error, _modifier.body().location(), "Modifier body does not contain '_'.");
-
-	if (_modifier.markedVirtual())
-		m_errorReporter.warning(
-			8429_error,
-			_modifier.location(),
-			"Virtual modifiers are deprecated and scheduled for removal."
-		);
 
 	m_placeholderFound = false;
 }

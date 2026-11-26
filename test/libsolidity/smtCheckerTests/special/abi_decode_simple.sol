@@ -15,4 +15,3 @@ contract C {
 // Warning 2072: (152-156): Unused local variable.
 // Warning 6328: (220-236): CHC: Assertion violation happens here.\nCounterexample:\n\na1 = 8855\nb1 = 0x0a\nc1 = 9\na2 = 8855\nb2 = 0x0a\nc2 = 9\n\nTransaction trace:\nC.constructor()\nC.f(data) -- counterexample incomplete; parameter name used instead of value
 // Info 1391: CHC: 1 verification condition(s) proved safe! Enable the model checker option "show proved safe" to see all of them.
-// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

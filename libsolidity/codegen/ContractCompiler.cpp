@@ -128,7 +128,6 @@ void ContractCompiler::initializeContext(
 	std::map<ContractDefinition const*, std::shared_ptr<Compiler const>> const& _otherCompilers
 )
 {
-	m_context.setUseABICoderV2(*_contract.sourceUnit().annotation().useABICoderV2);
 	m_context.setOtherCompilers(_otherCompilers);
 	m_context.setMostDerivedContract(_contract);
 	if (m_runtimeCompiler)
@@ -1046,8 +1045,6 @@ void ContractCompiler::handleCatch(std::vector<ASTPointer<TryCatchClause>> const
 			*error->parameters()->parameters().front()->annotation().type == *TypeProvider::stringMemory(),
 			""
 		);
-		solAssert(m_context.evmVersion().supportsReturndata(), "");
-
 		// stack: <selector>
 		m_context << Instruction::DUP1 << util::selectorFromSignatureU32("Error(string)") << Instruction::EQ;
 		m_context << Instruction::ISZERO;
@@ -1078,8 +1075,6 @@ void ContractCompiler::handleCatch(std::vector<ASTPointer<TryCatchClause>> const
 			*panic->parameters()->parameters().front()->annotation().type == *TypeProvider::uint256(),
 			""
 		);
-		solAssert(m_context.evmVersion().supportsReturndata(), "");
-
 		// stack: <selector>
 		m_context << util::selectorFromSignatureU32("Panic(uint256)") << Instruction::EQ;
 		m_context << Instruction::ISZERO;
@@ -1105,7 +1100,6 @@ void ContractCompiler::handleCatch(std::vector<ASTPointer<TryCatchClause>> const
 	{
 		if (fallback->parameters())
 		{
-			solAssert(m_context.evmVersion().supportsReturndata(), "");
 			solAssert(
 				fallback->parameters()->parameters().size() == 1 &&
 				fallback->parameters()->parameters().front() &&
@@ -1120,14 +1114,10 @@ void ContractCompiler::handleCatch(std::vector<ASTPointer<TryCatchClause>> const
 	else
 	{
 		// re-throw
-		if (m_context.evmVersion().supportsReturndata())
-			m_context.appendInlineAssembly(R"({
-				returndatacopy(0, 0, returndatasize())
-				revert(0, returndatasize())
-			})");
-		else
-			// Since both returndata and revert are >=byzantium, this should be unreachable.
-			solAssert(false, "");
+		m_context.appendInlineAssembly(R"({
+			returndatacopy(0, 0, returndatasize())
+			revert(0, returndatasize())
+		})");
 	}
 	m_context << endTag;
 }
@@ -1463,15 +1453,9 @@ void ContractCompiler::appendModifierOrFunctionCode()
 			appendModifierOrFunctionCode();
 		else
 		{
-			ModifierDefinition const& referencedModifier = dynamic_cast<ModifierDefinition const&>(
+			ModifierDefinition const& modifier = dynamic_cast<ModifierDefinition const&>(
 				*modifierInvocation->name().annotation().referencedDeclaration
 			);
-			VirtualLookup lookup = *modifierInvocation->name().annotation().requiredLookup;
-			solAssert(lookup == VirtualLookup::Virtual || lookup == VirtualLookup::Static, "");
-			ModifierDefinition const& modifier =
-				lookup == VirtualLookup::Virtual ?
-				referencedModifier.resolveVirtual(m_context.mostDerivedContract()) :
-				referencedModifier;
 
 			CompilerContext::LocationSetter locationSetter(m_context, modifier);
 			std::vector<ASTPointer<Expression>> const& modifierArguments =
@@ -1497,13 +1481,8 @@ void ContractCompiler::appendModifierOrFunctionCode()
 	{
 		m_context.setArithmetic(Arithmetic::Checked);
 
-		bool coderV2Outside = m_context.useABICoderV2();
-		m_context.setUseABICoderV2(*codeBlock->sourceUnit().annotation().useABICoderV2);
-
 		m_returnTags.emplace_back(m_context.newTag(), m_context.stackHeight());
 		codeBlock->accept(*this);
-
-		m_context.setUseABICoderV2(coderV2Outside);
 
 		solAssert(!m_returnTags.empty(), "");
 		m_context << m_returnTags.back().first;

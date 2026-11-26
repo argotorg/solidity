@@ -52,9 +52,8 @@
           "value": {
             "hexValue": "34",
             "id": 2,
-            "isConstant": false,
             "isLValue": false,
-            "isPure": true,
+            "isRuntimeConstant": true,
             "kind": "number",
             "lValueRequested": false,
             "nodeType": "Literal",
@@ -96,9 +95,8 @@
           "value": {
             "hexValue": "32",
             "id": 5,
-            "isConstant": false,
             "isLValue": false,
-            "isPure": true,
+            "isRuntimeConstant": true,
             "kind": "number",
             "lValueRequested": false,
             "nodeType": "Literal",
@@ -140,9 +138,8 @@
           "value": {
             "hexValue": "33",
             "id": 8,
-            "isConstant": false,
             "isLValue": false,
-            "isPure": true,
+            "isRuntimeConstant": true,
             "kind": "number",
             "lValueRequested": false,
             "nodeType": "Literal",

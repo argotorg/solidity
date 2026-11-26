@@ -80,7 +80,6 @@ static std::string const g_strModelCheckerShowUnsupported = "model-checker-show-
 static std::string const g_strModelCheckerSolvers = "model-checker-solvers";
 static std::string const g_strModelCheckerTargets = "model-checker-targets";
 static std::string const g_strModelCheckerTimeout = "model-checker-timeout";
-static std::string const g_strModelCheckerBMCLoopIterations = "model-checker-bmc-loop-iterations";
 static std::string const g_strNone = "none";
 static std::string const g_strNoOptimizeYul = "no-optimize-yul";
 static std::string const g_strNoImportCallback = "no-import-callback";
@@ -852,7 +851,7 @@ General Information)").c_str(),
 		)
 		(
 			g_strModelCheckerEngine.c_str(),
-			po::value<std::string>()->value_name("all,bmc,chc,none")->default_value("none"),
+			po::value<std::string>()->value_name("all,chc,none")->default_value("none"),
 			"Select model checker engine."
 		)
 		(
@@ -886,12 +885,12 @@ General Information)").c_str(),
 		)
 		(
 			g_strModelCheckerSolvers.c_str(),
-			po::value<std::string>()->value_name("cvc5,eld,z3,smtlib2")->default_value("z3"),
+			po::value<std::string>()->value_name("eld,z3,smtlib2")->default_value("z3"),
 			"Select model checker solvers."
 		)
 		(
 			g_strModelCheckerTargets.c_str(),
-			po::value<std::string>()->value_name("default,all,constantCondition,underflow,overflow,divByZero,balance,assert,popEmptyArray,outOfBounds")->default_value("default"),
+			po::value<std::string>()->value_name("default,all,underflow,overflow,divByZero,balance,assert,popEmptyArray,outOfBounds")->default_value("default"),
 			"Select model checker verification targets."
 			"Multiple targets can be selected at the same time, separated by a comma and no spaces."
 			" By default all targets except underflow and overflow are selected."
@@ -902,12 +901,6 @@ General Information)").c_str(),
 			"Set model checker timeout per query in milliseconds."
 			"The default is a deterministic resource limit."
 			"A timeout of 0 means no resource/time restrictions for any query."
-		)
-		(
-			g_strModelCheckerBMCLoopIterations.c_str(),
-			po::value<unsigned>(),
-			"Set loop unrolling depth for BMC engine."
-			"Default is 1."
 		)
 	;
 	desc.add(smtCheckerOptions);
@@ -1061,7 +1054,6 @@ void CommandLineParser::processArgs()
 		{g_strModelCheckerShowUnsupported, {InputMode::Compiler, InputMode::CompilerWithASTImport}},
 		{g_strModelCheckerSolvers, {InputMode::Compiler, InputMode::CompilerWithASTImport}},
 		{g_strModelCheckerTimeout, {InputMode::Compiler, InputMode::CompilerWithASTImport}},
-		{g_strModelCheckerBMCLoopIterations, {InputMode::Compiler, InputMode::CompilerWithASTImport}},
 		{g_strModelCheckerTargets, {InputMode::Compiler, InputMode::CompilerWithASTImport}},
 		{g_strViaSSACFG, {InputMode::Compiler, InputMode::CompilerWithASTImport, InputMode::Assembler}}
 	};
@@ -1469,13 +1461,6 @@ void CommandLineParser::processArgs()
 
 	if (m_args.count(g_strModelCheckerTimeout))
 		m_options.modelChecker.settings.timeout = m_args[g_strModelCheckerTimeout].as<unsigned>();
-
-	if (m_args.count(g_strModelCheckerBMCLoopIterations))
-	{
-		if (!m_options.modelChecker.settings.engine.bmc)
-			solThrow(CommandLineValidationError, "BMC loop unrolling requires the BMC engine to be enabled");
-		m_options.modelChecker.settings.bmcLoopIterations = m_args[g_strModelCheckerBMCLoopIterations].as<unsigned>();
-	}
 
 	m_options.metadata.literalSources = (m_args.count(g_strMetadataLiteral) > 0);
 	m_options.modelChecker.initialize =

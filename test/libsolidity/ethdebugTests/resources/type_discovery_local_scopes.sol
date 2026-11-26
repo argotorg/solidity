@@ -24,8 +24,6 @@ contract C {
         }
     }
 }
-// ====
-// EVMVersion: >=byzantium
 // ----
 // .resources.types | keys: ["t_array$_t_uint40_$dyn_storage","t_bytes_storage","t_function_external_nonpayable$_t_uint16_$returns$_t_uint24_$","t_string_storage","t_struct$_Local_$20_storage","t_tuple$__$","t_tuple$_t_uint16_$","t_tuple$_t_uint24_$","t_tuple$_t_uint8_$","t_uint16","t_uint24","t_uint256","t_uint32","t_uint40","t_uint48","t_uint56","t_uint64","t_uint72","t_uint8"]
 // .resources.pointers | keys: ["memory-t_array$_t_uint40_$dyn_storage","memory-t_bytes_storage","memory-t_string_storage","memory-t_struct$_Local_$20_storage","memory-t_uint32","memory-t_uint40"]

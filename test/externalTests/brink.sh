@@ -64,6 +64,9 @@ function brink_test
     # TODO: Remove this once Brink merges PR #52 (https://github.com/brinktrade/brink-core/pull/52).
     sed -i "s|\(function isValidSignature(bytes \)calldata\( _data, bytes \)calldata\( _signature)\)|\1memory\2memory\3|g" src/Test/MockEIP1271Validator.sol
 
+    # Remove abicoder v1 usages
+    find src -name '*.sol' -type f -print0 | xargs -0 sed -i -E -e '/^pragma abicoder v1;$/d'
+
     neutralize_package_lock
     neutralize_package_json_hooks
     force_hardhat_compiler_binary "$config_file" "$BINARY_TYPE" "$BINARY_PATH"

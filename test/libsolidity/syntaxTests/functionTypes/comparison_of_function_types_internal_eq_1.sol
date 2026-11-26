@@ -7,5 +7,5 @@ contract C {
     }
 }
 // ----
-// Warning 3075: (78-84): Comparison of internal function pointers can yield unexpected results in the legacy pipeline with the optimizer enabled, and will be disallowed entirely in the next breaking release.
-// Warning 3075: (157-163): Comparison of internal function pointers can yield unexpected results in the legacy pipeline with the optimizer enabled, and will be disallowed entirely in the next breaking release.
+// TypeError 7641: (78-84): Comparison of internal function pointers is not allowed.
+// TypeError 7641: (157-163): Comparison of internal function pointers is not allowed.

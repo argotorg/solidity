@@ -129,7 +129,6 @@ public:
 	/// From memory if @a _fromMemory is true, otherwise from call data.
 	/// Calls revert if the supplied size is shorter than the static data requirements
 	/// or if dynamic data pointers reach outside of the area.
-	/// Also has a hard cap of 0x100000000 for any given length/offset field.
 	/// Stack pre: <source_offset> <length>
 	/// Stack post: <value0> <value1> ... <valuen>
 	void abiDecode(TypePointers const& _typeParameters, bool _fromMemory = false);
@@ -183,7 +182,6 @@ public:
 
 	/// Special case of @a encodeToMemory which assumes that everything is padded to words
 	/// and dynamic data is not copied in place (i.e. a proper ABI encoding).
-	/// Uses a new, less tested encoder implementation.
 	/// Stack pre: <value0> <value1> ... <valueN-1> <head_start>
 	/// Stack post: <mem_ptr>
 	void abiEncodeV2(

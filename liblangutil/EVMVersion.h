@@ -50,10 +50,6 @@ public:
 
 	static EVMVersion current() { return {currentVersion}; }
 
-	static EVMVersion constexpr homestead() { return {Version::Homestead}; }
-	static EVMVersion constexpr tangerineWhistle() { return {Version::TangerineWhistle}; }
-	static EVMVersion constexpr spuriousDragon() { return {Version::SpuriousDragon}; }
-	static EVMVersion constexpr byzantium() { return {Version::Byzantium}; }
 	static EVMVersion constexpr constantinople() { return {Version::Constantinople}; }
 	static EVMVersion constexpr petersburg() { return {Version::Petersburg}; }
 	static EVMVersion constexpr istanbul() { return {Version::Istanbul}; }
@@ -69,10 +65,6 @@ public:
 
 	static auto constexpr allVersions() {
 		return std::array{
-			homestead(),
-			tangerineWhistle(),
-			spuriousDragon(),
-			byzantium(),
 			constantinople(),
 			petersburg(),
 			istanbul(),
@@ -107,10 +99,6 @@ public:
 	{
 		switch (m_version)
 		{
-		case Version::Homestead: return "homestead";
-		case Version::TangerineWhistle: return "tangerineWhistle";
-		case Version::SpuriousDragon: return "spuriousDragon";
-		case Version::Byzantium: return "byzantium";
 		case Version::Constantinople: return "constantinople";
 		case Version::Petersburg: return "petersburg";
 		case Version::Istanbul: return "istanbul";
@@ -127,13 +115,7 @@ public:
 		util::unreachable();
 	}
 
-	/// Has the RETURNDATACOPY and RETURNDATASIZE opcodes.
-	bool supportsReturndata() const { return *this >= byzantium(); }
-	bool hasStaticCall() const { return *this >= byzantium(); }
-	bool hasBitwiseShifting() const { return *this >= constantinople(); }
 	bool hasCLZ() const { return *this >= osaka(); }
-	bool hasCreate2() const { return *this >= constantinople(); }
-	bool hasExtCodeHash() const { return *this >= constantinople(); }
 	bool hasChainID() const { return *this >= istanbul(); }
 	bool hasSelfBalance() const { return *this >= istanbul(); }
 	bool hasBaseFee() const { return *this >= london(); }
@@ -148,16 +130,12 @@ public:
 
 	bool hasOpcode(evmasm::Instruction _opcode) const;
 
-	/// Whether we have to retain the costs for the call opcode itself (false),
-	/// or whether we can just forward easily all remaining gas (true).
-	bool canOverchargeGasForCall() const { return *this >= tangerineWhistle(); }
-
 private:
 	enum class Version {
-		Homestead,
-		TangerineWhistle,
-		SpuriousDragon,
-		Byzantium,
+		// Homestead, -- support dropped
+		// TangerineWhistle, -- support dropped
+		// SpuriousDragon, -- support dropped
+		// Byzantium, -- support dropped
 		Constantinople,
 		Petersburg,
 		Istanbul,
