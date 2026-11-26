@@ -329,7 +329,7 @@ void CodeTransform::operator()(InstId _instId, ShuffleTrace const& _operationShu
 		yulAssert(false);
 	}
 	// simulate that the inputs are consumed and the outputs are produced
-	applyOperation(m_cfg, _instId, m_stackData);
+	applyOperation(m_cfg, m_callSites, _instId, m_stackData);
 	yulAssert(
 		static_cast<int>(m_stack.size()) == m_assembly.stackHeight(),
 		fmt::format("symbolic stack size = {} =/= {} = assembly stack height", m_stack.size(), m_assembly.stackHeight())

@@ -49,7 +49,7 @@ StackLayoutGenerator::Result StackLayoutGenerator::generate(
 		auto const spillCountBefore = spillSet.numSpilled();
 		StackLayoutGenerator generator(_liveness, _callSites, _graphID, _spillingAllowed, _reachableStackDepth, std::move(spillSet));
 		spillSet = std::move(generator.m_spillSet);
-		spillSet.closeUnderReachabilityConstraints(_liveness.cfg(), generator.m_resultLayout, _reachableStackDepth, &spillStoreTraces);
+		spillSet.closeUnderReachabilityConstraints(_liveness.cfg(), _callSites, generator.m_resultLayout, _reachableStackDepth, &spillStoreTraces);
 		// only the traces of the final iteration survive; they are recorded against the stable spill set
 		if (spillSet.numSpilled() == spillCountBefore)
 			return Result{std::move(generator.m_resultLayout), std::move(spillSet), std::move(spillStoreTraces)};
@@ -185,16 +185,10 @@ void StackLayoutGenerator::visitBlock(SSACFG::BlockId const& _blockId)
 		m_cfg.forEachOutput(_instId, [&](InstId const id) { opLiveOutWithoutOutputs.erase(id); });
 
 		std::vector<Slot> requiredStackTop;
+		// only continuing calls have a call site and thus a return label
 		if (_inst.opcode == InstOpcode::Call)
-		{
-			auto const& callPayload = m_cfg.callPayload(_instId);
-			if (callPayload.canContinue)
-			{
-				auto const callSiteID = m_callSites.callSiteID(_instId);
-				yulAssert(callSiteID.has_value());
+			if (auto const callSiteID = m_callSites.callSiteID(_instId))
 				requiredStackTop.emplace_back(Slot::makeFunctionCallReturnLabel(*callSiteID));
-			}
-		}
 		requiredStackTop +=
 			_inst.inputs |
 			ranges::views::reverse |
@@ -211,7 +205,7 @@ void StackLayoutGenerator::visitBlock(SSACFG::BlockId const& _blockId)
 			yulAssert(m_spillingAllowed || m_spillSet.numSpilled() == spillCountBefore, "Spilling not allowed, stack too deep.");
 			blockLayout.operationShuffles.push_back(std::move(shuffleResult.trace));
 		}
-		applyOperation(m_cfg, _instId, currentStackData);
+		applyOperation(m_cfg, m_callSites, _instId, currentStackData);
 	};
 
 	// A phi takes its value out of its shadow slot, loading a spilled one that was dropped

@@ -64,11 +64,13 @@ public:
 		std::size_t _functionIndex,
 		SSACFGStackLayout const& _layout,
 		spill::SpillSet const& _spillSet,
+		CallSites const& _callSites,
 		ControlFlowGraphs const& _controlFlow
 	):
 		DotExporterBase(_cfg, _functionIndex),
 		m_layout(_layout),
 		m_spillSet(_spillSet),
+		m_callSites(_callSites),
 		m_controlFlow(_controlFlow)
 	{
 	}
@@ -126,7 +128,7 @@ protected:
 				_out << escapeLabel(m_cfg.evmDialect.builtin(m_cfg.builtinPayload(instId).builtin).name);
 			_out << "\\l\\\n";
 
-			applyOperation(m_cfg, instId, operationStack);
+			applyOperation(m_cfg, m_callSites, instId, operationStack);
 			_out << stackToString(operationStack) << "\\l\\\n";
 		}
 
@@ -138,6 +140,7 @@ protected:
 private:
 	SSACFGStackLayout const& m_layout;
 	spill::SpillSet const& m_spillSet;
+	CallSites const& m_callSites;
 	ControlFlowGraphs const& m_controlFlow;
 };
 
@@ -194,14 +197,15 @@ frontend::test::TestCase::TestResult StackLayoutGeneratorTest::run(std::ostream&
 		for (std::size_t index = 0; index < controlFlowGraphs->functionGraphs.size(); ++index)
 		{
 			auto const& cfg = *controlFlowGraphs->functionGraphs[index];
+			CallSites const callSites = gatherCallSites(cfg);
 			auto result = StackLayoutGenerator::generate(
 				LivenessAnalysis(cfg),
-				gatherCallSites(cfg),
+				callSites,
 				static_cast<ControlFlowGraphs::FunctionGraphID>(index),
 				true,
 				evmDialect->reachableStackDepth()
 			);
-			StackLayoutDotExporter exporter(cfg, index, result.layout, result.spillSet, *controlFlowGraphs);
+			StackLayoutDotExporter exporter(cfg, index, result.layout, result.spillSet, callSites, *controlFlowGraphs);
 			if (!cfg.isMainGraph())
 				m_obtainedResult += exporter.exportFunction(cfg, false);
 			else

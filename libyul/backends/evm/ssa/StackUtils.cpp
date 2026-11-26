@@ -73,11 +73,11 @@ std::size_t solidity::yul::ssa::stackOpsGas(SSACFG const& _cfg, ShuffleTrace con
 	return gas;
 }
 
-void solidity::yul::ssa::applyOperation(SSACFG const& _cfg, InstId const _operation, StackData& _stack)
+void solidity::yul::ssa::applyOperation(SSACFG const& _cfg, CallSites const& _callSites, InstId const _operation, StackData& _stack)
 {
 	SSACFG::Inst const& inst = _cfg.inst(_operation);
 	yulAssert(inst.isOperation());
-	bool const hasReturnLabel = inst.opcode == InstOpcode::Call && _cfg.callPayload(_operation).canContinue;
+	bool const hasReturnLabel = inst.opcode == InstOpcode::Call && _callSites.callSiteID(_operation).has_value();
 	std::size_t const numConsumed = inst.inputs.size() + (hasReturnLabel ? 1 : 0);
 	yulAssert(_stack.size() >= numConsumed, "operation input layout smaller than consumed slot count");
 	for (auto const& [slot, input]: ranges::views::zip(

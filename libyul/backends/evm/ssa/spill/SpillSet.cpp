@@ -38,6 +38,7 @@ namespace
 /// and operation effects from the block's `stackIn`
 StackData computeOperationOut(
 	SSACFG const& _cfg,
+	CallSites const& _callSites,
 	SSACFGStackLayout const& _layout,
 	InstId const _producer
 )
@@ -53,7 +54,7 @@ StackData computeOperationOut(
 	{
 		replay(opOutStack, shuffle);
 		if (_cfg.isOperation(id))
-			applyOperation(_cfg, id, opOutStack);
+			applyOperation(_cfg, _callSites, id, opOutStack);
 
 		if (id == _producer)
 			return opOutStack;
@@ -79,6 +80,7 @@ struct DefSite
 /// The sites at which the spilled variable `_key` is stored (see `SpillStoreSite`)
 std::vector<DefSite> defSitesFor(
 	SSACFG const& _cfg,
+	CallSites const& _callSites,
 	SSACFGStackLayout const& _layout,
 	SpillKey const _key
 )
@@ -86,7 +88,7 @@ std::vector<DefSite> defSitesFor(
 	if (_key.isValue())
 	{
 		InstId const site = storeSiteOf(_cfg, _key.value());
-		return {{.site = site, .stack = computeOperationOut(_cfg, _layout, site)}};
+		return {{.site = site, .stack = computeOperationOut(_cfg, _callSites, _layout, site)}};
 	}
 
 	std::vector<DefSite> sites;
@@ -94,14 +96,14 @@ std::vector<DefSite> defSitesFor(
 		if (_layout[blockId])
 			_cfg.forEachUpsilon(_cfg.block(blockId), [&](InstId const _upsilon, SSACFG::Inst const&) {
 				if (_cfg.upsilonPhi(_upsilon) == _key.shadowPhi())
-					sites.push_back({.site = _upsilon, .stack = computeOperationOut(_cfg, _layout, _upsilon)});
+					sites.push_back({.site = _upsilon, .stack = computeOperationOut(_cfg, _callSites, _layout, _upsilon)});
 			});
 	return sites;
 }
 
 }
 
-void SpillSet::closeUnderReachabilityConstraints(SSACFG const& _cfg, SSACFGStackLayout const& _layout, std::size_t const _reachableStackDepth, SpillStoreTraces* _storeTraces)
+void SpillSet::closeUnderReachabilityConstraints(SSACFG const& _cfg, CallSites const& _callSites, SSACFGStackLayout const& _layout, std::size_t const _reachableStackDepth, SpillStoreTraces* _storeTraces)
 {
 	if (_storeTraces)
 		_storeTraces->clear();
@@ -116,7 +118,7 @@ void SpillSet::closeUnderReachabilityConstraints(SSACFG const& _cfg, SSACFGStack
 		SpillKey const key = queue.front();
 		queue.pop_front();
 
-		for (auto const& [site, defStack]: defSitesFor(_cfg, _layout, key))
+		for (auto const& [site, defStack]: defSitesFor(_cfg, _callSites, _layout, key))
 			ensureDefSiteFeasible(key, site, defStack, queue, _reachableStackDepth, _storeTraces);
 	}
 }

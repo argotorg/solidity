@@ -138,6 +138,8 @@ frontend::test::TestCase::TestResult SpillTest::run(std::ostream& _stream, std::
 		CallGraph const callGraph(*controlFlowGraphs);
 
 		std::size_t const numCFGs = controlFlowGraphs->functionGraphs.size();
+		std::vector<CallSites> callSitesPerCFG;
+		callSitesPerCFG.reserve(numCFGs);
 		std::vector<spill::SpillSet> spillSetsPerCFG;
 		std::vector<SSACFGStackLayout> layouts;
 		std::vector<spill::SpillStoreTraces> storeTracesPerCFG;
@@ -153,9 +155,10 @@ frontend::test::TestCase::TestResult SpillTest::run(std::ostream& _stream, std::
 			yulAssert(cfgLiveness);
 			auto const graphID = static_cast<ControlFlowGraphs::FunctionGraphID>(functionIndex);
 			bool const spillingAllowed = !callGraph.isRecursive(graphID);
+			callSitesPerCFG.push_back(gatherCallSites(cfg));
 			auto result = StackLayoutGenerator::generate(
 				*cfgLiveness,
-				gatherCallSites(cfg),
+				callSitesPerCFG.back(),
 				graphID,
 				spillingAllowed,
 				m_reachableStackDepth
@@ -168,6 +171,7 @@ frontend::test::TestCase::TestResult SpillTest::run(std::ostream& _stream, std::
 		for (std::size_t functionIndex = 0; functionIndex < numCFGs; ++functionIndex)
 			spillSetsPerCFG[functionIndex].closeUnderReachabilityConstraints(
 				*controlFlowGraphs->functionGraphs[functionIndex],
+				callSitesPerCFG[functionIndex],
 				layouts[functionIndex],
 				m_reachableStackDepth
 			);
