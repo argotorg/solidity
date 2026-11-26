@@ -23,6 +23,7 @@ Compiler Features:
 
 Bugfixes:
 * TypeChecker: Fix ICE caused by types too large for their data location being accepted when nested in a mapping value, a dynamically-sized array, or as the base type of an array of structs.
+* TypeChecker: Properly report memory and calldata structs whose total size is too large for their data location. Statically-sized nested structs are now counted with their full size, so some types that were previously accepted are now rejected.
 
 
 ### 0.8.39 (2026-11-19)

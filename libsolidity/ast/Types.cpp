@@ -63,6 +63,29 @@ using namespace solidity::frontend;
 namespace
 {
 
+/// @returns the total amount of bytes in memory taken by type @a _type
+bigint memorySizeInBytes(Type const* _type)
+{
+	solAssert(!dynamic_cast<MappingType const*>(_type), "Mappings are only allowed in storage");
+
+	if (
+		auto const* arrayType = dynamic_cast<ArrayType const*>(_type);
+		arrayType && !arrayType->isDynamicallySized()
+	)
+		return bigint(arrayType->length()) * memorySizeInBytes(arrayType->baseType());
+
+	if (auto const* structType = dynamic_cast<StructType const*>(_type))
+	{
+		bigint size = 0;
+		for (auto const& member: structType->structDefinition().members())
+			size += memorySizeInBytes(member->annotation().type);
+		return size;
+	}
+
+	// value types and dynamically sized arrays
+	return _type->memoryHeadSize();
+}
+
 /// Checks whether _mantissa * (10 ** _expBase10) fits into 4096 bits.
 bool fitsPrecisionBase10(bigint const& _mantissa, uint32_t _expBase10)
 {
@@ -1745,23 +1768,7 @@ BoolResult ArrayType::sizeValidForLocation(DataLocation _loc) const
 	{
 		case DataLocation::Memory:
 		{
-			bigint size = bigint(length());
-			auto type = m_baseType;
-			while (auto arrayType = dynamic_cast<ArrayType const*>(type))
-			{
-				if (arrayType->isDynamicallySized())
-					break;
-				else
-				{
-					size *= arrayType->length();
-					type = arrayType->baseType();
-				}
-			}
-			if (type->isDynamicallySized())
-				size *= type->memoryHeadSize();
-			else
-				size *= type->memoryDataSize();
-			if (size >= std::numeric_limits<unsigned>::max())
+			if (memorySizeInBytes(this) >= std::numeric_limits<unsigned>::max())
 				return BoolResult::err("Type too large for memory.");
 			break;
 		}
@@ -2503,11 +2510,34 @@ Declaration const* StructType::typeDefinition() const
 
 BoolResult StructType::sizeValidForLocation(DataLocation _loc) const
 {
-	if (
-		_loc == DataLocation::Storage &&
-		storageSizeUpperBound() >= bigint(1) << 256
-	)
-		return BoolResult::err("Type too large for storage.");
+	switch (_loc)
+	{
+		case DataLocation::Storage:
+		{
+			if (storageSizeUpperBound() >= bigint(1) << 256)
+				return BoolResult::err("Type too large for storage.");
+			break;
+		}
+		case DataLocation::Memory:
+		{
+			if (memorySizeInBytes(this) >= std::numeric_limits<unsigned>::max())
+				return BoolResult::err("Type too large for memory.");
+			break;
+		}
+		case DataLocation::CallData:
+		{
+			bigint size = 0;
+			for (auto const& member: members(nullptr))
+				size += member.type->calldataHeadSize();
+
+			if (size >= std::numeric_limits<unsigned>::max())
+				return BoolResult::err("Type too large for calldata.");
+			break;
+		}
+		case DataLocation::Transient:
+			solUnimplemented("Transient data location is only supported for value types.");
+			break;
+	}
 
 	return true;
 }
