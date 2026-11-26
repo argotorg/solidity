@@ -21,6 +21,7 @@
  * After running:
  *   - No Inst has an Identity input
  *   - No Identity or Nop appears in any `BasicBlock::instructions`
+ *   - No Upsilon is left whose phi has been removed
  */
 #pragma once
 

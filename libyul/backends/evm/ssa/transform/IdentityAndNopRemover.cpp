@@ -61,11 +61,11 @@ void transform::removeIdentitiesAndNops(SSACFG& _cfg)
 		case InstOpcode::Upsilon:
 		{
 			yulAssert(inst.inputs.size() == 1);
-			inst.inputs[0] = _cfg.resolveIdentity(inst.inputs[0]);
-			// The Upsilon's targetPhi never becomes Identity: the trivial-phi pass
-			// turns dead upsilons into Nops before flipping the phi to Identity, so by
-			// the time we observe a live Upsilon its phi is still a real Phi.
-			yulAssert(_cfg.kindOf(_cfg.upsilonPhi(id)) == InstOpcode::Phi);
+			// an Upsilon whose phi is gone writes to nothing and goes with it
+			if (_cfg.kindOf(_cfg.upsilonPhi(id)) != InstOpcode::Phi)
+				_cfg.replaceWithNop(id);
+			else
+				inst.inputs[0] = _cfg.resolveIdentity(inst.inputs[0]);
 			break;
 		}
 		case InstOpcode::Projection:
