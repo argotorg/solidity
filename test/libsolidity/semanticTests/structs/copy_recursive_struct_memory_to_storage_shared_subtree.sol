@@ -34,4 +34,4 @@ contract C {
 // ----
 // f() -> 42, 2, 99, 99
 // gas irOptimized: 116436
-// gas ssaCFGOptimized: 116386
+// gas ssaCFGOptimized: 116398

@@ -24,7 +24,7 @@ contract C {
 // gas irOptimized: 579668
 // gas legacy: 573821
 // gas legacyOptimized: 571847
-// gas ssaCFGOptimized: 580232
+// gas ssaCFGOptimized: 581224
 // test_indices(uint256): 10 ->
 // gas irOptimized: 157950
 // gas legacy: 160122
@@ -49,14 +49,14 @@ contract C {
 // gas irOptimized: 4166276
 // gas legacy: 4140124
 // gas legacyOptimized: 4108272
-// gas ssaCFGOptimized: 4169832
+// gas ssaCFGOptimized: 4176800
 // test_indices(uint256): 128 ->
 // gas irOptimized: 405519
 // gas legacy: 433512
 // gas legacyOptimized: 400909
-// gas ssaCFGOptimized: 404749
+// gas ssaCFGOptimized: 404759
 // test_indices(uint256): 1 ->
 // gas irOptimized: 583435
 // gas legacy: 576726
 // gas legacyOptimized: 575542
-// gas ssaCFGOptimized: 584033
+// gas ssaCFGOptimized: 585049

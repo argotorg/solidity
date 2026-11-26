@@ -20,22 +20,22 @@ contract c {
 // gas irOptimized: 103265
 // gas legacy: 112904
 // gas legacyOptimized: 112645
-// gas ssaCFGOptimized: 103499
+// gas ssaCFGOptimized: 109555
 // f(uint256): 32 -> 0x20, 0x20, 1780731860627700044960722568376592200742329637303199754547598369979440671
 // gas irOptimized: 117822
 // gas legacy: 128964
 // gas legacyOptimized: 128859
-// gas ssaCFGOptimized: 118158
+// gas ssaCFGOptimized: 124467
 // f(uint256): 33 -> 0x20, 33, 1780731860627700044960722568376592200742329637303199754547598369979440671, 0x2000000000000000000000000000000000000000000000000000000000000000
 // gas irOptimized: 123885
 // gas legacy: 135510
 // gas legacyOptimized: 135218
-// gas ssaCFGOptimized: 124221
+// gas ssaCFGOptimized: 130733
 // f(uint256): 63 -> 0x20, 0x3f, 1780731860627700044960722568376592200742329637303199754547598369979440671, 14532552714582660066924456880521368950258152170031413196862950297402215316992
 // gas irOptimized: 126945
 // gas legacy: 148110
 // gas legacyOptimized: 148448
-// gas ssaCFGOptimized: 127701
+// gas ssaCFGOptimized: 140243
 // f(uint256): 12 -> 0x20, 0x0c, 0x0102030405060708090a0b0000000000000000000000000000000000000000
 // gas irOptimized: 54201
 // gas legacy: 59832
@@ -44,4 +44,4 @@ contract c {
 // gas irOptimized: 416915
 // gas legacy: 458997
 // gas legacyOptimized: 460669
-// gas ssaCFGOptimized: 418520
+// gas ssaCFGOptimized: 444340

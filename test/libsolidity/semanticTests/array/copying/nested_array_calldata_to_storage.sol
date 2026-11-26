@@ -42,10 +42,10 @@ contract c {
 // gas ssaCFGOptimized: 180894
 // test2(uint256[][2]): 0x20, 0x40, 0x40, 2, 23, 42 -> 2, 65
 // gas irOptimized: 157601
-// gas ssaCFGOptimized: 157569
+// gas ssaCFGOptimized: 157662
 // test3(uint256[2][]): 0x20, 2, 23, 42, 23, 42 -> 2, 65
 // gas irOptimized: 134682
-// gas ssaCFGOptimized: 134699
+// gas ssaCFGOptimized: 134689
 // test4(uint256[2][2]): 23, 42, 23, 42 -> 65
 // gas irOptimized: 111174
-// gas ssaCFGOptimized: 111193
+// gas ssaCFGOptimized: 111201

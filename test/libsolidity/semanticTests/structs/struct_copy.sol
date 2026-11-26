@@ -38,13 +38,13 @@ contract c {
 // gas irOptimized: 109929
 // gas legacy: 110593
 // gas legacyOptimized: 110003
-// gas ssaCFGOptimized: 109924
+// gas ssaCFGOptimized: 110024
 // retrieve(uint256): 7 -> 1, 3, 4, 2
 // copy(uint256,uint256): 7, 8 -> true
 // gas irOptimized: 118578
 // gas legacy: 119144
 // gas legacyOptimized: 118618
-// gas ssaCFGOptimized: 118554
+// gas ssaCFGOptimized: 118546
 // retrieve(uint256): 7 -> 1, 3, 4, 2
 // retrieve(uint256): 8 -> 1, 3, 4, 2
 // copy(uint256,uint256): 0, 7 -> true
