@@ -118,6 +118,19 @@ void YulStack::optimize(bool _viaSSACFG)
 					return std::make_tuple(true, "u", "");
 				}
 			}
+			// The SSA CFG code transform, which requires Tangerine Whistle, has its own default sequence.
+			if (
+				_viaSSACFG &&
+				m_optimiserSettings.optimizeStackAllocation &&
+				m_evmVersion >= langutil::EVMVersion::tangerineWhistle() &&
+				m_optimiserSettings.yulOptimiserSteps == OptimiserSettings::DefaultYulOptimiserSteps &&
+				m_optimiserSettings.yulOptimiserCleanupSteps == OptimiserSettings::DefaultYulOptimiserCleanupSteps
+			)
+				return std::make_tuple(
+					true,
+					OptimiserSettings::DefaultSSACFGYulOptimiserSteps,
+					OptimiserSettings::DefaultSSACFGYulOptimiserCleanupSteps
+				);
 			return std::make_tuple(
 				m_optimiserSettings.optimizeStackAllocation,
 				m_optimiserSettings.yulOptimiserSteps,

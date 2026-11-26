@@ -379,7 +379,7 @@ which will result in the optimization sequence being empty, whereas conversely, 
 the sequence, will be treated as an empty cleanup sequence.
 
 The experimental SSA CFG pipeline (``--via-ssa-cfg``) has its own default sequence and its own default cleanup sequence.
-Both are shorter than the defaults of the other pipelines. A user-supplied sequence is used unchanged with the SSA CFG pipeline as well.
+User-supplied sequence usage remains unchanged with the SSA CFG pipeline.
 If the user-supplied sequence has no ``:`` delimiter, the optimizer applies the default cleanup sequence of the other pipelines.
 
 Preprocessing

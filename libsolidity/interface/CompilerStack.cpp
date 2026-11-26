@@ -1687,8 +1687,7 @@ std::string CompilerStack::createMetadata(Contract const& _contract, bool _forIR
 	settingsWithoutRuns.expectedExecutionsPerDeployment = OptimiserSettings::minimal().expectedExecutionsPerDeployment;
 	if (settingsWithoutRuns == OptimiserSettings::minimal())
 		meta["settings"]["optimizer"]["enabled"] = false;
-	// With viaSSACFG, "enabled": true would select another default sequence, so list the details.
-	else if (settingsWithoutRuns == OptimiserSettings::standard() && !m_viaSSACFG)
+	else if (settingsWithoutRuns == OptimiserSettings::standard())
 		meta["settings"]["optimizer"]["enabled"] = true;
 	else
 	{
