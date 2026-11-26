@@ -22,6 +22,7 @@
 #include <libyul/backends/evm/ssa/transform/CriticalEdgeBreaker.h>
 #include <libyul/backends/evm/ssa/transform/IdentityAndNopRemover.h>
 #include <libyul/backends/evm/ssa/transform/JumpThreader.h>
+#include <libyul/backends/evm/ssa/transform/NonContinuingCallTerminator.h>
 #include <libyul/backends/evm/ssa/transform/Outliner.h>
 #include <libyul/backends/evm/ssa/transform/TrivialPhiEliminator.h>
 #include <libyul/backends/evm/ssa/transform/UnreachableBlockCleaner.h>
@@ -33,11 +34,12 @@ using namespace solidity::yul::ssa;
 void transform::optimize(ControlFlowGraphs& _cfgs)
 {
 	for (auto& cfg: _cfgs.functionGraphs)
+		transform::foldConstantConditions(*cfg);
+	// Folding can leave a function without a return, the calls to it then end their blocks.
+	transform::terminateNonContinuingCalls(_cfgs);
+	for (auto& cfg: _cfgs.functionGraphs)
 	{
-		{
-			transform::foldConstantConditions(*cfg);
-			transform::cleanUnreachableBlocks(*cfg);
-		}
+		transform::cleanUnreachableBlocks(*cfg);
 		{
 			transform::eliminateTrivialPhis(*cfg);
 			transform::removeIdentitiesAndNops(*cfg);

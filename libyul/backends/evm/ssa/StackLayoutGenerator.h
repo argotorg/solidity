@@ -28,6 +28,8 @@
 namespace solidity::yul::ssa
 {
 
+class CallGraph;
+
 class StackLayoutGenerator
 {
 public:
@@ -47,6 +49,7 @@ public:
 	static Result generate(
 		LivenessAnalysis const& _liveness,
 		CallSites const& _callSites,
+		CallGraph const& _callGraph,
 		ControlFlowGraphs::FunctionGraphID _graphID,
 		bool _spillingAllowed,
 		std::size_t _reachableStackDepth
@@ -56,6 +59,7 @@ private:
 	explicit StackLayoutGenerator(
 		LivenessAnalysis const& _liveness,
 		CallSites const& _callSites,
+		CallGraph const& _callGraph,
 		ControlFlowGraphs::FunctionGraphID _graphID,
 		bool _spillingAllowed,
 		std::size_t _reachableStackDepth,

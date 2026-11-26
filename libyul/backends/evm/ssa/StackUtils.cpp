@@ -18,6 +18,8 @@
 
 #include <libyul/backends/evm/ssa/StackUtils.h>
 
+#include <libyul/backends/evm/ssa/CallGraph.h>
+
 #include <libevmasm/GasMeter.h>
 
 #include <range/v3/view/iota.hpp>
@@ -93,7 +95,7 @@ void solidity::yul::ssa::applyOperation(SSACFG const& _cfg, CallSites const& _ca
 	});
 }
 
-CallSites solidity::yul::ssa::gatherCallSites(SSACFG const& _cfg)
+CallSites solidity::yul::ssa::gatherCallSites(CallGraph const& _callGraph, SSACFG const& _cfg)
 {
 	CallSites result;
 	std::vector<std::uint8_t> visited(_cfg.numBlocks(), false);
@@ -120,7 +122,7 @@ CallSites solidity::yul::ssa::gatherCallSites(SSACFG const& _cfg)
 			auto const& inst = _cfg.inst(instId);
 			if (inst.opcode != InstOpcode::Call)
 				continue;
-			if (_cfg.callPayload(instId).canContinue)
+			if (_callGraph.canContinue(_cfg.callPayload(instId).graphID))
 				result.addCallSite(instId);
 		}
 	}

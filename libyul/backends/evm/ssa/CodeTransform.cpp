@@ -75,9 +75,9 @@ void CodeTransform::run
 		auto const& liveness = _controlFlowLiveness.cfgLiveness[functionIndex];
 		yulAssert(liveness);
 		auto const graphID = static_cast<ControlFlowGraphs::FunctionGraphID>(functionIndex);
-		callSitesPerCFG.push_back(gatherCallSites(cfg));
+		callSitesPerCFG.push_back(gatherCallSites(callGraph, cfg));
 		bool const spillingAllowed = !callGraph.isRecursive(graphID);
-		auto [layout, spillSet, spillStoreTraces] = StackLayoutGenerator::generate(*liveness, callSitesPerCFG.back(), graphID, spillingAllowed, cfg.evmDialect.reachableStackDepth());
+		auto [layout, spillSet, spillStoreTraces] = StackLayoutGenerator::generate(*liveness, callSitesPerCFG.back(), callGraph, graphID, spillingAllowed, cfg.evmDialect.reachableStackDepth());
 		layouts.push_back(std::move(layout));
 		spillSetsPerCFG.push_back(std::move(spillSet));
 		spillStoreTracesPerCFG.push_back(std::move(spillStoreTraces));
@@ -96,6 +96,7 @@ void CodeTransform::run
 			_assembly,
 			_builtinContext,
 			_controlFlowGraphs,
+			callGraph,
 			functionLabels,
 			callSitesPerCFG[functionIndex],
 			cfg,
@@ -146,6 +147,7 @@ CodeTransform::CodeTransform(
 	AbstractAssembly& _assembly,
 	BuiltinContext& _builtinContext,
 	ControlFlowGraphs const& _controlFlow,
+	CallGraph const& _callGraph,
 	FunctionLabels const& _functionLabels,
 	CallSites const& _callSites,
 	SSACFG const& _cfg,
@@ -158,6 +160,7 @@ CodeTransform::CodeTransform(
 	m_assembly(_assembly),
 	m_builtinContext(_builtinContext),
 	m_controlFlow(_controlFlow),
+	m_callGraph(_callGraph),
 	m_functionLabels(_functionLabels),
 	m_callSites(_callSites),
 	m_cfg(_cfg),
@@ -192,11 +195,11 @@ CodeTransform::CodeTransform(
 		auto const findIt = m_functionLabels.find(_graphID);
 		yulAssert(findIt != m_functionLabels.end());
 		m_assembly.appendLabel(findIt->second);
-		m_assembly.setStackHeight(static_cast<int>(m_cfg.arguments.size()) + (m_cfg.canContinue ? 1 : 0));
+		m_assembly.setStackHeight(static_cast<int>(m_cfg.arguments.size()) + (m_callGraph.canContinue(m_graphID) ? 1 : 0));
 	}
 	StackData expectedStackTop;
-	expectedStackTop.reserve(m_cfg.arguments.size() + (isFunctionGraph && m_cfg.canContinue ? 1 : 0));
-	if (isFunctionGraph && m_cfg.canContinue)
+	expectedStackTop.reserve(m_cfg.arguments.size() + (isFunctionGraph && m_callGraph.canContinue(m_graphID) ? 1 : 0));
+	if (isFunctionGraph && m_callGraph.canContinue(m_graphID))
 		expectedStackTop.push_back(StackSlot::makeFunctionReturnLabel(m_graphID));
 	for (auto const& arg: m_cfg.arguments | ranges::views::reverse)
 		expectedStackTop.push_back(StackSlot::makeValue(_cfg, arg));
@@ -243,7 +246,7 @@ void CodeTransform::operator()(InstId _instId, ShuffleTrace const& _operationShu
 	SSACFG::Inst const& _inst = m_cfg.inst(_instId);
 	yulAssert(_inst.isOperation());
 	bool const isCall = _inst.opcode == InstOpcode::Call;
-	bool const hasReturnLabel = isCall && m_cfg.callPayload(_instId).canContinue;
+	bool const hasReturnLabel = isCall && m_callGraph.canContinue(m_cfg.callPayload(_instId).graphID);
 
 	if (hasReturnLabel)
 	{
@@ -289,12 +292,12 @@ void CodeTransform::operator()(InstId _instId, ShuffleTrace const& _operationShu
 		SSACFG::Call const& call = m_cfg.callPayload(_instId);
 		auto const* returnLabel = solidity::util::valueOrNullptr(m_returnLabels, _instId);
 		// check that if we have a return label, the call can continue
-		yulAssert(!!returnLabel == call.canContinue);
+		yulAssert(!!returnLabel == hasReturnLabel);
 		SSACFG const* calleeCFG = m_controlFlow.functionGraph(call.graphID);
 		yulAssert(calleeCFG);
 		m_assembly.appendJumpTo(
 			m_functionLabels.at(call.graphID),
-			static_cast<int>(calleeCFG->numReturns) - static_cast<int>(calleeCFG->arguments.size()) - (call.canContinue ? 1 : 0),
+			static_cast<int>(calleeCFG->numReturns) - static_cast<int>(calleeCFG->arguments.size()) - (hasReturnLabel ? 1 : 0),
 			AbstractAssembly::JumpType::IntoFunction
 		);
 		// if we have a return label, append it to assembly
@@ -428,7 +431,7 @@ void CodeTransform::operator()(SSACFG::BlockId const&, SSACFG::BasicBlock::Funct
 	// Each CodeTransform instance handles exactly one function's CFG, so a FunctionReturn exit
 	// here necessarily belongs to a function graph. No identity cross-check is needed.
 	yulAssert(!m_cfg.isMainGraph());
-	yulAssert(m_cfg.canContinue);
+	yulAssert(m_callGraph.canContinue(m_graphID));
 	yulAssert(m_stack.size() == _functionReturn.returnValues.size() + 1, "There must be at least the function return label element on stack");
 	yulAssert(m_stack.top().isFunctionReturnLabel());
 	yulAssert(m_stack.top().functionReturnLabel() == m_graphID);
@@ -462,7 +465,7 @@ void CodeTransform::operator()(SSACFG::BlockId const& _blockId, SSACFG::BasicBlo
 		);
 	else if (lastOpcode == InstOpcode::Call)
 		yulAssert(
-			!m_cfg.callPayload(lastOpInstId).canContinue,
+			!m_callGraph.canContinue(m_cfg.callPayload(lastOpInstId).graphID),
 			"Last operation of Terminated block must be a non-continuable call."
 		);
 	else

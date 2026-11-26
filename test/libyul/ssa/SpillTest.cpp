@@ -155,10 +155,11 @@ frontend::test::TestCase::TestResult SpillTest::run(std::ostream& _stream, std::
 			yulAssert(cfgLiveness);
 			auto const graphID = static_cast<ControlFlowGraphs::FunctionGraphID>(functionIndex);
 			bool const spillingAllowed = !callGraph.isRecursive(graphID);
-			callSitesPerCFG.push_back(gatherCallSites(cfg));
+			callSitesPerCFG.push_back(gatherCallSites(callGraph, cfg));
 			auto result = StackLayoutGenerator::generate(
 				*cfgLiveness,
 				callSitesPerCFG.back(),
+				callGraph,
 				graphID,
 				spillingAllowed,
 				m_reachableStackDepth

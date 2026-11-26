@@ -19,6 +19,7 @@
 #include <test/libyul/ssa/StackLayoutGeneratorTest.h>
 
 #include <libyul/backends/evm/ssa/io/DotExporterBase.h>
+#include <libyul/backends/evm/ssa/CallGraph.h>
 #include <libyul/backends/evm/ssa/ControlFlowGraphs.h>
 #include <libyul/backends/evm/ssa/SSACFGBuilder.h>
 #include <libyul/backends/evm/ssa/Stack.h>
@@ -194,13 +195,15 @@ frontend::test::TestCase::TestResult StackLayoutGeneratorTest::run(std::ostream&
 
 		m_obtainedResult += "digraph SSACFG {\nnodesep=0.7;\ngraph[fontname=\"DejaVu Sans\", rankdir=LR]\nnode[shape=box,fontname=\"DejaVu Sans\"];\n\n";
 
+		CallGraph const callGraph(*controlFlowGraphs);
 		for (std::size_t index = 0; index < controlFlowGraphs->functionGraphs.size(); ++index)
 		{
 			auto const& cfg = *controlFlowGraphs->functionGraphs[index];
-			CallSites const callSites = gatherCallSites(cfg);
+			CallSites const callSites = gatherCallSites(callGraph, cfg);
 			auto result = StackLayoutGenerator::generate(
 				LivenessAnalysis(cfg),
 				callSites,
+				callGraph,
 				static_cast<ControlFlowGraphs::FunctionGraphID>(index),
 				true,
 				evmDialect->reachableStackDepth()
