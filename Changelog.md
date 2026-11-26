@@ -7,6 +7,7 @@ Compiler Features:
 * Standard JSON Interface: Remove the experimental `ethdebug.resources` and `ethdebug.compilation` outputs for Yul input.
 
 Bugfixes:
+* Type Checker: Report a proper error instead of ICE for immutable arrays of mappings and structs containing them.
 
 
 ### 0.8.39 (2026-11-19)
