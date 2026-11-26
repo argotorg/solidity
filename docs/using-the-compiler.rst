@@ -351,6 +351,7 @@ Input Description
               // Optimization step sequence.
               // The general form of the value is "<main sequence>:<cleanup sequence>".
               // The setting is optional and when omitted, default values are used for both sequences.
+              // With "viaSSACFG" enabled, omitting the setting selects a different pair of default values.
               // If the value does not contain the ':' delimiter, it is interpreted as the main
               // sequence and the default is used for the cleanup sequence.
               // To make one of the sequences empty, the delimiter must be present at the first or last position.

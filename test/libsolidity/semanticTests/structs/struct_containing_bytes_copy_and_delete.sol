@@ -26,7 +26,7 @@ contract c {
 // gas irOptimized: 133554
 // gas legacy: 134624
 // gas legacyOptimized: 133857
-// gas ssaCFGOptimized: 133541
+// gas ssaCFGOptimized: 133570
 // test(uint256): 32 -> "3"
 // storageEmpty -> 0
 // copy() -> true
@@ -35,7 +35,7 @@ contract c {
 // gas irOptimized: 133554
 // gas legacy: 134624
 // gas legacyOptimized: 133857
-// gas ssaCFGOptimized: 133541
+// gas ssaCFGOptimized: 133570
 // storageEmpty -> 0
 // del() -> true
 // storageEmpty -> 1

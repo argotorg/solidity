@@ -20,8 +20,8 @@ contract C {
 // gas legacy code: 153800
 // gas legacyOptimized: 69675
 // gas legacyOptimized code: 79200
-// gas ssaCFGOptimized: 71200
-// gas ssaCFGOptimized code: 92800
+// gas ssaCFGOptimized: 71019
+// gas ssaCFGOptimized code: 94600
 // initCode() -> 0x20, 0
 // f() -> true
 // g() -> 0

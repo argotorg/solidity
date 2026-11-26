@@ -5,6 +5,7 @@ Language Features:
 Compiler Features:
 * Commandline Interface: Remove the experimental `--ethdebug-resources` and `--ethdebug-compilation` outputs from assembler mode.
 * Standard JSON Interface: Remove the experimental `ethdebug.resources` and `ethdebug.compilation` outputs for Yul input.
+* Yul Optimizer: Use a separate default step sequence for the experimental SSA CFG pipeline when no sequence is given.
 
 Bugfixes:
 

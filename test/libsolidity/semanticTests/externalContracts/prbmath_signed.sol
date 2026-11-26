@@ -54,8 +54,8 @@ contract test {
 // gas legacy code: 2205000
 // gas legacyOptimized: 178012
 // gas legacyOptimized code: 1669600
-// gas ssaCFGOptimized: 175460
-// gas ssaCFGOptimized code: 1644600
+// gas ssaCFGOptimized: 175815
+// gas ssaCFGOptimized code: 1648800
 // div(int256,int256): 3141592653589793238, 88714123 -> 35412542528203691288251815328
 // gas irOptimized: 22042
 // gas legacy: 22736

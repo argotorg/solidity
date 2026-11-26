@@ -71,15 +71,15 @@ contract C {
 // gas irOptimized: 150446
 // gas legacy: 156275
 // gas legacyOptimized: 150983
-// gas ssaCFGOptimized: 150467
+// gas ssaCFGOptimized: 150470
 // test2() ->
 // gas irOptimized: 147339
 // gas legacy: 153508
 // gas legacyOptimized: 148067
-// gas ssaCFGOptimized: 147314
+// gas ssaCFGOptimized: 147348
 // test3() ->
 // gas irOptimized: 124297
 // gas legacy: 130649
 // gas legacyOptimized: 125142
-// gas ssaCFGOptimized: 124175
+// gas ssaCFGOptimized: 124143
 // test4() ->

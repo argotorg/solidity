@@ -24,9 +24,9 @@ contract C {
 // ----
 // f(uint256): 98 -> 7
 // gas irOptimized: 2066340
-// gas ssaCFGOptimized: 2070164
+// gas ssaCFGOptimized: 2067442
 // f(uint256): 99 -> 7
 // gas irOptimized: 2070926
-// gas ssaCFGOptimized: 2074789
+// gas ssaCFGOptimized: 2072039
 // f(uint256): 169 -> FAILURE
 // f(uint256): 170 -> FAILURE

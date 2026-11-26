@@ -27,4 +27,4 @@ contract C {
 // ----
 // f() -> 3, 3, 3, 1
 // gas irOptimized: 181925
-// gas ssaCFGOptimized: 182507
+// gas ssaCFGOptimized: 182950
