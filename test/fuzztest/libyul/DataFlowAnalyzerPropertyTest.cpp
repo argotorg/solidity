@@ -76,7 +76,6 @@ namespace solidity::yul::test
 namespace
 {
 
-std::size_t constexpr maxRandomSteps = 12;
 std::size_t constexpr runsPerProgram = 4;
 std::size_t constexpr maxInterpreterSteps = 2000000;
 
@@ -226,7 +225,7 @@ auto inputDomain()
 		instructionsDomain(),
 		fuzztest::VectorOf(calldataWordsDomain()).WithSize(runsPerProgram),
 		fuzztest::ElementOf(preparationSequences),
-		stepsDomain(maxRandomSteps)
+		stepsDomain()
 	);
 }
 
