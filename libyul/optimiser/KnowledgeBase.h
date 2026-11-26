@@ -28,9 +28,12 @@
 #include <libsolutil/Common.h>
 #include <libsolutil/Numeric.h>
 
+#include <boost/container_hash/hash.hpp>
+
 #include <map>
 #include <tuple>
 #include <functional>
+#include <unordered_map>
 
 namespace solidity::yul
 {
@@ -102,6 +105,16 @@ public:
 		auto operator<=>(VersionedVariable const&) const = default;
 	};
 
+	struct VersionedVariableHash
+	{
+		std::size_t operator()(VersionedVariable const& _variable) const
+		{
+			std::size_t hash = static_cast<std::size_t>(_variable.name.hash());
+			boost::hash_combine(hash, _variable.version);
+			return hash;
+		}
+	};
+
 	/**
 	 * Constant offset relative to a reference variable, or absolute constant if the
 	 * reference variable is the empty YulName.
@@ -166,10 +179,10 @@ private:
 
 	/// Offsets for each version of a variable to one representative per group.
 	/// The empty string is the representative of the constant value zero.
-	std::map<VersionedVariable, CachedOffset> m_offsets;
+	std::unordered_map<VersionedVariable, CachedOffset, VersionedVariableHash> m_offsets;
 
 	/// Current version of each variable that changed at least once.
-	std::map<YulName, std::size_t> m_currentVersions;
+	std::unordered_map<YulName, std::size_t> m_currentVersions;
 };
 
 }
