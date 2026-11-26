@@ -401,7 +401,6 @@ public:
 	BlockId entry = BlockId{0};
 	std::set<BlockId> exits;
 	std::string name{};
-	bool canContinue = true;
 	std::vector<InstId> arguments;
 	std::size_t numReturns = 0;
 

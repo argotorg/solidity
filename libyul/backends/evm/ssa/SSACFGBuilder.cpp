@@ -125,7 +125,6 @@ void SSACFGBuilder::buildFunctionGraph(
 
 	if (cfg.debugInfo)
 		cfg.debugInfo->graphDebugData = _functionDefinition->debugData;
-	cfg.canContinue = m_sideEffects.functionSideEffects().at(_functionDefinition).canContinue;
 	cfg.arguments = argumentBindings
 		| ranges::views::transform([](auto const& _binding) { return std::get<1>(_binding); })
 		| ranges::to<std::vector>;
@@ -454,7 +453,7 @@ InstId SSACFGBuilder::visitFunctionCall(FunctionCall const& _call)
 			ranges::reverse(inputs);
 			return m_graph.makeCallWithProjections(
 				m_currentBlock,
-				SSACFG::Call{calleeIt->second.id, canContinue, function.numReturns},
+				SSACFG::Call{calleeIt->second.id, function.numReturns},
 				std::move(inputs),
 				static_cast<InstructionStore::NumReturnsSizeType>(function.numReturns),
 				debugDataOf(_call)

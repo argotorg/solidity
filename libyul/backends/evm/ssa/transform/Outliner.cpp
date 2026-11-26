@@ -258,7 +258,6 @@ void transform::runOutliner(ControlFlowGraphs& _cfgs)
 		auto newCFG = std::make_unique<SSACFG>(evmDialect);
 		auto const entryBlockId = newCFG->makeBlock(nullptr);
 		newCFG->entry = entryBlockId;
-		newCFG->canContinue = false;
 		newCFG->exits.insert(entryBlockId);
 		newCFG->name = "__revert_" + std::to_string(sourceBlockIdentifier.graphId) + "_" + std::to_string(sourceBlockIdentifier.blockId.value);
 		newCFG->numReturns = 0;
@@ -362,7 +361,7 @@ void transform::runOutliner(ControlFlowGraphs& _cfgs)
 			for (InstId const id: cfg.block(blockId).instructions)
 				cfg.tombstone(id);
 			block.instructions.clear();
-			cfg.makeCallWithProjections(blockId, {.graphID = newGraphId, .canContinue = false, .numReturns = 0}, {}, 0);
+			cfg.makeCallWithProjections(blockId, {.graphID = newGraphId, .numReturns = 0}, {}, 0);
 		};
 		replaceWithCall(equivClass.first);
 		ranges::for_each(equivClass.second, replaceWithCall);

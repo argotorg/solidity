@@ -35,7 +35,6 @@ enum class Keyword
 	MemoryGuard,
 	Func,
 	Args,
-	NoContinue,
 	Preds,
 	// Instructions
 	Builtin,
@@ -49,7 +48,6 @@ enum class Keyword
 	Nop,
 	Unreachable,
 	Tombstone,
-	True,
 	// Block exits
 	Jump,
 	Branch,

@@ -1,5 +1,5 @@
 #0:
-    v0 = call @r { nocontinue = true }
+    v0 = call @r
     terminated
 #1:
     v1 = builtin @calldataload unreachable
@@ -14,7 +14,7 @@
     upsilon unreachable -> ^v4
     terminated
 
-func @r(args: ()) -> 1 nocontinue {
+func @r(args: ()) -> 1 {
 #0:
     v0 = const 0x00
     builtin @revert v0, v0

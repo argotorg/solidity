@@ -71,7 +71,6 @@ public:
 		return
 			m_expected.name == m_actual.name &&
 			m_expected.numReturns == m_actual.numReturns &&
-			m_expected.canContinue == m_actual.canContinue &&
 			sameBlock(m_expected.entry, m_actual.entry) &&
 			sameValues(m_expected.arguments, m_actual.arguments) &&
 			ranges::all_of(m_expected.liveBlocks(), [&](BlockId const& _block) { return sameBasicBlock(_block); });

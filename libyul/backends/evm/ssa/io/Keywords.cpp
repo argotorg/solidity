@@ -29,11 +29,10 @@ using namespace solidity::yul::ssa::io;
 namespace
 {
 
-constexpr std::array<std::pair<Keyword, std::string_view>, 22> keywordStringRepresentations{{
+constexpr std::array<std::pair<Keyword, std::string_view>, 20> keywordStringRepresentations{{
 	{Keyword::MemoryGuard, "memoryguard"},
 	{Keyword::Func, "func"},
 	{Keyword::Args, "args"},
-	{Keyword::NoContinue, "nocontinue"},
 	{Keyword::Preds, "preds"},
 	{Keyword::Builtin, "builtin"},
 	{Keyword::Call, "call"},
@@ -46,7 +45,6 @@ constexpr std::array<std::pair<Keyword, std::string_view>, 22> keywordStringRepr
 	{Keyword::Nop, "nop"},
 	{Keyword::Unreachable, "unreachable"},
 	{Keyword::Tombstone, "tombstone"},
-	{Keyword::True, "true"},
 	{Keyword::Jump, "jump"},
 	{Keyword::Branch, "branch"},
 	{Keyword::Return, "return"},

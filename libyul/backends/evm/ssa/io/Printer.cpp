@@ -214,8 +214,6 @@ void printInstruction(
 		if (payload.numReturns >= 1)
 			_out << fmt::format("{} = ", formatValueRef(_id));
 		printCallOperands(_out, _module, inst, _id, _cfg);
-		if (!payload.canContinue)
-			_out << fmt::format(" {{ {} = {} }}", Keyword::NoContinue, Keyword::True);
 		_out << '\n';
 		return;
 	}
@@ -303,8 +301,6 @@ void printGraph(std::ostream& _out, ControlFlowGraphs const& _module, SSACFG con
 			fmt::join(_cfg.arguments | ranges::views::transform(formatValueRef), ", "),
 			_cfg.numReturns
 		);
-		if (!_cfg.canContinue)
-			_out << fmt::format(" {}", Keyword::NoContinue);
 		_out << " {\n";
 	}
 

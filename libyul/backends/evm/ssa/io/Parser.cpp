@@ -296,7 +296,6 @@ struct CallInst
 {
 	std::string_view callee;
 	std::vector<Operand> arguments;
-	bool canContinue;
 };
 struct UpsilonInst { Operand value; Label phi; };
 struct Line
@@ -338,7 +337,6 @@ struct FunctionHeader
 	std::string_view name;
 	std::vector<Label> arguments;
 	std::size_t numReturns;
-	bool canContinue;
 };
 struct Graph
 {
@@ -537,7 +535,6 @@ private:
 		expect(TokenKind::RParen);
 		expect(TokenKind::Arrow);
 		header.numReturns = parseInteger<std::size_t>(expect(TokenKind::Number));
-		header.canContinue = !acceptWord(Keyword::NoContinue);
 		expect(TokenKind::LBrace);
 		SourceRange const headerLocation = locationFrom(begin);
 		expectEndOfLine();
@@ -670,18 +667,9 @@ private:
 	CallInst parseCall()
 	{
 		expectWord(Keyword::Call);
-		CallInst call{parseSymbol(), {}, true};
+		CallInst call{parseSymbol(), {}};
 		if (atOperand())
 			call.arguments = parseOperandList();
-		if (current().kind == TokenKind::LBrace)
-		{
-			advance();
-			expectWord(Keyword::NoContinue);
-			expect(TokenKind::Equal);
-			expectWord(Keyword::True);
-			expect(TokenKind::RBrace);
-			call.canContinue = false;
-		}
 		return call;
 	}
 
@@ -941,16 +929,10 @@ private:
 						callee.arguments.size(),
 						_call.arguments.size()
 					);
-				if (_call.canContinue != callee.canContinue)
-					fail(
-						_line.location,
-						"Call to @{} disagrees with its definition on whether it can continue.",
-						_call.callee
-					);
 				checkCallResult(_line, callee.numReturns, fmt::format("@{}", _call.callee));
 				return m_cfg.makeCallWithProjections(
 					_block,
-					SSACFG::Call{calleeIt->second.id, _call.canContinue, callee.numReturns},
+					SSACFG::Call{calleeIt->second.id, callee.numReturns},
 					std::vector<InstId>(_call.arguments.size()),
 					static_cast<InstructionStore::NumReturnsSizeType>(callee.numReturns)
 				);
@@ -1203,7 +1185,6 @@ std::unique_ptr<ControlFlowGraphs> buildGraphs(Module const& _module, EVMDialect
 			);
 		cfg.name = std::string(function.header.name);
 		cfg.numReturns = function.header.numReturns;
-		cfg.canContinue = function.header.canContinue;
 	}
 
 	GraphBuilder(*cfgs, callees, _module.main, nullptr, *cfgs->functionGraphs.front()).build();
