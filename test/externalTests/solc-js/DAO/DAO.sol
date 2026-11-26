@@ -45,7 +45,7 @@ abstract contract DAOInterface {
     uint constant maxDepositDivisor = 100;
 
     // Proposals to spend the DAO's ether or to choose a new Curator
-    Proposal[] public proposals;
+    Proposal[] proposals;
     // The quorum needed for each proposal is partially calculated by
     // totalSupply / minQuorumDivisor
     uint public minQuorumDivisor;

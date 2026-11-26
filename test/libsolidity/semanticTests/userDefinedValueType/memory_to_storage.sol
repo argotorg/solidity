@@ -23,7 +23,7 @@ contract C {
 // ----
 // s() -> 0, 0, 0x00, 0
 // f((uint8,uint16,bytes2,uint8)): 1, 0xff, "ab", 15 ->
-// gas irOptimized: 44357
+// gas irOptimized: 44384
 // gas legacy: 46189
 // gas legacyOptimized: 44673
 // s() -> 1, 0xff, 0x6162000000000000000000000000000000000000000000000000000000000000, 15

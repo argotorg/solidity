@@ -7,8 +7,8 @@ contract D {
 	Item[][][] public items;
 
 	function test() public view returns (uint) {
-		(uint a, uint b) = this.items(1, 2, 3);
-		return a + b;
+		Item memory item = this.items(1, 2, 3);
+		return item.x + item.y;
 	}
 }
 // ====

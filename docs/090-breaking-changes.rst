@@ -13,6 +13,12 @@ Silent Changes of the Semantics
 This section lists changes where existing code changes its behavior without
 the compiler notifying you about it.
 
+* Getters of public state variables whose (mapping value or array element) type is a struct now
+  return the struct itself instead of a tuple of its members.
+  Array members of the struct, which used to be omitted, are now returned as well.
+  The function selector of the getter stays the same, but the ABI encoding of its return value changes
+  for structs with dynamically-sized members or with array members.
+
 
 New Restrictions
 ================
@@ -33,6 +39,13 @@ This section lists changes that might cause existing contracts to not compile an
 * Internal function pointers can no longer be compared using ``==`` and ``!=``.
   Such comparisons could yield unexpected results in the evmasm pipeline with the optimizer enabled
   and have been reported with a warning since Solidity 0.8.24.
+
+* Public state variables whose getter would return a struct containing a mapping are no longer allowed.
+  Previously, mapping members were silently omitted from the getter.
+
+* Code that relies on struct getters returning a tuple no longer compiles.
+  This includes destructuring the result of a getter call (e.g. ``(uint a, uint b) = c.s();``)
+  and public state variables that override a function returning such a tuple.
 
 Interface Changes
 =================
@@ -64,4 +77,11 @@ How to update your code
 * Remove ``virtual`` and ``override`` from modifiers.
   A virtual modifier can be, in most cases, replaced by a non-virtual modifier and a virtual helper function.
   The non-virtual modifier can delegate the work to the virtual helper that derived contracts can override.
+
+* Replace destructuring of struct getter results with a struct variable, e.g.
+  ``(uint a, uint b) = c.s();`` with ``C.S memory s = c.s();``.
+  Interface functions implemented by public struct state variables now have to return the struct,
+  e.g. ``function s() external view returns (S memory);``.
+  If a public state variable has a struct type containing a mapping, make it internal and add an explicit getter
+  that returns the members you need.
 

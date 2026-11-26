@@ -502,14 +502,7 @@ bool TypeChecker::visit(VariableDeclaration const& _variable)
 	{
 		FunctionType getter(_variable);
 		if (!getter.interfaceFunctionType())
-		{
-			solAssert(getter.returnParameterNames().size() == getter.returnParameterTypes().size());
-			solAssert(getter.parameterNames().size() == getter.parameterTypes().size());
-			if (getter.returnParameterTypes().empty() && getter.parameterTypes().empty())
-				m_errorReporter.typeError(5359_error, _variable.location(), "The struct has all its members omitted, therefore the getter cannot return any values.");
-			else
-				m_errorReporter.typeError(6744_error, _variable.location(), "Internal or recursive type is not allowed for public state variables.");
-		}
+			m_errorReporter.typeError(6744_error, _variable.location(), "Internal or recursive type is not allowed for public state variables.");
 	}
 
 	bool isStructMemberDeclaration = dynamic_cast<StructDefinition const*>(_variable.scope()) != nullptr;

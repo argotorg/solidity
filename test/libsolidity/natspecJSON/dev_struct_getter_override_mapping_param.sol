@@ -1,16 +1,16 @@
 interface IThing {
-    /// @return x a number
-    /// @return y another number
-    function value() external view returns (uint128 x, uint128 y);
-}
-
-contract Thing is IThing {
     struct Value {
         uint128 x;
         uint128 y;
     }
 
-    Value public override value;
+    /// @param v value to search for
+    /// @return the value
+    function value(uint256 v) external view returns (Value memory);
+}
+
+contract Thing is IThing {
+    mapping(uint256 => Value) public override value;
 }
 // ----
 // ----
@@ -19,12 +19,15 @@ contract Thing is IThing {
 //     "kind": "dev",
 //     "methods":
 //     {
-//         "value()":
+//         "value(uint256)":
 //         {
+//             "params":
+//             {
+//                 "v": "value to search for"
+//             },
 //             "returns":
 //             {
-//                 "x": "a number",
-//                 "y": "another number"
+//                 "_0": "the value"
 //             }
 //         }
 //     },
@@ -46,10 +49,14 @@ contract Thing is IThing {
 //     {
 //         "value":
 //         {
+//             "params":
+//             {
+//                 "v": "value to search for"
+//             },
+//             "return": "the value",
 //             "returns":
 //             {
-//                 "x": "a number",
-//                 "y": "another number"
+//                 "_0": "the value"
 //             }
 //         }
 //     },

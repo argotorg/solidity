@@ -11,4 +11,4 @@ contract Bank {
 }
 
 // ----
-// DocstringParsingError 5856: (113-236): Documentation tag "@return obverseGraphicURL Front pic" does not contain the name of its return parameter.
+// DocstringParsingError 2604: (113-236): Documentation tag "@return obverseGraphicURL Front pic" exceeds the number of return parameters.

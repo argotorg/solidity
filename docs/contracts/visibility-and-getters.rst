@@ -200,7 +200,6 @@ The next example is more complex:
         struct Data {
             uint a;
             bytes3 b;
-            mapping(uint => uint) map;
             uint[3] c;
             uint[] d;
             bytes e;
@@ -208,17 +207,19 @@ The next example is more complex:
         mapping(uint => mapping(bool => Data[])) public data;
     }
 
-It generates a function of the following form. The mapping and arrays (with the
-exception of byte arrays) in the struct are omitted because there is no good way
-to select individual struct members or provide a key for the mapping:
+It generates a function of the following form. The struct is returned as a whole,
+including all of its array members:
 
 .. code-block:: solidity
 
     function data(uint arg1, bool arg2, uint arg3)
         public
-        returns (uint a, bytes3 b, bytes memory e)
+        returns (Data memory)
     {
-        a = data[arg1][arg2][arg3].a;
-        b = data[arg1][arg2][arg3].b;
-        e = data[arg1][arg2][arg3].e;
+        return data[arg1][arg2][arg3];
     }
+
+.. note::
+    A struct that contains a mapping cannot be copied to memory and returned.
+    Therefore, a state variable whose getter would have to return such a struct
+    cannot be declared ``public``.

@@ -30,4 +30,4 @@ contract test {
 // smallTypeData(uint256): 1 -> 22
 // smallTypeData(uint256): 127 -> 2
 // smallTypeData(uint256): 128 -> FAILURE
-// multiple_map(uint256,uint256,uint256): 2, 1, 2 -> 3
+// multiple_map(uint256,uint256,uint256): 2, 1, 2 -> 0x20, 3, 0x40, 4, 0, 0, 0, 5

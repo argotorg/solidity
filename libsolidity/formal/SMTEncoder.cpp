@@ -1001,32 +1001,6 @@ void SMTEncoder::endVisit(ElementaryTypeNameExpression const& _typeName)
 	m_context.createExpression(_typeName, result.second);
 }
 
-namespace // helpers for SMTEncoder::visitPublicGetter
-{
-
-bool isReturnedFromStructGetter(Type const* _type)
-{
-	// So far it seems that only Mappings and ordinary Arrays are not returned.
-	auto category = _type->category();
-	if (category == Type::Category::Mapping)
-		return false;
-	if (category == Type::Category::Array)
-		return dynamic_cast<ArrayType const&>(*_type).isByteArrayOrString();
-	// default
-	return true;
-}
-
-std::vector<std::string> structGetterReturnedMembers(StructType const& _structType)
-{
-	std::vector<std::string> returnedMembers;
-	for (auto const& member: _structType.nativeMembers(nullptr))
-		if (isReturnedFromStructGetter(member.type))
-			returnedMembers.push_back(member.name);
-	return returnedMembers;
-}
-
-}
-
 void SMTEncoder::visitPublicGetter(FunctionCall const& _funCall)
 {
 	auto var = publicGetter(_funCall.expression());
@@ -1047,6 +1021,7 @@ void SMTEncoder::visitPublicGetter(FunctionCall const& _funCall)
 	{
 		if (
 			type->isValueType() ||
+			type->category() == Type::Category::Struct ||
 			(type->category() == Type::Category::Array && dynamic_cast<ArrayType const&>(*type).isByteArrayOrString())
 		)
 		{
@@ -1071,17 +1046,6 @@ void SMTEncoder::visitPublicGetter(FunctionCall const& _funCall)
 				else
 					solAssert(false, "");
 				break;
-			}
-			case Type::Category::Struct:
-			{
-				solAssert(symbArguments.empty(), "");
-				smt::SymbolicStructVariable structVar(dynamic_cast<StructType const*>(type), "struct_temp_" + std::to_string(_funCall.id()), m_context);
-				m_context.addAssertion(structVar.currentValue() == currentExpr);
-				auto returnedMembers = structGetterReturnedMembers(dynamic_cast<StructType const&>(*structVar.type()));
-				solAssert(!returnedMembers.empty(), "");
-				auto returnedValues = applyMap(returnedMembers, [&](std::string const& memberName) -> std::optional<smtutil::Expression> { return structVar.member(memberName); });
-				defineExpr(_funCall, returnedValues);
-				return;
 			}
 			default:
 			{

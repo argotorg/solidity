@@ -5,8 +5,7 @@ contract Bank {
     }
 
     /// @notice Get the n-th coin I own
-    /// @return observeGraphicURL Front pic
-    /// @return reverseGraphicURL Back pic
+    /// @return Front and back pic of the coin
     Coin[] public coinStack;
 }
 
@@ -20,10 +19,10 @@ contract Bank {
 //     {
 //         "coinStack":
 //         {
+//             "return": "Front and back pic of the coin",
 //             "returns":
 //             {
-//                 "observeGraphicURL": "Front pic",
-//                 "reverseGraphicURL": "Back pic"
+//                 "_0": "Front and back pic of the coin"
 //             }
 //         }
 //     },
