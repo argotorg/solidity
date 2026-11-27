@@ -1123,8 +1123,8 @@ LinkerObject const& Assembly::assembleLegacy() const
 		case DupN:
 			solAssert(m_evmVersion.hasDupSwapN());
 			ret.bytecode.push_back(static_cast<uint8_t>(item.instruction()));
-			solAssert(item.data() < std::numeric_limits<size_t>::max());
-			ret.bytecode.push_back(encodeDupSwapNImmediate(static_cast<size_t>(item.data())));
+			solAssert(item.data() <= std::numeric_limits<unsigned>::max());
+			ret.bytecode.push_back(encodeDupSwapNImmediate(static_cast<unsigned>(item.data())));
 			break;
 		case Push:
 			ret.bytecode += assemblePush(item);

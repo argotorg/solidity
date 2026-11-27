@@ -227,9 +227,9 @@ void ExpressionCompiler::appendStateVariableAccessor(VariableDeclaration const& 
 		m_context << Instruction::SWAP2 << Instruction::POP << Instruction::SWAP1;
 	else if (paramTypes.size() >= 2)
 	{
-		m_context << AssemblyItem::swap(paramTypes.size());
+		m_context << AssemblyItem::swap(static_cast<unsigned>(paramTypes.size()));
 		m_context << Instruction::POP;
-		m_context << AssemblyItem::swap(paramTypes.size());
+		m_context << AssemblyItem::swap(static_cast<unsigned>(paramTypes.size()));
 		utils().popStackSlots(paramTypes.size() - 1);
 	}
 	unsigned retSizeOnStack = 0;

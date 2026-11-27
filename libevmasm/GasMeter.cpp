@@ -315,7 +315,7 @@ unsigned GasMeter::swapGas(size_t _depth, langutil::EVMVersion _evmVersion)
 		return runGas(evmasm::swapInstruction(static_cast<unsigned>(_depth)), _evmVersion);
 
 	solAssert(_evmVersion.hasDupSwapN());
-	solAssert(isValidDupSwapNDepth(_depth));
+	solAssert(isValidDupSwapNDepth(static_cast<unsigned>(_depth)));
 	return runGas(Instruction::SWAPN, _evmVersion);
 }
 
@@ -325,7 +325,7 @@ unsigned GasMeter::dupGas(size_t _depth, langutil::EVMVersion _evmVersion)
 		return runGas(evmasm::dupInstruction(static_cast<unsigned>(_depth)), _evmVersion);
 
 	solAssert(_evmVersion.hasDupSwapN());
-	solAssert(isValidDupSwapNDepth(_depth));
+	solAssert(isValidDupSwapNDepth(static_cast<unsigned>(_depth)));
 	return runGas(Instruction::DUPN, _evmVersion);
 }
 

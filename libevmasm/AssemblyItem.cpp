@@ -347,10 +347,10 @@ std::string AssemblyItem::toAssemblyText(Assembly const& _assembly) const
 		text = std::string("verbatimbytecode_") + util::toHex(std::get<2>(*m_verbatimBytecode));
 		break;
 	case SwapN:
-		text = "swapn{" + std::to_string(static_cast<size_t>(data())) + "}";
+		text = "swapn{" + std::to_string(static_cast<unsigned>(data())) + "}";
 		break;
 	case DupN:
-		text = "dupn{" + std::to_string(static_cast<size_t>(data())) + "}";
+		text = "dupn{" + std::to_string(static_cast<unsigned>(data())) + "}";
 		break;
 	}
 	if (m_jumpType == JumpType::IntoFunction || m_jumpType == JumpType::OutOfFunction)

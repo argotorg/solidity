@@ -110,22 +110,22 @@ public:
 	/// @returns an item swapping the top of the stack with the value at @a _depth,
 	/// using SWAP1-16 or SWAPN with an immediate argument, depending on the depth.
 	/// Depths above 235 cannot be encoded, see https://eips.ethereum.org/EIPS/eip-8024
-	static AssemblyItem swap(size_t _depth, langutil::DebugData::ConstPtr _debugData = langutil::DebugData::create())
+	static AssemblyItem swap(unsigned _depth, langutil::DebugData::ConstPtr _debugData = langutil::DebugData::create())
 	{
 		if (_depth <= 16)
 			// Depth 0 is rejected by an assert in swapInstruction().
-			return AssemblyItem(swapInstruction(static_cast<unsigned>(_depth)), std::move(_debugData));
+			return AssemblyItem(swapInstruction(_depth), std::move(_debugData));
 		solAssert(isValidDupSwapNDepth(_depth), "Invalid SWAPN depth.");
 		return AssemblyItem(SwapN, Instruction::SWAPN, _depth, std::move(_debugData));
 	}
 	/// @returns an item duplicating the value at stack depth @a _depth to the top of the stack,
 	/// using DUP1-16 or DUPN with an immediate argument, depending on the depth.
 	/// Depths above 235 cannot be encoded, see https://eips.ethereum.org/EIPS/eip-8024
-	static AssemblyItem dup(size_t _depth, langutil::DebugData::ConstPtr _debugData = langutil::DebugData::create())
+	static AssemblyItem dup(unsigned _depth, langutil::DebugData::ConstPtr _debugData = langutil::DebugData::create())
 	{
 		if (_depth <= 16)
 			// Depth 0 is rejected by an assert in dupInstruction().
-			return AssemblyItem(dupInstruction(static_cast<unsigned>(_depth)), std::move(_debugData));
+			return AssemblyItem(dupInstruction(_depth), std::move(_debugData));
 		solAssert(isValidDupSwapNDepth(_depth), "Invalid DUPN depth.");
 		return AssemblyItem(DupN, Instruction::DUPN, _depth, std::move(_debugData));
 	}

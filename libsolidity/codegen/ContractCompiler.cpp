@@ -685,7 +685,7 @@ bool ContractCompiler::visit(FunctionDefinition const& _function)
 		}
 		else
 		{
-			m_context << AssemblyItem::swap(stackLayout.size() - static_cast<size_t>(stackLayout.back()) - 1u);
+			m_context << AssemblyItem::swap(static_cast<unsigned>(stackLayout.size()) - static_cast<unsigned>(stackLayout.back()) - 1u);
 			std::swap(stackLayout[static_cast<size_t>(stackLayout.back())], stackLayout.back());
 		}
 	for (size_t i = 0; i < stackLayout.size(); ++i)

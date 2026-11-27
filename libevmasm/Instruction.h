@@ -321,21 +321,21 @@ inline bool isValidDupSwapNImmediate(uint8_t _immediate)
 	return _immediate <= 0x5a || _immediate >= 0x80;
 }
 
-inline bool isValidDupSwapNDepth(size_t _depth)
+inline bool isValidDupSwapNDepth(unsigned _depth)
 {
 	return _depth >= 17 && _depth <= 235;
 }
 
 /// @returns the stack depth encoded by the DUPN/SWAPN immediate argument @a _immediate,
 /// i.e. `immediate + 145 (mod 256)`. See https://eips.ethereum.org/EIPS/eip-8024
-inline size_t decodeDupSwapNImmediate(uint8_t _immediate)
+inline unsigned decodeDupSwapNImmediate(uint8_t _immediate)
 {
 	solAssert(isValidDupSwapNImmediate(_immediate));
 	return static_cast<uint8_t>((_immediate + 145) % 256);
 }
 
 // https://eips.ethereum.org/EIPS/eip-8024
-inline uint8_t encodeDupSwapNImmediate(size_t _depth)
+inline uint8_t encodeDupSwapNImmediate(unsigned _depth)
 {
 	solAssert(isValidDupSwapNDepth(_depth));
 	return static_cast<uint8_t>((_depth + 111) % 256);
