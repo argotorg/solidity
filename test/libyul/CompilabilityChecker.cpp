@@ -25,9 +25,17 @@
 #include <test/libyul/Common.h>
 
 #include <libyul/CompilabilityChecker.h>
+#include <libyul/Exceptions.h>
 #include <libyul/YulStack.h>
+#include <libyul/backends/evm/EthAssemblyAdapter.h>
+#include <libyul/backends/evm/EVMObjectCompiler.h>
+
+#include <libevmasm/Assembly.h>
+#include <libevmasm/Instruction.h>
 
 #include <libsolutil/CommonData.h>
+
+#include <fmt/format.h>
 
 #include <boost/test/unit_test.hpp>
 
@@ -86,6 +94,34 @@ std::string manyReturnVariablesSource(size_t _numReturnVariables, bool _useArgum
 		"{ function f(a, b) -> " + util::joinHumanReadable(returnVariables, ", ") + " {\n" +
 		(_useArguments ? "r1 := 0\nsstore(a, b)\n" : "") +
 		"} }\n";
+}
+
+/// @returns the source of a block with @a _numVariables local variables which are all live at the same time.
+std::string manyLiveVariablesSource(size_t _numVariables)
+{
+	std::string source = "{\n";
+	for (size_t i = 1; i <= _numVariables; ++i)
+		source += fmt::format("    let a{} := calldataload({})\n", i, (i - 1) * 0x20);
+	for (size_t i = 1; i <= _numVariables; ++i)
+		source += fmt::format("    sstore({}, a{})\n", i, i);
+	source += fmt::format("    sstore(0, add(a1, a{}))\n", _numVariables);
+	source += "}\n";
+	return source;
+}
+
+/// Compiles @a _source using the optimized EVM code transform (without the Yul optimizer).
+evmasm::AssemblyItems compileWithOptimizedCodeTransform(std::string const& _source, EVMVersion _evmVersion)
+{
+	frontend::OptimiserSettings settings = frontend::OptimiserSettings::none();
+	settings.optimizeStackAllocation = true;
+	YulStack yulStack(_evmVersion, settings, DebugInfoSelection::None());
+	yulStack.parseAndAnalyze("", _source);
+	soltestAssert(!yulStack.hasErrors());
+
+	evmasm::Assembly assembly{_evmVersion, false, {}};
+	EthAssemblyAdapter adapter(assembly);
+	EVMObjectCompiler::compile(*yulStack.parserResult(), adapter, true /* _optimize */);
+	return assembly.items();
 }
 }
 
@@ -408,6 +444,33 @@ BOOST_AUTO_TEST_CASE(also_in_outer_block_unused_arguments, *boost::unit_test::pr
 			}
 	})");
 	BOOST_CHECK_EQUAL(out, ": 9 ");
+}
+
+// The optimized EVM code transform is not used by the compilability checker. The following tests
+// check directly that it reaches stack slots deeper than 16 with DUPN/SWAPN starting from "amsterdam".
+BOOST_AUTO_TEST_CASE(optimized_code_transform_deep_stack_access_uses_dupn_swapn)
+{
+	evmasm::AssemblyItems const items = compileWithOptimizedCodeTransform(manyLiveVariablesSource(24), EVMVersion::amsterdam());
+
+	size_t numDupN = 0;
+	size_t numSwapN = 0;
+	for (evmasm::AssemblyItem const& item: items)
+		if (item.type() == evmasm::DupN || item.type() == evmasm::SwapN)
+		{
+			(item.type() == evmasm::DupN ? numDupN : numSwapN)++;
+			BOOST_CHECK(evmasm::isValidDupSwapNDepth(static_cast<unsigned>(item.data())));
+		}
+	BOOST_CHECK(numDupN > 0);
+	BOOST_CHECK(numSwapN > 0);
+}
+
+BOOST_AUTO_TEST_CASE(optimized_code_transform_deep_stack_access_without_dupn_swapn_is_stack_too_deep)
+{
+	// Without a memoryguard there is no spilling, so the same code cannot be compiled before DUPN/SWAPN.
+	BOOST_CHECK_THROW(
+		compileWithOptimizedCodeTransform(manyLiveVariablesSource(24), EVMVersion::osaka()),
+		StackTooDeepError
+	);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
