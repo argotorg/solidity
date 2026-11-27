@@ -32,6 +32,8 @@
     sstore(x09, x12)
     sstore(x10, x11)
 }
+// ====
+// EVMVersion: <=osaka
 // ----
 // digraph SSACFG {
 // nodesep=0.7;

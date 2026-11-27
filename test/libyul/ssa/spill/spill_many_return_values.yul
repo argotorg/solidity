@@ -12,6 +12,8 @@
     sstore(v14, v15)
     sstore(v16, v17)
 }
+// ====
+// EVMVersion: <=osaka
 // ----
 // object "object"
 // ===== SSA CFG =====

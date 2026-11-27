@@ -32,6 +32,8 @@
     }
     f()
 }
+// ====
+// EVMVersion: <=osaka
 // ----
 // digraph SSACFG {
 // nodesep=0.7;

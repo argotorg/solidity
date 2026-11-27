@@ -31,6 +31,8 @@ object "C" {
         }
     }
 }
+// ====
+// EVMVersion: <=osaka
 // ----
 // object "C"
 // ===== SSA CFG =====

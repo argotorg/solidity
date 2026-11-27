@@ -66,6 +66,8 @@
     mstore(memoryguard(128), add(add(add(add(add(add(add(add(add(add(add(add(add(add(add(add(add(var_x1, var_x2), var_x3), var_x4), var_x5), var_x6), var_x7), var_x8), var_x9), var_x10), var_x11), var_x12), var_x13), var_x14), var_x15), var_x16), var_x17), var_x18))
     return(memoryguard(128), 32)
 }
+// ====
+// EVMVersion: <=osaka
 // ----
 // object "object"
 // ===== SSA CFG =====

@@ -26,7 +26,7 @@
 namespace solidity::yul::test::ssa
 {
 
-class StackLayoutGeneratorTest: public frontend::test::TestCase
+class StackLayoutGeneratorTest: public frontend::test::EVMVersionRestrictedTestCase
 {
 public:
 	static std::unique_ptr<TestCase> create(Config const& _config);
