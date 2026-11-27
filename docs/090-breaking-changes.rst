@@ -34,6 +34,9 @@ This section lists changes that might cause existing contracts to not compile an
   Such comparisons could yield unexpected results in the evmasm pipeline with the optimizer enabled
   and have been reported with a warning since Solidity 0.8.24.
 
+* Leading zeros are no longer allowed in the exponent of number literals in scientific notation (e.g. ``1e010``).
+  Such exponents were previously interpreted as octal numbers, so ``1e010`` meant ``1e8``.
+
 Interface Changes
 =================
 
@@ -64,4 +67,7 @@ How to update your code
 * Remove ``virtual`` and ``override`` from modifiers.
   A virtual modifier can be, in most cases, replaced by a non-virtual modifier and a virtual helper function.
   The non-virtual modifier can delegate the work to the virtual helper that derived contracts can override.
+
+* Remove leading zeros from the exponent of number literals in scientific notation.
+  Keep in mind that the old value was read as octal: ``1e010`` meant ``1e8``, so write ``1e8`` to keep the old value.
 

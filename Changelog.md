@@ -3,6 +3,7 @@
 Breaking Changes:
 * Code Generator: Remove ABIEncoderV1.
 * EVM: Drop support for EVM versions `homestead`, `tangerineWhistle`, `spuriousDragon` and `byzantium`.
+* Parser: Disallow leading zeros in the exponent of number literals in scientific notation, which were previously interpreted as octal.
 * SMTChecker: Drop `pragma experimental SMTChecker;`. SMTChecker can be enabled by setting model checker engine to `chc`.
 * SMTChecker: Drop support for cvc5 as the backend SMT solver.
 * SMTChecker: Remove BMC engine.

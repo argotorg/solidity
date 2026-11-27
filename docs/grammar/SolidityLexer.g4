@@ -237,9 +237,12 @@ OctalNumber: '0' DecimalDigits ('.' DecimalDigits)?;
  * an optional positive or negative exponent.
  * If the digits contain a decimal point, the literal has fixed point type.
  */
-DecimalNumber: (DecimalDigits | (DecimalDigits? '.' DecimalDigits)) ([eE] '-'? DecimalDigits)?;
+DecimalNumber: (DecimalDigits | (DecimalDigits? '.' DecimalDigits)) ([eE] '-'? DecimalExponentDigits)?;
 //@doc:inline
 fragment DecimalDigits: [0-9] ('_'? [0-9])* ;
+// The exponent must not have leading zeros, like the octal numbers above.
+//@doc:inline
+fragment DecimalExponentDigits: '0' | [1-9] ('_'? [0-9])* ;
 
 
 /**
