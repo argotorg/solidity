@@ -3110,48 +3110,36 @@ void IRGeneratorForStatements::appendAndOrOperatorCode(BinaryOperation const& _b
 	appendCode() << "}\n";
 }
 
-void IRGeneratorForStatements::emitStorageAssignment(
-	Type const& _from,
-	Type const& _to,
-	IRLValue::GenericStorage const& _lhs,
-	IRVariable const& _rhs,
-	VariableDeclaration::Location const _storageLocation
-)
-{
-	std::string offsetArgument;
-	std::optional<unsigned> offsetStatic;
-
-	std::visit(GenericVisitor{
-		[&](unsigned _offset) { offsetStatic = _offset; },
-		[&](std::string const& _offset) { offsetArgument = ", " + _offset; }
-	}, _lhs.offset);
-
-	ReferenceType const* toAsReferenceType = dynamic_cast<ReferenceType const*>(&_to);
-	ReferenceType const* fromAsReferenceType = dynamic_cast<ReferenceType const*>(&_from);
-	bool const needsRuntimeOverlapGuard = toAsReferenceType && fromAsReferenceType && toAsReferenceType->copyRequiresRuntimeOverlapGuard(*fromAsReferenceType);
-	auto const functionToCall = needsRuntimeOverlapGuard ?
-		m_utils.copyToStorageWithOverlapGuardFunction(*fromAsReferenceType, *toAsReferenceType, offsetStatic) :
-		m_utils.updateStorageValueFunction(_from, _to, _storageLocation, offsetStatic);
-
-	appendCode() <<
-		functionToCall <<
-		"(" <<
-		_lhs.slot <<
-		offsetArgument <<
-		_rhs.commaSeparatedListPrefixed() <<
-		")\n";
-
-}
-
 void IRGeneratorForStatements::writeToLValue(IRLValue const& _lvalue, IRVariable const& _value)
 {
 	std::visit(
 		util::GenericVisitor{
-			[&](IRLValue::Storage const& _storage) {
-				emitStorageAssignment(_value.type(), _lvalue.type, _storage, _value, VariableDeclaration::Location::Unspecified);
-			},
-			[&](IRLValue::TransientStorage const& _transientStorage) {
-				emitStorageAssignment(_value.type(), _lvalue.type, _transientStorage, _value, VariableDeclaration::Location::Transient);
+			// Handles both IRLValue::Storage and IRLValue::TransientStorage.
+			[&](IRLValue::GenericStorage const& _storage) {
+				bool const isTransient =
+					std::holds_alternative<IRLValue::TransientStorage>(_lvalue.kind);
+				std::string offsetArgument;
+				std::optional<unsigned> offsetStatic;
+
+				std::visit(GenericVisitor{
+					[&](unsigned _offset) { offsetStatic = _offset; },
+					[&](std::string const& _offset) { offsetArgument = ", " + _offset; }
+				}, _storage.offset);
+
+				appendCode() <<
+					m_utils.updateStorageValueFunction(
+						_value.type(),
+						_lvalue.type,
+						isTransient ?
+							VariableDeclaration::Location::Transient :
+							VariableDeclaration::Location::Unspecified,
+						offsetStatic
+					) <<
+					"(" <<
+					_storage.slot <<
+					offsetArgument <<
+					_value.commaSeparatedListPrefixed() <<
+					")\n";
 			},
 			[&](IRLValue::Memory const& _memory) {
 				if (_lvalue.type.isValueType())

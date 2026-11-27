@@ -100,7 +100,10 @@ void ArrayUtils::copyArrayToStorage(ArrayType const& _targetType, ArrayType cons
 	}
 
 	m_context.callYulFunction(
-		m_context.utilFunctions().copyArrayToStorageFunction(_sourceType, _targetType),
+		m_context.utilFunctions().copyArrayToStorageWithoutOverlapGuardFunction(
+			_sourceType,
+			_targetType
+		),
 		haveSourceLengthOnStack ? 3 : 2,
 		0
 	);

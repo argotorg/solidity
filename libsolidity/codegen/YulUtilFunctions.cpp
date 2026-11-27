@@ -1792,7 +1792,7 @@ std::string YulUtilFunctions::storageArrayPushFunction(ArrayType const& _type, T
 			("dataAreaFunction", arrayDataAreaFunction(_type))
 			("isByteArrayOrString", _type.isByteArrayOrString())
 			("indexAccess", storageArrayIndexAccessFunction(_type))
-			("storeValue", updateStorageValueFunction(*_fromType, *_type.baseType(), VariableDeclaration::Location::Unspecified))
+			("storeValue", updateStorageValueWithoutOverlapGuardFunction(*_fromType, *_type.baseType(), VariableDeclaration::Location::Unspecified))
 			("maxArrayLength", (u256(1) << 64).str())
 			("shl", shiftLeftFunctionDynamic())
 			.render();
@@ -1965,7 +1965,7 @@ std::string YulUtilFunctions::clearStorageStructFunction(StructType const& _type
 	});
 }
 
-std::string YulUtilFunctions::copyArrayToStorageFunction(ArrayType const& _fromType, ArrayType const& _toType)
+std::string YulUtilFunctions::copyArrayToStorageWithoutOverlapGuardFunction(ArrayType const& _fromType, ArrayType const& _toType)
 {
 	solAssert(
 		(*_fromType.copyForLocation(_toType.location(), _toType.isPointer())).equals(dynamic_cast<ReferenceType const&>(_toType)),
@@ -2010,15 +2010,16 @@ std::string YulUtilFunctions::copyToStorageWithOverlapGuardFunction(
 	std::string loadToMemoryFunction = readFromStorageReferenceType(*memoryFromPtr);
 	std::string copyFromMemoryFunction =
 		_fromType.category() == Type::Category::Array ?
-		copyArrayToStorageFunction(
+		copyArrayToStorageWithoutOverlapGuardFunction(
 			dynamic_cast<ArrayType const&>(*memoryFromPtr),
 			dynamic_cast<ArrayType const&>(_toType)
 		) :
-		copyStructToStorageFunction(
+		copyStructToStorageWithoutOverlapGuardFunction(
 			dynamic_cast<StructType const&>(*memoryFromPtr),
 			dynamic_cast<StructType const&>(_toType)
 		);
-	std::string copyDirectlyFunction = updateStorageValueFunction(_fromType, _toType, location, 0);
+	std::string copyDirectlyFunction =
+		updateStorageValueWithoutOverlapGuardFunction(_fromType, _toType, location, 0);
 
 	return m_functionCollector.createFunction(functionName, [&]()
 	{
@@ -2134,7 +2135,7 @@ std::string YulUtilFunctions::copyArrayToStorageDefinition(
 	// The element copies never need the overlap check:
 	// - either this copy is guarded and the check already ran, or
 	// - its operands are disjoint, and then so are their elements.
-	templ("updateStorageValue", updateStorageValueFunction(*_fromType.baseType(), *_toType.baseType(), VariableDeclaration::Location::Unspecified, 0));
+	templ("updateStorageValue", updateStorageValueWithoutOverlapGuardFunction(*_fromType.baseType(), *_toType.baseType(), VariableDeclaration::Location::Unspecified, 0));
 	templ("srcStride",
 		fromCalldata ?
 		std::to_string(_fromType.calldataStride()) :
@@ -3121,6 +3122,20 @@ std::string YulUtilFunctions::updateStorageValueFunction(
 	std::optional<unsigned> const& _offset
 )
 {
+	auto const* from = dynamic_cast<ReferenceType const*>(&_fromType);
+	auto const* to = dynamic_cast<ReferenceType const*>(&_toType);
+	if (from && to && to->copyRequiresRuntimeOverlapGuard(*from))
+		return copyToStorageWithOverlapGuardFunction(*from, *to, _offset);
+	return updateStorageValueWithoutOverlapGuardFunction(_fromType, _toType, _location, _offset);
+}
+
+std::string YulUtilFunctions::updateStorageValueWithoutOverlapGuardFunction(
+	Type const& _fromType,
+	Type const& _toType,
+	VariableDeclaration::Location _location,
+	std::optional<unsigned> const& _offset
+)
+{
 	solAssert(
 		_location == VariableDeclaration::Location::Transient ||
 		_location == VariableDeclaration::Location::Unspecified,
@@ -3213,7 +3228,7 @@ std::string YulUtilFunctions::updateStorageValueFunction(
 		templ("panic", panicFunction(PanicCode::Generic));
 		templ("value", suffixedVariableNameList("value_", 0, _fromType.sizeOnStack()));
 		if (_fromType.category() == Type::Category::Array)
-			templ("copyToStorage", copyArrayToStorageFunction(
+			templ("copyToStorage", copyArrayToStorageWithoutOverlapGuardFunction(
 				dynamic_cast<ArrayType const&>(_fromType),
 				dynamic_cast<ArrayType const&>(_toType)
 			));
@@ -3223,13 +3238,13 @@ std::string YulUtilFunctions::updateStorageValueFunction(
 				_fromType.dataStoredIn(DataLocation::CallData),
 				"Currently only calldata array slices are supported!"
 			);
-			templ("copyToStorage", copyArrayToStorageFunction(
+			templ("copyToStorage", copyArrayToStorageWithoutOverlapGuardFunction(
 				dynamic_cast<ArraySliceType const&>(_fromType).arrayType(),
 				dynamic_cast<ArrayType const&>(_toType)
 			));
 		}
 		else
-			templ("copyToStorage", copyStructToStorageFunction(
+			templ("copyToStorage", copyStructToStorageWithoutOverlapGuardFunction(
 				dynamic_cast<StructType const&>(_fromType),
 				dynamic_cast<StructType const&>(_toType)
 			));
@@ -3937,7 +3952,7 @@ std::string YulUtilFunctions::bytesToFixedBytesConversionFunction(ArrayType cons
 	});
 }
 
-std::string YulUtilFunctions::copyStructToStorageFunction(StructType const& _from, StructType const& _to)
+std::string YulUtilFunctions::copyStructToStorageWithoutOverlapGuardFunction(StructType const& _from, StructType const& _to)
 {
 	solAssert(_to.dataStoredIn(DataLocation::Storage), "");
 	solAssert(_from.structDefinition() == _to.structDefinition(), "");
@@ -4052,7 +4067,7 @@ std::string YulUtilFunctions::copyStructToStorageDefinition(
 		// The member copies never need the overlap check:
 		// - either this copy is guarded and the check already ran, or
 		// - its operands are disjoint, and then so are their members.
-		t("updateStorageValue", updateStorageValueFunction(memberType, *toStructMembers[i].type, VariableDeclaration::Location::Unspecified, offset));
+		t("updateStorageValue", updateStorageValueWithoutOverlapGuardFunction(memberType, *toStructMembers[i].type, VariableDeclaration::Location::Unspecified, offset));
 		memberParams[i]["updateMemberCall"] = t.render();
 	}
 	templ("member", memberParams);
@@ -4586,7 +4601,7 @@ std::string YulUtilFunctions::storageSetToZeroFunction(Type const& _type, Variab
 				}
 			)")
 			("functionName", functionName)
-			("store", updateStorageValueFunction(_type, _type, _location))
+			("store", updateStorageValueWithoutOverlapGuardFunction(_type, _type, _location))
 			("values", suffixedVariableNameList("zero_", 0, _type.sizeOnStack()))
 			("zeroValue", zeroValueFunction(_type))
 			.render();
