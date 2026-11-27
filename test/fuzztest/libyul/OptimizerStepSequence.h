@@ -36,7 +36,7 @@ namespace solidity::yul::test
 {
 
 /// Any sequence of up to @a _maxSize optimizer steps, as their abbreviations.
-fuzztest::Domain<std::string> stepsDomain(std::size_t _maxSize);
+fuzztest::Domain<std::string> stepsDomain(std::size_t _maxSize = 12);
 
 /// @returns the steps that have to run before @a _steps, in the order they have to run in. Only those that
 /// @a _steps need, so that the other steps also get to run on code that is not hoisted, not grouped or has loop
