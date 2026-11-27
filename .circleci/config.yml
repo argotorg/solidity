@@ -11,6 +11,10 @@ parameters:
     type: string
     # ghcr.io/argotorg/solidity-buildpack-deps:ubuntu2404-8
     default: "ghcr.io/argotorg/solidity-buildpack-deps@sha256:2a8487a3f031000004dda3f16ac82115dd29f91b2dc91ff4f47cd6156ce5786c"
+  ubuntu-2604-docker-image:
+    type: string
+    # ghcr.io/argotorg/solidity-buildpack-deps:ubuntu2604-1
+    default: "ghcr.io/argotorg/solidity-buildpack-deps@sha256:468f50517423ebd371500bc6ebd30a92857170938743af1c71b6678aa3030bb1"
   ubuntu-2404-arm-docker-image:
     type: string
     # ghcr.io/argotorg/solidity-buildpack-deps:ubuntu2404.arm-4
@@ -540,6 +544,14 @@ defaults:
         MAKEFLAGS: -j 3
         CPUs: 3
 
+  - base_ubuntu2604: &base_ubuntu2604
+      docker:
+        - image: << pipeline.parameters.ubuntu-2604-docker-image >>
+      environment: &base_ubuntu2604_env
+        TERM: xterm
+        MAKEFLAGS: -j 3
+        CPUs: 3
+
   - base_ubuntu2404_clang: &base_ubuntu2404_clang
       docker:
         - image: << pipeline.parameters.ubuntu-2404-clang-docker-image >>
@@ -558,11 +570,11 @@ defaults:
         MAKEFLAGS: -j 5
         CPUs: 5
 
-  - base_ubuntu2404_small: &base_ubuntu2404_small
-      <<: *base_ubuntu2404
+  - base_ubuntu2604_small: &base_ubuntu2604_small
+      <<: *base_ubuntu2604
       resource_class: small
-      environment: &base_ubuntu2404_small_env
-        <<: *base_ubuntu2404_env
+      environment: &base_ubuntu2604_small_env
+        <<: *base_ubuntu2604_env
         MAKEFLAGS: -j 2
         CPUs: 2
 
@@ -571,6 +583,14 @@ defaults:
       resource_class: large
       environment: &base_ubuntu2404_large_env
         <<: *base_ubuntu2404_env
+        MAKEFLAGS: -j 5
+        CPUs: 5
+
+  - base_ubuntu2604_large: &base_ubuntu2604_large
+      <<: *base_ubuntu2604
+      resource_class: large
+      environment: &base_ubuntu2604_large_env
+        <<: *base_ubuntu2604_env
         MAKEFLAGS: -j 5
         CPUs: 5
 
@@ -592,11 +612,11 @@ defaults:
         MAKEFLAGS: -j 7
         CPUs: 7
 
-  - base_ubuntu2404_xlarge: &base_ubuntu2404_xlarge
-      <<: *base_ubuntu2404
+  - base_ubuntu2604_xlarge: &base_ubuntu2604_xlarge
+      <<: *base_ubuntu2604
       resource_class: xlarge
-      environment: &base_ubuntu2404_xlarge_env
-        <<: *base_ubuntu2404_env
+      environment: &base_ubuntu2604_xlarge_env
+        <<: *base_ubuntu2604_env
         MAKEFLAGS: -j 10
         CPUs: 10
 
@@ -851,7 +871,7 @@ defaults:
 jobs:
 
   chk_spelling:
-    <<: *base_ubuntu2404_small
+    <<: *base_ubuntu2604_small
     steps:
       - checkout
       - attach_workspace:
@@ -881,7 +901,7 @@ jobs:
 
 
   chk_errorcodes:
-    <<: *base_ubuntu2404_small
+    <<: *base_ubuntu2604_small
     steps:
       - checkout
       - run:
@@ -890,7 +910,7 @@ jobs:
       - matrix_notify_failure_unless_pr
 
   chk_pylint:
-    <<: *base_ubuntu2404_small
+    <<: *base_ubuntu2604_small
     steps:
       - install_python3:
           packages: pyyaml jsonschema
@@ -931,21 +951,21 @@ jobs:
       - matrix_notify_failure_unless_pr
 
   chk_proofs:
-    <<: *base_ubuntu2404_small
+    <<: *base_ubuntu2604_small
     steps:
       - checkout
       - run_proofs
       - matrix_notify_failure_unless_pr
 
   chk_docs_pragma_min_version:
-    <<: *base_ubuntu2404_small
+    <<: *base_ubuntu2604_small
     steps:
       - checkout
       - run_docs_pragma_min_version
       - matrix_notify_failure_unless_pr
 
   t_ubu_pyscripts:
-    <<: *base_ubuntu2404_small
+    <<: *base_ubuntu2604_small
     steps:
       - install_python3:
           packages: pyyaml jsonschema
@@ -974,7 +994,7 @@ jobs:
   b_ubu: &b_ubu
     # this runs 2x faster on xlarge but takes 4x more resources (compared to medium).
     # Enough other jobs depend on it that it's worth it though.
-    <<: *base_ubuntu2404_xlarge
+    <<: *base_ubuntu2604_xlarge
     steps:
       - build
       - run: cat prerelease.txt
@@ -982,9 +1002,9 @@ jobs:
   # x64 ASAN build, for testing for memory related bugs
   b_ubu_asan: &b_ubu_asan
     # Runs slightly faster on large and xlarge but we only run it nightly so efficiency matters more.
-    <<: *base_ubuntu2404
+    <<: *base_ubuntu2604
     environment:
-      <<: *base_ubuntu2404_env
+      <<: *base_ubuntu2604_env
       # NOTE: Sanitizers may alter the intermediate code, potentially causing false warnings.
       # As a result, treating warnings as errors in instrumented builds can lead to build failures due to these false positives.
       # Therefore, we disable pedantic builds in such cases.
@@ -1020,14 +1040,14 @@ jobs:
   b_ubu_force_release: &b_ubu_force_release
     <<: *b_ubu
     environment:
-      <<: *base_ubuntu2404_xlarge_env
+      <<: *base_ubuntu2604_xlarge_env
       FORCE_RELEASE: ON
 
   b_ubu_static:
     # On large runs 2x faster than on medium. 3x on xlarge.
-    <<: *base_ubuntu2404_xlarge
+    <<: *base_ubuntu2604_xlarge
     environment:
-      <<: *base_ubuntu2404_xlarge_env
+      <<: *base_ubuntu2604_xlarge_env
       CMAKE_OPTIONS: -DCMAKE_BUILD_TYPE=Release -DSOLC_LINK_STATIC=ON
     steps:
       - checkout
@@ -1100,7 +1120,7 @@ jobs:
       - soltest
 
   b_ubu_property_tests: &b_ubu_property_tests
-    <<: *base_ubuntu2404_large
+    <<: *base_ubuntu2604_large
     steps:
       - checkout
       - run_build_property_tests
@@ -1204,7 +1224,7 @@ jobs:
       - matrix_notify_failure_unless_pr
 
   b_docs:
-    <<: *base_ubuntu2404_small
+    <<: *base_ubuntu2604_small
     steps:
       - checkout
       - setup_prerelease
@@ -1222,10 +1242,10 @@ jobs:
       - matrix_notify_failure_unless_pr
 
   t_ubu_soltest: &t_ubu_soltest
-    <<: *base_ubuntu2404_large
+    <<: *base_ubuntu2604_large
     parallelism: 20
     environment:
-      <<: *base_ubuntu2404_large_env
+      <<: *base_ubuntu2604_large_env
       EVM: << pipeline.parameters.evm-version >>
       OPTIMIZE: 0
     steps:
@@ -1253,7 +1273,7 @@ jobs:
       - matrix_notify_failure_unless_pr
 
   t_ubu_soltest_low_priority_evm_versions: &t_ubu_soltest_low_priority_evm_versions
-    <<: *base_ubuntu2404_large
+    <<: *base_ubuntu2604_large
     parallelism: 50
     steps:
       - checkout
@@ -1302,13 +1322,13 @@ jobs:
       - soltest
 
   t_ubu_force_release_soltest_all: &t_ubu_force_release_soltest_all
-    <<: *base_ubuntu2404_large
+    <<: *base_ubuntu2604_large
     parallelism: 50
     steps:
       - soltest_all
 
   t_ubu_cli: &t_ubu_cli
-    <<: *base_ubuntu2404_small
+    <<: *base_ubuntu2604_small
     parallelism: 8 # Should match number of tests in .circleci/parallel_cli_tests.py
     steps:
       - cmdline_tests
@@ -1332,7 +1352,7 @@ jobs:
     <<: *t_ubu_cli
 
   t_ubu_locale:
-    <<: *base_ubuntu2404_small
+    <<: *base_ubuntu2604_small
     steps:
       - checkout
       - attach_workspace:
@@ -1342,10 +1362,10 @@ jobs:
 
   t_ubu_asan_cli:
     # Runs slightly faster on medium but we only run it nightly so efficiency matters more.
-    <<: *base_ubuntu2404
+    <<: *base_ubuntu2604
     parallelism: 8 # Should match number of tests in .circleci/parallel_cli_tests.py
     environment:
-      <<: *base_ubuntu2404_env
+      <<: *base_ubuntu2604_env
       ASAN_OPTIONS: check_initialization_order=true:detect_stack_use_after_return=true:strict_init_order=true:strict_string_checks=true:detect_invalid_pointer_pairs=2
       # Suppress CLN memory leak.
       # See: https://github.com/argotorg/solidity/issues/13891 for details.
@@ -1354,10 +1374,10 @@ jobs:
       - cmdline_tests
 
   t_ubu_asan_soltest:
-    <<: *base_ubuntu2404
+    <<: *base_ubuntu2604
     parallelism: 20
     environment:
-      <<: *base_ubuntu2404_env
+      <<: *base_ubuntu2604_env
       EVM: << pipeline.parameters.evm-version >>
       OPTIMIZE: 0
       SOLTEST_FLAGS: --no-smt
@@ -1398,7 +1418,7 @@ jobs:
 
   t_ems_solcjs:
     # Unlike other t_ems jobs this one actually runs 2x faster on medium (compared to small).
-    <<: *base_ubuntu2404
+    <<: *base_ubuntu2604
     steps:
       - checkout
       - attach_workspace:
@@ -1419,11 +1439,11 @@ jobs:
 
   t_ems_ext_edr:
     # Runs out of memory on the small instance
-    <<: *base_ubuntu2404
+    <<: *base_ubuntu2604
     docker:
       - image: cimg/rust:1.85.0-node
     environment:
-      <<: *base_ubuntu2404_env
+      <<: *base_ubuntu2604_env
       EDR_TESTS_SOLC_PATH: /tmp/workspace/soljson.js
     steps:
       - checkout
@@ -1702,7 +1722,7 @@ jobs:
     parameters:
       preset:
         type: string
-    <<: *base_ubuntu2404_small
+    <<: *base_ubuntu2604_small
     parallelism: 2 # For prepare_bytecode_report
     steps:
       - checkout
@@ -1718,7 +1738,7 @@ jobs:
     parameters:
       preset:
         type: string
-    <<: *base_ubuntu2404_small
+    <<: *base_ubuntu2604_small
     parallelism: 2 # For prepare_bytecode_report
     steps:
       - checkout
@@ -1825,9 +1845,9 @@ jobs:
           preset: "<< parameters.preset >>"
 
   t_bytecode_compare:
-    <<: *base_ubuntu2404_small
+    <<: *base_ubuntu2604_small
     environment:
-      <<: *base_ubuntu2404_small_env
+      <<: *base_ubuntu2604_small_env
       <<: *bytecode_compare_env_presets
     steps:
       - checkout
@@ -1841,7 +1861,7 @@ jobs:
       - matrix_notify_failure_unless_pr
 
   c_release_binaries:
-    <<: *base_ubuntu2404
+    <<: *base_ubuntu2604
     steps:
       - checkout
       - attach_workspace:
@@ -1884,7 +1904,7 @@ jobs:
       - matrix_notify_release_unless_pr
 
   c_source_tarball:
-    <<: *base_ubuntu2404_small
+    <<: *base_ubuntu2604_small
     steps:
       - checkout
       - setup_prerelease

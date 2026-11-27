@@ -279,7 +279,7 @@ function split_on_empty_lines_into_numbered_files
     path_prefix="${1}"
     path_suffix="${2}"
 
-    awk -v RS= "{print > (\"${path_prefix}_\"NR \"${path_suffix}\")}"
+    awk -v RS= "{print > (\"${path_prefix}_\"NR \"${path_suffix}\")}" > /dev/null
 }
 
 function command_available
