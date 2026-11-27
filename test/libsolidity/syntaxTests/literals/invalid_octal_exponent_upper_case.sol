@@ -1,0 +1,5 @@
+contract C {
+    uint x = 1E010;
+}
+// ----
+// ParserError 8936: (26-28): Octal numbers not allowed.

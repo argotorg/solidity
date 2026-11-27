@@ -1015,6 +1015,16 @@ Token Scanner::scanNumber(char _charSeen)
 			addLiteralCharAndAdvance();
 		if (!isDecimalDigit(m_char)) // we must have at least one decimal digit after 'e'/'E'
 			return setError(ScannerError::IllegalExponent);
+		// We do not allow leading zeros (octal numbers) in the exponent either
+		if (m_char == '0' && !m_source.isPastEndOfInput(1))
+		{
+			char const next = m_source.get(1);
+			if (
+				isDecimalDigit(next) ||
+				(next == '_' && !m_source.isPastEndOfInput(2) && isDecimalDigit(m_source.get(2)))
+			)
+				return setError(ScannerError::OctalNotAllowed);
+		}
 		scanDecimalDigits();
 	}
 	// The source character immediately following a numeric literal must
