@@ -92,7 +92,7 @@ std::unique_ptr<frontend::test::TestCase> SpillTest::create(Config const& _confi
 	return std::make_unique<SpillTest>(_config.filename);
 }
 
-SpillTest::SpillTest(std::string const& _filename): TestCase(_filename)
+SpillTest::SpillTest(std::string const& _filename): EVMVersionRestrictedTestCase(_filename)
 {
 	m_source = m_reader.source();
 	auto const dialectName = m_reader.stringSetting("dialect", "evm");

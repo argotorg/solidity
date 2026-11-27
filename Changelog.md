@@ -18,6 +18,7 @@ Language Features:
 * ABIEncoder: Remove support for the experimental pragma `ABIEncoderV2`. This pragma was redundant.
 
 Compiler Features:
+* Code Generator: Use `DUPN` and `SWAPN` when compiling for the Amsterdam EVM version ([EIP-8024](https://eips.ethereum.org/EIPS/eip-8024)).
 * Commandline Interface: Remove the experimental `--ethdebug-resources` and `--ethdebug-compilation` outputs from assembler mode.
 * Standard JSON Interface: Remove the experimental `ethdebug.resources` and `ethdebug.compilation` outputs for Yul input.
 

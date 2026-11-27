@@ -63,6 +63,16 @@ void EthAssemblyAdapter::appendInstruction(evmasm::Instruction _instruction)
 	m_assembly.append(_instruction);
 }
 
+void EthAssemblyAdapter::appendSwap(unsigned _depth)
+{
+	m_assembly.append(evmasm::AssemblyItem::swap(_depth));
+}
+
+void EthAssemblyAdapter::appendDup(unsigned _depth)
+{
+	m_assembly.append(evmasm::AssemblyItem::dup(_depth));
+}
+
 void EthAssemblyAdapter::appendConstant(u256 const& _constant)
 {
 	m_assembly.append(_constant);

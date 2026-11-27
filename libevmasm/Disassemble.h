@@ -24,13 +24,20 @@
 #include <libevmasm/Instruction.h>
 
 #include <functional>
+#include <optional>
 #include <string>
 
 namespace solidity::evmasm
 {
 
 /// Iterate through EVM code and call a function on each instruction.
-void eachInstruction(bytes const& _mem, langutil::EVMVersion _evmVersion, std::function<void(Instruction, u256 const&)> const& _onInstruction);
+/// Instructions without an immediate argument get 0 as data. If the immediate argument of
+/// an instruction is invalid (see isValidImmediateData()), std::nullopt is passed instead
+/// and the immediate bytes are not consumed, i.e. they are decoded as the following instructions.
+void eachInstruction(
+	bytes const& _mem, langutil::EVMVersion _evmVersion,
+	std::function<void(Instruction, std::optional<u256> const&)> const& _onInstruction
+);
 
 /// Convert from EVM code to simple EVM assembly language.
 std::string disassemble(bytes const& _mem, langutil::EVMVersion _evmVersion, std::string const& _delimiter = " ");

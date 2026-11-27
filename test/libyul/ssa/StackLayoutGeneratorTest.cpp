@@ -148,7 +148,7 @@ std::unique_ptr<frontend::test::TestCase> StackLayoutGeneratorTest::create(Confi
 	return std::make_unique<StackLayoutGeneratorTest>(_config.filename);
 }
 
-StackLayoutGeneratorTest::StackLayoutGeneratorTest(std::string const& _filename): TestCase(_filename)
+StackLayoutGeneratorTest::StackLayoutGeneratorTest(std::string const& _filename): EVMVersionRestrictedTestCase(_filename)
 {
 	m_source = m_reader.source();
 	auto dialectName = m_reader.stringSetting("dialect", "evm");

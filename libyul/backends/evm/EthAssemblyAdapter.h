@@ -44,6 +44,8 @@ public:
 	int stackHeight() const override;
 	void setStackHeight(int height) override;
 	void appendInstruction(evmasm::Instruction _instruction) override;
+	void appendSwap(unsigned _depth) override;
+	void appendDup(unsigned _depth) override;
 	void appendConstant(u256 const& _constant) override;
 	void appendLabel(LabelID _labelId) override;
 	void appendLabelReference(LabelID _labelId) override;

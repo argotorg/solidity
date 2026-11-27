@@ -425,10 +425,10 @@ void CompilerContext::appendInlineAssembly(
 				util::errinfo_comment(util::stackTooDeepString)
 			);
 		if (_context == yul::IdentifierContext::RValue)
-			_assembly.appendInstruction(dupInstruction(static_cast<unsigned>(stackDiff)));
+			_assembly.appendDup(static_cast<unsigned>(stackDiff));
 		else
 		{
-			_assembly.appendInstruction(swapInstruction(static_cast<unsigned>(stackDiff)));
+			_assembly.appendSwap(static_cast<unsigned>(stackDiff));
 			_assembly.appendInstruction(Instruction::POP);
 		}
 	};

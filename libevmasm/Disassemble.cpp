@@ -30,7 +30,7 @@ using namespace solidity::evmasm;
 void solidity::evmasm::eachInstruction(
 	bytes const& _mem,
 	langutil::EVMVersion _evmVersion,
-	std::function<void(Instruction,u256 const&)> const& _onInstruction
+	std::function<void(Instruction, std::optional<u256> const&)> const& _onInstruction
 )
 {
 	for (auto it = _mem.begin(); it < _mem.end(); ++it)
@@ -42,17 +42,25 @@ void solidity::evmasm::eachInstruction(
 
 		u256 data{};
 
+		auto immediateIt = it;
 		// fill the data with the additional data bytes from the instruction stream
-		while (additional > 0 && std::next(it) < _mem.end())
+		while (additional > 0 && std::next(immediateIt) < _mem.end())
 		{
 			data <<= 8;
-			data |= *++it;
+			data |= *++immediateIt;
 			--additional;
 		}
 
 		// pad the remaining number of additional octets with zeros
 		data <<= 8 * additional;
 
+		if (!isValidImmediateData(instr, data))
+		{
+			// Invalid immediate data is not consumed, its bytes are decoded as the following instructions.
+			_onInstruction(instr, std::nullopt);
+			continue;
+		}
+		it = immediateIt;
 		_onInstruction(instr, data);
 	}
 }
@@ -60,15 +68,30 @@ void solidity::evmasm::eachInstruction(
 std::string solidity::evmasm::disassemble(bytes const& _mem, langutil::EVMVersion _evmVersion, std::string const& _delimiter)
 {
 	std::stringstream ret;
-	eachInstruction(_mem, _evmVersion, [&](Instruction _instr, u256 const& _data) {
+	eachInstruction(_mem, _evmVersion, [&](Instruction _instr, std::optional<u256> const& _data) {
 		if (!isValidInstruction(_instr))
 			ret << "0x" << std::uppercase << std::hex << static_cast<int>(_instr) << _delimiter;
+		else if (!_data.has_value())
+			// std::nullopt means the instruction has an invalid immediate. This currently only happens
+			// for DUPN/SWAPN when an immediate is in [0x5b, 0x7f] (JUMPDEST, PUSH*). EIP-8024 disallows these values so that
+			// JUMPDEST analysis stays unchanged (https://eips.ethereum.org/EIPS/eip-8024#disallowed-immediate-range).
+			// The immediate byte was not consumed and gets decoded as the next instruction,
+			// e.g. `e65b` -> `INVALID_DUPN JUMPDEST`, `e6605b` -> `INVALID_DUPN PUSH1 0x5B`
+			// (see https://eips.ethereum.org/EIPS/eip-8024#assemblydisassembly).
+			ret << "INVALID_" << instructionInfo(_instr, _evmVersion).name << _delimiter;
+		else if (_instr == Instruction::DUPN || _instr == Instruction::SWAPN)
+			// The immediate is printed as the decoded stack depth, e.g. `e680` -> `DUPN 17` (EIP-8024).
+			ret << instructionInfo(_instr, _evmVersion).name
+				<< " "
+				<< std::dec
+				<< decodeDupSwapNImmediate(static_cast<uint8_t>(*_data))
+				<< _delimiter;
 		else
 		{
 			InstructionInfo info = instructionInfo(_instr, _evmVersion);
 			ret << info.name;
 			if (info.additional)
-				ret << " 0x" << std::uppercase << std::hex << _data;
+				ret << " 0x" << std::uppercase << std::hex << *_data;
 			ret << _delimiter;
 		}
 	});
