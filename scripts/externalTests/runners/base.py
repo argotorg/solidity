@@ -38,6 +38,7 @@ from test_helpers import get_solc_short_version
 from test_helpers import parse_command_line
 from test_helpers import parse_custom_presets
 from test_helpers import parse_solc_version
+from test_helpers import remove_experimental_abi_encoder_v2_pragmas
 from test_helpers import replace_version_pragmas
 from test_helpers import settings_from_preset
 from test_helpers import SettingsPreset
@@ -107,6 +108,7 @@ class BaseRunner(metaclass=ABCMeta):
     def setup_environment(self):
         """Configure the project build environment"""
         replace_version_pragmas(self.test_dir)
+        remove_experimental_abi_encoder_v2_pragmas(self.test_dir)
 
     @enter_test_dir
     def clean(self):
