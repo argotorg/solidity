@@ -55,7 +55,7 @@
     }
 }
 // ====
-// EVMVersion: >homestead,<=osaka
+// EVMVersion: >=constantinople,<=osaka
 // ----
 // step: fullSuite
 //
