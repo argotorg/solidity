@@ -3,7 +3,7 @@
 // {
 //     "ethdebug": {
 //         "schema": "ethdebug/format/info/resources",
-//         "version": "0.1.0-draft.2"
+//         "version": "0.1.0-draft.3"
 //     },
 //     "pointers": {},
 //     "types": {}

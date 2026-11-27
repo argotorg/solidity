@@ -46,5 +46,6 @@ After that review, regenerate it with:
 python3 test/ethdebugSchemaTests/generate_schema_fields.py
 ```
 
-The submodule is pinned to the `0.1.0-draft.2` release of ethdebug/format, the version the compiler targets.
-To update the schema version, bump the submodule commit, update the version and the links in `docs/ethdebug.rst` and rerun this suite.
+The submodule is pinned to the `0.1.0-draft.3` release of ethdebug/format, the version the compiler targets.
+When bumping the submodule, update the emitted stamp version, the fixture expectations and the version and links in `docs/ethdebug.rst`.
+Review any schema changes before updating the inventory and rerun this suite.

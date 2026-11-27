@@ -40,7 +40,7 @@ struct Source
 
 /// The version of the ethdebug/format specification the outputs follow, which
 /// the stamps of the programs and of the resources name.
-constexpr std::string_view SpecificationVersion = "0.1.0-draft.2";
+constexpr std::string_view SpecificationVersion = "0.1.0-draft.3";
 
 /// Returns ethdebug/format/program, stamped with its schema and the specification version.
 /// @param _sourceIndices Maps instruction source names to their source IDs.
