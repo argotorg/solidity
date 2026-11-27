@@ -1761,6 +1761,7 @@ public:
 /// @returns true if @a _type and every type nested in it are valid to be stored in data location @a _loc
 /// Descends into array base types, struct members and mapping value types.
 /// For calldata, this should only be called if the type has an interfaceType.
+/// Types containing (nested) mappings are only accepted for storage.
 BoolResult validForLocation(Type const* _type, DataLocation _loc);
 
 }

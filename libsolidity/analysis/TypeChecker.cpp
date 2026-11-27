@@ -162,8 +162,13 @@ TypePointers TypeChecker::typeCheckABIDecodeAndRetrieveReturnType(FunctionCall c
 
 			if (auto referenceType = dynamic_cast<ReferenceType const*>(actualType))
 			{
-				auto result = validForLocation(referenceType, referenceType->location());
-				if (!result)
+				if (referenceType->containsNestedMapping())
+					m_errorReporter.typeError(
+						5130_error,
+						typeArgument->location(),
+						"Type " + referenceType->toString(true) + " is valid only in storage because it contains a (nested) mapping."
+					);
+				else if (auto result = validForLocation(referenceType, referenceType->location()); !result)
 					m_errorReporter.typeError(
 						6118_error,
 						typeArgument->location(),
@@ -521,6 +526,16 @@ bool TypeChecker::visit(VariableDeclaration const& _variable)
 		result = validForLocation(varType, DataLocation::Storage);
 	else if (auto referenceType = dynamic_cast<ReferenceType const*>(varType))
 	{
+		if (referenceType->location() != DataLocation::Storage && referenceType->containsNestedMapping())
+		{
+			m_errorReporter.typeError(
+				8173_error,
+				_variable.location(),
+				"Type " + referenceType->toString(true) + " is valid only in storage because it contains a mapping."
+			);
+			return false;
+		}
+
 		result = validForLocation(referenceType, referenceType->location());
 		if (result)
 		{
