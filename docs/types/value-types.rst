@@ -841,6 +841,14 @@ functions.
 External function types, on the other hand, are only compatible with public and external contract
 functions.
 
+Libraries are excluded because they require a ``delegatecall`` and use :ref:`a different ABI
+convention for their selectors <library-selectors>`.
+Functions declared in interfaces do not have definitions so pointing at them does not make sense either.
+
+Public and external library functions have their own type distinct from both internal and external function types.
+Such functions are convertible only to the type of another public or external library function.
+They can never be converted to or from internal or external function types.
+
 .. note::
     External functions with ``calldata`` parameters are incompatible with external function types with ``calldata`` parameters.
     They are compatible with the corresponding types with ``memory`` parameters instead.
@@ -854,10 +862,6 @@ functions.
 
 .. note::
     Since Solidity 0.9.0, internal function pointers can no longer be compared.
-
-Libraries are excluded because they require a ``delegatecall`` and use :ref:`a different ABI
-convention for their selectors <library-selectors>`.
-Functions declared in interfaces do not have definitions so pointing at them does not make sense either.
 
 Members
 ^^^^^^^
