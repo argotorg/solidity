@@ -120,7 +120,7 @@ BOOST_AUTO_TEST_CASE(cli_mode_options)
 			"--ignore-missing",
 			"--output-dir=/tmp/out",
 			"--overwrite",
-			"--evm-version=spuriousDragon",
+			"--evm-version=prague",
 			"--via-ir",
 			"--experimental-via-ir",
 			"--revert-strings=strip",
@@ -145,10 +145,9 @@ BOOST_AUTO_TEST_CASE(cli_mode_options)
 			"--optimize-yul",
 			"--optimize-runs=1000",
 			"--yul-optimizations=agf",
-			"--model-checker-bmc-loop-iterations=2",
 			"--model-checker-contracts=contract1.yul:A,contract2.yul:B",
 			"--model-checker-div-mod-no-slacks",
-			"--model-checker-engine=bmc",
+			"--model-checker-engine=chc",
 			"--model-checker-ext-calls=trusted",
 			"--model-checker-invariants=contract,reentrancy",
 			"--model-checker-show-proved-safe",
@@ -183,7 +182,7 @@ BOOST_AUTO_TEST_CASE(cli_mode_options)
 		expectedOptions.input.ignoreMissingFiles = true;
 		expectedOptions.output.dir = "/tmp/out";
 		expectedOptions.output.overwriteFiles = true;
-		expectedOptions.output.evmVersion = EVMVersion::spuriousDragon();
+		expectedOptions.output.evmVersion = EVMVersion::prague();
 		expectedOptions.output.viaIR = true;
 		expectedOptions.output.viaSSACFG = true;
 		expectedOptions.output.revertStrings = RevertStrings::Strip;
@@ -217,17 +216,16 @@ BOOST_AUTO_TEST_CASE(cli_mode_options)
 
 		expectedOptions.modelChecker.initialize = true;
 		expectedOptions.modelChecker.settings = {
-			2,
 			{{{"contract1.yul", {"A"}}, {"contract2.yul", {"B"}}}},
 			true,
-			{true, false},
+			ModelCheckerEngine::CHC(),
 			{ModelCheckerExtCalls::Mode::TRUSTED},
 			{{InvariantType::Contract, InvariantType::Reentrancy}},
 			false, // --model-checker-print-query
 			true,
 			true,
 			true,
-			{false, false, true, true},
+			{false, true, true},
 			{{VerificationTargetType::Underflow, VerificationTargetType::DivByZero}},
 			5,
 		};
@@ -298,7 +296,7 @@ BOOST_AUTO_TEST_CASE(assembly_mode_options)
 			"--allow-paths=/tmp,/home,project,../contracts",
 			"--ignore-missing",
 			"--overwrite",
-			"--evm-version=spuriousDragon",
+			"--evm-version=prague",
 			"--revert-strings=strip",      // Accepted but has no effect in assembly mode
 			"--debug-info=location",
 			"--pretty-json",
@@ -336,7 +334,7 @@ BOOST_AUTO_TEST_CASE(assembly_mode_options)
 		expectedOptions.input.allowedDirectories = {"/tmp", "/home", "project", "../contracts", "c", "/usr/lib"};
 		expectedOptions.input.ignoreMissingFiles = true;
 		expectedOptions.output.overwriteFiles = true;
-		expectedOptions.output.evmVersion = EVMVersion::spuriousDragon();
+		expectedOptions.output.evmVersion = EVMVersion::prague();
 		expectedOptions.output.revertStrings = RevertStrings::Strip;
 		expectedOptions.output.debugInfoSelection = DebugInfoSelection::fromString("location");
 		expectedOptions.formatting.json = JsonFormat {JsonFormat::Pretty, 1};
@@ -378,7 +376,7 @@ BOOST_AUTO_TEST_CASE(standard_json_mode_options)
 		"--ignore-missing",
 		"--output-dir=/tmp/out",           // Accepted but has no effect in Standard JSON mode
 		"--overwrite",                     // Accepted but has no effect in Standard JSON mode
-		"--evm-version=spuriousDragon",    // Ignored in Standard JSON mode
+		"--evm-version=prague",            // Ignored in Standard JSON mode
 		"--revert-strings=strip",          // Accepted but has no effect in Standard JSON mode
 		"--pretty-json",
 		"--json-indent=1",

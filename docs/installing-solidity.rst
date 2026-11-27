@@ -527,7 +527,7 @@ If you are interested what CMake options are available run ``cmake .. -LH``.
 
 SMT Solvers
 -----------
-Solidity can optionally use SMT solvers, namely ``z3``, ``cvc5`` and ``Eldarica``,
+Solidity can optionally use SMT solvers, namely ``z3``, and ``Eldarica``,
 but their presence is checked only at runtime, they are not needed for the build to succeed.
 
 .. note::

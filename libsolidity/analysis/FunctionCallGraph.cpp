@@ -219,18 +219,11 @@ bool FunctionCallGraphBuilder::visit(UnaryOperation const& _unaryOperation)
 
 bool FunctionCallGraphBuilder::visit(ModifierInvocation const& _modifierInvocation)
 {
-	if (auto const* modifier = dynamic_cast<ModifierDefinition const*>(_modifierInvocation.name().annotation().referencedDeclaration))
-	{
-		VirtualLookup const& requiredLookup = *_modifierInvocation.name().annotation().requiredLookup;
-
-		if (requiredLookup == VirtualLookup::Virtual)
-			functionReferenced(modifier->resolveVirtual(m_contract));
-		else
-		{
-			solAssert(requiredLookup == VirtualLookup::Static, "");
-			functionReferenced(*modifier);
-		}
-	}
+	Declaration const* declaration = _modifierInvocation.name().annotation().referencedDeclaration;
+	if (auto const* modifier = dynamic_cast<ModifierDefinition const*>(declaration))
+		functionReferenced(*modifier);
+	else // base constructor call, added in buildCreationGraph()
+		solAssert(dynamic_cast<ContractDefinition const*>(declaration));
 
 	return true;
 }

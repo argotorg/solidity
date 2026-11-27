@@ -75,7 +75,6 @@
             "src": "23:8:1"
           },
           "src": "13:25:1",
-          "virtual": false,
           "visibility": "internal"
         },
         {
@@ -95,9 +94,8 @@
                 {
                   "hexValue": "31",
                   "id": 9,
-                  "isConstant": false,
                   "isLValue": false,
-                  "isPure": true,
+                  "isRuntimeConstant": true,
                   "kind": "number",
                   "lValueRequested": false,
                   "nodeType": "Literal",

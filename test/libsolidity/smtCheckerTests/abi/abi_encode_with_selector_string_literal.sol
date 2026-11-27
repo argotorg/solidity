@@ -23,6 +23,5 @@ contract C {
 // ----
 // Warning 6328: (403-433): CHC: Assertion violation happens here.\nCounterexample:\n\nsel = 0x0\nb5 = []\nb6 = []\n\nTransaction trace:\nC.constructor()\nC.abiEncodeStringLiteral(0x0)
 // Warning 6328: (514-544): CHC: Assertion violation happens here.\nCounterexample:\n\nsel = 0x0\nb5 = []\nb6 = []\n\nTransaction trace:\nC.constructor()\nC.abiEncodeStringLiteral(0x0)
-// Warning 6328: (673-703): CHC: Assertion violation happens here.\nCounterexample:\n\nsel = 0x0\n\nTransaction trace:\nC.constructor()\nC.abiEncodeStringLiteral(0x0)
+// Warning 6328: (673-703): CHC: Assertion violation happens here.
 // Info 1391: CHC: 2 verification condition(s) proved safe! Enable the model checker option "show proved safe" to see all of them.
-// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

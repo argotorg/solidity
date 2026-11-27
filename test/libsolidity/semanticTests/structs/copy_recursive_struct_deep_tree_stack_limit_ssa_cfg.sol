@@ -19,7 +19,7 @@ contract C {
     }
 }
 // ====
-// EVMVersion: >=byzantium
+// EVMVersion: >=constantinople
 // compileViaYul: true
 // ----
 // f(uint256): 98 -> 7

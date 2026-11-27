@@ -29,18 +29,4 @@ namespace solidity::frontend::test
 	sourceCode = sourceCodeTmp; \
 }
 
-#define OLD_ENCODER(CODE) \
-{ \
-	std::string sourceCodeTmp = sourceCode; \
-	sourceCode = "pragma abicoder v1;\n" + sourceCode; \
-	{ CODE } \
-	sourceCode = sourceCodeTmp; \
-}
-
-#define BOTH_ENCODERS(CODE) \
-{ \
-	OLD_ENCODER(CODE) \
-	NEW_ENCODER(CODE) \
-}
-
 } // end namespaces

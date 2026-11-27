@@ -65,9 +65,8 @@
                     }
                   },
                   "id": 6,
-                  "isConstant": false,
                   "isLValue": false,
-                  "isPure": false,
+                  "isRuntimeConstant": false,
                   "kind": "functionCall",
                   "lValueRequested": false,
                   "nameLocations": [],
@@ -173,9 +172,8 @@
                       }
                     },
                     "id": 17,
-                    "isConstant": false,
                     "isLValue": false,
-                    "isPure": false,
+                    "isRuntimeConstant": false,
                     "lValueRequested": false,
                     "memberLocation": "161:1:1",
                     "memberName": "f",
@@ -188,9 +186,8 @@
                     }
                   },
                   "id": 18,
-                  "isConstant": false,
                   "isLValue": false,
-                  "isPure": false,
+                  "isRuntimeConstant": false,
                   "kind": "functionCall",
                   "lValueRequested": false,
                   "nameLocations": [],
@@ -224,9 +221,8 @@
                     }
                   },
                   "id": 21,
-                  "isConstant": false,
                   "isLValue": false,
-                  "isPure": false,
+                  "isRuntimeConstant": false,
                   "kind": "functionCall",
                   "lValueRequested": false,
                   "nameLocations": [],

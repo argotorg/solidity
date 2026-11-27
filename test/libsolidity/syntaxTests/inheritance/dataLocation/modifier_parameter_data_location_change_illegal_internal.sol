@@ -1,14 +1,13 @@
 abstract contract A {
-    modifier m(uint256[1] memory a) virtual;
+    modifier m(uint256[1] memory a);
     function test(uint256[1] memory a) m(a) external {
     }
 }
 
 contract B is A {
-    modifier m(uint256[1] calldata a) override {
+    modifier m(uint256[1] calldata a) {
         _;
     }
 }
 // ----
-// Warning 8429: (26-66): Virtual modifiers are deprecated and scheduled for removal.
-// TypeError 1078: (153-214): Override changes modifier signature.
+// ParserError 8063: (57-58): Modifiers without implementation are not allowed.

@@ -1,5 +1,5 @@
-// Tests that virtual lookup for modifiers in libraries does not consider
-// the current inheritance hierarchy.
+// Tests that lookup for modifiers in libraries does not consider
+// the current contract.
 library L {
     struct S {
         uint256 v;

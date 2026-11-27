@@ -55,10 +55,7 @@ namespace GasCosts
 	static unsigned const tier5Gas = 10;                      // GAS_HIGH
 	static unsigned const tier6Gas = 20;                      // GAS_BLOCK_HASH
 	static unsigned const expGas = 10;                        // GAS_EXPONENTIATION
-	inline unsigned expByteGas(langutil::EVMVersion _evmVersion)
-	{
-		return _evmVersion >= langutil::EVMVersion::spuriousDragon() ? 50 : 10; // GAS_EXPONENTIATION_PER_BYTE
-	}
+	static unsigned const expByteGas = 50;                    // GAS_EXPONENTIATION_PER_BYTE
 	static unsigned const keccak256Gas = 30;                  // GAS_KECCAK256
 	static unsigned const keccak256WordGas = 6;               // GAS_KECCAK256_WORD
 	/// Corresponds to ACCESS_LIST_ADDRESS_COST from EIP-2930
@@ -77,10 +74,8 @@ namespace GasCosts
 			return coldSloadCost;
 		else if (_evmVersion >= langutil::EVMVersion::istanbul())
 			return 800;
-		else if (_evmVersion >= langutil::EVMVersion::tangerineWhistle())
-			return 200;
 		else
-			return 50;
+			return 200;
 	}
 	/// Corresponds to SSTORE_SET_GAS
 	static unsigned const sstoreSetGas = 20000;               // GAS_STORAGE_SET
@@ -116,10 +111,8 @@ namespace GasCosts
 	{
 		if (_evmVersion >= langutil::EVMVersion::berlin())
 			return coldAccountAccessCost;
-		else if (_evmVersion >= langutil::EVMVersion::tangerineWhistle())
-			return 700;
 		else
-			return 20;
+			return 700;
 	}
 	inline unsigned balanceGas(langutil::EVMVersion _evmVersion)
 	{
@@ -127,10 +120,8 @@ namespace GasCosts
 			return coldAccountAccessCost;
 		else if (_evmVersion >= langutil::EVMVersion::istanbul())
 			return 700;
-		else if (_evmVersion >= langutil::EVMVersion::tangerineWhistle())
-			return 400;
 		else
-			return 20;
+			return 400;
 	}
 	static unsigned const jumpdestGas = 1;                    // GAS_JUMPDEST
 	static unsigned const logGas = 375;                       // GAS_LOG
@@ -141,10 +132,8 @@ namespace GasCosts
 	{
 		if (_evmVersion >= langutil::EVMVersion::berlin())
 			return coldAccountAccessCost;
-		else if (_evmVersion >= langutil::EVMVersion::tangerineWhistle())
-			return 700;
 		else
-			return 40;
+			return 700;
 	}
 	static unsigned const callStipend = 2300;                  // GAS_CALL_STIPEND
 	static unsigned const callValueTransferGas = 9000;         // GAS_CALL_VALUE
@@ -153,10 +142,8 @@ namespace GasCosts
 	{
 		if (_evmVersion >= langutil::EVMVersion::berlin())
 			return coldAccountAccessCost;
-		else if (_evmVersion >= langutil::EVMVersion::tangerineWhistle())
-			return 5000;
 		else
-			return 0;
+			return 5000;
 	}
 	inline unsigned selfdestructRefundGas(langutil::EVMVersion _evmVersion)
 	{

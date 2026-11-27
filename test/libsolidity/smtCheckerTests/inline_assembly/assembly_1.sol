@@ -7,14 +7,11 @@ contract C {
 	function g() public pure {
 		assert(f()); // False positive currently
 		assert(!f()); // should fail, now because of overapproximation in the analysis
-		require(f()); // BMC constant value not detected at the moment
-		require(!f()); // BMC constant value not ddetected at the moment
 	}
 }
 // ====
-// SMTEngine: all
+// SMTEngine: chc
 // ----
 // Warning 7737: (70-89): Inline assembly may cause SMTChecker to produce spurious warnings (false positives).
 // Warning 6328: (239-250): CHC: Assertion violation happens here.\nCounterexample:\n\n\nTransaction trace:\nC.constructor()\nC.g()\n    C.f() -- internal call
 // Warning 6328: (282-294): CHC: Assertion violation happens here.\nCounterexample:\n\n\nTransaction trace:\nC.constructor()\nC.g()\n    C.f() -- internal call\n    C.f() -- internal call
-// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

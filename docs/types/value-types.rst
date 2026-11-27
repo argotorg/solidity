@@ -353,10 +353,7 @@ For a quick reference of all members of address, see :ref:`address_related`.
 
     In a similar way, the function ``delegatecall`` can be used: the difference is that only the code of the given address is used, all other aspects (storage, balance, ...) are taken from the current contract. The purpose of ``delegatecall`` is to use library code which is stored in another contract. The user has to ensure that the layout of storage in both contracts is suitable for delegatecall to be used.
 
-    .. note::
-        Prior to homestead, only a limited variant called ``callcode`` was available that did not provide access to the original ``msg.sender`` and ``msg.value`` values. This function was removed in version 0.5.0.
-
-    Since byzantium ``staticcall`` can be used as well. This is basically the same as ``call``, but will revert if the called function modifies the state in any way.
+    The function ``staticcall`` can be used as well. This is basically the same as ``call``, but will revert if the called function modifies the state in any way.
 
     All three functions ``call``, ``delegatecall`` and ``staticcall`` are very low-level functions and should only be used as a *last resort* as they break the type-safety of Solidity.
 
@@ -652,7 +649,7 @@ smallest and respectively largest value of the given enum.
 .. code-block:: solidity
 
     // SPDX-License-Identifier: GPL-3.0
-    pragma solidity ^0.8.8;
+    pragma solidity >=0.8.8 <0.10.0;
 
     contract test {
         enum ActionChoices { GoLeft, GoRight, GoStraight, SitStill }
@@ -715,7 +712,7 @@ type with 18 decimals and a minimal library to do arithmetic operations on the t
 .. code-block:: solidity
 
     // SPDX-License-Identifier: GPL-3.0
-    pragma solidity ^0.8.8;
+    pragma solidity >=0.8.8 <0.10.0;
 
     // Represent a 18 decimal, 256 bit wide fixed point type using a user-defined value type.
     type UFixed256x18 is uint256;
@@ -855,11 +852,8 @@ functions.
     Marking the parameters as ``calldata`` only affects the implementation of the external function and is
     meaningless in a function pointer on the caller's side.
 
-.. warning::
-    Comparison of internal function pointers can have unexpected results in the legacy pipeline with the optimizer enabled,
-    as it can collapse identical functions into one, which will then lead to said function pointers comparing as equal instead of not.
-    Such comparisons are not advised, and will lead to the compiler issuing a warning, until the next breaking release (0.9.0),
-    when the warning will be upgraded to an error, thereby making such comparisons disallowed.
+.. note::
+    Since Solidity 0.9.0, internal function pointers can no longer be compared.
 
 Libraries are excluded because they require a ``delegatecall`` and use :ref:`a different ABI
 convention for their selectors <library-selectors>`.
@@ -939,7 +933,7 @@ Example that shows how to use the members:
 .. code-block:: solidity
 
     // SPDX-License-Identifier: GPL-3.0
-    pragma solidity >=0.6.4 <0.9.0;
+    pragma solidity >=0.6.4 <0.10.0;
 
     contract Example {
         function f() public payable returns (bytes4) {
@@ -957,7 +951,7 @@ Example that shows how to use internal function types:
 .. code-block:: solidity
 
     // SPDX-License-Identifier: GPL-3.0
-    pragma solidity >=0.4.16 <0.9.0;
+    pragma solidity >=0.4.16 <0.10.0;
 
     library ArrayUtils {
         // internal functions can be used in internal library functions because
@@ -1017,7 +1011,7 @@ Another example that uses external function types:
 .. code-block:: solidity
 
     // SPDX-License-Identifier: GPL-3.0
-    pragma solidity >=0.4.22 <0.9.0;
+    pragma solidity >=0.4.22 <0.10.0;
 
 
     contract Oracle {

@@ -23,7 +23,7 @@ contract C {
 	}
 }
 // ====
-// SMTEngine: all
+// SMTEngine: chc
 // SMTIgnoreCex: yes
 // SMTIgnoreOS: macos
 // ----
@@ -32,4 +32,3 @@ contract C {
 // Warning 6328: (691-721): CHC: Assertion violation happens here.
 // Warning 6328: (959-989): CHC: Assertion violation happens here.
 // Warning 6328: (1079-1109): CHC: Assertion violation happens here.
-// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

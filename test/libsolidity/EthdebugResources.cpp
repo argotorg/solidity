@@ -32,8 +32,6 @@
 #include <set>
 #include <string>
 
-using solidity::test::CommonOptions;
-
 namespace solidity::frontend::test
 {
 
@@ -222,9 +220,6 @@ BOOST_FIXTURE_TEST_CASE(callable_and_import_boundaries, AnalysisFramework)
 
 BOOST_FIXTURE_TEST_CASE(local_scopes, AnalysisFramework)
 {
-	if (!CommonOptions::get().evmVersion().supportsReturndata())
-		return;
-
 	BOOST_REQUIRE_MESSAGE(runFramework(R"(
 		pragma solidity >=0.0;
 		interface I { function value() external returns (uint8); }

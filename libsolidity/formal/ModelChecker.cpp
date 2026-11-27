@@ -48,17 +48,8 @@ ModelChecker::ModelChecker(
 	m_provedSafeReporter(m_provedSafeLogs),
 	m_settings(std::move(_settings)),
 	m_context(),
-	m_bmc(m_context, m_uniqueErrorReporter, m_unsupportedErrorReporter, m_provedSafeReporter, _smtlib2Responses, _smtCallback, m_settings, _charStreamProvider),
 	m_chc(m_context, m_uniqueErrorReporter, m_unsupportedErrorReporter, m_provedSafeReporter, _smtlib2Responses, _smtCallback, m_settings, _charStreamProvider)
 {
-}
-
-// TODO This should be removed for 0.9.0.
-bool ModelChecker::isPragmaPresent(std::vector<std::shared_ptr<SourceUnit>> const& _sources)
-{
-	return ranges::any_of(_sources, [](auto _source) {
-		return _source && _source->annotation().experimentalFeatures.count(ExperimentalFeature::SMTChecker);
-	});
 }
 
 void ModelChecker::checkRequestedSourcesAndContracts(std::vector<std::shared_ptr<SourceUnit>> const& _sources)
@@ -95,30 +86,6 @@ void ModelChecker::checkRequestedSourcesAndContracts(std::vector<std::shared_ptr
 
 void ModelChecker::analyze(SourceUnit const& _source)
 {
-	// TODO This should be removed for 0.9.0.
-	if (_source.annotation().experimentalFeatures.count(ExperimentalFeature::SMTChecker))
-	{
-		PragmaDirective const* smtPragma = nullptr;
-		for (auto node: _source.nodes())
-			if (auto pragma = std::dynamic_pointer_cast<PragmaDirective>(node))
-				if (
-					pragma->literals().size() >= 2 &&
-					pragma->literals().at(1) == "SMTChecker"
-				)
-				{
-					smtPragma = pragma.get();
-					break;
-				}
-		solAssert(smtPragma, "");
-		m_uniqueErrorReporter.warning(
-			5523_error,
-			smtPragma->location(),
-			"The SMTChecker pragma has been deprecated and will be removed in the future. "
-			"Please use the \"model checker engine\" compiler setting to activate the SMTChecker instead. "
-			"If the pragma is enabled, all engines will be used."
-		);
-	}
-
 	if (m_settings.engine.none())
 		return;
 
@@ -133,20 +100,6 @@ void ModelChecker::analyze(SourceUnit const& _source)
 
 	for (auto const& [node, targets]: m_chc.unsafeTargets())
 		solvedTargets[node] += targets | ranges::views::keys;
-
-	if (m_settings.engine.bmc)
-	{
-		if (!m_uniqueErrorReporter.hasError(ErrorId{3993}))
-		{
-			m_uniqueErrorReporter.warning(
-				3993_error,
-				SourceLocation(),
-				"The BMC engine of the SMTChecker is deprecated and will be removed in a future release. "
-				"Please use the CHC engine instead."
-			);
-		}
-		m_bmc.analyze(_source, solvedTargets);
-	}
 
 	if (m_settings.showUnsupported)
 	{
@@ -175,7 +128,7 @@ void ModelChecker::analyze(SourceUnit const& _source)
 
 std::vector<std::string> ModelChecker::unhandledQueries()
 {
-	return m_bmc.unhandledQueries() + m_chc.unhandledQueries();
+	return m_chc.unhandledQueries();
 }
 
 SMTSolverChoice ModelChecker::availableSolvers()
@@ -185,7 +138,6 @@ SMTSolverChoice ModelChecker::availableSolvers()
 	available.z3 = true;
 #else
 	available.eld = !boost::process::search_path("eld").empty();
-	available.cvc5 = !boost::process::search_path("cvc5").empty();
 	available.z3 = !boost::process::search_path("z3").empty();
 #endif
 	return available;
@@ -194,16 +146,6 @@ SMTSolverChoice ModelChecker::availableSolvers()
 SMTSolverChoice ModelChecker::checkRequestedSolvers(SMTSolverChoice _enabled, ErrorReporter& _errorReporter)
 {
 	SMTSolverChoice availableSolvers{ModelChecker::availableSolvers()};
-
-	if (_enabled.cvc5 && !availableSolvers.cvc5)
-	{
-		_enabled.cvc5 = false;
-		_errorReporter.warning(
-			4902_error,
-			SourceLocation(),
-			"Solver cvc5 was selected for SMTChecker but it is not available."
-		);
-	}
 
 	if (_enabled.eld && !availableSolvers.eld)
 	{

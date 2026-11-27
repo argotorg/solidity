@@ -19,7 +19,7 @@ contract C {
     }
 }
 // ====
-// EVMVersion: >=byzantium
+// EVMVersion: >=constantinople
 // compileViaYul: true
 // compileViaSSACFG: false
 // ----

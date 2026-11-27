@@ -199,7 +199,7 @@ bool StaticAnalyzer::visit(Return const& _return)
 
 bool StaticAnalyzer::visit(ExpressionStatement const& _statement)
 {
-	if (*_statement.expression().annotation().isPure)
+	if (*_statement.expression().annotation().isRuntimeConstant)
 		m_errorReporter.warning(
 			6133_error,
 			_statement.location(),
@@ -312,7 +312,7 @@ bool StaticAnalyzer::visit(InlineAssembly const& _inlineAssembly)
 bool StaticAnalyzer::visit(BinaryOperation const& _operation)
 {
 	if (
-		*_operation.rightExpression().annotation().isPure &&
+		*_operation.rightExpression().annotation().isRuntimeConstant &&
 		(_operation.getOperator() == Token::Div || _operation.getOperator() == Token::Mod) &&
 		!ConstantEvaluator::evaluate(m_errorReporter, _operation.leftExpression()).isEmpty()
 	)
@@ -338,7 +338,7 @@ bool StaticAnalyzer::visit(FunctionCall const& _functionCall)
 		if (functionType->kind() == FunctionType::Kind::AddMod || functionType->kind() == FunctionType::Kind::MulMod)
 		{
 			solAssert(_functionCall.arguments().size() == 3, "");
-			if (*_functionCall.arguments()[2]->annotation().isPure)
+			if (*_functionCall.arguments()[2]->annotation().isRuntimeConstant)
 				if (
 					auto lastArg = ConstantEvaluator::evaluate(m_errorReporter, *(_functionCall.arguments())[2]);
 					lastArg.isRational() && lastArg.asRational() == 0

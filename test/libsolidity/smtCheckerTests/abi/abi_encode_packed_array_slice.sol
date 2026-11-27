@@ -34,4 +34,3 @@ contract C {
 // Warning 2072: (691-706): Unused local variable.
 // Warning 2072: (1099-1114): Unused local variable.
 // Warning 6328: (1047-1077): CHC: Assertion violation happens here.
-// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

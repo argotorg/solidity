@@ -117,9 +117,8 @@
                         }
                       },
                       "id": 14,
-                      "isConstant": false,
                       "isLValue": false,
-                      "isPure": false,
+                      "isRuntimeConstant": false,
                       "lValueRequested": false,
                       "memberLocation": "129:6:1",
                       "memberName": "sender",
@@ -151,9 +150,8 @@
                       }
                     },
                     "id": 12,
-                    "isConstant": false,
                     "isLValue": false,
-                    "isPure": false,
+                    "isRuntimeConstant": false,
                     "lValueRequested": false,
                     "memberLocation": "123:1:1",
                     "memberName": "E",
@@ -166,9 +164,8 @@
                     }
                   },
                   "id": 15,
-                  "isConstant": false,
                   "isLValue": false,
-                  "isPure": false,
+                  "isRuntimeConstant": false,
                   "kind": "functionCall",
                   "lValueRequested": false,
                   "nameLocations": [],

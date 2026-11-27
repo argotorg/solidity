@@ -126,8 +126,7 @@ Representation const& RepresentationFinder::findRepresentation(u256 const& _valu
 		return m_cache.at(_value);
 
 	yulAssert(m_dialect.auxiliaryBuiltinHandles().not_);
-	yulAssert(m_dialect.auxiliaryBuiltinHandles().exp);
-	yulAssert(m_dialect.auxiliaryBuiltinHandles().mul);
+	yulAssert(m_dialect.auxiliaryBuiltinHandles().shl);
 	yulAssert(m_dialect.auxiliaryBuiltinHandles().add);
 	yulAssert(m_dialect.auxiliaryBuiltinHandles().sub);
 
@@ -158,16 +157,8 @@ Representation const& RepresentationFinder::findRepresentation(u256 const& _valu
 			continue;
 		if (abs(lowerPart) >= (powerOfTwo >> 8))
 			continue;
-		Representation newRoutine;
-		if (m_dialect.evmVersion().hasBitwiseShifting())
-			newRoutine = represent(*auxHandles.shl, represent(bits), findRepresentation(upperPart));
-		else
-		{
-			newRoutine = represent(*auxHandles.exp, represent(2), represent(bits));
-			if (upperPart != 1)
-				newRoutine = represent(*auxHandles.mul, findRepresentation(upperPart), newRoutine);
-		}
 
+		Representation newRoutine = represent(*auxHandles.shl, represent(bits), findRepresentation(upperPart));
 		if (newRoutine.cost >= routine.cost)
 			continue;
 

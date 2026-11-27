@@ -174,8 +174,7 @@ void ASTJsonExporter::appendExpressionAttributes(
 	};
 
 	addIfSet(exprAttributes, "isLValue", _annotation.isLValue);
-	addIfSet(exprAttributes, "isPure", _annotation.isPure);
-	addIfSet(exprAttributes, "isConstant", _annotation.isConstant);
+	addIfSet(exprAttributes, "isRuntimeConstant", _annotation.isRuntimeConstant);
 
 	if (m_stackState > CompilerStack::State::ParsedAndImported)
 		exprAttributes.emplace_back("lValueRequested", _annotation.willBeWrittenTo);
@@ -538,12 +537,9 @@ bool ASTJsonExporter::visit(ModifierDefinition const& _node)
 		std::make_pair("documentation", _node.documentation() ? toJson(*_node.documentation()) : Json()),
 		std::make_pair("visibility", Declaration::visibilityToString(_node.visibility())),
 		std::make_pair("parameters", toJson(_node.parameterList())),
-		std::make_pair("virtual", _node.markedVirtual()),
-		std::make_pair("overrides", _node.overrides() ? toJson(*_node.overrides()) : Json()),
-		std::make_pair("body", _node.isImplemented() ? toJson(_node.body()) : Json())
+		std::make_pair("body", toJson(_node.body()))
 	};
-	if (!_node.annotation().baseFunctions.empty())
-		attributes.emplace_back(std::make_pair("baseModifiers", getContainerIds(_node.annotation().baseFunctions, true)));
+	solAssert(_node.annotation().baseFunctions.empty());
 	setJsonNode(_node, "ModifierDefinition", std::move(attributes));
 	return false;
 }

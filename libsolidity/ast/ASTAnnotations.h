@@ -267,8 +267,6 @@ struct IdentifierPathAnnotation: ASTAnnotation
 {
 	/// Referenced declaration, set during reference resolution stage.
 	Declaration const* referencedDeclaration = nullptr;
-	/// What kind of lookup needs to be done (static, virtual, super) find the declaration.
-	util::SetOnce<VirtualLookup> requiredLookup;
 
 	/// Declaration of each path element.
 	std::vector<Declaration const*> pathDeclarations;
@@ -278,10 +276,9 @@ struct ExpressionAnnotation: ASTAnnotation
 {
 	/// Inferred type of the expression.
 	Type const* type = nullptr;
-	/// Whether the expression is a constant variable
-	util::SetOnce<bool> isConstant;
-	/// Whether the expression is pure, i.e. compile-time constant.
-	util::SetOnce<bool> isPure;
+	/// Whether the expression is a runtime constant, i.e. it always evaluates to the same value,
+	/// although that value is not necessarily known at compilation time.
+	util::SetOnce<bool> isRuntimeConstant;
 	/// Whether it is an LValue (i.e. something that can be assigned to).
 	util::SetOnce<bool> isLValue;
 	/// Whether the expression is used in a context where the LValue is actually required.

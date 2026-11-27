@@ -86,17 +86,8 @@ SemanticTest::SemanticTest(
 		toString(RequiresYulOptimizer::False)
 	);
 
-	m_runWithABIEncoderV1Only = m_reader.boolSetting("ABIEncoderV1Only", false);
-	if (m_runWithABIEncoderV1Only && !solidity::test::CommonOptions::get().useABIEncoderV1)
-		m_shouldRun = false;
-
 	std::string compileViaYul = m_reader.stringSetting("compileViaYul", "also");
 
-	if (m_runWithABIEncoderV1Only && compileViaYul != "false")
-		BOOST_THROW_EXCEPTION(std::runtime_error(
-			"ABIEncoderV1Only tests cannot be run via yul, "
-			"so they need to also specify ``compileViaYul: false``"
-		));
 	if (!util::contains(compileViaYulAllowedValues, compileViaYul))
 		BOOST_THROW_EXCEPTION(std::runtime_error("Invalid compileViaYul value: " + compileViaYul + "."));
 	m_testCaseWantsYulRun = util::contains(yulRunTriggers, compileViaYul);
@@ -341,7 +332,7 @@ TestCase::TestResult SemanticTest::run(std::ostream& _stream, std::string const&
 		solidity::test::CommonOptions::get().printSelectedOptions(
 			_stream,
 			_linePrefix,
-			{"evmVersion", "optimize", "useABIEncoderV1", "batch"}
+			{"evmVersion", "optimize", "batch"}
 		);
 
 	return result;
@@ -462,10 +453,6 @@ TestCase::TestResult SemanticTest::runTest(
 				m_gasCostFailure = true;
 			}
 
-			// Pre byzantium, it was not possible to return failure data, so we disregard
-			// output mismatch for those EVM versions.
-			if (test.call().expectations.failure && !m_transactionSuccessful && !m_evmVersion.supportsReturndata())
-				outputMismatch = false;
 			if (m_transactionSuccessful != !test.call().expectations.failure || outputMismatch)
 				success = false;
 
@@ -600,8 +587,6 @@ bool SemanticTest::checkGasCostExpectation(TestFunctionCall& io_test, bool _comp
 	bool gasValueMissing = !io_test.call().expectations.gasUsedExcludingCode.contains(setting);
 	if (!m_enforceGasCost || (gasValueMissing && uninteresting))
 		return true;
-
-	solAssert(!m_runWithABIEncoderV1Only);
 
 	// NOTE: Cost excluding code is unlikely to be negative but it may still be possible due to refunds.
 	// We'll deal with it when we actually have a test case like that.

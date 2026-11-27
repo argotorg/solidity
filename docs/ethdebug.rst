@@ -235,7 +235,7 @@ For non-recursive references, a template referencing the template of a member's 
 .. code-block:: solidity
 
     // SPDX-License-Identifier: GPL-3.0
-    pragma solidity >=0.6.0 <0.9.0;
+    pragma solidity >=0.6.0 <0.10.0;
 
     struct Point { uint8 x; uint8 y; }
     struct Line { Point from; Point to; }

@@ -806,8 +806,7 @@ void ArrayUtils::accessCallDataArrayElement(ArrayType const& _arrayType, bool _d
 			solAssert(_arrayType.baseType()->storageBytes() <= 32, "");
 			if (
 				!_arrayType.isByteArrayOrString() &&
-				_arrayType.baseType()->storageBytes() < 32 &&
-				m_context.useABICoderV2()
+				_arrayType.baseType()->storageBytes() < 32
 			)
 			{
 				m_context << u256(32);

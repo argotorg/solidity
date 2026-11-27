@@ -65,9 +65,8 @@
                     {
                       "expression": {
                         "id": 19,
-                        "isConstant": false,
                         "isLValue": false,
-                        "isPure": false,
+                        "isRuntimeConstant": false,
                         "lValueRequested": false,
                         "leftHandSide": {
                           "id": 17,
@@ -86,9 +85,8 @@
                         "rightHandSide": {
                           "hexValue": "32",
                           "id": 18,
-                          "isConstant": false,
                           "isLValue": false,
-                          "isPure": true,
+                          "isRuntimeConstant": true,
                           "kind": "number",
                           "lValueRequested": false,
                           "nodeType": "Literal",
@@ -117,9 +115,8 @@
                     "typeString": "uint256"
                   },
                   "id": 13,
-                  "isConstant": false,
                   "isLValue": false,
-                  "isPure": false,
+                  "isRuntimeConstant": false,
                   "lValueRequested": false,
                   "leftExpression": {
                     "id": 11,
@@ -138,9 +135,8 @@
                   "rightExpression": {
                     "hexValue": "3230",
                     "id": 12,
-                    "isConstant": false,
                     "isLValue": false,
-                    "isPure": true,
+                    "isRuntimeConstant": true,
                     "kind": "number",
                     "lValueRequested": false,
                     "nodeType": "Literal",
@@ -195,9 +191,8 @@
                   "initialValue": {
                     "hexValue": "30",
                     "id": 9,
-                    "isConstant": false,
                     "isLValue": false,
-                    "isPure": true,
+                    "isRuntimeConstant": true,
                     "kind": "number",
                     "lValueRequested": false,
                     "nodeType": "Literal",
@@ -215,9 +210,8 @@
                 "loopExpression": {
                   "expression": {
                     "id": 15,
-                    "isConstant": false,
                     "isLValue": false,
-                    "isPure": false,
+                    "isRuntimeConstant": false,
                     "lValueRequested": false,
                     "nodeType": "UnaryOperation",
                     "operator": "++",

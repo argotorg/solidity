@@ -146,9 +146,6 @@ SMTCheckerTest::SMTCheckerTest(std::string const& _filename):
 		(void)os;
 #endif
 	}
-
-	auto const& bmcLoopIterations = m_reader.sizetSetting("BMCLoopIterations", 1);
-	m_modelCheckerSettings.bmcLoopIterations = std::optional<unsigned>{bmcLoopIterations};
 }
 
 void SMTCheckerTest::setupCompiler(CompilerStack& _compiler)

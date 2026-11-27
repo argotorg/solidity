@@ -18,18 +18,6 @@
 
 #pragma once
 
-#include <libsmtutil/BMCSolverInterface.h>
-
-#include <libsmtutil/SMTLib2Context.h>
-
-#include <libsolidity/interface/ReadFile.h>
-
-#include <libsolutil/Common.h>
-#include <libsolutil/FixedHash.h>
-
-#include <cstdio>
-#include <map>
-#include <set>
 #include <string>
 #include <vector>
 
@@ -63,57 +51,6 @@ private:
 	std::vector<std::string> m_commands;
 	std::vector<std::size_t> m_frameLimits;
 
-};
-
-class SMTLib2Interface: public BMCSolverInterface
-{
-public:
-	/// Noncopyable.
-	SMTLib2Interface(SMTLib2Interface const&) = delete;
-	SMTLib2Interface& operator=(SMTLib2Interface const&) = delete;
-
-	explicit SMTLib2Interface(
-		std::map<util::h256, std::string> _queryResponses = {},
-		frontend::ReadCallback::Callback _smtCallback = {},
-		std::optional<unsigned> _queryTimeout = {}
-	);
-
-	void reset() override;
-
-	void push() override;
-	void pop() override;
-
-	void declareVariable(std::string const&, SortPointer const&) override;
-
-	void addAssertion(Expression const& _expr) override;
-	std::pair<CheckResult, std::vector<std::string>> check(std::vector<Expression> const& _expressionsToEvaluate) override;
-
-	std::vector<std::string> unhandledQueries() override { return m_unhandledQueries; }
-
-	// Used by CHCSmtLib2Interface
-	std::string toSExpr(Expression const& _expr);
-	std::string toSmtLibSort(SortPointer _sort);
-	std::vector<std::string> toSmtLibSort(std::vector<SortPointer> const& _sort);
-
-	std::string dumpQuery(std::vector<Expression> const& _expressionsToEvaluate);
-
-protected:
-	virtual void setupSmtCallback() {}
-
-	void declareFunction(std::string const& _name, SortPointer const& _sort);
-
-	std::string checkSatAndGetValuesCommand(std::vector<Expression> const& _expressionsToEvaluate);
-
-	/// Communicates with the solver via the callback. Throws SMTSolverError on error.
-	virtual std::string querySolver(std::string const& _input);
-
-	SMTLib2Commands m_commands;
-	SMTLib2Context m_context;
-
-	std::map<util::h256, std::string> m_queryResponses;
-	std::vector<std::string> m_unhandledQueries;
-
-	frontend::ReadCallback::Callback m_smtCallback;
 };
 
 }

@@ -88,7 +88,6 @@ public:
 	FunctionType const* externalFunctionType() const;
 	/// @returns the (unmodified) function type
 	FunctionType const* originalFunctionType() const;
-	ModifierType const* modifierType() const;
 
 	Declaration const* declaration() const;
 
