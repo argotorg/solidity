@@ -154,8 +154,11 @@ BOOST_AUTO_TEST_CASE(legacy_dupn_swapn_disassembly_spec_vectors)
 BOOST_AUTO_TEST_CASE(disassembly_truncated_push_immediate)
 {
 	// Missing immediate bytes at the end of the code are read as zeros.
-	BOOST_CHECK_EQUAL(disassemble(util::fromHex("61ff"), EVMVersion::amsterdam()), "PUSH2 0xFF00 ");
-	BOOST_CHECK_EQUAL(disassemble(util::fromHex("6001610102"), EVMVersion::amsterdam()), "PUSH1 0x1 PUSH2 0x102 ");
+	for (EVMVersion const evmVersion: EVMVersion::allVersions())
+	{
+		BOOST_CHECK_EQUAL(disassemble(util::fromHex("61ff"), evmVersion), "PUSH2 0xFF00 ");
+		BOOST_CHECK_EQUAL(disassemble(util::fromHex("600161ff"), evmVersion), "PUSH1 0x1 PUSH2 0xFF00 ");
+	}
 }
 
 BOOST_AUTO_TEST_CASE(legacy_dupn_swapn_disassembly_implicit_zero_immediate)
