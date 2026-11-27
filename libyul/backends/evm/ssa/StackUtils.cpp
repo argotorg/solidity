@@ -18,6 +18,8 @@
 
 #include <libyul/backends/evm/ssa/StackUtils.h>
 
+#include <libyul/backends/evm/ssa/CallGraph.h>
+
 #include <libevmasm/GasMeter.h>
 
 #include <range/v3/view/iota.hpp>
@@ -73,11 +75,11 @@ std::size_t solidity::yul::ssa::stackOpsGas(SSACFG const& _cfg, ShuffleTrace con
 	return gas;
 }
 
-void solidity::yul::ssa::applyOperation(SSACFG const& _cfg, InstId const _operation, StackData& _stack)
+void solidity::yul::ssa::applyOperation(SSACFG const& _cfg, CallSites const& _callSites, InstId const _operation, StackData& _stack)
 {
 	SSACFG::Inst const& inst = _cfg.inst(_operation);
 	yulAssert(inst.isOperation());
-	bool const hasReturnLabel = inst.opcode == InstOpcode::Call && _cfg.callPayload(_operation).canContinue;
+	bool const hasReturnLabel = inst.opcode == InstOpcode::Call && _callSites.callSiteID(_operation).has_value();
 	std::size_t const numConsumed = inst.inputs.size() + (hasReturnLabel ? 1 : 0);
 	yulAssert(_stack.size() >= numConsumed, "operation input layout smaller than consumed slot count");
 	for (auto const& [slot, input]: ranges::views::zip(
@@ -93,7 +95,7 @@ void solidity::yul::ssa::applyOperation(SSACFG const& _cfg, InstId const _operat
 	});
 }
 
-CallSites solidity::yul::ssa::gatherCallSites(SSACFG const& _cfg)
+CallSites solidity::yul::ssa::gatherCallSites(CallGraph const& _callGraph, SSACFG const& _cfg)
 {
 	CallSites result;
 	std::vector<std::uint8_t> visited(_cfg.numBlocks(), false);
@@ -120,7 +122,7 @@ CallSites solidity::yul::ssa::gatherCallSites(SSACFG const& _cfg)
 			auto const& inst = _cfg.inst(instId);
 			if (inst.opcode != InstOpcode::Call)
 				continue;
-			if (_cfg.callPayload(instId).canContinue)
+			if (_callGraph.canContinue(_cfg.callPayload(instId).graphID))
 				result.addCallSite(instId);
 		}
 	}

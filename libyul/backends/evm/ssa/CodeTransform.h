@@ -34,6 +34,8 @@ struct BuiltinContext;
 namespace solidity::yul::ssa
 {
 
+class CallGraph;
+
 class CodeTransform
 {
 public:
@@ -56,6 +58,7 @@ private:
 		AbstractAssembly& _assembly,
 		BuiltinContext& _builtinContext,
 		ControlFlowGraphs const& _controlFlow,
+		CallGraph const& _callGraph,
 		FunctionLabels const& _functionLabels,
 		CallSites const& _callSites,
 		SSACFG const& _cfg,
@@ -90,6 +93,7 @@ private:
 	AbstractAssembly& m_assembly;
 	BuiltinContext& m_builtinContext;
 	ControlFlowGraphs const& m_controlFlow;
+	CallGraph const& m_callGraph;
 	FunctionLabels const& m_functionLabels;
 	CallSites const& m_callSites;
 	SSACFG const& m_cfg;

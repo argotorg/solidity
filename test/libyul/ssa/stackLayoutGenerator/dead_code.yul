@@ -45,17 +45,17 @@
 // Block0_2 [label="\
 // IN: [v1]\l\
 // \l\
-// [v1, lit4]\l\
+// [v1, lit3]\l\
 // calldataload\l\
-// [v1, v5]\l\
+// [v1, v4]\l\
 // \l\
-// OUT: [v1, v5, v5]\l\
+// OUT: [v1, v4, v4]\l\
 // "];
 // Block0_2 -> Block0_2Exit;
-// Block0_2Exit [label="{ If v5 | { <0> Zero | <1> NonZero }}" shape=Mrecord];
-// Block0_2Exit:0 -> Block0_5 [style="solid"];
-// Block0_2Exit:1 -> Block0_4 [style="solid"];
-// Block0_4 [label="\
+// Block0_2Exit [label="{ If v4 | { <0> Zero | <1> NonZero }}" shape=Mrecord];
+// Block0_2Exit:0 -> Block0_4 [style="solid"];
+// Block0_2Exit:1 -> Block0_3 [style="solid"];
+// Block0_3 [label="\
 // IN: [JUNK, JUNK]\l\
 // \l\
 // [JUNK, JUNK, lit0, lit0]\l\
@@ -64,17 +64,17 @@
 // \l\
 // OUT: [JUNK, JUNK]\l\
 // "];
-// Block0_4Exit [label="Terminated"];
-// Block0_4 -> Block0_4Exit;
-// Block0_5 [label="\
-// IN: [v1, v5]\l\
+// Block0_3Exit [label="Terminated"];
+// Block0_3 -> Block0_3Exit;
+// Block0_4 [label="\
+// IN: [v1, v4]\l\
 // \l\
-// [v5, v1]\l\
+// [v4, v1]\l\
 // sstore\l\
 // []\l\
 // \l\
 // OUT: []\l\
 // "];
-// Block0_5Exit [label="MainExit"];
-// Block0_5 -> Block0_5Exit;
+// Block0_4Exit [label="MainExit"];
+// Block0_4 -> Block0_4Exit;
 // }

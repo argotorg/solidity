@@ -21,6 +21,7 @@
 #include <libyul/backends/evm/ssa/stack/InstructionStackIn.h>
 #include <libyul/backends/evm/ssa/stack/Shuffler.h>
 
+#include <libyul/backends/evm/ssa/CallGraph.h>
 #include <libyul/backends/evm/ssa/ShuffleTrace.h>
 #include <libyul/backends/evm/ssa/StackUtils.h>
 
@@ -37,6 +38,7 @@ using namespace solidity::yul::ssa;
 StackLayoutGenerator::Result StackLayoutGenerator::generate(
 	LivenessAnalysis const& _liveness,
 	CallSites const& _callSites,
+	CallGraph const& _callGraph,
 	ControlFlowGraphs::FunctionGraphID const _graphID,
 	bool const _spillingAllowed,
 	std::size_t const _reachableStackDepth
@@ -47,9 +49,9 @@ StackLayoutGenerator::Result StackLayoutGenerator::generate(
 	while (true)
 	{
 		auto const spillCountBefore = spillSet.numSpilled();
-		StackLayoutGenerator generator(_liveness, _callSites, _graphID, _spillingAllowed, _reachableStackDepth, std::move(spillSet));
+		StackLayoutGenerator generator(_liveness, _callSites, _callGraph, _graphID, _spillingAllowed, _reachableStackDepth, std::move(spillSet));
 		spillSet = std::move(generator.m_spillSet);
-		spillSet.closeUnderReachabilityConstraints(_liveness.cfg(), generator.m_resultLayout, _reachableStackDepth, &spillStoreTraces);
+		spillSet.closeUnderReachabilityConstraints(_liveness.cfg(), _callSites, generator.m_resultLayout, _reachableStackDepth, &spillStoreTraces);
 		// only the traces of the final iteration survive; they are recorded against the stable spill set
 		if (spillSet.numSpilled() == spillCountBefore)
 			return Result{std::move(generator.m_resultLayout), std::move(spillSet), std::move(spillStoreTraces)};
@@ -62,6 +64,7 @@ StackLayoutGenerator::Result StackLayoutGenerator::generate(
 StackLayoutGenerator::StackLayoutGenerator(
 	LivenessAnalysis const& _liveness,
 	CallSites const& _callSites,
+	CallGraph const& _callGraph,
 	ControlFlowGraphs::FunctionGraphID const _graphID,
 	bool const _spillingAllowed,
 	std::size_t const _reachableStackDepth,
@@ -71,7 +74,7 @@ StackLayoutGenerator::StackLayoutGenerator(
 	m_liveness(_liveness),
 	m_callSites(_callSites),
 	m_graphID(_graphID),
-	m_hasFunctionReturnLabel(!_liveness.cfg().isMainGraph() && _liveness.cfg().canContinue),
+	m_hasFunctionReturnLabel(!_liveness.cfg().isMainGraph() && _callGraph.canContinue(_graphID)),
 	m_spillingAllowed(_spillingAllowed),
 	m_reachableStackDepth(_reachableStackDepth),
 	m_incomingEdgesPerBlock(m_cfg.numBlocks()),
@@ -185,16 +188,10 @@ void StackLayoutGenerator::visitBlock(SSACFG::BlockId const& _blockId)
 		m_cfg.forEachOutput(_instId, [&](InstId const id) { opLiveOutWithoutOutputs.erase(id); });
 
 		std::vector<Slot> requiredStackTop;
+		// only continuing calls have a call site and thus a return label
 		if (_inst.opcode == InstOpcode::Call)
-		{
-			auto const& callPayload = m_cfg.callPayload(_instId);
-			if (callPayload.canContinue)
-			{
-				auto const callSiteID = m_callSites.callSiteID(_instId);
-				yulAssert(callSiteID.has_value());
+			if (auto const callSiteID = m_callSites.callSiteID(_instId))
 				requiredStackTop.emplace_back(Slot::makeFunctionCallReturnLabel(*callSiteID));
-			}
-		}
 		requiredStackTop +=
 			_inst.inputs |
 			ranges::views::reverse |
@@ -211,7 +208,7 @@ void StackLayoutGenerator::visitBlock(SSACFG::BlockId const& _blockId)
 			yulAssert(m_spillingAllowed || m_spillSet.numSpilled() == spillCountBefore, "Spilling not allowed, stack too deep.");
 			blockLayout.operationShuffles.push_back(std::move(shuffleResult.trace));
 		}
-		applyOperation(m_cfg, _instId, currentStackData);
+		applyOperation(m_cfg, m_callSites, _instId, currentStackData);
 	};
 
 	// A phi takes its value out of its shadow slot, loading a spilled one that was dropped

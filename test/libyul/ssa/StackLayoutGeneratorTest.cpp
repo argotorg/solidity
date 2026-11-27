@@ -19,6 +19,7 @@
 #include <test/libyul/ssa/StackLayoutGeneratorTest.h>
 
 #include <libyul/backends/evm/ssa/io/DotExporterBase.h>
+#include <libyul/backends/evm/ssa/CallGraph.h>
 #include <libyul/backends/evm/ssa/ControlFlowGraphs.h>
 #include <libyul/backends/evm/ssa/SSACFGBuilder.h>
 #include <libyul/backends/evm/ssa/Stack.h>
@@ -64,11 +65,13 @@ public:
 		std::size_t _functionIndex,
 		SSACFGStackLayout const& _layout,
 		spill::SpillSet const& _spillSet,
+		CallSites const& _callSites,
 		ControlFlowGraphs const& _controlFlow
 	):
 		DotExporterBase(_cfg, _functionIndex),
 		m_layout(_layout),
 		m_spillSet(_spillSet),
+		m_callSites(_callSites),
 		m_controlFlow(_controlFlow)
 	{
 	}
@@ -126,7 +129,7 @@ protected:
 				_out << escapeLabel(m_cfg.evmDialect.builtin(m_cfg.builtinPayload(instId).builtin).name);
 			_out << "\\l\\\n";
 
-			applyOperation(m_cfg, instId, operationStack);
+			applyOperation(m_cfg, m_callSites, instId, operationStack);
 			_out << stackToString(operationStack) << "\\l\\\n";
 		}
 
@@ -138,6 +141,7 @@ protected:
 private:
 	SSACFGStackLayout const& m_layout;
 	spill::SpillSet const& m_spillSet;
+	CallSites const& m_callSites;
 	ControlFlowGraphs const& m_controlFlow;
 };
 
@@ -191,17 +195,20 @@ frontend::test::TestCase::TestResult StackLayoutGeneratorTest::run(std::ostream&
 
 		m_obtainedResult += "digraph SSACFG {\nnodesep=0.7;\ngraph[fontname=\"DejaVu Sans\", rankdir=LR]\nnode[shape=box,fontname=\"DejaVu Sans\"];\n\n";
 
+		CallGraph const callGraph(*controlFlowGraphs);
 		for (std::size_t index = 0; index < controlFlowGraphs->functionGraphs.size(); ++index)
 		{
 			auto const& cfg = *controlFlowGraphs->functionGraphs[index];
+			CallSites const callSites = gatherCallSites(callGraph, cfg);
 			auto result = StackLayoutGenerator::generate(
 				LivenessAnalysis(cfg),
-				gatherCallSites(cfg),
+				callSites,
+				callGraph,
 				static_cast<ControlFlowGraphs::FunctionGraphID>(index),
 				true,
 				evmDialect->reachableStackDepth()
 			);
-			StackLayoutDotExporter exporter(cfg, index, result.layout, result.spillSet, *controlFlowGraphs);
+			StackLayoutDotExporter exporter(cfg, index, result.layout, result.spillSet, callSites, *controlFlowGraphs);
 			if (!cfg.isMainGraph())
 				m_obtainedResult += exporter.exportFunction(cfg, false);
 			else

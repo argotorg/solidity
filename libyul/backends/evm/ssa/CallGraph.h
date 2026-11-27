@@ -28,6 +28,7 @@ namespace solidity::yul::ssa
 {
 
 struct ControlFlowGraphs;
+class SSACFG;
 
 class CallGraph
 {
@@ -47,10 +48,17 @@ public:
 	/// mutual-recursion cycle of any length
 	bool isRecursive(FunctionGraphID _function) const;
 
+	/// True iff `_function` reaches a return without passing a call to a function that cannot continue
+	bool canContinue(FunctionGraphID const _function) const { return m_canContinue[_function]; }
+
+	/// True iff control gets past `_inst`: it is neither a terminating builtin nor a call to a function that cannot continue
+	bool canContinue(SSACFG const& _cfg, InstId _inst) const;
+
 private:
 	void computeRecursiveFunctions() const;
 
 	std::vector<std::vector<FunctionGraphID>> m_callees;
+	std::vector<bool> m_canContinue;
 	mutable std::optional<std::vector<bool>> m_recursiveFunctions;
 };
 

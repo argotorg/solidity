@@ -24,7 +24,6 @@
 #include <libyul/backends/evm/ssa/ControlFlowGraphs.h>
 
 #include <libyul/AST.h>
-#include <libyul/ControlFlowSideEffectsCollector.h>
 #include <libyul/optimiser/Metrics.h>
 #include <libyul/Exceptions.h>
 #include <libyul/Utilities.h>
@@ -50,7 +49,6 @@ SSACFGBuilder::SSACFGBuilder(
 	ControlFlowGraphs& _controlFlow,
 	SSACFG& _graph,
 	AsmAnalysisInfo const& _analysisInfo,
-	ControlFlowSideEffectsCollector const& _sideEffects,
 	EVMDialect const& _dialect,
 	bool _generateDebugInfo,
 	FunctionRegistry& _functionRegistry
@@ -58,7 +56,6 @@ SSACFGBuilder::SSACFGBuilder(
 	m_controlFlow(_controlFlow),
 	m_graph(_graph),
 	m_info(_analysisInfo),
-	m_sideEffects(_sideEffects),
 	m_dialect(_dialect),
 	m_generateDebugInfo(_generateDebugInfo),
 	m_functionRegistry(_functionRegistry),
@@ -77,8 +74,6 @@ std::unique_ptr<ControlFlowGraphs> SSACFGBuilder::build(
 	bool _generateDebugInfo
 )
 {
-	ControlFlowSideEffectsCollector sideEffects(_dialect, _block);
-
 	auto controlFlowGraphs = std::make_unique<ControlFlowGraphs>();
 	controlFlowGraphs->functionGraphs.emplace_back(std::make_unique<SSACFG>(
 		_dialect,
@@ -87,7 +82,7 @@ std::unique_ptr<ControlFlowGraphs> SSACFGBuilder::build(
 	));
 	SSACFG& mainGraph = *controlFlowGraphs->functionGraphs.back();
 	FunctionRegistry functionRegistry;
-	SSACFGBuilder builder(*controlFlowGraphs, mainGraph, _analysisInfo, sideEffects, _dialect, _generateDebugInfo, functionRegistry);
+	SSACFGBuilder builder(*controlFlowGraphs, mainGraph, _analysisInfo, _dialect, _generateDebugInfo, functionRegistry);
 	builder.m_currentBlock = mainGraph.makeBlock(debugDataOf(_block));
 	builder.sealBlock(builder.m_currentBlock);
 	builder(_block);
@@ -125,12 +120,11 @@ void SSACFGBuilder::buildFunctionGraph(
 
 	if (cfg.debugInfo)
 		cfg.debugInfo->graphDebugData = _functionDefinition->debugData;
-	cfg.canContinue = m_sideEffects.functionSideEffects().at(_functionDefinition).canContinue;
 	cfg.arguments = argumentBindings
 		| ranges::views::transform([](auto const& _binding) { return std::get<1>(_binding); })
 		| ranges::to<std::vector>;
 
-	SSACFGBuilder builder(m_controlFlow, cfg, m_info, m_sideEffects, m_dialect, m_generateDebugInfo, m_functionRegistry);
+	SSACFGBuilder builder(m_controlFlow, cfg, m_info, m_dialect, m_generateDebugInfo, m_functionRegistry);
 	builder.m_currentBlock = cfg.entry;
 	builder.m_currentReturnVars = returnVars;
 	for (auto&& [var, varId]: argumentBindings)
@@ -365,20 +359,11 @@ void SSACFGBuilder::assign(std::vector<std::reference_wrapper<Scope::Variable co
 	if (auto const* functionCall = std::get_if<FunctionCall>(_expression))
 	{
 		InstId const callId = visitFunctionCall(*functionCall);
-		if (m_graph.isUnreachable(callId))
-		{
-			// The callee did not continue: post-call block is unreachable. Bind variables to unreachable.
-			for (auto const& var: _variables)
-				writeVariable(var, m_currentBlock, callId);
-		}
-		else
-		{
-			yulAssert(m_graph.numReturnsOf(callId) == _variables.size());
-			auto const outputs = m_graph.outputsOf(callId);
-			yulAssert(outputs.size() == _variables.size());
-			for (auto const& [var, output]: ranges::views::zip(_variables, outputs))
-				writeVariable(var, m_currentBlock, output);
-		}
+		yulAssert(m_graph.numReturnsOf(callId) == _variables.size());
+		auto const outputs = m_graph.outputsOf(callId);
+		yulAssert(outputs.size() == _variables.size());
+		for (auto const& [var, output]: ranges::views::zip(_variables, outputs))
+			writeVariable(var, m_currentBlock, output);
 		return;
 	}
 	auto const rhs = _expression ?
@@ -391,8 +376,7 @@ void SSACFGBuilder::assign(std::vector<std::reference_wrapper<Scope::Variable co
 
 InstId SSACFGBuilder::visitFunctionCall(FunctionCall const& _call)
 {
-	bool canContinue = true;
-	InstId const id = std::visit(solidity::util::GenericVisitor{
+	return std::visit(solidity::util::GenericVisitor{
 		[&](BuiltinName const& _builtinName) -> InstId
 		{
 			// memoryguard(N) is represented as a dedicated MemoryGuard Inst; the boundary value lives in the
@@ -410,7 +394,6 @@ InstId SSACFGBuilder::visitFunctionCall(FunctionCall const& _call)
 					);
 				else
 					m_controlFlow.memoryGuard = value;
-				canContinue = m_dialect.builtin(m_memoryGuardHandle).controlFlowSideEffects.canContinue;
 				return m_graph.makeMemoryGuard(m_currentBlock, debugDataOf(_call));
 			}
 
@@ -430,7 +413,6 @@ InstId SSACFGBuilder::visitFunctionCall(FunctionCall const& _call)
 					inputs.emplace_back(std::visit(*this, arg));
 			// But we want to store them in the original order
 			ranges::reverse(inputs);
-			canContinue = builtin.controlFlowSideEffects.canContinue;
 			return m_graph.makeBuiltinCallWithProjections(
 				m_currentBlock,
 				SSACFG::BuiltinCall{_builtinName.handle, std::move(literalArguments)},
@@ -445,7 +427,6 @@ InstId SSACFGBuilder::visitFunctionCall(FunctionCall const& _call)
 			Scope::Function const& function = lookupFunction(functionName);
 			auto const calleeIt = m_functionRegistry.find(&function);
 			yulAssert(calleeIt != m_functionRegistry.end(), "Called function has no registered graph id.");
-			canContinue = m_sideEffects.functionSideEffects().at(calleeIt->second.definition).canContinue;
 			// Arguments must be evaluated from right to left, according to Yul specification
 			std::vector<InstId> inputs;
 			for (auto const& arg: _call.arguments | ranges::views::reverse)
@@ -454,21 +435,13 @@ InstId SSACFGBuilder::visitFunctionCall(FunctionCall const& _call)
 			ranges::reverse(inputs);
 			return m_graph.makeCallWithProjections(
 				m_currentBlock,
-				SSACFG::Call{calleeIt->second.id, canContinue, function.numReturns},
+				SSACFG::Call{calleeIt->second.id, function.numReturns},
 				std::move(inputs),
 				static_cast<InstructionStore::NumReturnsSizeType>(function.numReturns),
 				debugDataOf(_call)
 			);
 		}
 	}, _call.functionName);
-	if (canContinue)
-		return id;
-	// `id` lives in the now-Terminated call block and won't dominate the successor,
-	// so terminate, open a fresh successor and signal non-continuation via unreachableValue.
-	currentBlock().exit = SSACFG::BasicBlock::Terminated{};
-	m_currentBlock = m_graph.makeBlock(currentBlockDebugData());
-	sealBlock(m_currentBlock);
-	return m_graph.unreachableValue();
 }
 
 InstId SSACFGBuilder::zero()

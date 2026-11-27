@@ -27,6 +27,8 @@
 namespace solidity::yul::ssa
 {
 
+class CallGraph;
+
 class ValidationResult
 {
 public:
@@ -42,9 +44,10 @@ private:
 std::size_t stackOpsGas(SSACFG const& _cfg, ShuffleTrace const& _trace);
 
 /// Pops the operation's inputs (and a call's return label) off `_stack` and pushes its outputs
-void applyOperation(SSACFG const& _cfg, InstId _operation, StackData& _stack);
+void applyOperation(SSACFG const& _cfg, CallSites const& _callSites, InstId _operation, StackData& _stack);
 
-CallSites gatherCallSites(SSACFG const& _cfg);
+/// Collects the continuing calls of `_cfg`, i.e. those that need a return label.
+CallSites gatherCallSites(CallGraph const& _callGraph, SSACFG const& _cfg);
 
 /// Checks that _current and _desired have the same size and that each slot matches,
 /// treating junk slots in _desired as wildcards.

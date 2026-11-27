@@ -24,13 +24,49 @@
 
 #include <libyul/Exceptions.h>
 
+#include <range/v3/algorithm/any_of.hpp>
 #include <range/v3/algorithm/binary_search.hpp>
 #include <range/v3/algorithm/sort.hpp>
 #include <range/v3/algorithm/unique.hpp>
 #include <range/v3/view/enumerate.hpp>
 #include <range/v3/view/zip.hpp>
 
-solidity::yul::ssa::CallGraph::CallGraph(ControlFlowGraphs const& _cfgs): m_callees(_cfgs.functionGraphs.size())
+using namespace solidity::yul::ssa;
+
+namespace
+{
+
+/// Whether `_cfg` reaches a return without passing an instruction that cannot continue according to `_callGraph`
+bool reachesReturn(SSACFG const& _cfg, CallGraph const& _callGraph)
+{
+	auto const cannotContinue = [&](InstId const _id) { return !_callGraph.canContinue(_cfg, _id); };
+	std::vector<bool> visited(_cfg.numBlocks(), false);
+	visited[_cfg.entry.value] = true;
+	std::vector<BlockId> toVisit{_cfg.entry};
+	while (!toVisit.empty())
+	{
+		SSACFG::BasicBlock const& block = _cfg.block(toVisit.back());
+		toVisit.pop_back();
+		if (ranges::any_of(block.instructions, cannotContinue))
+			continue;
+		if (block.isFunctionReturnBlock())
+			return true;
+		block.forEachExit([&](BlockId const _successor) {
+			if (!visited[_successor.value])
+			{
+				visited[_successor.value] = true;
+				toVisit.push_back(_successor);
+			}
+		});
+	}
+	return false;
+}
+
+}
+
+CallGraph::CallGraph(ControlFlowGraphs const& _cfgs):
+	m_callees(_cfgs.functionGraphs.size()),
+	m_canContinue(_cfgs.functionGraphs.size(), false)
 {
 	for (auto const& [index, cfgPtr]: _cfgs.functionGraphs | ranges::views::enumerate)
 		for (auto const& [instId, inst]: ranges::views::zip(cfgPtr->instructionIds(), cfgPtr->instructions()))
@@ -42,21 +78,43 @@ solidity::yul::ssa::CallGraph::CallGraph(ControlFlowGraphs const& _cfgs): m_call
 		ranges::sort(callees);
 		callees.erase(ranges::unique(callees), callees.end());
 	}
+
+	// least fixpoint, so that a function that only ever recurses cannot continue
+	bool changed = true;
+	while (changed)
+	{
+		changed = false;
+		for (auto const& [index, cfgPtr]: _cfgs.functionGraphs | ranges::views::enumerate)
+			if (!m_canContinue[index] && reachesReturn(*cfgPtr, *this))
+			{
+				m_canContinue[index] = true;
+				changed = true;
+			}
+	}
 }
 
-std::vector<std::vector<solidity::yul::ssa::FunctionGraphID>> solidity::yul::ssa::CallGraph::computeSCCs() const
+bool CallGraph::canContinue(SSACFG const& _cfg, InstId const _inst) const
+{
+	if (_cfg.kindOf(_inst) == InstOpcode::Call)
+		return canContinue(_cfg.callPayload(_inst).graphID);
+	if (_cfg.kindOf(_inst) == InstOpcode::BuiltinCall)
+		return _cfg.evmDialect.builtin(_cfg.builtinPayload(_inst).builtin).controlFlowSideEffects.canContinue;
+	return true;
+}
+
+std::vector<std::vector<FunctionGraphID>> CallGraph::computeSCCs() const
 {
 	return solidity::util::computeStronglyConnectedComponents(m_callees);
 }
 
-bool solidity::yul::ssa::CallGraph::isRecursive(FunctionGraphID const _function) const
+bool CallGraph::isRecursive(FunctionGraphID const _function) const
 {
 	if (!m_recursiveFunctions)
 		computeRecursiveFunctions();
 	return (*m_recursiveFunctions)[_function];
 }
 
-void solidity::yul::ssa::CallGraph::computeRecursiveFunctions() const
+void CallGraph::computeRecursiveFunctions() const
 {
 	std::vector result(m_callees.size(), false);
 	for (auto const& scc: computeSCCs())
