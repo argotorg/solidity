@@ -513,7 +513,9 @@ ForLoop Parser::parseForLoop()
 	ForLoop forLoop = createWithDebugData<ForLoop>();
 	expectToken(Token::For);
 	m_currentForLoopComponent = ForLoopComponent::ForLoopPre;
+	++m_forInitDepth;
 	forLoop.pre = parseBlock();
+	--m_forInitDepth;
 	m_currentForLoopComponent = ForLoopComponent::None;
 	forLoop.condition = std::make_unique<Expression>(parseExpression());
 	m_currentForLoopComponent = ForLoopComponent::ForLoopPost;
@@ -654,7 +656,7 @@ FunctionDefinition Parser::parseFunctionDefinition()
 {
 	RecursionGuard recursionGuard(*this);
 
-	if (m_currentForLoopComponent == ForLoopComponent::ForLoopPre)
+	if (m_forInitDepth > 0)
 		m_errorReporter.syntaxError(
 			3441_error,
 			currentLocation(),
