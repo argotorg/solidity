@@ -34,6 +34,9 @@ by the above rules, state variables from different contracts do share the same s
 The elements of structs and arrays are stored after each other, just as if they were given
 as individual values.
 
+.. warning::
+    Types that occupy ``2**64`` or more storage slots are deprecated and will be disallowed in a future breaking release.
+
 If a contract specifies a :ref:`custom storage layout<custom-storage-layout>`, the slots assigned
 to static storage variables are shifted according the value defined as the layout base.
 Locations of dynamic arrays and mappings are also indirectly affected by this due to shifting

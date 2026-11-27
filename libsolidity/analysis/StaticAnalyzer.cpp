@@ -174,6 +174,7 @@ bool StaticAnalyzer::visit(VariableDeclaration const& _variable)
 	if (_variable.isStateVariable() || _variable.referenceLocation() == VariableDeclaration::Location::Storage)
 		if (auto varType = dynamic_cast<CompositeType const*>(_variable.annotation().type))
 			for (Type const* type: varType->fullDecomposition())
+			{
 				if (type->storageSizeUpperBound() >= (bigint(1) << 64))
 				{
 					std::string message = "Type " + type->toString(true) +
@@ -182,6 +183,20 @@ bool StaticAnalyzer::visit(VariableDeclaration const& _variable)
 						" in small quantities per transaction.";
 					m_errorReporter.warning(7325_error, _variable.typeName().location(), message);
 				}
+				// Mapping value types are not checked for sizes larger than storage, e.g,, mapping(uint => uint[2**255][2]) is accepted.
+				// storageSize asserts against such sizes, so storageSizeUpperBound is used to short-circuit and avoid an ICE.
+				if (
+					type->storageSizeUpperBound() >= bigint(1) << 256 ||
+					type->storageSize() >= u256(1) << 64
+				)
+					m_errorReporter.warning(
+						2119_error,
+						_variable.typeName().location(),
+						"Type " + type->toString(true) + " spans 2**64 or more slots."
+						" Such oversized types are deprecated and will be disallowed in a future breaking release."
+					);
+
+			}
 
 	return true;
 }
