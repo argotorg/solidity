@@ -53,6 +53,8 @@ public:
 		m_meter(_meter)
 	{}
 
+	using ASTModifier::operator();
+	void operator()(FunctionCall& _funCall) override;
 	void visit(Expression& _e) override;
 
 	struct Representation
