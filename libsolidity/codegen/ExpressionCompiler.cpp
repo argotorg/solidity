@@ -2672,7 +2672,6 @@ void ExpressionCompiler::appendShiftOperatorCode(Token _operator, Type const& _v
 	case Token::SAR:
 		m_context << (c_valueSigned ? Instruction::SAR : Instruction::SHR);
 		break;
-	case Token::SHR:
 	default:
 		solAssert(false, "Unknown shift operator.");
 	}
