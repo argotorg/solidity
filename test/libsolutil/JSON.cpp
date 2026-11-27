@@ -26,6 +26,7 @@
 
 #include <boost/test/unit_test.hpp>
 
+#include <cstddef>
 #include <cstdint>
 #include <limits>
 #include <optional>
@@ -37,6 +38,18 @@ namespace solidity::util::test
 {
 
 BOOST_AUTO_TEST_SUITE(JsonTest, *boost::unit_test::label("nooptions"))
+
+BOOST_AUTO_TEST_CASE(json_type_names)
+{
+	BOOST_CHECK_EQUAL(jsonTypeName<Json::object_t>(), "object");
+	BOOST_CHECK_EQUAL(jsonTypeName<Json::array_t>(), "array");
+	BOOST_CHECK_EQUAL(jsonTypeName<Json::string_t>(), "string");
+	BOOST_CHECK_EQUAL(jsonTypeName<Json::boolean_t>(), "boolean");
+	BOOST_CHECK_EQUAL(jsonTypeName<std::nullptr_t>(), "null");
+	BOOST_CHECK_EQUAL(jsonTypeName<Json::number_float_t>(), "number");
+	BOOST_CHECK_EQUAL(jsonTypeName<Json::number_integer_t>(), "integer");
+	BOOST_CHECK_EQUAL(jsonTypeName<Json::number_unsigned_t>(), "unsigned integer");
+}
 
 BOOST_AUTO_TEST_CASE(json_types)
 {
