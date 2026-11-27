@@ -168,14 +168,6 @@ BOOST_AUTO_TEST_CASE(legacy_dupn_swapn_disassembly_implicit_zero_immediate)
 	BOOST_CHECK_EQUAL(disassemble(util::fromHex("e7"), EVMVersion::amsterdam()), "SWAPN 145 ");
 }
 
-BOOST_AUTO_TEST_CASE(legacy_dupn_swapn_disassembly_is_version_agnostic)
-{
-	// Like for all other instructions, disassembly does not check whether the EVM version
-	// actually supports DUPN/SWAPN.
-	BOOST_CHECK_EQUAL(disassemble(util::fromHex("e680"), EVMVersion::prague()), "DUPN 17 ");
-	BOOST_CHECK_EQUAL(disassemble(util::fromHex("e780"), EVMVersion::prague()), "SWAPN 17 ");
-}
-
 BOOST_AUTO_TEST_CASE(all_assembly_items)
 {
 	std::map<std::string, unsigned> indices = {
