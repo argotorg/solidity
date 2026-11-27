@@ -53,7 +53,8 @@ struct OptimiserStepContext;
  *
  * The final program should be in a form such that with the exception of a loop condition,
  * function calls can only appear in the right-hand side of a variable declaration,
- * assignments or expression statements and all arguments have to be constants or variables.
+ * assignments or expression statements and all arguments have to be variables, except for
+ * the literal arguments of builtins.
  */
 class ExpressionSplitter: public ASTModifier
 {
