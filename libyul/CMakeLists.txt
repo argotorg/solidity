@@ -105,6 +105,7 @@ add_library(yul
 	backends/evm/ssa/StackSlot.cpp
 	backends/evm/ssa/StackSlot.h
 	backends/evm/ssa/StackSlotLiveness.h
+	backends/evm/ssa/util/BlockTraversal.h
 	backends/evm/ssa/util/UseCountSet.h
 	backends/evm/ssa/util/TLSFFreeList.h
 	backends/evm/ssa/StackUtils.cpp

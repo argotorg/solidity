@@ -24,6 +24,7 @@
 #include <libyul/backends/evm/ssa/InstructionStore.h>
 #include <libyul/backends/evm/ssa/SSACFGDebugInfo.h>
 #include <libyul/backends/evm/ssa/SSACFGTypes.h>
+#include <libyul/backends/evm/ssa/util/BlockTraversal.h>
 
 #include <libyul/backends/evm/EVMDialect.h>
 
@@ -38,6 +39,7 @@
 #include <range/v3/view/iota.hpp>
 #include <range/v3/view/transform.hpp>
 
+#include <array>
 #include <concepts>
 #include <functional>
 #include <optional>
@@ -171,6 +173,39 @@ public:
 			ranges::views::iota(BlockId::ValueType{0}, static_cast<BlockId::ValueType>(m_blocks.size())) |
 			ranges::views::filter([this](BlockId::ValueType const _v) { return m_blocks[_v].has_value(); }) |
 			ranges::views::transform([](BlockId::ValueType const _v) { return BlockId{_v}; });
+	}
+
+	/// Single-pass range over the blocks that are reachable from `_root`
+	InputRangeOf<BlockId> auto blocksReachableFrom(
+		BlockId const _root,
+		util::TraversalOrder const _order = util::TraversalOrder::DepthFirst
+	) const
+	{
+		return util::BlockTraversal(
+			numBlocks(),
+			std::array{_root},
+			[this](BlockId const _block, auto&& _discover) {
+				block(_block).forEachExit(_discover);
+			},
+			_order
+		);
+	}
+
+	/// Single-pass range over the blocks that are reachable from the entry
+	InputRangeOf<BlockId> auto reachableBlocks() const { return blocksReachableFrom(entry); }
+
+	/// Single-pass range over the blocks from which one of `_targets` is reachable
+	template<InputRangeOf<BlockId> Targets>
+	InputRangeOf<BlockId> auto blocksReaching(Targets const& _targets) const
+	{
+		return util::BlockTraversal(
+			numBlocks(),
+			_targets,
+			[this](BlockId const _block, auto&& _discover) {
+				for (BlockId const predecessor: block(_block).entries)
+					_discover(predecessor);
+			}
+		);
 	}
 
 	InstructionStore& instructionStore() { return m_instructions; }

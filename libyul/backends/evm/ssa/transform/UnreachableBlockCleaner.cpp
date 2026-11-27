@@ -20,7 +20,6 @@
 
 #include <libyul/backends/evm/ssa/SSACFG.h>
 
-#include <deque>
 #include <vector>
 
 using namespace solidity;
@@ -30,29 +29,13 @@ using namespace solidity::yul::ssa::transform;
 
 void transform::cleanUnreachableBlocks(SSACFG& _cfg)
 {
-	std::vector<std::uint8_t> reachable(_cfg.numBlocks(), false);
-	std::deque worklist{_cfg.entry};
-	reachable[_cfg.entry.value] = true;
-	while (!worklist.empty())
-	{
-		auto const blockId = worklist.front();
-		worklist.pop_front();
-		if (!_cfg.hasBlock(blockId))
-			continue;
-		_cfg.block(blockId).forEachExit([&](BlockId const _exitBlock) {
-			if (!reachable[_exitBlock.value])
-			{
-				reachable[_exitBlock.value] = true;
-				worklist.push_back(_exitBlock);
-			}
-		});
-	}
+	auto reachable = _cfg.reachableBlocks();
 
 	auto& store = _cfg.instructionStore();
 	for (SSACFG::BlockId const blockId: _cfg.liveBlocks())
 	{
-		if (reachable[blockId.value])
-			std::erase_if(_cfg.block(blockId).entries, [&](auto const& entry) { return !reachable[entry.value]; });
+		if (reachable.contains(blockId))
+			std::erase_if(_cfg.block(blockId).entries, [&](auto const& entry) { return !reachable.contains(entry); });
 		else
 		{
 			for (InstId const id: _cfg.block(blockId).instructions)

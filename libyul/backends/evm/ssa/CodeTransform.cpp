@@ -572,16 +572,13 @@ void CodeTransform::assertLoadsAreStoredOnEveryPath() const
 	{
 		// Walk back from the loads, but not past a block that stores `slot`. Reaching the function entry means
 		// that a path to one of the loads has no store.
-		std::set<SSACFG::BlockId> visited = loadBlocks;
-		std::vector<SSACFG::BlockId> toVisit(loadBlocks.begin(), loadBlocks.end());
-		while (!toVisit.empty())
-		{
-			SSACFG::BlockId const block = toVisit.back();
-			toVisit.pop_back();
+		auto const predecessorsWithoutStore = [&](SSACFG::BlockId const _block, auto&& _discover) {
+			for (SSACFG::BlockId const predecessor: m_cfg.block(_block).entries)
+				if (!m_stores.contains({slot, predecessor}))
+					_discover(predecessor);
+		};
+		util::BlockTraversal beforeLoads(m_cfg.numBlocks(), loadBlocks, predecessorsWithoutStore);
+		for (SSACFG::BlockId const block: beforeLoads)
 			yulAssert(block != m_cfg.entry, fmt::format("Tried loading {} where it is not stored on every path", slot));
-			for (SSACFG::BlockId const predecessor: m_cfg.block(block).entries)
-				if (!m_stores.contains({slot, predecessor}) && visited.insert(predecessor).second)
-					toVisit.push_back(predecessor);
-		}
 	}
 }

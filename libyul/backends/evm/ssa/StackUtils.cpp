@@ -96,26 +96,8 @@ void solidity::yul::ssa::applyOperation(SSACFG const& _cfg, InstId const _operat
 CallSites solidity::yul::ssa::gatherCallSites(SSACFG const& _cfg)
 {
 	CallSites result;
-	std::vector<std::uint8_t> visited(_cfg.numBlocks(), false);
-	visited[_cfg.entry.value] = true;
-	std::vector<SSACFG::BlockId> toVisit;
-	toVisit.reserve(_cfg.numBlocks());
-	toVisit.push_back(_cfg.entry);
-
-	while (!toVisit.empty())
-	{
-		auto const blockId = toVisit.back();
-		toVisit.pop_back();
-		auto const& block = _cfg.block(blockId);
-		block.forEachExit([&toVisit, &visited](SSACFG::BlockId const& _exitBlockId){
-			if (!visited[_exitBlockId.value])
-			{
-				visited[_exitBlockId.value] = true;
-				toVisit.push_back(_exitBlockId);
-			}
-		});
-
-		for (InstId const instId: block.instructions)
+	for (SSACFG::BlockId const blockId: _cfg.reachableBlocks())
+		for (InstId const instId: _cfg.block(blockId).instructions)
 		{
 			auto const& inst = _cfg.inst(instId);
 			if (inst.opcode != InstOpcode::Call)
@@ -123,7 +105,6 @@ CallSites solidity::yul::ssa::gatherCallSites(SSACFG const& _cfg)
 			if (_cfg.callPayload(instId).canContinue)
 				result.addCallSite(instId);
 		}
-	}
 	return result;
 }
 

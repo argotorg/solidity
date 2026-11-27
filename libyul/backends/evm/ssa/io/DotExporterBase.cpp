@@ -25,8 +25,6 @@
 
 #include <fmt/ranges.h>
 
-#include <deque>
-
 using namespace solidity;
 using namespace solidity::util;
 using namespace solidity::yul;
@@ -134,28 +132,8 @@ void DotExporterBase::writeBlock(std::ostream& _out, SSACFG::BlockId const _id)
 
 void DotExporterBase::traverse(std::ostream& _out, SSACFG::BlockId _entry)
 {
-	std::vector<std::uint8_t> explored(m_cfg.numBlocks(), false);
-	explored[_entry.value] = true;
-
-	std::deque<SSACFG::BlockId> toVisit{};
-	toVisit.emplace_back(_entry);
-
-	while (!toVisit.empty())
-	{
-		auto const id = toVisit.front();
-		toVisit.pop_front();
+	for (SSACFG::BlockId const id: m_cfg.blocksReachableFrom(_entry, util::TraversalOrder::BreadthFirst))
 		writeBlock(_out, id);
-		m_cfg.block(id).forEachExit(
-			[&](SSACFG::BlockId const& _exitBlock)
-			{
-				if (!explored[_exitBlock.value])
-				{
-					explored[_exitBlock.value] = true;
-					toVisit.emplace_back(_exitBlock);
-				}
-			}
-		);
-	}
 }
 
 std::string DotExporterBase::exportBlocks(SSACFG::BlockId _entry, bool _wrapInDigraph)
