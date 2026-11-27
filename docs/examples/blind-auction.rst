@@ -121,10 +121,7 @@ to receive their Ether - contracts cannot activate themselves.
                 // before `call` returns.
                 pendingReturns[msg.sender] = 0;
 
-                // msg.sender is not of type `address payable` and must be
-                // explicitly converted using `payable(msg.sender)` in order
-                // use the member function `call()`.
-                (bool success, ) = payable(msg.sender).call{value: amount}("");
+                (bool success, ) = msg.sender.call{value: amount}("");
                 if (!success) {
                     // No need to call throw here, just reset the amount owing
                     pendingReturns[msg.sender] = amount;
@@ -312,7 +309,7 @@ invalid bids.
                 // the same deposit.
                 bidToCheck.blindedBid = bytes32(0);
             }
-            (bool success, ) = payable(msg.sender).call{value: refund}("");
+            (bool success, ) = msg.sender.call{value: refund}("");
             require(success);
         }
 
@@ -326,7 +323,7 @@ invalid bids.
                 // conditions -> effects -> interaction).
                 pendingReturns[msg.sender] = 0;
 
-                (bool success, ) = payable(msg.sender).call{value: amount}("");
+                (bool success, ) = msg.sender.call{value: amount}("");
                 require(success);
             }
         }
