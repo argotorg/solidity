@@ -448,7 +448,7 @@ void GenericStorageItem<IsTransient>::storeValueWithoutOverlapGuard(Type const& 
 				// stack: source_ref target_ref
 				m_context << Instruction::DUP2 << Instruction::DUP2;
 				// stack: source_ref target_ref source_ref target_ref
-				m_context.callYulFunction(m_context.utilFunctions().updateStorageValueFunction(sourceType, structType, VariableDeclaration::Location::Unspecified, 0), 2, 0);
+				m_context.callYulFunction(m_context.utilFunctions().updateStorageValueWithoutOverlapGuardFunction(sourceType, structType, VariableDeclaration::Location::Unspecified, 0), 2, 0);
 				// stack: source_ref target_ref
 			}
 			else

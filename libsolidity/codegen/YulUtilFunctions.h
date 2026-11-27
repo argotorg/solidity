@@ -281,7 +281,10 @@ public:
 	/// overlap check. Copies that need the check go through `copyToStorageWithOverlapGuardFunction`.
 	/// When the source is in memory, this copies into storage without allocating memory.
 	/// signature (targetSlot, source) ->
-	std::string copyArrayToStorageFunction(ArrayType const& _fromType, ArrayType const& _toType);
+	std::string copyArrayToStorageWithoutOverlapGuardFunction(
+		ArrayType const& _fromType,
+		ArrayType const& _toType
+	);
 
 	/// @returns the name of a function that will copy a byte array to storage
 	/// signature (to_slot, from_ptr) ->
@@ -405,8 +408,19 @@ public:
 	/// the specified slot and offset. If offset is not given, it is expected as
 	/// runtime parameter.
 	/// For reference types, offset is checked to be zero at runtime.
+	/// Selects the variant with the runtime overlap check if the copy requires it
+	/// (see ReferenceType::copyRequiresRuntimeOverlapGuard).
 	/// signature: (slot, [offset,] value)
 	std::string updateStorageValueFunction(
+		Type const& _fromType,
+		Type const& _toType,
+		VariableDeclaration::Location _location,
+		std::optional<unsigned> const& _offset
+	);
+
+	/// Same as updateStorageValueFunction, but never with the runtime overlap check.
+	/// Only for copies that do not need it or for which it already ran.
+	std::string updateStorageValueWithoutOverlapGuardFunction(
 		Type const& _fromType,
 		Type const& _toType,
 		VariableDeclaration::Location _location,
@@ -604,7 +618,10 @@ private:
 	/// overlap check. Copies that need the check go through `copyToStorageWithOverlapGuardFunction`.
 	/// When the source is in memory, this copies into storage without allocating memory.
 	/// signature: (targetSlot, source) ->
-	std::string copyStructToStorageFunction(StructType const& _from, StructType const& _to);
+	std::string copyStructToStorageWithoutOverlapGuardFunction(
+		StructType const& _from,
+		StructType const& _to
+	);
 
 	/// @returns the definition of a function named @a _functionName copying an array to storage
 	/// element by element, without the runtime overlap check.
