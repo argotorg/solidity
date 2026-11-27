@@ -31,7 +31,9 @@ namespace solidity::evmasm
 {
 
 /// Iterate through EVM code and call a function on each instruction.
-/// Passes std::nullopt is the immediate data validation failed.
+/// Instructions without an immediate argument get 0 as data. If the immediate argument of
+/// an instruction is invalid (see isValidImmediateData()), std::nullopt is passed instead
+/// and the immediate bytes are not consumed, i.e. they are decoded as the following instructions.
 void eachInstruction(
 	bytes const& _mem, langutil::EVMVersion _evmVersion,
 	std::function<void(Instruction, std::optional<u256> const&)> const& _onInstruction

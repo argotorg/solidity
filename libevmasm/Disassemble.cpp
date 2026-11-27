@@ -72,8 +72,15 @@ std::string solidity::evmasm::disassemble(bytes const& _mem, langutil::EVMVersio
 		if (!isValidInstruction(_instr))
 			ret << "0x" << std::uppercase << std::hex << static_cast<int>(_instr) << _delimiter;
 		else if (!_data.has_value())
+			// std::nullopt means the instruction has an invalid immediate. This currently only happens
+			// for DUPN/SWAPN when an immediate is in [0x5b, 0x7f] (JUMPDEST, PUSH*). EIP-8024 disallows these values so that
+			// JUMPDEST analysis stays unchanged (https://eips.ethereum.org/EIPS/eip-8024#disallowed-immediate-range).
+			// The immediate byte was not consumed and gets decoded as the next instruction,
+			// e.g. `e65b` -> `INVALID_DUPN JUMPDEST`, `e6605b` -> `INVALID_DUPN PUSH1 0x5B`
+			// (see https://eips.ethereum.org/EIPS/eip-8024#assemblydisassembly).
 			ret << "INVALID_" << instructionInfo(_instr, _evmVersion).name << _delimiter;
 		else if (_instr == Instruction::DUPN || _instr == Instruction::SWAPN)
+			// The immediate is printed as the decoded stack depth, e.g. `e680` -> `DUPN 17` (EIP-8024).
 			ret << instructionInfo(_instr, _evmVersion).name
 				<< " "
 				<< std::dec
