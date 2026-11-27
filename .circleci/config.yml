@@ -1254,7 +1254,7 @@ jobs:
 
   t_ubu_soltest_low_priority_evm_versions: &t_ubu_soltest_low_priority_evm_versions
     <<: *base_ubuntu2404_large
-    parallelism: 50
+    parallelism: 20
     steps:
       - checkout
       - attach_workspace:
@@ -1303,7 +1303,7 @@ jobs:
 
   t_ubu_force_release_soltest_all: &t_ubu_force_release_soltest_all
     <<: *base_ubuntu2404_large
-    parallelism: 50
+    parallelism: 20
     steps:
       - soltest_all
 
