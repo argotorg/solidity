@@ -20,6 +20,7 @@ Language Features:
 Compiler Features:
 * Commandline Interface: Remove the experimental `--ethdebug-resources` and `--ethdebug-compilation` outputs from assembler mode.
 * Standard JSON Interface: Remove the experimental `ethdebug.resources` and `ethdebug.compilation` outputs for Yul input.
+* Type Checker: Describe the initial value of a `constant` variable as having to be a runtime constant rather than a compile-time constant in error 8349.
 
 
 ### 0.8.39 (2026-11-19)
