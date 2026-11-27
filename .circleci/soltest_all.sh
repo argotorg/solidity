@@ -62,19 +62,16 @@ do
     do
         ENFORCE_GAS_ARGS=""
         [ "${EVM}" = "${DEFAULT_EVM}" ] && ENFORCE_GAS_ARGS="--enforce-gas-cost"
-        # Run SMTChecker tests only when OPTIMIZE == 0
-        DISABLE_SMTCHECKER=""
-        [ "${OPTIMIZE}" != "0" ] && DISABLE_SMTCHECKER="-t !smtCheckerTests"
-        # Tests that do not depend on any options, such as the Keccak256 suite, are ran only
-        # once on the first iteration of this loop as they produce deterministic results regardless
-        # of the EVM version, or any other inputs.
+        # Tests that do not depend on any options, such as the Keccak256 suite or the SMTChecker tests,
+        # are run only once on the first iteration of this loop as they produce deterministic results
+        # regardless of the EVM version, or any other inputs.
         DISABLE_NOOPTIONS=""
         [ "${INDEX_SHIFT}" != "0" ] && DISABLE_NOOPTIONS="-t !@nooptions"
 
         EVM="$EVM" \
         OPTIMIZE="$OPTIMIZE" \
         SOLTEST_FLAGS="$SOLTEST_FLAGS $ENFORCE_GAS_ARGS" \
-        BOOST_TEST_ARGS="$DISABLE_NOOPTIONS $DISABLE_SMTCHECKER" \
+        BOOST_TEST_ARGS="$DISABLE_NOOPTIONS" \
         INDEX_SHIFT="$INDEX_SHIFT" \
         "${REPODIR}/.circleci/soltest.sh"
 
