@@ -8,4 +8,5 @@ contract C {
 }
 // ----
 // TypeError 9611: (134-135): Decoding type struct C.S memory not supported.
+// TypeError 5130: (134-135): Type struct C.S is valid only in storage because it contains a (nested) mapping.
 // TypeError 9611: (163-164): Decoding type struct C.R memory not supported.

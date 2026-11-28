@@ -1737,14 +1737,8 @@ bool ArrayType::operator==(ArrayType const& _other) const
 	return isDynamicallySized() || length() == _other.length();
 }
 
-BoolResult ArrayType::validForLocation(DataLocation _loc) const
+BoolResult ArrayType::sizeValidForLocation(DataLocation _loc) const
 {
-	if (auto arrayBaseType = dynamic_cast<ArrayType const*>(baseType()))
-	{
-		BoolResult result = arrayBaseType->validForLocation(_loc);
-		if (!result)
-			return result;
-	}
 	if (isDynamicallySized())
 		return true;
 	switch (_loc)
@@ -2507,16 +2501,8 @@ Declaration const* StructType::typeDefinition() const
 	return &structDefinition();
 }
 
-BoolResult StructType::validForLocation(DataLocation _loc) const
+BoolResult StructType::sizeValidForLocation(DataLocation _loc) const
 {
-	for (auto const& member: m_struct.members())
-		if (auto referenceType = dynamic_cast<ReferenceType const*>(member->annotation().type))
-		{
-			BoolResult result = referenceType->validForLocation(_loc);
-			if (!result)
-				return result;
-		}
-
 	if (
 		_loc == DataLocation::Storage &&
 		storageSizeUpperBound() >= bigint(1) << 256
@@ -2524,6 +2510,56 @@ BoolResult StructType::validForLocation(DataLocation _loc) const
 		return BoolResult::err("Type too large for storage.");
 
 	return true;
+}
+
+namespace
+{
+
+using VisitedStructs = std::set<std::pair<StructDefinition const*, DataLocation>>;
+
+BoolResult validForLocationRecursive(Type const* _type, DataLocation _loc, VisitedStructs& _visitedStructs)
+{
+	if (auto const* mappingType = dynamic_cast<MappingType const*>(_type))
+	{
+		solAssert(_loc == DataLocation::Storage);
+		return validForLocationRecursive(mappingType->valueType(), _loc, _visitedStructs);
+	}
+
+	if (auto const* arrayType = dynamic_cast<ArrayType const*>(_type))
+	{
+		if (
+			BoolResult result = validForLocationRecursive(arrayType->baseType(), _loc, _visitedStructs);
+			!result
+		)
+			return result;
+		return arrayType->sizeValidForLocation(_loc);
+	}
+
+	if (auto const* structType = dynamic_cast<StructType const*>(_type))
+	{
+		if (!_visitedStructs.emplace(&structType->structDefinition(), _loc).second)
+			return true;
+		for (auto const& member: structType->structDefinition().members())
+			if (
+				BoolResult result = validForLocationRecursive(member->annotation().type, _loc, _visitedStructs);
+				!result
+			)
+				return result;
+		return structType->sizeValidForLocation(_loc);
+	}
+
+	solAssert(!dynamic_cast<ReferenceType const*>(_type), "Validation not implemented for this reference type");
+
+	return true;
+}
+
+}
+
+BoolResult solidity::frontend::validForLocation(Type const* _type, DataLocation _loc)
+{
+	solAssert(_type);
+	VisitedStructs visitedStructs;
+	return validForLocationRecursive(_type, _loc, visitedStructs);
 }
 
 bool StructType::recursive() const

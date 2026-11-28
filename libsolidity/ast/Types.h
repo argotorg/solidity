@@ -820,11 +820,6 @@ public:
 	/// never change the contents of the original value.
 	bool isPointer() const;
 
-	/// @returns true if this is valid to be stored in data location _loc
-	/// The function mostly checks sizes. For calldata, this should only be called
-	/// if the type has an interfaceType.
-	virtual BoolResult validForLocation(DataLocation _loc) const = 0;
-
 	bool equals(ReferenceType const& _other) const
 	{
 		return location() == _other.location() && isPointer() == _other.isPointer();
@@ -899,8 +894,10 @@ public:
 	Type const* encodingType() const override;
 	Type const* decodingType() const override;
 	TypeResult interfaceType(bool _inLibrary) const override;
-
-	BoolResult validForLocation(DataLocation _loc) const override;
+	/// @returns true if this type itself is valid to be stored in data location _loc.
+	/// The function mostly checks sizes and does not descend into nested types.
+	/// For calldata, this should only be called if the type has an interfaceType.
+	BoolResult sizeValidForLocation(DataLocation _loc) const;
 
 	/// @returns true if this is a byte array.
 	bool isByteArray() const { return m_arrayKind == ArrayKind::Bytes; }
@@ -959,8 +956,6 @@ public:
 	std::string toString(bool _withoutDataLocation) const override;
 	std::string humanReadableName() const override;
 	Type const* mobileType() const override;
-
-	BoolResult validForLocation(DataLocation _loc) const override { return m_arrayType.validForLocation(_loc); }
 
 	ArrayType const& arrayType() const { return m_arrayType; }
 	u256 memoryDataSize() const override { solAssert(false, ""); }
@@ -1075,7 +1070,10 @@ public:
 
 	Declaration const* typeDefinition() const override;
 
-	BoolResult validForLocation(DataLocation _loc) const override;
+	/// @returns true if this type itself is valid to be stored in data location _loc.
+	/// The function mostly checks sizes and does not descend into nested types.
+	/// For calldata, this should only be called if the type has an interfaceType.
+	BoolResult sizeValidForLocation(DataLocation _loc) const;
 
 	bool recursive() const;
 
@@ -1759,5 +1757,11 @@ public:
 	std::string toString(bool) const override { return "inaccessible dynamic type"; }
 	Type const* decodingType() const override;
 };
+
+/// @returns true if @a _type and every type nested in it are valid to be stored in data location @a _loc
+/// Descends into array base types, struct members and mapping value types.
+/// For calldata, this should only be called if the type has an interfaceType.
+/// Types containing (nested) mappings are only accepted for storage.
+BoolResult validForLocation(Type const* _type, DataLocation _loc);
 
 }

@@ -162,8 +162,13 @@ TypePointers TypeChecker::typeCheckABIDecodeAndRetrieveReturnType(FunctionCall c
 
 			if (auto referenceType = dynamic_cast<ReferenceType const*>(actualType))
 			{
-				auto result = referenceType->validForLocation(referenceType->location());
-				if (!result)
+				if (referenceType->containsNestedMapping())
+					m_errorReporter.typeError(
+						5130_error,
+						typeArgument->location(),
+						"Type " + referenceType->toString(true) + " is valid only in storage because it contains a (nested) mapping."
+					);
+				else if (auto result = validForLocation(referenceType, referenceType->location()); !result)
 					m_errorReporter.typeError(
 						6118_error,
 						typeArgument->location(),
@@ -516,9 +521,22 @@ bool TypeChecker::visit(VariableDeclaration const& _variable)
 	if (isStructMemberDeclaration)
 		return false;
 
-	if (auto referenceType = dynamic_cast<ReferenceType const*>(varType))
+	BoolResult result = {true};
+	if (dynamic_cast<MappingType const*>(varType))
+		result = validForLocation(varType, DataLocation::Storage);
+	else if (auto referenceType = dynamic_cast<ReferenceType const*>(varType))
 	{
-		BoolResult result = referenceType->validForLocation(referenceType->location());
+		if (referenceType->location() != DataLocation::Storage && referenceType->containsNestedMapping())
+		{
+			m_errorReporter.typeError(
+				8173_error,
+				_variable.location(),
+				"Type " + referenceType->toString(true) + " is valid only in storage because it contains a mapping."
+			);
+			return false;
+		}
+
+		result = validForLocation(referenceType, referenceType->location());
 		if (result)
 		{
 			bool isLibraryStorageParameter = (_variable.isLibraryFunctionParameter() && referenceType->location() == DataLocation::Storage);
@@ -533,15 +551,14 @@ bool TypeChecker::visit(VariableDeclaration const& _variable)
 				if (!referenceType->interfaceType(false))
 					solAssert(m_errorReporter.hasErrors(), "");
 				else
-					result = referenceType->validForLocation(DataLocation::CallData);
+					result = validForLocation(referenceType, DataLocation::CallData);
 			}
 		}
-		if (!result)
-		{
-			solAssert(!result.message().empty(), "Expected detailed error message");
-			m_errorReporter.typeError(1534_error, _variable.location(), result.message());
-			return false;
-		}
+	}
+	if (!result)
+	{
+		solAssert(!result.message().empty(), "Expected detailed error message");
+		m_errorReporter.typeError(1534_error, _variable.location(), result.message());
 	}
 
 	return false;
