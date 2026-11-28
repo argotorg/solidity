@@ -1,10 +1,11 @@
-pragma abicoder v1;
 contract C {
-	struct s { uint a; uint b; }
+    struct S { mapping(uint => uint) m; }
+    struct R { R[] r; }
     function f() pure public {
-        abi.decode("", (s));
+        abi.decode("", (S));
+        abi.decode("", (R));
     }
 }
 // ----
-// Warning 9511: (0-19): ABI coder v1 is deprecated and scheduled for removal. Use ABI coder v2 instead.
-// TypeError 9611: (118-119): Decoding type struct C.s memory not supported.
+// TypeError 9611: (134-135): Decoding type struct C.S memory not supported.
+// TypeError 9611: (163-164): Decoding type struct C.R memory not supported.

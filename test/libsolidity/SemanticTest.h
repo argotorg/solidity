@@ -121,7 +121,6 @@ private:
 	bool m_testCaseWantsLegacyRun = true;
 	bool m_testCaseWantsSSACFGRun = false;
 	bool m_isSSACFGRun = false;
-	bool m_runWithABIEncoderV1Only = false;
 	bool m_allowNonExistingFunctions = false;
 	bool m_gasCostFailure = false;
 	bool m_enforceGasCost = false;

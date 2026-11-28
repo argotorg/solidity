@@ -1,0 +1,11 @@
+{
+    "errors": [
+        {
+            "component": "general",
+            "formattedMessage": "Invalid model checker engine requested.",
+            "message": "Invalid model checker engine requested.",
+            "severity": "error",
+            "type": "JSONError"
+        }
+    ]
+}

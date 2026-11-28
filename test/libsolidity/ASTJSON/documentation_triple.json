@@ -72,9 +72,8 @@
                       "documentation": "tee\n s \"t\" 3",
                       "expression": {
                         "id": 20,
-                        "isConstant": false,
                         "isLValue": false,
-                        "isPure": false,
+                        "isRuntimeConstant": false,
                         "lValueRequested": false,
                         "leftHandSide": {
                           "id": 18,
@@ -93,9 +92,8 @@
                         "rightHandSide": {
                           "hexValue": "32",
                           "id": 19,
-                          "isConstant": false,
                           "isLValue": false,
-                          "isPure": true,
+                          "isRuntimeConstant": true,
                           "kind": "number",
                           "lValueRequested": false,
                           "nodeType": "Literal",
@@ -124,9 +122,8 @@
                     "typeString": "uint256"
                   },
                   "id": 14,
-                  "isConstant": false,
                   "isLValue": false,
-                  "isPure": false,
+                  "isRuntimeConstant": false,
                   "lValueRequested": false,
                   "leftExpression": {
                     "id": 12,
@@ -145,9 +142,8 @@
                   "rightExpression": {
                     "hexValue": "3230",
                     "id": 13,
-                    "isConstant": false,
                     "isLValue": false,
-                    "isPure": true,
+                    "isRuntimeConstant": true,
                     "kind": "number",
                     "lValueRequested": false,
                     "nodeType": "Literal",
@@ -203,9 +199,8 @@
                   "initialValue": {
                     "hexValue": "30",
                     "id": 10,
-                    "isConstant": false,
                     "isLValue": false,
-                    "isPure": true,
+                    "isRuntimeConstant": true,
                     "kind": "number",
                     "lValueRequested": false,
                     "nodeType": "Literal",
@@ -223,9 +218,8 @@
                 "loopExpression": {
                   "expression": {
                     "id": 16,
-                    "isConstant": false,
                     "isLValue": false,
-                    "isPure": false,
+                    "isRuntimeConstant": false,
                     "lValueRequested": false,
                     "nodeType": "UnaryOperation",
                     "operator": "++",

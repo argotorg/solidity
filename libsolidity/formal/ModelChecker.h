@@ -23,7 +23,6 @@
 
 #pragma once
 
-#include <libsolidity/formal/BMC.h>
 #include <libsolidity/formal/CHC.h>
 #include <libsolidity/formal/EncodingContext.h>
 #include <libsolidity/formal/ModelCheckerSettings.h>
@@ -56,9 +55,6 @@ public:
 		ModelCheckerSettings _settings = ModelCheckerSettings{},
 		ReadCallback::Callback const& _smtCallback = ReadCallback::Callback()
 	);
-
-	// TODO This should be removed for 0.9.0.
-	static bool isPragmaPresent(std::vector<std::shared_ptr<SourceUnit>> const& _sources);
 
 	/// Generates error messages if the requested sources and contracts
 	/// do not exist.
@@ -105,9 +101,6 @@ private:
 
 	/// Stores the context of the encoding.
 	smt::EncodingContext m_context;
-
-	/// Bounded Model Checker engine.
-	BMC m_bmc;
 
 	/// Constrained Horn Clauses engine.
 	CHC m_chc;

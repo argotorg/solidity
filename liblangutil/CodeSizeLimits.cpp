@@ -72,14 +72,12 @@ CodeSizeLimit runtimeCodeSizeLimit(EVMVersion _evmVersion)
 			RUNTIME_CODE_SIZE_LIMIT_AMSTERDAM,
 			5776_error,
 		};
-	else if (_evmVersion >= EVMVersion::spuriousDragon())
+	else
 		return {
 			"Spurious Dragon",
 			RUNTIME_CODE_SIZE_LIMIT_SPURIOUS_DRAGON,
 			5574_error,
 		};
-	else
-		return {};
 }
 
 void reportCodeSizeLimitWarningIfExceeded(

@@ -110,8 +110,7 @@ Prerequisites
 
 For running all compiler tests you may want to optionally install a few
 dependencies (`evmone <https://github.com/ipsilon/evmone/releases>`_,
-`z3 <https://github.com/Z3Prover/z3>`_, `Eldarica <https://github.com/uuverifiers/eldarica/>`_,
-`cvc5 <https://github.com/cvc5/cvc5>`_).
+`z3 <https://github.com/Z3Prover/z3>`_, `Eldarica <https://github.com/uuverifiers/eldarica/>`_).
 
 On macOS systems, some of the testing scripts expect GNU coreutils to be installed.
 This can be easiest accomplished using Homebrew: ``brew install coreutils``.
@@ -544,7 +543,7 @@ or ``interface`` using the ``./test/cmdlineTests.sh`` script when you create a P
 ensure they work and pass tests before creating the PR.
 
 Ensure that all code examples begin with a ``pragma`` version that spans the largest where the contract code is valid.
-For example ``pragma solidity >=0.4.0 <0.9.0;``.
+For example ``pragma solidity >=0.4.0 <0.10.0;``.
 
 Running Documentation Tests
 ---------------------------

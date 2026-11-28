@@ -55,7 +55,7 @@ static char const* walletCode = R"DELIMITER(
 // some number (specified in constructor) of the set of owners (specified in the constructor, modifiable) before the
 // interior is executed.
 
-pragma solidity >=0.4.0 <0.9.0;
+pragma solidity >=0.4.0 <0.10.0;
 
 contract multiowned {
 
@@ -467,8 +467,7 @@ BOOST_AUTO_TEST_CASE(creation)
 {
 	deployWallet(200);
 	BOOST_REQUIRE(callContractFunction("isOwner(address)", m_sender) == encodeArgs(true));
-	bool v2 = !solidity::test::CommonOptions::get().useABIEncoderV1;
-	BOOST_REQUIRE(callContractFunction("isOwner(address)", h256(~0)) == (v2 ? encodeArgs() : encodeArgs(false)));
+	BOOST_REQUIRE(callContractFunction("isOwner(address)", h256(~0)) == encodeArgs());
 }
 
 BOOST_AUTO_TEST_CASE(add_owners)

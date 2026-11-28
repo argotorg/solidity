@@ -52,22 +52,6 @@ void SMTSolverCommand::setEldarica(std::optional<unsigned int> timeoutInMillisec
 		m_arguments.emplace_back("-ssol"); // Tell Eldarica to produce model (invariant)
 }
 
-void SMTSolverCommand::setCvc5(std::optional<unsigned int> timeoutInMilliseconds)
-{
-	m_arguments.clear();
-	m_solverCmd = "cvc5";
-	if (timeoutInMilliseconds)
-	{
-		m_arguments.emplace_back("--tlimit-per");
-		m_arguments.push_back(std::to_string(timeoutInMilliseconds.value()));
-	}
-	else
-	{
-		m_arguments.emplace_back("--rlimit"); // Set resource limit cvc5 can spend on a query
-		m_arguments.push_back(std::to_string(12000));
-	}
-}
-
 void SMTSolverCommand::setZ3(std::optional<unsigned int> timeoutInMilliseconds, bool _preprocessing, bool _computeInvariants)
 {
 	constexpr int Z3ResourceLimit = 2000000;

@@ -153,14 +153,24 @@ def store_benchmark_report(self):
     raise NotImplementedError()
 
 
+def replace_in_solidity_sources(test_dir: Path, pattern: str, replacement: str, file_pattern: str = "**/*.sol"):
+    for source in test_dir.glob(file_pattern):
+        content = source.read_text(encoding="utf-8")
+        content = re.sub(pattern, replacement, content, flags=re.MULTILINE)
+        with open(source, "w", encoding="utf-8") as f:
+            f.write(content)
+
+
 def replace_version_pragmas(test_dir: Path):
     """
     Replace fixed-version pragmas (part of Consensys best practice).
     Include all directories to also cover node dependencies.
     """
     print("Replacing fixed-version pragmas...")
-    for source in test_dir.glob("**/*.sol"):
-        content = source.read_text(encoding="utf-8")
-        content = re.sub(r"pragma solidity [^;]+;", r"pragma solidity >=0.0;", content)
-        with open(source, "w", encoding="utf-8") as f:
-            f.write(content)
+    replace_in_solidity_sources(test_dir, r"pragma solidity [^;]+;", r"pragma solidity >=0.0;")
+
+
+def remove_experimental_abi_encoder_v2_pragmas(test_dir: Path):
+    """Remove experimental ABIEncoderV2 pragma. ABI encoder V2 is now the default one."""
+    print("Removing experimental ABIEncoderV2 pragmas...")
+    replace_in_solidity_sources(test_dir, r'^pragma experimental "?ABIEncoderV2"?;\n', "")

@@ -64,9 +64,8 @@
                     }
                   },
                   "id": 6,
-                  "isConstant": false,
                   "isLValue": false,
-                  "isPure": false,
+                  "isRuntimeConstant": false,
                   "kind": "functionCall",
                   "lValueRequested": false,
                   "nameLocations": [],
@@ -182,9 +181,8 @@
               {
                 "expression": {
                   "id": 21,
-                  "isConstant": false,
                   "isLValue": false,
-                  "isPure": false,
+                  "isRuntimeConstant": false,
                   "lValueRequested": false,
                   "leftHandSide": {
                     "id": 16,
@@ -205,9 +203,8 @@
                     "expression": {
                       "argumentTypes": [],
                       "id": 19,
-                      "isConstant": false,
                       "isLValue": false,
-                      "isPure": false,
+                      "isRuntimeConstant": false,
                       "lValueRequested": false,
                       "nodeType": "NewExpression",
                       "src": "134:5:1",
@@ -237,9 +234,8 @@
                       }
                     },
                     "id": 20,
-                    "isConstant": false,
                     "isLValue": false,
-                    "isPure": false,
+                    "isRuntimeConstant": false,
                     "kind": "functionCall",
                     "lValueRequested": false,
                     "nameLocations": [],
@@ -280,9 +276,8 @@
                       }
                     },
                     "id": 25,
-                    "isConstant": false,
                     "isLValue": false,
-                    "isPure": false,
+                    "isRuntimeConstant": false,
                     "lValueRequested": false,
                     "memberLocation": "153:1:1",
                     "memberName": "f",
@@ -295,9 +290,8 @@
                     }
                   },
                   "id": 26,
-                  "isConstant": false,
                   "isLValue": false,
-                  "isPure": false,
+                  "isRuntimeConstant": false,
                   "kind": "functionCall",
                   "lValueRequested": false,
                   "nameLocations": [],

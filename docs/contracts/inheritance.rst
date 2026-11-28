@@ -39,7 +39,7 @@ Details are given in the following example.
 .. code-block:: solidity
 
     // SPDX-License-Identifier: GPL-3.0
-    pragma solidity >=0.7.0 <0.9.0;
+    pragma solidity >=0.7.0 <0.10.0;
 
     contract Owned {
         address payable owner;
@@ -127,7 +127,7 @@ seen in the following example:
 .. code-block:: solidity
 
     // SPDX-License-Identifier: GPL-3.0
-    pragma solidity >=0.7.0 <0.9.0;
+    pragma solidity >=0.7.0 <0.10.0;
 
     contract Owned {
         address payable owner;
@@ -181,7 +181,7 @@ The way around this is to use ``super``:
 .. code-block:: solidity
 
     // SPDX-License-Identifier: GPL-3.0
-    pragma solidity >=0.7.0 <0.9.0;
+    pragma solidity >=0.7.0 <0.10.0;
 
     contract Owned {
         address payable owner;
@@ -257,7 +257,7 @@ The following example demonstrates changing mutability and visibility:
 .. code-block:: solidity
 
     // SPDX-License-Identifier: GPL-3.0
-    pragma solidity >=0.7.0 <0.9.0;
+    pragma solidity >=0.7.0 <0.10.0;
 
     contract Base
     {
@@ -281,7 +281,7 @@ bases, it has to explicitly override it:
 .. code-block:: solidity
 
     // SPDX-License-Identifier: GPL-3.0
-    pragma solidity >=0.6.0 <0.9.0;
+    pragma solidity >=0.6.0 <0.10.0;
 
     contract Base1
     {
@@ -308,7 +308,7 @@ that already overrides all other functions.
 .. code-block:: solidity
 
     // SPDX-License-Identifier: GPL-3.0
-    pragma solidity >=0.6.0 <0.9.0;
+    pragma solidity >=0.6.0 <0.10.0;
 
     contract A { function f() public pure{} }
     contract B is A {}
@@ -356,7 +356,7 @@ of the variable:
 .. code-block:: solidity
 
     // SPDX-License-Identifier: GPL-3.0
-    pragma solidity >=0.6.0 <0.9.0;
+    pragma solidity >=0.6.0 <0.10.0;
 
     contract A
     {
@@ -372,64 +372,6 @@ of the variable:
 
   While public state variables can override external functions, they themselves cannot
   be overridden.
-
-.. index:: ! overriding;modifier
-
-.. _modifier-overriding:
-
-Modifier Overriding (deprecated)
-================================
-
-Function modifiers can override each other. This works in the same way as
-:ref:`function overriding <function-overriding>` (except that there is no overloading for modifiers). The
-``virtual`` keyword must be used on the overridden modifier
-and the ``override`` keyword must be used in the overriding modifier:
-
-.. code-block:: solidity
-
-    // SPDX-License-Identifier: GPL-3.0
-    pragma solidity >=0.6.0 <0.9.0;
-
-    contract Base
-    {
-        // This will report a warning (deprecation)
-        modifier foo() virtual {_;}
-    }
-
-    contract Inherited is Base
-    {
-        modifier foo() override {_;}
-    }
-
-
-In case of multiple inheritance, all direct base contracts must be specified
-explicitly:
-
-.. code-block:: solidity
-
-    // SPDX-License-Identifier: GPL-3.0
-    pragma solidity >=0.6.0 <0.9.0;
-
-    contract Base1
-    {
-        // This will report a warning (deprecation)
-        modifier foo() virtual {_;}
-    }
-
-    contract Base2
-    {
-        // This will report a warning (deprecation)
-        modifier foo() virtual {_;}
-    }
-
-    contract Inherited is Base1, Base2
-    {
-        modifier foo() override(Base1, Base2) {_;}
-    }
-
-.. warning::
-    ``virtual`` modifiers are deprecated and scheduled for removal.
-
 
 .. index:: ! constructor
 
@@ -460,7 +402,7 @@ equivalent to ``constructor() {}``. For example:
 .. code-block:: solidity
 
     // SPDX-License-Identifier: GPL-3.0
-    pragma solidity >=0.7.0 <0.9.0;
+    pragma solidity >=0.7.0 <0.10.0;
 
     abstract contract A {
         uint public a;
@@ -499,7 +441,7 @@ derived contracts need to specify all of them. This can be done in two ways:
 .. code-block:: solidity
 
     // SPDX-License-Identifier: GPL-3.0
-    pragma solidity >=0.7.0 <0.9.0;
+    pragma solidity >=0.7.0 <0.10.0;
 
     contract Base {
         uint x;
@@ -573,7 +515,7 @@ error "Linearization of inheritance graph impossible".
 .. code-block:: solidity
 
     // SPDX-License-Identifier: GPL-3.0
-    pragma solidity >=0.4.0 <0.9.0;
+    pragma solidity >=0.4.0 <0.10.0;
 
     contract X {}
     contract A is X {}
@@ -594,7 +536,7 @@ One area where inheritance linearization is especially important and perhaps not
 .. code-block:: solidity
 
     // SPDX-License-Identifier: GPL-3.0
-    pragma solidity >=0.7.0 <0.9.0;
+    pragma solidity >=0.7.0 <0.10.0;
 
     contract Base1 {
         constructor() {}
@@ -638,5 +580,4 @@ the same name are:
 - Overloading of functions.
 - Overriding of virtual functions.
 - Overriding of external virtual functions by state variable getters.
-- Overriding of virtual modifiers.
 - Overloading of events.

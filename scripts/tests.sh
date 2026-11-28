@@ -102,35 +102,27 @@ CURRENT_EVM_VERSION="osaka"
 # Run the Solidity unit-tests in the matrix combination of optimizer / no optimizer
 for optimize in "" "--optimize"
 do
-    for abiv1 in "no" "yes"
-    do
-        force_abiv1_flag=()
-        if [[ "$abiv1" == "yes" ]]
+    printTask "--> Running tests using $optimize --evm-version $CURRENT_EVM_VERSION..."
+
+    log=()
+    if [ -n "$log_directory" ]
+    then
+        if [ -n "$optimize" ]
         then
-            force_abiv1_flag=(--abiencoderv1)
+            log+=("--logger=JUNIT,error,$log_directory/opt_$CURRENT_EVM_VERSION.xml")
+        else
+            log+=("--logger=JUNIT,error,$log_directory/noopt_$CURRENT_EVM_VERSION.xml")
         fi
-        printTask "--> Running tests using $optimize --evm-version $CURRENT_EVM_VERSION ${force_abiv1_flag[*]}..."
+    fi
 
-        log=()
-        if [ -n "$log_directory" ]
-        then
-            if [ -n "$optimize" ]
-            then
-                log+=("--logger=JUNIT,error,$log_directory/opt_$CURRENT_EVM_VERSION.xml")
-            else
-                log+=("--logger=JUNIT,error,$log_directory/noopt_$CURRENT_EVM_VERSION.xml")
-            fi
-        fi
+    set +e
+    "${SOLIDITY_BUILD_DIR}"/test/soltest --show-progress "${log[@]}" -- --testpath "$REPO_ROOT"/test "$optimize" --evm-version "$CURRENT_EVM_VERSION" "${SMT_FLAGS[@]}"
 
-        set +e
-        "${SOLIDITY_BUILD_DIR}"/test/soltest --show-progress "${log[@]}" -- --testpath "$REPO_ROOT"/test "$optimize" --evm-version "$CURRENT_EVM_VERSION" "${SMT_FLAGS[@]}" "${force_abiv1_flag[@]}"
+    if test "0" -ne "$?"; then
+        exit 1
+    fi
+    set -e
 
-        if test "0" -ne "$?"; then
-            exit 1
-        fi
-        set -e
-
-    done
 done
 
 if [[ -n $CMDLINE_PID ]] && ! wait $CMDLINE_PID

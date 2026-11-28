@@ -392,7 +392,7 @@ library LibString {
 abstract contract Owned {
     event OwnershipTransferred(address indexed user, address indexed newOwner);
     address public owner;
-    modifier onlyOwner() virtual {
+    modifier onlyOwner() {
         require(msg.sender == owner, "UNAUTHORIZED");
         _;
     }

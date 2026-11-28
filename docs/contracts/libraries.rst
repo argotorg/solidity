@@ -8,7 +8,6 @@ Libraries
 
 Libraries are similar to contracts, but their purpose is that they are deployed
 only once at a specific address and their code is reused using the ``DELEGATECALL``
-(``CALLCODE`` until Homestead)
 feature of the EVM. This means that if library functions are called, their code
 is executed in the context of the calling contract, i.e. ``this`` points to the
 calling contract, and especially the storage from the calling contract can be
@@ -54,7 +53,7 @@ more advanced example to implement a set).
 .. code-block:: solidity
 
     // SPDX-License-Identifier: GPL-3.0
-    pragma solidity >=0.6.0 <0.9.0;
+    pragma solidity >=0.6.0 <0.10.0;
 
 
     // We define a new struct datatype that will be used to
@@ -123,8 +122,7 @@ are all compiled as calls (``DELEGATECALL``) to an external
 contract/library. If you use libraries, be aware that an
 actual external function call is performed.
 ``msg.sender``, ``msg.value`` and ``this`` will retain their values
-in this call, though (prior to Homestead, because of the use of ``CALLCODE``, ``msg.sender`` and
-``msg.value`` changed, though).
+in this call, though.
 
 The following example shows how to use :ref:`types stored in memory <data-location>` and
 internal functions in libraries in order to implement
@@ -134,7 +132,7 @@ custom types without the overhead of external function calls:
     :force:
 
     // SPDX-License-Identifier: GPL-3.0
-    pragma solidity ^0.8.0;
+    pragma solidity >=0.8.0 <0.10.0;
 
     struct bigint {
         uint[] limbs;
@@ -246,7 +244,7 @@ Its value can be obtained from Solidity using the ``.selector`` member as follow
 .. code-block:: solidity
 
     // SPDX-License-Identifier: GPL-3.0
-    pragma solidity >=0.5.14 <0.9.0;
+    pragma solidity >=0.5.14 <0.10.0;
 
     library L {
         function f(uint256) external {}

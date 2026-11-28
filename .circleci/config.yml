@@ -1262,16 +1262,10 @@ jobs:
       - run_soltest_all:
           # We test most EVM versions on every PR. The ones below are the exceptions.
           #
-          # We do not test these at all. We were never doing that and no point starting now since
-          # they are deprecated anyway:
-          # - tangerineWhistle
-          # - spuriousDragon
-          #
           # These have a low chance of breaking so we only run them in nightly to save credits:
-          # - byzantium: deprecated, if it breaks, homestead likely will as well
           # - petersburg: no changes compared to constantinople
           # - prague: no changes compared to cancun
-          evm_versions: byzantium petersburg prague
+          evm_versions: petersburg prague
       - store_test_results:
           path: test_results/
       - store_artifacts_test_results
@@ -1462,6 +1456,13 @@ jobs:
           command: |
             cd edr
             pnpm install --no-frozen-lockfile
+      - run:
+          name: Patch to allow 0.9 compiler. #TODO: Remove when EDR supports it properly
+          command: |
+            cd edr/hardhat-tests
+            sed -i 's/semver.satisfies(customSolcVersion, "^0.8.0")/semver.satisfies(customSolcVersion, ">=0.8.0")/' test/internal/hardhat-network/stack-traces/test.ts
+            find test/internal/hardhat-network/stack-traces/test-files/0_8 -name '*.sol' -exec sed -i 's/pragma solidity \^0\.8\./pragma solidity >=0.8./' {} +
+            find test/internal/hardhat-network/stack-traces/test-files/0_8 -name 'test.json' -exec sed -i '/"solc"/s/\^0\.8/>=0.8/' {} +
       - run:
           name: Run hardhat-tests in EDR repo
           command: |

@@ -37,11 +37,10 @@ contract C {
 	}
 }
 // ====
-// SMTEngine: all
+// SMTEngine: chc
 // SMTIgnoreInv: yes
 // SMTIgnoreOS: macos
 // ----
 // Warning 2018: (33-88): Function state mutability can be restricted to view
 // Warning 6328: (367-381): CHC: Assertion violation happens here.
 // Info 1391: CHC: 1 verification condition(s) proved safe! Enable the model checker option "show proved safe" to see all of them.
-// Warning 3993: The BMC engine of the SMTChecker is deprecated and will be removed in a future release. Please use the CHC engine instead.

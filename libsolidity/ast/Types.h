@@ -392,7 +392,7 @@ public:
 	/// when used for e.g. abi.encode(...) or the empty pointer if the object
 	/// cannot be encoded.
 	/// This is different from encodingType since it takes implicit conversions into account.
-	Type const* fullEncodingType(bool _inLibraryCall, bool _encoderV2, bool _packed) const;
+	Type const* fullEncodingType(bool _inLibraryCall) const;
 	/// @returns a (simpler) type that is used when decoding this type in calldata.
 	virtual Type const* decodingType() const { return encodingType(); }
 	/// @returns a type that will be used outside of Solidity for e.g. function signatures.
@@ -1433,9 +1433,6 @@ public:
 	TypePointers const& parameterTypesIncludingSelf() const;
 	std::vector<std::string> parameterNames() const;
 	TypePointers const& returnParameterTypes() const { return m_returnParameterTypes; }
-	/// @returns the list of return parameter types. All dynamically-sized types (this excludes
-	/// storage pointers) are replaced by InaccessibleDynamicType instances.
-	TypePointers returnParameterTypesWithoutDynamicTypes() const;
 	std::vector<std::string> const& returnParameterNames() const { return m_returnParameterNames; }
 	/// @returns the "self" parameter type for an attached function
 	Type const* selfType() const;
@@ -1501,10 +1498,10 @@ public:
 		return *m_declaration;
 	}
 	bool hasDeclaration() const { return !!m_declaration; }
-	/// @returns true if the result of this function only depends on its arguments,
-	/// does not modify the state and is a compile-time constant.
+	/// @returns true if a call to this function is a runtime constant whenever its arguments are,
+	/// i.e. the result only depends on the arguments and the call does not modify the state.
 	/// Currently, this will only return true for internal functions like keccak and ecrecover.
-	bool isPure() const;
+	bool returnsRuntimeConstant() const;
 	bool isPayable() const { return m_stateMutability == StateMutability::Payable; }
 	/// @return A shared pointer of StructuredDocumentation.
 	/// Can contain a nullptr in which case indicates absence of documentation.
