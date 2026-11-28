@@ -21,6 +21,9 @@ Compiler Features:
 * Commandline Interface: Remove the experimental `--ethdebug-resources` and `--ethdebug-compilation` outputs from assembler mode.
 * Standard JSON Interface: Remove the experimental `ethdebug.resources` and `ethdebug.compilation` outputs for Yul input.
 
+Bugfixes:
+* SSA CFG Codegen: Report a stack-too-deep error instead of an internal compiler error when a function that is part of a recursive call chain requires spilling to memory (experimental).
+
 
 ### 0.8.39 (2026-11-19)
 

@@ -98,7 +98,7 @@ StackData stack::chooseBlockStackIn(
 					_spillingAllowed,
 					_reachableStackDepth
 				);
-				yulAssert(result.status == ShuffleResult::Status::Admissible);
+				requireRealizableLayout(result.status == ShuffleResult::Status::Admissible, _spillingAllowed, _cfg);
 				cumulativeGas[i] += stackOpsGas(_cfg, result.trace);
 			}
 			candidateSpillSets[i] = std::move(candidateSpillSet);
@@ -111,9 +111,10 @@ StackData stack::chooseBlockStackIn(
 		for (std::size_t i = 1; i < _edges.size(); ++i)
 			if (candidateCost(i) < candidateCost(best))
 				best = i;
-		yulAssert(
+		requireRealizableLayout(
 			_spillingAllowed || candidateSpillSets[best].numSpilled() == _spillSet.numSpilled(),
-			"Stack too deep, but spilling is disabled because the function is part of a recursive call chain."
+			_spillingAllowed,
+			_cfg
 		);
 		_spillSet = std::move(candidateSpillSets[best]);
 		stackIn = std::move(proposals[best]);
